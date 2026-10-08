@@ -1,0 +1,782 @@
+{
+  "dependency_listing": "reuse-deterministicio-dependencies-receipt.json",
+  "dependency_listing_sha256": "03c969b499bd20f29d2206f8d1292617a9b0e2e355bd70f9fc4f25b2e284fbdc",
+  "predecessor_manifest": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/accepted-deterministicio-workspace-complement-source.json",
+  "predecessor_manifest_sha256": "5d64fcdf556d73f6c6482b40fa4edd4144545372edd1007b3699516bea948363",
+  "dependency_paths": [
+    {
+      "path": "go.mod",
+      "sha256": "8f5c8b618955af605647a4a4cfc0f93a82f2c25423038166a3d9faafaba14b32",
+      "predecessor_sha256": "8f5c8b618955af605647a4a4cfc0f93a82f2c25423038166a3d9faafaba14b32",
+      "exact": true
+    },
+    {
+      "path": "go.sum",
+      "sha256": "15dbb85a0134b17beba7707f6d9565eb55009ca05b05f0cd43ad5a6679f58849",
+      "predecessor_sha256": "15dbb85a0134b17beba7707f6d9565eb55009ca05b05f0cd43ad5a6679f58849",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_cache_cleanup_test.go",
+      "sha256": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc",
+      "predecessor_sha256": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_configuration_portable_test.go",
+      "sha256": "7fb748f3a781ed3a6b76830e8c0709129ca33b2827ef2e8827e7f59032660f42",
+      "predecessor_sha256": "7fb748f3a781ed3a6b76830e8c0709129ca33b2827ef2e8827e7f59032660f42",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_consumers_portable_test.go",
+      "sha256": "d2df7e69581f0bc8caba49097c5831f3904bb4a46d1a9de0200bc415472f0f27",
+      "predecessor_sha256": "d2df7e69581f0bc8caba49097c5831f3904bb4a46d1a9de0200bc415472f0f27",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_copy.go",
+      "sha256": "d296c328d80697e7808f95841a88f0b20bc4e167e38844e689765e669679a0a1",
+      "predecessor_sha256": "d296c328d80697e7808f95841a88f0b20bc4e167e38844e689765e669679a0a1",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_copy_test.go",
+      "sha256": "cbe7eda37d6f11a78957d7aee0d1773b7237f66ae09180d336f82f13c6d0f887",
+      "predecessor_sha256": "cbe7eda37d6f11a78957d7aee0d1773b7237f66ae09180d336f82f13c6d0f887",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_graph_portable_test.go",
+      "sha256": "126754dae10dca15c0367ee60c90e459f04b900b5bfd1d76b6e8535d68743149",
+      "predecessor_sha256": "126754dae10dca15c0367ee60c90e459f04b900b5bfd1d76b6e8535d68743149",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_pin_decisions_test.go",
+      "sha256": "5bf60b2f658a4c99bcd5f863b73de1c78336f059c232b50efaf076a32c6a11ba",
+      "predecessor_sha256": "5bf60b2f658a4c99bcd5f863b73de1c78336f059c232b50efaf076a32c6a11ba",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_preservation_portable_test.go",
+      "sha256": "16c18726d46e301f30bee38ec19c6fd549cd67762cd2ff21ab1fca46333b244e",
+      "predecessor_sha256": "16c18726d46e301f30bee38ec19c6fd549cd67762cd2ff21ab1fca46333b244e",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_regenerate.go",
+      "sha256": "f0264bc3f57d72278d689d9b1c36f861196bf1c111095c66a4fc1533c510596e",
+      "predecessor_sha256": "f0264bc3f57d72278d689d9b1c36f861196bf1c111095c66a4fc1533c510596e",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_portable_test.go",
+      "sha256": "ae1ab267295505d7ba146199e02fd54265760f8e0851ac4b0eac5a701cff86bf",
+      "predecessor_sha256": "ae1ab267295505d7ba146199e02fd54265760f8e0851ac4b0eac5a701cff86bf",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_source.go",
+      "sha256": "09c8d3318d3422f5aacc38348323f300250661397b3b98e9bf535468e1ceb34d",
+      "predecessor_sha256": "09c8d3318d3422f5aacc38348323f300250661397b3b98e9bf535468e1ceb34d",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "predecessor_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_registry.go",
+      "sha256": "308a7ca06057995978dd750b5073c0307c8053040748743b905b88d0625face9",
+      "predecessor_sha256": "308a7ca06057995978dd750b5073c0307c8053040748743b905b88d0625face9",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_registry_test.go",
+      "sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "predecessor_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite.go",
+      "sha256": "85f4101937d8f4dc580ea5d9c48c8d6eee3681eb02fe8747ace3309017052e06",
+      "predecessor_sha256": "85f4101937d8f4dc580ea5d9c48c8d6eee3681eb02fe8747ace3309017052e06",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_verify_cleanup_test.go",
+      "sha256": "9449dfd22e7c4aa9c01a148a1448035d36d37ff86683a92eab501db12c14db10",
+      "predecessor_sha256": "9449dfd22e7c4aa9c01a148a1448035d36d37ff86683a92eab501db12c14db10",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapterdata/modernc_libc_darwin.go.tmpl",
+      "sha256": "a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f",
+      "predecessor_sha256": "a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapterdata/modernc_libc_linux.go.tmpl",
+      "sha256": "0bb1c8c9679070bd824ad53510742a6a1ee3177bd5b70162859c5d0ebfacf2c0",
+      "predecessor_sha256": "0bb1c8c9679070bd824ad53510742a6a1ee3177bd5b70162859c5d0ebfacf2c0",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/bootstrap.go",
+      "sha256": "6f7a7904efaf956712678ee996fac80e9189b5963714125a2a778d6e530cd744",
+      "predecessor_sha256": "6f7a7904efaf956712678ee996fac80e9189b5963714125a2a778d6e530cd744",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/bootstrap_toolchain_test.go",
+      "sha256": "14b016f2568e25b0431b35107bad2f021d460e5e117ebae61e6bf62e96e56d0e",
+      "predecessor_sha256": "14b016f2568e25b0431b35107bad2f021d460e5e117ebae61e6bf62e96e56d0e",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/boundary_generated.go",
+      "sha256": "f3197e895866223e7f32f75271a5576d0312052f38483658b5485ab1476fc34f",
+      "predecessor_sha256": "f3197e895866223e7f32f75271a5576d0312052f38483658b5485ab1476fc34f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/cactusstatsd_adapter.go",
+      "sha256": "04df9510a71e8546c5d6fdefef9e5c4ea5c83a783ec86d92ef5026c8dafd1d50",
+      "predecessor_sha256": "04df9510a71e8546c5d6fdefef9e5c4ea5c83a783ec86d92ef5026c8dafd1d50",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/domain.go",
+      "sha256": "18bd47fd50a389e55e02270a083c7f83c6611403b9d0a358ef650b90a701b066",
+      "predecessor_sha256": "18bd47fd50a389e55e02270a083c7f83c6611403b9d0a358ef650b90a701b066",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/downstream_adapter_registry_test.go",
+      "sha256": "b603a4d49d3c6133be6aff84f43a07d0fe7d92082931bcd318b3663b49e915bd",
+      "predecessor_sha256": "b603a4d49d3c6133be6aff84f43a07d0fe7d92082931bcd318b3663b49e915bd",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/fx_adapter.go",
+      "sha256": "30087c430dfe6b4393d7c9b94e4939f12f93dd58ae90670d6ee740e463810c9f",
+      "predecessor_sha256": "30087c430dfe6b4393d7c9b94e4939f12f93dd58ae90670d6ee740e463810c9f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter.go",
+      "sha256": "ada8ae1b129d79d3701083f70656e6fe3e7240d4ffaf49dfdbfe75d85441ebe2",
+      "predecessor_sha256": "ada8ae1b129d79d3701083f70656e6fe3e7240d4ffaf49dfdbfe75d85441ebe2",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "predecessor_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_dns_test.go",
+      "sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "predecessor_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter.go",
+      "sha256": "28c8110162eafb9cb11eb34232372e5e16a282448196901a1305426169b68972",
+      "predecessor_sha256": "28c8110162eafb9cb11eb34232372e5e16a282448196901a1305426169b68972",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+      "sha256": "1a132adc9a2c5a8e47c2bbe7f8dcb8500322169bb17406cc041f3a6bc82aef5f",
+      "predecessor_sha256": "1a132adc9a2c5a8e47c2bbe7f8dcb8500322169bb17406cc041f3a6bc82aef5f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/host_dispatch_patch_test.go",
+      "sha256": "3c057631299f138cde58343c79166c91d87660e14fad22576343b46330117084",
+      "predecessor_sha256": "3c057631299f138cde58343c79166c91d87660e14fad22576343b46330117084",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/internal/wire/wire_generated.go",
+      "sha256": "ca3517bdc3165fb6a2fd008a3547f726e7d00d0eb75eb59f7da9205302d1fe51",
+      "predecessor_sha256": "ca3517bdc3165fb6a2fd008a3547f726e7d00d0eb75eb59f7da9205302d1fe51",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/libc_adapter.go",
+      "sha256": "cc445478612c235837ceb2702645496cea0ac47ee7d457291bde1fd82f5d6d6a",
+      "predecessor_sha256": "cc445478612c235837ceb2702645496cea0ac47ee7d457291bde1fd82f5d6d6a",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/libc_adapter_test.go",
+      "sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "predecessor_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/libc_regenerate.go",
+      "sha256": "fb3996a626541f737746c9477f932cd5d08b3b2b21e724dfd20956034c9c0a5f",
+      "predecessor_sha256": "fb3996a626541f737746c9477f932cd5d08b3b2b21e724dfd20956034c9c0a5f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/libc_regenerate_test.go",
+      "sha256": "8b06ecef241b539b50e9ef3f201e5b380e04f02ac436f361ca07bc8ac4e0bc8b",
+      "predecessor_sha256": "8b06ecef241b539b50e9ef3f201e5b380e04f02ac436f361ca07bc8ac4e0bc8b",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memberlist_adapter.go",
+      "sha256": "91e74c69b1acb2df5740a490ecd66c6bafa22e5d5d4fbd473454d8988ab8bd98",
+      "predecessor_sha256": "91e74c69b1acb2df5740a490ecd66c6bafa22e5d5d4fbd473454d8988ab8bd98",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memberlist_adapter_test.go",
+      "sha256": "f02e255e85ff730a4274df27083df8121aaa0a0ba6776bbfdbc88e3ec1559c15",
+      "predecessor_sha256": "f02e255e85ff730a4274df27083df8121aaa0a0ba6776bbfdbc88e3ec1559c15",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter.go",
+      "sha256": "a2af9c410c90a39c18f4ea02dd90376cf8787f32f95e06c173869e0d7a61e18c",
+      "predecessor_sha256": "a2af9c410c90a39c18f4ea02dd90376cf8787f32f95e06c173869e0d7a61e18c",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "predecessor_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/metrics_consumer_portable_test.go",
+      "sha256": "e446f13e23903848f7f8c2e4e3b9a8a73576afa0721f962496d0f50db3b67636",
+      "predecessor_sha256": "e446f13e23903848f7f8c2e4e3b9a8a73576afa0721f962496d0f50db3b67636",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/otelsdk_adapter.go",
+      "sha256": "fad4f690d91e9ceac2a226e8555f9ac32460674b9e43d1022a5a56440247b8fd",
+      "predecessor_sha256": "fad4f690d91e9ceac2a226e8555f9ac32460674b9e43d1022a5a56440247b8fd",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/pebble_adapter.go",
+      "sha256": "01469f6c2b8d69b2b0f3d84db2cccf523efe52604d7a4571b6212cdb7440231d",
+      "predecessor_sha256": "01469f6c2b8d69b2b0f3d84db2cccf523efe52604d7a4571b6212cdb7440231d",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "sha256": "d068900a3b76bc91e5b94f0d67e00e67e225c50c0f3d23cbf92ce992ef0c5f21",
+      "predecessor_sha256": "d068900a3b76bc91e5b94f0d67e00e67e225c50c0f3d23cbf92ce992ef0c5f21",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile_portable_test.go",
+      "sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4",
+      "predecessor_sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile_test.go",
+      "sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "predecessor_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/requirements.go",
+      "sha256": "e14f247a8ce41f5cd0ce0e712e6299f67afcb1ffbe8b2daeb674100cb0f118a1",
+      "predecessor_sha256": "e14f247a8ce41f5cd0ce0e712e6299f67afcb1ffbe8b2daeb674100cb0f118a1",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/requirements_test.go",
+      "sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "predecessor_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/semantic_coverage.go",
+      "sha256": "7f348726eb14a42ad0d8c4a84a376998d1e9669f33fd40f684042c54c37031e6",
+      "predecessor_sha256": "7f348726eb14a42ad0d8c4a84a376998d1e9669f33fd40f684042c54c37031e6",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/semantic_coverage_test.go",
+      "sha256": "aab5d1609e291f3d62b2f5c52186c925dcdd82c358b9fa94535ec037ca9b5e53",
+      "predecessor_sha256": "aab5d1609e291f3d62b2f5c52186c925dcdd82c358b9fa94535ec037ca9b5e53",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sentry_adapter.go",
+      "sha256": "0c2f69da758faffbae427817435e6d577d4cc5597e1fe12f556dcb819c1d3157",
+      "predecessor_sha256": "0c2f69da758faffbae427817435e6d577d4cc5597e1fe12f556dcb819c1d3157",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/session.go",
+      "sha256": "20dff73c5343395901d18a13f66ea23c721f203104353f9316456920284feed0",
+      "predecessor_sha256": "20dff73c5343395901d18a13f66ea23c721f203104353f9316456920284feed0",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/session_test.go",
+      "sha256": "39340d0c47bedc9bb4d8a62673d7cf56821510efe8fdf6006561d1d3bbfae8da",
+      "predecessor_sha256": "39340d0c47bedc9bb4d8a62673d7cf56821510efe8fdf6006561d1d3bbfae8da",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_adapter.go",
+      "sha256": "fd3a7a698648155c05a6f07174e68a98e3d4caf947b3528b6ff066c667c4e2c9",
+      "predecessor_sha256": "fd3a7a698648155c05a6f07174e68a98e3d4caf947b3528b6ff066c667c4e2c9",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "predecessor_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sprig_adapter.go",
+      "sha256": "e1f4112eddc76531c6c34291a1c83a9c60bd738e758646bf24a785c04f72fee8",
+      "predecessor_sha256": "e1f4112eddc76531c6c34291a1c83a9c60bd738e758646bf24a785c04f72fee8",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/temporalsdk_adapter.go",
+      "sha256": "02af3f94db9aeff4318c232125e5222e29964aa5c7680950071262ff136e4429",
+      "predecessor_sha256": "02af3f94db9aeff4318c232125e5222e29964aa5c7680950071262ff136e4429",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/transcript.go",
+      "sha256": "001bc84793965386542d0175671d0801aee3751cd59553f7fefcaac32e1fe5f9",
+      "predecessor_sha256": "001bc84793965386542d0175671d0801aee3751cd59553f7fefcaac32e1fe5f9",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/validator_adapter.go",
+      "sha256": "34b1d0345693c489d254ee3d22d4f04e468660f82129d807f108ad83fd9f1567",
+      "predecessor_sha256": "34b1d0345693c489d254ee3d22d4f04e468660f82129d807f108ad83fd9f1567",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter.go",
+      "sha256": "7906dde699cf7f9a18901215b9399f725e98e563b04a8c176843d69eb724c1b8",
+      "predecessor_sha256": "7906dde699cf7f9a18901215b9399f725e98e563b04a8c176843d69eb724c1b8",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "predecessor_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/go.mod",
+      "sha256": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+      "predecessor_sha256": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/go.sum",
+      "sha256": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960",
+      "predecessor_sha256": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/canonicaljson/canonical.go",
+      "sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+      "predecessor_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/golang-x-sys-v047-darwin-arm64.json",
+      "sha256": "ca263b36199b7159742f513e709d1d354171346c43d00d00410737a8f8221c99",
+      "predecessor_sha256": "ca263b36199b7159742f513e709d1d354171346c43d00d00410737a8f8221c99",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json",
+      "sha256": "406aef2d9c91955e1e0e63eace8133481e5115796d83374536b27a7159509b85",
+      "predecessor_sha256": "406aef2d9c91955e1e0e63eace8133481e5115796d83374536b27a7159509b85",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v047-isatty-v021.json",
+      "sha256": "1c7bfa786bb0b858f9a267753c6189a5d464dc531a3ac5ea9d38062ad28bd48f",
+      "predecessor_sha256": "1c7bfa786bb0b858f9a267753c6189a5d464dc531a3ac5ea9d38062ad28bd48f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v047-linux-amd64.json",
+      "sha256": "6f678afc4d0d8e6ac56b9adc58b3d6a45c44811d34ff8790e995802187c8d45b",
+      "predecessor_sha256": "6f678afc4d0d8e6ac56b9adc58b3d6a45c44811d34ff8790e995802187c8d45b",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v047.json",
+      "sha256": "bf61f5cc8ba86595922e001a6624cc98507d83837a8d8627a73639dc4081c36f",
+      "predecessor_sha256": "bf61f5cc8ba86595922e001a6624cc98507d83837a8d8627a73639dc4081c36f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/reflect2-go126.json",
+      "sha256": "8df4d3135d4edc2903f0c5242397115ed5f1d5f39f9a46b1a6f2b8eeabad39ea",
+      "predecessor_sha256": "8df4d3135d4edc2903f0c5242397115ed5f1d5f39f9a46b1a6f2b8eeabad39ea",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/temporal-functional-compute-darwin-arm64.json",
+      "sha256": "238575d9e6b642bccca180b780c4ec176d95b258d2dfdb22e23e99316b0d6d5b",
+      "predecessor_sha256": "238575d9e6b642bccca180b780c4ec176d95b258d2dfdb22e23e99316b0d6d5b",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/temporal-functional-compute-linux-amd64.json",
+      "sha256": "59c69afd0cdb2cd4a8deaaea3ce4ea8ae3910743bb474945759e2964839726e4",
+      "predecessor_sha256": "59c69afd0cdb2cd4a8deaaea3ce4ea8ae3910743bb474945759e2964839726e4",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/temporal-functional-tests-darwin-arm64.json",
+      "sha256": "4e861bc1e1f7a60704bbf52dfe2df997e06aba349b07be7ddac8011bd437a365",
+      "predecessor_sha256": "4e861bc1e1f7a60704bbf52dfe2df997e06aba349b07be7ddac8011bd437a365",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/temporal-functional-tests-linux-amd64.json",
+      "sha256": "2a74ff01c7aeef8132db894e530f54dc74bf5104cf17b5dbe69e1145c1713d9e",
+      "predecessor_sha256": "2a74ff01c7aeef8132db894e530f54dc74bf5104cf17b5dbe69e1145c1713d9e",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/temporal-leaf-xsys-darwin-arm64.json",
+      "sha256": "1ebf73e8f3a3bb424e617b9294e89290de68c7837171d602b71ac5ec425c5b77",
+      "predecessor_sha256": "1ebf73e8f3a3bb424e617b9294e89290de68c7837171d602b71ac5ec425c5b77",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/temporal-leaf-xxhash-darwin-arm64.json",
+      "sha256": "9a9f167727dafc89651503836f18b7f5ee87674a9c2f9ecaee9a824a66bafc91",
+      "predecessor_sha256": "9a9f167727dafc89651503836f18b7f5ee87674a9c2f9ecaee9a824a66bafc91",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/policy.go",
+      "sha256": "c7d137b5d1df036f25cbdc11ebeb31da6c1dc0e1a26adc5e00dfe276df7d9642",
+      "predecessor_sha256": "c7d137b5d1df036f25cbdc11ebeb31da6c1dc0e1a26adc5e00dfe276df7d9642",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/schema.go",
+      "sha256": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed",
+      "predecessor_sha256": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/v2_selection.go",
+      "sha256": "7c80bfa7cce53d14967b8aff784461e855e70c066af32607fb6ca03a3da65f59",
+      "predecessor_sha256": "7c80bfa7cce53d14967b8aff784461e855e70c066af32607fb6ca03a3da65f59",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostexec/command.go",
+      "sha256": "af5cddc9e64692bf450ca134e9be51e314faf100ce70c9eab387825573da5b33",
+      "predecessor_sha256": "af5cddc9e64692bf450ca134e9be51e314faf100ce70c9eab387825573da5b33",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostexec/command_unix.go",
+      "sha256": "d45c444c47f75089de9ec3f9369a85b4c8d2c60d21f191d3bef4733aa0726a45",
+      "predecessor_sha256": "d45c444c47f75089de9ec3f9369a85b4c8d2c60d21f191d3bef4733aa0726a45",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostexec/output.go",
+      "sha256": "f48857359b71c849ff8504a4dab9c162756ca80a75849e0072fdc9e57339948f",
+      "predecessor_sha256": "f48857359b71c849ff8504a4dab9c162756ca80a75849e0072fdc9e57339948f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/linkcount_unix.go",
+      "sha256": "76160dcce494bbc6a70e89749eaead1f25dc8ab358278f6ad82d327def0cb2c5",
+      "predecessor_sha256": "76160dcce494bbc6a70e89749eaead1f25dc8ab358278f6ad82d327def0cb2c5",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/lock.go",
+      "sha256": "9154e2f59f29f624596a563a753a3ff69f662586721446ab7867487965cb1dcf",
+      "predecessor_sha256": "9154e2f59f29f624596a563a753a3ff69f662586721446ab7867487965cb1dcf",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/lock_unix.go",
+      "sha256": "80b21577f4389edfeb99f36c482ce5b4f113f3e614a74ee1bbfd98604e6539d6",
+      "predecessor_sha256": "80b21577f4389edfeb99f36c482ce5b4f113f3e614a74ee1bbfd98604e6539d6",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/open.go",
+      "sha256": "26fbaa79b91fc6fe44954deafeeba0b86fe64474f3823b1de3baaaa9f97ba0ae",
+      "predecessor_sha256": "26fbaa79b91fc6fe44954deafeeba0b86fe64474f3823b1de3baaaa9f97ba0ae",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/open_nofollow_unix.go",
+      "sha256": "e3b4c1542a274d21a52bb5ec6376355db21da00dcc62c3eca25666c00a4351aa",
+      "predecessor_sha256": "e3b4c1542a274d21a52bb5ec6376355db21da00dcc62c3eca25666c00a4351aa",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/read.go",
+      "sha256": "e348d96555a21d06f69801b90a51c2669566be12b4f4770e0bbb99afff9a87f6",
+      "predecessor_sha256": "e348d96555a21d06f69801b90a51c2669566be12b4f4770e0bbb99afff9a87f6",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/replace.go",
+      "sha256": "82fe7abbff885dc563ff1cfdff27da6bd4992d0808332053d78ea4e6a53c82ad",
+      "predecessor_sha256": "82fe7abbff885dc563ff1cfdff27da6bd4992d0808332053d78ea4e6a53c82ad",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/internal/sourceinventory/inventory.go",
+      "sha256": "5df9e8cbf6f11f90ee804acf502b8b7dca45f83fdebcb88da9f4992253da53f4",
+      "predecessor_sha256": "5df9e8cbf6f11f90ee804acf502b8b7dca45f83fdebcb88da9f4992253da53f4",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/record/identity.go",
+      "sha256": "ae1bdb9414b07599332a84c2bc31209ebdbaeeca6c77f4603d71b5af7812cee2",
+      "predecessor_sha256": "ae1bdb9414b07599332a84c2bc31209ebdbaeeca6c77f4603d71b5af7812cee2",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/record/record.go",
+      "sha256": "856100c9ed8574b408fa548b851df3d79a840f7b63efd09826f6c1b9bf9d2c4f",
+      "predecessor_sha256": "856100c9ed8574b408fa548b851df3d79a840f7b63efd09826f6c1b9bf9d2c4f",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/record/types.go",
+      "sha256": "22f477411523ecbbeacd49f31ab5b5755512caf862ae410dfbf7d5472ef584f5",
+      "predecessor_sha256": "22f477411523ecbbeacd49f31ab5b5755512caf862ae410dfbf7d5472ef584f5",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/record/uint64_string.go",
+      "sha256": "75c595f762d9034cbb31b63e97a593427ed2b873b8adc8512f61bf899bbb326c",
+      "predecessor_sha256": "75c595f762d9034cbb31b63e97a593427ed2b873b8adc8512f61bf899bbb326c",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/record/validation.go",
+      "sha256": "bacfb8beede09172831ad9b8bfc8360c5d999b1bfcfef11470ee0c9001da519b",
+      "predecessor_sha256": "bacfb8beede09172831ad9b8bfc8360c5d999b1bfcfef11470ee0c9001da519b",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/adapter_source_set.go",
+      "sha256": "cceeb09d76033404ff684bb9c57efd648dd909b230f0656da7a818173f3cd31d",
+      "predecessor_sha256": "cceeb09d76033404ff684bb9c57efd648dd909b230f0656da7a818173f3cd31d",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/capability.go",
+      "sha256": "3b439959ea1d82ba86814d24fc906995c5c22fece5bf530e009fc6d6c161eca1",
+      "predecessor_sha256": "3b439959ea1d82ba86814d24fc906995c5c22fece5bf530e009fc6d6c161eca1",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/capability_capacity.go",
+      "sha256": "2a5a5dc4fde004f348f577916d2195d0426f93e051fddbd82842d325da1d89f5",
+      "predecessor_sha256": "2a5a5dc4fde004f348f577916d2195d0426f93e051fddbd82842d325da1d89f5",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/capability_collection.go",
+      "sha256": "432f5027aa4b76f624e5717c60814e97cd320fb5c202ab18a6fc9c45842372de",
+      "predecessor_sha256": "432f5027aa4b76f624e5717c60814e97cd320fb5c202ab18a6fc9c45842372de",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/capability_evaluation.go",
+      "sha256": "daceec8ebdbba116a3b7a546cb0796c3e7d2a4f8b7e4924fe922c43469cbe3af",
+      "predecessor_sha256": "daceec8ebdbba116a3b7a546cb0796c3e7d2a4f8b7e4924fe922c43469cbe3af",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/capability_linked.go",
+      "sha256": "cbe9e3f6cfeddad72610bb476796c08ddb37eada1f9c1d2a0dbd4cd5d3e6f451",
+      "predecessor_sha256": "cbe9e3f6cfeddad72610bb476796c08ddb37eada1f9c1d2a0dbd4cd5d3e6f451",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/build/context.go",
+      "sha256": "c998794068b981697124b63a8a8c544bc678d08bdb94e6873ae6cfc5356febed",
+      "predecessor_sha256": "c998794068b981697124b63a8a8c544bc678d08bdb94e6873ae6cfc5356febed",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/build/trim.go",
+      "sha256": "c4107eb12626de7daaeb2d7b1e8d907c39315b01c841049eab96426f2a033fae",
+      "predecessor_sha256": "c4107eb12626de7daaeb2d7b1e8d907c39315b01c841049eab96426f2a033fae",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/capabilitypolicy/policy.go",
+      "sha256": "943b5bce7a64e76fa7bd40573d1946f0ea4323f6cea7e7d1b4a70dadb05f00e6",
+      "predecessor_sha256": "943b5bce7a64e76fa7bd40573d1946f0ea4323f6cea7e7d1b4a70dadb05f00e6",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/capabilitypolicy/simulation_bridge.go",
+      "sha256": "6e8e072c7d47aa73f7e9f05d938ebe625e0e6ba56f317381978e539b30342bd8",
+      "predecessor_sha256": "6e8e072c7d47aa73f7e9f05d938ebe625e0e6ba56f317381978e539b30342bd8",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/capabilityreview/list.go",
+      "sha256": "f1a81f69054ea5b962731238c5ec89b2ed375082061f78a9e3252d8fe7500164",
+      "predecessor_sha256": "f1a81f69054ea5b962731238c5ec89b2ed375082061f78a9e3252d8fe7500164",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/gocommand/command.go",
+      "sha256": "4b7a5fb580b6addd439c6e0f75d7558a95ab4f593798b908ac1af989cf531e9d",
+      "predecessor_sha256": "4b7a5fb580b6addd439c6e0f75d7558a95ab4f593798b908ac1af989cf531e9d",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/extract.go",
+      "sha256": "35496ac84c04767d66fae2911bff1ac8896d7deaeee606af5bcbc3ad9627c7b7",
+      "predecessor_sha256": "35496ac84c04767d66fae2911bff1ac8896d7deaeee606af5bcbc3ad9627c7b7",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/livecap.go",
+      "sha256": "a1580d1f3cfdd360a50a5d33b07a3907dbe9b7045f1bf36b9b11d447dbc9b152",
+      "predecessor_sha256": "a1580d1f3cfdd360a50a5d33b07a3907dbe9b7045f1bf36b9b11d447dbc9b152",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/project.go",
+      "sha256": "914ee78048512c602f18a74bc0943481c8e4200d0979594e0dfbf3345f7d9745",
+      "predecessor_sha256": "914ee78048512c602f18a74bc0943481c8e4200d0979594e0dfbf3345f7d9745",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/protocol_generated.go",
+      "sha256": "1dff35c2c23bc5175adf475cf8d5ffbe95ab3fa403620c51ce25af85850ece79",
+      "predecessor_sha256": "1dff35c2c23bc5175adf475cf8d5ffbe95ab3fa403620c51ce25af85850ece79",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/provenance/store.go",
+      "sha256": "522e941e5ab437ef4eb165cefaf7f7d438c49a70328daedef25b1e1f1a51dbbe",
+      "predecessor_sha256": "522e941e5ab437ef4eb165cefaf7f7d438c49a70328daedef25b1e1f1a51dbbe",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/module_directory.go",
+      "sha256": "b49ad9a5a169dc47aa6c3fbbcd50c2c3202c9310931997f9660f5ba842a45803",
+      "predecessor_sha256": "b49ad9a5a169dc47aa6c3fbbcd50c2c3202c9310931997f9660f5ba842a45803",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/prepared_cache.go",
+      "sha256": "13d96303a2eafe579d87f82f38c6c4c8f78416647dc42ea38de21bbc44d02c01",
+      "predecessor_sha256": "13d96303a2eafe579d87f82f38c6c4c8f78416647dc42ea38de21bbc44d02c01",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/target/target.go",
+      "sha256": "1488c09449df41c88b727c191034cdba45f908faa63f7cc6318d55792130654c",
+      "predecessor_sha256": "1488c09449df41c88b727c191034cdba45f908faa63f7cc6318d55792130654c",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/installation/installation.go",
+      "sha256": "c1334bce49ffca084c41605889e95d982266e139f4cd5fd7941224a79da340d2",
+      "predecessor_sha256": "c1334bce49ffca084c41605889e95d982266e139f4cd5fd7941224a79da340d2",
+      "exact": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/descriptor.go",
+      "sha256": "ab9f6d318754e47943a95758687456f09bffc4d4aba428ee0b46fcf0650b034e",
+      "predecessor_sha256": "146251af94cc8136031818573e8ffe62aee417f2a504f56e58e2f8d4c57db9b7",
+      "exact": false
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/generated.go",
+      "sha256": "9b5941cb2c1ca074839f329ad013dbeaf3710d48a5e084b9e5402a83853f14ae",
+      "predecessor_sha256": "9b5941cb2c1ca074839f329ad013dbeaf3710d48a5e084b9e5402a83853f14ae",
+      "exact": true
+    }
+  ],
+  "descriptor_exception": {
+    "path": "tools/gomad3/toolchain/version/descriptor.go",
+    "old_sha256": "146251af94cc8136031818573e8ffe62aee417f2a504f56e58e2f8d4c57db9b7",
+    "current_sha256": "ab9f6d318754e47943a95758687456f09bffc4d4aba428ee0b46fcf0650b034e",
+    "all_bytes_outside_unexported_renderUpgradeGuide_exact": true,
+    "generated_identity_file_exact": true,
+    "generator_references_absent_from_reused_sources": true,
+    "fresh_guide_proof": [
+      "final-version-receipt.json",
+      "walk-adapter-apply-receipt.json",
+      "walk-validate-receipt.json"
+    ]
+  },
+  "packets": [
+    {
+      "receipt": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/accepted-deterministicio-workspace-complement-receipt.json",
+      "receipt_sha256": "e496bdf06fba24658ff95887424d790ec9721c27064beb9a1c389ab7b2e0f2f5",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestAdapterModuleSumRecords|TestAdapterPreparedSourceSetPinsReproduceOnEveryHost|TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration|TestAdapterRegistryPortablePinDecisions|TestAdapterRegistryPublishesReplacementAtStableToolchainLocation|TestAdapterRegistryUsesExactVersionReplacement|TestAdapterReplacementUsesExplicitModuleRoot|TestCopyAdapterModuleAppliesReplacementsAndAdditions|TestCopyAdapterModuleRejectsSpecialFile|TestCopyAdapterModuleRejectsSymlink|TestCopyAdapterModuleReturnsTypedByteCapacityError|TestCopyAdapterModuleReturnsTypedFileCapacityError|TestDecodeSemanticCoverageRejectsUnknownAndDuplicateProbes|TestDecodeSemanticCoverageReturnsStableSortedBoundaryProbes|TestDefaultProfile|TestDefaultReturnsAnImmutableProfileSpecification|TestDetectModuleVersionRejectsDuplicateRequirements|TestDeterministicProfileCompatibilityGolden|TestLibcRegenerationKeepsExactSourceAndPreparedPins|TestManifestInterceptsBeforeHostDispatch|TestMemberlistSuppliedTCPConsumer|TestMissingRequiredSemanticProbesValidatesNames|TestModerncLibcAdapterTemplateHasPinnedIdentity|TestNewAdapterRegistryAllowsNoAdapters|TestNewAdapterRegistryRejectsDuplicateImplementations|TestNewAdapterRegistryRequiresAnImplementationForEveryIdentity|TestPortableAdapterConfigurationRefusals|TestPortableAdapterPreparedSourcePins|TestPortableAdapterRegenerationRefusals|TestPortableAdapterRegenerationSourceEdits|TestPortableAdapterSourcePreservation|TestPortableBootstrapFrameIdentity|TestPortableBootstrapPlatformGoldens|TestPortableLibcPreparedContract|TestPortableLibcRegeneration|TestPortableLibcSelectionConfiguration|TestPortableMetricsConsumer|TestPortablePreparedTargetShape|TestPortableProfilePublicGuardsRemainFirst|TestPortableRequirementsProjection|TestPortableRewrittenModuleConsumers|TestPortableSelectedAdapterIdentities|TestPortableServerGraphPreparedSourceIdentities|TestPrepareGRPCReturnsTypedInventoryCapacityError|TestProfileOwnsIdentityProjectionAndVerification|TestRegenerateAdapterRefusesCustomPreparation|TestRejectLibcHostImportsRejectsForbiddenImports|TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity|TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs|TestSessionCollectTerminal|TestSummarizeSemanticProbesCanonicalizesAUnion|TestValidatePreparedTargetRejectsIdentityMismatch|TestVerifyGRPCModuleRejectsInventoryDrift|TestVerifyRegisteredAdapterScratchCleanup|TestVersionReferencesNeverMatchInsideAnotherModulePath)$' ./deterministicio",
+      "source_tree_sha256": "1ea646fc66ac63aa0d2dde38e434f8b5529c28ac9040b55b7a04c56c4ebc0f3f",
+      "counts": {
+        "pass": 269,
+        "fail": 0,
+        "skip": 4
+      },
+      "log_sha256": "1d73b4bddb709cab36750e3a582eb9b0a659762b943eba300852d8f9e4ef16bc"
+    },
+    {
+      "receipt": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/accepted-cache-tmpfs-receipt.json",
+      "receipt_sha256": "7057c7010fc07b6280d772dfb16dcdc9516f0bfe2392bcf1fdffc13ab92b4c31",
+      "command": "TMPDIR=/dev/shm/gomad-fn1132-cleanup-3pOD0l3j go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^TestAdapterCacheCleanup(OwnerErrors|RegistryPublicationReuseRetry|ValidationControls|RegistryPrimary)$' ./deterministicio",
+      "source_tree_sha256": "1ea646fc66ac63aa0d2dde38e434f8b5529c28ac9040b55b7a04c56c4ebc0f3f",
+      "counts": {
+        "pass": 17,
+        "fail": 0,
+        "skip": 0
+      },
+      "log_sha256": "618f80d64ad09130c1191ef19eb46d0530dc3b3ffc0d5d6d5c343adefb7c6112"
+    }
+  ],
+  "coverage": "Unchanged original selected source assertions and admitted predecessor filesystem-separated union only; no new execution, cleanup admission, native wrapper, supplied SDK checkout or full-native-host credit.",
+  "mapping": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/assertion-mapping.md",
+  "selection": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/deterministicio-selection.json",
+  "generated_test_main": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r/4f/4fda13c590c1c01a208eb55e552be0dc879f780e229fd88449521d8cf9b1c138-d",
+      "sha256": "4fda13c590c1c01a208eb55e552be0dc879f780e229fd88449521d8cf9b1c138"
+    }
+  ]
+}

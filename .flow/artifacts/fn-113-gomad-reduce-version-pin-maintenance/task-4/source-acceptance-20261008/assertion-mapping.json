@@ -1,0 +1,4728 @@
+{
+  "source_snapshot": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+  "raw_broad_receipt": "final-authoring-receipt.json",
+  "raw_broad_exit": 1,
+  "raw_broad_counts": {
+    "pass": 666,
+    "fail": 1,
+    "skip": 1
+  },
+  "scoped_authoring_union_counts": {
+    "pass": 670,
+    "fail": 0,
+    "skip": 1
+  },
+  "scope": "Authoring packages in final-authoring plus exactly one approved cache-input rerun; raw broad command stays RED.",
+  "assertions": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestBootstrapGofmtResolvesInstalledTool",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestCompatibilityPackPathsHonorAnExternalRoot",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/file_report",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/module_report",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestCompatibilityPathBaseKeepsDefaultPathsRootRelative",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestDiagnosticDiffStatusesAndNoPartialInvalidResult",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/different",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/equal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/json",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/recording",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/truncated",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestGitFileDistinguishesAnIntroducedFileFromAnInvalidRevision",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/approval_aliases",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/download_failure",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/flag",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/help",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/input_failure",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/missing_Go",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/missing_working_directory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/module_usage",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/positional",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/recover",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/stage_approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/verify_failure",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus/verify_usage",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateInputStatuses",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateInputStatuses/conflicting_approval_aliases",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateInputStatuses/recover_nothing",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateInputStatuses/stage_requires_approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateInputStatuses/unknown_module",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateInputStatuses/usage",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateInputStatuses/verify_usage",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateOutputFailuresPreserveStatus",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateOutputFailuresPreserveStatus/human",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunAdapterRegenerateOutputFailuresPreserveStatus/json",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunBuildKey",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunBuildKeyRejectsIncompleteInput",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCheckedRunDistinguishesExit124FromTimeout",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCheckedRunWritesCompatibilityResult",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackCheckReportsOperationalFailure",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackGenerateWithoutApprovalRegeneratesRecordedRequests",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshContinuesAfterActualDiscoveryFailure",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/absolute_root",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/authoring_refresh",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/authoring_root",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/live_impact",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_Go",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_requests",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_table",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/saved_impact",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/usage",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshOutputFailure",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshOutputFailure/invalid_input",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshOutputFailure/missing_go",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+      "outcome": "pass",
+      "receipt": "resolved-refresh-cache-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval/absolute",
+      "outcome": "pass",
+      "receipt": "resolved-refresh-cache-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval/missing_module",
+      "outcome": "pass",
+      "receipt": "resolved-refresh-cache-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval/unmapped",
+      "outcome": "pass",
+      "receipt": "resolved-refresh-cache-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/current_output",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/not_evaluable_output",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unselected_output",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_0_writes",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_1_writes",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_2_writes",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputAuthoring",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputAuthoring/check",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputAuthoring/generate-all",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputAuthoring/generate-approved",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputAuthoring/review",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputBoundaryDiscovery",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputBoundaryDiscovery/literal_control",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPatchPublication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPatchPublication/patch-materialize",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPatchPublication/patch-regenerate",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/boundary-generate/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/boundary-generate/operation",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/build-key/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/compatibility-pack/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/patch-materialize/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/patch-regenerate/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/patch-validate/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/patch-validate/operation",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/script-validate/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/script-validate/operation",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/test/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/toolchain-build/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputPrimaryFailures/upgrade-dossier/invalid",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputTerminalReports",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputTerminalReports/build-key",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputTerminalReports/patch-validate",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunMaintainerOutputTerminalReports/script-validate",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPatchCommandsRejectIncompleteInput",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPatchValidateChecksCurrentModule",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/both_baseline_flags",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/file_malformed_candidate",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/file_publication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/file_stdout",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/help",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/malformed_candidate",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/missing_baseline",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/missing_candidate",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/missing_go_command",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/mixed_file_arguments",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/module_publication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/module_stdout",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/partial_file_arguments",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/positional_argument",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/unknown_flag",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/unknown_format",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/unreachable_proxy",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactFileFlagsKeepTheV1Report",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactMissingPackRuleSumIsUnknown",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactMissingPackRuleSumIsUnknown/json=false",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactMissingPackRuleSumIsUnknown/json=true",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactMissingPackSumIsUnknown",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactReadsTheBaselineFromGit",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactReportsADependencyRequiringNewerGoAsUnknownPins",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactReportsInvalidatedPinsWithoutTouchingTheModule",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactStatuses",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactStatuses/both_baselines",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactStatuses/malformed_module",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactStatuses/missing_module",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunPinImpactStatuses/unreachable_proxy",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunRejectsRemovedTestMode",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunScriptValidateChecksCurrentModule",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunTestRejectsIncompleteInput",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunToolchainBuildRejectsIncompleteInput",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestSavedReportCannotSuppressAnotherMappedModule",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestSoakRejectsInvalidInvocationsAsInvalidInput",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestSoakRejectsInvalidInvocationsAsInvalidInput/invalid_seed",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_directories",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_manifest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestSoakRejectsInvalidInvocationsAsInvalidInput/positional_argument",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestApprovalSHA256BindsCompleteReviewedRequest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestApprovalSHA256BindsCompleteReviewedRequest/fact_disposition",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestApprovalSHA256BindsCompleteReviewedRequest/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestApprovalSHA256BindsCompleteReviewedRequest/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestApprovalSHA256BindsCompleteReviewedRequest/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestApprovalSHA256BindsCompleteReviewedRequest/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestApprovalSHA256BindsCompleteReviewedRequest/source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestApprovalSHA256BindsCompleteReviewedRequest/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestCheckedInWorkingDirectoriesMapEveryRequest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestCheckWorkingDirectoriesRequiresTheTableAndAModulePerEntry",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestDecodeDraftRequestAcceptsSelectorsWithoutDiscoveredEvidence",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestDiscoverAddsNewlyObservedFactsAsDenied",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestDiscoverProjectsCompleteCurrentEvidenceAndClearsApproval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:os/exec",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:os/signal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:os/user",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:plugin",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:runtime/cgo",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:os/exec",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:os/signal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:os/user",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:plugin",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:runtime/cgo",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateRequiresExactApprovalAndCheckDetectsDrift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestGenerateStandaloneConsumerPackage",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestQualifyRejectsCurrentReviewDrift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRefreshDiscoversEachRequestInItsModuleAndStopsAtApproval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRefreshKeepsAnApprovedRequestAndReportsOnlyTheOther",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRefreshNeverTreatsAnApprovalOfOlderEvidenceAsCurrent",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRefreshRejectsAnUnmappedRequestAsInvalidInput",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRefreshReportsAReviewFailureAndContinues",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRefreshReportsOtherPlatformRequestsAndLeavesThemUntouched",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRefreshSelectsAHostRequestBoundToAnotherProfile",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRegenerateRejectsStaleRecordedApprovalWithoutPublication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRegenerateUsesOnlyRecordedExactApprovals",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRenderReviewIncludesGovernanceEvidenceAndSecurityLabels",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionPreservesFactValidationPriority",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionPreservesFactValidationPriority/admission-before-inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionPreservesFactValidationPriority/admission-before-later-fact",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionPreservesFactValidationPriority/disposition-before-admission",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionPreservesFactValidationPriority/earlier-fact-before-admission",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionPreservesFactValidationPriority/malformed-before-admission",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionRejectsFiveAllowedHostImports",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionRejectsFiveAllowedHostImports/import:os/exec",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionRejectsFiveAllowedHostImports/import:os/signal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionRejectsFiveAllowedHostImports/import:os/user",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionRejectsFiveAllowedHostImports/import:plugin",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestRequestAdmissionRejectsFiveAllowedHostImports/import:runtime/cgo",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestSelectedLibcVariantsResolveTheirMappedModuleVersions",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestSelectedLibcVariantsResolveTheirMappedModuleVersions/modernc-libc-xsys-v041",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestSelectedLibcVariantsResolveTheirMappedModuleVersions/modernc-libc-xsys-v047",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestValidateRequestRejectsOperationalPathsAndCollectionOverflow",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestValidateRequestRejectsUnadmittableCapabilities",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestValidateRequestRejectsUnadmittableCapabilities/import:os/exec",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestValidateRequestRejectsUnadmittableCapabilities/import:os/signal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestValidateRequestRejectsUnadmittableCapabilities/import:os/user",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/admits_os/exec",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/admits_os/signal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/admits_os/user",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/duplicate_capability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/legacy_schema",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/missing_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/source-set_mismatch",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/trailing_data",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/unknown_field",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateHostImportDecisions",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateHostImportDecisions/import:os/exec",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateHostImportDecisions/import:os/signal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateHostImportDecisions/import:os/user",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateHostImportDecisions/import:plugin",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateHostImportDecisions/import:runtime/cgo",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/capability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/capability-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/empty-kind",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/foreign-source-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/linkname",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/linkname-directive-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/linkname-empty-directives",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/linkname-hash-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/linkname-missing-module",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/linkname-nil-directives",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/linkname-order-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/linkname-source-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/local-replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/malformed-linkname",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/missing-module",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/module-path-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/module-sum-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/module-version-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/nil-empty-foreign-equivalence",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/no-reviewed-source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/package-path-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/replacement-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/source-empty-inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/source-extra-inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/source-hash-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/source-name-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/source-nil-inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/source-set-drift",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateMatchingPackDecisions/unknown-kind",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/empty",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/empty/#00",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/empty/capability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/empty/future-kind",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/empty/linkname",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/empty/malformed_linkname",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/empty/no_reviewed_go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/nil",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/nil/#00",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/nil/capability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/nil/future-kind",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/nil/linkname",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/nil/malformed_linkname",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateNilAndEmptySelections/nil/no_reviewed_go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluatePreservesInputsAndDetachedCopies",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateTraversesRulesAndPacks",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateTraversesRulesAndPacks/first-grant-precedence",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateTraversesRulesAndPacks/later-granting-pack",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateTraversesRulesAndPacks/later-matching-pack",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestEvaluateTraversesRulesAndPacks/later-matching-rule",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:os/exec",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:os/signal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:os/user",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:plugin",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:runtime/cgo",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPacksFailClosed",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPacksFailClosed/admits_an_unadmittable_capability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPacksFailClosed/collision_with_embedded_pack",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPacksFailClosed/file_name_does_not_match_ID",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPacksFailClosed/missing_directory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPacksFailClosed/non-pack_entry",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPacksFailClosed/relative_directory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestExternalPacksLoadNextToEmbeddedPacks",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/directive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/adapter_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/directive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/original_source_inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/prepared_source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/replacement_source_inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/adapter_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/original_source_inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/prepared_source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/replacement_source_inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/adapter_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/directive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/original_source_inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/prepared_source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/replacement_source_inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/adapter_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/directive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/original_source_inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/prepared_source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/replacement_source_inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/directive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/reflect2-go126/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/directive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/directive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/directive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/arbitrary_local_replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/availability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/foreign_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/go_source",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/module_sum",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/module_version",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/pack_digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/positive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/request_identity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/review_time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/source_set",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/workload",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGovernanceFullPackPreservesCanonicalBytesAndTimestampSpelling",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGovernanceReviewTimePreservesGrammarAndPrecedence",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGovernanceValidationRetainsCompleteErrorPrecedence",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGovernanceValidationRetainsCompleteErrorPrecedence/approval",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGovernanceValidationRetainsCompleteErrorPrecedence/justification",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGovernanceValidationRetainsCompleteErrorPrecedence/owner",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGovernanceValidationRetainsCompleteErrorPrecedence/platforms",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGovernanceValidationRetainsCompleteErrorPrecedence/time",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestGovernanceValidationRetainsCompleteErrorPrecedence/workloads",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestHostPacksBindCurrentProfile",
+      "outcome": "skip",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestLoadPackDirectoryReadsOnlyThatDirectory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesEarlierPackErrors",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesEarlierPackErrors/digest",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesEarlierPackErrors/duplicate",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesOtherCapabilities",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesOtherCapabilities/foreign:cgo:native.c",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesOtherCapabilities/import:future/capability",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesOtherCapabilities/import:plugin/subpackage",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesOtherCapabilities/import:syscall",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesStructuralAndRulePriority",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesStructuralAndRulePriority/capability-order",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesStructuralAndRulePriority/existing-ban-before-new-ban",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesStructuralAndRulePriority/first-prohibited-rule",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesStructuralAndRulePriority/later-invalid-inventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesStructuralAndRulePriority/later-prohibited-rule",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionPreservesStructuralAndRulePriority/unsorted-capabilities",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRejectsFiveHostImports",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRejectsFiveHostImports/import:os/exec",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRejectsFiveHostImports/import:os/signal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRejectsFiveHostImports/import:os/user",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRejectsFiveHostImports/import:plugin",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRejectsFiveHostImports/import:runtime/cgo",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRevalidatesUnselectedTokens",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRevalidatesUnselectedTokens/import:os/exec",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRevalidatesUnselectedTokens/import:os/signal",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRevalidatesUnselectedTokens/import:os/user",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRevalidatesUnselectedTokens/import:plugin",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestPackAdmissionRevalidatesUnselectedTokens/import:runtime/cgo",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectBindsExactPackIdentityAndCapabilities",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectBindsExactPackIdentityAndCapabilities/modernc-libc-xsys-v041",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectBindsExactPackIdentityAndCapabilities/modernc-libc-xsys-v047",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectionEvaluatesClosedRemediationCategories",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectionEvaluatesClosedRemediationCategories/adapter",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectionEvaluatesClosedRemediationCategories/exact_pack",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectionEvaluatesClosedRemediationCategories/model",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectionEvaluatesClosedRemediationCategories/remove",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectionEvaluatesClosedRemediationCategories/unsupported",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectionProjectsExactActivationAndAllowanceEvidence",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectionProjectsExactActivationAndAllowanceEvidence/modernc-libc-xsys-v041",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectionProjectsExactActivationAndAllowanceEvidence/modernc-libc-xsys-v047",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectRequiresExactLinknameSourceIdentity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectValidatedPackRequiresApplicableRule",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectValidatedPackRequiresApprovedPlatform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestSelectValidatedPackRequiresCompleteSourceInventory",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestStaleProfileBindingsAreReported",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestStaleProfileBindingsAreReported/current_bindings",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestStaleProfileBindingsAreReported/other_platform",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestStaleProfileBindingsAreReported/other_profile",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestStaleProfileBindingsAreReported/repeated_keys",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestStaleProfileBindingsAreReported/stale_activation",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestStaleProfileBindingsAreReported/stale_rule_module",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestVerifyIdentitiesRejectsUnknownOrModifiedPacks",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestVerifyValidatedPackIdentitiesRejectsUnavailableOrModifiedPacks",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestApplyPublishesConstantsDescriptorTestDataAndGeneratedOutputTogether",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestApplyWithAWrongDigestWritesNothing",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestCheckoutChangedBetweenStagingAndPublicationPublishesNothing",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestCommittedJournalOverLaterEditsIsLeftForAPerson",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestCompetingApplyOperationsPublishOnce",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestDefaultPackCheckPassesInAStagedCopyOfTheModule",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestDryRunPrintsChangedSourceAndAnchorsAndWritesNothing",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestGenerationFailureInStagingPublishesNothing",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestIgnoredToolchainCacheChangeDoesNotBlockPublication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestInterruptedPublicationCompletesOnTheNextRun",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestInterruptedPublicationCompletesOnTheNextRun/apply",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestInterruptedPublicationCompletesOnTheNextRun/recover",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestJournalBlobsWithoutManifestDoNotBlockTheNextApply",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestJournalManifestWithoutBlobsCompletes",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestPublicRegenerationReleasesLock",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestPublicRegenerationReleasesLock/apply",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestPublicRegenerationReleasesLock/failed_apply",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestPublicRegenerationReleasesLock/recover",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestPublicRegenerationReleasesLock/stage",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRealAdapterVersionUsesDefaultPipeline",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRegenerationLockReleaseComposition",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRegenerationLockReleaseComposition/apply_before_stage",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRegenerationLockReleaseComposition/apply_primary",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRegenerationLockReleaseComposition/completed_publication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRegenerationLockReleaseComposition/recover_blocked",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRegenerationLockReleaseComposition/recover_input",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRegenerationLockReleaseComposition/recover_success",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRegenerationLockReleaseComposition/stage_only",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRegenerationThatNeedsAPersonWritesNothing",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestResidualScanFailureAfterPublicationIsAWarning",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunCheckoutRevalidation",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunCheckoutRevalidation/changed-regular",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunCheckoutRevalidation/initial-symlink",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunCheckoutRevalidation/new-symlink",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunCheckoutRevalidation/same-byte-regular-replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunCheckoutRevalidation/same-byte-symlink-replacement",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunCheckoutRevalidation/unchanged-regular",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupAfterPublication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupAfterPublication/residual/control",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupAfterPublication/residual/permission",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupAfterPublication/scan-warning/control",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupAfterPublication/scan-warning/permission",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupBeforePublication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupBeforePublication/blocked/control",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupBeforePublication/blocked/permission",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupBeforePublication/input/control",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupBeforePublication/input/permission",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupBeforePublication/primary/control",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupBeforePublication/primary/permission",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupMissingDownloadRoot",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupStageOnly",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupStageOnly/control",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestRunScratchCleanupStageOnly/permission",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestStagedCommandsKeepTheCallersModuleCache",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestStageOnlyListsEveryPublishedFileAndPublishesNothing",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestStalePacksNameBindingsOfThePreviousIdentity",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestUncommittedJournalRollsBack",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "test": "TestUnifiedDiff",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestCompareBoundariesRetainsNewManifestAndEntryFields",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestLegacyRegularOverlayArchive",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestLegacyRegularOverlayArchive/go/src/os/gomad.go",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestLegacyRegularOverlayArchive/go/src/os/gomad.go/",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestLegacyRegularOverlayArchive/go/src/runtime/proc.go",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestLoadCorpusRejectsQualifiedDownstreamSet",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestLoadCorpusRejectsUncheckedOrUnqualifiedJSON",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestOverlayArchiveCleanupFailure",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestOverlayArchiveCleanupFailure/read_and_close_fail",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestOverlayArchiveCleanupFailure/tar_ends_before_stored_deflate_error",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestOverlayArchiveNilCleanupPreservesReadError",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestPublishWritesFixedDossierBytes",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunDoesNotQualifyBoundaryApprovalForAnotherDiff",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunDoesNotQualifyUnapprovedBoundaryChanges",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunKeepsPriorDossierWhenWriteFails",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunPublishesCheckedUpgradeEvidence",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunPublishesFailedGateEvidence",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunPublishesUnqualifiedEvidenceForUnsupportedHost",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunPublishesUnqualifiedEvidenceWhenCorpusIsMissing",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRejectsOverlayCollisionBeforeGates",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/baseline",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/baseline/write1",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/baseline/write2",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/boundary",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/boundary/write1",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/boundary/write2",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/corpus",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/corpus/write1",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/corpus/write2",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/gate",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/gate/write1",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/gate/write2",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/host",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/host/write1",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/host/write2",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/publication",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/publication/write1",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/publication/write2",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/qualified",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/qualified/write1",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunRenderingFailurePreservesGateEvidence/qualified/write2",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunReplacesExistingDossierAfterFailedGate",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunReportsPublicationFailureAndKeepsPriorDossier",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunReportsPublicationFailureAndKeepsPriorDossier/parent_is_a_file",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_created",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "test": "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_renamed",
+      "outcome": "pass",
+      "receipt": "final-authoring-receipt.json"
+    }
+  ],
+  "pinimpact_assertions": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackActivationSumIsUnknown/both_missing",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackActivationSumIsUnknown/candidate_missing",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackActivationSumIsUnknown/baseline_bumped",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackActivationSumIsUnknown",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackActivationSumControls/exact",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackActivationSumControls/repaired_candidate",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackActivationSumControls/absent",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackActivationSumControls",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=exact",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=missing",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=absent",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=version",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=sum",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=replacement",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=exact",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=missing",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=absent",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=version",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=sum",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=replacement",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleExclusionWinsOverUnknownActivation",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackActivationGraphUnknownRetainsReason",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRootLoadErrorsArePathFree/explicit",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRootLoadErrorsArePathFree/environment",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRootLoadErrorsArePathFree",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingExplicitPackRootSelectsNoPacks",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestExplicitPackRootOverridesEnvironmentAndRetainsReports",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterModuleSumRecords/exact",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterModuleSumRecords/go.mod_is_separate",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterModuleSumRecords/identical_duplicate",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterModuleSumRecords/changed_duplicate",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterModuleSumRecords/missing_zip_sum",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterModuleSumRecords",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackOnlyDuplicateSumRemainsSelected",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdaptedPackDuplicateSumIsInvalidated/duplicate=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdaptedPackDuplicateSumIsInvalidated/duplicate=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdaptedPackDuplicateSumIsInvalidated",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestUnchangedModuleInvalidatesNothing",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestCommittedBumpKeepsTheStrandedPackInvalidated",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingCandidateModuleSumIsUnknown",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestRemovedModules",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestIndirectOnlyBump",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestUnknownPinsCountAsInvalidated",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestInvalidInputAndResolutionFailures",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/pinned_module_download",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/no_failure",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unsupported_host",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unrelated_missing_file",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unrelated_operation",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/another_toolchain",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPortableFixturePinDecisions/version_bump",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPortableFixturePinDecisions/changed_sum",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPortableFixturePinDecisions/replacement",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPortableFixturePinDecisions",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestGoResolverSelectsTheModuleGraphOutsideTheModule",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestGoResolverReportsUnavailableModulesAsInfrastructureFailures",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackRuleSumIsUnknown/baseline=exact/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackRuleSumIsUnknown/baseline=exact/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackRuleSumIsUnknown/baseline=missing/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackRuleSumIsUnknown/baseline=missing/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackRuleSumIsUnknown/baseline=absent/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackRuleSumIsUnknown/baseline=absent/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackRuleSumIsUnknown/baseline=bumped/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackRuleSumIsUnknown/baseline=bumped/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestMissingPackRuleSumIsUnknown",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/exact/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/exact/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/exact",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/repaired_candidate/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/repaired_candidate/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/repaired_candidate",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/baseline_rule_absent/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/baseline_rule_absent/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/baseline_rule_absent",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/baseline_rule_bumped/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/baseline_rule_bumped/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/baseline_rule_bumped",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_absent/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_absent/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_absent",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_version/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_version/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_version",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_sum/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_sum/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_sum",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_replacement/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_replacement/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/rule_replacement",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_absent/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_absent/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_absent",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_version/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_version/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_version",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_sum/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_sum/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_sum",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_replacement/all=false",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_replacement/all=true",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls/activation_replacement",
+      "outcome": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "test": "TestPackRuleSumControls",
+      "outcome": "pass"
+    }
+  ],
+  "native_exclusions": [
+    {
+      "test": "TestHostPacksBindCurrentProfile",
+      "kind": "observed skip",
+      "owners": [
+        "fn149.2",
+        "fn149.4",
+        "fn128.4",
+        "fn128.7"
+      ]
+    },
+    {
+      "test": "TestFixtureBumpMatchesBuildRejections",
+      "kind": "explicit unchanged qualified-wrapper exclusion",
+      "source_counterparts": [
+        "TestPortableFixturePinDecisions",
+        "TestAdapterRegistryPortablePinDecisions",
+        "TestPortableAdapterConfigurationRefusals"
+      ],
+      "owners": [
+        "fn149.2",
+        "fn149.4",
+        "fn128.4",
+        "fn128.7"
+      ]
+    },
+    {
+      "test": "TestSameVersionWithChangedSum",
+      "kind": "explicit unchanged qualified-wrapper exclusion",
+      "source_counterparts": [
+        "TestPortableFixturePinDecisions",
+        "TestAdapterRegistryPortablePinDecisions",
+        "TestPortableAdapterConfigurationRefusals"
+      ],
+      "owners": [
+        "fn149.2",
+        "fn149.4",
+        "fn128.4",
+        "fn128.7"
+      ]
+    },
+    {
+      "test": "TestReplacedModules",
+      "kind": "explicit unchanged qualified-wrapper exclusion",
+      "source_counterparts": [
+        "TestPortableFixturePinDecisions",
+        "TestAdapterRegistryPortablePinDecisions",
+        "TestPortableAdapterConfigurationRefusals"
+      ],
+      "owners": [
+        "fn149.2",
+        "fn149.4",
+        "fn128.4",
+        "fn128.7"
+      ]
+    }
+  ],
+  "deterministicio_predecessor_binding": "predecessor-source-reuse.json",
+  "guide_regression": {
+    "red": "guide-contract-red-receipt.json",
+    "green": "final-version-receipt.json",
+    "test": "TestGenerateRendersDescriptorConsumers",
+    "changed_assertions": [
+      "reevaluates every mapped target directory",
+      "supplements live discovery",
+      "cannot suppress a mapped module"
+    ]
+  },
+  "baseline_portable_failure": {
+    "test": "TestGenerateRequiresExactApprovalAndCheckDetectsDrift",
+    "original": "baseline-quick-receipt.json",
+    "symptom": "reports directory Sync permission denied",
+    "cause": "unknown",
+    "isolated_original": "baseline-authoring-isolated-receipt.json",
+    "current_original": "final-authoring-receipt.json",
+    "claim": "Exact original passed isolated pre-edit and in current full authoring package; no repair attribution or broad-green claim."
+  }
+}

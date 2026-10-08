@@ -1,0 +1,23 @@
+{
+  "workflow_receipts": ["walk-build-tool-receipt.json", "walk-candidate-edit-receipt.json", "walk-candidate-edit-cwd-corrected-receipt.json", "walk-candidate-download-receipt.json", "walk-pin-impact-receipt.json", "walk-adapter-dryrun-receipt.json", "walk-adapter-human-review-receipt.json", "walk-adapter-apply-receipt.json", "walk-validate-receipt.json"],
+  "workflow_invocations": 9,
+  "recovery_hand_edits": 1,
+  "workflow_units": 10,
+  "drivers": [
+    {"command": "node <task-unique-out>/walk.mjs", "exit_code": 1, "outcome": "Stopped after wrong effective cwd changed root go.mod; actual build and misplaced edit receipts retained."},
+    {"command": "node <task-unique-out>/walk.mjs resume", "exit_code": 1, "outcome": "Completed corrected edit, exact download, pin-impact and JSON dry run; driver expected an approval field omitted by unchanged JSON contract."},
+    {"command": "node <task-unique-out>/walk.mjs human-review", "exit_code": 0, "outcome": "Human-rendered dry run exposes exact approval; worker scratch inspection follows."},
+    {"command": "node <task-unique-out>/walk-apply.mjs", "exit_code": 1, "outcome": "Setup failed before apply on git ls-files output buffer; git helper subsequently raised maxBuffer to16MiB."},
+    {"command": "node <task-unique-out>/walk-apply.mjs", "exit_code": 1, "outcome": "Setup failed before apply with EISDIR on tracked temporalio-dashboards gitlink directory; copy subsequently restricts to regular files."},
+    {"command": "node <task-unique-out>/walk-apply.mjs", "exit_code": 0, "outcome": "Original approved default pipeline publishes six outputs; exact scratch Make validate passes."}
+  ],
+  "driver_invocations": 6,
+  "driver_failures": 4,
+  "driver_setup_failures_before_apply": 2,
+  "instrumentation_inclusive_invocations": 15,
+  "instrumentation_inclusive_units": 16,
+  "driver_observation_provenance": "Observed foreground terminal results; per-workflow raw logs/receipts retained. Driver failure descriptions preserve observed symptoms, not reconstructed byte-exact stdout or elapsed times.",
+  "placeholder": "<task-unique-out> resolves to .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/source-acceptance-20261008",
+  "comparison": "Accepted repair-unit baseline stays6, actual repair5 and normalized repair4; common preparation2, build1, wrong-cwd attempt1, recovery1 and six instrumentation drivers are named separately. Neither workflow-total nor instrumentation-inclusive savings is claimed.",
+  "qualification": false
+}

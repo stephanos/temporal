@@ -1,0 +1,12 @@
+Usage of gomadtool compatibility-pack refresh:
+  -baseline-ref string
+    	Git revision holding each working directory's go.mod and go.sum before the bump (default "HEAD")
+  -compatibility-root string
+    	absolute pack authoring root owned by another module (default: internal/compatibilitypack)
+  -go string
+    	go command that resolves module graphs
+  -impact-report string
+    	existing pin-impact JSON report for the bumped checkout
+  -root string
+    	Gomad v3 module root
+usage: gomadtool compatibility-pack refresh --root=DIR [--compatibility-root=DIR] [--baseline-ref=REV] [--go=GO] [--impact-report=FILE]

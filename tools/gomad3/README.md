@@ -1154,10 +1154,11 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh \
 
 Pass `--baseline-ref=<rev before the bump>` if `HEAD` no longer holds the
 baseline. The saved `pin-impact` JSON can be passed with
-`--impact-report=/absolute/path/to/pin-impact.json` for its scoped module;
-that report cannot reveal changed pins in other mapped directories. Without
-that flag, refresh runs pin impact for each mapped directory, with the working
-tree as candidate and the baseline revision as baseline. It refreshes the
+`--impact-report=/absolute/path/to/pin-impact.json` for its scoped module.
+Refresh always reevaluates every mapped target directory with the working
+tree as candidate and the baseline revision as baseline, then validates and
+merges the saved report. The report supplements live discovery and cannot
+suppress a mapped module. It refreshes the
 requests whose pack rules it reports invalidated or unknown, every request
 without an approval, and every host-platform request bound to another
 deterministic I/O profile. Each request is reviewed in its own directory. A

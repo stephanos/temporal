@@ -1,0 +1,8 @@
+{"Time":"2026-10-08T20:10:37.62379741Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"}
+{"Time":"2026-10-08T20:10:37.628573452Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring","Test":"TestGenerateRequiresExactApprovalAndCheckDetectsDrift"}
+{"Time":"2026-10-08T20:10:37.62865241Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring","Test":"TestGenerateRequiresExactApprovalAndCheckDetectsDrift","Output":"=== RUN   TestGenerateRequiresExactApprovalAndCheckDetectsDrift\n","OutputType":"frame"}
+{"Time":"2026-10-08T20:10:37.647559119Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring","Test":"TestGenerateRequiresExactApprovalAndCheckDetectsDrift","Output":"--- PASS: TestGenerateRequiresExactApprovalAndCheckDetectsDrift (0.02s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T20:10:37.64761741Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring","Test":"TestGenerateRequiresExactApprovalAndCheckDetectsDrift","Elapsed":0.02}
+{"Time":"2026-10-08T20:10:37.64765341Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T20:10:37.647760952Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring","Output":"ok  \tgo.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring\t0.024s\n"}
+{"Time":"2026-10-08T20:10:37.647786369Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring","Elapsed":0.024}

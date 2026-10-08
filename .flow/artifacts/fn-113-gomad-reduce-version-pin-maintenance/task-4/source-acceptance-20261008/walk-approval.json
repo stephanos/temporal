@@ -1,0 +1,7 @@
+{
+  "approval": "sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2",
+  "review_log": "walk-adapter-human-review.log",
+  "review_log_sha256": "570664716a49bb1ef5bc724a24ea38a74bcb91167b32ef1465d4365ee478d72c",
+  "decision": "Controlled scratch source authoring only: same reviewed network.go bytes, exact version/sum and both prepared source sets change; no stale pack binding; no production approval or qualification.",
+  "native_qualification": false
+}

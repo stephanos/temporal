@@ -527,6 +527,7 @@ The release descriptor, runtime changes, source overlay, interaction inventory, 
 
 Compatibility-pack development must follow discovery, human review, exact approval, generation, validation, and qualification. A pack must bind an exact dependency version, source inventories, platform scope, governance, and any approved deterministic adapter replacement.
 An impact-driven refresh may batch discovery and review for invalidated requests, but only a freshly matching per-request approval may generate a pack. Requests scoped to another platform remain unchanged until that host evaluates them.
+Refresh must evaluate every mapped target directory before validating and merging a saved impact report for its scoped module; that report supplements live discovery and cannot suppress another mapped module.
 
 ### [MAINTENANCE.DEPENDENCY] Dependency Bumps
 
@@ -553,6 +554,7 @@ The `gomadtool` command must expose the following maintainer workflows. Each row
 | `[COMMAND.GOMADTOOL.ADAPTER.REGENERATE]` | `adapter-regenerate` | Review changed source and proposed exact adapter anchors, then publish only with their matching approval digest. |
 | `[COMMAND.GOMADTOOL.BOUNDARY.GENERATE]` | `boundary-generate` | Discover, qualify, generate, refresh, or verify the reviewed host-capability boundary and its compiler conformance inputs. |
 | `[COMMAND.GOMADTOOL.PROTOCOL.GENERATE]` | `protocol-generate` | Generate or verify both endpoints of each declared cross-process protocol. |
+| `[COMMAND.GOMADTOOL.QUALIFICATION.MANIFEST.GENERATE]` | `qualification-manifest-generate` | Generate or verify a qualification-set manifest from its reviewed specification and current target test inventory. |
 | `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK]` | `compatibility-pack` | Discover, review, generate from exact approval, check, and qualify version-pinned compatibility packs. |
 | `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK.REFRESH]` | `compatibility-pack refresh` | Discover and review affected mapped requests per platform, including invalidated or unknown pins, up to per-request exact approval; retain only fresh approvals. |
 | `[COMMAND.GOMADTOOL.SCRIPT.VALIDATE]` | `script-validate` | Enforce the approved ownership and policy boundary for repository scripts. |

@@ -103,8 +103,11 @@ the milestones; downstream Linux qualification follows [GOMAD_CLOUD.md](GOMAD_CL
 the dependency side: `gomadtool pin-impact` reports every pin a candidate `go.mod`
 invalidates (unknown, never unaffected), `adapter-regenerate` re-derives adapter
 anchors behind an approval digest, and `compatibility-pack refresh` re-reviews
-invalidated packs up to approval. Both-platform qualification of that work is
-still owed. Remaining: extend the upgrade dossier with workload support/behavior
+invalidated packs up to approval. The [current source-authoring measurement](../.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/source-acceptance-20261008/measurement.md)
+retains the matched first baseline and counts setup, retries and hand edits.
+Native qualification remains deferred under [fn-149](../.flow/specs/fn-149-gomad-deferred-darwin-qualification.md)
+for Darwin and [fn-128](../.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md)
+for Linux. Remaining: extend the upgrade dossier with workload support/behavior
 differences, changed pack/adapter identities, and an addressable qualified
 rollback bundle, and accept a Go-version candidate as impact input. Releases
 require reviewed boundary differences and qualification; uncertainty and unavailable

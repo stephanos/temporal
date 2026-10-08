@@ -1,0 +1,59 @@
+{
+  "regeneration": {
+    "schema": "gomad3.adapter-regeneration-review/v1",
+    "module": "github.com/Masterminds/sprig/v3",
+    "previous": {
+      "version": "v3.3.0",
+      "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=",
+      "go_mod_sum": "h1:Zy1iXRYNqNLUolqCpL4uhk6SHUMAOSCzdgBfDb35Lz0=",
+      "original_source_inventory_sha256": "sha256:f02251fca63e5c1c142a1551f6705ba59cdd5e5a226f405a8a6d5e01f36db2ec",
+      "replacement_source_inventory_sha256": "sha256:9d81749741355e3043004fe415f906556aaf4d6da4867676e8c2d7042607637d",
+      "prepared_package": "github.com/Masterminds/sprig/v3",
+      "prepared_source_set_sha256": {
+        "darwin/arm64": "sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd",
+        "linux/amd64": "sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd"
+      },
+      "rewrites": [
+        {
+          "path": "network.go",
+          "source_sha256": "sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca",
+          "replacement_sha256": "sha256:7783a960bbefa4e8bb28849af27de06c20e045bfb56c37dd9711f33030a4fc9e"
+        }
+      ]
+    },
+    "proposed": {
+      "version": "v3.2.3",
+      "sum": "h1:eL2fZNezLomi0uOLqjQoN6BfsDD+fyLtgbJMAj9n6YA=",
+      "go_mod_sum": "h1:rXcFaZ2zZbLRJv/xSysmlgIM1u11eBaRMhvYXJNkGuM=",
+      "original_source_inventory_sha256": "sha256:beffe56ed10da3b66fdbe00426aadbeca93e20566c15cdeb68f2d0df21c7fa19",
+      "replacement_source_inventory_sha256": "sha256:0a170bda545c818a375e92e2524dac284417d6dc9c7d748fdc2f7be771444bd1",
+      "prepared_package": "github.com/Masterminds/sprig/v3",
+      "prepared_source_set_sha256": {
+        "darwin/arm64": "sha256:860c7a5ddda9239fd6068aabcc5099f4b92ad6c348023379504fdf33ec2093a0",
+        "linux/amd64": "sha256:860c7a5ddda9239fd6068aabcc5099f4b92ad6c348023379504fdf33ec2093a0"
+      },
+      "rewrites": [
+        {
+          "path": "network.go",
+          "source_sha256": "sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca",
+          "replacement_sha256": "sha256:7783a960bbefa4e8bb28849af27de06c20e045bfb56c37dd9711f33030a4fc9e"
+        }
+      ]
+    },
+    "sources": [
+      {
+        "path": "network.go",
+        "previous_sha256": "sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca",
+        "candidate_sha256": "sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca"
+      }
+    ]
+  },
+  "diffs": [
+    {
+      "path": "network.go",
+      "changed": false
+    }
+  ],
+  "stale_packs": [],
+  "applied": false
+}

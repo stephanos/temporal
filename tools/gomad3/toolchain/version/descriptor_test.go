@@ -77,7 +77,7 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	if !strings.Contains(string(upgradeGuide), "GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>") || !strings.Contains(string(upgradeGuide), "only after reviewing") {
 		t.Fatalf("generated upgrade guide omits explicit boundary approval: %s", upgradeGuide)
 	}
-	for _, expected := range []string{"pin-impact --root=.", "adapter-regenerate --root=.", "--approve=sha256:<reviewed-digest>", "compatibility-pack refresh --root=.", "--approve-review=<exact-review-sha256>", "both supported hosts"} {
+	for _, expected := range []string{"pin-impact --root=.", "adapter-regenerate --root=.", "--approve=sha256:<reviewed-digest>", "compatibility-pack refresh --root=.", "--approve-review=<exact-review-sha256>", "both supported hosts", "reevaluates every mapped target directory", "supplements live discovery", "cannot suppress a mapped module"} {
 		if !strings.Contains(string(upgradeGuide), expected) {
 			t.Fatalf("generated upgrade guide omits %q: %s", expected, upgradeGuide)
 		}

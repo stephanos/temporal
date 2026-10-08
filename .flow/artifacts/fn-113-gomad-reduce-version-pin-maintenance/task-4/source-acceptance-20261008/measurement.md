@@ -1,0 +1,25 @@
+# Dependency bump source-authoring measurement
+
+The executed stock Go source walk changes the exact Sprig dependency from v3.3.0 to v3.2.3 in private scratch, applies the original CLI's approved default generation/verification/publication pipeline, and passes the complete scratch `make validate`. [walkthrough.json](walkthrough.json) binds every actual workflow invocation, exact approval, all six published outputs, candidate inputs, tool identity and raw receipts. This is source authoring on linux/arm64, not native Gomad consumer or pack qualification.
+
+The denominator is the accepted first baseline, not a newly selected workflow: [task1 baseline.json](../../task-1/baseline.json) at d635e23f00d926a43b942f25a9d05bd0ccb72025 and the original [task4 matched measurement](../measurement.json) identify four Sprig file edits, version-generate, validate and one Darwin consumer test (7 units). Removing only that deferred native consumer gives 6 source repair units. The same two candidate-preparation invocations are named separately on both sides. The current inventory and general bump cost remain in [task1 manual steps](../../task-1/source-acceptance-20261008/manual-steps.md); its eight-command one-adapter/one-pack sequence includes native stages and is not this portable denominator.
+
+| Scope | First matched baseline | Executed current walk |
+| --- | --- | --- |
+| Source repair | 4 edits + version-generate + validate = 6 | pin-impact + JSON dry run + human-rendered dry run + approved apply + validate = 5 invocations |
+| Common candidate preparation | module edit + exact download = 2 | same 2 successful invocations |
+| Additional observed setup/recovery | not included in original normalized repair count | 1 tool build + 1 misplaced module-edit invocation + 1 recovery hand edit = 3 units |
+| Actual workflow total, including setup/recovery | source repair + named common preparation = 8 baseline units | 9 invocations + 1 recovery hand edit = 10 observed units |
+| Instrumentation-inclusive total | historical instrumentation was outside its repair-unit baseline | 9 workflow invocations + 6 driver invocations + 1 recovery hand edit = 16 observed units |
+| Normalized source repair | 6 | 4, omitting only the extra JSON dry run and the separately named setup/recovery |
+| Native consumer/pack/core/full-host qualification | historical native records retain their original scope | deferred, not executed |
+
+The observed source repair saves one unit; the complete observed workflow, including tooling mistakes and recovery, is two units larger than the first source baseline plus common preparation. The normalized 6→4 comparison is not either observed total. [Invocation accounting](invocation-accounting.json) enumerates both layers, including the failed driver attempts. Human inspection of exact source/anchors and approval remains required and is outside the command/file-edit unit. The worker inspected and approved only the controlled scratch source fixture; this supplies governed-pipeline evidence, not literal human review or operational approval of a production pin.
+
+The first module-edit call had a requested scratch cwd but inherited BASH_ENV reset the shell to the repository. Its exit0 and changed-source observation are retained as inconclusive for the candidate edit. The one worker-caused root go.mod line was restored byte-exact; no go.sum changed. Subsequent commands remove BASH_ENV only in their child environment and assert physical cwd. The first JSON dry run preserved its existing contract, which omits the approval field, so the extra human-rendered dry run is counted. Both failed driver setup attempts before apply (output buffer limit and a tracked directory gitlink) are retained as measurement-harness failures; neither invoked adapter apply nor edited checked-in source. The six driver invocations instrument the nine underlying workflow invocations and are not counted again as repairs.
+
+All unchanged upstream network.go and rewrite hashes were inspected before the exact scratch approval. Version, sum, original/replacement source inventories and both prepared source sets changed as the dry run reports; no stale pack binding arose. Generated outputs and fixture updates were published together and the scratch source outside those six paths stayed exact. No production pin, grammar, approval contract or recorded format changed.
+
+No fresh pack reduction is claimed. The historical one-request 5→5 comparison includes qualification on both sides; source-only discover/review/generate/check versus pin-impact/refresh/generate/check is 4→4. The historical two-request 7→5 formula remains an unexecuted projection. Fresh source tests cover refresh's actual live discovery and saved-report merge independently of this adapter walk.
+
+Native Darwin consumer, pack/core/replay and full-host evidence belongs to fn-149.2/.4; Linux evidence belongs to fn-128.4/.7 under the [native transfer manifest](../../../native-scope-transfer-2026-10-07.md). Historical SHIP, native measurements and reports remain unchanged and establish no current-candidate qualification.

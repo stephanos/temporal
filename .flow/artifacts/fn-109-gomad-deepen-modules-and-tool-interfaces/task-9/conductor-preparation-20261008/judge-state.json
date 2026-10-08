@@ -1,0 +1,8 @@
+{
+  "task_title": "Read-only retained source acceptance preparation for fn109.9",
+  "task_body": "Inspect current task9 transport integration, exact original inventories/error/provenance controls, historical source bindings, dependencies on task8/task40 and remaining source proof. No implementation or gates. Retain bounded findings with pointers for future admission.",
+  "acceptance": "Identify actual current source versus historical receipts, portable assertions and unsupported originals, exact first-baseline preservation controls, narrow future acceptance work. No source/lifecycle/Git writes, Go/build/lint/generator/download or native qualification. Only own findings artifact may be written.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

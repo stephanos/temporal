@@ -1,0 +1,38 @@
+gomad3 adapter regeneration: github.com/Masterminds/sprig/v3 v3.3.0 -> v3.2.3
+
+changed upstream source: 0 of 1 rewritten files
+  unchanged network.go
+
+proposed anchors:
+  changed version
+          v3.3.0
+       -> v3.2.3
+  changed sum
+          h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=
+       -> h1:eL2fZNezLomi0uOLqjQoN6BfsDD+fyLtgbJMAj9n6YA=
+  changed original source inventory
+          sha256:f02251fca63e5c1c142a1551f6705ba59cdd5e5a226f405a8a6d5e01f36db2ec
+       -> sha256:beffe56ed10da3b66fdbe00426aadbeca93e20566c15cdeb68f2d0df21c7fa19
+  changed replacement source inventory
+          sha256:9d81749741355e3043004fe415f906556aaf4d6da4867676e8c2d7042607637d
+       -> sha256:0a170bda545c818a375e92e2524dac284417d6dc9c7d748fdc2f7be771444bd1
+  same    network.go source
+          sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca
+       -> sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca
+  same    network.go replacement
+          sha256:7783a960bbefa4e8bb28849af27de06c20e045bfb56c37dd9711f33030a4fc9e
+       -> sha256:7783a960bbefa4e8bb28849af27de06c20e045bfb56c37dd9711f33030a4fc9e
+  changed github.com/Masterminds/sprig/v3 prepared source set darwin/arm64
+          sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd
+       -> sha256:860c7a5ddda9239fd6068aabcc5099f4b92ad6c348023379504fdf33ec2093a0
+  changed github.com/Masterminds/sprig/v3 prepared source set linux/amd64
+          sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd
+       -> sha256:860c7a5ddda9239fd6068aabcc5099f4b92ad6c348023379504fdf33ec2093a0
+
+stale compatibility packs: none
+
+approval: sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2
+review the changed source above, then see every file the apply publishes with:
+  gomadtool adapter-regenerate --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --approve-review=sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2 --stage-only
+and apply with:
+  gomadtool adapter-regenerate --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --approve-review=sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2

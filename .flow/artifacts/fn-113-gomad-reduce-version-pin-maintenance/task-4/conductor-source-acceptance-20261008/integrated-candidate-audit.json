@@ -1,0 +1,108 @@
+{
+  "source": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+  "manifests": 5,
+  "current_source_paths": 1034,
+  "receipts": 33,
+  "tools": 4,
+  "artifacts": 20,
+  "observed_test_receipts": [
+    {
+      "name": "baseline-authoring-isolated",
+      "exit": 0,
+      "counts": {
+        "pass": 1,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "name": "final-architecture",
+      "exit": 0,
+      "counts": {
+        "pass": 78,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "name": "final-authoring",
+      "exit": 1,
+      "counts": {
+        "pass": 666,
+        "fail": 1,
+        "skip": 1
+      }
+    },
+    {
+      "name": "final-pinimpact-portable",
+      "exit": 0,
+      "counts": {
+        "pass": 121,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "name": "final-version",
+      "exit": 0,
+      "counts": {
+        "pass": 14,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "name": "guide-contract-red",
+      "exit": 1,
+      "counts": {
+        "pass": 0,
+        "fail": 1,
+        "skip": 0
+      }
+    },
+    {
+      "name": "resolved-refresh-cache",
+      "exit": 0,
+      "counts": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "name": "reuse-deterministicio-dependencies",
+      "exit": 0,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    }
+  ],
+  "source_authoring_union": {
+    "pass": 670,
+    "fail": 0,
+    "skip": 1
+  },
+  "unique_fresh_source_assertions": {
+    "pass": 883,
+    "fail": 0,
+    "skip": 1
+  },
+  "documents": 7,
+  "links": 195,
+  "registered_commands": 33,
+  "actual_help": 38,
+  "walk_outputs": 6,
+  "scratch_surrounding_paths": 4080,
+  "unaffected_gomad_paths": 1017,
+  "historical_task4_artifacts": 12,
+  "user_files": 2,
+  "matched_baseline_paths": 4,
+  "reuse_paths": 121,
+  "reuse_exact": 120,
+  "reuse_packets": 2,
+  "native_execution": false,
+  "broad_full_pass": false,
+  "review_verdict": null
+}

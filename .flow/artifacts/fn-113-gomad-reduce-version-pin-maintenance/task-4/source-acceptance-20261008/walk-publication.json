@@ -1,0 +1,129 @@
+{
+  "root": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3",
+  "parent": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal",
+  "materialized_source_files": 4080,
+  "materialized_source_sha256": "036dc064c0b15f6dae532d8275818d144697ed2ca6e95ecd392eea3afe55a7da",
+  "approval": {
+    "approval": "sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2",
+    "review_log": "walk-adapter-human-review.log",
+    "review_log_sha256": "570664716a49bb1ef5bc724a24ea38a74bcb91167b32ef1465d4365ee478d72c",
+    "decision": "Controlled scratch source authoring only: same reviewed network.go bytes, exact version/sum and both prepared source sets change; no stale pack binding; no production approval or qualification.",
+    "native_qualification": false
+  },
+  "outputs": [
+    {
+      "path": "deterministicio/boundary/upgrade-go1.27.1.md",
+      "sha256": "35df2f2fc01f776eb061b8bf1953c73df699c756be95e63ddd791ddd7b18bb37"
+    },
+    {
+      "path": "deterministicio/sprig_adapter.go",
+      "sha256": "0e1de4e7c5e2b255cc9d90acc206938cd588ab638d68ed8a7c6b5720999419ce"
+    },
+    {
+      "path": "deterministicio/testdata/sprig/go.mod",
+      "sha256": "71c69bf1e302b0500b14878ca60199d2778aef7114e0d443eca95a065f1d4efc"
+    },
+    {
+      "path": "deterministicio/testdata/sprig/go.sum",
+      "sha256": "f04e76e74dcf36809a1ce62232d8a924c35081c1b10f81f8c56d6ac3e9b5414d"
+    },
+    {
+      "path": "toolchain/version/generated.go",
+      "sha256": "442a6ed97317bba0098fd55e736f6866f9cfd7cb29c021f4a924aabb467df5f5"
+    },
+    {
+      "path": "toolchain/version/version.json",
+      "sha256": "76a2bff06a6ed3edc83b5fb3474f8b7a3954c8378116089b03c0954fd02e7bf7"
+    }
+  ],
+  "unchanged_source_paths": 1018,
+  "changed": [
+    {
+      "path": "deterministicio/boundary/upgrade-go1.27.1.md",
+      "before": "cf45e38c2ac4f797cd7d7fa5882509ba335609a8bb989f0e53e19d17030a8e86",
+      "after": "35df2f2fc01f776eb061b8bf1953c73df699c756be95e63ddd791ddd7b18bb37",
+      "published": true
+    },
+    {
+      "path": "deterministicio/sprig_adapter.go",
+      "before": "e1f4112eddc76531c6c34291a1c83a9c60bd738e758646bf24a785c04f72fee8",
+      "after": "0e1de4e7c5e2b255cc9d90acc206938cd588ab638d68ed8a7c6b5720999419ce",
+      "published": true
+    },
+    {
+      "path": "deterministicio/testdata/sprig/go.mod",
+      "before": "18985351ee04afbcca3e9a294da63639196301acd43720e3dc3dc46bb62b00c2",
+      "after": "71c69bf1e302b0500b14878ca60199d2778aef7114e0d443eca95a065f1d4efc",
+      "published": true
+    },
+    {
+      "path": "deterministicio/testdata/sprig/go.sum",
+      "before": "382281b65945fdb907406e1f67287ef1e749c8e71025865897b8654bdb101a7f",
+      "after": "f04e76e74dcf36809a1ce62232d8a924c35081c1b10f81f8c56d6ac3e9b5414d",
+      "published": true
+    },
+    {
+      "path": "toolchain/version/generated.go",
+      "before": "9b5941cb2c1ca074839f329ad013dbeaf3710d48a5e084b9e5402a83853f14ae",
+      "after": "442a6ed97317bba0098fd55e736f6866f9cfd7cb29c021f4a924aabb467df5f5",
+      "published": true
+    },
+    {
+      "path": "toolchain/version/version.json",
+      "before": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+      "after": "76a2bff06a6ed3edc83b5fb3474f8b7a3954c8378116089b03c0954fd02e7bf7",
+      "published": true
+    }
+  ],
+  "commands": [
+    {
+      "name": "walk-build-tool",
+      "command": "go -C tools/gomad3 build -tags test_dep -o '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' ./cmd/gomadtool",
+      "receipt": "walk-build-tool-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-candidate-edit",
+      "command": "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod edit -require=github.com/Masterminds/sprig/v3@v3.2.3",
+      "receipt": "walk-candidate-edit-receipt.json",
+      "exit_code": 0,
+      "observation": "inconclusive: wrong effective cwd; root edit restored"
+    },
+    {
+      "name": "walk-candidate-edit-cwd-corrected",
+      "command": "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod edit -require=github.com/Masterminds/sprig/v3@v3.2.3",
+      "receipt": "walk-candidate-edit-cwd-corrected-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-candidate-download",
+      "command": "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod download github.com/Masterminds/sprig/v3@v3.2.3",
+      "receipt": "walk-candidate-download-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-pin-impact",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' pin-impact --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --baseline='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/baseline/go.mod' --candidate='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/candidate/go.mod' --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --format=json",
+      "receipt": "walk-pin-impact-receipt.json",
+      "exit_code": 1
+    },
+    {
+      "name": "walk-adapter-dryrun",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --json",
+      "receipt": "walk-adapter-dryrun-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-adapter-human-review",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go'",
+      "receipt": "walk-adapter-human-review-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-adapter-apply",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --approve-review='sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2' --json",
+      "receipt": "walk-adapter-apply-receipt.json",
+      "exit_code": 0
+    }
+  ]
+}

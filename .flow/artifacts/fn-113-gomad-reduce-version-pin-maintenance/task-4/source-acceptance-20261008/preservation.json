@@ -1,0 +1,106 @@
+{
+  "base_commit": "da1e726eab2d7211ec854df2d20fc2625c0c1695",
+  "acceptance_base": "9663e4c1bae2c101d452f9ef97e2009143a45e36",
+  "head": "da1e726eab2d7211ec854df2d20fc2625c0c1695",
+  "final_source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+  "changed_source_paths": [
+    "tools/gomad3/ARCHITECTURE.md",
+    "tools/gomad3/CLI.md",
+    "tools/gomad3/README.md",
+    "tools/gomad3/SPEC.md",
+    "tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md",
+    "tools/gomad3/toolchain/version/descriptor.go",
+    "tools/gomad3/toolchain/version/descriptor_test.go"
+  ],
+  "unchanged_gomad_paths": 1017,
+  "unchanged_gomad_paths_exact": true,
+  "production_pins_exact": [
+    "go.mod",
+    "go.sum",
+    "tools/gomad3/go.mod",
+    "tools/gomad3/go.sum",
+    "tools/gomad3/toolchain/version/version.json",
+    "tools/gomad3/toolchain/version/generated.go"
+  ],
+  "historical_artifacts": [
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/compatibility-pack-qualification.log",
+      "sha256": "3c1b045b09e5699253fc9913020180ac66986aea9352456c816e0f5f5d15b9f8",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/core-qualification-set.json",
+      "sha256": "df7d42d6b3d1773566fbd978ab1383f3d82bb43a4d9216ac473a1289a7422c51",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/core-qualification-set.log",
+      "sha256": "8a3e5ee90bc2bc7c6aedb337be5c06835a529ecab7da5041f5ad8173333ed07f",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/doc-audit-final.log",
+      "sha256": "0a6cb2db3ad61944cfb553ad3629170beff521daf8115d8f8fe0224481e04452",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/doc-audit/documentation-audit.json",
+      "sha256": "91669fe33310c50fe2194c11e8bc11e9ed3cc8b26f7dbe886268c2a5b847c411",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/full-test-final.log",
+      "sha256": "e797442f54334311ca9b2a45e39524505b7e3f10bd3def0a86811c7b334090ef",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/link-audit.json",
+      "sha256": "5169fa99a7641ecb78f098392e4b315b88fc6b1dd7bd62dc46fc09bfd4d6388e",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/measurement.json",
+      "sha256": "794a37a55c795b1e704153bb6eea88543dcc581d77a1d94e1f43305652b42147",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/runner-build.log",
+      "sha256": "308d007f356c883e45f7e9bf00bd8e299c45180d5a647af1b8543dfd02552a02",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/validate.log",
+      "sha256": "807b20b5620d36b22578201f3ee5301a7281e5c7706e06934b89c4ce46b6b1ff",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/verify-documentation.py",
+      "sha256": "9a9fe9ba3608d9958cfb5051368b83c9e5077665df0b4c440f9c3147fe8a2afe",
+      "unchanged": true
+    },
+    {
+      "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/walkthrough.json",
+      "sha256": "62371a14f1c2d8f8f94a8e6ae6b8a5de2039f1f7cb5131032936016321745ded",
+      "unchanged": true
+    }
+  ],
+  "matched_baseline": "matched-first-baseline.json",
+  "scratch_surrounding_manifest": "walk-surrounding-source-036dc064c0b15f6dae532d8275818d144697ed2ca6e95ecd392eea3afe55a7da.json",
+  "scratch_surrounding_files": 4080,
+  "scratch_outputs_exact": true,
+  "candidate_module_inputs_exact": true,
+  "user_files": [
+    {
+      "path": ".turbo/plans/gomad3-glossary-update.md",
+      "sha256": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188",
+      "expected": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188"
+    },
+    {
+      "path": ".turbo/technical-debt.md",
+      "sha256": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287",
+      "expected": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+    }
+  ],
+  "source_change": "Only renderUpgradeGuide prose and existing generated-guide assertion expectations change executable Go; all command, approval, source/token/report/pin behavior stays byte-exact.",
+  "scratch_generator_cache": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3/.toolchain/generator-cache"
+}

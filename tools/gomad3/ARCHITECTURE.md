@@ -965,7 +965,7 @@ The runtime patch and transparent I/O overlays are pinned implementation costs.
 Every Go upgrade runs the typed `gomadtool upgrade-dossier` host command, which records the
 complete upstream patch, semantic boundary diff, interception evidence,
 archive-based overlay collision audit, disabled-mode upstream compatibility,
-mandatory probes, optional retained-corpus evidence, and platform qualification
+mandatory probes, the required checked core-corpus report, and platform qualification
 in one JSON dossier. The supported-host gate must also rerun the
 platform's host-clock inventory and, on Darwin, the positive-controlled clock
 trace because dynamic imports and probe names are platform implementation
@@ -991,7 +991,9 @@ constants, descriptor entry, fixture modules, and generated outputs together
 from a verified scratch copy under a lock and a committed journal, only with
 the approval digest of the reviewed sources and anchors. Pack refresh runs
 the pin impact report per mapped working directory over the refreshed root's
-packs and reuses discovery, review, and exact-approval generation unchanged;
+packs before validating and merging any saved report for its scoped module.
+The saved report supplements live discovery and cannot suppress a mapped
+module. Refresh reuses discovery, review, and exact-approval generation unchanged;
 it never approves. None of these widens a pin or grants a capability.
 
 Broader runtime or compiler changes require a minimized real workload showing

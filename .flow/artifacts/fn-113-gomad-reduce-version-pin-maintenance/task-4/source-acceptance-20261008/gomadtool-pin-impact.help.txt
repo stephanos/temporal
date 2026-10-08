@@ -1,0 +1,23 @@
+Usage of gomadtool pin-impact:
+  -baseline string
+    	baseline go.mod path, with adjacent go.sum
+  -baseline-module string
+    	baseline module directory
+  -baseline-ref string
+    	Git revision holding the baseline go.mod and go.sum (default: HEAD)
+  -candidate string
+    	candidate go.mod path, with adjacent go.sum
+  -format string
+    	human or json output (default "human")
+  -go string
+    	go command that resolves module graphs
+  -json
+    	write the canonical JSON report to stdout
+  -module string
+    	candidate module directory (default: the repository root module)
+  -output string
+    	also write the canonical JSON report to this file
+  -root string
+    	Gomad v3 module root (default ".")
+usage: gomadtool pin-impact [--root=DIR] [--module=DIR] [--baseline-module=DIR | --baseline-ref=REV] [--go=GO] [--json] [--output=FILE]
+       gomadtool pin-impact [--root=DIR] --baseline=GO.MOD --candidate=GO.MOD [--format=human|json]

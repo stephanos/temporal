@@ -35,7 +35,7 @@ go -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=. \
   --format=json > pin-impact.json
 ```
 
-For each affected adapter, review the dry-run source changes and exact anchors before supplying the printed approval digest. Refresh affected packs from the same report on each supported host; refresh stops at per-request review and leaves the other platform unchanged:
+For each affected adapter, review the dry-run source changes and exact anchors before supplying the printed approval digest. Refresh always reevaluates every mapped target directory, then validates and merges the saved report for its scoped module. That report supplements live discovery and cannot suppress a mapped module. Refresh stops at per-request review and leaves the other platform unchanged:
 
 ```sh
 go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \

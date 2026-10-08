@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {run,go,out} from './run.mjs';
+const scope='./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version';
+run('final-pinimpact-portable',go+' -C tools/gomad3 test -tags test_dep -count=1 -json -skip="^(TestFixtureBumpMatchesBuildRejections|TestSameVersionWithChangedSum|TestReplacedModules)$" ./upgrade/pinimpact');
+run('final-vet',go+' -C tools/gomad3 vet -tags test_dep '+scope);
+run('final-errortype',go+' -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false '+scope);
+for(const [platform,GOOS,GOARCH] of [['darwin','darwin','arm64'],['linux','linux','amd64']])run('final-'+platform+'-static',go+' -C tools/gomad3 list -deps -test -tags test_dep '+scope+' && '+go+' -C tools/gomad3 vet -tags test_dep '+scope,0,{env:{GOOS,GOARCH,CGO_ENABLED:'0'}});
+run('final-lint-fast','make lint-code-fast GOLANGCI_LINT_BASE_REV=da1e726eab2d7211ec854df2d20fc2625c0c1695 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep');
+run('final-format','test -z "$('+path.join(path.dirname(go),'gofmt')+' -l tools/gomad3/toolchain/version/descriptor.go tools/gomad3/toolchain/version/descriptor_test.go)" && git diff --check');
+const setup=JSON.parse(fs.readFileSync(path.join(out,'walk-setup.json')));
+run('audit-build-gomad',go+' -C tools/gomad3 build -tags test_dep -o '+JSON.stringify(path.join(setup.work,'gomad'))+' ./cmd/gomad');
+run('documentation-audit','node '+JSON.stringify(path.join(out,'docs.mjs')));

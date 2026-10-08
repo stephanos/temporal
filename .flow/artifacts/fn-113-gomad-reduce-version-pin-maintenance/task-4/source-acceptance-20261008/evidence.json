@@ -1,0 +1,663 @@
+{
+  "commits": [],
+  "base_commit": "da1e726eab2d7211ec854df2d20fc2625c0c1695",
+  "acceptance_base": "9663e4c1bae2c101d452f9ef97e2009143a45e36",
+  "head": "da1e726eab2d7211ec854df2d20fc2625c0c1695",
+  "tests": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 build -tags test_dep -o \"/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad\" ./cmd/gomad",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -p=1 -run=\"^TestGenerateRequiresExactApprovalAndCheckDetectsDrift$\" ./internal/compatibilitypack/authoring",
+    "go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+    "make -C tools/gomad3 validate",
+    "node \"/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/source-acceptance-20261008/docs.mjs\"",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json .",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -p=1 -count=1 -json ./cmd/gomadtool ./upgrade ./upgrade/adapterregen ./internal/compatibilitypack/...",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 list -deps -test -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+    "test -z \"$(/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l tools/gomad3/toolchain/version/descriptor.go tools/gomad3/toolchain/version/descriptor_test.go)\" && git diff --check",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=da1e726eab2d7211ec854df2d20fc2625c0c1695 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 list -deps -test -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -skip=\"^(TestFixtureBumpMatchesBuildRejections|TestSameVersionWithChangedSum|TestReplacedModules)$\" ./upgrade/pinimpact",
+    "make -C tools/gomad3 validate",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./toolchain/version",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json ./toolchain/version",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+    "make -C tools/gomad3 generate",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run=\"^TestGenerateRendersDescriptorConsumers$\" ./toolchain/version",
+    "env -u GOCACHE -u GOROOT CGO_ENABLED=0 GOENV=off GOEXPERIMENT=nogreenteagc GOFLAGS= GOTOOLCHAIN=local GOWORK=off TZ=UTC /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go env GOCACHE",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run=^TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval$ ./cmd/gomadtool",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 list -deps -test -json -tags test_dep ./deterministicio",
+    "/home/agent/.codex/scripts/flowctl gate classify --base da1e726eab2d7211ec854df2d20fc2625c0c1695",
+    "/home/agent/.codex/scripts/flowctl show fn-113-gomad-reduce-version-pin-maintenance.4 --json",
+    "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --approve-review='sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2' --json",
+    "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --json",
+    "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go'",
+    "go -C tools/gomad3 build -tags test_dep -o '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' ./cmd/gomadtool",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod download github.com/Masterminds/sprig/v3@v3.2.3",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod edit -require=github.com/Masterminds/sprig/v3@v3.2.3",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod edit -require=github.com/Masterminds/sprig/v3@v3.2.3",
+    "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' pin-impact --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --baseline='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/baseline/go.mod' --candidate='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/candidate/go.mod' --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --format=json",
+    "make -C '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3' validate"
+  ],
+  "prs": [],
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.4",
+  "status": "in_progress",
+  "review": "host-deferred; no worker verdict",
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "final_source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+  "source_manifests": [
+    {
+      "path": "source-17473c50d5ae86a2f111328cc0cdc7154d513e1f1da78ce95f6d09055acc9f37.json",
+      "sha256": "8502a2883e8e3d938bc2289ca6d6caaa1cbe9ceaf4f8707e26e74b4f144b5d56",
+      "bytes": 169778
+    },
+    {
+      "path": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "sha256": "eee26daffff2a5ebb696df418128dbb087b7aae2bbad781cdd6866c4106cadb3",
+      "bytes": 169778
+    },
+    {
+      "path": "source-9f96637813e0946c611bff9b6177186affa3331bd1598ec52368c28074bdcf18.json",
+      "sha256": "dd7b974015ca39c43ef0e12575fcc77654566ef9026bdcb6d1d1290e85586265",
+      "bytes": 169778
+    },
+    {
+      "path": "source-9ff2cad42c4fd02c3d8838408861e0d2494a2a6f3537a4d0a54094a6f169558b.json",
+      "sha256": "d0c5f5f2b0fa44bfa4013238dbefb98552af2f4bdf65ffe38c7750c9eaf42df5",
+      "bytes": 169778
+    },
+    {
+      "path": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "sha256": "360c4ed82b31a43e81b9bf5cc44e79df4402fb7f8bcfc81aa8c33194811807cb",
+      "bytes": 169778
+    }
+  ],
+  "gate_receipts": [
+    {
+      "name": "audit-build-gomad",
+      "path": "audit-build-gomad-receipt.json",
+      "sha256": "4727b195358f88817b45e7817e381bbd0844e504dbd5062d750b8fbe795b19f4",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 build -tags test_dep -o \"/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad\" ./cmd/gomad",
+      "exit_code": 0,
+      "elapsed_seconds": 0.817,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "baseline-authoring-isolated",
+      "path": "baseline-authoring-isolated-receipt.json",
+      "sha256": "b34fba96d3aa200967f29beda4b1fb65403bac029fbb0f4b206f1c0ba6c1290b",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -p=1 -run=\"^TestGenerateRequiresExactApprovalAndCheckDetectsDrift$\" ./internal/compatibilitypack/authoring",
+      "exit_code": 0,
+      "elapsed_seconds": 0.505,
+      "source_manifest": "source-9ff2cad42c4fd02c3d8838408861e0d2494a2a6f3537a4d0a54094a6f169558b.json",
+      "source_tree_sha256": "9ff2cad42c4fd02c3d8838408861e0d2494a2a6f3537a4d0a54094a6f169558b",
+      "source_unchanged": true,
+      "test_event_counts": {
+        "pass": 1,
+        "fail": 0,
+        "skip": 0
+      },
+      "counts_parser_available": true
+    },
+    {
+      "name": "baseline-quick",
+      "path": "baseline-quick-receipt.json",
+      "sha256": "c05bcd53fffb3dbd2902623f96e894b4634adc43624eafb3a0eb644e384b412d",
+      "command": "go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+      "exit_code": 1,
+      "elapsed_seconds": 59.791,
+      "source_manifest": "source-9ff2cad42c4fd02c3d8838408861e0d2494a2a6f3537a4d0a54094a6f169558b.json",
+      "source_tree_sha256": "9ff2cad42c4fd02c3d8838408861e0d2494a2a6f3537a4d0a54094a6f169558b",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "baseline-validate",
+      "path": "baseline-validate-receipt.json",
+      "sha256": "1b613ff28fde3ab89e519c8fe47c7bba27e0094b4e79046f9227f256653350db",
+      "command": "make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "elapsed_seconds": 2.228,
+      "source_manifest": "source-9ff2cad42c4fd02c3d8838408861e0d2494a2a6f3537a4d0a54094a6f169558b.json",
+      "source_tree_sha256": "9ff2cad42c4fd02c3d8838408861e0d2494a2a6f3537a4d0a54094a6f169558b",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "documentation-audit",
+      "path": "documentation-audit-receipt.json",
+      "sha256": "179cdc84f21c0c0454eb65d2834e5e4fc85ab507841917a86282d6004df05fe0",
+      "command": "node \"/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/source-acceptance-20261008/docs.mjs\"",
+      "exit_code": 0,
+      "elapsed_seconds": 0.911,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "final-architecture",
+      "path": "final-architecture-receipt.json",
+      "sha256": "9769c7836b073e3dfc4eac5f5fe0bb2c46dec7d9dfdad454b2d7fa02fc10faed",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json .",
+      "exit_code": 0,
+      "elapsed_seconds": 72.746,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": {
+        "pass": 78,
+        "fail": 0,
+        "skip": 0
+      },
+      "counts_parser_available": true
+    },
+    {
+      "name": "final-authoring",
+      "path": "final-authoring-receipt.json",
+      "sha256": "230ad688d2825c594406324f4bc14e9163c199f26d2edf38f821c68c71ecc542",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -p=1 -count=1 -json ./cmd/gomadtool ./upgrade ./upgrade/adapterregen ./internal/compatibilitypack/...",
+      "exit_code": 1,
+      "elapsed_seconds": 99.071,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": {
+        "pass": 666,
+        "fail": 1,
+        "skip": 1
+      },
+      "counts_parser_available": true
+    },
+    {
+      "name": "final-darwin-static",
+      "path": "final-darwin-static-receipt.json",
+      "sha256": "70a2199945ec5156ce4cfb52c02f4ae6149e17109eeda9f90be5f77ecad669a3",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 list -deps -test -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+      "exit_code": 0,
+      "elapsed_seconds": 0.909,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "final-errortype",
+      "path": "final-errortype-receipt.json",
+      "sha256": "8962015d81c945b536b567faf2110190246e2eb48e2fdbd42140a5be28e966f6",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+      "exit_code": 0,
+      "elapsed_seconds": 0.705,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "final-format",
+      "path": "final-format-receipt.json",
+      "sha256": "ec3befd5f5decc32a5d937a02465e73555aecac97a60e1c415a15025f79d11a7",
+      "command": "test -z \"$(/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l tools/gomad3/toolchain/version/descriptor.go tools/gomad3/toolchain/version/descriptor_test.go)\" && git diff --check",
+      "exit_code": 0,
+      "elapsed_seconds": 0.112,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "final-lint-fast",
+      "path": "final-lint-fast-receipt.json",
+      "sha256": "87cf077cc0ecfba0df39a92f1dfb9371a419c5203c13846b8ce3823ecb964cd9",
+      "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=da1e726eab2d7211ec854df2d20fc2625c0c1695 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "exit_code": 0,
+      "elapsed_seconds": 7.446,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "final-linux-static",
+      "path": "final-linux-static-receipt.json",
+      "sha256": "3b83f18341e5dd226d30c72330b55474fd2250ab9bd2dd25ed177a9bda30c09e",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 list -deps -test -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+      "exit_code": 0,
+      "elapsed_seconds": 0.809,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "final-pinimpact-portable",
+      "path": "final-pinimpact-portable-receipt.json",
+      "sha256": "d919699fccff4dedf1a87cd8974ee4c5acd6cb97f16e0d461feffefcf5308ca9",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -skip=\"^(TestFixtureBumpMatchesBuildRejections|TestSameVersionWithChangedSum|TestReplacedModules)$\" ./upgrade/pinimpact",
+      "exit_code": 0,
+      "elapsed_seconds": 1.714,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": {
+        "pass": 121,
+        "fail": 0,
+        "skip": 0
+      },
+      "counts_parser_available": true
+    },
+    {
+      "name": "final-validate",
+      "path": "final-validate-receipt.json",
+      "sha256": "aceff9f0d7db6f24f6bb2c9111c1733e183682eb1b276962a759680181c837e3",
+      "command": "make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "elapsed_seconds": 4.75,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "final-version-lint",
+      "path": "final-version-lint-receipt.json",
+      "sha256": "eafa9b14e63b1aaa9ea139c453dc67bf5b74e9760d834f461ed0298a5b26668a",
+      "command": "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./toolchain/version",
+      "exit_code": 0,
+      "elapsed_seconds": 0.417,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "final-version",
+      "path": "final-version-receipt.json",
+      "sha256": "a8c70bbe518ed6f044ff7e12b5d8ae5433882ba4a84ff732d696f0b1c179f014",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json ./toolchain/version",
+      "exit_code": 0,
+      "elapsed_seconds": 1.119,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": {
+        "pass": 14,
+        "fail": 0,
+        "skip": 0
+      },
+      "counts_parser_available": true
+    },
+    {
+      "name": "final-vet",
+      "path": "final-vet-receipt.json",
+      "sha256": "f564c9432e370cd89db1be41c0bfc507616e0692419ba601ecb386de50129225",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+      "exit_code": 0,
+      "elapsed_seconds": 0.508,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "generate",
+      "path": "generate-receipt.json",
+      "sha256": "82f2dac442716c53b59499b556d031173c28fd0acff2c2b10c7f35dc49c0ea49",
+      "command": "make -C tools/gomad3 generate",
+      "exit_code": 0,
+      "elapsed_seconds": 3.29,
+      "source_manifest": "source-9f96637813e0946c611bff9b6177186affa3331bd1598ec52368c28074bdcf18.json",
+      "source_tree_sha256": "9f96637813e0946c611bff9b6177186affa3331bd1598ec52368c28074bdcf18",
+      "source_unchanged": false,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "guide-contract-red",
+      "path": "guide-contract-red-receipt.json",
+      "sha256": "3a8297da7bd3e4b9c299fa99057facc35be69035c72834629b1935e0a3922e83",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run=\"^TestGenerateRendersDescriptorConsumers$\" ./toolchain/version",
+      "exit_code": 1,
+      "elapsed_seconds": 0.304,
+      "source_manifest": "source-17473c50d5ae86a2f111328cc0cdc7154d513e1f1da78ce95f6d09055acc9f37.json",
+      "source_tree_sha256": "17473c50d5ae86a2f111328cc0cdc7154d513e1f1da78ce95f6d09055acc9f37",
+      "source_unchanged": true,
+      "test_event_counts": {
+        "pass": 0,
+        "fail": 1,
+        "skip": 0
+      },
+      "counts_parser_available": true
+    },
+    {
+      "name": "resolved-effective-cache",
+      "path": "resolved-effective-cache-receipt.json",
+      "sha256": "ad558eb648e1ce80c39dcc6aa10655faf1f3c53508e71da9a95f952797c91a6c",
+      "command": "env -u GOCACHE -u GOROOT CGO_ENABLED=0 GOENV=off GOEXPERIMENT=nogreenteagc GOFLAGS= GOTOOLCHAIN=local GOWORK=off TZ=UTC /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go env GOCACHE",
+      "exit_code": 0,
+      "elapsed_seconds": 0.106,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "resolved-refresh-cache",
+      "path": "resolved-refresh-cache-receipt.json",
+      "sha256": "db54492a4adaf4cbf9c49874babab8fee48eb6d0cc5676988689407c300cb6d8",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run=^TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval$ ./cmd/gomadtool",
+      "exit_code": 0,
+      "elapsed_seconds": 1.642,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      },
+      "counts_parser_available": true
+    },
+    {
+      "name": "reuse-deterministicio-dependencies",
+      "path": "reuse-deterministicio-dependencies-receipt.json",
+      "sha256": "31ac8547bb09d11bb2ae4acfdd41a04bcf35e28f5bedafd393c9bd380a4d231e",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 list -deps -test -json -tags test_dep ./deterministicio",
+      "exit_code": 0,
+      "elapsed_seconds": 0.513,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "counts_parser_available": true
+    },
+    {
+      "name": "source-classification",
+      "path": "source-classification-receipt.json",
+      "sha256": "f3df6d7cbaee2ab71033f1a048756ac9c2d356a451a4d14806be698bdb5729e0",
+      "command": "/home/agent/.codex/scripts/flowctl gate classify --base da1e726eab2d7211ec854df2d20fc2625c0c1695",
+      "exit_code": 1,
+      "elapsed_seconds": 0.723,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "terminal-task-state",
+      "path": "terminal-task-state-receipt.json",
+      "sha256": "12195c759801762195d2c3f5e6a046c2d66fda52be9bd3537e2936f4e2e051dd",
+      "command": "/home/agent/.codex/scripts/flowctl show fn-113-gomad-reduce-version-pin-maintenance.4 --json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.414,
+      "source_manifest": "source-7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb.json",
+      "source_tree_sha256": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "walk-adapter-apply",
+      "path": "walk-adapter-apply-receipt.json",
+      "sha256": "4d63bf3a26ee881f4f360f82de5b68562a5568d861da7d4d4442193b857ae9c6",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --approve-review='sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2' --json",
+      "exit_code": 0,
+      "elapsed_seconds": 10.211,
+      "source_manifest": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "source_tree_sha256": "e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "walk-adapter-dryrun",
+      "path": "walk-adapter-dryrun-receipt.json",
+      "sha256": "873cb09bf256d37c29acf879fc8028f25008591484d9a5c67b9bf6b5728568c1",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.608,
+      "source_manifest": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "source_tree_sha256": "e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "walk-adapter-human-review",
+      "path": "walk-adapter-human-review-receipt.json",
+      "sha256": "9d3c8522dad84f6f9b6ef9eef69fe74ad32aadb31e7043ee03012e1ed9a07682",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go'",
+      "exit_code": 0,
+      "elapsed_seconds": 0.82,
+      "source_manifest": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "source_tree_sha256": "e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "walk-build-tool",
+      "path": "walk-build-tool-receipt.json",
+      "sha256": "16b67b09142895f7caad993392c3700b4d501518c39210c454eb4b27637cac67",
+      "command": "go -C tools/gomad3 build -tags test_dep -o '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' ./cmd/gomadtool",
+      "exit_code": 0,
+      "elapsed_seconds": 1.939,
+      "source_manifest": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "source_tree_sha256": "e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "walk-candidate-download",
+      "path": "walk-candidate-download-receipt.json",
+      "sha256": "bd43a97408f6c4b2ea3a4ce6bfcb4ac026cc9c6b7b0069d89ac873c933e830e6",
+      "command": "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod download github.com/Masterminds/sprig/v3@v3.2.3",
+      "exit_code": 0,
+      "elapsed_seconds": 0.312,
+      "source_manifest": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "source_tree_sha256": "e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "walk-candidate-edit-cwd-corrected",
+      "path": "walk-candidate-edit-cwd-corrected-receipt.json",
+      "sha256": "b8febabd094d5fb5b1c6b8b1acfb39b3834f47f8cbb918b29cd869b10733b83e",
+      "command": "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod edit -require=github.com/Masterminds/sprig/v3@v3.2.3",
+      "exit_code": 0,
+      "elapsed_seconds": 0.11,
+      "source_manifest": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "source_tree_sha256": "e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "walk-candidate-edit",
+      "path": "walk-candidate-edit-receipt.json",
+      "sha256": "34aef014dd23f9e9bf83094c9e2f4601cdf0579c4294df4ff6f55164a3a6b102",
+      "command": "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod edit -require=github.com/Masterminds/sprig/v3@v3.2.3",
+      "exit_code": 0,
+      "elapsed_seconds": 0.109,
+      "source_manifest": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "source_tree_sha256": "e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34",
+      "source_unchanged": false,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "walk-pin-impact",
+      "path": "walk-pin-impact-receipt.json",
+      "sha256": "418e39773aa1864b3216bbfe470b580b63456c335fcce176c6477cd14d94c34d",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' pin-impact --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --baseline='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/baseline/go.mod' --candidate='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/candidate/go.mod' --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --format=json",
+      "exit_code": 1,
+      "elapsed_seconds": 1.421,
+      "source_manifest": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "source_tree_sha256": "e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    },
+    {
+      "name": "walk-validate",
+      "path": "walk-validate-receipt.json",
+      "sha256": "bf8aaec41e6d691e4c23d8a9af69424d876dfe071489ddee7b703b660617fbba",
+      "command": "make -C '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3' validate",
+      "exit_code": 0,
+      "elapsed_seconds": 12.502,
+      "source_manifest": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+      "source_tree_sha256": "e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34",
+      "source_unchanged": true,
+      "test_event_counts": null,
+      "counts_parser_available": false
+    }
+  ],
+  "assertion_mapping": "assertion-mapping.json",
+  "documentation_audit": "documentation-audit.json",
+  "measurement": "measurement.md",
+  "walkthrough": "walkthrough.json",
+  "matched_first_baseline": "matched-first-baseline.json",
+  "preservation": "preservation.json",
+  "predecessor_reuse": "predecessor-source-reuse.json",
+  "baseline": "red; exact Quick test failed pre-edit; validate green; native wrapper and portable authoring sync failures retain original logs",
+  "portable_source_union": {
+    "pass": 670,
+    "fail": 0,
+    "skip": 1
+  },
+  "broad_full_pass": false,
+  "native_qualification": false,
+  "native_owners": [
+    "fn149.2",
+    "fn149.4",
+    "fn128.4",
+    "fn128.7"
+  ],
+  "commands_terminal": true,
+  "worker_committed": false,
+  "artifact_bindings": [
+    {
+      "path": "handover.md",
+      "sha256": "012b10b9cba0fd89f8590e8f901db16f8ac23438510882f758b8f73815a6bc58",
+      "bytes": 9996
+    },
+    {
+      "path": "assertion-mapping.json",
+      "sha256": "8a6b1fe6537525c9c8b883391fdd32473dc51ed3e540bee878333cd133e08776",
+      "bytes": 191670
+    },
+    {
+      "path": "documentation-audit.json",
+      "sha256": "91125fa335a93b3cccdceb7ff3fb20124a74b03df7b2bf31b7c26a39cec5a23f",
+      "bytes": 62821
+    },
+    {
+      "path": "measurement.md",
+      "sha256": "876f8636b87dcfef0a755344e2436065f059e725deaeafb53c482d2ba30012dd",
+      "bytes": 5119
+    },
+    {
+      "path": "walkthrough.json",
+      "sha256": "bb2ae63f674b938cf12976b687d195ed524c8281f45dbc7d4837165933d9a8d2",
+      "bytes": 7683
+    },
+    {
+      "path": "matched-first-baseline.json",
+      "sha256": "b716c25e89fd889f2588ddedc0a8c1fd15567d42dfd4e00540d4841b7127d08c",
+      "bytes": 2225
+    },
+    {
+      "path": "invocation-accounting.json",
+      "sha256": "e12fef66b7cd2148020c58fc8660575e787602802d8dd2c6910125c194210b84",
+      "bytes": 2518
+    },
+    {
+      "path": "preservation.json",
+      "sha256": "84edbd745455f32fdac9f079a08717e0590e0c47a6fc6e6d70f34bc4af3a28f2",
+      "bytes": 4809
+    },
+    {
+      "path": "predecessor-source-reuse.json",
+      "sha256": "2212d3c9285d14841351cac8d369d64c3f7f74b2c06e7ae8731f7d40c1b39d9a",
+      "bytes": 39789
+    },
+    {
+      "path": "walk-setup.json",
+      "sha256": "0e79bf03bd1813c8c255ffb5bb51d0ee9c546cb87230b9607b96b5d313b920e6",
+      "bytes": 358069
+    },
+    {
+      "path": "walk-approval.json",
+      "sha256": "fe4c3fec8bf38b090603c266b7ceffb6c835d155e9fe044b2616fb78c59e2f26",
+      "bytes": 476
+    },
+    {
+      "path": "walk-publication.json",
+      "sha256": "71ebd1aa1f4f7968b83335f10cc10f612871c670ada3008a00e89e34e8b6fac1",
+      "bytes": 7019
+    },
+    {
+      "path": "run.mjs",
+      "sha256": "10fb0692fb4b570f1c143fe0a86e4c7db41a80ff962737076ccf5c074038b0f3",
+      "bytes": 5287
+    },
+    {
+      "path": "docs.mjs",
+      "sha256": "1038dfafb492b99bbe92844898be19eea2ca0b1fd188a77d133823021d8585e9",
+      "bytes": 5697
+    },
+    {
+      "path": "walk.mjs",
+      "sha256": "dc1fbc574b9286c7bf0110afb961349cd9b7573e71240128c683df530b45ba46",
+      "bytes": 5132
+    },
+    {
+      "path": "walk-apply.mjs",
+      "sha256": "eafa9f85f4a7d3427536fe8feb8808409186e4d6f66b5458a93df2b39378b63a",
+      "bytes": 5649
+    },
+    {
+      "path": "final-static.mjs",
+      "sha256": "9cff773a338d16ad370b86a1920cef70c07f78b9e062bc262af62726e1445311",
+      "bytes": 1667
+    },
+    {
+      "path": "bind-preservation.mjs",
+      "sha256": "5ad6ae2319e86323e5e6f16ae550ba657222e09acb454577d452e355a0e13062",
+      "bytes": 5844
+    },
+    {
+      "path": "reuse-binding.mjs",
+      "sha256": "56b0d13dd77744e4c6186d0e93eb5c52032730770a96bba49c52787c21e414ef",
+      "bytes": 4642
+    },
+    {
+      "path": "assemble.mjs",
+      "sha256": "de4affa998d649f524f0697f13444cdee5cbb5eece54d0240023ee82eb73382a",
+      "bytes": 6567
+    }
+  ],
+  "harness_binding_scope": "Each raw receipt binds the executing harness SHA. Artifact bindings retain current harness/driver recipes; historical driver-error descriptions explicitly lack byte-exact raw stdout and elapsed records. No source assertion derives from those instrumentation failures."
+}

@@ -1,0 +1,138 @@
+{
+  "schema": "gomad3.source-pin-maintenance-walk/v1",
+  "host": "linux/arm64 stock Go; not a qualified Gomad host",
+  "root": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3",
+  "parent": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal",
+  "binary_sha256": "959b2f0f52e0e7d0ea14d92bc2d12a4235b159dadcad9588b4c2f22c6665c2ab",
+  "original_baseline": "../../task-1/baseline.json",
+  "matched_first_baseline": "../measurement.json",
+  "source_snapshot": "source-e11e47674a2fe171331bd8ffff57f231fcd62994d6a0e57055a882f80add7e34.json",
+  "approval": {
+    "approval": "sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2",
+    "review_log": "walk-adapter-human-review.log",
+    "review_log_sha256": "570664716a49bb1ef5bc724a24ea38a74bcb91167b32ef1465d4365ee478d72c",
+    "decision": "Controlled scratch source authoring only: same reviewed network.go bytes, exact version/sum and both prepared source sets change; no stale pack binding; no production approval or qualification.",
+    "native_qualification": false
+  },
+  "outputs": [
+    {
+      "path": "deterministicio/boundary/upgrade-go1.27.1.md",
+      "sha256": "35df2f2fc01f776eb061b8bf1953c73df699c756be95e63ddd791ddd7b18bb37"
+    },
+    {
+      "path": "deterministicio/sprig_adapter.go",
+      "sha256": "0e1de4e7c5e2b255cc9d90acc206938cd588ab638d68ed8a7c6b5720999419ce"
+    },
+    {
+      "path": "deterministicio/testdata/sprig/go.mod",
+      "sha256": "71c69bf1e302b0500b14878ca60199d2778aef7114e0d443eca95a065f1d4efc"
+    },
+    {
+      "path": "deterministicio/testdata/sprig/go.sum",
+      "sha256": "f04e76e74dcf36809a1ce62232d8a924c35081c1b10f81f8c56d6ac3e9b5414d"
+    },
+    {
+      "path": "toolchain/version/generated.go",
+      "sha256": "442a6ed97317bba0098fd55e736f6866f9cfd7cb29c021f4a924aabb467df5f5"
+    },
+    {
+      "path": "toolchain/version/version.json",
+      "sha256": "76a2bff06a6ed3edc83b5fb3474f8b7a3954c8378116089b03c0954fd02e7bf7"
+    }
+  ],
+  "commands": [
+    {
+      "name": "walk-build-tool",
+      "command": "go -C tools/gomad3 build -tags test_dep -o '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' ./cmd/gomadtool",
+      "receipt": "walk-build-tool-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-candidate-edit",
+      "command": "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod edit -require=github.com/Masterminds/sprig/v3@v3.2.3",
+      "receipt": "walk-candidate-edit-receipt.json",
+      "exit_code": 0,
+      "observation": "inconclusive: wrong effective cwd; root edit restored"
+    },
+    {
+      "name": "walk-candidate-edit-cwd-corrected",
+      "command": "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod edit -require=github.com/Masterminds/sprig/v3@v3.2.3",
+      "receipt": "walk-candidate-edit-cwd-corrected-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-candidate-download",
+      "command": "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' mod download github.com/Masterminds/sprig/v3@v3.2.3",
+      "receipt": "walk-candidate-download-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-pin-impact",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' pin-impact --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --baseline='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/baseline/go.mod' --candidate='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/candidate/go.mod' --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --format=json",
+      "receipt": "walk-pin-impact-receipt.json",
+      "exit_code": 1
+    },
+    {
+      "name": "walk-adapter-dryrun",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --json",
+      "receipt": "walk-adapter-dryrun-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-adapter-human-review",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go'",
+      "receipt": "walk-adapter-human-review-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-adapter-apply",
+      "command": "'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/gomadtool' adapter-regenerate --root='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3' --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --go='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' --approve-review='sha256:ce0606dc04ef3822ea587a9e41b3e3c6e6cb9cb7a96c514023f3febb2f801ab2' --json",
+      "receipt": "walk-adapter-apply-receipt.json",
+      "exit_code": 0
+    },
+    {
+      "name": "walk-validate",
+      "command": "make -C '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1134-source-walk-wvbsFc/temporal/tools/gomad3' validate",
+      "receipt": "walk-validate-receipt.json",
+      "exit_code": 0
+    }
+  ],
+  "observed_command_invocations": 9,
+  "observed_hand_edits": 1,
+  "recovery_hand_edit": "Restore only worker-caused root go.mod line after wrong-cwd attempt; root go.mod/go.sum restored byte-exact.",
+  "source_authoring_invocations": 5,
+  "successful_common_preparation_invocations": 2,
+  "tool_build_invocations": 1,
+  "misplaced_inconclusive_invocations": 1,
+  "normalized_source_authoring_invocations": 4,
+  "matched_source_baseline_units": 6,
+  "matched_source_baseline_with_common_preparation_units": 8,
+  "actual_total_units": 10,
+  "actual_total_units_scope": "Underlying workflow invocation and recovery edit units; includes every workflow failure/retry. Instrumentation is separately enumerated.",
+  "instrumentation_driver_invocations": 6,
+  "instrumentation_inclusive_command_invocations": 15,
+  "instrumentation_inclusive_total_units": 16,
+  "invocation_accounting": "invocation-accounting.json",
+  "native_stages": "Consumer test, patched runner rebuild, pack qualification, core qualification and full native test-host deferred to fn149/fn128; none executed or counted as source proof.",
+  "pack_reduction": "none measured; historical two-request projection stays historical",
+  "candidate_before": [
+    {
+      "path": "go.mod",
+      "sha256": "b99bbcf3b7fb86a1aa5092bafecd451255174f3c9c838e048448bc7dd9b579d1"
+    },
+    {
+      "path": "go.sum",
+      "sha256": "771b7ee0cade394d2f363991256e903047582198c6df5b4b923648b18faa13bf"
+    }
+  ],
+  "candidate_after": [
+    {
+      "path": "go.mod",
+      "sha256": "b99bbcf3b7fb86a1aa5092bafecd451255174f3c9c838e048448bc7dd9b579d1"
+    },
+    {
+      "path": "go.sum",
+      "sha256": "771b7ee0cade394d2f363991256e903047582198c6df5b4b923648b18faa13bf"
+    }
+  ]
+}

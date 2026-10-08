@@ -1,0 +1,26 @@
+Usage of gomadtool adapter-regenerate:
+  -approve string
+    	alias for --approve-review
+  -approve-review string
+    	review digest a dry run printed; applies the regeneration
+  -go string
+    	pinned Go release command
+  -json
+    	write the review as JSON
+  -module string
+    	adapted module path
+  -module-dir string
+    	module source directory for --verify
+  -recover
+    	complete an interrupted publication and exit
+  -root string
+    	Gomad v3 module root (default ".")
+  -stage-only
+    	with --approve-review, stage and verify the regeneration and list every file the apply publishes, without publishing
+  -verify
+    	check the compiled adapter against --module-dir
+  -version string
+    	exact candidate module version
+usage: gomadtool adapter-regenerate [--root=DIR] --module=PATH --version=VERSION [--approve-review=SHA256|--approve=SHA256 [--stage-only]] [--go=GO] [--json]
+       gomadtool adapter-regenerate [--root=DIR] --recover
+       gomadtool adapter-regenerate --verify --module=PATH --module-dir=DIR [--go=GO]

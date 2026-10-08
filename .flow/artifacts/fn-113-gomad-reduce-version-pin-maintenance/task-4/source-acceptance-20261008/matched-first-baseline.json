@@ -1,0 +1,52 @@
+{
+  "original_baseline": {
+    "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/baseline.json",
+    "sha256": "19bc83d7546c9fc240675befe12231ae04e92d28991952f30fbb9d982942e408",
+    "head": "d635e23f00d926a43b942f25a9d05bd0ccb72025"
+  },
+  "matched_measurement": {
+    "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/measurement.json",
+    "sha256": "794a37a55c795b1e704153bb6eea88543dcc581d77a1d94e1f43305652b42147"
+  },
+  "module_identity": {
+    "module": "github.com/Masterminds/sprig/v3",
+    "version": "v3.3.0",
+    "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+  },
+  "repair_paths": [
+    {
+      "path": "tools/gomad3/deterministicio/sprig_adapter.go",
+      "first_baseline_sha256": "83a518072ae4d920712e2f90843ded4334a6061cbf63e76659733900b5ec9925",
+      "current_sha256": "e1f4112eddc76531c6c34291a1c83a9c60bd738e758646bf24a785c04f72fee8",
+      "same_current_admission_bytes": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/version.json",
+      "first_baseline_sha256": "3c32eb2f3d0c4be583ed2ad762b75c7f8d55d5157c8a1063490545b6519254ca",
+      "current_sha256": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+      "same_current_admission_bytes": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sprig/go.mod",
+      "first_baseline_sha256": "18985351ee04afbcca3e9a294da63639196301acd43720e3dc3dc46bb62b00c2",
+      "current_sha256": "18985351ee04afbcca3e9a294da63639196301acd43720e3dc3dc46bb62b00c2",
+      "same_current_admission_bytes": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sprig/go.sum",
+      "first_baseline_sha256": "382281b65945fdb907406e1f67287ef1e749c8e71025865897b8654bdb101a7f",
+      "current_sha256": "382281b65945fdb907406e1f67287ef1e749c8e71025865897b8654bdb101a7f",
+      "same_current_admission_bytes": true
+    }
+  ],
+  "original_baseline_units": 7,
+  "excluded_native_consumer_units": 1,
+  "matched_source_units": 6,
+  "common_setup_units": 2,
+  "observed_workflow_invocations": 9,
+  "observed_recovery_edits": 1,
+  "driver_invocations": 6,
+  "driver_setup_failures": 2,
+  "normalized_source_units": 4,
+  "qualification": false
+}

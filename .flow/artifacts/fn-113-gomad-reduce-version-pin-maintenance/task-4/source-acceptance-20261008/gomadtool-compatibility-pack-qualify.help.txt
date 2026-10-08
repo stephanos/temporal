@@ -1,0 +1,11 @@
+Usage of gomadtool compatibility-pack qualify:
+  -all
+    	qualify every request that names the host platform in the working directory its table entry names
+  -compatibility-root string
+    	absolute pack authoring root owned by another module (default: internal/compatibilitypack)
+  -request string
+    	compatibility-pack request path
+  -root string
+    	Gomad v3 module root
+  -working-dir string
+    	target working directory
