@@ -1,0 +1,1714 @@
+{
+  "worker_base": "4a64eb2cd68cc4040045d9d09bbd8bfc82b81819",
+  "original_native_base": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "original_native_fix": "a3b9f80efab9356c0be2080779133337e2471ac0",
+  "original_native_task_paths": [
+    "tools/gomad3/artifact/store.go",
+    "tools/gomad3/artifact/store_test.go",
+    "tools/gomad3/runner/retention_test.go",
+    "tools/gomad3/cmd/gomad/retained_success_e2e_test.go"
+  ],
+  "worker_product_change": "tools/gomad3/runner/internal/campaign/retained_evidence_test.go",
+  "observations": {
+    "configured-fast-lint": {
+      "receipt": "configured-fast-lint.json",
+      "actual_exit": 2,
+      "issues": [
+        {
+          "path": "tools/gomad3/artifact/manifest_copy.go",
+          "line": 59,
+          "column": 3,
+          "message": "use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)",
+          "code": "panic(fmt.Sprintf(\"artifact manifest cannot copy a %s field\", source.Kind()))",
+          "code_sha256": "050c54e717788682bf0807826bc4b80f7a74cebb47e9c458cc5a0c9ead5e1dcf",
+          "source_sha256": "f1dad686d9f2fc59ebde1f0f484bafa6dcfad7fb1f84d1d3fe7878eeb44d7dae",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "3a3c31b0a7b22ab2c669735743d3f1e2d2985bab",
+            "filename": "tools/gomad3/artifact/manifest_copy.go",
+            "summary": "gomad: separate detached Artifact references from owned opened handles"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.12 / fn-109.19 / fn-109.21",
+            "disclosure": "fn-109.33 explicitly preserves this production panic and states it is not waived"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+          "line": 88,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "a9a94d5832e597babd74d331ed1a379e8a310c8db38fede6bcda7cc215f57a72",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "debca5eb56e7719c566eb4552a04279631982671",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+            "summary": "gomad: resolve CLI installation, Runner build and private child modes through one application value"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.4 / fn-109.21",
+            "disclosure": "construction owner retains original writer/error behavior; task4 historical summary separately discloses output handling"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+          "line": 185,
+          "column": 14,
+          "message": "ST1005: error strings should not be capitalized (staticcheck)",
+          "code": "return \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)",
+          "code_sha256": "c56028895b4f3e7241a032b5071f05fbc99a41fe3f3a2d08e846b0b06c8c4d04",
+          "source_sha256": "a9a94d5832e597babd74d331ed1a379e8a310c8db38fede6bcda7cc215f57a72",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "a3b9f80efab9356c0be2080779133337e2471ac0",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+            "summary": "wip"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.4 / fn-109.21",
+            "disclosure": "construction owner retains original writer/error behavior; task4 historical summary separately discloses output handling"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 369,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 374,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "debca5eb56e7719c566eb4552a04279631982671",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: resolve CLI installation, Runner build and private child modes through one application value"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 442,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "f608449c016b751a8fd4e19561518e979ebfc31e",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: parse plan and explore once, call each Runner operation directly and let Runner own strategy and coverage reading"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 450,
+          "column": 14,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(stderr, \"gomad:%s\\n\", formatChoiceTrace(summary.ChoiceTrace))",
+          "code_sha256": "0fd171880decba7a4bfeeafc7ac6ca89729350584adf8f6e6f75317f4eb18b2b",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 454,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, writeErr)",
+          "code_sha256": "e7044276d150e5efa51e4d4b710fb07988633559243a609e4e97a9241bd3a50a",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 474,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, writeErr)",
+          "code_sha256": "e7044276d150e5efa51e4d4b710fb07988633559243a609e4e97a9241bd3a50a",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "f608449c016b751a8fd4e19561518e979ebfc31e",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: parse plan and explore once, call each Runner operation directly and let Runner own strategy and coverage reading"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 483,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, writeErr)",
+          "code_sha256": "e7044276d150e5efa51e4d4b710fb07988633559243a609e4e97a9241bd3a50a",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "f608449c016b751a8fd4e19561518e979ebfc31e",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: parse plan and explore once, call each Runner operation directly and let Runner own strategy and coverage reading"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 491,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "f608449c016b751a8fd4e19561518e979ebfc31e",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: parse plan and explore once, call each Runner operation directly and let Runner own strategy and coverage reading"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 42,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, adapterRegenerateUsage)",
+          "code_sha256": "b937027f5ff3c25c708972819669aa29e5f2b4e66e9a8c1b24d24687b214dadd",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 46,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, \"--approve and --approve-review must name the same digest\")",
+          "code_sha256": "803b5c54be13ba1f771efec9b5f05903a77d6ce1876e637c40a19053611603ca",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 53,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, \"--stage-only requires an approval digest\")",
+          "code_sha256": "2bafc412fc38cb9b547e05cce8110aaafcf3f05aede6afe0c79a7ae3ec37ae3f",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 59,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 64,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 77,
+          "column": 14,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(stderr, \"adapter regeneration requires the pinned go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\\n\", err)",
+          "code_sha256": "97a00ee63ff0f0cfc93d70aa1aca0b3f30a130d1a6a938ce06033ffccda911d7",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 82,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, adapterRegenerateUsage)",
+          "code_sha256": "b937027f5ff3c25c708972819669aa29e5f2b4e66e9a8c1b24d24687b214dadd",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 86,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 92,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, adapterRegenerateUsage)",
+          "code_sha256": "b937027f5ff3c25c708972819669aa29e5f2b4e66e9a8c1b24d24687b214dadd",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 93,
+          "column": 14,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(stderr, \"regenerable adapters: %s\\n\", strings.Join(adapterregen.Regenerable(), \", \"))",
+          "code_sha256": "3ce071967a0d80666c46c7aebf73e653f1818c0475c1fce90831c2b2ca60801e",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 100,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+          "line": 111,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+          "line": 24,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, \"usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]\")",
+          "code_sha256": "2466fb12fbdfcfbdd4897387fc4e4ce3bd59f321fdd73b4f164d35a99fff570b",
+          "source_sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+          "line": 41,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, \"usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]\")",
+          "code_sha256": "2466fb12fbdfcfbdd4897387fc4e4ce3bd59f321fdd73b4f164d35a99fff570b",
+          "source_sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+          "line": 219,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "d17d746111442fc5d574a02c90af84a0bb679de6",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "summary": "gomad: compatibility-pack refresh review fixes"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+          "line": 270,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+          "line": 275,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+          "line": 280,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+          "line": 305,
+          "column": 14,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(stderr, \"no compatibility-pack request names %s\\n\", platform)",
+          "code_sha256": "669f93d35075e9d1893860756874c892e67c887724739662b467898753c551e7",
+          "source_sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+          "line": 51,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, compatibilityPackRefreshUsage)",
+          "code_sha256": "47440a105efff23c3bc462c84af7ebbe0d6727f03b9952050b59a44013c3f47f",
+          "source_sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+          "line": 56,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+          "line": 61,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+          "line": 66,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+          "line": 77,
+          "column": 14,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(stderr, \"compatibility-pack refresh requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\\n\", err)",
+          "code_sha256": "95c4cbc051adf9bfc16bd51bce034c28980202e1a77de35af857c1a3b1f40f24",
+          "source_sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+          "line": 85,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+          "line": 97,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, readErr)",
+          "code_sha256": "7883118898d2a742bcc0aeede8dd7efc86f373ba5d27990ad200e37e9130557b",
+          "source_sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+          "line": 114,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+            "filename": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "summary": "gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 40,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, pinImpactUsage)",
+          "code_sha256": "30146ea18caf484f5a55e3678343f75453e5b73c8756f3cc0dc5c97800854ad5",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 45,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, pinImpactUsage)",
+          "code_sha256": "30146ea18caf484f5a55e3678343f75453e5b73c8756f3cc0dc5c97800854ad5",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 56,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 63,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(stderr, \"locate the repository root module: %v; pass --module\\n\", err)",
+          "code_sha256": "ccda5d7c62bc8edab9882c5d3dea6bff4f8568253ef91a77f8bcdefcef63d564",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 69,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 74,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 92,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "a3b9f80efab9356c0be2080779133337e2471ac0",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "wip"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 102,
+          "column": 14,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(stderr, \"gomad3 pin impact requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\\n\", err)",
+          "code_sha256": "903e8122aecd160e31ee9b09ec49df3810a5a5a10e475038c248bec19b48eec0",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "d617a8a1cde3938b33bbe58b8d0087fe83f6c056",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: pin-impact review fixes: report newer go directives, narrow upgrade imports, look up --go"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 107,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 112,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 121,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 129,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 134,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "a3b9f80efab9356c0be2080779133337e2471ac0",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "wip"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 144,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "gomad: baseline version pins and report the pins a candidate go.mod invalidates"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 156,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 165,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 171,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "a3b9f80efab9356c0be2080779133337e2471ac0",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "wip"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+          "line": 186,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/soak.go",
+          "line": 37,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, \"usage: gomadtool soak --manifest=FILE --gomad=FILE --work=DIR --ledger=DIR --output=DIR [flags]\")",
+          "code_sha256": "a8e4c57232bbeba8bc7e525658a4011e7bdfd8df6c311ad5015fcda31572b910",
+          "source_sha256": "1235e24d9602f2a2b38b97dc311f91e911653c5ba01e9b057201d544c292618d",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "bae373d14736d1e4437f840bbb66a173ab960052",
+            "filename": "tools/gomad3/cmd/gomadtool/soak.go",
+            "summary": "gomad: add the scheduled determinism soak gate"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-112.10",
+            "disclosure": "four writer findings explicitly retained in trusted blocked-task reassessment"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/soak.go",
+          "line": 47,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(stderr, \"invalid --seed %q\\n\", value)",
+          "code_sha256": "c045cea5b7c492c6bc2908e03894c9033ec9255efca1236c79c52497913c5f02",
+          "source_sha256": "1235e24d9602f2a2b38b97dc311f91e911653c5ba01e9b057201d544c292618d",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "bae373d14736d1e4437f840bbb66a173ab960052",
+            "filename": "tools/gomad3/cmd/gomadtool/soak.go",
+            "summary": "gomad: add the scheduled determinism soak gate"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-112.10",
+            "disclosure": "four writer findings explicitly retained in trusted blocked-task reassessment"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/soak.go",
+          "line": 55,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "1235e24d9602f2a2b38b97dc311f91e911653c5ba01e9b057201d544c292618d",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "bae373d14736d1e4437f840bbb66a173ab960052",
+            "filename": "tools/gomad3/cmd/gomadtool/soak.go",
+            "summary": "gomad: add the scheduled determinism soak gate"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-112.10",
+            "disclosure": "four writer findings explicitly retained in trusted blocked-task reassessment"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomadtool/soak.go",
+          "line": 62,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "1235e24d9602f2a2b38b97dc311f91e911653c5ba01e9b057201d544c292618d",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "bae373d14736d1e4437f840bbb66a173ab960052",
+            "filename": "tools/gomad3/cmd/gomadtool/soak.go",
+            "summary": "gomad: add the scheduled determinism soak gate"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-112.10",
+            "disclosure": "four writer findings explicitly retained in trusted blocked-task reassessment"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/internal/gomadtool/architecture/initialization.go",
+          "line": 123,
+          "column": 14,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(digest, \"%x  %s\\n\", sha256.Sum256(data), entry.Name())",
+          "code_sha256": "7c6fd459c5c8ad4d7e73f1942ab0e8bb0388a8cdc6f783048e528b0c5d8479f5",
+          "source_sha256": "2db7f3747c3f192372837619f4a7e07008b4f9e3a971208239efe0b3a7d5a36c",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7",
+            "filename": "tools/gomad3/internal/gomadtool/architecture/initialization.go",
+            "summary": "gomad: checkpoint task 19 architecture and purity boundaries"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.19 / fn-109.21",
+            "disclosure": "architecture/aggregate standards owners"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/internal/gomadtool/architecture/standard.go",
+          "line": 392,
+          "column": 14,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(digest, \"%x  %s\\n\", sha256.Sum256(data), entry.Name())",
+          "code_sha256": "7c6fd459c5c8ad4d7e73f1942ab0e8bb0388a8cdc6f783048e528b0c5d8479f5",
+          "source_sha256": "4c2fa20f308108598be0b825da6225453726fc0d0b2b0150e6c0eb696679b2c6",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7",
+            "filename": "tools/gomad3/internal/gomadtool/architecture/standard.go",
+            "summary": "gomad: checkpoint task 19 architecture and purity boundaries"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.19 / fn-109.21",
+            "disclosure": "architecture/aggregate standards owners"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+          "line": 15,
+          "column": 21,
+          "message": "Error return value of `syscall.Close` is not checked (errcheck)",
+          "code": "defer syscall.Close(descriptors[0])",
+          "code_sha256": "887f54ba7f0176c00511e124f56a12390c593e51b7b756ca97f2fe2fd9e9dda5",
+          "source_sha256": "ad735b20323c5a4d17c0759d9509506e44cf7313b31149f1cf3632c40e16bd24",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+            "filename": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+            "summary": "gomad: compile descriptor installation on linux arm64"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.21",
+            "disclosure": "same two ordinary-source descriptor cleanup findings retained in task5 standards attribution; no native transfer excuses them"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+          "line": 16,
+          "column": 21,
+          "message": "Error return value of `syscall.Close` is not checked (errcheck)",
+          "code": "defer syscall.Close(descriptors[1])",
+          "code_sha256": "9cbfcf1ea402b20be4191f4c7e1c2a654870c3a3760fc41c39dffc9f3f7ec843",
+          "source_sha256": "ad735b20323c5a4d17c0759d9509506e44cf7313b31149f1cf3632c40e16bd24",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+            "filename": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+            "summary": "gomad: compile descriptor installation on linux arm64"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.21",
+            "disclosure": "same two ordinary-source descriptor cleanup findings retained in task5 standards attribution; no native transfer excuses them"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/runner/replay_operation.go",
+          "line": 483,
+          "column": 15,
+          "message": "ST1005: error strings should not be capitalized (staticcheck)",
+          "code": "return nil, fmt.Errorf(\"World seed does not match target seed\")",
+          "code_sha256": "0e96483670b39bca3032119824b26837e94c54dde7ea5cc4e424015582efdb22",
+          "source_sha256": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "3a3c31b0a7b22ab2c669735743d3f1e2d2985bab",
+            "filename": "tools/gomad3/runner/replay_operation.go",
+            "summary": "gomad: separate detached Artifact references from owned opened handles"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.12 / fn-109.21",
+            "disclosure": "opened-handle migration source; existing uppercase World diagnostics remain unwaived"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/upgrade/adapterregen/transaction.go",
+          "line": 89,
+          "column": 20,
+          "message": "Error return value of `lock.Release` is not checked (errcheck)",
+          "code": "defer lock.Release()",
+          "code_sha256": "ff2e8ae867652c8918c20698cf659035b72b1e789ae57702a1cc3d5449c74c63",
+          "source_sha256": "1b710dec9c0bb7e8517d919682e853b97ff0bf76dfa9d70d3fc39a3cd6825986",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/upgrade/adapterregen/transaction.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/upgrade/adapterregen/transaction.go",
+          "line": 219,
+          "column": 20,
+          "message": "Error return value of `lock.Release` is not checked (errcheck)",
+          "code": "defer lock.Release()",
+          "code_sha256": "ff2e8ae867652c8918c20698cf659035b72b1e789ae57702a1cc3d5449c74c63",
+          "source_sha256": "1b710dec9c0bb7e8517d919682e853b97ff0bf76dfa9d70d3fc39a3cd6825986",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+            "filename": "tools/gomad3/upgrade/adapterregen/transaction.go",
+            "summary": "gomad: regenerate adapter anchors for a new module version behind an approval digest"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-113 / fn-109.21",
+            "disclosure": "pin/adapter maintainer and aggregate standards owners; exact correction admission remains theirs"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/world/recording.go",
+          "line": 95,
+          "column": 23,
+          "message": "ST1005: error strings should not be capitalized (staticcheck)",
+          "code": "return Recording{}, fmt.Errorf(\"World error terminal kind is required\")",
+          "code_sha256": "e0a5cd5e95bebbbc5d52f00a9a30cb64018e75734f4b4cd0dd33dffbe32a7a3e",
+          "source_sha256": "fc00c9af42ebb2cb74fa593b9c026205a2df19bf4634e99a532f697c7fb4fc27",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7",
+            "filename": "tools/gomad3/world/recording.go",
+            "summary": "gomad: checkpoint task 19 architecture and purity boundaries"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.19 / fn-109.21",
+            "disclosure": "World/aggregate standards owners; error strings unwaived"
+          },
+          "waiver": false
+        }
+      ]
+    },
+    "task-source-lint": {
+      "receipt": "task-source-lint.json",
+      "actual_exit": 2,
+      "issues": [
+        {
+          "path": "tools/gomad3/artifact/manifest_copy.go",
+          "line": 59,
+          "column": 3,
+          "message": "use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)",
+          "code": "panic(fmt.Sprintf(\"artifact manifest cannot copy a %s field\", source.Kind()))",
+          "code_sha256": "050c54e717788682bf0807826bc4b80f7a74cebb47e9c458cc5a0c9ead5e1dcf",
+          "source_sha256": "f1dad686d9f2fc59ebde1f0f484bafa6dcfad7fb1f84d1d3fe7878eeb44d7dae",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "3a3c31b0a7b22ab2c669735743d3f1e2d2985bab",
+            "filename": "tools/gomad3/artifact/manifest_copy.go",
+            "summary": "gomad: separate detached Artifact references from owned opened handles"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.12 / fn-109.19 / fn-109.21",
+            "disclosure": "fn-109.33 explicitly preserves this production panic and states it is not waived"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+          "line": 88,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "a9a94d5832e597babd74d331ed1a379e8a310c8db38fede6bcda7cc215f57a72",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "debca5eb56e7719c566eb4552a04279631982671",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+            "summary": "gomad: resolve CLI installation, Runner build and private child modes through one application value"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.4 / fn-109.21",
+            "disclosure": "construction owner retains original writer/error behavior; task4 historical summary separately discloses output handling"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+          "line": 185,
+          "column": 14,
+          "message": "ST1005: error strings should not be capitalized (staticcheck)",
+          "code": "return \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)",
+          "code_sha256": "c56028895b4f3e7241a032b5071f05fbc99a41fe3f3a2d08e846b0b06c8c4d04",
+          "source_sha256": "a9a94d5832e597babd74d331ed1a379e8a310c8db38fede6bcda7cc215f57a72",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "a3b9f80efab9356c0be2080779133337e2471ac0",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+            "summary": "wip"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.4 / fn-109.21",
+            "disclosure": "construction owner retains original writer/error behavior; task4 historical summary separately discloses output handling"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 369,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 374,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "debca5eb56e7719c566eb4552a04279631982671",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: resolve CLI installation, Runner build and private child modes through one application value"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 442,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "f608449c016b751a8fd4e19561518e979ebfc31e",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: parse plan and explore once, call each Runner operation directly and let Runner own strategy and coverage reading"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 450,
+          "column": 14,
+          "message": "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+          "code": "fmt.Fprintf(stderr, \"gomad:%s\\n\", formatChoiceTrace(summary.ChoiceTrace))",
+          "code_sha256": "0fd171880decba7a4bfeeafc7ac6ca89729350584adf8f6e6f75317f4eb18b2b",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 454,
+          "column": 15,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, writeErr)",
+          "code_sha256": "e7044276d150e5efa51e4d4b710fb07988633559243a609e4e97a9241bd3a50a",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "Merge local Gomad changes with rebased remote history"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 474,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, writeErr)",
+          "code_sha256": "e7044276d150e5efa51e4d4b710fb07988633559243a609e4e97a9241bd3a50a",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "f608449c016b751a8fd4e19561518e979ebfc31e",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: parse plan and explore once, call each Runner operation directly and let Runner own strategy and coverage reading"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 483,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, writeErr)",
+          "code_sha256": "e7044276d150e5efa51e4d4b710fb07988633559243a609e4e97a9241bd3a50a",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "f608449c016b751a8fd4e19561518e979ebfc31e",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: parse plan and explore once, call each Runner operation directly and let Runner own strategy and coverage reading"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "line": 491,
+          "column": 16,
+          "message": "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+          "code": "fmt.Fprintln(stderr, err)",
+          "code_sha256": "234fcb8d06f0aaaed839546aaf2d7fec4dc38eaa6d7709659ae29dcc3a4c38ac",
+          "source_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "f608449c016b751a8fd4e19561518e979ebfc31e",
+            "filename": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+            "summary": "gomad: parse plan and explore once, call each Runner operation directly and let Runner own strategy and coverage reading"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.26 / fn-109.21",
+            "disclosure": "CLI semantic-ownership and aggregate standards reconciliation; no task16 output-error redesign"
+          },
+          "waiver": false
+        },
+        {
+          "path": "tools/gomad3/runner/replay_operation.go",
+          "line": 483,
+          "column": 15,
+          "message": "ST1005: error strings should not be capitalized (staticcheck)",
+          "code": "return nil, fmt.Errorf(\"World seed does not match target seed\")",
+          "code_sha256": "0e96483670b39bca3032119824b26837e94c54dde7ea5cc4e424015582efdb22",
+          "source_sha256": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49",
+          "unchanged_at_worker_base": true,
+          "blame": {
+            "commit": "3a3c31b0a7b22ab2c669735743d3f1e2d2985bab",
+            "filename": "tools/gomad3/runner/replay_operation.go",
+            "summary": "gomad: separate detached Artifact references from owned opened handles"
+          },
+          "original_native_task_surface": false,
+          "external_owner": {
+            "task": "fn-109.12 / fn-109.21",
+            "disclosure": "opened-handle migration source; existing uppercase World diagnostics remain unwaived"
+          },
+          "waiver": false
+        }
+      ]
+    }
+  },
+  "original_task_findings": 0,
+  "worker_introduced_findings": 0,
+  "final_changed_package_receipt": "final-campaign-lint.json",
+  "final_changed_package_exit": 0,
+  "configured_vet_receipt": "configured-vet.json",
+  "aggregate_green": false,
+  "suppressions_added": false,
+  "authority": "causal attribution only; original-base aggregate gate remains red with its separately established owners; conductor decides source acceptance"
+}

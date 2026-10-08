@@ -1,0 +1,9 @@
+{"Time":"2026-10-08T09:12:00.748551368Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-08T09:12:00.75090941Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts"}
+{"Time":"2026-10-08T09:12:00.750960701Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts","Output":"=== RUN   TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:12:00.76188291Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts","Output":"    retention_test.go:140: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n","OutputType":"error"}
+{"Time":"2026-10-08T09:12:00.762293493Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts","Output":"--- FAIL: TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:12:00.762345326Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts","Elapsed":0.01}
+{"Time":"2026-10-08T09:12:00.762393618Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:12:00.762612451Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/runner\t0.014s\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:12:00.76263541Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":0.014}

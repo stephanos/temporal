@@ -1,0 +1,10 @@
+{
+  "kind": "current-source sensitivity mutant; not historical prechange proof",
+  "source": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/artifact/store.go",
+  "source_sha256": "f93601eccc225ab158f3c6f922b95e85deb4358de34cd7ff889b7d5533acddab",
+  "replacement": "/home/agent/.cache/codex-build/tmp/fn11216-collapse-mutant-IKJQrP/store.go",
+  "replacement_sha256": "9fe6d59d62b09a03f360af11e0b25643aae4f9e2a0200fee9cc1a57f1c80944a",
+  "overlay": "/home/agent/.cache/codex-build/tmp/fn11216-collapse-mutant-IKJQrP/overlay.json",
+  "overlay_sha256": "f6d5535b93aa6554430f93a78c33bfa0f9a5db25229b989f48722e8ec8a6fa73",
+  "operation": "disable only the execution-key collision fallback; default record-hash fallback unchanged"
+}

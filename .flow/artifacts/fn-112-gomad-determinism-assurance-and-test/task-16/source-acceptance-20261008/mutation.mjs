@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {mkdtempSync, readFileSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {root, out, sha} from './capture.mjs';
+
+const file = root + '/tools/gomad3/artifact/store.go';
+const original = readFileSync(file, 'utf8');
+const mode = process.argv[2] ?? 'execution';
+assert(['execution', 'default'].includes(mode));
+const branch = mode === 'execution' ? 'existingIdentity == identity && store.Key == StoreKeyExecution && !sameExecution(existing.manifest, manifest)' : 'key == StoreKeyFailureSignature && manifest.ArtifactKind == record.ArtifactSuccess && existing.manifest.RecordHash != manifest.RecordHash';
+assert.equal(original.split(branch).length, 2);
+const mutant = original.replace(branch, '(' + branch + ') && false');
+const scratch = mkdtempSync(join(tmpdir(), 'fn11216-collapse-mutant-'));
+const replacement = join(scratch, 'store.go'), overlay = join(scratch, 'overlay.json');
+writeFileSync(replacement, mutant);
+writeFileSync(overlay, JSON.stringify({Replace: {[file]: replacement}}));
+writeFileSync(out + '/mutation-' + mode + '-binding.json', JSON.stringify({kind: 'current-source sensitivity mutant; not historical prechange proof', source: file, source_sha256: sha(original), replacement, replacement_sha256: sha(mutant), overlay, overlay_sha256: sha(readFileSync(overlay)), operation: 'disable only the ' + mode + '-key collision fallback; other policy unchanged'}, null, 2) + '\n');
+const result = spawnSync('node', [out + '/capture.mjs', mode === 'execution' ? 'collapse-execution-sensitivity' : 'collapse-default-sensitivity', 'go', '-C', 'tools/gomad3', 'test', '-tags', 'test_dep', '-count=1', '-json', '-overlay=' + overlay, '-run', '^TestOpenCampaignKeepsSameSignatureSuccessesDistinct$', './runner/internal/campaign'], {cwd: root, stdio: 'inherit'});
+assert.equal(result.status, 1, 'collapse mutant must fail the campaign regression');
+assert.equal(sha(readFileSync(file)), sha(original));

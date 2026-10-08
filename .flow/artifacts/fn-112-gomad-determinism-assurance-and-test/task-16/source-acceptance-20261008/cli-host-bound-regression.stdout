@@ -1,0 +1,4 @@
+{"Time":"2026-10-08T09:12:22.139212753Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad"}
+{"Time":"2026-10-08T09:12:22.143011878Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad","Output":"build CLI: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n"}
+{"Time":"2026-10-08T09:12:22.14367842Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/cmd/gomad\t0.004s\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:12:22.143722712Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad","Elapsed":0.005}

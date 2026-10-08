@@ -1,0 +1,41 @@
+[1;36mLinting code...[0m
+tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("artifact manifest cannot copy a %s field", source.Kind()))
+		^
+tools/gomad3/cmd/gomad/internal/cli/application.go:88:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/application.go:185:14: ST1005: error strings should not be capitalized (staticcheck)
+		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:369:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:374:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:442:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:450:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:454:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, writeErr)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:474:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:483:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:491:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World seed does not match target seed")
+		            ^
+12 issues:
+* errcheck: 9
+* forbidigo: 1
+* staticcheck: 2

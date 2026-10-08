@@ -1,0 +1,279 @@
+{
+  "argv": [
+    "timeout",
+    "600s",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./artifact"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": "inherited shell environment was not snapshotted; no inline assignments",
+  "exit": 0,
+  "exit_observation": "foreground exec tool returned suite_rc=0; enclosing shell observed status immediately",
+  "elapsed_seconds": null,
+  "tool_wall_seconds": 0.570100625,
+  "package_elapsed_seconds": 0.29,
+  "started_event": "2026-10-08T09:09:54.93680285Z",
+  "ended_event": "2026-10-08T09:09:55.22653535Z",
+  "stdout_sha256": "c16ccaeb305546bc8d6ae50501cfe42b102ab4f0fc9781c02fc5f2f52c7b5c6a",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "test_counts": {
+    "pass": 49,
+    "fail": 0,
+    "skip": 0
+  },
+  "tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestArtifactReferenceHoldsNoOpenResource",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishedReferenceMatchesOpenedHandle",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestOpenedArtifactPayloadAccess",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestOpenedArtifactCopyDestinationErrorsPreserveHandle",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestClosedArtifactRejectsPayloadAccess",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestManifestCopiesCannotChangeOpenedHandle",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestCloneManifestSharesNoMemory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestDeepCopyArrayReferences",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestDeepCopyContainerAndScalarValues",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestDeepCopyRejectsUnsupportedKinds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestOpenedArtifactReadsPinnedDirectoryAfterReplacement",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestOpenedArtifactRejectsChangedPayloads",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishArtifactWritesAndValidatesChoiceTrace",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishArtifactRejectsMalformedChoiceTraceWithMatchingIdentity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishArtifactRejectsChangedChoiceTraceIdentity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishArtifactRejectsChangedChoiceTapeIdentity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishArtifactWritesSimulationExplorationEvidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishArtifactRejectsChangedSimulationExplorationEvidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestRetainedBytesCountsASharedTargetOnce",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPoolTargetIsTheTargetOnlyOfAnArtifactLinkedToThePool",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishEnforcesModesIndependentOfUmask",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestSyncDirectoryContextPreservesPrimaryResults",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPrivatePayloadWritesLiteralMetadataAndBytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPrivatePayloadCollisionPreservesDestinationAndPathError",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishRemovesStagingAfterNonregularSourceFailure",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishFailsBeforePublicationWhenByteCapacityIsExceeded",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishWritesPrivateAtomicArtifactAndOpenValidatesIt",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishReusesOnlyCompletelyMatchingArtifact",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishCanKeyCorpusCasesByRecordIdentity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishKeepsSuccessesWithOneSignatureAsDistinctReplayArtifacts",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishKeepsEachExecutionOfOneOutcomeSignature",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishConcurrentlyNeverReplacesACompleteArtifact",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestOpenRejectsSymlinksAndUnlistedFiles",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestOpenedArtifactRemainsPinnedAcrossPathReplacement",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishRejectsPayloadPathEscapeBeforeWriting",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestVerifySharedPayloadPreservesLiteralTarget",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestVerifySharedPayloadPreservesMissingTargetError",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishSharesOneTargetAcrossTheStoresOfOnePool",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishConcurrentlyIntoOnePoolLeavesOneEntry",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestDamagedSharedTargetFailsOpenAndLaterPublication",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestCopiedArtifactOpensWithoutItsStore",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestOpenRejectsAnotherLinkToAPayloadThatIsNotTheTarget",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPruneTargetPoolRemovesOnlyEntriesNothingShares",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPruneTargetPoolRefusesAPoolThatIsNotADirectoryOfItsOwner",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/artifact",
+      "test": "TestPublishCreatesAgainAPoolEntryPrunedBeforeItsLink",
+      "action": "pass"
+    }
+  ],
+  "source_binding": "pre-edit HEAD 4a64eb2cd68cc4040045d9d09bbd8bfc82b81819; no source edits before invocation; full environment/command-duration/source-before-after snapshots unavailable for this first observation"
+}

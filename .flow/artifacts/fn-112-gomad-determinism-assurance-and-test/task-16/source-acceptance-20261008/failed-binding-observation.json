@@ -1,0 +1,12 @@
+{
+  "argv": ["node", ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/source-acceptance-20261008/bind-source.mjs"],
+  "capture_label": "source-binding",
+  "exit": 1,
+  "elapsed_seconds": 0.739,
+  "source_changes": [],
+  "stdout": "source-binding.stdout",
+  "stderr": "source-binding.stderr",
+  "error": "ENOENT for historical tools/gomad3/upgrade/pin_impact.go after later module extraction",
+  "metadata_integrity": "Original JSON command receipt accidentally overwritten by successful proof emitter using the same output name. Raw stdout/stderr and tool-observed exit/duration remain retained; full original JSON metadata has not been reconstructed. Subsequent proof and command outputs use separate names.",
+  "classification": "inconclusive input-proof attempt; never a pass"
+}

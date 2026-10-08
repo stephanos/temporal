@@ -1,0 +1,18 @@
+{
+  "task": "fn-112-gomad-determinism-assurance-and-test.16",
+  "worker_base": "4a64eb2cd68cc4040045d9d09bbd8bfc82b81819",
+  "source_map_sha256": "1121a50e9906298d7059ed3510f50d7e729c09f408b0eadf8017151cdea02770",
+  "independent_commands": [
+    {"receipt": "conductor-portable.json", "exit": 0, "elapsed_seconds": 3.016, "pass": 155, "fail": 0, "skip": 0},
+    {"receipt": "conductor-generated-validation.json", "exit": 0, "elapsed_seconds": 2.11},
+    {"receipt": "conductor-evidence-verification.json", "exit": 1, "classification": "audit calibration: incorrectly rejected worker-owned conductor-verify.mjs by filename prefix; raw receipt retained, no product changes"},
+    {"receipt": "conductor-evidence-verification-final.json", "exit": 0, "elapsed_seconds": 1.299, "observations_verified": 22, "worker_manifest_files_verified": 84, "original_test_bodies_preserved": true, "lint_attribution_observations": 80}
+  ],
+  "source_scoped_lint": {"changed_campaign_package_exit": 0, "original_task_findings": 0, "worker_introduced_findings": 0, "waiver": false},
+  "aggregate_lint": {"green": false, "fast_original_base_findings": 68, "expanded_source_package_findings": 12},
+  "failed_worker_binding_metadata": "lost JSON disclosed, original raw stdout/stderr survive, no fabricated restoration",
+  "native_qualification": false,
+  "native_owners": ["fn-149", "fn-128"],
+  "user_files_preserved": 2,
+  "external_writes": false
+}

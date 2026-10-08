@@ -1,0 +1,10 @@
+{
+  "kind": "current-source sensitivity mutant; not historical prechange proof",
+  "source": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/artifact/store.go",
+  "source_sha256": "f93601eccc225ab158f3c6f922b95e85deb4358de34cd7ff889b7d5533acddab",
+  "replacement": "/home/agent/.cache/codex-build/tmp/fn11216-collapse-mutant-WdeWPN/store.go",
+  "replacement_sha256": "41bf3e6e6b4b8ee2c1d237b1f467da744685f905b39e40defd5c3899e5427f4f",
+  "overlay": "/home/agent/.cache/codex-build/tmp/fn11216-collapse-mutant-WdeWPN/overlay.json",
+  "overlay_sha256": "4a8df04325900e0d9504b8e337a939bb266cb77427033bb96d49169857337dc4",
+  "operation": "disable only the default-key collision fallback; other policy unchanged"
+}

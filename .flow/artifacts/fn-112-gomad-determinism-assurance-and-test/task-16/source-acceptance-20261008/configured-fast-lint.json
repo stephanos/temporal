@@ -1,0 +1,51 @@
+{
+  "argv": [
+    "make",
+    "lint-code-fast",
+    "GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "ALL_TEST_TAGS=test_dep"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "GOLANGCI_LINT_FIX": "false",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "unset_environment": [
+    "GOROOT",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "exit": 2,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T09:12:20.352Z",
+  "ended": "2026-10-08T09:12:37.058Z",
+  "elapsed_seconds": 16.706,
+  "head_before": "4a64eb2cd68cc4040045d9d09bbd8bfc82b81819",
+  "head_after": "4a64eb2cd68cc4040045d9d09bbd8bfc82b81819",
+  "source_count": 1279,
+  "source_before_sha256": "3dd63e3d973c910abda767b5958e272679725492af139f3d2517d02f959cd128",
+  "source_after_sha256": "3dd63e3d973c910abda767b5958e272679725492af139f3d2517d02f959cd128",
+  "source_changes": [],
+  "stdout_sha256": "203331564cad0cd4330712ee0c451cbe5e32bb8f00b555aa951132e7955629dd",
+  "stderr_sha256": "cfa7fb6d5a1a0aa47e08079f77364efc9eb88067214dd31f30d8658c79976408",
+  "go_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+  "tests": [],
+  "test_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "package_results": []
+}
