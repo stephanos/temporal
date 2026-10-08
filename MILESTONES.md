@@ -305,7 +305,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-114.11](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md) | ✅ Done | E3 readiness recording delivered in source; select-poll records remain in the Choice Trace for replay |
 | [fn-114.12](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md) | ✅ Done | E3 frontier suppression delivered for seven proven shapes with two polled non-nil cases; unlisted shapes and selects with three or more polled cases remain expanded, and native counts retain historical identities |
 | [fn-114.13](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md) | ✅ Done | E4 source acceptance delivered and historical two-user premise refuted; head-class scheduling offers user-only alternatives, with current native controls deferred |
-| [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | 🚧 In progress | R12 delivered-behavior docs and retained source acceptance await conductor review/completion; current native qualification remains with fn-149/fn-128 |
+| [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | ✅ Done | R12 delivered-behavior docs and retained source acceptance complete; current native qualification remains with fn-149/fn-128 |
 | [fn-114.15](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.15.md) | ✅ Done | E6 per-parent minimizer workspace isolation delivered; explicit resume fails closed on changed/corrupt state |
 | [fn-114.16](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.16.md) | ✅ Done | E2 accounting limit documented; campaign budgets charge each standalone artifact in full, while corpus sharing and merged-record target deduplication use their separate rules |
 

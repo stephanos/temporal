@@ -14,7 +14,7 @@
     "fn-114-gomad-correct-search-path-defects-and.11": 0,
     "fn-114-gomad-correct-search-path-defects-and.12": 0,
     "fn-114-gomad-correct-search-path-defects-and.13": 0,
-    "fn-114-gomad-correct-search-path-defects-and.14": 1,
+    "fn-114-gomad-correct-search-path-defects-and.14": 0,
     "fn-114-gomad-correct-search-path-defects-and.15": 0,
     "fn-114-gomad-correct-search-path-defects-and.16": 0,
     "fn-114-gomad-correct-search-path-defects-and.2": 0,
@@ -974,6 +974,50 @@
       "task": "fn-114-gomad-correct-search-path-defects-and.14",
       "timestamp": "2026-10-08T07:39:13.251258Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f6ee6f53120802ed4b9c6dd25cdbbbcdc21e45a40442545fc72b9487eaa9e751",
+      "backend": "codex",
+      "base_sha": "ea2c16ae62165222d92838540e3f2e08060e6ebf",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7be457fc3f07f4c499cfd5290e63c7a2",
+            "classification": "introduced",
+            "findingId": "finding-7be457fc3f07f4c499cfd5290e63c7a2",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0f61fa18b8242be96ad4c51c7f2c86a95fc631ca",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 709,
+      "output_sha256": "bfd930d36ec93e455f2973ead9c6581d63e19dcdf8b247ba9d93c97e78666187",
+      "reservation_id": "e078dad3540144caab034c92c9048608",
+      "round_consumed": true,
+      "scope": "impl:fn-114-gomad-correct-search-path-defects-and.14",
+      "superseded_by": null,
+      "task": "fn-114-gomad-correct-search-path-defects-and.14",
+      "timestamp": "2026-10-08T07:48:53.784117Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -982,6 +1026,7 @@
     "impl:fn-114-gomad-correct-search-path-defects-and.11": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.12": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.13": 1,
+    "impl:fn-114-gomad-correct-search-path-defects-and.14": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.15": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.16": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.2": 1,
@@ -1030,5 +1075,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T07:39:13.268306Z"
+  "updated_at": "2026-10-08T07:48:53.802396Z"
 }

@@ -1,0 +1,14 @@
+{
+  "commits": [
+    "1fcef5ea4bfbf3ec5f7279a8a6c67070d5159a9d",
+    "0f61fa18b8242be96ad4c51c7f2c86a95fc631ca"
+  ],
+  "tests": [
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-json' '-run' '^(TestCharacterize(InputRejection|ByteSizeAndFlagValueRejection|ExploreRequestDefaultsAndWiring)|TestWorkspace(Resume.*|KeepsStatePerParentArtifact|RejectsSymbolicLinkStateRoot|StateGatesInitialRunsAndResumes)|TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles|TestCorpusRejects(IdentityChangesAndNonMatchingReplay|PreviousAndFutureSchemaBeforeChangedIdentity|CaseWithChangedEnvironment)|TestValidateProvenanceRejectsUnsupportedBuildModes|TestReplayBuildInfoRejectsMatchingCoverageInstrumentation)$' './cmd/gomad/internal/cli' './runner/internal/minimizer' './runner/internal/corpus' './target' './runner'",
+    "'make' '-C' 'tools/gomad3' 'validate'",
+    "'git' 'diff' '--check'",
+    "'/usr/bin/python3' '/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/audit.py'",
+    "'git' 'diff' '--check'"
+  ],
+  "prs": []
+}
