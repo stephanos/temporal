@@ -209,6 +209,8 @@ type Interpreter struct {
 	sizing map[string]bool
 	// trace, when set, records the branch decisions an evaluation takes (decisions.go).
 	trace *tracer
+	// behaviors holds each evaluated behavior by the declaration it is of (machine.go).
+	behaviors map[string]*behavior
 }
 
 // NewInterpreter indexes a Model's declarations.
@@ -221,7 +223,7 @@ func NewInterpreter(m *umpirespb.Model) *Interpreter {
 func NewInterpreterWithin(m *umpirespb.Model, c Ceilings) *Interpreter {
 	in := &Interpreter{model: m, types: map[string]*umpirespb.Type{}, functions: map[string]*umpirespb.Function{},
 		channels: map[string]*umpirespb.Channel{}, holes: map[string]*umpirespb.Hole{}, ceilings: c,
-		sizing: map[string]bool{}}
+		sizing: map[string]bool{}, behaviors: map[string]*behavior{}}
 	for _, t := range m.GetTypes() {
 		in.types[t.GetName()] = t
 	}

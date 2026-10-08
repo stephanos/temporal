@@ -8,6 +8,7 @@ import (
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpire "go.temporal.io/server/tools/umpire/internal/engine"
+	"google.golang.org/protobuf/proto"
 )
 
 // Members lists every value of a finite type in catalog order: an enum's cases in declaration order,
@@ -273,44 +274,18 @@ func (in *Interpreter) machine(decl *umpirespb.Machine, actions map[string]*umpi
 	if err := in.Preflight(decl, actions); err != nil {
 		return nil, err
 	}
-	states, err := in.Members(Named(decl.GetStateType()))
+	b, err := in.behavior(decl, actions)
 	if err != nil {
 		return nil, err
 	}
-	outcomes, err := in.Members(Named(decl.GetOutcomeType()))
-	if err != nil {
-		return nil, err
-	}
-	var facts []Value
-	if decl.GetFactType() != "" {
-		if facts, err = in.Members(Named(decl.GetFactType())); err != nil {
-			return nil, err
-		}
-	}
-	classes, err := in.Classes(decl, actions)
-	if err != nil {
-		return nil, err
-	}
+	// Each machine gets slices of its own over the shared, never-changed values.
 	spec := umpire.TableSpec{Machine: decl.GetName(), Owner: decl.GetName(), Family: Family(decl.GetFamily()),
-		Entity: decl.GetEntity()}
-	mm := &Machine{Decl: decl, states: map[string]Value{}, Classes: classes,
-		Work: Work{States: len(states), Classes: len(classes), Evaluations: len(states) * len(classes)}}
-	for _, s := range states {
-		spec.States = append(spec.States, s.Key())
-		mm.states[s.Key()] = s
-	}
-	for _, c := range classes {
-		spec.Actions = append(spec.Actions, c.Key)
-	}
-	for _, o := range outcomes {
-		spec.Outcomes = append(spec.Outcomes, o.Key())
-	}
-	for _, f := range facts {
-		spec.Facts = append(spec.Facts, f.Key())
-	}
-	if err = in.rows(mm, states, &spec); err != nil {
-		return nil, err
-	}
+		Entity: decl.GetEntity(), States: slices.Clone(b.spec.States), Actions: slices.Clone(b.spec.Actions),
+		Outcomes: slices.Clone(b.spec.Outcomes), Facts: slices.Clone(b.spec.Facts), Rows: slices.Clone(b.spec.Rows)}
+	mm := &Machine{Decl: decl, states: b.states, Classes: slices.Clone(b.classes),
+		Transitions: slices.Clone(b.transitions), Holes: slices.Clone(b.holes),
+		Work: Work{States: len(b.values), Classes: len(b.classes), Evaluations: len(b.values) * len(b.classes)}}
+	states, facts := b.values, b.facts
 	// The starts, the ends and the evidence are read one after another past any hole, so that a hole
 	// in one hides neither a hole nor an error of the Model in the next.
 	var unread Unknowns
@@ -332,6 +307,72 @@ func (in *Interpreter) machine(decl *umpirespb.Machine, actions map[string]*umpi
 	}
 	mm.Table = umpire.NewTable(spec)
 	return mm, nil
+}
+
+// behavior is what a machine's rows are evaluated from and to: its catalogs, its classes and its
+// rows. Each depends on the state, outcome and fact types and the bound steps alone, so machines
+// declared alike, as the machines derived from one machine are, share one evaluation within an
+// interpretation. A failed evaluation is not kept: its error names the machine it was of.
+type behavior struct {
+	values, facts []Value
+	states        map[string]Value
+	classes       []Class
+	spec          umpire.TableSpec
+	transitions   []Transition
+	holes         []HoleRow
+}
+
+func (in *Interpreter) behavior(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) (*behavior, error) {
+	key, err := proto.MarshalOptions{Deterministic: true}.Marshal(&umpirespb.Machine{StateType: decl.GetStateType(),
+		OutcomeType: decl.GetOutcomeType(), FactType: decl.GetFactType(), Steps: decl.GetSteps()})
+	if err != nil {
+		return nil, err
+	}
+	// A traced evaluation records its decisions as it goes, so it is never taken from another.
+	if b, ok := in.behaviors[string(key)]; ok && in.trace == nil {
+		return b, nil
+	}
+	states, err := in.Members(Named(decl.GetStateType()))
+	if err != nil {
+		return nil, err
+	}
+	outcomes, err := in.Members(Named(decl.GetOutcomeType()))
+	if err != nil {
+		return nil, err
+	}
+	var facts []Value
+	if decl.GetFactType() != "" {
+		if facts, err = in.Members(Named(decl.GetFactType())); err != nil {
+			return nil, err
+		}
+	}
+	classes, err := in.Classes(decl, actions)
+	if err != nil {
+		return nil, err
+	}
+	b := &behavior{values: states, facts: facts, states: map[string]Value{}, classes: classes}
+	for _, s := range states {
+		b.spec.States = append(b.spec.States, s.Key())
+		b.states[s.Key()] = s
+	}
+	for _, c := range classes {
+		b.spec.Actions = append(b.spec.Actions, c.Key)
+	}
+	for _, o := range outcomes {
+		b.spec.Outcomes = append(b.spec.Outcomes, o.Key())
+	}
+	for _, f := range facts {
+		b.spec.Facts = append(b.spec.Facts, f.Key())
+	}
+	mm := &Machine{Decl: decl, states: b.states, Classes: classes}
+	if err = in.rows(mm, states, &b.spec); err != nil {
+		return nil, err
+	}
+	b.transitions, b.holes = mm.Transitions, mm.Holes
+	if in.trace == nil {
+		in.behaviors[string(key)] = b
+	}
+	return b, nil
 }
 
 // Preflight counts a machine's states, its classes of every bound action together, and their pairs,
@@ -435,13 +476,14 @@ func (c Class) spelled() string {
 func RowKeys(decl *umpirespb.Machine, states []Value, classes []Class) error {
 	seen := make(map[string][2]string, len(states)*len(classes))
 	for _, s := range states {
+		state := s.Key()
 		for _, c := range classes {
-			key := s.Key() + "-" + c.Key
+			key := state + "-" + c.Key
 			if earlier, ok := seen[key]; ok {
 				return ErrorAt(decl.GetPosition(), "%s: the state %s with the class %s, and the state %s with the class %s, share the row key %q",
-					decl.GetName(), earlier[0], earlier[1], s.Key(), c.Key, key)
+					decl.GetName(), earlier[0], earlier[1], state, c.Key, key)
 			}
-			seen[key] = [2]string{s.Key(), c.Key}
+			seen[key] = [2]string{state, c.Key}
 		}
 	}
 	return nil
@@ -458,12 +500,13 @@ func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec)
 		return err
 	}
 	for _, s := range states {
+		state := s.Key()
 		for _, c := range mm.Classes {
-			key := s.Key() + "-" + c.Key
+			key := state + "-" + c.Key
 			steps, err := in.steps(decl, s, c)
 			var hole *Hole
 			if errors.As(err, &hole) {
-				mm.Holes = append(mm.Holes, HoleRow{Row: key, Source: s.Key(), Class: c.Key, Hole: hole})
+				mm.Holes = append(mm.Holes, HoleRow{Row: key, Source: state, Class: c.Key, Hole: hole})
 				continue
 			}
 			if err != nil {
@@ -472,7 +515,7 @@ func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec)
 			if len(steps) == 0 {
 				continue
 			}
-			row := Row{Key: key, Source: s.Key(), Action: c.Key}
+			row := Row{Key: key, Source: state, Action: c.Key}
 			named := map[string]bool{}
 			for _, step := range steps {
 				res, err := in.result(mm, c, key, step)
