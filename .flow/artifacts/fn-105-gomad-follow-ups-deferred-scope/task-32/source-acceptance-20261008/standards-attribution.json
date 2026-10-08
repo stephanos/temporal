@@ -1,0 +1,130 @@
+{
+  "task_path": "tools/gomad3/toolchain/clock_inventory_test.go",
+  "task_owned_issues": [],
+  "configured_changed_source_command": {
+    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/task-source-lint.json",
+    "sha256": "24d15ae6ae5348bdd31744838ef7a09286fff6395f0b0b9fc604e00b0b3ac68c"
+  },
+  "configured_changed_source_exit": 0,
+  "complete_file_coverage_command": {
+    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/whole-file-lint.json",
+    "sha256": "0e1afc1d3a041e06bd7c72fea4f3ab4e736eea2b83d34a2e6b6ef04e5730011c"
+  },
+  "unfiltered_package_exit": 1,
+  "unfiltered_package_issues": [
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 340,
+      "message": "Error return value of `patch.Close` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 341,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 345,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 350,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 354,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 355,
+      "message": "Error return value of `os.RemoveAll` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 557,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 562,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 588,
+      "message": "Error return value of `file.Close` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 589,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 593,
+      "message": "Error return value of `file.Close` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 594,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 598,
+      "message": "Error return value of `file.Close` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 599,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "errcheck",
+      "file": "tools/gomad3/toolchain/build.go",
+      "line": 603,
+      "message": "Error return value of `os.Remove` is not checked"
+    },
+    {
+      "linter": "forbidigo",
+      "file": "tools/gomad3/toolchain/build_test.go",
+      "line": 97,
+      "message": "use of `time.Sleep` forbidden because \"Please use await.Require / s.Await unless there's no better option\""
+    }
+  ],
+  "broader_prior_red": {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-source-lint.json",
+    "sha256": "8a76f871f9deb62a01c7dce5684c67cea99efd91489744325a5aaa80300bbf30"
+  },
+  "broader_prior_attribution": {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/standards-attribution.json",
+    "sha256": "badd0aa50863a31b0840e2534486f87d0fced6e9b0552651440c67b7dc7f8267"
+  },
+  "inherited_overlay_format": {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-owned-format.json",
+    "sha256": "9210108bd0727b03e11c8e5191e819440507c6316c76655c907d4406839ab8f0"
+  },
+  "limits": "Only D27 changed-source lint and the complete clock-inventory file pass. No unfiltered package, global lint or full-format pass is claimed. Unrelated 16 toolchain findings, prior 2 descriptor-close findings and inherited runtime-overlay format remain with their source owners; no new exception or suppression.",
+  "tool_hashes": {
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+    ".github/.golangci.yml": "692a0839444d1d26a23541897c633229ad8ccc572cecdc0498baef290f7a253c"
+  }
+}

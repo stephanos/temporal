@@ -1,0 +1,95 @@
+{
+  "base_commit": "0ec60a35a191c02b791e335d883379835c7005b5",
+  "original_source_base": "70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+  "implementation": "bfb2bdb8ef136d3eb38cbd539735661d5d7c9af5",
+  "product_edits": [],
+  "inventory": {
+    "path": "tools/gomad3/toolchain/clock_inventory_test.go",
+    "bytes": 16048,
+    "sha256": "bbb5a791bcd1303286cbad1c6ac8f7f6f1e922041b93f30f6010ab78ef05cd76"
+  },
+  "inventory_equal_implementation": true,
+  "contract": {
+    "path": "tools/gomad3/README.md",
+    "full_sha256": "e9949e64f4e2df0cb8c230af5629a78f4f4e892862ca4a44c300ba583766acdb",
+    "start_line": 845,
+    "end_line": 885,
+    "bytes": 2819,
+    "sha256": "4ee2c2c7c8a2f99fc3bfddb6e1acb2e589c52174b6c8dbdc6de781c1cce4c91b",
+    "equal_implementation_section": true
+  },
+  "retained_binding": {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding.json",
+    "bytes": 437408,
+    "sha256": "78ca24a19fbb1df331dc2c63221ac17c625686ce59d62b3e63c104b3f015a152"
+  },
+  "exact_inputs_checked": 87,
+  "closure_reference": {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding.json",
+    "paths_checked": 1223,
+    "unchanged_retained_inputs": 1218,
+    "changed_docs_excluded_from_reuse": 5
+  },
+  "archive": {
+    "path": "tools/gomad3/.toolchain/downloads/go1.27.1.src.tar.gz",
+    "bytes": 35109201,
+    "sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1"
+  },
+  "allowlists": [
+    20,
+    79
+  ],
+  "positive_inventory": {
+    "receipt": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source-inventories-pinned.json",
+    "receipt_sha256": "d467060c7b6af8b4eb05f1d353854c32d76442fa72088031caaa149726cd97d0",
+    "log_sha256": "e5db8479e0f26b36dcac62da353bd3141aab8747b246d6c031efd6e056260635",
+    "draw_rows": 273,
+    "seeded_rows": 86,
+    "clock_rows": 48,
+    "goroutine_rows": 10,
+    "platforms": [
+      "darwin/arm64",
+      "linux/amd64"
+    ],
+    "kind": "materialized supported source sets; no built/native runtime"
+  },
+  "policy_provenance": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/original-summary.utf8.json",
+      "bytes": 2497,
+      "sha256": "6d071af58476bb5c264bd8467bd5226047f77e5e0180c364a5d786ae9b7bd01e",
+      "encoding": "utf8-json-string",
+      "original_path": "/tmp/flow-next-fn105-32/summary.md",
+      "decoded_bytes": 2364,
+      "decoded_sha256": "0aa4a6b4f16e6c50a1548f75fb0a044bdbcee55c91d8aa53c43b4dbb7614fccb"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/original-evidence.utf8.json",
+      "bytes": 1453,
+      "sha256": "56581dc2a9fc76cd52ba45dad2742b43a07a245dd5c1ee996770e13d9f1570f2",
+      "encoding": "utf8-json-string",
+      "original_path": "/tmp/flow-next-fn105-32/evidence.json",
+      "decoded_bytes": 1296,
+      "decoded_sha256": "a00334f212540bd32c30e2767bcaf31b574f4c746bc4662940985c37c0c2b60b"
+    }
+  ],
+  "user_files": [
+    {
+      "path": ".turbo/plans/gomad3-glossary-update.md",
+      "bytes": 16567,
+      "sha256": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188"
+    },
+    {
+      "path": ".turbo/technical-debt.md",
+      "bytes": 42239,
+      "sha256": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+    }
+  ],
+  "native_qualification": {
+    "current_candidate_verified": false,
+    "darwin": "deferred fn-149.1",
+    "linux": "deferred fn-128.1/.4/.7",
+    "actual_host": "linux/arm64 unsupported"
+  },
+  "historical_review": "Task text claims historical SHIP; original worker substrate records review skipped. Neither supplies a fresh source-review receipt."
+}

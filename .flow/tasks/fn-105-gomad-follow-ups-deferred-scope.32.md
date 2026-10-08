@@ -16,6 +16,14 @@ Origin: D21 investigation (`docs/research/gomad/GOMAD_HOST_CLOCK_ESCAPES.md`). I
 
 State the host-time escapes in the README contract. Pin the darwin `gettimeofday` path and `cputicks` in `toolchain/clock_inventory_test.go`, each with a fixture. Obtain and record the patch-policy owner's decision on overwriting the `LastGC` and `PauseEnd` stamps with stored virtual time from `runtime/proc.go`; implement the overwrite only with that approval.
 
+### Current source acceptance (2026-10-08)
+
+**Touches:** [tools/gomad3/README.md, tools/gomad3/toolchain/clock_inventory_test.go, .flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/**]
+
+Reconcile current R27 contract, inventory/fixtures and the recorded declined stamp-overwrite decision without reopening policy or native qualification. Retain current source checks, standards attribution, exact unchanged input bindings and fresh source review in the admitted evidence directory. The completed fn-112.5 source acceptance supplies exact retained both-source-set materialized inventory/preservation proof only where the current runtime, inventory, generator and archive inputs match; no historical whole-module, full/native or global lint pass follows from reuse. Review the complete current clock inventory and host-clock contract against bfb2bdb8ef136d3eb38cbd539735661d5d7c9af5 and the retained policy decision. All original requirements and historical evidence remain unchanged. Root owns Flow lifecycle, review, staging and local commits.
+
+Current source handover and precise proof are in ../artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/handover.md, evidence.json, source-binding.json and standards-attribution.json. Mandatory source review includes the complete current clock inventory, its platform/assembly/directive and activation-order checks, the six-count escape fixture, current README Contract host-clock passage, and durable declined-policy receipts. Compare original implementation range 70bb38e5ddec2d271c12f0e8c2489855f08eb0ef..bfb2bdb8ef136d3eb38cbd539735661d5d7c9af5 plus full current bodies; the 2819-byte host-clock passage and entire clock inventory remain exact original bytes. No artifact-only or empty HEAD..HEAD review substitutes for this source check. Changed-source configured lint and whole-clock-file attribution pass; unfiltered toolchain lint remains red on 16 unrelated findings. All native qualification remains transferred and unverified.
+
 ## Acceptance
 
 

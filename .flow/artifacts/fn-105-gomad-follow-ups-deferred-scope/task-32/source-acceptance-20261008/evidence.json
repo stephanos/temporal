@@ -1,0 +1,249 @@
+{
+  "base_commit": "0ec60a35a191c02b791e335d883379835c7005b5",
+  "commits": [],
+  "implementation_commits": [
+    "bfb2bdb8ef136d3eb38cbd539735661d5d7c9af5"
+  ],
+  "tests": [
+    "timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run ^(TestHostClockInventoryPinsPlatformSpecificEscapes|TestValidateAcceptsCurrentCheckedInputs|TestValidateRejectsPatchOutsideDescriptorAllowlist|TestValidateClassifiesProhibitedRuntimeAreas|TestValidateRejectsUnlistedAndBinaryOverlayEntries|TestBuildRejectsUnsupportedHostBeforePreparingInputs)$ ./toolchain",
+    "timeout 600 node .flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/bind-source.mjs",
+    "timeout 600 node .flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/bind-source.mjs",
+    "timeout 600 make lint-code GOLANGCI_LINT_BASE_REV=70bb38e5ddec2d271c12f0e8c2489855f08eb0ef GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 LINT_CODE_TARGETS=./toolchain ALL_TEST_TAGS=test_dep",
+    "timeout 600 make -C tools/gomad3 generate validate",
+    "timeout 600 bash -c cd tools/gomad3 && exec /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --output.text.path=/dev/null --output.json.path=stdout ./toolchain",
+    "timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l tools/gomad3/toolchain/clock_inventory_test.go",
+    "timeout 600 git diff --check"
+  ],
+  "prs": [],
+  "baseline": "green; 6 portable top-level tests, zero failure/skip. Historical unsupported native baseline remains historical and native gates are transferred.",
+  "observations": [
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/baseline-portable.json",
+      "sha256": "184f2a46000e0371eecef863c09c55f280dddc9c45baefcd42327a57c124ca87",
+      "exit": 0,
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestHostClockInventoryPinsPlatformSpecificEscapes|TestValidateAcceptsCurrentCheckedInputs|TestValidateRejectsPatchOutsideDescriptorAllowlist|TestValidateClassifiesProhibitedRuntimeAreas|TestValidateRejectsUnlistedAndBinaryOverlayEntries|TestBuildRejectsUnsupportedHostBeforePreparingInputs)$",
+        "./toolchain"
+      ],
+      "test_counts": {
+        "pass": 6,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/source-binding-check.json",
+      "sha256": "bef42c6f7b1ff71c2d85d0b6e977707dcbc2df321d88a042aeaa907cb87fd4cb",
+      "exit": 0,
+      "argv": [
+        "timeout",
+        "600",
+        "node",
+        ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/bind-source.mjs"
+      ],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/durable-source-binding-check.json",
+      "sha256": "b2bb9904a554745e87c852d77782c726c1c1d226fcd0bc783dd8edff61fe5ad5",
+      "exit": 0,
+      "argv": [
+        "timeout",
+        "600",
+        "node",
+        ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/bind-source.mjs"
+      ],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/task-source-lint.json",
+      "sha256": "24d15ae6ae5348bdd31744838ef7a09286fff6395f0b0b9fc604e00b0b3ac68c",
+      "exit": 0,
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_BASE_REV=70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "LINT_CODE_TARGETS=./toolchain",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/generated-source-validation.json",
+      "sha256": "6df4f00371a37437854d7cfe592c765ba2576e1bd5b72085f00164e9b8b7759e",
+      "exit": 0,
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "-C",
+        "tools/gomad3",
+        "generate",
+        "validate"
+      ],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/whole-file-lint.json",
+      "sha256": "0e1afc1d3a041e06bd7c72fea4f3ab4e736eea2b83d34a2e6b6ef04e5730011c",
+      "exit": 1,
+      "argv": [
+        "timeout",
+        "600",
+        "bash",
+        "-c",
+        "cd tools/gomad3 && exec /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --output.text.path=/dev/null --output.json.path=stdout ./toolchain"
+      ],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/task-owned-format.json",
+      "sha256": "71e692db5d65d330ac8bdcb350b3926652db71ae09c18942a411c3c277c7c98a",
+      "exit": 0,
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+        "-l",
+        "tools/gomad3/toolchain/clock_inventory_test.go"
+      ],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/final-diff-check.json",
+      "sha256": "31c32d9746552b8cae0d92ea9aa019620ded99cccf9efaf069755b69c9c5078b",
+      "exit": 0,
+      "argv": [
+        "timeout",
+        "600",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    }
+  ],
+  "source_binding": {
+    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/source-binding.json",
+    "sha256": "f089e88a10d8b1f38e91a2717275c27e0aba15b0e3ae00a9f06b6c98d9e207da"
+  },
+  "standards_attribution": {
+    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/standards-attribution.json",
+    "sha256": "14def06069c0aee343df7096a607fd298105b461578ba680a52e1fe64bdc9f51"
+  },
+  "policy_decision": {
+    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/policy-decision.md",
+    "sha256": "1781da840b072b3f72544a3f0f0dbdfdc500720d5ba159ff74ae92e9102c6725"
+  },
+  "policy_raw": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/original-summary.utf8.json",
+      "bytes": 2497,
+      "sha256": "6d071af58476bb5c264bd8467bd5226047f77e5e0180c364a5d786ae9b7bd01e",
+      "encoding": "utf8-json-string",
+      "original_path": "/tmp/flow-next-fn105-32/summary.md",
+      "decoded_bytes": 2364,
+      "decoded_sha256": "0aa4a6b4f16e6c50a1548f75fb0a044bdbcee55c91d8aa53c43b4dbb7614fccb"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/original-evidence.utf8.json",
+      "bytes": 1453,
+      "sha256": "56581dc2a9fc76cd52ba45dad2742b43a07a245dd5c1ee996770e13d9f1570f2",
+      "encoding": "utf8-json-string",
+      "original_path": "/tmp/flow-next-fn105-32/evidence.json",
+      "decoded_bytes": 1296,
+      "decoded_sha256": "a00334f212540bd32c30e2767bcaf31b574f4c746bc4662940985c37c0c2b60b"
+    }
+  ],
+  "source_review_required": {
+    "current_full_files": [
+      "tools/gomad3/README.md#Contract",
+      "tools/gomad3/toolchain/clock_inventory_test.go"
+    ],
+    "original_base": "70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+    "implementation": "bfb2bdb8ef136d3eb38cbd539735661d5d7c9af5",
+    "fresh_review_owner": "conductor",
+    "verdict": null
+  },
+  "native_qualification": {
+    "current_candidate_verified": false,
+    "darwin": "deferred fn-149.1",
+    "linux": "deferred fn-128.1/.4/.7",
+    "actual_host": "linux/arm64 unsupported"
+  },
+  "product_edits": [],
+  "user_files": [
+    {
+      "path": ".turbo/plans/gomad3-glossary-update.md",
+      "bytes": 16567,
+      "sha256": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188"
+    },
+    {
+      "path": ".turbo/technical-debt.md",
+      "bytes": 42239,
+      "sha256": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+    }
+  ],
+  "positive_inventory_reuse": {
+    "receipt": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source-inventories-pinned.json",
+    "receipt_sha256": "d467060c7b6af8b4eb05f1d353854c32d76442fa72088031caaa149726cd97d0",
+    "log_sha256": "e5db8479e0f26b36dcac62da353bd3141aab8747b246d6c031efd6e056260635",
+    "draw_rows": 273,
+    "seeded_rows": 86,
+    "clock_rows": 48,
+    "goroutine_rows": 10,
+    "platforms": [
+      "darwin/arm64",
+      "linux/amd64"
+    ],
+    "kind": "materialized supported source sets; no built/native runtime"
+  },
+  "commands_running": [],
+  "test_count_scope": "Portable JSON stream supplies 6 observed top-level passes. Non-JSON commands report exit codes; their test_counts zero means no parsed JSON test verdicts, not empty gate selection.",
+  "stage": "impl-review skipped(policy: conductor owns fresh source review and completion)"
+}

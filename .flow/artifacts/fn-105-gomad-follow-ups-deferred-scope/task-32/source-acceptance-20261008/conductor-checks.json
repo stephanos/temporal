@@ -1,0 +1,22 @@
+{
+  "source_checkpoint": "0ec60a35a191c02b791e335d883379835c7005b5",
+  "scope": "D27 retained source acceptance; no native qualification",
+  "portable_receipt": "conductor-portable.json",
+  "portable_top_level_pass": 6,
+  "portable_fail": 0,
+  "portable_skip": 0,
+  "generated_validation_receipt": "conductor-generated-validation.json",
+  "generated_validation_exit": 0,
+  "source_verification_receipt": "conductor-evidence-verification-final.json",
+  "source_verification_exit": 0,
+  "calibration_failure": {
+    "receipt": "conductor-evidence-verification.json",
+    "exit": 1,
+    "cause": "Conductor incorrectly assumed this task had bundle-manifest.json; corrected verifier to the actual evidence.observations/reference schema.",
+    "product_edits": 0,
+    "acceptance_credit": false,
+    "original_failed_receipt_preserved": true
+  },
+  "native_qualification": false,
+  "user_files_preserved": 2
+}
