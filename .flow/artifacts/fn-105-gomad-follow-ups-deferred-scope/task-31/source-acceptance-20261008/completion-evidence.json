@@ -1,0 +1,19 @@
+{
+  "commits": ["263d39a6b1c4dbcf7118d70c0489864752ba3f0b"],
+  "tests": [
+    "stock Go1.27.1 portable clock/epoch/architecture selection:39 pass, bridge exact-pin controls:3 pass, root activation/refusal controls:4 pass, workload clock identity:1 pass; conductor-portable-*.json retains exact argv/environment; zero failures or skips",
+    "stock Go1.27.1 model-transport and nested activation controls:7 pass, zero failures/skips; conductor-model-activation.json",
+    "make -C tools/gomad3 validate:exit0; conductor-validate.json",
+    "node .flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/conductor-verify.mjs:exit0 after review; conductor-post-review-audit.json",
+    "configured original-R26-base Makefile nested/root source lint including errortype:exit0; configured-original-r26-lint.json and configured-root-source-lint.json; standalone configured-errortype.json:exit0",
+    "complete historical arbiter causal RED:exit1 intended epoch mismatch and GREEN:exit0 one pass; transport-proof.json; not native qualification",
+    "flowctl codex impl-review-fanout/finalize 347ef4c0fd7d45bc814afab474081046:three actual SHIP draws, no findings/unaddressed requirements; lossless source-review.json",
+    "flowctl validate --spec fn-105-gomad-follow-ups-deferred-scope --json:32 tasks, zero errors or warnings"
+  ],
+  "prs": [],
+  "scope": "R26 source acceptance only",
+  "native_qualification": false,
+  "frozen_worker_evidence_sha256": "bc386c73af3dd6442ed809ea2c927f51fb0967d5f4becf309005b691435b708c",
+  "review_rid": "347ef4c0fd7d45bc814afab474081046",
+  "remaining_owners": ["fn-149.1 native qualification", "fn-128.1/.4/.7 Linux qualification", "fn-109.13 inherited formatting", "fn-109.21 aggregate lint and existing correction owners"]
+}

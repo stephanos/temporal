@@ -181,7 +181,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-105.28](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.28.md) | ✅ Done | D19: establish fairness backlog readiness and remove skips |
 | [fn-105.29](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.29.md) | ✅ Done | D20: make heartbeat rejection deadlines explicit and remove skip |
 | [fn-105.30](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.30.md) | ✅ Done | D17: deliver explicit target environment and enable the two-cluster Nexus test |
-| [fn-105.31](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.31.md) | 🚧 In progress | D26: put forward clock ticks on the virtual clock and remove the D16 skip |
+| [fn-105.31](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.31.md) | ✅ Done | D26: put forward clock ticks on the virtual clock and remove the D16 skip |
 | [fn-105.32](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.32.md) | ✅ Done | D27: state, pin, and remedy host-clock reporting escapes |
 
 <a id="deep-modules-and-tool-interfaces-fn-109"></a>

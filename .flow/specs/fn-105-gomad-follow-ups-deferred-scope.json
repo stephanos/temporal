@@ -9,6 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-105-gomad-follow-ups-deferred-scope",
   "impl_review_rounds": {
+    "fn-105-gomad-follow-ups-deferred-scope.31": 0,
     "fn-105-gomad-follow-ups-deferred-scope.32": 0
   },
   "next_task": 1,
@@ -50,14 +51,51 @@
       "task": "fn-105-gomad-follow-ups-deferred-scope.32",
       "timestamp": "2026-10-08T09:00:26.279092Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3fb2311da8b4b8b3c14197c77d95d12869cab9afb69ae6c33860132ec43bc259",
+      "backend": "codex",
+      "base_sha": "8c8f8973c391dc74ae56f88b7bbac86d785e3745",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "263d39a6b1c4dbcf7118d70c0489864752ba3f0b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "347ef4c0fd7d45bc814afab474081046",
+      "round_consumed": true,
+      "scope": "impl:fn-105-gomad-follow-ups-deferred-scope.31",
+      "superseded_by": null,
+      "task": "fn-105-gomad-follow-ups-deferred-scope.31",
+      "timestamp": "2026-10-08T10:16:39.960166Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-105-gomad-follow-ups-deferred-scope.31": 1,
     "impl:fn-105-gomad-follow-ups-deferred-scope.32": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-105-gomad-follow-ups-deferred-scope.31": 0,
     "impl:fn-105-gomad-follow-ups-deferred-scope.32": 0
   },
   "spec_path": ".flow/specs/fn-105-gomad-follow-ups-deferred-scope.md",
@@ -74,5 +112,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T09:00:26.302819Z"
+  "updated_at": "2026-10-08T10:16:39.963526Z"
 }
