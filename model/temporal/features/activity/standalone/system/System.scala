@@ -98,7 +98,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
   object refinement extends Refinement(ActivityProduct):
     // Every waiting state reads as scheduled, whatever its dispatch. A pause request reads as
     // started: the worker still holds the attempt, its every answer is a product row from started,
-    // and the request stutters.
+    // and the Product carries the pause observation without changing that state.
     def toProduct(s: State): product.State = s.phase match
       case Phase.unstarted | Phase.scheduled =>
         product.State(product.Phase.scheduled)
@@ -110,6 +110,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       case Phase.canceled                       => product.State(product.Phase.canceled)
       case Phase.terminated                     => product.State(product.Phase.terminated)
       case Phase.timedOut                       => product.State(product.Phase.timedOut)
+
+    def visible(f: Fact) = f match
+      case Fact.statusScheduled | Fact.statusStarted | Fact.statusPaused |
+          Fact.statusCancelRequested | Fact.statusCompleted | Fact.statusFailed |
+          Fact.statusCanceled | Fact.statusTerminated | Fact.statusTimedOut(_) =>
+        true
+      case Fact.attemptCount => false
 
     // Dispatch-delay timers record nothing a Run can read.
     val unobservable = List(timers.startDelay, timers.backoff)

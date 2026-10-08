@@ -114,6 +114,12 @@ class StandaloneActivityPins extends munit.FunSuite:
     import Phase.*
     List[ExpectedRule[State, Fact]](
       ExpectedRule(
+        client.start.decl,
+        None,
+        _.phase == scheduled,
+        s => accepted(s, Fact.statusScheduled)
+      ),
+      ExpectedRule(
         worker.poll.decl,
         None,
         _.phase == scheduled,
@@ -198,6 +204,7 @@ class StandaloneActivityPins extends munit.FunSuite:
         _.phase == started,
         s =>
           accepted(s.copy(phase = paused), Fact.statusPaused) ++
+            accepted(s, Fact.statusPaused) ++
             rejectedBecause(
               s,
               "failedPrecondition",
@@ -224,7 +231,19 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.unpause.decl,
         None,
-        s => s.phase == scheduled || s.phase == started || s.phase == cancelRequested,
+        _.phase == started,
+        s =>
+          accepted(s, Fact.statusStarted) ++
+            rejectedBecause(
+              s,
+              "failedPrecondition",
+              "activity is not paused (chasm/lib/activity/model/model.go:251)"
+            )
+      ),
+      ExpectedRule(
+        client.unpause.decl,
+        None,
+        s => s.phase == scheduled || s.phase == cancelRequested,
         s =>
           rejectedBecause(
             s,
@@ -573,6 +592,7 @@ class StandaloneActivityPins extends munit.FunSuite:
     assertEquals(
       product.ActivityProduct.bindings.map(_.decl),
       List(
+        client.start,
         client.pause,
         client.unpause,
         client.requestCancel,

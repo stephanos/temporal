@@ -58,7 +58,6 @@ class ActivityRejectionRegression extends munit.FunSuite:
         client.pause -> Set[product.Phase](product.Phase.paused, product.Phase.cancelRequested),
         client.unpause -> Set[product.Phase](
           product.Phase.scheduled,
-          product.Phase.started,
           product.Phase.cancelRequested
         )
       )
@@ -71,10 +70,12 @@ class ActivityRejectionRegression extends munit.FunSuite:
     val rows = take(ActivityProduct, before, client.pause)
     assertEquals(
       rows.map(_.outcome),
-      List(Outcome.accepted, Outcome.rejected(Rejection.failedPrecondition))
+      List(Outcome.accepted, Outcome.accepted, Outcome.rejected(Rejection.failedPrecondition))
     )
     assertEquals(rows.head.state, product.State(product.Phase.paused))
     assertEquals(rows.head.facts, List(product.Fact.statusPaused))
+    assertEquals(rows(1).state, before)
+    assertEquals(rows(1).facts, List(product.Fact.statusPaused))
     assertEquals(rows.last.state, before)
     assertEquals(rows.last.facts, Nil)
     for s <- summon[Finite[system.State]].values if s.phase == system.Phase.pauseRequested do
