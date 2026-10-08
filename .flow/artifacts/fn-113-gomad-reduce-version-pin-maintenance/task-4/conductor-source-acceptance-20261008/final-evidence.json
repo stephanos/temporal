@@ -1,0 +1,108 @@
+{
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.4",
+  "acceptance": "retained source R5 and source-owned R6; transferred native requirements remain unverified",
+  "commits": [
+    "da1e726eab2d7211ec854df2d20fc2625c0c1695",
+    "6d5505a77cb55ef69a7a691bfde0af34c2738927"
+  ],
+  "prs": [],
+  "source": "7550610348c8f837d0874639ccf8173509b9b2a0437fc7a477897c8e6f8068cb",
+  "review": {
+    "base": "9663e4c1bae2c101d452f9ef97e2009143a45e36",
+    "head": "6d5505a77cb55ef69a7a691bfde0af34c2738927",
+    "rid": "c72c6fbfb8ed43c5b60e205ef3d7aa5c",
+    "backend": "codex:gpt-6.1-sol:high",
+    "verdict": "SHIP",
+    "draws": [
+      "correctness",
+      "contracts",
+      "integration"
+    ],
+    "findings": 0,
+    "same_gpt_family_as_requested_worker": true,
+    "actual_worker_model_not_observed": true,
+    "receipt": "review-receipt.json",
+    "receipt_sha256": "5953549f5a9044529a6c7f3b8a442200194429501863a3b8ebbee73852431f3e",
+    "originals": "review-backend-evidence.json",
+    "originals_sha256": "c5be7cd02864ffc2654f926d68c0f657b5d87a0ece7913b47632303d76867cea",
+    "all_11_originals_losslessly_verified": true,
+    "reviewer_execution": "Read-only sandbox blocked runtime reruns; reviewed source/raw receipts and hashes, not a fresh runtime pass"
+  },
+  "worker_evidence": "../source-acceptance-20261008/evidence.json",
+  "worker_handover": "../source-acceptance-20261008/handover.md",
+  "audit": "integrated-candidate-audit.json",
+  "audit_sha256": "d680f3e13466af887a44a49d467ea926256b67a6327621d936b0227bbc40bca2",
+  "fresh_assertions": {
+    "pass": 883,
+    "fail": 0,
+    "skip": 1
+  },
+  "source_authoring_union": {
+    "pass": 670,
+    "fail": 0,
+    "skip": 1
+  },
+  "broad_authoring": {
+    "exit": 1,
+    "pass": 666,
+    "fail": 1,
+    "skip": 1
+  },
+  "narrow_rerun": {
+    "pass": 4,
+    "fail": 0,
+    "skip": 0,
+    "only": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+    "input": "command-local private XDG cache; ordinary workspace temp unchanged"
+  },
+  "deterministicio_reuse": {
+    "dependency_paths": 121,
+    "exact": 120,
+    "exception": "Only unexported descriptor guide function; every byte outside it exact",
+    "packets": "accepted 269-pass/four-skip complement plus 17-pass cache control; reuse, not new execution"
+  },
+  "measurement": {
+    "original_source_repair": 6,
+    "observed_repair": 5,
+    "normalized_repair": 4,
+    "observed_workflow_units": 10,
+    "instrumentation_inclusive_units": 16,
+    "total_savings_claim": false,
+    "native_or_fresh_pack_savings": false
+  },
+  "checks": {
+    "source_validate": "exit 0; frozen",
+    "fast_lint": "exit 0; fixes disabled",
+    "version_package_lint": "exit 0; unfiltered",
+    "both_supported_source_sets": "static list/vet exit 0; not native execution",
+    "seven_document_audit": "195 links, 33 source verbs, 38 actual help invocations",
+    "original_scratch_pipeline": "exact approved default pipeline publishes six outputs; scratch validate exit 0"
+  },
+  "preservation": {
+    "unaffected_gomad": 1017,
+    "scratch_surrounding": 4080,
+    "historical_task4": 12,
+    "first_baseline_and_four_original_git_preimages": true,
+    "production_pins": true,
+    "user_files": true
+  },
+  "native_qualification": false,
+  "broad_full_pass": false,
+  "full_gate_receipt_minted": false,
+  "native_owners": [
+    "fn-149.2",
+    "fn-149.4",
+    "fn-128.4",
+    "fn-128.7"
+  ],
+  "phase0": {
+    "executions": 1,
+    "explicit_backend": true,
+    "rp_eligible": 0,
+    "optional_phases": 0,
+    "no_triage": true
+  },
+  "tracker": "n/a (bridge inactive; fresh sync active probe)",
+  "plan_sync": "skipped(config: planSync.enabled != true)",
+  "commands_terminal": true
+}
