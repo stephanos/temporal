@@ -525,6 +525,43 @@ func (this *ActivityAttemptWithholding) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ActivityHeartbeat to the protobuf v3 wire format
+func (val *ActivityHeartbeat) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ActivityHeartbeat from the protobuf v3 wire format
+func (val *ActivityHeartbeat) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ActivityHeartbeat) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ActivityHeartbeat values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ActivityHeartbeat) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ActivityHeartbeat
+	switch t := that.(type) {
+	case *ActivityHeartbeat:
+		that1 = t
+	case ActivityHeartbeat:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type InjectFault to the protobuf v3 wire format
 func (val *InjectFault) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -764,6 +801,24 @@ func ReadCardinalityFromString(s string) (ReadCardinality, error) {
 		return ReadCardinality(v), nil
 	}
 	return ReadCardinality(0), fmt.Errorf("%s is not a valid ReadCardinality", s)
+}
+
+var (
+	ActivityWithholdingMode_shorthandValue = map[string]int32{
+		"Context":    0,
+		"SdkPending": 1,
+	}
+)
+
+// ActivityWithholdingModeFromString parses a ActivityWithholdingMode value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ActivityWithholdingMode
+func ActivityWithholdingModeFromString(s string) (ActivityWithholdingMode, error) {
+	if v, ok := ActivityWithholdingMode_value[s]; ok {
+		return ActivityWithholdingMode(v), nil
+	} else if v, ok := ActivityWithholdingMode_shorthandValue[s]; ok {
+		return ActivityWithholdingMode(v), nil
+	}
+	return ActivityWithholdingMode(0), fmt.Errorf("%s is not a valid ActivityWithholdingMode", s)
 }
 
 var (

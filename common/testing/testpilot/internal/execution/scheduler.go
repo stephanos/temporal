@@ -192,6 +192,9 @@ var reservationOutcomes = map[reservationOutcome]reservationRule{
 	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_WITHHELD}: {
 		verdict: reservationRecorded, attempt: deliveredAttempt,
 	},
+	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING}: {
+		verdict: reservationRecorded, attempt: deliveredAttempt,
+	},
 	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED}: {
 		verdict: reservationRecordedThenFailed, attempt: deliveredAttempt,
 	},
@@ -219,7 +222,7 @@ func judgeReservation(kind contract.EntrypointKind, numbering *testpilotspb.Atte
 	case deliveredAttempt:
 		valid = attempt.GetActivityRunId() != "" && sameRun && numbering.GetFirst() > 0 && int64(attempt.GetSdkAttempt()) == numbering.GetFirst()+ordinal && attempt.GetDeliveryId() != ""
 	case undeliveredAttempt:
-		valid = priorRun != "" && attempt.GetActivityRunId() != "" && sameRun && attempt.GetSdkAttempt() == 0 && attempt.GetDeliveryId() == ""
+		valid = priorRun != "" && attempt.GetActivityRunId() != "" && sameRun && attempt.GetSdkAttempt() == 0 && attempt.GetDeliveryId() == "" && !attempt.GetHeartbeatInvoked()
 	default:
 		valid = attempt == nil
 	}

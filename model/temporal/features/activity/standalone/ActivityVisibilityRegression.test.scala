@@ -31,7 +31,7 @@ class ActivityVisibilityRegression extends munit.FunSuite:
     val start = ActivityProduct.bindings.find(_.decl == client.start.decl)
     assert(start.nonEmpty, "the Product must carry creation")
     val schedule = start.get.function.asInstanceOf[
-      (product.State, Timeout, Timeout, Timeout, Timeout, MaxAttempts) => List[
+      (product.State, Timeout, Timeout, Timeout, Timeout, Timeout, MaxAttempts) => List[
         Step[product.State, Outcome, product.Fact]
       ]
     ] // scalafix:ok DisableSyntax.asInstanceOf
@@ -39,11 +39,12 @@ class ActivityVisibilityRegression extends munit.FunSuite:
       close <- Timeout.values
       waiting <- Timeout.values
       held <- Timeout.values
+      heartbeat <- Timeout.values
       delay <- Timeout.values
       policy <- MaxAttempts.values
     do
       assertEquals(
-        schedule(scheduled, close, waiting, held, delay, policy),
+        schedule(scheduled, close, waiting, held, heartbeat, delay, policy),
         List(Step(Outcome.accepted, scheduled, List(product.Fact.statusScheduled)))
       )
 

@@ -480,6 +480,7 @@ var (
 		"NotNeeded":                 5,
 		"OfferedCanceled":           6,
 		"Withheld":                  7,
+		"Pending":                   8,
 	}
 )
 

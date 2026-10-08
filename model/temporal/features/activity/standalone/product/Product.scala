@@ -32,6 +32,7 @@ final case class State(phase: Phase) derives Finite
 enum Fact derives Finite:
   case statusScheduled, statusStarted, statusPaused, statusCancelRequested
   case statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut
+  case heartbeatReceived, heartbeatTimedOut
 
 // The accessors the blocks of ActivityProduct read and assign a state's phase by: the setter hands
 // the draft the phase it assigns, whose status the step records.
@@ -61,6 +62,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
         @unused scheduleToClose: Timeout,
         @unused scheduleToStart: Timeout,
         @unused startToClose: Timeout,
+        @unused heartbeat: Timeout,
         @unused startDelay: Timeout,
         @unused maxAttempts: MaxAttempts
     ) = enter(s, Fact.statusScheduled)
@@ -94,6 +96,25 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     val requestCancel = effect { phase = cancelRequested }
     val terminate = effect { phase = terminated }
     val timeOut = effect { phase = timedOut }
+    def heartbeat(s: State) = enter(s, Fact.heartbeatReceived)
+    val heartbeatRetry = choice
+    val heartbeatPaused = choice
+    val heartbeatExhausted = choice
+    def heartbeatExpires(s: State) = choose(
+      heartbeatRetry -> enter(
+        s.copy(phase = scheduled),
+        Fact.statusScheduled,
+        Fact.heartbeatTimedOut
+      ),
+      heartbeatPaused -> enter(
+        s.copy(phase = Phase.paused),
+        Fact.statusPaused,
+        Fact.heartbeatTimedOut
+      ),
+      heartbeatExhausted -> heartbeatTimeOut(s)
+    )
+    def heartbeatTimeOut(s: State) =
+      enter(s.copy(phase = timedOut), Fact.statusTimedOut, Fact.heartbeatTimedOut)
 
   object rules extends Rules:
     from(client) {
@@ -135,6 +156,11 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       on(poll) {
         when(scheduled) ~> effects.startAttempt
       }
+      on(heartbeat) {
+        when[Held] ~> effects.heartbeat
+        when(scheduled, paused) ~> rejects(Rejection.notFound)
+        when[Closed] ~> rejects(Rejection.notFound)
+      }
 
       // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
       // under a cancel request; a canceled answer settles only an activity whose cancellation was
@@ -166,6 +192,10 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       on(timeout) {
         when(scheduled, started, paused, cancelRequested) ~> effects.timeOut
       }
+    }
+    on(deadline.heartbeat) {
+      when(started) ~> effects.heartbeatExpires
+      when(cancelRequested) ~> effects.heartbeatTimeOut
     }
 
   object properties:

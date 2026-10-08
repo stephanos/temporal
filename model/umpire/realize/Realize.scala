@@ -551,6 +551,10 @@ object ProtoValue:
   def utf8(value: String): TypedProtoValue[ByteString] = new TypedProtoValue(Utf8(value))
   def message[Message <: GeneratedMessage](value: TypedProto[Message]): TypedProtoValue[Message] =
     new TypedProtoValue(value)
+  def messages[Message <: GeneratedMessage](
+      values: TypedProto[Message]*
+  ): TypedProtoValue[Seq[Message]] =
+    new TypedProtoValue(values.toVector)
   def mapping(entries: TypedProtoEntry*): TypedProtoValue[Map[String, ByteString]] =
     new TypedProtoValue(entries.toVector)
   def roleId(value: String | Addressee): TypedProtoValue[String] = new TypedProtoValue(

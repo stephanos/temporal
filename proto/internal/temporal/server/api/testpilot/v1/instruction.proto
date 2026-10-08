@@ -63,6 +63,7 @@ message Instruction {
     ActivityAttemptFailure activity_attempt_failure = 10;
     ActivityAttemptCancellation activity_attempt_cancellation = 11;
     ActivityAttemptWithholding activity_attempt_withholding = 12;
+    ActivityHeartbeat activity_heartbeat = 13;
   }
 }
 
@@ -144,7 +145,18 @@ message ActivityAttemptCancellation {}
 // timeout the server applies to it, ends the attempt, so the server times the attempt out. The
 // server retries a timed-out attempt unless the retry policy is exhausted, so it is followed by the
 // entrypoint's next instruction or ends the activity.
-message ActivityAttemptWithholding {}
+message ActivityAttemptWithholding { ActivityWithholdingMode mode = 1; }
+
+// The default retains SDK context-deadline withholding. Pending ends local execution with the
+// SDK's pending sentinel and offers no answer RPC; the server attempt remains unsettled.
+enum ActivityWithholdingMode {
+  ACTIVITY_WITHHOLDING_MODE_CONTEXT = 0;
+  ACTIVITY_WITHHOLDING_MODE_SDK_PENDING = 1;
+}
+
+// Invokes the SDK heartbeat for the currently delivered attempt. Its void return proves only
+// invocation, never server receipt. An activity group has at most one prefix and one disposition.
+message ActivityHeartbeat { temporal.api.common.v1.Payloads details = 1; }
 
 // InjectFault asks the Driver for one deliberate outage or delivery control. role_id must name a
 // ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.

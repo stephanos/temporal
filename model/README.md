@@ -474,7 +474,8 @@ The IR generator reads what an author wrote, as written:
   names a call, such as `answered(fact, call)`, matches every `withFields` variant of it, since
   each keeps the call's name. A feature file (a file under a `features` directory) writes the
   kit's lower-case instruction forms, `fault`, `hold`, `release`, `finish`, `command`,
-  `awaitCommand`, `awaitLearned`, `attemptFailure`, `attemptCanceled`, `attemptWithheld`, `workflowCommand`,
+  `awaitCommand`, `awaitLearned`, `attemptFailure`, `attemptCanceled`, `attemptWithheld`,
+  `attemptPending`, `attemptHeartbeat`, `workflowCommand`,
   `nexusReply` and `nexusCompletion` (`temporal/realize/Kit.scala`), never their case classes, and
   never writes a command out with `Command(id, …)`: two commands of one realization share a name
   only through `aliasOf`, or as `withFields` variants of one call. The kit's evidence modules
@@ -496,7 +497,15 @@ The IR generator reads what an author wrote, as written:
   refused. An activity script may use `onPath(deadline.startToClose)(attemptWithheld)` to offer no
   answer until the attempt's context deadline ends it. This is not a performance of the timeout,
   which stays a positively bounded server timer. One timer of one script has at most one such
-  item, and a selected path takes it exactly once. umpire-lint reports a binding of a class no
+  item, and a selected path takes it exactly once. Context withholding requires a declared
+  start-to-close or schedule-to-close request-field basis; a heartbeat deadline is not an SDK
+  context deadline. `attemptPending` instead returns the SDK's exact pending sentinel after the
+  optional `attemptHeartbeat(details)` prefix. Its selected heartbeat timer must have a positive
+  declared request-field basis. These linear attempt groups contain zero or one heartbeat and
+  exactly one disposition; terminal-only groups retain their existing meaning. The local record
+  proves heartbeat invocation, not server receipt. Bounded Describe reads requesting heartbeat
+  details and count prove receipt; a retry witness additionally requires an actual HEARTBEAT
+  failure and the next delivered attempt's completion. umpire-lint reports a binding of a class no
   realizable path reaches (`unreachable-binding`) and a class of a performed action a realizable
   path can take that no binding performs (`uncovered-class`), accepted with why where it is
   unrealizable. A declaration
@@ -1511,7 +1520,9 @@ root is explicit.
 Constant messages remain symbolic: `Proto[Payload](ProtoField.typed(...))` names a message and its
 fields by type; `ProtoValue.mapping(ProtoEntry.typed("encoding", ProtoValue.utf8("json/plain")))`
 writes `Payload.metadata` data with its `String` key and `ByteString` value. The generated API and
-ScalaPB runtime are authoring and lifting dependencies only. Scala never builds or sends a Temporal
+ScalaPB runtime are authoring and lifting dependencies only. `ProtoValue.messages(payload1, payload2)`
+writes an ordered repeated-message field, such as `Payloads.payloads`; it accepts only typed
+messages of that field's element type, not scalar or map values. Scala never builds or sends a Temporal
 request; Go still checks the lifted IR against descriptors and executes the Case.
 
 ## Generated Cases

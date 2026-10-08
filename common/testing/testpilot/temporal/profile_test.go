@@ -354,6 +354,25 @@ func TestDeriveProfileNamesEachStartTheCarrierOfWhatItActivates(t *testing.T) {
 	}
 }
 
+func TestDeriveProfileCountsActivityDispositionsInsteadOfHeartbeatPrefixes(t *testing.T) {
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	source := activityCase()
+	entry := source.Program.Entrypoints[3]
+	entry.Instructions = append([]*testpilotspb.InstructionNode{{InstructionId: "heartbeat", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityHeartbeat{ActivityHeartbeat: &testpilotspb.ActivityHeartbeat{Details: &commonpb.Payloads{}}}}}}, entry.Instructions...)
+	profile, err := temporal.DeriveProfile(source, catalog, temporal.Environment{Identity: "activity", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "endpoint"})
+	require.NoError(t, err)
+	require.Contains(t, profile.Opcodes, testpilot.ActivityHeartbeat)
+	require.Equal(t, testpilot.ReservationCarrierPolicy{Method: startActivityExecution, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilot.ActivityEntrypoint, MaximumCount: 1}}}, endpointPolicy(t, profile).ReservationCarriers[1])
+	prepared, err := testpilot.Prepare(source, profile)
+	require.NoError(t, err)
+	program := facadetest.Capture(t, prepared)
+	plan, carried := program.ReservationCarrier("controller", "start-activity")
+	require.True(t, carried)
+	require.Equal(t, int64(1), plan.Reservations[0].Count)
+	require.Equal(t, [][]int{{0, 1}}, program.Entrypoints()[3].ActivityAttempts())
+}
+
 // A Profile that authorizes the activity start as an ordinary call but names it no carrier, as a
 // consumer without an SDK activity worker would, cannot activate the Case's activity script, and
 // preparation says so before any Driver exists.

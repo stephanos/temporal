@@ -3337,6 +3337,80 @@ func (this *Command) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type AttemptHeartbeat to the protobuf v3 wire format
+func (val *AttemptHeartbeat) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type AttemptHeartbeat from the protobuf v3 wire format
+func (val *AttemptHeartbeat) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *AttemptHeartbeat) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two AttemptHeartbeat values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *AttemptHeartbeat) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *AttemptHeartbeat
+	switch t := that.(type) {
+	case *AttemptHeartbeat:
+		that1 = t
+	case AttemptHeartbeat:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type AttemptWithheld to the protobuf v3 wire format
+func (val *AttemptWithheld) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type AttemptWithheld from the protobuf v3 wire format
+func (val *AttemptWithheld) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *AttemptWithheld) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two AttemptWithheld values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *AttemptWithheld) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *AttemptWithheld
+	switch t := that.(type) {
+	case *AttemptWithheld:
+		that1 = t
+	case AttemptWithheld:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type After to the protobuf v3 wire format
 func (val *After) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -4151,6 +4225,43 @@ func (this *ProtoValue) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ProtoMessages to the protobuf v3 wire format
+func (val *ProtoMessages) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ProtoMessages from the protobuf v3 wire format
+func (val *ProtoMessages) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ProtoMessages) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ProtoMessages values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ProtoMessages) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ProtoMessages
+	switch t := that.(type) {
+	case *ProtoMessages:
+		that1 = t
+	case ProtoMessages:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type ProtoMap to the protobuf v3 wire format
 func (val *ProtoMap) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -4264,12 +4375,13 @@ func (this *RejectionCode) Equal(that interface{}) bool {
 
 var (
 	CauseKind_shorthandValue = map[string]int32{
-		"Unspecified":    0,
-		"ActivityAnswer": 1,
-		"WorkflowTask":   2,
-		"HandlerReply":   3,
-		"Delivery":       4,
-		"Timer":          5,
+		"Unspecified":       0,
+		"ActivityAnswer":    1,
+		"WorkflowTask":      2,
+		"HandlerReply":      3,
+		"Delivery":          4,
+		"Timer":             5,
+		"ActivityHeartbeat": 6,
 	}
 )
 
@@ -4282,4 +4394,42 @@ func CauseKindFromString(s string) (CauseKind, error) {
 		return CauseKind(v), nil
 	}
 	return CauseKind(0), fmt.Errorf("%s is not a valid CauseKind", s)
+}
+
+var (
+	TimeoutBasis_shorthandValue = map[string]int32{
+		"Unspecified":     0,
+		"ScheduleToClose": 1,
+		"StartToClose":    2,
+		"Heartbeat":       3,
+	}
+)
+
+// TimeoutBasisFromString parses a TimeoutBasis value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to TimeoutBasis
+func TimeoutBasisFromString(s string) (TimeoutBasis, error) {
+	if v, ok := TimeoutBasis_value[s]; ok {
+		return TimeoutBasis(v), nil
+	} else if v, ok := TimeoutBasis_shorthandValue[s]; ok {
+		return TimeoutBasis(v), nil
+	}
+	return TimeoutBasis(0), fmt.Errorf("%s is not a valid TimeoutBasis", s)
+}
+
+var (
+	WithholdingMode_shorthandValue = map[string]int32{
+		"Context":    0,
+		"SdkPending": 1,
+	}
+)
+
+// WithholdingModeFromString parses a WithholdingMode value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to WithholdingMode
+func WithholdingModeFromString(s string) (WithholdingMode, error) {
+	if v, ok := WithholdingMode_value[s]; ok {
+		return WithholdingMode(v), nil
+	} else if v, ok := WithholdingMode_shorthandValue[s]; ok {
+		return WithholdingMode(v), nil
+	}
+	return WithholdingMode(0), fmt.Errorf("%s is not a valid WithholdingMode", s)
 }

@@ -42,6 +42,14 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
     // respond's transaction: service/history/handler.go:425-429, :476-480, :527-531,
     // chasm/lib/activity/activity.go:463, :513, :539, attempt.go:204-240.
     CauseKind.activityAnswer.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce),
+    // SDK RecordHeartbeat returns void and can batch calls: go.temporal.io/sdk v1.48.0,
+    // activity/activity.go:77-79, internal/internal_activity.go:397-413,
+    // internal/internal_task_handlers.go:2182-2214. Describe proves persistence, not invocation:
+    // chasm/lib/activity/activity.go:592-619, :261-273.
+    CauseKind.activityHeartbeat.visibleTo(
+      METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+      Visible.eventually(WaitBound(intervalMs = 250, atMostMs = 2000))
+    ),
     // A start of a standalone Nexus operation persists it, scheduled, before it returns, and a
     // describe reads that component: chasm/lib/nexusoperation/frontend.go:65-95, handler.go:45-60,
     // :152-155, operation.go:702-736.
@@ -84,6 +92,7 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
     // (common/testing/testpilot/temporal/worker/interpreter.go:240-300), and the respond applies the
     // answer in its transaction (service/history/handler.go:425-429): the bound is the round trip.
     CauseKind.activityAnswer.boundedBy(WaitBound(intervalMs = 250, atMostMs = 2000)),
+    CauseKind.activityHeartbeat.boundedBy(WaitBound(intervalMs = 250, atMostMs = 2000)),
     // A workflow task is dispatched to the Case's worker and completed by it:
     // service/matching/matching_engine.go:586, :717.
     CauseKind.workflowTask.boundedBy(WaitBound(intervalMs = 250, atMostMs = 5000)),

@@ -53,7 +53,12 @@ func withheldTimeoutRetry(t *testing.T) *umpirespb.Model {
 	r := realizationNamed(t, m, "standalone")
 	script := scriptNamed(t, r, "attempts")
 	script.Items = append([]*umpirespb.Item{{Position: script.GetPosition(), When: []*umpirespb.ActionClass{timer},
-		Command: &umpirespb.Command{Id: "withhold-attempt", Position: script.GetPosition(), Instruction: &umpirespb.Command_AttemptWithheld{AttemptWithheld: &umpirespb.Empty{}}}}}, script.GetItems()...)
+		Command: &umpirespb.Command{Id: "withhold-attempt", Position: script.GetPosition(), Instruction: &umpirespb.Command_AttemptWithheld{AttemptWithheld: &umpirespb.AttemptWithheld{}}}}}, script.GetItems()...)
+	for _, step := range r.GetServerSteps() {
+		if step.GetStep().GetAction() == timer.GetAction() {
+			step.TimeoutBasis = umpirespb.TIMEOUT_BASIS_START_TO_CLOSE
+		}
+	}
 	evidenceModel := &umpirespb.Model{Realizations: []*umpirespb.Realization{r}}
 	first := evidenceOf(t, evidenceModel, "statusStarted")
 	first.Confirms = []*umpirespb.Taking{{Step: proto.CloneOf(script.GetActivity().GetStarts()[0]), Occurrence: 1}}
@@ -126,4 +131,14 @@ func TestAWithholdingCommandRequiresOneTimerOccurrence(t *testing.T) {
 	require.ErrorContains(t, gaps[0], "withholding command withhold-attempt requires exactly one occurrence")
 	require.ErrorContains(t, gaps[0], "got 2")
 	require.ErrorContains(t, gaps[0], activityRealizationAt+":")
+}
+
+func TestWithholdingRefusesAnUnprovenSDKContextTimeoutBasis(t *testing.T) {
+	m := withheldTimeoutRetry(t)
+	for _, step := range realizationNamed(t, m, "standalone").GetServerSteps() {
+		step.TimeoutBasis = umpirespb.TIMEOUT_BASIS_UNSPECIFIED
+	}
+	_, err := NewProducer(m)
+	require.ErrorContains(t, err, "timeout basis")
+	require.ErrorContains(t, err, "withhold-attempt")
 }

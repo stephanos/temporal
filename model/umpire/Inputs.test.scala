@@ -67,6 +67,7 @@ class Inputs extends munit.FunSuite:
       supplied,
       five(Timeout.unset, Timeout.unset, Timeout.expires, true, Answer.completed)
     )
+
     assertEquals(
       five().values,
       List(Timeout.unset, Timeout.unset, Timeout.unset, false, Answer.completed)
@@ -101,5 +102,141 @@ class Inputs extends munit.FunSuite:
       val a = action(Actor("p")).input[Boolean]("a").input[Boolean]("b")
         .input[Boolean]("c").input[Boolean]("d").input[Boolean]("e")
       a(false, false, false, false)
+    """).nonEmpty
+    )
+
+  test("a sixth input reaches execution with its declared value and named default"):
+    assert(compiletime.testing.typeChecks("""
+      import umpire.*
+      val a = action(Actor("p")).input[Boolean]("a").input[Boolean]("b")
+        .input[Boolean]("c").input[Boolean]("d").input[Boolean]("e").input[Boolean]("f")
+      a(false, false, false, false, false, true)
+    """))
+    assert(
+      compiletime.testing
+        .typeCheckErrors("""
+      import umpire.*
+      val a = action(Actor("p")).input[Boolean]("a").input[Boolean]("b")
+        .input[Boolean]("c").input[Boolean]("d").input[Boolean]("e").input[Boolean]("f")
+      a(false, false, false, false, false, 1)
+    """).nonEmpty
+    )
+    assert(
+      compiletime.testing
+        .typeCheckErrors("""
+      import umpire.*
+      val a = action(Actor("p")).input[Boolean]("a").input[Boolean]("b")
+        .input[Boolean]("c").input[Boolean]("d").input[Boolean]("e").input[Boolean]("f")
+      a(false, false, false, false, false)
+    """).nonEmpty
+    )
+    val enabled = input[Boolean]
+    val count = input[UpTo[2]]
+    val six = start.input(enabled).input(answer).input(count)
+    val supplied = six(enabled := true, count := UpTo(2), startToClose := Timeout.expires)
+    assertEquals(
+      supplied,
+      six(Timeout.unset, Timeout.unset, Timeout.expires, true, Answer.completed, UpTo[2](2))
+    )
+    assertEquals(
+      supplied.values,
+      List(Timeout.unset, Timeout.unset, Timeout.expires, true, Answer.completed, UpTo[2](2))
+    )
+    assertEquals(
+      six().values,
+      List(Timeout.unset, Timeout.unset, Timeout.unset, false, Answer.completed, UpTo[2](0))
+    )
+    val step = (
+        s: Counted,
+        a: Timeout,
+        b: Timeout,
+        c: Timeout,
+        flag: Boolean,
+        result: Answer,
+        attempts: UpTo[2]
+    ) => enter(s.copy(attempts = if flag && a == b then attempts else UpTo(0), timeout = c), result)
+    val execute = effectOf[Counted, outcomes.Outcome, Answer](six.decl, step)
+    assertEquals(
+      execute(Counted(UpTo(0), Timeout.unset), six().values).head.state,
+      Counted(UpTo(0), Timeout.unset)
+    )
+    assertEquals(
+      execute(Counted(UpTo(0), Timeout.unset), supplied.values).head.state,
+      Counted(UpTo(2), Timeout.expires)
+    )
+    val direct = six ~> step
+    assertEquals(
+      effectOf[Counted, outcomes.Outcome, Answer](direct.decl, direct.function)(
+        Counted(UpTo(0), Timeout.unset),
+        supplied.values
+      ).head.state,
+      Counted(UpTo(2), Timeout.expires)
+    )
+    object SixInputs extends Machine[Counted, outcomes.Outcome, Answer]:
+      val init = Counted(UpTo(0), Timeout.unset)
+      def end(s: Counted): Boolean = s.attempts == 2
+      object rules extends Rules:
+        on(six) {
+          always ~> step
+        }
+    val binding = SixInputs.bindings.head
+    assertEquals(
+      effectOf[Counted, outcomes.Outcome, Answer](binding.decl, binding.function)(
+        SixInputs.init,
+        supplied.values
+      ).head.state,
+      Counted(UpTo(2), Timeout.expires)
+    )
+    val ruled = Bound.Ruled[Counted, outcomes.Outcome, Answer](
+      Vector(
+        Rule(1, "always", "six", six.decl, None, _ => true, execute)
+      )
+    )
+    val lowered =
+      effectOf[Counted, outcomes.Outcome, Answer](six.decl, stepFunction(six.decl, ruled))
+    assertEquals(
+      lowered(Counted(UpTo(0), Timeout.unset), supplied.values).head.facts,
+      List(Answer.completed)
+    )
+    intercept[IllegalArgumentException](
+      six(answer := Answer.completed, answer := Answer.completed): Unit
+    )
+    intercept[IllegalArgumentException](six(input[Boolean] := true): Unit)
+    val seven = six.input(input[Boolean])
+    intercept[IllegalArgumentException](
+      effectOf[Counted, outcomes.Outcome, Answer](seven.decl, step): Unit
+    )
+    intercept[IllegalArgumentException](
+      stepFunction[Counted, outcomes.Outcome, Answer](seven.decl, Bound.Disabled()): Unit
+    )
+
+  test("repeated protobuf messages are typed by the selected repeated message field"):
+    assert(compiletime.testing.typeChecks("""
+      import umpire.realize.*
+      import io.temporal.api.common.v1.{Payload, Payloads}
+      Proto[Payloads](ProtoField.typed(Field(_.payloads), ProtoValue.messages(Proto[Payload]())))
+    """))
+    assert(
+      compiletime.testing
+        .typeCheckErrors("""
+      import umpire.realize.*
+      import io.temporal.api.common.v1.{Payload, Payloads}
+      Proto[Payloads](ProtoField.typed(Field(_.payloads), ProtoValue.messages(Proto[Payloads]())))
+    """).nonEmpty
+    )
+    assert(
+      compiletime.testing
+        .typeCheckErrors("""
+      import umpire.realize.*
+      import io.temporal.api.common.v1.Payload
+      Proto[Payload](ProtoField.typed(Field(_.metadata), ProtoValue.messages(Proto[Payload]())))
+    """).nonEmpty
+    )
+    assert(
+      compiletime.testing
+        .typeCheckErrors("""
+      import umpire.realize.*
+      import io.temporal.api.common.v1.Payload
+      Proto[Payload](ProtoField.typed(Field(_.data), ProtoValue.messages(Proto[Payload]())))
     """).nonEmpty
     )

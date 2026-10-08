@@ -304,11 +304,14 @@ func (i *sdkWorkerInterceptor) activateActivity(ctx context.Context, input deliv
 	}()
 	outcome := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, ActivityAttempt: &testpilotspb.ActivityAttempt{
 		ActivityRunId: routed.activation.TemporalRunID(), SdkAttempt: routed.activation.Attempt(), DeliveryId: routed.activation.DeliveryID(),
-		Response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
+		Response:         testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
+		HeartbeatInvoked: answer.heartbeatInvoked,
 	}}
 	var declared *declaredFailure
 	switch {
 	case answer.err == nil:
+	case answer.err == activity.ErrResultPending:
+		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING
 	case errors.Is(answer.err, errDeclaredCancellation):
 		answer.result, answer.err, answer.canceled = nil, temporal.NewCanceledError(), true
 		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED
@@ -435,7 +438,8 @@ type activityAnswer struct {
 	result interface{}
 	err    error
 	// canceled says the answer is the cancellation the attempt's instruction declares.
-	canceled bool
+	canceled         bool
+	heartbeatInvoked bool
 }
 
 type routedNexus struct {

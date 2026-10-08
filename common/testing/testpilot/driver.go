@@ -59,7 +59,8 @@ func (p EntrypointPlan) Kind() EntrypointKind { return p.plan.Kind() }
 func (p EntrypointPlan) Activation() *testpilotspb.Entrypoint {
 	return p.plan.Activation()
 }
-func (p EntrypointPlan) Order() []int { return p.plan.Order() }
+func (p EntrypointPlan) Order() []int              { return p.plan.Order() }
+func (p EntrypointPlan) ActivityAttempts() [][]int { return p.plan.ActivityAttempts() }
 func (p EntrypointPlan) Instructions() []InstructionPlan {
 	plans := p.plan.Instructions()
 	result := make([]InstructionPlan, len(plans))

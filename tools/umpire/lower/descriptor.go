@@ -275,6 +275,26 @@ func (w *writer) message(p *umpirespb.Proto, want protoreflect.MessageDescriptor
 		if fd == nil {
 			return nil, errorAt(at, "%s has no field %s", md.FullName(), f.GetName())
 		}
+		if messages, ok := f.GetValue().GetKind().(*umpirespb.ProtoValue_Messages); ok {
+			if !fd.IsList() || fd.IsMap() || fd.Kind() != protoreflect.MessageKind {
+				return nil, errorAt(at, "%s is no repeated message, and messages are written into it", fd.FullName())
+			}
+			if messages.Messages == nil {
+				return nil, errorAt(at, "%s has no message list", fd.FullName())
+			}
+			list := out.Mutable(fd).List()
+			for _, value := range messages.Messages.GetValues() {
+				if value == nil {
+					return nil, errorAt(at, "%s has no message at position %d", fd.FullName(), list.Len()+1)
+				}
+				message, err := w.message(value, fd.Message())
+				if err != nil {
+					return nil, errorAt(at, "%s: %v", fd.FullName(), err)
+				}
+				list.Append(protoreflect.ValueOfMessage(message))
+			}
+			continue
+		}
 		if mapping, ok := f.GetValue().GetKind().(*umpirespb.ProtoValue_Mapping); ok {
 			if !fd.IsMap() || fd.MapKey().Kind() != protoreflect.StringKind {
 				return nil, errorAt(at, "%s is no map keyed by text, and a mapping is written into it", fd.FullName())

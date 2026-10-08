@@ -18,7 +18,7 @@ class ActivityRetryRegression extends munit.FunSuite:
     effectOf(binding.decl, binding.function)(s, c.values).head
 
   test("the start declares a retained retry-policy input") {
-    assertEquals(client.start.decl.domains.size, 5)
+    assertEquals(client.start.decl.domains.size, 6)
   }
 
   test("an unlimited start-to-close timeout retries without terminal timeout evidence") {

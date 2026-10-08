@@ -87,6 +87,17 @@ class StandaloneActivityPins extends munit.FunSuite:
             four,
             five
           )
+      case List(one, two, three, four, five, six) =>
+        binding.function
+          .asInstanceOf[(S, Any, Any, Any, Any, Any, Any) => List[Step[S, O, F]]](
+            state,
+            one,
+            two,
+            three,
+            four,
+            five,
+            six
+          )
       case other => fail(s"the pinned activity action has ${other.size} inputs")
     // scalafix:on DisableSyntax.asInstanceOf
 
@@ -282,6 +293,34 @@ class StandaloneActivityPins extends munit.FunSuite:
         None,
         s => productLive(s.phase),
         s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut)
+      )
+    ) ++ List[ExpectedRule[product.State, product.Fact]](
+      ExpectedRule(
+        worker.heartbeat.decl,
+        None,
+        s => s.phase == started || s.phase == cancelRequested,
+        s => accepted(s, Fact.heartbeatReceived)
+      ),
+      ExpectedRule(
+        worker.heartbeat.decl,
+        None,
+        s => s.phase != started && s.phase != cancelRequested,
+        rejectedNotFound
+      ),
+      ExpectedRule(
+        deadline.heartbeat.decl,
+        None,
+        _.phase == started,
+        s =>
+          accepted(s.copy(phase = scheduled), Fact.statusScheduled, Fact.heartbeatTimedOut) ++
+            accepted(s.copy(phase = paused), Fact.statusPaused, Fact.heartbeatTimedOut) ++
+            accepted(s.copy(phase = timedOut), Fact.statusTimedOut, Fact.heartbeatTimedOut)
+      ),
+      ExpectedRule(
+        deadline.heartbeat.decl,
+        None,
+        _.phase == cancelRequested,
+        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut, Fact.heartbeatTimedOut)
       )
     )
 
@@ -528,6 +567,54 @@ class StandaloneActivityPins extends munit.FunSuite:
             Fact.attemptCount
           )
       )
+    ) ++ List[ExpectedRule[system.State, system.Fact]](
+      ExpectedRule(
+        worker.heartbeat.decl,
+        None,
+        s => heldSystem(s.phase),
+        s => accepted(s, Fact.heartbeatReceived)
+      ),
+      ExpectedRule(worker.heartbeat.decl, None, s => !heldSystem(s.phase), rejectedNotFound),
+      ExpectedRule(
+        deadline.heartbeat.decl,
+        None,
+        s =>
+          heldSystem(s.phase) && s.heartbeat == Timeout.expires &&
+            (s.phase == cancelRequested || !retriesRemain(s)),
+        s =>
+          acceptedBecause(
+            s.copy(phase = timedOut),
+            nominalTimeWindow,
+            Fact.statusTimedOut(TimeoutType.heartbeat),
+            Fact.heartbeatTimedOut
+          )
+      ),
+      ExpectedRule(
+        deadline.heartbeat.decl,
+        None,
+        s => s.phase == started && s.heartbeat == Timeout.expires && retriesRemain(s),
+        s =>
+          acceptedBecause(
+            s.copy(phase = scheduled, dispatch = Dispatch.backoff),
+            nominalTimeWindow,
+            Fact.statusScheduled,
+            Fact.attemptCount,
+            Fact.heartbeatTimedOut
+          )
+      ),
+      ExpectedRule(
+        deadline.heartbeat.decl,
+        None,
+        s => s.phase == pauseRequested && s.heartbeat == Timeout.expires && retriesRemain(s),
+        s =>
+          acceptedBecause(
+            s.copy(phase = paused, dispatch = Dispatch.backoff),
+            nominalTimeWindow,
+            Fact.statusPaused,
+            Fact.attemptCount,
+            Fact.heartbeatTimedOut
+          )
+      )
     ) ++ startRules
 
   private val startRules: List[ExpectedRule[system.State, system.Fact]] =
@@ -535,11 +622,12 @@ class StandaloneActivityPins extends munit.FunSuite:
       scheduleClose <- Timeout.values.toList
       scheduleStart <- Timeout.values.toList
       startClose <- Timeout.values.toList
+      heartbeat <- Timeout.values.toList
       delay <- Timeout.values.toList
       policy <- temporal.features.activity.standalone.MaxAttempts.values.toList
     yield ExpectedRule[system.State, system.Fact](
       client.start.decl,
-      Some(List(scheduleClose, scheduleStart, startClose, delay, policy)),
+      Some(List(scheduleClose, scheduleStart, startClose, heartbeat, delay, policy)),
       _.phase == system.Phase.unstarted,
       _ =>
         accepted(
@@ -550,6 +638,7 @@ class StandaloneActivityPins extends munit.FunSuite:
             scheduleToClose = scheduleClose,
             scheduleToStart = scheduleStart,
             startToClose = startClose,
+            heartbeat = heartbeat,
             maxAttempts = policy
           ),
           system.Fact.statusScheduled
@@ -579,7 +668,7 @@ class StandaloneActivityPins extends munit.FunSuite:
 
   test("the standalone signature declares one action for every RPC") {
     assertEquals(client.start.decl.creates, Some(activity))
-    assertEquals(client.start.decl.domains.size, 5)
+    assertEquals(client.start.decl.domains.size, 6)
 
     val controls = List(client.pause, client.unpause, client.requestCancel, client.terminate)
     for control <- controls do
@@ -617,11 +706,13 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.requestCancel,
         client.terminate,
         worker.poll,
+        worker.heartbeat,
         worker.respondCompleted,
         worker.respondFailed,
         worker.respondCanceled,
         process.stop,
-        timers.timeout
+        timers.timeout,
+        deadline.heartbeat
       ).map(_.decl)
     )
     assertEquals(
@@ -633,6 +724,7 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.requestCancel,
         client.terminate,
         worker.poll,
+        worker.heartbeat,
         worker.respondCompleted,
         worker.respondFailed,
         worker.respondCanceled,
@@ -641,7 +733,8 @@ class StandaloneActivityPins extends munit.FunSuite:
         timers.backoff,
         deadline.scheduleToClose,
         deadline.scheduleToStart,
-        deadline.startToClose
+        deadline.startToClose,
+        deadline.heartbeat
       ).map(_.decl)
     )
   }

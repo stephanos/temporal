@@ -80,6 +80,13 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
           true
         ),
         (
+          activity.ActivitySystem.capabilities,
+          "heartbeatDeadline",
+          activityDeadline.heartbeat,
+          activity.Fact.statusTimedOut(TimeoutType.heartbeat),
+          true
+        ),
+        (
           nexus.NexusSystem.capabilities,
           "scheduleToCloseDeadline",
           nexusDeadline.scheduleToClose,
@@ -363,7 +370,11 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       activityDeadline
         .startToClose() -> Deadline.firesInWindow[activity.State, activity.Phase, Held](
         activity.ActivitySystem
-      )(activityDeadline.startToClose, activity.ActivitySystem.states.startToCloseArmed)
+      )(activityDeadline.startToClose, activity.ActivitySystem.states.startToCloseArmed),
+      activityDeadline
+        .heartbeat() -> Deadline.firesInWindow[activity.State, activity.Phase, Held](
+        activity.ActivitySystem
+      )(activityDeadline.heartbeat, activity.ActivitySystem.states.heartbeatArmed)
     )
     for before <- summon[Finite[activity.State]].values; (timer, property) <- activityWindows do
       val enabled = take(activity.ActivitySystem, before, timer).nonEmpty
@@ -395,13 +406,18 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     val timers = Seq(
       activityDeadline.scheduleToClose() -> TimeoutType.scheduleToClose,
       activityDeadline.scheduleToStart() -> TimeoutType.scheduleToStart,
-      activityDeadline.startToClose() -> TimeoutType.startToClose
+      activityDeadline.startToClose() -> TimeoutType.startToClose,
+      activityDeadline.heartbeat() -> TimeoutType.heartbeat
     )
     for before <- summon[Finite[activity.State]].values; (timer, kind) <- timers do
       for after <- take(activity.ActivitySystem, before, timer) do
         val timeout = activity.Fact.statusTimedOut(kind)
         val properties =
-          activityDeadlineSettlement(timer, timeout, kind == TimeoutType.startToClose)
+          activityDeadlineSettlement(
+            timer,
+            timeout,
+            kind == TimeoutType.startToClose || kind == TimeoutType.heartbeat
+          )
         assert(holds(properties, before, after), s"$timer before=$before after=$after")
         for landing <- summon[Finite[activity.Phase]].values if landing != after.state.phase do
           assert(!holds(properties, before, after.copy(state = after.state.copy(phase = landing))))

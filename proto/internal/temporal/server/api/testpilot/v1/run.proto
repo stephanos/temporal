@@ -130,6 +130,9 @@ message ActivityAttempt {
   // was delivered.
   string delivery_id = 3;
   ActivityAttemptResponse response = 4;
+  // The SDK heartbeat was invoked by the declared prefix of this attempt group. This supplies
+  // no evidence that the server received it; a separate declared read must establish receipt.
+  bool heartbeat_invoked = 5;
 }
 
 // ActivityAttemptResponse is the answer a worker offered Temporal for one declared activity attempt,
@@ -156,6 +159,8 @@ enum ActivityAttemptResponse {
   // The worker offered nothing, as the attempt's instruction declared, until the attempt's deadline
   // ended it, so the server timed the attempt out.
   ACTIVITY_ATTEMPT_RESPONSE_WITHHELD = 7;
+  // Local execution returned the exact SDK pending sentinel and sent no answer RPC.
+  ACTIVITY_ATTEMPT_RESPONSE_PENDING = 8;
 }
 
 // FaultInjected is the recorded fact that a Driver realized one requested outage.

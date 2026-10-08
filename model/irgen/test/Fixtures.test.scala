@@ -15,6 +15,204 @@ import umpire.check.{Ran, Tools}
 // The fixtures build against the framework and the Temporal Models the gate packaged into
 // model/build, so the gate runs these tests after it packaged them. With UMPIRE_LIFTER_UPDATE set,
 // as the gate's --update sets it, the expected files are rewritten instead of compared.
+class ActivityHeartbeatFixtures extends munit.FunSuite:
+  override val munitTimeout: Duration = 5.minutes
+  private val tools = Tools.here
+  private val build = tools.directory.resolve("model/build")
+  private val stored = "model/irgen/testdata/realizationRefusals/heartbeat/"
+  private lazy val scratch =
+    Files.createTempDirectory(
+      Files.createDirectories(build.resolve("history")),
+      "heartbeat-lifter."
+    )
+
+  private lazy val fixtureJar: Path =
+    val sources = Files.createDirectories(scratch.resolve("sources"))
+    val stream = Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
+    try
+      for file <- stream.asScala do
+        Files.writeString(
+          sources.resolve(file.getFileName),
+          Files
+            .readString(file)
+            .replace("../../../../build/model-scala.jar", build.resolve("model-scala.jar").toString)
+            .replace("../../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
+        )
+    finally stream.close()
+    val jar = scratch.resolve("heartbeat.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          sources.toString,
+          "-f",
+          "-o",
+          jar.toString
+        )
+      )
+      .orFail()
+    jar
+
+  private def lift(roots: String*): Ran =
+    tools.run(
+      Path.of(System.getProperty("java.home"), "bin", "java").toString,
+      Seq(
+        "-cp",
+        System.getProperty("java.class.path"),
+        "umpire.irgen.lift",
+        s"$fixtureJar=$stored,${build.resolve("model-scala.jar")}=model/",
+        build.resolve("model-scala.classpath").toString,
+        scratch.resolve("out.json").toString
+      ) ++ roots
+    )
+
+  test("deadline basis comes from the selected request field, not the input name"):
+    val result = lift(
+      "fixture.heartbeat.FieldBasis",
+      "fixture.heartbeat.HeartbeatBasis",
+      "fixture.heartbeat.CloseBasis",
+      "fixture.heartbeat.UnsupportedBasis",
+      "fixture.heartbeat.MissingBasis"
+    )
+    assertEquals(result.exit, 0, result.output)
+    val model = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(scratch.resolve("out.json")))
+    val bases = model
+      .path("realizations")
+      .elements()
+      .asScala
+      .map { r =>
+        val timers = r.path("serverSteps").elements().asScala.toSeq
+        assertEquals(timers.size, 1)
+        r.path("name").asText() -> timers.head.path("timeoutBasis").asText()
+      }
+      .toMap
+    assertEquals(
+      bases,
+      Map(
+        "fieldBasis" -> "TIMEOUT_BASIS_START_TO_CLOSE",
+        "heartbeatBasis" -> "TIMEOUT_BASIS_HEARTBEAT",
+        "closeBasis" -> "TIMEOUT_BASIS_SCHEDULE_TO_CLOSE",
+        "unsupportedBasis" -> "",
+        "missingBasis" -> ""
+      )
+    )
+
+  test("unknown timeout basis and withholding mode are refused at their declarations"):
+    val storedEnums = "model/irgen/testdata/realizationRefusals/enumRefusals/"
+    val jar = scratch.resolve("enums.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          tools.directory.resolve(storedEnums).toString,
+          "-f",
+          "-o",
+          jar.toString
+        )
+      )
+      .orFail()
+    for (root, enumName) <- Seq(
+        "unknownBasis" -> "TimeoutBasis",
+        "unknownMode" -> "WithholdingMode"
+      )
+    do
+      val result = tools.run(
+        Path.of(System.getProperty("java.home"), "bin", "java").toString,
+        Seq(
+          "-cp",
+          System.getProperty("java.class.path"),
+          "umpire.irgen.lift",
+          s"$jar=$storedEnums",
+          build.resolve("model-scala.classpath").toString,
+          scratch.resolve(s"$root.json").toString,
+          s"fixture.enumrefusals.Refusals$$package$$.$root"
+        )
+      )
+      assertNotEquals(result.exit, 0)
+      val refusal = result.output.linesIterator.filter(_.startsWith("lift:")).toSeq
+      assertEquals(refusal.size, 1, result.output)
+      assert(refusal.head.startsWith(s"lift: ${storedEnums}Refusals.scala:"), result.output)
+      assert(refusal.head.endsWith(s"unknown is no $enumName of the IR"), result.output)
+      assert(!Files.exists(scratch.resolve(s"$root.json")))
+
+  test("heartbeat details and both withholding modes retain their distinct wire meanings"):
+    val result = lift("fixture.heartbeat.Commands")
+    assertEquals(result.exit, 0, result.output)
+    val model = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(scratch.resolve("out.json")))
+    val realization = model.path("realizations").elements().asScala.toSeq.head
+    val commands = realization
+      .path("scripts")
+      .elements()
+      .asScala
+      .toSeq
+      .head
+      .path("items")
+      .elements()
+      .asScala
+      .map(_.path("command"))
+      .toSeq
+    assertEquals(commands.size, 3)
+    assertEquals(
+      commands.head
+        .path("attemptHeartbeat")
+        .path("details")
+        .path("message")
+        .asText(),
+      "temporal.api.common.v1.Payloads"
+    )
+    val details = commands.head
+      .path("attemptHeartbeat")
+      .path("details")
+      .path("fields")
+      .elements()
+      .asScala
+      .toSeq
+    assertEquals(details.map(_.path("name").asText()), Seq("payloads"))
+    val payloads = details.head
+      .path("value")
+      .path("messages")
+      .path("values")
+      .elements()
+      .asScala
+      .toSeq
+    assertEquals(
+      payloads.map(_.path("message").asText()),
+      Seq("temporal.api.common.v1.Payload", "temporal.api.common.v1.Payload")
+    )
+    assertEquals(
+      payloads.map(
+        _.path("fields")
+          .elements()
+          .asScala
+          .toSeq
+          .find(_.path("name").asText() == "data")
+          .get
+          .path("value")
+          .path("utf8")
+          .asText()
+      ),
+      Seq("\"first\"", "\"second\"")
+    )
+    assert(commands(1).has("attemptWithheld"))
+    assertEquals(commands(1).path("attemptWithheld").path("mode").asText(), "")
+    assertEquals(
+      commands(2).path("attemptWithheld").path("mode").asText(),
+      "WITHHOLDING_MODE_SDK_PENDING"
+    )
+    val hints = realization.path("behavior").path("visibility").elements().asScala.toSeq
+    val heartbeat = hints.filter(_.path("cause").asText() == "CAUSE_KIND_ACTIVITY_HEARTBEAT")
+    assertEquals(heartbeat.size, 1)
+    assertEquals(heartbeat.head.path("eventuallyWithin").path("intervalMs").asText(), "250")
+    assertEquals(heartbeat.head.path("eventuallyWithin").path("atMostMs").asText(), "2000")
+
 class Fixtures extends munit.FunSuite:
   // A test builds a fixture with scala-cli and lifts it in a JVM of its own.
   override val munitTimeout: Duration = 20.minutes

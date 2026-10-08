@@ -66,7 +66,7 @@ func (a *admission) deriveReservations() error {
 				}
 				count := int64(1)
 				if target.context == contract.ActivityEntrypoint {
-					if count = int64(len(target.nodes)); count == 0 {
+					if count = int64(len(target.activityAttempts)); count == 0 {
 						continue
 					}
 				}
