@@ -308,9 +308,11 @@ without pruning distinct prefixes.
 
 The plan's start ordinal limits expansion to later replay-plan decisions while
 preserving earlier decisions in forced prefixes. Select readiness is trace
-evidence. Polls of the seven proven two-case shapes with fewer than two ready
-cases do not expand the frontier; unknown readiness and unlisted shapes stay
-expanded. `choice.NoOpSelectShapes` lists blocking zero/one-ready, nonblocking
+evidence. Polls of the seven proven shapes with two polled non-nil cases and
+fewer than two ready cases do not expand the frontier; unknown readiness,
+unlisted shapes, and selects with three or more polled cases stay expanded.
+Source clauses with nil channels do not count as polled cases.
+`choice.NoOpSelectShapes` lists blocking zero/one-ready, nonblocking
 default, timer not due, timer due, closed-channel, and nil-channel cases.
 The controller counts their omitted alternatives separately. Resume keeps
 both decisions under the frozen plan and controller identity.

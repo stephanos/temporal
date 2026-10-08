@@ -16,11 +16,9 @@
     "git diff --check",
     "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestCharacterize(InputRejection|ByteSizeAndFlagValueRejection|ExploreRequestDefaultsAndWiring)|TestWorkspace(Resume.*|KeepsStatePerParentArtifact|RejectsSymbolicLinkStateRoot|StateGatesInitialRunsAndResumes)|TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles|TestCorpusRejects(IdentityChangesAndNonMatchingReplay|PreviousAndFutureSchemaBeforeChangedIdentity|CaseWithChangedEnvironment)|TestValidateProvenanceRejectsUnsupportedBuildModes|TestReplayBuildInfoRejectsMatchingCoverageInstrumentation)$' ./cmd/gomad/internal/cli ./runner/internal/minimizer ./runner/internal/corpus ./target ./runner",
     "make -C tools/gomad3 validate",
-    "git diff --check",
-    "/usr/bin/python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/audit.py",
     "git diff --check"
   ],
-  "recorded_at": "2026-10-08T07:45:17.997049+00:00",
+  "recorded_at": "2026-10-08T07:31:49.994358+00:00",
   "tier": "explicit implementer gpt-6.1-sol at high retained by conductor after judge no_key",
   "execution_metadata": "Host execution model unavailable; no actual_model inferred.",
   "check_tier": "doc-only; no executable or generator inputs changed",
@@ -189,20 +187,20 @@
     }
   ],
   "final_source_audit": {
-    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/final-docs.json",
-    "sha256": "58e6c2ee9c0286b8985a3b0a149c868d14e71904e8e46374beee5f8dd6bdb58b"
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/final-docs.json",
+    "sha256": "5b173c49c9f11ba1207a2639eef3e595f58bfee1e531a03f563b20e3fd50e165"
   },
   "baseline_source_audit": {
     "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/baseline-docs.json",
     "sha256": "d2d90d81b084cc0fc9efd2049c07f999970936b6e9c5c3217bdba3115fd9cec8"
   },
   "changed_product_hashes": {
-    "tools/gomad3/README.md": "e9949e64f4e2df0cb8c230af5629a78f4f4e892862ca4a44c300ba583766acdb",
-    "tools/gomad3/CLI.md": "a3b1f3158d1cdd7f98bf3cc1c401ddd1148a6327073c06acd52613f6f9ec2d38",
-    "tools/gomad3/SPEC.md": "05416ea149585ed4c2b734bec56106de37a925f8a674fcc038ee47d7d13f91b6",
-    "tools/gomad3/ARCHITECTURE.md": "adf54659990e7c83862d20bdb4a2d5bd8736e23e08d1d47dfc57dee24af0f04e",
-    "tools/gomad3/TUTORIAL.md": "3ed931feadc7ca131ceb1d09736f00cd1d05479bd0c3c97536a290a9526027f4",
-    ".plans/GOMAD_CMP.md": "ecca454c12bcc5c700fe53c3abdad2f3733d8c02108d73367d1f84247e3444bb"
+    "tools/gomad3/README.md": "89ff193fab86327dbbb21c4951f6a5ba9aec372576fbd9abaf38f6955912c6d2",
+    "tools/gomad3/CLI.md": "ec6cfa998091381ac68aee5058d5cd29f62d5302f7a0f26e8aced1d6bde34a2d",
+    "tools/gomad3/SPEC.md": "b921913c28c6d7b3fcb282cf7ceb3a2e088f33661d31e2bb020747d9b1f13d49",
+    "tools/gomad3/ARCHITECTURE.md": "a1346d4b7f596abf41967299b3c728c431fb2442d4a9b3be826a7a7540c57345",
+    "tools/gomad3/TUTORIAL.md": "bf332c802e364d4c3db0811da03958c131cafe86766d87a4a2b32b1d4b6384d1",
+    ".plans/GOMAD_CMP.md": "a97fdc5147a074f7573930bf8c5d2451f8f55ae0aee58eefa10da2fd031a198b"
   },
   "evidence_tools": [
     {
@@ -220,11 +218,11 @@
   ],
   "handover": {
     "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/handover.md",
-    "sha256": "507172379ee63ee01af1df320b1a227ed3e21d000ea7ecafa1e713a6df60cd18"
+    "sha256": "fc2e3007d76ff45957380a8e896a7f72f97b96541807a5183f3a0854b80ee500"
   },
   "milestone_recommendations": {
     "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/milestone-recommendations.md",
-    "sha256": "0aa0125922cbd19b19a465fc2dc197d269eca467ba811b047c708e04d035c1ae"
+    "sha256": "276808d5cc7f66dcde86e4d07f34d8cb503f37e373ba7b8e0682c64136daa9c4"
   },
   "source_preservation": {
     "receipt": {
@@ -270,21 +268,5 @@
     "Conductor must bind its later commits and lifecycle status before final task receipt."
   ],
   "owned_commands_terminal": true,
-  "go_cache_lane": "released",
-  "review_fix_1": {
-    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/evidence.json",
-    "sha256": "9c46e862a55c818981f8120b6ccea2eb7e5f012d422450bf156330df560943be"
-  },
-  "historical_pre_fix_snapshot": {
-    "commit": "1fcef5ea4bfbf3ec5f7279a8a6c67070d5159a9d",
-    "evidence": {
-      "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/parent-evidence.json",
-      "sha256": "753076ebad5f53cc59143ee5453ebfbb1a3529236d649de3b36a3eb16d1576b9"
-    },
-    "source_audit": {
-      "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/final-docs.json",
-      "sha256": "5b173c49c9f11ba1207a2639eef3e595f58bfee1e531a03f563b20e3fd50e165"
-    },
-    "command_scope": "Existing command_receipts keep their original pre-fix observations; no command was overwritten or rerun for Go/native credit."
-  }
+  "go_cache_lane": "released"
 }

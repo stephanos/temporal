@@ -153,10 +153,12 @@ failure remains expandable while the selected failure policy permits it.
 forced prefix but expands alternatives only at N and later. The default is 0;
 use `inspect --choices` to find the replay-plan ordinals. This option is valid
 only for Choice Exploration and is frozen in the Campaign plan for resume.
-Select polls of the seven proven two-case shapes with fewer than two ready
-cases remain in the Choice Trace but do not create frontier branches. Unknown
-readiness and shapes outside [the proven list](choice/no_op_select.go) stay
-expanded. The result reports their omitted alternatives
+Select polls of the seven proven shapes with two polled non-nil cases and
+fewer than two ready cases remain in the Choice Trace but do not create frontier
+branches. Unknown readiness, shapes outside
+[the proven list](choice/no_op_select.go), and selects with three or more polled
+cases stay expanded. Source clauses with nil channels
+do not count as polled cases. The result reports their omitted alternatives
 separately from execution, depth, and byte bounds.
 
 Each completed round is an immutable, hash-linked transaction below the Campaign.

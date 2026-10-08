@@ -391,7 +391,7 @@ Ordinary guidance must exclude answered requested seeds without substituting oth
 
 Choice Exploration must expand observed alternative runtime Choices in deterministic bounded rounds. It must preserve every distinct forced prefix within the declared depth, execution, and memory limits, even when Outcomes deduplicate to the same Evidence.
 
-The frozen plan may limit expansion to a start ordinal while retaining earlier decisions in each forced prefix. Select polls of the proven two-case shapes with fewer than two ready cases must remain trace evidence without expanding the Frontier, and omitted alternatives must be reported separately. The seven shapes in `choice.NoOpSelectShapes` are the current proof boundary; unknown readiness and unlisted shapes must remain expanded.
+The frozen plan may limit expansion to a start ordinal while retaining earlier decisions in each forced prefix. Select polls of the proven shapes with two polled non-nil cases and fewer than two ready cases must remain trace evidence without expanding the Frontier, and omitted alternatives must be reported separately. Source clauses with nil channels do not count as polled cases. The seven shapes in `choice.NoOpSelectShapes` are the current proof boundary; unknown readiness, unlisted shapes, and selects with three or more polled cases must remain expanded.
 
 A forced-prefix candidate divergence must commit as typed candidate evidence alongside completed siblings, preserve the divergence ordinal and reason, and remain inspectable and resumable. It is a search-confidence failure rather than a target failure, and the Campaign failure policy controls whether search continues.
 

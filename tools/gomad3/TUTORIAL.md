@@ -607,9 +607,11 @@ This strategy implies Choice recording and explores forced prefixes in
 breadth-first rounds. `--choice-start-ordinal=N` keeps earlier decisions in
 each prefix while expanding only decisions at N and later; its default is 0.
 Find replay-plan ordinals with `inspect --choices`. The frozen plan retains
-the start for resume. The seven proven two-case select shapes with fewer than
-two ready cases keep their trace records but add no Frontier alternatives;
-unknown readiness and unlisted shapes stay expanded. **Combined Exploration**, selected with
+the start for resume. The seven proven select shapes with two polled non-nil
+cases and fewer than two ready cases keep their trace records but add no
+Frontier alternatives; unknown readiness, unlisted shapes, and selects with
+three or more polled cases stay expanded. Source clauses with nil channels do
+not count as polled cases. **Combined Exploration**, selected with
 `--strategy=simulation-exploration`, also follows declared Scenario, network,
 storage, fault, and crash-state alternatives for a Simulation target. It requires
 explicit positive bounds for all six dimensions; see the [CLI guide](CLI.md).

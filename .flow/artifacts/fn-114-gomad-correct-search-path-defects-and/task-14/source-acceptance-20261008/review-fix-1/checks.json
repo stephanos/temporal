@@ -1,0 +1,46 @@
+{
+  "observations": [
+    {
+      "name": "documentation-source-correction-audit",
+      "argv": [
+        "/usr/bin/python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/audit.py"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "started": "2026-10-08T07:45:17.506152+00:00",
+      "ended": "2026-10-08T07:45:17.782862+00:00",
+      "exit": 0,
+      "environment": {
+        "PATH": "/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "unset_environment": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "stdout_base64": "eyJyZWdpc3RlcmVkX2NvbW1hbmRzIjogMzgsICJkb2N1bWVudGVkX2ZsYWdzIjogNDkxLCAiZXhhbXBsZXMiOiAxMzEsICJtYW5pZmVzdHMiOiA2LCAicHJlc2VydmF0aW9uX2lucHV0cyI6IDg3LCAiZXJyb3JzIjogW119CnsiY3VycmVudF9pbnB1dHMiOiA4OSwgInNvdXJjZV9jbGF1c2VzIjogMywgInBvbGxlZF9ub25fbmlsX2Nhc2VzIjogMiwgImVycm9ycyI6IFtdfQo=",
+      "stderr_base64": ""
+    },
+    {
+      "name": "whitespace",
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "started": "2026-10-08T07:45:17.799755+00:00",
+      "ended": "2026-10-08T07:45:17.950927+00:00",
+      "exit": 0,
+      "environment": {
+        "PATH": "/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "unset_environment": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "stdout_base64": "",
+      "stderr_base64": ""
+    }
+  ],
+  "python_sha256": "fd82483aa72498a59e905cdba1ad7a5a2aea2592e7ebc6398cebdaf1dee4adac"
+}

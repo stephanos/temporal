@@ -1,0 +1,55 @@
+{
+  "task_id": "fn-114-gomad-correct-search-path-defects-and.14",
+  "status": "in_progress",
+  "base_commit": "1fcef5ea4bfbf3ec5f7279a8a6c67070d5159a9d",
+  "review_id": "f32f5cc32c5747aab7c57fb40ac3ae94",
+  "review_round": 1,
+  "finding": "introduced P3/R12; source clause count differs from polled non-nil case count",
+  "check_tier": "doc-only; all Go/runtime inputs unchanged",
+  "checks": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/checks.json",
+    "sha256": "07481c8e67800c56316f7db73d328080dfdb46b2d5e14b25048397a23fb46dff"
+  },
+  "source_audit": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/final-docs.json",
+    "sha256": "58e6c2ee9c0286b8985a3b0a149c868d14e71904e8e46374beee5f8dd6bdb58b"
+  },
+  "tools": [
+    {
+      "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/audit.py",
+      "sha256": "e28c6233056d6e28840b80f47279d4cccfdb6d037ad76812bfba7d280ce7ecef"
+    },
+    {
+      "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/verify.py",
+      "sha256": "99d57208c2f61fee44beab6f869e3653db7439700c464d1ab843e22601f338a9"
+    }
+  ],
+  "handover": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/handover.md",
+    "sha256": "715d46b039ff84f90680d4bd708b5f304eeecd27778eeb4a550797c9eed0e9da"
+  },
+  "milestone_recommendations": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/milestone-recommendations.md",
+    "sha256": "fb167f7ecf3a6b4fb9c4be5bfc8ac3348f6b2188ad31d159afca33856423c65c"
+  },
+  "changed_product_hashes": {
+    "tools/gomad3/README.md": "e9949e64f4e2df0cb8c230af5629a78f4f4e892862ca4a44c300ba583766acdb",
+    "tools/gomad3/CLI.md": "a3b1f3158d1cdd7f98bf3cc1c401ddd1148a6327073c06acd52613f6f9ec2d38",
+    "tools/gomad3/SPEC.md": "05416ea149585ed4c2b734bec56106de37a925f8a674fcc038ee47d7d13f91b6",
+    "tools/gomad3/ARCHITECTURE.md": "adf54659990e7c83862d20bdb4a2d5bd8736e23e08d1d47dfc57dee24af0f04e",
+    "tools/gomad3/TUTORIAL.md": "3ed931feadc7ca131ceb1d09736f00cd1d05479bd0c3c97536a290a9526027f4",
+    ".plans/GOMAD_CMP.md": "ecca454c12bcc5c700fe53c3abdad2f3733d8c02108d73367d1f84247e3444bb"
+  },
+  "historical_checkpoint_evidence": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/review-fix-1/parent-evidence.json",
+    "sha256": "753076ebad5f53cc59143ee5453ebfbb1a3529236d649de3b36a3eb16d1576b9"
+  },
+  "original_source_report": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/final-docs.json",
+    "sha256": "5b173c49c9f11ba1207a2639eef3e595f58bfee1e531a03f563b20e3fd50e165"
+  },
+  "reuse_limit": "Unchanged precise Go/runtime/generator/manifest inputs only; original command observations and historical reports keep their checkpoint meaning.",
+  "native_credit": false,
+  "owned_commands_terminal": true,
+  "go_cache_lane": "released"
+}
