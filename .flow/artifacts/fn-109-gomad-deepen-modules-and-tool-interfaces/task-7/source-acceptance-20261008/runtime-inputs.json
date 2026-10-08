@@ -1,0 +1,40 @@
+{
+  "bound_before_converter_execution": "2026-10-08T21:40:45.384Z",
+  "inputs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/prune.test",
+      "sha256": "be61993fbddc85aab1b6f0721b6b26b24c42b84eed980fadca13575978f1bb29"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/source-acceptance-20261008/prune-runtime.sh",
+      "sha256": "46257175dfdc29280cd08280ca542255a5d7593fa249b644998af1a48be86bc4"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go",
+      "sha256": "8d2437cfdcfb82fd8807e5063783de1d50f70e589e80cad10e17d8ef23f724d9"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/internal/telemetry/counter/counter.go",
+      "sha256": "592d9ac24df7b6a04debca264ea5bcd85dffb128462c606d49fbd29a0f1eb8c2"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r/e4/e4a1d27553a0a8fe6da83d999bdf9726f92ee89669c15ab4ce74740707c4cb23-d/test2json",
+      "sha256": "e4a1d27553a0a8fe6da83d999bdf9726f92ee89669c15ab4ce74740707c4cb23"
+    }
+  ],
+  "source_manifest": "source-c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9.json",
+  "compiled_binary_receipt": "prune-test-binary-compile-receipt.json",
+  "filesystem_admission": "filesystem-admission.json",
+  "converter_environment": {
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/test2json-telemetry",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+  },
+  "test_child_environment": {
+    "TEST_TELEMETRY_DIR": "unset",
+    "TMPDIR": "/dev/shm/.fn1097-prune-source-XjdO2ItK",
+    "GOTMPDIR": "/dev/shm/.fn1097-prune-source-XjdO2ItK",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r"
+  },
+  "telemetry_initial_entries": 0,
+  "scope": "one exact selector; converter-only telemetry directory; compiler unchanged workspace; no broader exception"
+}

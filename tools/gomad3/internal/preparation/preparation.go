@@ -53,6 +53,20 @@ func Prepare(ctx context.Context, request Request) (target.Prepared, error) {
 
 func prepare(ctx context.Context, request Request, remove func(string) error) (prepared target.Prepared, retErr error) {
 	profile := deterministicio.Default()
+	return prepareWith(ctx, request, preparationServices{
+		adapters: profile.PrepareTargetBuildAdapters, target: target.Prepare,
+		validate: profile.ValidatePreparedTarget, remove: remove,
+	})
+}
+
+type preparationServices struct {
+	adapters func(context.Context, target.Spec) (target.Spec, []deterministicio.BuildAdapter, error)
+	target   func(context.Context, target.Spec) (target.Prepared, error)
+	validate func(target.Spec, target.Prepared, []string) error
+	remove   func(string) error
+}
+
+func prepareWith(ctx context.Context, request Request, services preparationServices) (prepared target.Prepared, retErr error) {
 	spec := request.Target
 	preparer := request.Preparer
 	selectedAdapters := []deterministicio.BuildAdapter{}
@@ -65,19 +79,19 @@ func prepare(ctx context.Context, request Request, remove func(string) error) (p
 			return target.Prepared{}, &stageError{stage: StageAdapters, err: fmt.Errorf("create deterministic I/O adapter workspace: %w", err)}
 		}
 		defer func() {
-			if cleanupErr := remove(workspace); cleanupErr != nil {
+			if cleanupErr := services.remove(workspace); cleanupErr != nil {
 				failure := &stageError{stage: StageCleanup, err: fmt.Errorf("remove deterministic I/O adapter workspace: %w", cleanupErr)}
 				retErr = errors.Join(retErr, failure)
 			}
 		}()
 		adapterSpec := spec
 		adapterSpec.PreparationRoot = workspace
-		spec, selectedAdapters, err = profile.PrepareTargetBuildAdapters(ctx, adapterSpec)
+		spec, selectedAdapters, err = services.adapters(ctx, adapterSpec)
 		if err != nil {
 			return target.Prepared{}, &stageError{stage: StageAdapters, err: err}
 		}
 		spec.PreparationRoot = request.Target.PreparationRoot
-		preparer = targetPreparer{}
+		preparer = targetPreparer{prepare: services.target}
 	}
 	var err error
 	prepared, err = preparer.Prepare(ctx, spec)
@@ -85,16 +99,18 @@ func prepare(ctx context.Context, request Request, remove func(string) error) (p
 		return target.Prepared{}, &stageError{stage: StageTarget, err: err}
 	}
 	prepared.Adapters = executionAdapters(selectedAdapters)
-	if err := profile.ValidatePreparedTarget(spec, prepared, request.Environment); err != nil {
+	if err := services.validate(spec, prepared, request.Environment); err != nil {
 		return target.Prepared{}, &stageError{stage: StageValidation, err: err}
 	}
 	return prepared, nil
 }
 
-type targetPreparer struct{}
+type targetPreparer struct {
+	prepare func(context.Context, target.Spec) (target.Prepared, error)
+}
 
-func (targetPreparer) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
-	return target.Prepare(ctx, spec)
+func (preparer targetPreparer) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
+	return preparer.prepare(ctx, spec)
 }
 
 func executionAdapters(adapters []deterministicio.BuildAdapter) []record.TargetAdapter {

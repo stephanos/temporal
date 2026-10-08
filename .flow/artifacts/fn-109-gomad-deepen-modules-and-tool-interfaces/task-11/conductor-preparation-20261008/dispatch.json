@@ -1,0 +1,23 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.11",
+  "assignment": "Read-only preparation; not admission, implementation or acceptance",
+  "anchor": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "worker": "/root/prep_fn10911_source",
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "judge": {"success": true, "available": false, "preset": "tier", "reason": "no_key", "spawn_model": null, "implementer": "gpt-6-astra"},
+  "requested_model": "gpt-6-astra",
+  "requested_effort": "high",
+  "model_selection": "Explicit research-model routing from AGENTS.md remains authoritative",
+  "actual_model": "Not observed; the requested model is not actual-model evidence",
+  "write_scope": "findings.md in this directory only; judge-state.json and dispatch.json are conductor-owned",
+  "shared_execution_lane": "fn1097 worker exclusively owns code and Go/build/test/lint/generator gates",
+  "return_condition": "Bounded mapping complete with findings SHA256 and all processes terminal",
+  "acceptance_owner": "Conductor after future ordered admission; task11 remains Todo and depends on task10",
+  "native_scope": "fn149 and fn128 remain deferred and unverified",
+  "constraints": "No source edits, shared gates, downloads, lifecycle mutations, review verdicts, staging, commits, PR, push or CI",
+  "return_state": "Terminal read-only preparation; no task admission or acceptance",
+  "findings": "findings.md",
+  "findings_sha256": "4238ddd573ac36fd719190f42202d1be4cbcfc8ebeb9a09d655e87350084ba4e",
+  "conductor_hash_verification": "2026-10-08 21:16:21 UTC; task10 findings also retain e49db65c3579b056db3f8d7f7589ed6d80859d05092cf61acd237d9f34629876",
+  "reentry": "Reanchor source dependencies at future ordered task11 admission; current worker task7 can change that dependency closure"
+}

@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+const repo='/Users/stephan/Workspace/skunkworks/gomad/temporal',out=path.join(repo,'.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/source-acceptance-20261008');
+const sdk='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64',scratch='/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S';
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const converter='/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r/e4/e4a1d27553a0a8fe6da83d999bdf9726f92ee89669c15ab4ce74740707c4cb23-d/test2json';
+const files=[path.join(scratch,'prune.test'),path.join(out,'prune-runtime.sh'),path.join(sdk,'src/testing/testing.go'),path.join(sdk,'src/cmd/internal/telemetry/counter/counter.go'),converter];
+const telemetry=path.join(scratch,'test2json-telemetry');if(!fs.existsSync(telemetry))fs.mkdirSync(telemetry,{mode:0o700});
+fs.writeFileSync(path.join(out,'runtime-inputs.json'),JSON.stringify({bound_before_converter_execution:new Date().toISOString(),inputs:files.map(p=>({path:p,sha256:hash(fs.readFileSync(p))})),source_manifest:'source-c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9.json',compiled_binary_receipt:'prune-test-binary-compile-receipt.json',filesystem_admission:'filesystem-admission.json',converter_environment:{TEST_TELEMETRY_DIR:telemetry,GOTMPDIR:'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX'},test_child_environment:{TEST_TELEMETRY_DIR:'unset',TMPDIR:'/dev/shm/.fn1097-prune-source-XjdO2ItK',GOTMPDIR:'/dev/shm/.fn1097-prune-source-XjdO2ItK',GOCACHE:'/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r'},telemetry_initial_entries:fs.readdirSync(telemetry).length,scope:'one exact selector; converter-only telemetry directory; compiler unchanged workspace; no broader exception'},null,2)+'\n');

@@ -1,0 +1,94 @@
+{
+  "name": "original-callers-compatible",
+  "command": "cd /Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original && GOMAD3_CALLER_INPUTS=/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs GOMAD3_CALLER_SNAPSHOT=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/source-acceptance-20261008/original-caller-snapshot.json go test -overlay=/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original-overlay.json -json -count=1 -tags test_dep ./runner -run \"^TestPreparationSourceCallerPreservation$\"",
+  "started": "2026-10-08T21:17:25.832Z",
+  "ended": "2026-10-08T21:17:31.632Z",
+  "elapsed_seconds": 5.799868128,
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "log": "original-callers-compatible.log",
+  "log_sha256": "43fbda93fde1e2617e022a4eda558bb752bcee6b85345691f1d280564f62ec64",
+  "base_commit": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "head": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "source_manifest": "source-25fb830c01bb3add446fd44aca97ef1ff616a52f5f37cfa42ea1439031bda039.json",
+  "source_tree_sha256": "25fb830c01bb3add446fd44aca97ef1ff616a52f5f37cfa42ea1439031bda039",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "tools_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache"
+  },
+  "counts": {
+    "pass": 2,
+    "fail": 3,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-08T21:17:29.344055282Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestPreparationSourceCallerPreservation/simple/explore",
+      "Elapsed": 1.89
+    },
+    {
+      "Time": "2026-10-08T21:17:30.947648407Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestPreparationSourceCallerPreservation/simple/plan",
+      "Elapsed": 1.6
+    },
+    {
+      "Time": "2026-10-08T21:17:31.466231074Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestPreparationSourceCallerPreservation/adapter/explore",
+      "Elapsed": 0.52
+    },
+    {
+      "Time": "2026-10-08T21:17:31.586743616Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestPreparationSourceCallerPreservation/adapter/plan",
+      "Elapsed": 0.12
+    },
+    {
+      "Time": "2026-10-08T21:17:31.587725283Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestPreparationSourceCallerPreservation",
+      "Elapsed": 4.13
+    }
+  ],
+  "harness_sha256": "046789dda2445a2a8f3c284582c53153d240b910d176fab43edfb70ef65cdf45",
+  "control_manifest": "controls-6a2966bc4e9fb1a228aa5a7e6019429fe54df929dd08b5e89da0cc040b23afb2.json",
+  "control_tree_sha256": "6a2966bc4e9fb1a228aa5a7e6019429fe54df929dd08b5e89da0cc040b23afb2",
+  "controls_unchanged": true
+}

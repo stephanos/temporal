@@ -1,0 +1,1627 @@
+{
+  "name": "qualification-ordinary",
+  "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./qualification/...",
+  "started": "2026-10-08T21:26:50.853Z",
+  "ended": "2026-10-08T21:26:52.870Z",
+  "elapsed_seconds": 2.017076209,
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "log": "qualification-ordinary.log",
+  "log_sha256": "eb0c576640072e08086de906721fcf8769758e5a2e2f677537e39b0d27a7eeb6",
+  "base_commit": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "head": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "source_manifest": "source-c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9.json",
+  "source_tree_sha256": "c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "tools_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache"
+  },
+  "counts": {
+    "pass": 213,
+    "fail": 11,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-08T21:26:51.606679133Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.6073658Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildReportsLexicographicallyFirstShortestDependencyPath",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.607548341Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildRedactsPathBearingArgumentsDeterministically",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.607637966Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildUsesAllSortedRootsAndRejectsUnreachableFindings",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.607725966Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildSupportedReportHasCanonicalNonNullEvidence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.607804175Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildLinkedReportSeparatesEliminatedClosureBlockers",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.607874175Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildGuardedReportSeparatesNonblockingGuardEvidence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.607992258Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestDecodeValidatesCanonicalCapabilityReport",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.608039258Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestFormatTextGroupsEquivalentBlockersWithShortestPathFirst",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.608389591Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestPrepareCapabilityReviewOwnsPrivateAdapterLifecycle",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:51.608826383Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestPrepareCapabilityReviewSupportsTemporalBackoffWithGRPCAdapter",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.62274055Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:51.626951383Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence/file",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.629935425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence/evidence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.633136466Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/comparison",
+      "Test": "TestCompareClassifiesSupportTransitions/clean",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.633694508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/comparison",
+      "Test": "TestCompareClassifiesSupportTransitions/improved",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.63450405Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence/second_evidence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.636637341Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/comparison",
+      "Test": "TestCompareClassifiesSupportTransitions/regressed",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.636771216Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/comparison",
+      "Test": "TestCompareClassifiesSupportTransitions",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.637053966Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/comparison",
+      "Test": "TestCompareRequiresExactBoundaryApproval",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.637584675Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/comparison",
+      "Test": "TestCompareMarksLegacyEvidenceIncomparable",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.637676341Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence/missing",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.637829508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:51.6391098Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/comparison",
+      "Test": "TestCompareRequiresReviewForAnyChangedUnsupportedBlocker",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.639272675Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/comparison",
+      "Test": "TestCompareMarksWorkloadMembershipChangesIncomparable",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.639393633Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/comparison",
+      "Test": "TestCompareReportsUpgradeIdentitiesWithoutLosingSupportComparison",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.648543466Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRemovesOnlyReplayedCampaigns",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.657253841Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/workload",
+      "Test": "TestRunWorkloadRepeatsOneCampaignAndPublishesTheClaim",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.73422355Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestRunGeneratesOneDefaultWorkloadPerListedTest",
+      "Elapsed": 0.1
+    },
+    {
+      "Time": "2026-10-08T21:26:51.766344092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestCohortBatchSequenceAAThenBBIsADivergence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.766919842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestNewToolchainIdentityStartsANewCohort",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.769074883Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRemovesASharedTargetOnlyWithItsLastArtifact",
+      "Elapsed": 0.12
+    },
+    {
+      "Time": "2026-10-08T21:26:51.770552133Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestCumulativeCountsAccumulateAcrossRetainedRuns",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.77918555Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestLoadLedgerRejectsTamperedCohort",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:51.779641508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/qualified",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.77992655Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/fresh_runs_disagree",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.780081633Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/overflow_before_divergence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.780421175Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/runner_failure",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.781656258Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/overall_timeout",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.78173505Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/deterministic_target_failure",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.781764925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:51.781852175Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsPreserveInterruptedQualificationEvidence/watchdog_timeout/first=false",
+      "Elapsed": 0.14
+    },
+    {
+      "Time": "2026-10-08T21:26:51.784683425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/campaign_outside_root",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:51.824801383Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/campaign_is_the_root_layout",
+      "Elapsed": 0.04
+    },
+    {
+      "Time": "2026-10-08T21:26:51.842243883Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsPreserveInterruptedQualificationEvidence/watchdog_timeout/first=true",
+      "Elapsed": 0.06
+    },
+    {
+      "Time": "2026-10-08T21:26:51.843016883Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/artifact_outside_campaign",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:51.854190425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/campaign_is_a_symlink",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:51.875584842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/not_qualified",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:51.891141092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/replay_not_attempted",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:51.909553342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/replay_diverged",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:51.910229217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence",
+      "Elapsed": 0.14
+    },
+    {
+      "Time": "2026-10-08T21:26:51.981184008Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsPreserveInterruptedQualificationEvidence/runner_cancelled/first=false",
+      "Elapsed": 0.14
+    },
+    {
+      "Time": "2026-10-08T21:26:52.016483717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunRecordsPruningAndKeepsUnqualifiedSeedArtifacts",
+      "Elapsed": 0.11
+    },
+    {
+      "Time": "2026-10-08T21:26:52.02311955Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsPreserveInterruptedQualificationEvidence/runner_cancelled/first=true",
+      "Elapsed": 0.04
+    },
+    {
+      "Time": "2026-10-08T21:26:52.023259758Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsPreserveInterruptedQualificationEvidence",
+      "Elapsed": 0.39
+    },
+    {
+      "Time": "2026-10-08T21:26:52.030211258Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestRunRetainsBothTracesAndDifferOutputForACrossBatchDivergence",
+      "Elapsed": 0.25
+    },
+    {
+      "Time": "2026-10-08T21:26:52.034402592Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/missing",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.049933633Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/contradictory",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.057802217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/evidence_missing",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.071729217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/evidence_altered",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.077035217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunKeepsCampaignsOfQualifiedSeedsWithoutReplay",
+      "Elapsed": 0.06
+    },
+    {
+      "Time": "2026-10-08T21:26:52.079199008Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/status_missing",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.091812092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/status_contradictory",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.096590967Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestRunGivesBatchesAbsolutePaths",
+      "Elapsed": 0.07
+    },
+    {
+      "Time": "2026-10-08T21:26:52.097035467Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRecordSeedCheckpointsPruningBeforeDeletingCampaigns",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.097222633Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/baseline_digest",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.107439633Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/missing",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.112426425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/contradictory",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.120013592Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/evidence_missing",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.128735925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/evidence_altered",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.141287508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/status_missing",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.154390967Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/status_contradictory",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.162914758Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/baseline_digest",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.163266383Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsRejectCorruptedSavedReportBindings",
+      "Elapsed": 0.14
+    },
+    {
+      "Time": "2026-10-08T21:26:52.179501342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestValidateSetReportRejectsPruningWithoutReplayedQualification/mode_not_recorded",
+      "Elapsed": 0.05
+    },
+    {
+      "Time": "2026-10-08T21:26:52.182038758Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.210434175Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsUnavailableForEveryInterruptedRun",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.2121268Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDiagnosticsOffReportFieldsRemainAbsent",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.212364967Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationEventStreamReturnsRetainedResult",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.212698967Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDecodeResultEventRejectsInvalidStreams/missing_result",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.212856467Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDecodeResultEventRejectsInvalidStreams/unretained_error",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.213129008Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDecodeResultEventRejectsInvalidStreams/unsupported_schema",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.21470105Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDecodeResultEventRejectsInvalidStreams/duplicate_result",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.215117633Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestDecodeResultEventRejectsInvalidStreams",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.215357092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestBuildReportQualifiesRepeatedSuccessfulEvidence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.215640008Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestBuildReportNamesFirstEvidenceDivergence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.216340092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestBuildReportRecordsFailureReplay",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.2165668Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestBuildReportRecordsPerRunSuccessfulReplay",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.2167928Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.217054883Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestBuildReportRejectsMismatchedPerRunReplay",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.22902855Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestValidateSetReportRejectsPruningWithoutReplayedQualification/not_replayed",
+      "Elapsed": 0.05
+    },
+    {
+      "Time": "2026-10-08T21:26:52.23461355Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.236191425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestBuildReportRejectsInvalidEvidenceSet",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.237070217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestBuildFailureRetainsFirstUnsupportedBoundary",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.248617508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestWriteReportRetainsCanonicalPrivateFile",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.249914342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestWriteRejectsInconsistentDeterministicOutcome",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.259801758Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestRunComparesWithTheBaselineOfAnEarlierRetainedRun",
+      "Elapsed": 0.16
+    },
+    {
+      "Time": "2026-10-08T21:26:52.260928342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestValidateSetReportRejectsPruningWithoutReplayedQualification/replay_diverged",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.269880342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportStoragePreservation",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.273727133Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportWriteValidationPreservation/empty_root",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.274066842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportWriteValidationPreservation/root_before_schema",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.274570175Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportWriteValidationPreservation/invalid_schema",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.274968425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportWriteValidationPreservation/invalid_report",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.275480675Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportWriteValidationPreservation/non-directory_ancestor",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.2763928Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportWriteValidationPreservation",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.28943255Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/empty",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.291806758Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestValidateSetReportRejectsPruningWithoutReplayedQualification",
+      "Elapsed": 0.19
+    },
+    {
+      "Time": "2026-10-08T21:26:52.295202633Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/malformed",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.300422383Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/noncanonical",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.309409008Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/old_schema",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.311977342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/future_schema",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.31451805Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunPublishesCheckedExpectedBoundaryEvidence",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.315908008Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/invalid_evidence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.317226842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestRunRetainsTheLocalisedPairOfAWithinBatchDivergence",
+      "Elapsed": 0.06
+    },
+    {
+      "Time": "2026-10-08T21:26:52.3179878Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/invalid_evidence_digest",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.324050717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/double_newline",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.326932883Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/missing_path",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.329573508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/directory",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.33318855Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/oversized_sparse_file",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.336872092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation/without_newline",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.338316342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunRetainsAllEvidenceWhenAnExpectationChanges",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.339498342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification",
+      "Test": "TestQualificationReportReadValidationPreservation",
+      "Elapsed": 0.06
+    },
+    {
+      "Time": "2026-10-08T21:26:52.344033508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestListTestsMatchesGoTestList",
+      "Elapsed": 0.61
+    },
+    {
+      "Time": "2026-10-08T21:26:52.359093883Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunReportRetainsRequestedSeeds",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.371842925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestInformationalPlatformReportsADivergenceWithoutFailing",
+      "Elapsed": 0.05
+    },
+    {
+      "Time": "2026-10-08T21:26:52.374317883Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestCheckFailsUntilAddedOrRemovedTestsAreRegenerated/added_test",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.378551508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestOpenReportRejectsCountersThatDisagreeWithWorkloads",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.381542759Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestInfrastructureFailureIsNotAPassOrADivergence",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.390089842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestCheckFailsUntilAddedOrRemovedTestsAreRegenerated/removed_test",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.390209925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestCheckFailsUntilAddedOrRemovedTestsAreRegenerated",
+      "Elapsed": 0.05
+    },
+    {
+      "Time": "2026-10-08T21:26:52.393621134Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestOpenReportRejectsInvalidModuleDigest",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.400136425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestRunStopsAddingRoundsPastTheMinimumWhenTheBudgetIsShort",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.418676425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestSpecOverridesAndExclusionsApplyByName",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.426089925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestOpenReportRejectsHardLinkedEvidence",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.430879759Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestExhaustedBudgetIsReportedAsInfrastructure",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.433985967Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestSelectedManifestIsValid",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.435674384Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestOverflowRepetitionsDoNotEnterTheBound",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.435983175Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/soak",
+      "Test": "TestFailedBaselineRetentionIsInfrastructureAndLeavesNoBaseline",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.442588842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestUntracedDefaultsTraceOnlyTheTestsThatOptIn",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.448185384Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/override_of_an_undeclared_test",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.449570092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunCountsRetainedRunnerFailureAsInfrastructure",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.450777592Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/opt-in_replay_without_success_limits",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.454635717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/success_limits_without_replay",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.458605717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/exclusion_of_an_undeclared_test",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.4629498Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunPreservesRequestedSeedWhenEvidenceProjectionFails",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.463885259Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/override_narrowing_budget_without_reason",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.467736384Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/override_widening_evidence_without_reason",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.471539509Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/exclusion_without_date",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.473720092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/default_success_limits_without_replay",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.476318425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/opt-in_replay_without_a_choice_trace",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.47821605Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunKeepsNondeterministicSeedClassification",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.47859005Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestProjectSeedReportDoesNotClaimExactReplayForDivergedReplay",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.479513425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestProjectSeedReportDoesNotClaimExactReplayWithoutOneChoiceTape",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.480094175Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestProjectSeedReportClaimsNoReplayForAnUntracedWorkload",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.483097925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/override_expectation_without_finding",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.4911053Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/override_narrowing_evidence_without_reason",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.494005175Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/default_replay_without_a_choice_trace",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.497308884Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunMeetsUnrepeatableExpectationForEitherOutcome/nondeterministic",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.497608009Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/subtest_skip_without_owner",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.500131217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/exclusion_without_owner",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.502703842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/exclusion_without_reason",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.506680842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused/excluded_and_overridden",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.506786092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestInvalidSpecsAreRefused",
+      "Elapsed": 0.06
+    },
+    {
+      "Time": "2026-10-08T21:26:52.510856842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestPackagesThatCannotYieldStableWorkloadsAreRefused/wrong_test_signature",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.51170055Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunMeetsUnrepeatableExpectationForEitherOutcome/replay_divergence",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.511809675Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunMeetsUnrepeatableExpectationForEitherOutcome",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.512481759Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestUnrepeatableExpectationRejectsQualifiedSeeds",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.5129318Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestIntermittentExpectationAcceptsQualifiedAndUnrepeatableSeeds",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.515243759Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestPackagesThatCannotYieldStableWorkloadsAreRefused/platform-specific_test",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.520185759Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestPackagesThatCannotYieldStableWorkloadsAreRefused/architecture_feature_test",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.524491925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestPackagesThatCannotYieldStableWorkloadsAreRefused/colliding_identities",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.524573009Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestPackagesThatCannotYieldStableWorkloadsAreRefused",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.52639005Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes/nondeterministic",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.531582675Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestBareAndNonASCIITestNamesBecomeWorkloads",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.532251259Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestWorkloadID",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.539205717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes/replay_divergence",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.539293425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T21:26:52.543568092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestRejectsDuplicateWorkloadNames",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.547328467Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestRejectsUnknownRequiredProbes",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.54842305Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestRequiresFindingOnFailureExpectations/unsupported_with_finding",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.54891805Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestRequiresFindingOnFailureExpectations/unsupported_without_finding",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.549236842Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestRequiresFindingOnFailureExpectations/intermittent_with_finding",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.560384675Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestRequiresFindingOnFailureExpectations/intermittent_without_finding",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.561360925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestRequiresFindingOnFailureExpectations/target_failure_blank_finding",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.56600755Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestRequiresFindingOnFailureExpectations/qualified_with_finding",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.571972925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestRequiresFindingOnFailureExpectations",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.57978305Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestIdentifyModuleRequiresExactSafeGoMod",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.6150693Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunAnalyzesEveryWorkloadBeforeTargetExecution",
+      "Elapsed": 0.04
+    },
+    {
+      "Time": "2026-10-08T21:26:52.615333134Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestAnalysisCommandBoundsAnalysisByWorkloadBudget/manifest",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.615532425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestAnalysisCommandBoundsAnalysisByWorkloadBudget/workload_override",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.61608055Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestAnalysisCommandBoundsAnalysisByWorkloadBudget/analyzer_maximum",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.616188092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestAnalysisCommandBoundsAnalysisByWorkloadBudget",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.616311759Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestWorkloadCommandCarriesTheClockTick",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.625158217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunClassifiesEveryWorkloadWhenAnalysisFails",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.62543005Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestAggregateChoiceCoverageRejectsIdentityMismatch",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.628780717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunLeavesPrivateCheckpointWhenInterrupted",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.632204092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestLoadManifestResolvesPlatformExpectationsForTheHost",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.6341843Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/whole_manifest",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.634792925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/single_shard",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.63493805Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/first_of_two",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.635006425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/second_of_two",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.635217592Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/index_past_count",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.635529384Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/index_without_count",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.635683425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/count_past_manifest",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.6357788Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestShardSelectsOrdinalModuloWorkloadsOfTheManifest",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.655480009Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunShardReportsOnlyItsWorkloadsUnderTheWholeManifestDigest",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.677685592Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestMergeCombinesShardReportsIntoTheWholeManifestReport",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.7337803Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/missing_shard",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.736585717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/repeated_shard",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.738742675Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/another_manifest",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.741125134Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/another_run_configuration",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.742484925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/another_source_revision",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.743449634Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/missing_report",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.745707467Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce",
+      "Elapsed": 0.07
+    },
+    {
+      "Time": "2026-10-08T21:26:52.755527634Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestCheckedInTestsManifestIsCurrent",
+      "Elapsed": 0.22
+    },
+    {
+      "Time": "2026-10-08T21:26:52.758129634Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen",
+      "Test": "TestCheckedInTestsManifestTracesOnlyByOverride",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.765475884Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestMergeRetainsShardExpectationMismatches",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:26:52.765609967Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestTestArgumentsAnchorEverySkippedSubtestElement/no_skips",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.765707342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestTestArgumentsAnchorEverySkippedSubtestElement/nested_and_sibling_subtests",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.765769092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestTestArgumentsAnchorEverySkippedSubtestElement/parallelism",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.765813592Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestTestArgumentsAnchorEverySkippedSubtestElement",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.769880592Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunPassesSkippedSubtestsToAnalysisAndQualification",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:26:52.778540592Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunStopsBeforeASeedWhenFreeSpaceIsUnderTheBound",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:26:52.801414717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/set",
+      "Test": "TestRunAnalyzesEachAnalysisIdentityOnce",
+      "Elapsed": 0.02
+    }
+  ],
+  "harness_sha256": "f82e26b2dab04233b6a2258042ade6be2b4242b206c090f40d2ac13071cb5eb7",
+  "control_manifest": "controls-45a2f73c3e6e5b8ef6e8a0963509548537a906d8ae7414848f7eb73d33a97d8c.json",
+  "control_tree_sha256": "45a2f73c3e6e5b8ef6e8a0963509548537a906d8ae7414848f7eb73d33a97d8c",
+  "controls_unchanged": true
+}

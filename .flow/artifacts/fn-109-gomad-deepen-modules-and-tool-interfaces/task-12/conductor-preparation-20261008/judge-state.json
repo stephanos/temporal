@@ -1,0 +1,8 @@
+{
+  "task_title": "Read-only preparation of fn-109.12 detached artifact and owned-handle source acceptance",
+  "task_body": "Map current artifact references, owned opened handles and Runner/set/CLI callers to retained R13 acceptance, original preservation controls and raw evidence. Locate coherent recoverable baseline inputs, dependency drift and current source-test gaps. Preparation only: no implementation, Go/build/test/lint/generator execution, downloads, lifecycle mutation, review verdict or commits. Write only a compact findings document in the assigned unique artifact directory.",
+  "acceptance": "Concrete requirement-to-current-test/evidence map, original baseline/probe identities, exact ownership/close-error/mutation semantics, smallest missing source coverage recommendation and bounded future verification recipe. Distinguish source-reachable cases from patched-driver-dependent and deferred native checks. All processes terminal; no task admission or acceptance claimed.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

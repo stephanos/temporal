@@ -1,0 +1,91 @@
+{
+  "name": "baseline-boundaries",
+  "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestExactModuleEdges|TestPublicPackagesDoNotExportTypeAliases|TestRunnerRequestsCompileInExternalModule|TestRunnerExecutionInjectionIsPrivate'",
+  "started": "2026-10-08T21:06:06.782Z",
+  "ended": "2026-10-08T21:06:13.901Z",
+  "elapsed_seconds": 7.118143837,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "log": "baseline-boundaries.log",
+  "log_sha256": "14cc60302988fa9469f7ecb5c0cbc1289087a2413512a1961fb8dc684e5272aa",
+  "base_commit": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "head": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "source_manifest": "source-18e329e8435e3cb0e7bed1f880a6a3a5e97d86b26640c7add66b1c687f3c22b4.json",
+  "source_tree_sha256": "18e329e8435e3cb0e7bed1f880a6a3a5e97d86b26640c7add66b1c687f3c22b4",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "tools_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache"
+  },
+  "counts": {
+    "pass": 5,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-08T21:06:08.38052229Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3",
+      "Test": "TestPackageArchitecture",
+      "Elapsed": 1.19
+    },
+    {
+      "Time": "2026-10-08T21:06:12.495385792Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3",
+      "Test": "TestPublicPackagesDoNotExportTypeAliases",
+      "Elapsed": 4.11
+    },
+    {
+      "Time": "2026-10-08T21:06:12.498788834Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3",
+      "Test": "TestRunnerExecutionInjectionIsPrivate",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:06:12.748533709Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3",
+      "Test": "TestRunnerRequestsCompileInExternalModule",
+      "Elapsed": 0.25
+    },
+    {
+      "Time": "2026-10-08T21:06:13.792194626Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3",
+      "Test": "TestExactModuleEdges",
+      "Elapsed": 1.04
+    }
+  ],
+  "harness_sha256": "82bf4d5d2c82c1ca0193cc7adef9eb7ac66921d5afafa72ec3e8a27036bcbc80"
+}

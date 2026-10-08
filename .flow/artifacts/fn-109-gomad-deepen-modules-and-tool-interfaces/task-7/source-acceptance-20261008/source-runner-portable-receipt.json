@@ -1,0 +1,171 @@
+{
+  "name": "source-runner-portable",
+  "command": "cd tools/gomad3 && go test -overlay=/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/overlay.json -json -count=1 -tags test_dep ./runner -run \"TestRunPreparationFailureLeavesClassifiedPartial|TestRunRejectsPreparedTargetMutationBeforeFailurePublication|TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle|TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork|TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource|TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments|TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution\"",
+  "started": "2026-10-08T21:18:09.954Z",
+  "ended": "2026-10-08T21:18:12.337Z",
+  "elapsed_seconds": 2.3819482510000003,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "log": "source-runner-portable.log",
+  "log_sha256": "b83244f166f3206593afb7e11d0214213ea412e5f1588491c2d08345cffd97a3",
+  "base_commit": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "head": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "source_manifest": "source-25fb830c01bb3add446fd44aca97ef1ff616a52f5f37cfa42ea1439031bda039.json",
+  "source_tree_sha256": "25fb830c01bb3add446fd44aca97ef1ff616a52f5f37cfa42ea1439031bda039",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "tools_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache"
+  },
+  "counts": {
+    "pass": 16,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-08T21:18:11.977953052Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle",
+      "Elapsed": 0.06
+    },
+    {
+      "Time": "2026-10-08T21:18:11.980872135Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:18:11.999258302Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T21:18:12.119839594Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource",
+      "Elapsed": 0.12
+    },
+    {
+      "Time": "2026-10-08T21:18:12.121100969Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/incomplete_object",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:18:12.121984885Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/trailing_whitespace",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:18:12.12263451Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/trailing_data",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:18:12.123194635Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/unknown_field",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:18:12.123761302Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/malformed",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:18:12.124396802Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/invalid_protocol_identity",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:18:12.124416427Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T21:18:12.205816469Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestRunRejectsPreparedTargetMutationBeforeFailurePublication",
+      "Elapsed": 0.08
+    },
+    {
+      "Time": "2026-10-08T21:18:12.216212177Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestRunPreparationFailureLeavesClassifiedPartial/build_failure",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:18:12.226983677Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestRunPreparationFailureLeavesClassifiedPartial/cancelled",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:18:12.237952302Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestRunPreparationFailureLeavesClassifiedPartial/overall_timeout",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T21:18:12.237974594Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/runner",
+      "Test": "TestRunPreparationFailureLeavesClassifiedPartial",
+      "Elapsed": 0.03
+    }
+  ],
+  "harness_sha256": "046789dda2445a2a8f3c284582c53153d240b910d176fab43edfb70ef65cdf45",
+  "control_manifest": "controls-6a2966bc4e9fb1a228aa5a7e6019429fe54df929dd08b5e89da0cc040b23afb2.json",
+  "control_tree_sha256": "6a2966bc4e9fb1a228aa5a7e6019429fe54df929dd08b5e89da0cc040b23afb2",
+  "controls_unchanged": true
+}

@@ -1,0 +1,31 @@
+{
+  "actual_host": "linux/arm64",
+  "source_profile": "linux/amd64",
+  "scope": "SOURCE controls, cross-built targets never executed, no native qualification",
+  "scratch": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S",
+  "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/overlay.json",
+  "overlay_sha256": "6890d4c1ae0010e2dea2d368c0da208b3185e372e9841d731b874c920df38a1e",
+  "inputs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/deterministicio/profile.go",
+      "sha256": "d068900a3b76bc91e5b94f0d67e00e67e225c50c0f3d23cbf92ce992ef0c5f21",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/deterministicio-profile.go",
+      "overlay_sha256": "eb0f2877125d2c23639b516711f270b0201ed943d2d2274e359bd243a83fcf09",
+      "change": "compile-time linux/amd64 source inputs only; original validators and policy unchanged"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/deterministicio/adapter_registry.go",
+      "sha256": "308a7ca06057995978dd750b5073c0307c8053040748743b905b88d0625face9",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/deterministicio-adapter_registry.go",
+      "overlay_sha256": "a716ccd0a63b478ed09e4789d3f09e445b018ef76aa7fc387c99270be6d837e4",
+      "change": "compile-time linux/amd64 source inputs only; original validators and policy unchanged"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/target/target.go",
+      "sha256": "1488c09449df41c88b727c191034cdba45f908faa63f7cc6318d55792130654c",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/target-target.go",
+      "overlay_sha256": "f09a527c21dbcfabffab774bde48cd7176e19b6fef7bc5d96dda6ac53d606053",
+      "change": "compile-time linux/amd64 source inputs only; original validators and policy unchanged"
+    }
+  ]
+}

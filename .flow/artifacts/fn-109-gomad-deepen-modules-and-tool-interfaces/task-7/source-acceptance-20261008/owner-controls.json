@@ -1,0 +1,53 @@
+[
+  {
+    "side": "current",
+    "source": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/preparation/preparation_test.go",
+    "sha256": "cf0ebe99a53f3e1a47e1835b9910fd39c4ca2aaa9dd43cb68d3f6b3b0da0b88f",
+    "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/current-internal-preparation-preparation_test.go",
+    "overlay_sha256": "2faac9a597981d967b40a9f16a0096371d28d48f892d8683cc708380ad9053a7",
+    "change": "test-only pinned-driver input; actual original test bodies retained"
+  },
+  {
+    "side": "current",
+    "source": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/runner/replay_operation_test.go",
+    "sha256": "bf076fd378e6f58777b0d00a34127713df9f0a45868c108ec8e9486716c5b7ed",
+    "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/current-runner-replay_operation_test.go",
+    "overlay_sha256": "0c5bca0ba1ab2844a0e1b7c526b48d7a0059ad2b3a8f3b3687195f78bfe88713",
+    "change": "test-only pinned-driver input; actual original test bodies retained"
+  },
+  {
+    "side": "current",
+    "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/current-owner-overlay.json",
+    "overlay_sha256": "8a38ce100ff7c05e218977120497144e11ad6c89c49e96839b7a3693e8de3b4e"
+  },
+  {
+    "side": "original",
+    "source": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original/internal/preparation/preparation_test.go",
+    "sha256": "cf0ebe99a53f3e1a47e1835b9910fd39c4ca2aaa9dd43cb68d3f6b3b0da0b88f",
+    "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/original-internal-preparation-preparation_test.go",
+    "overlay_sha256": "2faac9a597981d967b40a9f16a0096371d28d48f892d8683cc708380ad9053a7",
+    "change": "test-only pinned-driver input; actual original test bodies retained"
+  },
+  {
+    "side": "original",
+    "source": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original/runner/replay_operation_test.go",
+    "sha256": "8420451a516fa2c54c0d35fa0cfe3d61a749eda2aa50217c5bfd37da29a0c72b",
+    "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/original-runner-replay_operation_test.go",
+    "overlay_sha256": "0d07a0c9185bde9342e865c238685e5695cd50e592020bf4bdb5bb6dfa637bc1",
+    "change": "test-only pinned-driver input; actual original test bodies retained"
+  },
+  {
+    "side": "original",
+    "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/original-owner-overlay.json",
+    "overlay_sha256": "626c5ed6b652375cb890ee24083944dd5f5242e0746648c94deaaae5716bf603"
+  },
+  {
+    "side": "mutation-red",
+    "source": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/preparation/preparation.go",
+    "sha256": "52f02f1dc0d1f90910eb9c7e409093e1731e01c91467084c040f4369417247f6",
+    "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/missing-adapter-attachment.go",
+    "overlay_sha256": "1866f6f13ca7745f8f34260456ec03754d73ceab14f116f698b58a20e7ea3311",
+    "manifest": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/missing-adapter-overlay.json",
+    "change": "test-only remove attachment; production unchanged"
+  }
+]

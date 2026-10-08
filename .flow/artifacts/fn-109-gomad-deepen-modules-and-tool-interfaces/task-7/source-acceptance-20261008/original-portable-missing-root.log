@@ -1,0 +1,9 @@
+{"Time":"2026-10-08T21:21:33.909405607Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-08T21:21:33.923067773Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists"}
+{"Time":"2026-10-08T21:21:33.923180773Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists","Output":"=== RUN   TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists\n","OutputType":"frame"}
+{"Time":"2026-10-08T21:21:33.95760869Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists","Output":"    preparation_owner_test.go:28: deterministic I/O build adapter requires module cache and preparation root\n","OutputType":"error"}
+{"Time":"2026-10-08T21:21:33.958149398Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists","Output":"--- FAIL: TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists (0.04s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T21:21:33.958208482Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists","Elapsed":0.04}
+{"Time":"2026-10-08T21:21:33.95834994Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-10-08T21:21:33.967086273Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/runner\t0.056s\n","OutputType":"frame"}
+{"Time":"2026-10-08T21:21:33.967123857Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":0.058}

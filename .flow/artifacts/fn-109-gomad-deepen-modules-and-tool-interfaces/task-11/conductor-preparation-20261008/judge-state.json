@@ -1,0 +1,8 @@
+{
+  "task_title": "Read-only preparation of fn-109.11 capability and inventory source acceptance",
+  "task_body": "Map current capability collection, pure evaluation, linked projection and source-inventory ownership to fn-109.11's retained acceptance and original preservation controls. Identify coherent recoverable original inputs, existing raw evidence bindings, dependency drift and remaining source-test gaps. Preparation only: no implementation, shared Go/build/test/lint/generator commands, downloads, lifecycle mutation, review verdict or commits. Read current sources and Git/raw identities; write only one compact findings document in the assigned unique artifact directory.",
+  "acceptance": "Concrete requirement-to-test/evidence mapping, original baseline and probe identities, supported-source testability recommendation and bounded verification recipe. Preserve exact finding order, live blockers, canonical inventory and typed-error precedence; source-update rules remain in force. Distinguish source-reachable cases from driver-dependent checks and deferred native qualification. All processes terminal; no admission or acceptance claim.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

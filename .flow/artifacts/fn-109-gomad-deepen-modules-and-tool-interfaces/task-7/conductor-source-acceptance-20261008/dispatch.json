@@ -13,7 +13,7 @@
   "actual_worker_model": "not observed; requested model is not actual-model evidence",
   "scheduling": "single-task wave; one worker in current checkout; exclusive Go/build/lint/generator lane",
   "worker": "/root/complete_fn1097_source",
-  "parallel_scout": "/root/prep_fn10910_source; read-only, only task10 unique artifact writes, no shared gates",
+  "parallel_scout": "Task10/11/12 read-only preparation terminal; no parallel code or shared-gate lane",
   "baseline_handoff": "none; baseline actual current task7 ordinary source coverage and retain native/unsupported cases as incomplete under their exact owners",
   "review_owner": "conductor",
   "review_backend": "codex:gpt-6.1-sol:high",

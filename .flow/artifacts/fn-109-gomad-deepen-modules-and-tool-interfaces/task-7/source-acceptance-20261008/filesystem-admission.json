@@ -1,0 +1,204 @@
+{
+  "scope": "one exact portable prune assertion only; no full qualification retry or broad tmpfs admission",
+  "tmpdir": "/dev/shm/.fn1097-prune-source-XjdO2ItK",
+  "compiler_tmpdir": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+  "compiler_cache": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+  "mount": "tmpfs shm rw,nosuid,nodev,noexec,relatime,size=65536k",
+  "available_before_kib": 65536,
+  "private_mode": "0700",
+  "workspace_observations": [
+    {
+      "Mode": "os.Root.RemoveAll",
+      "Phase": "three links",
+      "Path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 3,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 3,
+      "Remaining": [
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/targets/shared",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/v1/campaign-first/successes/sha256-x/manifest.json",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/v1/campaign-first/successes/sha256-x/target",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/v1/campaign-second/successes/sha256-x/manifest.json",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/v1/campaign-second/successes/sha256-x/target"
+      ]
+    },
+    {
+      "Mode": "os.Root.RemoveAll",
+      "Phase": "removed campaign-first",
+      "Path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 3,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 3,
+      "Remaining": [
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/targets/shared",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/v1/campaign-second/successes/sha256-x/manifest.json",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/v1/campaign-second/successes/sha256-x/target"
+      ]
+    },
+    {
+      "Mode": "os.Root.RemoveAll",
+      "Phase": "removed campaign-second",
+      "Path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 3,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 3,
+      "Remaining": [
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3228918120/targets/shared"
+      ]
+    },
+    {
+      "Mode": "os.RemoveAll",
+      "Phase": "three links",
+      "Path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 3,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 3,
+      "Remaining": [
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/targets/shared",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/v1/campaign-first/successes/sha256-x/manifest.json",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/v1/campaign-first/successes/sha256-x/target",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/v1/campaign-second/successes/sha256-x/manifest.json",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/v1/campaign-second/successes/sha256-x/target"
+      ]
+    },
+    {
+      "Mode": "os.RemoveAll",
+      "Phase": "removed campaign-first",
+      "Path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 3,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 3,
+      "Remaining": [
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/targets/shared",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/v1/campaign-second/successes/sha256-x/manifest.json",
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/v1/campaign-second/successes/sha256-x/target"
+      ]
+    },
+    {
+      "Mode": "os.RemoveAll",
+      "Phase": "removed campaign-second",
+      "Path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 3,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 3,
+      "Remaining": [
+        "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/.fn1097-link-diagnostic-3606565845/targets/shared"
+      ]
+    }
+  ],
+  "tmpfs_observations": [
+    {
+      "Mode": "os.Root.RemoveAll",
+      "Phase": "three links",
+      "Path": "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 3,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 3,
+      "Remaining": [
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/targets/shared",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/v1/campaign-first/successes/sha256-x/manifest.json",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/v1/campaign-first/successes/sha256-x/target",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/v1/campaign-second/successes/sha256-x/manifest.json",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/v1/campaign-second/successes/sha256-x/target"
+      ]
+    },
+    {
+      "Mode": "os.Root.RemoveAll",
+      "Phase": "removed campaign-first",
+      "Path": "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 2,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 2,
+      "Remaining": [
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/targets/shared",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/v1/campaign-second/successes/sha256-x/manifest.json",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/v1/campaign-second/successes/sha256-x/target"
+      ]
+    },
+    {
+      "Mode": "os.Root.RemoveAll",
+      "Phase": "removed campaign-second",
+      "Path": "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 1,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 1,
+      "Remaining": [
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-278498178/targets/shared"
+      ]
+    },
+    {
+      "Mode": "os.RemoveAll",
+      "Phase": "three links",
+      "Path": "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 3,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 3,
+      "Remaining": [
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/targets/shared",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/v1/campaign-first/successes/sha256-x/manifest.json",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/v1/campaign-first/successes/sha256-x/target",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/v1/campaign-second/successes/sha256-x/manifest.json",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/v1/campaign-second/successes/sha256-x/target"
+      ]
+    },
+    {
+      "Mode": "os.RemoveAll",
+      "Phase": "removed campaign-first",
+      "Path": "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 2,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 2,
+      "Remaining": [
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/targets/shared",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/v1/campaign-second/successes/sha256-x/manifest.json",
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/v1/campaign-second/successes/sha256-x/target"
+      ]
+    },
+    {
+      "Mode": "os.RemoveAll",
+      "Phase": "removed campaign-second",
+      "Path": "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/targets/shared",
+      "RootSys": "*syscall.Stat_t",
+      "RootNlink": 1,
+      "PathSys": "*syscall.Stat_t",
+      "PathNlink": 1,
+      "Remaining": [
+        "/dev/shm/.fn1097-prune-source-XjdO2ItK/.fn1097-link-diagnostic-2805132467/targets/shared"
+      ]
+    }
+  ],
+  "capability_assertions": "both Sys types *syscall.Stat_t; both Nlink sequences 3/2/1; both removed campaign paths absent; remaining file counts 5/3/1",
+  "inputs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/source-acceptance-20261008/link-diagnostic.go",
+      "sha256": "cb68a6ea48709ed1506b2e9b88c3e24efaa28d44674265aac977fbd4bdedb8d0"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/qualification/set/prune.go",
+      "sha256": "781d1295f2ef67eaaf6e381299ab1c3fa0da58b350bc99e9483d645f49c66e99"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/qualification/set/prune_test.go",
+      "sha256": "59082ae9f35f953c5d759af72de81fda93100590c4167dbc1a0a70f9bcc92bc4"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/artifact/target_pool.go",
+      "sha256": "2f16b5c0ec47226bd80b63d309f37e28ccfe55c24a6e2b54e2118a7fd0b12b8e"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/artifact/link_count_unix.go",
+      "sha256": "140c38ceb4f2287b73ae0b55b02c4e970a7ed9b62fbb1fa7041a4e374625cfb8"
+    }
+  ]
+}

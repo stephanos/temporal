@@ -1,0 +1,127 @@
+{
+  "preimages": [
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/runner.go",
+      "sha256": "38cc9fcb0a3b45b219c8f23f00896e5df5c0b988fce28ba3fed4ab6ddd41e214",
+      "bytes": 80125,
+      "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present",
+      "original_caller_tree_byte_exact": true
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/portable_plan.go",
+      "sha256": "afd6c68a7346a006de85ecf17cb00d522ec7f4599f75fb7447981769502f32d0",
+      "bytes": 15901,
+      "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present",
+      "original_caller_tree_byte_exact": true
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/deterministicio.go",
+      "sha256": "740b9d19a36436a823289eb9c3b78283afe09ea4e4482bea050513478fbe6697",
+      "bytes": 2560,
+      "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present",
+      "original_caller_tree_byte_exact": true
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/architecture_test.go",
+      "sha256": "2b32351b7388f23a53f74d08d3a3b919e08d49be7f1b48d4ddb390e059672a85",
+      "bytes": 22332,
+      "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present",
+      "original_caller_tree_byte_exact": true
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/preparation_equivalence_legacy_test.go",
+      "sha256": "328bfdec937d16d1771e746818231b33522c58ed9f19214d5978ea99ec61b17e",
+      "bytes": 2187,
+      "provenance": "task-7-created baseline probe, captured before later edits; not original Runner source",
+      "original_caller_tree_byte_exact": true
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/internal/preparation/preparation_test.go",
+      "sha256": "34aecf8ee75b2d42886c1ba8feb0c875f23ad059c82ab8ad9f978b119669aaa2",
+      "bytes": 1846,
+      "provenance": "task-7-created test initial RED version",
+      "original_caller_tree_byte_exact": null
+    }
+  ],
+  "task_only_patch": {
+    "path": "../task-only.patch",
+    "sha256": "8421c95c2d359130d14664b94181756ee1f8be4035a62eb41d8791c285613cb8"
+  },
+  "historical_snapshots": [
+    {
+      "path": "equivalence",
+      "sha256": "29195da5e9abda68ae04dc414b0c500d0be353c6da9343328668f2039d51b34f",
+      "comparison": "historical byte pair retained; protocol probe, not current actual caller/native evidence"
+    },
+    {
+      "path": "equivalence-adapter",
+      "sha256": "f393401b100b6c311cf962f5dd7b3ffcda0355ce5d91050cd788b9c15a7c5aed",
+      "comparison": "historical byte pair retained; protocol probe, not current actual caller/native evidence"
+    }
+  ],
+  "current_actual_callers": {
+    "original": "original-caller-snapshot.json",
+    "current": "current-caller-snapshot.json",
+    "sha256": "069df114861458eab57e5decac9105cafba751f5f2b8c3f97ab40804a9a041a4",
+    "rows": 8,
+    "normalization": "Prepared.Path only",
+    "explore_prepared_value": "complete value reconstructed from actual validated caller journal; every Prepared field copied",
+    "plan_prepared_value": "actual validated openCampaignPlan prepared value",
+    "cross_built_targets_executed": 0
+  },
+  "unchanged_existing_bodies": [
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b",
+      "unchanged_from_admission": true
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan.go",
+      "sha256": "95112a7c797ef8592c7af6b19fd187e3d55f4daef21cbb4b9720ab770d8bd3ee",
+      "unchanged_from_admission": true
+    },
+    {
+      "path": "tools/gomad3/runner/deterministicio.go",
+      "sha256": "f55f752c2611ae6da7519e25223a2c11144cd3495aea2d0fc9abe00e07d54425",
+      "unchanged_from_admission": true
+    },
+    {
+      "path": "tools/gomad3/architecture_test.go",
+      "sha256": "47520b50536baecd25aac7e75c62325ea256ffd96266707e3f4fbd5267920453",
+      "unchanged_from_admission": true
+    },
+    {
+      "path": "tools/gomad3/runner/preparation_equivalence_legacy_test.go",
+      "sha256": "0db44bbf2f4c84617d75e8b77ad52df735a6834a02064a4dfc9896400b098404",
+      "unchanged_from_admission": true
+    },
+    {
+      "path": "tools/gomad3/runner/preparation_owner_test.go",
+      "sha256": "e8d0309b038a77217d0d4e011a9430838563468b087be105d6a93ad191a7b66c",
+      "unchanged_from_admission": true
+    },
+    {
+      "path": "tools/gomad3/internal/preparation/preparation_test.go",
+      "sha256": "cf0ebe99a53f3e1a47e1835b9910fd39c4ca2aaa9dd43cb68d3f6b3b0da0b88f",
+      "unchanged_from_admission": true
+    }
+  ],
+  "original_comments_retained_in_changed_owner": 0,
+  "protected_user_files": [
+    {
+      "path": ".turbo/plans/gomad3-glossary-update.md",
+      "sha256": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188"
+    },
+    {
+      "path": ".turbo/technical-debt.md",
+      "sha256": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+    }
+  ],
+  "runtime_inputs_unchanged_after_execution": true,
+  "frozen_source_manifest": "source-c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9.json",
+  "frozen_source_tree_sha256": "c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9",
+  "final_source_graph_unchanged": true,
+  "original_whole_host_make_exit": "unknown; retained wrapper failed assigning reserved status variable",
+  "old_watchdog": "transcript-only first failure; no current/native pass claimed",
+  "native_scope": "fn149/fn128 deferred and unverified"
+}

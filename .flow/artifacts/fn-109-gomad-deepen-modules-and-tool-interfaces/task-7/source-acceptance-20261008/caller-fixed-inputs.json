@@ -1,0 +1,61 @@
+{
+  "source_profile": "linux/amd64",
+  "inputs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/simple/explore/toolchain/bin/go",
+      "sha256": "07d348b66fc7382da0b6c160e57cfd843fc9146b0d3b0392981e5294a797aa6b"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/simple/explore/toolchain/builds/7777777777777777777777777777777777777777777777777777777777777777/bin/go",
+      "sha256": "07d348b66fc7382da0b6c160e57cfd843fc9146b0d3b0392981e5294a797aa6b"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/simple/plan/toolchain/bin/go",
+      "sha256": "184930510d57d03d4235c2701509a84736269759b96cd91896d15dc7e3c972f8"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/simple/plan/toolchain/builds/7777777777777777777777777777777777777777777777777777777777777777/bin/go",
+      "sha256": "184930510d57d03d4235c2701509a84736269759b96cd91896d15dc7e3c972f8"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/simple/module/go.mod",
+      "sha256": "46c581447b9b419a71f9d878916479c09d4854c6ffc1c43176af6a40dd19dd22"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/simple/module/main.go",
+      "sha256": "55a60bb97151b2b4b680462447ce60ec34511b14fa10d77440c97b9777101566"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/adapter/explore/toolchain/bin/go",
+      "sha256": "3136bab84cc12142d8c017207f997cd4c0961b26f29050345c0319ff9404a314"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/adapter/explore/toolchain/builds/7777777777777777777777777777777777777777777777777777777777777777/bin/go",
+      "sha256": "3136bab84cc12142d8c017207f997cd4c0961b26f29050345c0319ff9404a314"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/adapter/plan/toolchain/bin/go",
+      "sha256": "d8e6af10fe71adf80a108b8541a16553f4f31759d5ed8bcb87e41fe4c79a8db2"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/adapter/plan/toolchain/builds/7777777777777777777777777777777777777777777777777777777777777777/bin/go",
+      "sha256": "d8e6af10fe71adf80a108b8541a16553f4f31759d5ed8bcb87e41fe4c79a8db2"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/adapter/module/go.mod",
+      "sha256": "18985351ee04afbcca3e9a294da63639196301acd43720e3dc3dc46bb62b00c2"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/adapter/module/go.sum",
+      "sha256": "382281b65945fdb907406e1f67287ef1e749c8e71025865897b8654bdb101a7f"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs/adapter/module/main.go",
+      "sha256": "55a60bb97151b2b4b680462447ce60ec34511b14fa10d77440c97b9777101566"
+    }
+  ],
+  "prepared_cache_initial": "absent",
+  "source_cache_initial": "absent",
+  "build_counts_initial": 0,
+  "targets_executed": 0
+}

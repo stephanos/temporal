@@ -1,0 +1,58 @@
+{
+  "name": "adapter-attachment-mutation-red",
+  "command": "cd tools/gomad3 && go test -overlay=/Users/stephan/Workspace/skunkworks/.gomad-fn1097-source-rY6r2S/missing-adapter-overlay.json -json -count=1 -tags test_dep ./internal/preparation -run \"TestPrepareCompositionOrderAndCleanupIsolation|TestPrepareCustomPreparerSkipsAdaptersAndValidates\"",
+  "started": "2026-10-08T21:21:53.962Z",
+  "ended": "2026-10-08T21:21:54.495Z",
+  "elapsed_seconds": 0.5304330829999999,
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "log": "adapter-attachment-mutation-red.log",
+  "log_sha256": "2382d4699f855c30aa0e93c5c3ba08b60d84d5df6e54a1bac8787e5643998f8e",
+  "base_commit": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "head": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "source_manifest": "source-c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9.json",
+  "source_tree_sha256": "c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "tools_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache"
+  },
+  "counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [],
+  "harness_sha256": "f82e26b2dab04233b6a2258042ade6be2b4242b206c090f40d2ac13071cb5eb7",
+  "control_manifest": "controls-28a612e517b44689d6cb73efaee1bf54a67b31d1bc2ce07947f6f185b3fea83a.json",
+  "control_tree_sha256": "28a612e517b44689d6cb73efaee1bf54a67b31d1bc2ce07947f6f185b3fea83a",
+  "controls_unchanged": true
+}

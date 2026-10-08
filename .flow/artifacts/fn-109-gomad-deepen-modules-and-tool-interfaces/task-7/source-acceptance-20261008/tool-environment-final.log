@@ -1,0 +1,21 @@
+/Users/stephan/Workspace/skunkworks/gomad/temporal
+Linux aarch64
+1000
+go version go1.27.1 linux/arm64
+{
+	"GOARCH": "arm64",
+	"GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+	"GOEXPERIMENT": "",
+	"GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+	"GOOS": "linux",
+	"GOPROXY": "https://proxy.golang.org,direct",
+	"GOROOT": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64",
+	"GOTOOLCHAIN": "local",
+	"GOVERSION": "go1.27.1"
+}
+golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: "h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=") on (unknown)
+Filesystem     1024-blocks      Used Available Capacity Mounted on
+host             971350180 907071584  64278596      94% /Users/stephan/Workspace/skunkworks
+overlay          123268672 117152624         0     100% /
+shm                  65536         0     65536       0% /dev/shm
+tmpfs shm rw,nosuid,nodev,noexec,relatime,size=65536k

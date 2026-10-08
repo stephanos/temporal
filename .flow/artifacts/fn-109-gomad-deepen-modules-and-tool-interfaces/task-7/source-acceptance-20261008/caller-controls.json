@@ -1,0 +1,67 @@
+{
+  "anchor": "a3b9f80efab9356c0be2080779133337e2471ac0",
+  "scratch": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo",
+  "original": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original",
+  "inputs": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/inputs",
+  "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original-overlay.json",
+  "overlayInputs": [
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original/deterministicio/profile.go",
+      "sha256": "1d32438c1bde926d6ca4552684ef961adc53e926712e50c2ad804bf419015aaa",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original-deterministicio-profile.go",
+      "overlay_sha256": "e9051a6862123af792b676a7a77ced2b345b976ab90328287d17aa519ac086ea"
+    },
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original/deterministicio/adapter_registry.go",
+      "sha256": "e1b90ea83678b0e08219040b6b56d638da1f65f3a75ba39b29214b6fbc735fda",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original-deterministicio-adapter_registry.go",
+      "overlay_sha256": "f1d8871a56fdf03845b2d1818dd72d0f45abe5d5664f6effa1b7581938ac0650"
+    },
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original/target/target.go",
+      "sha256": "ad0d54ce07278b8922364f9efcf42e371fc62e64a7e3cebf8c310ac36d5f41df",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original-target-target.go",
+      "overlay_sha256": "01449bc86665e9c51c3927e30267dd7140c50a8f7d318f8efa69a0f08dc5b5f9"
+    },
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original/runner/internal/execution/bootstrap_unix.go",
+      "sha256": "fd907dba3cbd3c75371b63c08225f12fceffdab288572c1f146f520f1324fb53",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original-runner-internal-execution-bootstrap_unix.go",
+      "overlay_sha256": "a8405b16d9df1af6e88a646a7679f783c4f3c12f5eb765ffda5e3c44e9b32d9e",
+      "scope": "test-only compile compatibility; fail closed if original target execution reached"
+    },
+    {
+      "source": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original/runner/internal/execution/launch_plan_unix.go",
+      "sha256": "b4ecb04475268ad39a5f08eb24bdb85788e5b79ba3353f30c055e8ff661a02c1",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1097-callers-59djOo/original-runner-internal-execution-launch_plan_unix.go",
+      "overlay_sha256": "78b30957be3103cc9b3df10aa4c9f50a46e5e6ff7e672f81457db9b6e2154ce3",
+      "scope": "test-only compile compatibility; fail closed if original target execution reached"
+    }
+  ],
+  "preserved": [
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "sha256": "38cc9fcb0a3b45b219c8f23f00896e5df5c0b988fce28ba3fed4ab6ddd41e214"
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan.go",
+      "sha256": "afd6c68a7346a006de85ecf17cb00d522ec7f4599f75fb7447981769502f32d0"
+    },
+    {
+      "path": "tools/gomad3/runner/deterministicio.go",
+      "sha256": "740b9d19a36436a823289eb9c3b78283afe09ea4e4482bea050513478fbe6697"
+    },
+    {
+      "path": "tools/gomad3/architecture_test.go",
+      "sha256": "2b32351b7388f23a53f74d08d3a3b919e08d49be7f1b48d4ddb390e059672a85"
+    },
+    {
+      "path": "tools/gomad3/runner/preparation_equivalence_legacy_test.go",
+      "sha256": "328bfdec937d16d1771e746818231b33522c58ed9f19214d5978ea99ec61b17e"
+    }
+  ],
+  "harness_sha256": "0ae521a7388112e7b648e9ecf9e3f116ddfeddbf3731064746017962f77b6154",
+  "original_source_manifest": "original-caller-source.json",
+  "original_source_sha256": "7de2e9efbdfbb52bcc4327fc49873551867bae337a65ac8565807377f256cf63",
+  "scope": "SOURCE-only supported-profile stock cross builds; original actual caller bodies byte-exact; targets never executed"
+}

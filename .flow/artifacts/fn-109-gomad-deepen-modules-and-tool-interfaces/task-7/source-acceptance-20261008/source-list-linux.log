@@ -1,0 +1,16 @@
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard
+	toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go:12:2: use of internal package cmd/compile/internal/base not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept
+	toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go:20:2: use of internal package cmd/compile/internal/base not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/cmd/link/internal/ld
+	toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go:11:2: use of internal package cmd/link/internal/loader not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/crypto/rand
+	toolchain/runtime/overlay/src/crypto/rand/gomad.go:8:2: use of internal package crypto/internal/rand not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio
+	toolchain/runtime/overlay/src/internal/gomadio/network.go:16:2: use of internal package internal/poll not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadtrace
+	toolchain/runtime/overlay/src/internal/gomadtrace/trace.go:13:2: use of internal package internal/runtime/exithook not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/os
+	toolchain/runtime/overlay/src/os/gomad.go:21:2: use of internal package internal/poll not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/runtime
+	toolchain/runtime/overlay/src/runtime/gomad.go:10:2: use of internal package internal/chacha8rand not allowed

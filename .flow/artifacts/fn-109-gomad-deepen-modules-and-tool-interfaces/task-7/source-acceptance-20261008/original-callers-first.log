@@ -1,0 +1,7 @@
+{"ImportPath":"go.temporal.io/server/tools/gomad3/toolchain/installation","Action":"build-output","Output":"# go.temporal.io/server/tools/gomad3/runner\n"}
+{"ImportPath":"go.temporal.io/server/tools/gomad3/toolchain/installation","Action":"build-output","Output":"runner/preparation_source_test.go:17:2: no required module provides package go.temporal.io/server/tools/gomad3/toolchain/installation; to add it:\n"}
+{"ImportPath":"go.temporal.io/server/tools/gomad3/toolchain/installation","Action":"build-output","Output":"\tgo get go.temporal.io/server/tools/gomad3/toolchain/installation\n"}
+{"ImportPath":"go.temporal.io/server/tools/gomad3/toolchain/installation","Action":"build-fail"}
+{"Time":"2026-10-08T21:12:55.921653901Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-08T21:12:55.921748735Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/runner [setup failed]\n","OutputType":"frame"}
+{"Time":"2026-10-08T21:12:55.92181086Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":0,"FailedBuild":"go.temporal.io/server/tools/gomad3/toolchain/installation"}

@@ -1,0 +1,38 @@
+[
+  {
+    "fixture": "simple",
+    "caller": "explore",
+    "source_cache_initial": "absent (owned reset)",
+    "source_cache_final": "present/warm",
+    "source_cache_files": 313,
+    "prepared_cache_files": 2,
+    "build_count": 1
+  },
+  {
+    "fixture": "simple",
+    "caller": "plan",
+    "source_cache_initial": "absent (owned reset)",
+    "source_cache_final": "present/warm",
+    "source_cache_files": 313,
+    "prepared_cache_files": 2,
+    "build_count": 1
+  },
+  {
+    "fixture": "adapter",
+    "caller": "explore",
+    "source_cache_initial": "absent (owned reset)",
+    "source_cache_final": "present/warm",
+    "source_cache_files": 313,
+    "prepared_cache_files": 2,
+    "build_count": 1
+  },
+  {
+    "fixture": "adapter",
+    "caller": "plan",
+    "source_cache_initial": "absent (owned reset)",
+    "source_cache_final": "present/warm",
+    "source_cache_files": 313,
+    "prepared_cache_files": 2,
+    "build_count": 1
+  }
+]

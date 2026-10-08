@@ -1,0 +1,986 @@
+[
+  {
+    "fixture": "simple",
+    "caller": "explore",
+    "cache": "fresh",
+    "build_count": 1,
+    "prepared_from_validated_caller_plan": {
+      "Path": "\u003cprepared-path\u003e",
+      "Kind": "go-run",
+      "Source": ".",
+      "SHA256": "sha256:78d394a4bb9711c0067b44000a80b0240a22920707f6b5bbd0ba54f6648d31ad",
+      "Size": 1813092,
+      "Argv": [
+        "gomad3-target"
+      ],
+      "BuildTags": null,
+      "Adapters": [],
+      "Compatibility": [],
+      "BuildInfo": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "example.com/fn1097-preservation",
+        "main_module": "example.com/fn1097-preservation",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "GoVersion": "go1.27.1",
+      "BuildKey": "7777777777777777777777777777777777777777777777777777777777777777",
+      "TargetGOOS": "linux",
+      "TargetGOARCH": "amd64",
+      "CapabilityMode": "closure",
+      "CapabilityManifest": null
+    },
+    "record_target": {
+      "kind": "go-run",
+      "source": ".",
+      "file": "",
+      "sha256": "sha256:78d394a4bb9711c0067b44000a80b0240a22920707f6b5bbd0ba54f6648d31ad",
+      "size": "1813092",
+      "argv": [
+        "gomad3-target"
+      ],
+      "build_tags": [],
+      "adapters": [],
+      "compatibility": [],
+      "build_info": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "example.com/fn1097-preservation",
+        "main_module": "example.com/fn1097-preservation",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "capability_mode": "closure"
+    }
+  },
+  {
+    "fixture": "simple",
+    "caller": "explore",
+    "cache": "cache",
+    "build_count": 1,
+    "prepared_from_validated_caller_plan": {
+      "Path": "\u003cprepared-path\u003e",
+      "Kind": "go-run",
+      "Source": ".",
+      "SHA256": "sha256:78d394a4bb9711c0067b44000a80b0240a22920707f6b5bbd0ba54f6648d31ad",
+      "Size": 1813092,
+      "Argv": [
+        "gomad3-target"
+      ],
+      "BuildTags": null,
+      "Adapters": [],
+      "Compatibility": [],
+      "BuildInfo": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "example.com/fn1097-preservation",
+        "main_module": "example.com/fn1097-preservation",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "GoVersion": "go1.27.1",
+      "BuildKey": "7777777777777777777777777777777777777777777777777777777777777777",
+      "TargetGOOS": "linux",
+      "TargetGOARCH": "amd64",
+      "CapabilityMode": "closure",
+      "CapabilityManifest": null
+    },
+    "record_target": {
+      "kind": "go-run",
+      "source": ".",
+      "file": "",
+      "sha256": "sha256:78d394a4bb9711c0067b44000a80b0240a22920707f6b5bbd0ba54f6648d31ad",
+      "size": "1813092",
+      "argv": [
+        "gomad3-target"
+      ],
+      "build_tags": [],
+      "adapters": [],
+      "compatibility": [],
+      "build_info": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "example.com/fn1097-preservation",
+        "main_module": "example.com/fn1097-preservation",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "capability_mode": "closure"
+    }
+  },
+  {
+    "fixture": "simple",
+    "caller": "plan",
+    "cache": "fresh",
+    "build_count": 1,
+    "prepared_from_validated_caller_plan": {
+      "Path": "\u003cprepared-path\u003e",
+      "Kind": "go-run",
+      "Source": ".",
+      "SHA256": "sha256:78d394a4bb9711c0067b44000a80b0240a22920707f6b5bbd0ba54f6648d31ad",
+      "Size": 1813092,
+      "Argv": [
+        "gomad3-target"
+      ],
+      "BuildTags": null,
+      "Adapters": [],
+      "Compatibility": [],
+      "BuildInfo": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "example.com/fn1097-preservation",
+        "main_module": "example.com/fn1097-preservation",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "GoVersion": "go1.27.1",
+      "BuildKey": "7777777777777777777777777777777777777777777777777777777777777777",
+      "TargetGOOS": "linux",
+      "TargetGOARCH": "amd64",
+      "CapabilityMode": "closure",
+      "CapabilityManifest": null
+    },
+    "record_target": {
+      "kind": "go-run",
+      "source": ".",
+      "file": "",
+      "sha256": "sha256:78d394a4bb9711c0067b44000a80b0240a22920707f6b5bbd0ba54f6648d31ad",
+      "size": "1813092",
+      "argv": [
+        "gomad3-target"
+      ],
+      "build_tags": [],
+      "adapters": [],
+      "compatibility": [],
+      "build_info": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "example.com/fn1097-preservation",
+        "main_module": "example.com/fn1097-preservation",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "capability_mode": "closure"
+    }
+  },
+  {
+    "fixture": "simple",
+    "caller": "plan",
+    "cache": "cache",
+    "build_count": 1,
+    "prepared_from_validated_caller_plan": {
+      "Path": "\u003cprepared-path\u003e",
+      "Kind": "go-run",
+      "Source": ".",
+      "SHA256": "sha256:78d394a4bb9711c0067b44000a80b0240a22920707f6b5bbd0ba54f6648d31ad",
+      "Size": 1813092,
+      "Argv": [
+        "gomad3-target"
+      ],
+      "BuildTags": null,
+      "Adapters": [],
+      "Compatibility": [],
+      "BuildInfo": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "example.com/fn1097-preservation",
+        "main_module": "example.com/fn1097-preservation",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "GoVersion": "go1.27.1",
+      "BuildKey": "7777777777777777777777777777777777777777777777777777777777777777",
+      "TargetGOOS": "linux",
+      "TargetGOARCH": "amd64",
+      "CapabilityMode": "closure",
+      "CapabilityManifest": null
+    },
+    "record_target": {
+      "kind": "go-run",
+      "source": ".",
+      "file": "",
+      "sha256": "sha256:78d394a4bb9711c0067b44000a80b0240a22920707f6b5bbd0ba54f6648d31ad",
+      "size": "1813092",
+      "argv": [
+        "gomad3-target"
+      ],
+      "build_tags": [],
+      "adapters": [],
+      "compatibility": [],
+      "build_info": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "example.com/fn1097-preservation",
+        "main_module": "example.com/fn1097-preservation",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "capability_mode": "closure"
+    }
+  },
+  {
+    "fixture": "adapter",
+    "caller": "explore",
+    "cache": "fresh",
+    "build_count": 1,
+    "prepared_from_validated_caller_plan": {
+      "Path": "\u003cprepared-path\u003e",
+      "Kind": "go-run",
+      "Source": ".",
+      "SHA256": "sha256:bd8181fbea0c5711afd016bb567c13c84677de06074a786397652fdb27410728",
+      "Size": 1813084,
+      "Argv": [
+        "gomad3-target"
+      ],
+      "BuildTags": null,
+      "Adapters": [
+        {
+          "module": "github.com/Masterminds/sprig/v3",
+          "version": "v3.3.0",
+          "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+        }
+      ],
+      "Compatibility": [],
+      "BuildInfo": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "gomad3.adapter.sprig",
+        "main_module": "gomad3.adapter.sprig",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "GoVersion": "go1.27.1",
+      "BuildKey": "7777777777777777777777777777777777777777777777777777777777777777",
+      "TargetGOOS": "linux",
+      "TargetGOARCH": "amd64",
+      "CapabilityMode": "closure",
+      "CapabilityManifest": null
+    },
+    "record_target": {
+      "kind": "go-run",
+      "source": ".",
+      "file": "",
+      "sha256": "sha256:bd8181fbea0c5711afd016bb567c13c84677de06074a786397652fdb27410728",
+      "size": "1813084",
+      "argv": [
+        "gomad3-target"
+      ],
+      "build_tags": [],
+      "adapters": [
+        {
+          "module": "github.com/Masterminds/sprig/v3",
+          "version": "v3.3.0",
+          "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+        }
+      ],
+      "compatibility": [],
+      "build_info": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "gomad3.adapter.sprig",
+        "main_module": "gomad3.adapter.sprig",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "capability_mode": "closure"
+    }
+  },
+  {
+    "fixture": "adapter",
+    "caller": "explore",
+    "cache": "cache",
+    "build_count": 1,
+    "prepared_from_validated_caller_plan": {
+      "Path": "\u003cprepared-path\u003e",
+      "Kind": "go-run",
+      "Source": ".",
+      "SHA256": "sha256:bd8181fbea0c5711afd016bb567c13c84677de06074a786397652fdb27410728",
+      "Size": 1813084,
+      "Argv": [
+        "gomad3-target"
+      ],
+      "BuildTags": null,
+      "Adapters": [
+        {
+          "module": "github.com/Masterminds/sprig/v3",
+          "version": "v3.3.0",
+          "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+        }
+      ],
+      "Compatibility": [],
+      "BuildInfo": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "gomad3.adapter.sprig",
+        "main_module": "gomad3.adapter.sprig",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "GoVersion": "go1.27.1",
+      "BuildKey": "7777777777777777777777777777777777777777777777777777777777777777",
+      "TargetGOOS": "linux",
+      "TargetGOARCH": "amd64",
+      "CapabilityMode": "closure",
+      "CapabilityManifest": null
+    },
+    "record_target": {
+      "kind": "go-run",
+      "source": ".",
+      "file": "",
+      "sha256": "sha256:bd8181fbea0c5711afd016bb567c13c84677de06074a786397652fdb27410728",
+      "size": "1813084",
+      "argv": [
+        "gomad3-target"
+      ],
+      "build_tags": [],
+      "adapters": [
+        {
+          "module": "github.com/Masterminds/sprig/v3",
+          "version": "v3.3.0",
+          "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+        }
+      ],
+      "compatibility": [],
+      "build_info": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "gomad3.adapter.sprig",
+        "main_module": "gomad3.adapter.sprig",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "capability_mode": "closure"
+    }
+  },
+  {
+    "fixture": "adapter",
+    "caller": "plan",
+    "cache": "fresh",
+    "build_count": 1,
+    "prepared_from_validated_caller_plan": {
+      "Path": "\u003cprepared-path\u003e",
+      "Kind": "go-run",
+      "Source": ".",
+      "SHA256": "sha256:bd8181fbea0c5711afd016bb567c13c84677de06074a786397652fdb27410728",
+      "Size": 1813084,
+      "Argv": [
+        "gomad3-target"
+      ],
+      "BuildTags": null,
+      "Adapters": [
+        {
+          "module": "github.com/Masterminds/sprig/v3",
+          "version": "v3.3.0",
+          "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+        }
+      ],
+      "Compatibility": [],
+      "BuildInfo": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "gomad3.adapter.sprig",
+        "main_module": "gomad3.adapter.sprig",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "GoVersion": "go1.27.1",
+      "BuildKey": "7777777777777777777777777777777777777777777777777777777777777777",
+      "TargetGOOS": "linux",
+      "TargetGOARCH": "amd64",
+      "CapabilityMode": "closure",
+      "CapabilityManifest": null
+    },
+    "record_target": {
+      "kind": "go-run",
+      "source": ".",
+      "file": "",
+      "sha256": "sha256:bd8181fbea0c5711afd016bb567c13c84677de06074a786397652fdb27410728",
+      "size": "1813084",
+      "argv": [
+        "gomad3-target"
+      ],
+      "build_tags": [],
+      "adapters": [
+        {
+          "module": "github.com/Masterminds/sprig/v3",
+          "version": "v3.3.0",
+          "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+        }
+      ],
+      "compatibility": [],
+      "build_info": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "gomad3.adapter.sprig",
+        "main_module": "gomad3.adapter.sprig",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "capability_mode": "closure"
+    }
+  },
+  {
+    "fixture": "adapter",
+    "caller": "plan",
+    "cache": "cache",
+    "build_count": 1,
+    "prepared_from_validated_caller_plan": {
+      "Path": "\u003cprepared-path\u003e",
+      "Kind": "go-run",
+      "Source": ".",
+      "SHA256": "sha256:bd8181fbea0c5711afd016bb567c13c84677de06074a786397652fdb27410728",
+      "Size": 1813084,
+      "Argv": [
+        "gomad3-target"
+      ],
+      "BuildTags": null,
+      "Adapters": [
+        {
+          "module": "github.com/Masterminds/sprig/v3",
+          "version": "v3.3.0",
+          "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+        }
+      ],
+      "Compatibility": [],
+      "BuildInfo": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "gomad3.adapter.sprig",
+        "main_module": "gomad3.adapter.sprig",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "GoVersion": "go1.27.1",
+      "BuildKey": "7777777777777777777777777777777777777777777777777777777777777777",
+      "TargetGOOS": "linux",
+      "TargetGOARCH": "amd64",
+      "CapabilityMode": "closure",
+      "CapabilityManifest": null
+    },
+    "record_target": {
+      "kind": "go-run",
+      "source": ".",
+      "file": "",
+      "sha256": "sha256:bd8181fbea0c5711afd016bb567c13c84677de06074a786397652fdb27410728",
+      "size": "1813084",
+      "argv": [
+        "gomad3-target"
+      ],
+      "build_tags": [],
+      "adapters": [
+        {
+          "module": "github.com/Masterminds/sprig/v3",
+          "version": "v3.3.0",
+          "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+        }
+      ],
+      "compatibility": [],
+      "build_info": {
+        "go_version": "go1.27.1-X:nogreenteagc",
+        "path": "gomad3.adapter.sprig",
+        "main_module": "gomad3.adapter.sprig",
+        "settings": [
+          {
+            "key": "-buildmode",
+            "value": "exe"
+          },
+          {
+            "key": "-compiler",
+            "value": "gc"
+          },
+          {
+            "key": "-trimpath",
+            "value": "true"
+          },
+          {
+            "key": "CGO_ENABLED",
+            "value": "0"
+          },
+          {
+            "key": "GOAMD64",
+            "value": "v1"
+          },
+          {
+            "key": "GOARCH",
+            "value": "amd64"
+          },
+          {
+            "key": "GOEXPERIMENT",
+            "value": "nogreenteagc"
+          },
+          {
+            "key": "GOOS",
+            "value": "linux"
+          }
+        ]
+      },
+      "capability_mode": "closure"
+    }
+  }
+]

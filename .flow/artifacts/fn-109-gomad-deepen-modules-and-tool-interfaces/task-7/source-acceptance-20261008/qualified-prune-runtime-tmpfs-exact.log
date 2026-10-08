@@ -1,0 +1,101 @@
+unexpected fault address 0xffffb31a80c0
+fatal error: fault
+[signal SIGBUS: bus error code=0x2 addr=0xffffb31a80c0 pc=0xf7978]
+
+goroutine 1 gp=0x1b34e42e21e0 m=0 mp=0x2c52e0 [running]:
+runtime.throw({0x140388?, 0x2866c?})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/panic.go:1243 +0x38 fp=0x1b34e43d58b0 sp=0x1b34e43d5880 pc=0x8d498
+runtime.sigpanic()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/signal_unix.go:928 +0xdc fp=0x1b34e43d5910 sp=0x1b34e43d58b0 pc=0x8ee6c
+sync/atomic.(*Uint32).CompareAndSwap(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/sync/atomic/type.go:157
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*mappedFile).cas32(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:600
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*mappedFile).newCounter(0x1b34e43981c0, {0x143d4e, 0x15})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:743 +0x4d8 fp=0x1b34e43d5a60 sp=0x1b34e43d5920 pc=0xf7978
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*file).newCounter1(0x2c44e0, {0x143d4e, 0x15})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:343 +0x164 fp=0x1b34e43d5b20 sp=0x1b34e43d5a60 pc=0xf6884
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*file).newCounter(0x10?, {0x143d4e?, 0x1b34e43d5b98?})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:326 +0x20 fp=0x1b34e43d5b50 sp=0x1b34e43d5b20 pc=0xf66e0
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*file).lookup(0x14a06a?, {0x143d4e?, 0x1b34e43d5c38?})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:119 +0x34 fp=0x1b34e43d5ba0 sp=0x1b34e43d5b50 pc=0xf5554
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*Counter).releaseLock(0x1b34e4398200, 0xffffffff)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/vendor/golang.org/x/telemetry/internal/counter/counter.go:240 +0x140 fp=0x1b34e43d5c60 sp=0x1b34e43d5ba0 pc=0xf4bf0
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*Counter).Add(0x1b34e4398200, 0x1)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/vendor/golang.org/x/telemetry/internal/counter/counter.go:194 +0x320 fp=0x1b34e43d5d20 sp=0x1b34e43d5c60 pc=0xf46e0
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*Counter).Inc(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/vendor/golang.org/x/telemetry/internal/counter/counter.go:146
+cmd/vendor/golang.org/x/telemetry/counter.Inc(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/vendor/golang.org/x/telemetry/counter/counter.go:23
+cmd/internal/telemetry/counter.Inc(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/internal/telemetry/counter/counter.go:29
+main.main()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/test2json/main.go:138 +0xe8 fp=0x1b34e43d5ea0 sp=0x1b34e43d5d20 pc=0x13e908
+runtime.main()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:302 +0x380 fp=0x1b34e43d5fd0 sp=0x1b34e43d5ea0 pc=0x59510
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x1b34e43d5fd0 sp=0x1b34e43d5fd0 pc=0x93754
+
+goroutine 2 gp=0x1b34e42e2780 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x1b34e4344f90 sp=0x1b34e4344f70 pc=0x8d5a8
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:480
+runtime.forcegchelper()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:387 +0xb4 fp=0x1b34e4344fd0 sp=0x1b34e4344f90 pc=0x597f4
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x1b34e4344fd0 sp=0x1b34e4344fd0 pc=0x93754
+created by runtime.init.7 in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:375 +0x24
+
+goroutine 3 gp=0x1b34e42e2d20 m=nil [GC sweep wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x1b34e4345770 sp=0x1b34e4345750 pc=0x8d5a8
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:480
+runtime.bgsweep(0x1b34e4364000)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcsweep.go:279 +0x9c fp=0x1b34e43457b0 sp=0x1b34e4345770 pc=0x459dc
+runtime.gcenable.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:214 +0x20 fp=0x1b34e43457d0 sp=0x1b34e43457b0 pc=0x850e0
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x1b34e43457d0 sp=0x1b34e43457d0 pc=0x93754
+created by runtime.gcenable in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:214 +0x6c
+
+goroutine 4 gp=0x1b34e42e2f00 m=nil [GC scavenge wait]:
+runtime.gopark(0x1b34e4364000?, 0x14e380?, 0x1?, 0x0?, 0x1b34e42e2f00?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x1b34e4345f60 sp=0x1b34e4345f40 pc=0x8d5a8
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:480
+runtime.(*scavengerState).park(0x2c4440)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcscavenge.go:425 +0x5c fp=0x1b34e4345f90 sp=0x1b34e4345f60 pc=0x4365c
+runtime.bgscavenge(0x1b34e4364000)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcscavenge.go:653 +0x44 fp=0x1b34e4345fb0 sp=0x1b34e4345f90 pc=0x43b64
+runtime.gcenable.gowrap2()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:215 +0x20 fp=0x1b34e4345fd0 sp=0x1b34e4345fb0 pc=0x850a0
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x1b34e4345fd0 sp=0x1b34e4345fd0 pc=0x93754
+created by runtime.gcenable in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:215 +0xac
+
+goroutine 17 gp=0x1b34e43843c0 m=nil [GOMAXPROCS updater (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x1b34e4340770 sp=0x1b34e4340750 pc=0x8d5a8
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:480
+runtime.updateMaxProcsGoroutine()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:7146 +0xf4 fp=0x1b34e43407d0 sp=0x1b34e4340770 pc=0x67074
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x1b34e43407d0 sp=0x1b34e43407d0 pc=0x93754
+created by runtime.defaultGOMAXPROCSUpdateEnable in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:7134 +0x48
+
+goroutine 18 gp=0x1b34e43845a0 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x1b34e4340d80 sp=0x1b34e4340d60 pc=0x8d5a8
+runtime.runFinalizers()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mfinal.go:210 +0x100 fp=0x1b34e4340fd0 sp=0x1b34e4340d80 pc=0x36f10
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x1b34e4340fd0 sp=0x1b34e4340fd0 pc=0x93754
+created by runtime.createfing in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mfinal.go:172 +0x78

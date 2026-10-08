@@ -1,0 +1,21 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.12",
+  "assignment": "Read-only preparation; no task admission, implementation or acceptance",
+  "anchor": "b4602685b3184387cf2d713178095247f0c11d8f",
+  "worker": "/root/prep_fn10912_source",
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "judge": {"success": true, "available": false, "preset": "tier", "reason": "no_key", "spawn_model": null, "implementer": "gpt-6-astra"},
+  "requested_model": "gpt-6-astra",
+  "requested_effort": "high",
+  "actual_model": "Not observed; requested routing is not actual-model evidence",
+  "write_scope": "findings.md in this directory only; root owns dispatch and judge-state files",
+  "shared_execution_lane": "fn1097 worker exclusively owns code edits and Go/build/test/lint/generator gates",
+  "return_condition": "Bounded current/original acceptance mapping and verification recipe with findings SHA256; all processes terminal",
+  "constraints": "No source edits, shared gates, downloads, lifecycle mutation, verdict, staging, commits, delegates, PR, push or CI",
+  "native_owners": "fn149 and fn128 remain deferred and unverified",
+  "reentry": "Future ordered admission depends on task11; reanchor source and dependency identities then",
+  "return_state": "Terminal read-only preparation; no task admission or acceptance",
+  "findings": "findings.md",
+  "findings_sha256": "174bff3bca2963f36747909112359dbe86b8e2ea8f123af603e9261c7a26eab8",
+  "conductor_hash_verification": "2026-10-08 21:25:56 UTC"
+}
