@@ -8,7 +8,7 @@ Implement R2's Deadline companion Properties, repeated declaration binding and l
 
 **Size:** M
 **Files:** `model/temporal/capabilities/Deadline.scala` (new) and focused tests; `model/irgen/Capabilities.scala`; `model/irgen/testdata/lifts/CapabilitySections.scala`, `CapabilitySectionRejects.scala`, scoped `expected/*`; `model/irgen/test/Fixtures.test.scala`; `tools/umpire/check/checking_test.go`; `tools/umpire/export/quint_test.go`; `tools/umpire/ir/framework_test.go`.
-**Touches:** [model/temporal/capabilities/Deadline.scala, model/temporal/capabilities/Deadline.test.scala, model/irgen/Capabilities.scala, model/irgen/testdata/lifts/**, model/irgen/test/Fixtures.test.scala, tools/umpire/check/*test.go, tools/umpire/export/*test.go, tools/umpire/ir/framework_test.go]
+**Touches:** [model/temporal/capabilities/Deadline.scala, model/temporal/capabilities/Deadline.test.scala, model/irgen/Capabilities.scala, model/irgen/testdata/lifts/**, model/irgen/test/Fixtures.test.scala, model/check/test/CapabilityVocabulary.test.scala, tools/umpire/check/*test.go, tools/umpire/export/*test.go, tools/umpire/ir/framework_test.go]
 **Source gate:** fn-128.5 DONE and integrated, persisted plan reviewed, and fn-138.1 complete. This scratch preparation grants no implementation start.
 **Batch:** Run focused Scala/Go/reader/export proof and regenerate only scoped lifter fixture goldens. Production IR/Cases/mirrors, complete regeneration, full gates and live execution remain at the shared fn-128.6/fn-129.5 boundary. Record focused evidence; the conductor owns Flow and canonical plan writes.
 
@@ -19,7 +19,7 @@ Implement R2's Deadline companion Properties, repeated declaration binding and l
 - Terminal settlement requires the exact typed timeout fact of the binding. Eligible retry forbids the terminal timeout fact family, including a differently typed timeout value. The binding supplies the existing typed fact family selection using current finite fact forms; no new schema, Step field or unconditional attempt-timeout fact is required.
 - Retain each val's instance in expansion and own-field/type-parameter resolution. Check at least two Deadlines of different covered roles, armed predicates and typed timeout values. Generate `<machine>.<val>.<property>` names for new kinds only and retain companion origin, free verify form and independent computed totals/bounds. Reuse task .1's bound-override fanout across matching new instances and ambiguous claim/waiver refusal. Keep older kind IDs unchanged.
 - Refuse duplicate Deadline terminal timeout types on one machine, with both val names and both declaration positions. Do not restore the old kind-only duplicate refusal for permitted new instances. Refuse a non-Phased machine, missing covered/landing role, foreign/unbound/non-timer class and invalid binding at the relevant declaration.
-- Extend the existing refusal harness and framework name list with Deadline. Keep the capability name distinct in documentation from the realization helper `deadlines(...)` and the feature's `deadline` signature object.
+- Extend the existing refusal harness and framework name list with Deadline. The existing Scala kind-vocabulary gate at `model/check/test/CapabilityVocabulary.test.scala` must list Deadline alongside the Go framework gate; add only the new name and run its focused test. Keep the capability name distinct in documentation from the realization helper `deadlines(...)` and the feature's `deadline` signature object.
 
 ### Investigation targets
 
