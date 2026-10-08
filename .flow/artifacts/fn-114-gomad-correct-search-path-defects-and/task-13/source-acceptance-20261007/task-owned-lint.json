@@ -1,0 +1,52 @@
+{
+  "argv": [
+    "timeout",
+    "600",
+    "make",
+    "lint-code",
+    "GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+    "LINT_CODE_TARGETS=./internal/gomadtool/conformance ./choice/internal/wire",
+    "ALL_TEST_TAGS=test_dep"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "unset": [
+    "GOROOT",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "base_commit": "59f104491dcb14aa5c6337d995ff60c9f6956977",
+  "started": "2026-10-08T06:36:07.724Z",
+  "ended": "2026-10-08T06:36:09.647Z",
+  "elapsed_seconds": 1.923,
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "source_count": 5089,
+  "sources_before_sha256": "74092bc5e161fb0ebe5e05f683308b67ac02327e12a33c48d410177507a218d7",
+  "sources_after_sha256": "74092bc5e161fb0ebe5e05f683308b67ac02327e12a33c48d410177507a218d7",
+  "source_changes": [],
+  "stdout_sha256": "adf3b8f2200b96124e1fbddd0e68551742d61f8ffbf124db0463018cf742ff56",
+  "stderr_sha256": "92d54887687abd2e215fa05e70caac4512b0039b66650a3275588ded5ff506dd",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  },
+  "output_file": "task-owned-lint.output.json"
+}

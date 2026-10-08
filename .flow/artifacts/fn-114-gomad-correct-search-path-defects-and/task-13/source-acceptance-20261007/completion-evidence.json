@@ -1,0 +1,11 @@
+{
+  "commits": ["a3b9f80efab9356c0be2080779133337e2471ac0", "a936b597b4c62fa50f11a6c16c91111cd52b1ec3"],
+  "tests": [
+    "make -C tools/gomad3 validate",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestResolve.*|TestRuntimeCampaign.*|TestRequireStockCompatibilitySelectsPinnedToolchain|TestValidate.*|TestBenchmarkMedianNS|TestRepeatabilityMismatchRetainsDivergentEvidence|TestTimerCallbackAssociationRejectsUnidentifiedHandoff|TestStableHandoffsRequireOneAlternativeSetAndConsistentLeaders|TestRun(Upstream|Builder|LiveCapability|Accepts|Rejects|Reports|Interception).*|TestExecWrapper.*|TestRuntimeOwnedRejectsPreviousController|Test.*Replay.*|Test.*Trace.*|Test.*Alternative.*|Test.*Implementation.*|Test.*Prefix.*)$' ./choice/... ./internal/gomadtool/conformance",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet)$' .",
+    "make lint-code GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=./internal/gomadtool/conformance ./choice/internal/wire' ALL_TEST_TAGS=test_dep",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestRuntimeOwnedRejectsPreviousController|Test.*Replay.*|Test.*Trace.*|Test.*Alternative.*|Test.*Implementation.*|Test.*Prefix.*)$' ./choice/... ./internal/gomadtool/conformance"
+  ],
+  "prs": []
+}

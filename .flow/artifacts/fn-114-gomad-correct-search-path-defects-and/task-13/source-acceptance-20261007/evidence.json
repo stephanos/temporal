@@ -1,0 +1,212 @@
+{
+  "task_id": "fn-114-gomad-correct-search-path-defects-and.13",
+  "status": "in_progress",
+  "base_commit": "59f104491dcb14aa5c6337d995ff60c9f6956977",
+  "commits": [],
+  "tests": [
+    "\"timeout\" \"600\" \"make\" \"-C\" \"tools/gomad3\" \"validate\"",
+    "\"timeout\" \"600\" \"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-tags\" \"test_dep\" \"-count=1\" \"-v\" \"-run\" \"^(TestResolve.*|TestRuntimeCampaign.*|TestRequireStockCompatibilitySelectsPinnedToolchain|TestValidate.*|TestBenchmarkMedianNS|TestRepeatabilityMismatchRetainsDivergentEvidence|TestTimerCallbackAssociationRejectsUnidentifiedHandoff|TestStableHandoffsRequireOneAlternativeSetAndConsistentLeaders|TestRun(Upstream|Builder|LiveCapability|Accepts|Rejects|Reports|Interception).*|TestExecWrapper.*|TestRuntimeOwnedRejectsPreviousController|Test.*Replay.*|Test.*Trace.*|Test.*Alternative.*|Test.*Implementation.*|Test.*Prefix.*)$\" \"./choice/...\" \"./internal/gomadtool/conformance\"",
+    "\"timeout\" \"600\" \"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-tags\" \"test_dep\" \"-count=1\" \"-v\" \"-run\" \"^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet)$\" \".\"",
+    "\"timeout\" \"600\" \"make\" \"lint-code\" \"GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025\" \"GOLANGCI_LINT_FIX=false\" \"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\" \"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\" \"LINT_CODE_TARGETS=./internal/gomadtool/conformance ./choice/internal/wire\" \"ALL_TEST_TAGS=test_dep\"",
+    "\"timeout\" \"600\" \"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt\" \"-l\" \"tools/gomad3/internal/gomadtool/conformance/runtime_owned.go\" \"tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go\" \"tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go\" \"tools/gomad3/internal/gomadtool/conformance/testdata/runtime_owned/main.go\" \"tools/gomad3/internal/gomadtool/conformance/testdata/runq_user_choice/main.go\""
+  ],
+  "prs": [],
+  "baseline": "green for retained applicable source commands; native Quick gates transferred and not run",
+  "host": "linux/arm64 stock Go1.27.1 development",
+  "observations": [
+    {
+      "label": "validate",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/validate.json",
+        "sha256": "495a2a1c43c66f2013c032d39253a38588cb37c8fcc39ad265d1827367f491ea"
+      },
+      "output": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/validate.output.json",
+        "sha256": "54d36f2c71c16917ae0e431ffb31a6a01cdd71954a6b6d03ccb596eadcdfbda6"
+      },
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 11.528,
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "portable-r9",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/portable-r9.json",
+        "sha256": "36dca01f2f5c0cf41a0c53d10a38ebcafe7a0d564423310b695389fdbe0fd571"
+      },
+      "output": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/portable-r9.output.json",
+        "sha256": "6a567861e94cc7e68910fd8a07ab700a0acb8682993d391e95e4f6cb54b9edaf"
+      },
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-v",
+        "-run",
+        "^(TestResolve.*|TestRuntimeCampaign.*|TestRequireStockCompatibilitySelectsPinnedToolchain|TestValidate.*|TestBenchmarkMedianNS|TestRepeatabilityMismatchRetainsDivergentEvidence|TestTimerCallbackAssociationRejectsUnidentifiedHandoff|TestStableHandoffsRequireOneAlternativeSetAndConsistentLeaders|TestRun(Upstream|Builder|LiveCapability|Accepts|Rejects|Reports|Interception).*|TestExecWrapper.*|TestRuntimeOwnedRejectsPreviousController|Test.*Replay.*|Test.*Trace.*|Test.*Alternative.*|Test.*Implementation.*|Test.*Prefix.*)$",
+        "./choice/...",
+        "./internal/gomadtool/conformance"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.12,
+      "test_counts": {
+        "pass": 50,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "architecture",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/architecture.json",
+        "sha256": "a8f3fea39edcd31be5092340fa5224b72b087f6550e9378101a4e2594be404ec"
+      },
+      "output": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/architecture.output.json",
+        "sha256": "18fb673f645a94bf716750b47f067b4b2075d2c5c2d7e744cf4b27ec9f9e38bd"
+      },
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-v",
+        "-run",
+        "^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet)$",
+        "."
+      ],
+      "exit": 0,
+      "elapsed_seconds": 66.589,
+      "test_counts": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "task-owned-lint",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/task-owned-lint.json",
+        "sha256": "00c588a01bc97bbda88b15a7c87ab3514bcd2c4e9747487afb5d1baec3c33dc2"
+      },
+      "output": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/task-owned-lint.output.json",
+        "sha256": "b77b7e5d506cc51e22947afa3ff7ac29a6ed315f6463464e70e85fcb5d510ce3"
+      },
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "LINT_CODE_TARGETS=./internal/gomadtool/conformance ./choice/internal/wire",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.923,
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "task-owned-format",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/task-owned-format.json",
+        "sha256": "fe1e18fbbd21fc0230262439c91af27cd0a0516b642bb017f42eb62383f252e9"
+      },
+      "output": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/task-owned-format.output.json",
+        "sha256": "8c890687a2479fb622d3875b5b702914cdccf106afd546f830f5b30d26e08106"
+      },
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+        "-l",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_owned.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go",
+        "tools/gomad3/internal/gomadtool/conformance/testdata/runtime_owned/main.go",
+        "tools/gomad3/internal/gomadtool/conformance/testdata/runq_user_choice/main.go"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.111,
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    }
+  ],
+  "source_proof": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/source-proof.json",
+    "sha256": "c866b14d96ad95d0538cb52b15c2d393dd44bd7d92e17709aa0b7f08e4e98fc1"
+  },
+  "source_snapshot": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/source-hashes.json",
+    "sha256": "8e2610cdca46a8ff1f12fcf31b491f797ad664493783969376b7dfb82992c56f"
+  },
+  "native_owners": [
+    "fn-149.1",
+    "fn-149.2",
+    "fn-128.1",
+    "fn-128.4",
+    "fn-128.7"
+  ],
+  "review_context": {
+    "required": [
+      "current complete gomadChoiceRunqIndex and full runqget patch path",
+      "primary runtime_owned fixture zero/one/two/busy modes, all-alternative matcher and mutual-progress assertions",
+      "secondary runq_user_choice finalizer-as-user assertion and registration through requireSearchReproduction",
+      "canonical SPEC [RUNTIME.SCHEDULING], controller source identity, preceding-controller refusal",
+      "first committed R9 body and compact whole-source preservation; historical dirty-snapshot limits"
+    ],
+    "pre_existing_annotation": {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/runq_user_choice/main.go:4",
+      "quote": "run first by a fixed rule",
+      "limit": "Secondary fixture header predates this acceptance and conflicts with canonical head-class wording. AGENTS prohibits changing separate comments during evidence-only reconciliation. Assertions use finalizer-as-user classification; primary busy worker has an actual runtime symbol."
+    }
+  },
+  "lint_scope": {
+    "packages": [
+      "./internal/gomadtool/conformance",
+      "./choice/internal/wire"
+    ],
+    "base": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "filter": "configured --new-from-rev; excludes inherited untouched findings",
+    "errortype": "configured go vet ran after golangci success",
+    "aggregate": "Whole-project lint remains fn-109.21-owned; scoped success supplies no unfiltered/whole-project pass"
+  },
+  "product_edits": [],
+  "terminal_handles": "all owned command handles terminal; conductor owns review, Git and Flow completion"
+}

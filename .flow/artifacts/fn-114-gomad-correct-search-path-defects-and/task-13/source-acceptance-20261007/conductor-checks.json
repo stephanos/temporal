@@ -1,0 +1,32 @@
+{
+  "task": "fn-114-gomad-correct-search-path-defects-and.13",
+  "worker_evidence_verification": {
+    "references": 31,
+    "current_source_files": 5089,
+    "source_observations": 5,
+    "pinned_inputs": 87,
+    "retained_raw_files": 72,
+    "retained_raw_bytes": 521317,
+    "actual_first_R9_body_alpha_equal": true,
+    "tools_and_archive_hashes": "verified"
+  },
+  "verifier_command": "node -e 'const fs=require(\"node:fs\"),cp=require(\"node:child_process\"),crypto=require(\"node:crypto\"),assert=require(\"node:assert/strict\"),d=\".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/\",h=x=>crypto.createHash(\"sha256\").update(x).digest(\"hex\"),e=JSON.parse(fs.readFileSync(d+\"evidence.json\")),p=JSON.parse(fs.readFileSync(e.source_proof.path));let refs=0;function walk(x){if(!x||typeof x!==\"object\")return;if(x.path&&x.sha256){assert.equal(h(fs.readFileSync(x.path)),x.sha256,x.path);refs++}for(const v of Object.values(x))walk(v)}walk(e);walk(p);const s=JSON.parse(fs.readFileSync(e.source_snapshot.path));for(const[f,v]of Object.entries(s))assert.equal(h(fs.readFileSync(f)),v,f);for(const o of e.observations){const r=JSON.parse(fs.readFileSync(o.receipt.path)),x=JSON.parse(fs.readFileSync(o.output.path));assert.equal(r.exit,0);assert.deepEqual(r.source_changes,[]);for(const a of[\"stdout\",\"stderr\"])assert.equal(h(Buffer.from(x[a],x.encoding)),r[a+\"_sha256\"])}const b=JSON.parse(fs.readFileSync(p.bindings.path));for(const[f,v]of Object.entries(b.scoped_bindings))assert.equal(h(fs.readFileSync(f)),v,f);const manifest=JSON.parse(fs.readFileSync(p.retained_raw.manifest.path)),rawbase=\".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/\";let bytes=0;for(const f of manifest){const stored=fs.readFileSync(rawbase+(f.retained_name??f.name)),original=f.encoding===\"utf8-json-string\"?Buffer.from(JSON.parse(stored).value):stored;assert.equal(h(original),f.sha256);assert.equal(original.length,f.bytes);if(f.retained_sha256)assert.equal(h(stored),f.retained_sha256);bytes+=original.length}for(const[f,v]of Object.entries(p.tools))assert.equal(h(fs.readFileSync(f)),v,f);assert.equal(h(fs.readFileSync(\"tools/gomad3/.toolchain/downloads/go1.27.1.src.tar.gz\")),p.archive_sha256);const path=\"tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go\",old=cp.execFileSync(\"git\",[\"show\",p.first_committed_r9+\":\"+path],{encoding:\"utf8\"}),current=fs.readFileSync(path,\"utf8\"),body=x=>{const start=x.indexOf(\"func gomadChoiceRunqIndex(\"),end=x.indexOf(\"\\n}\",start);assert(start>=0&&end>start);return x.slice(start,end+2)};assert.equal(body(old).split(\"gomadIdentity\").length-1,1);assert.equal(body(old).replaceAll(\"gomadIdentity\",\"gomadID\"),body(current));assert.equal(h(body(current)),p.current_runq_body_sha256);console.log(JSON.stringify({references:refs,current_source_files:Object.keys(s).length,source_observations:e.observations.length,pinned_inputs:Object.keys(b.scoped_bindings).length,retained_raw_files:manifest.length,retained_raw_bytes:bytes,actual_first_R9_body_alpha_equal:true,tools_and_archive_hashes:\"verified\"}));'",
+  "conductor_receipts": [
+    "conductor-controller.json",
+    "conductor-task-lint.json"
+  ],
+  "conductor_controller": {
+    "exit": 0,
+    "passed": 26,
+    "skipped": 0,
+    "old_controller_refusal_observed": true,
+    "wire_package_no_tests": "choice/internal/wire collected no matching tests and receives no test-coverage credit"
+  },
+  "conductor_lint": {
+    "exit": 0,
+    "scope": "conformance and choice/internal/wire with configured new-from-rev=d635e23 and errortype; inherited untouched findings filtered, no unfiltered/global pass"
+  },
+  "review": "source-review.json",
+  "source_edits": [],
+  "native_owners": "fn-149/fn-128 remain deferred"
+}

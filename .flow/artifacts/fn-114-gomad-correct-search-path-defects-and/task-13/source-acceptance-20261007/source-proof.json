@@ -1,0 +1,213 @@
+{
+  "base_commit": "59f104491dcb14aa5c6337d995ff60c9f6956977",
+  "first_committed_r9": "a3b9f80efab9356c0be2080779133337e2471ac0",
+  "committed_pre_r9": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "historical_snapshot": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/integrated-source-hashes.json",
+    "sha256": "d7dec5283bad983b527d2f486b7c28d51efd305958cce16e6b088bc039e97b80"
+  },
+  "historical_head_limit": "The head identifies pre-R9 committed code; dirty-snapshot file hashes bind historical executions. The committed HEAD alone does not reproduce the snapshot.",
+  "current_runq_body_sha256": "bae6af596de0e49367ecf080a8643206cf13e874b69d31efd05edab49ff05971",
+  "first_runq_body_sha256": "986335a2fe0f8c2dd772217e818cfb040c090615b4aebce15a8f0c6b44c27684",
+  "alpha_substitution": {
+    "from": "gomadIdentity",
+    "to": "gomadID",
+    "occurrences": 1
+  },
+  "compact_base": "1b0bc277589d141aca8b534b03135ab3e57fc050",
+  "current_exact_inputs": 87,
+  "bindings": {
+    "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/bindings.json",
+    "sha256": "5e3e1465599c8dd63ead8057f9896eaade7a5bc68a6885a4c9c50b8c562f488c"
+  },
+  "preservation": {
+    "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/preservation.json",
+    "sha256": "28748d20ea5faa43ac34f4fc6f48f6d5277fbc42040260cc47b6561e9c5bc500"
+  },
+  "retained_raw": {
+    "manifest": {
+      "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw-manifest.json",
+      "sha256": "8196b4ab5a6862b730fb356cb905e41b814d52dced9b7731dd8531fa0b018228"
+    },
+    "files": 72,
+    "bytes": 521317
+  },
+  "unchanged_primary_fixtures": [
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/runtime_owned.go",
+      "sha256": "ed45d0f574ecb07e348cd8e57b5345abd243056344f29fceead2aa7918a317c8"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go",
+      "sha256": "4bbac67c89faabc87813ae46f56c97dec2000d72edc053035d98758132d4b188"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/runtime_owned/main.go",
+      "sha256": "28d468b497307ae2ab4b93966f3790c591244a7dc29d715eca5eddd2816c69e0"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/runtime_owned/previous-controller.json",
+      "sha256": "e8be095b8898e3f37652427ae75103247a38bff92d55376bc5cef443149836b4"
+    }
+  ],
+  "archive_sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1",
+  "reused": [
+    {
+      "label": "source-inventories-pinned",
+      "receipt": {
+        "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source-inventories-pinned.json",
+        "sha256": "d467060c7b6af8b4eb05f1d353854c32d76442fa72088031caaa149726cd97d0"
+      },
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-overlay",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/go-overlay.json",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-run",
+        "^(TestGFieldCompactSourceInventories|TestRegenerateMatchesCheckedPatchForPinnedArchive|TestPinnedContextRepresentationsMaterializeIdenticalSource|TestPinnedArchiveFollowsDescriptorAndRejectsChecksumMismatch|TestDrawInventoryRejectsUnclassifiedReference|TestSeededDrawInventoryRejectsUnclassifiedReference|TestHostClockInventoryPins|TestGoroutineCreationInventoryRejectsUnclassifiedSite)$",
+        "-v",
+        "./toolchain"
+      ],
+      "exit": 0,
+      "scope": "87 current exact inputs; materialized runtime/static/identity preservation only"
+    },
+    {
+      "label": "supplemental-source-final",
+      "receipt": {
+        "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/supplemental-source-final.json",
+        "sha256": "d5c7bc2bea42f7d514d76622adc06d67c8203d9099766f35c178bf4d8eac2eb2"
+      },
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-overlay",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/fn1102-source/source-overlay.json",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-run",
+        "^(TestSourceAcceptanceMaterializedPreservation|TestSourceAcceptanceSchedulerExtraction|TestHostClockInventoryPinsPlatformSpecificEscapes|TestGoroutineCreationInventoryRejectsSeededSite)$",
+        "-v",
+        "./toolchain"
+      ],
+      "exit": 0,
+      "scope": "87 current exact inputs; materialized runtime/static/identity preservation only"
+    },
+    {
+      "label": "scoped-receipt-binding-final",
+      "receipt": {
+        "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/scoped-receipt-binding-final.json",
+        "sha256": "98bcffd23157f6fe8d2f0a7a098a013e63dc4cec7847470fa8745a4511e2f100"
+      },
+      "argv": [
+        "timeout",
+        "600",
+        "node",
+        ".flow/tmp/fn1102-source/bindings.mjs"
+      ],
+      "exit": 0,
+      "scope": "87 current exact inputs; materialized runtime/static/identity preservation only"
+    },
+    {
+      "label": "independent-identity",
+      "receipt": {
+        "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/independent-identity.json",
+        "sha256": "6ef90f75e6ddbcecb6012bc31c3961cdd1b5dbfdf71a01943a43ffd18654ebf9"
+      },
+      "argv": [
+        "timeout",
+        "600",
+        "node",
+        ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/identity-audit/derive.mjs",
+        "--expected-source=02e1d03f625594a203d7b4d8f276076f8be646b5f86b1b4fea609aa49116b7ee"
+      ],
+      "exit": 0,
+      "scope": "87 current exact inputs; materialized runtime/static/identity preservation only"
+    }
+  ],
+  "measured": {
+    "before": {
+      "build_key": "2008ea81459afbd1ee019beb4a231968c1af8a24f4b46d4a8426b3188b1a9b87",
+      "source_sha256": "965b3c58254c252a6e0f8cb0d60fd021b7a8908d951c6e955dbf8c6c1fb5b59b",
+      "seeds": 32,
+      "decisions": 2261,
+      "runtime_selected": 31
+    },
+    "after": {
+      "build_key": "4a6e5b695ea538f0a56eb70874ff945693223b53d0fcee56cc555f89e1a9ac0e",
+      "source_sha256": "965b3c58254c252a6e0f8cb0d60fd021b7a8908d951c6e955dbf8c6c1fb5b59b",
+      "seeds": 32,
+      "decisions": 2080,
+      "runtime_selected": 0
+    }
+  },
+  "historical_measurement": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/same-source-counts.json",
+    "sha256": "732beb973f6ae7efd0db4a7013d490d42ba5de9cf0f3ca69ccfde2c028b7ad26"
+  },
+  "native_limit": "Historical counts retain original identities. No current native cause, progress, decision-count, patched-runtime, overlay, replay or full-host execution.",
+  "source_edits": [],
+  "compact_context": [
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/runtime_owned.go",
+      "sha256": "ed45d0f574ecb07e348cd8e57b5345abd243056344f29fceead2aa7918a317c8"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go",
+      "sha256": "4bbac67c89faabc87813ae46f56c97dec2000d72edc053035d98758132d4b188"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go",
+      "sha256": "7cad767f7ce8b407eae228862561e01b17e5c3858bc28d001725f26b16f41faa"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/runtime_owned/main.go",
+      "sha256": "28d468b497307ae2ab4b93966f3790c591244a7dc29d715eca5eddd2816c69e0"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/runq_user_choice/main.go",
+      "sha256": "aa485fdd5dda5a4597102c133c258523e48ef16c1662a1fefd662e84cbebceba"
+    },
+    {
+      "path": "tools/gomad3/SPEC.md",
+      "sha256": "cadd7e06015f8bd36ca1d3d98c3256cec610a523c9e39671f7719b35f469323e"
+    }
+  ],
+  "prior_module_closure": {
+    "base_commit": "1deced3efa4e7000163cb269e70e35f0c6b7dbd7",
+    "command": [
+      "git",
+      "diff",
+      "--name-only",
+      "1deced3efa4e7000163cb269e70e35f0c6b7dbd7",
+      "--",
+      "tools/gomad3"
+    ],
+    "changed_paths": []
+  },
+  "previous_controller": {
+    "platform": "darwin/arm64",
+    "fixed_build_key": "2008ea81459afbd1ee019beb4a231968c1af8a24f4b46d4a8426b3188b1a9b87",
+    "recorded_implementation_sha256": "8e1e1b297d4d8f4b58c8df632b459baf46ad6ae4176147407d9b38c3c2507648",
+    "current_implementation_at_same_build_key": "ba80d9fe489470c5291d94e15567a1c0bb33e6a8eb32ff2275e57f904686ce4d",
+    "current_source_fingerprint": "02e1d03f625594a203d7b4d8f276076f8be646b5f86b1b4fea609aa49116b7ee",
+    "proof": "fresh TestRuntimeOwnedRejectsPreviousController validates original then rejects current identity while target/platform/build key stay fixed"
+  },
+  "tools": {
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  }
+}

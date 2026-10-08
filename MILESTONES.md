@@ -304,7 +304,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-114.10](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.10.md) | ✅ Done | Account, prune, and merge shared targets and measure retained bytes |
 | [fn-114.11](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md) | ✅ Done | Record select readiness in the runtime and the Choice Trace |
 | [fn-114.12](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md) | ✅ Done | Check the select-poll reduction for soundness and stop expanding no-op decisions |
-| [fn-114.13](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md) | ⬜ Todo | Order runtime-owned goroutines by a fixed rule and offer only user goroutines as alternatives |
+| [fn-114.13](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md) | ✅ Done | Order runtime-owned goroutines by a fixed rule and offer only user goroutines as alternatives |
 | [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | ⬜ Todo | Combined toolchain/Runner source acceptance; native qualification moved to fn-149/fn-128 |
 | [fn-114.15](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.15.md) | ✅ Done | Scope minimizer workspace state per parent artifact |
 | [fn-114.16](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.16.md) | ✅ Done | Finish shared-target byte accounting inside a campaign and in merged-record validation |
