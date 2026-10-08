@@ -1,0 +1,9 @@
+{"Time":"2026-10-08T11:17:02.938104487Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-08T11:17:02.940429237Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRejectsSuccessfulRetentionWithoutReplayTranscript"}
+{"Time":"2026-10-08T11:17:02.940469779Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRejectsSuccessfulRetentionWithoutReplayTranscript","Output":"=== RUN   TestRunRejectsSuccessfulRetentionWithoutReplayTranscript\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:17:02.946293112Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRejectsSuccessfulRetentionWithoutReplayTranscript","Output":"    runner_test.go:422: exploreWith() error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n","OutputType":"error"}
+{"Time":"2026-10-08T11:17:02.946536695Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRejectsSuccessfulRetentionWithoutReplayTranscript","Output":"--- FAIL: TestRunRejectsSuccessfulRetentionWithoutReplayTranscript (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:17:02.94655382Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRejectsSuccessfulRetentionWithoutReplayTranscript","Elapsed":0.01}
+{"Time":"2026-10-08T11:17:02.946576654Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:17:02.946765945Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/runner\t0.008s\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:17:02.946779195Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":0.009}

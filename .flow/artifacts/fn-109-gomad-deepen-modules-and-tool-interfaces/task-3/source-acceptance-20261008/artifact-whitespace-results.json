@@ -1,0 +1,2414 @@
+[
+  {
+    "path": "accepted-coverage-proof.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/accepted-coverage-proof.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "accepted-lint-proof.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/accepted-lint-proof.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "accepted-source-proof.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/accepted-source-proof.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "additive-after.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-after.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "additive-before.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-before.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "additive-binding.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-binding.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "additive-binding.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-binding.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "additive-binding.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-binding.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "additive-preimage.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-preimage.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "additive-preimage.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-preimage.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "additive-preimage.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-preimage.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "additive-proof.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-proof.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "artifact-whitespace.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/artifact-whitespace.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "authoring-errors.md",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/authoring-errors.md"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "campaign-state-machines.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/campaign-state-machines.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "campaign-state-machines.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/campaign-state-machines.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "campaign-state-machines.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/campaign-state-machines.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "canonical-controller-after-mutations.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/canonical-controller-after-mutations.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "canonical-controller-after-mutations.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/canonical-controller-after-mutations.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "canonical-controller-after-mutations.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/canonical-controller-after-mutations.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "canonical-success-publication.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/canonical-success-publication.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "canonical-success-publication.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/canonical-success-publication.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "canonical-success-publication.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/canonical-success-publication.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "capture.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/capture.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-additive-after.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-additive-after.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-additive.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-additive.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-before.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-before.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-delta-binding.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-delta-binding.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-delta-binding.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-delta-binding.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-delta-binding.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-delta-binding.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-delta-corrected.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-delta-corrected.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-delta-corrected.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-delta-corrected.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-delta-corrected.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-delta-corrected.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-preimage.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-preimage.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-preimage.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-preimage.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-preimage.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-preimage.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "completion-test-before.txt",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-test-before.txt"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "configured-errortype.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/configured-errortype.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "configured-errortype.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/configured-errortype.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "configured-errortype.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/configured-errortype.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "configured-fast-lint.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/configured-fast-lint.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "configured-fast-lint.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/configured-fast-lint.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "configured-fast-lint.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/configured-fast-lint.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-missing-attempted.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-missing-attempted.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-missing-attempted.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-missing-attempted.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-missing-attempted.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-missing-attempted.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-mutation-binding.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-mutation-binding.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-mutations.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-mutations.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-wrong-success.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-wrong-success.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-wrong-success.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-wrong-success.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-wrong-success.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-wrong-success.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-wrongly-classified-success-overlay.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-wrongly-classified-success-overlay.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "controller-wrongly-classified-success.go.txt",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-wrongly-classified-success.go.txt"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-migration-binding.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-migration-binding.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-migration-binding.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-migration-binding.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-migration-binding.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-migration-binding.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-migration-corrected.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-migration-corrected.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-migration-corrected.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-migration-corrected.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-migration-corrected.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-migration-corrected.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-migration-final.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-migration-final.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-migration-final.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-migration-final.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-migration-final.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-migration-final.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-preservation.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-preservation.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "coverage-proof.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-proof.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "diff-whitespace.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/diff-whitespace.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "diff-whitespace.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/diff-whitespace.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "diff-whitespace.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/diff-whitespace.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-configured-fast-lint.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-configured-fast-lint.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-configured-fast-lint.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-configured-fast-lint.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-configured-fast-lint.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-configured-fast-lint.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-coverage-binding.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-coverage-binding.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-coverage-binding.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-coverage-binding.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-coverage-binding.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-coverage-binding.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-diff-check.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-diff-check.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-diff-check.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-diff-check.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-diff-check.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-diff-check.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-diff-whitespace.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-diff-whitespace.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-diff-whitespace.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-diff-whitespace.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-diff-whitespace.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-diff-whitespace.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-errortype.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-errortype.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-errortype.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-errortype.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-errortype.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-errortype.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-generated-validation.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-generated-validation.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-generated-validation.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-generated-validation.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-generated-validation.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-generated-validation.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-gofmt.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-gofmt.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-gofmt.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-gofmt.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-gofmt.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-gofmt.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-lint-context-binding.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-lint-context-binding.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-lint-context-binding.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-lint-context-binding.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-lint-context-binding.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-lint-context-binding.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-lint-preservation.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-lint-preservation.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-lint-preservation.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-lint-preservation.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-lint-preservation.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-lint-preservation.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-native-guarded-assertions.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-native-guarded-assertions.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-native-guarded-assertions.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-native-guarded-assertions.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-native-guarded-assertions.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-native-guarded-assertions.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-portable-runner-boundaries.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-portable-runner-boundaries.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-portable-runner-boundaries.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-portable-runner-boundaries.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-portable-runner-boundaries.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-portable-runner-boundaries.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-proof.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-proof.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-relevant-unfiltered-lint.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-relevant-unfiltered-lint.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-relevant-unfiltered-lint.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-relevant-unfiltered-lint.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-relevant-unfiltered-lint.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-relevant-unfiltered-lint.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-source-binding.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-source-binding.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-source-binding.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-source-binding.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-source-binding.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-source-binding.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-source-proof.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-source-proof.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-three-file-binding.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-three-file-binding.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-three-file-binding.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-three-file-binding.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "final-three-file-binding.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-three-file-binding.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "generated-validation.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/generated-validation.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "generated-validation.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/generated-validation.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "generated-validation.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/generated-validation.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "historical-reconstruction.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/historical-reconstruction.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "historical-reconstruction.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/historical-reconstruction.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "historical-reconstruction.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/historical-reconstruction.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "lint-attribution-corrected.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-attribution-corrected.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "lint-attribution-corrected.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-attribution-corrected.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "lint-attribution-corrected.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-attribution-corrected.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "lint-attribution.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-attribution.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "lint-attribution.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-attribution.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "lint-attribution.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-attribution.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "lint-preservation.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-preservation.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "lint-proof.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-proof.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "missing-unclassified-attempted-overlay.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/missing-unclassified-attempted-overlay.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "missing-unclassified-attempted.go.txt",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/missing-unclassified-attempted.go.txt"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-controller.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-controller.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-controller.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-controller.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-controller.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-controller.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-gates.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-gates.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-package-architecture.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-package-architecture.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-package-architecture.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-package-architecture.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-package-architecture.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-package-architecture.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-runner-boundaries.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-runner-boundaries.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-runner-boundaries.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-runner-boundaries.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-runner-boundaries.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-runner-boundaries.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-runner-pure-boundaries.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-runner-pure-boundaries.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-runner-pure-boundaries.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-runner-pure-boundaries.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "portable-runner-pure-boundaries.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/portable-runner-pure-boundaries.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "post-additive-gates.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/post-additive-gates.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "proof-authoring-first.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof-authoring-first.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "proof-authoring-first.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof-authoring-first.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "proof-authoring-first.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof-authoring-first.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "proof-authoring-second.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof-authoring-second.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "proof-authoring-second.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof-authoring-second.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "proof-authoring-second.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof-authoring-second.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "proof.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "read-only-gofmt.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/read-only-gofmt.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "read-only-gofmt.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/read-only-gofmt.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "read-only-gofmt.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/read-only-gofmt.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "reconstruct.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/reconstruct.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "relevant-unfiltered-lint.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/relevant-unfiltered-lint.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "relevant-unfiltered-lint.stderr",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/relevant-unfiltered-lint.stderr"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "relevant-unfiltered-lint.stdout",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/relevant-unfiltered-lint.stdout"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "runner-test-before.txt",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/runner-test-before.txt"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "source-proof.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/source-proof.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "verify.mjs",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/verify.mjs"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "wrongly-classified-success-overlay.json",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/wrongly-classified-success-overlay.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "wrongly-classified-success.go.txt",
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/wrongly-classified-success.go.txt"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

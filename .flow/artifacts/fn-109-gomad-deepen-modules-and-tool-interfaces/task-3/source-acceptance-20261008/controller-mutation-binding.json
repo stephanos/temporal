@@ -1,0 +1,18 @@
+{
+  "scope": "pure Controller behavior sensitivity only, not Runner publication assertion execution",
+  "source": {
+    "path": "tools/gomad3/runner/internal/campaign/controller.go",
+    "sha256": "043981c7ac6e97713971c62a308693089ec0f0499e75d52d6c7d9474eec843de"
+  },
+  "mutants": [
+    {
+      "overlay": "missing-unclassified-attempted-overlay.json",
+      "sha256": "fdbc7e97488bf87d3c612be68f8ead2ace0f61346f25e567445c311e14b752e9"
+    },
+    {
+      "overlay": "controller-wrongly-classified-success-overlay.json",
+      "sha256": "f5abc83eec6af4804f86735b6b0cfadd8fb53d80fd9311ad00023790ad66299f"
+    }
+  ],
+  "selector": "^TestSeedControllerCompletionKeepsWholeStatistics$/^unclassified_attempt$"
+}

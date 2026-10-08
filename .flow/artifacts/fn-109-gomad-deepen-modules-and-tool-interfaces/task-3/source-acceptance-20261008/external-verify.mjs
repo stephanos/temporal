@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {mkdtempSync,writeFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import {root,out,read,sha,sources} from './capture.mjs';
+const external=mkdtempSync('/tmp/fn1093-postfreeze-'),argv=['node',out+'/verify.mjs'],before=sources(),manifestBefore=sha(read(out+'/freeze-manifest.json')),start=new Date(),env={...process.env};
+for(const k of Object.keys(env))if(k.startsWith('GOMAD')&&/SEED|CAPTURE/.test(k))delete env[k];
+Object.assign(env,{GOENV:'off',GOWORK:'off',GOTOOLCHAIN:'local',GOFLAGS:'',GOEXPERIMENT:'nogreenteagc'});
+const r=spawnSync(argv[0],argv.slice(1),{cwd:root,env,timeout:60000,maxBuffer:64<<20}),end=new Date();
+writeFileSync(external+'/stdout',r.stdout??'',{flag:'wx'});writeFileSync(external+'/stderr',r.stderr??'',{flag:'wx'});
+const receipt={argv,cwd:root,environment:{GOENV:env.GOENV,GOWORK:env.GOWORK,GOTOOLCHAIN:env.GOTOOLCHAIN,GOFLAGS:env.GOFLAGS,GOEXPERIMENT:env.GOEXPERIMENT},started:start.toISOString(),ended:end.toISOString(),exit:r.status,signal:r.signal,error:r.error?.message??null,stdout_sha256:sha(r.stdout??''),stderr_sha256:sha(r.stderr??''),source_before_sha256:sha(JSON.stringify(before)),source_after_sha256:sha(JSON.stringify(sources())),freeze_before_sha256:manifestBefore,freeze_after_sha256:sha(read(out+'/freeze-manifest.json')),node_sha256:sha(read(process.execPath)),evidence_sha256:sha(read(out+'/evidence.json')),writes:'only this external temporary receipt directory; verifier writes nothing; frozen artifacts untouched',go_invocations:0};
+writeFileSync(external+'/receipt.json',JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({external_receipt:external+'/receipt.json',exit:r.status,evidence_sha256:receipt.evidence_sha256}));console.log(r.stdout.toString());console.log(r.stderr.toString());assert.equal(receipt.freeze_before_sha256,receipt.freeze_after_sha256);assert.equal(receipt.source_before_sha256,receipt.source_after_sha256);process.exitCode=r.status??1;

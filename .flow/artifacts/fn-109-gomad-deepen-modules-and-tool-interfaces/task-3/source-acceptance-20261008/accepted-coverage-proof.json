@@ -1,0 +1,1364 @@
+{
+  "unique_portable_top_level_tests": 95,
+  "tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestBatchJournalPreservesExplicitFailureState"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestBatchJournalPreservesPreparedStateWhenManifestPublicationFails"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestBatchJournalRecordsCanonicalResumePlan"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestBatchJournalRejectsRunBeforeExceedingReaderCapacity"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestBatchJournalRoundTripsChoiceProfileAndRunSummary"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCampaignCreationMutationFaultsLeaveNoInvalidBatch"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCampaignJournalEnforcesPartialRunCapacityBeforeMutation"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCampaignJournalPublishesTheCanonicalCampaignLifecycle"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCampaignLifecycleBoundsFailureEvidence"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCampaignLifecycleProgressesToPublished"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCampaignLifecycleRejectsCorruptState"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCampaignLifecycleRejectsIllegalTransitionWithoutMutation"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCampaignLifecycleRetainsRecoverableFailureProvenance"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCampaignPreparationMutationFaultsRetainLifecycle"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestCheckedMergedEvidenceBytesReportsTypedOverflow"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestChoiceProfileMatchesResumePlanExactly"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestDivergenceFieldsAreAbsentFromOrdinaryJSON"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestExplorationCommitMutationFaultsLeaveRoundRecoverable"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestExplorationCreationMutationFaultsLeaveJournalRetryable"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestExplorationJournalCommitsAndReplaysWholeRounds"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestExplorationJournalRejectsChangedPlanAndOversizedSegment"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestExplorationStageMutationFaultsLeaveRoundRetryable"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestInspectSimulationExplorationReportsPendingAndStagedWorkWithoutMutation"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestMergeCountsTheTargetOfItsSuccessEvidenceOnce"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestOpenBatchRejectsChangedRuns"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestOpenBatchValidatesPublishedJournal"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestOpenCampaignKeepsSameSignatureSuccessesDistinct"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestOpenSegmentedJournalRejectsUnindexedSegment"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestPreflightResumeRejectsUnrecoverableLifecycle"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestPreflightResumeReturnsValidatedLifecycleAndPlan"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestPublishedRecoveryMutationFaultsRemainIdempotent"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestRecoverAndResumeShareExclusiveLock"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestRecoverCampaignClassifiesNonRecoverableStateAsIntegrityError"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestRecoverCampaignFinishesPublishedCleanup"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestRecoverCampaignNormalizesInterruptedCommit"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestRecoverCampaignPreservesContextClassification"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestRecoverCampaignRejectsIdentitylessPlannedStateWithoutMutation"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResolveRetainedEvidenceAllowsSharedFailureIdentityWithinBatch"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResolveRetainedEvidenceValidatesSuccessBytes"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeCampaignJournalAcceptsRunsSharingDeduplicatedFailureEvidence"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeCampaignJournalRepairsInterruptedCommitUnderLock"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeCampaignJournalReusesVerifiedRunsAndArchivesIncompleteWork"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeExplorationJournalArchivesIncompleteRoundAtomically"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeExplorationJournalRejectsCorruptOrNonContiguousSegments"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeExplorationJournalRejectsRunProjectionDivergence"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeExplorationJournalRequiresItsStartOrdinal"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeExplorationJournalWrittenBeforeTheStartOrdinal"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeMutationFaultsLeaveJournalRetryable"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeSegmentedJournalExcludesTornActiveTail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeSegmentedJournalRecoversContiguousOrphanSegment"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeSimulationExplorationJournalDiscardsOnlyIncompleteRound"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeSimulationExplorationJournalDoesNotCountUnstartedRoundCandidates"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestResumeSimulationExplorationJournalRejectsCorruptSegment"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestRetainedChoiceSummaryBindsDerivedTapeIdentity"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestRunJournalRejectsInvalidStateTransitions"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedCampaignPlanRejectsChoiceStartOrdinal"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerAppliesFailurePolicies"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletesUnclassifiedAndDuplicateFailureAtomically"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRejectsCompletionWithoutActiveWork"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRejectsCompletionWithoutClassification"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRejectsInactiveCompletionBeforeChangingStatistics"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRejectsInvalidConfiguration"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRestoresAdmissionAndWholeStatistics"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRestoresSatisfiedPolicy"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerSchedulesAndAggregatesDeterministically"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSegmentedJournalOpensLargeCampaign"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSegmentedJournalRejectsOversizeRecordWithoutPublishingBytes"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSegmentedJournalRotatesAndPublishesImmutableIndex"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSimulationExplorationJournalCommitsAndResumesWholeRounds"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestValidateBatchPlanRejectsChangedArtifactCapacity"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestValidateMergedArtifactCapacityReportsSaturatedTotalOverflow"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessWorldValidatesTheRecordAgainstItsSeed"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestChoiceTraceObservedExcludesWatchdogAndCancellation"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecodeCoordinatorMessagesForwardsProgressAndFinalResponse"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecodeCoordinatorMessagesPreservesDrainFailure"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecodeCoordinatorMessagesRejectsProgressAfterResult"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestExecutionArtifactInputCarriesTheCapturedEvidence"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestSuccessPublicationFailureSeparatesCapacityFromPublication"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestSuccessRetentionAnnotatesTheJournalRecord"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestPackageArchitecture"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestPublicPackagesDoNotExportTypeAliases"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestRunnerExternalConsumerCompiles"
+    }
+  ],
+  "raw_observation_suites_not_additive": true,
+  "broad_gate": {
+    "exit": null,
+    "signal": "SIGTERM",
+    "timeout_seconds": 600.117,
+    "failed_terminal_actions": [
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982022cd80)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/seed (0.01s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982022d800)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/choice-exploration (0.01s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982035a300)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982035ad80)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982035b800)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820388960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/simulation-exploration (0.01s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98203893e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820389e60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982035be60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820340960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98203413e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820341e60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820420960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204213e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820421e60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820462960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204633e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820463e60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982045a960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982045b3e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982045be60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204a0960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204a13e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204a1e60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204ea960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204eb3e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204ebe60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204f4960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204f53e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204f5e60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820540960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98205413e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820541e60)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820508960)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98205093e0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820508560)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820508fe0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820509a90)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820106710)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98201071b0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820107c30)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982022caa0)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820388680)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820389100)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820389b80)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202c2680)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202c3100)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202c3b80)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/seed",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/seed\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202b4680)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/choice-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202b5100)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/simulation-exploration\n",
+          "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202b5b80)}, want a host failure\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence",
+        "outputs": [
+          "=== RUN   TestCompletionFaultsKeepReasonPrecedenceAndEvidence\n",
+          "--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence (0.14s)\n"
+        ],
+        "descendant_errors": [
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982022cd80)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982022d800)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982035a300)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982035ad80)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982035b800)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820388960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98203893e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820389e60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982035be60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820340960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98203413e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820341e60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820420960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204213e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820421e60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820462960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204633e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820463e60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982045a960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982045b3e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982045be60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204a0960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204a13e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204a1e60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204ea960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204eb3e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204ebe60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204f4960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204f53e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98204f5e60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820540960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98205413e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820541e60)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820508960)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98205093e0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820508560)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820508fe0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820509a90)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820106710)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98201071b0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820107c30)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982022caa0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820388680)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820389100)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820389b80)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202c2680)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202c3100)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202c3b80)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/seed",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202b4680)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/choice-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202b5100)}, want a host failure\n"
+          },
+          {
+            "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/simulation-exploration",
+            "output": "    completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98202b5b80)}, want a host failure\n"
+          }
+        ],
+        "classification": "parent aggregates retained refused child cells"
+      },
+      {
+        "test": "TestCancellationIsAHostFailure/seed",
+        "outputs": [
+          "=== RUN   TestCancellationIsAHostFailure/seed\n",
+          "    completion_characterization_test.go:378: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820328700)}\n",
+          "--- FAIL: TestCancellationIsAHostFailure/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCancellationIsAHostFailure/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCancellationIsAHostFailure/choice-exploration\n",
+          "    completion_characterization_test.go:367: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98203291a0)}, want a host failure\n",
+          "--- FAIL: TestCancellationIsAHostFailure/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCancellationIsAHostFailure/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCancellationIsAHostFailure/simulation-exploration\n",
+          "    completion_characterization_test.go:367: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982022d050)}, want a host failure\n",
+          "--- FAIL: TestCancellationIsAHostFailure/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "pre-executor preparation validation refusal: guard attribution is source-supported inference, raw error formatter hides inner error"
+      },
+      {
+        "test": "TestCancellationIsAHostFailure",
+        "outputs": [
+          "=== RUN   TestCancellationIsAHostFailure\n",
+          "--- FAIL: TestCancellationIsAHostFailure (0.01s)\n"
+        ],
+        "descendant_errors": [
+          {
+            "test": "TestCancellationIsAHostFailure/seed",
+            "output": "    completion_characterization_test.go:378: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c9820328700)}\n"
+          },
+          {
+            "test": "TestCancellationIsAHostFailure/choice-exploration",
+            "output": "    completion_characterization_test.go:367: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c98203291a0)}, want a host failure\n"
+          },
+          {
+            "test": "TestCancellationIsAHostFailure/simulation-exploration",
+            "output": "    completion_characterization_test.go:367: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x6c982022d050)}, want a host failure\n"
+          }
+        ],
+        "classification": "parent aggregates retained refused child cells"
+      },
+      {
+        "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/seed",
+        "outputs": [
+          "=== RUN   TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/seed\n",
+          "    completion_characterization_test.go:423: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+          "--- FAIL: TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/seed (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "explicit unsupported-host guard"
+      },
+      {
+        "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/choice-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/choice-exploration\n",
+          "    completion_characterization_test.go:423: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+          "--- FAIL: TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/choice-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "explicit unsupported-host guard"
+      },
+      {
+        "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/simulation-exploration",
+        "outputs": [
+          "=== RUN   TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/simulation-exploration\n",
+          "    completion_characterization_test.go:423: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+          "--- FAIL: TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/simulation-exploration (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "explicit unsupported-host guard"
+      },
+      {
+        "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy",
+        "outputs": [
+          "=== RUN   TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy\n",
+          "--- FAIL: TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy (0.01s)\n"
+        ],
+        "descendant_errors": [
+          {
+            "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/seed",
+            "output": "    completion_characterization_test.go:423: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n"
+          },
+          {
+            "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/choice-exploration",
+            "output": "    completion_characterization_test.go:423: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n"
+          },
+          {
+            "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/simulation-exploration",
+            "output": "    completion_characterization_test.go:423: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n"
+          }
+        ],
+        "classification": "parent aggregates retained refused child cells"
+      },
+      {
+        "test": "TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures",
+        "outputs": [
+          "=== RUN   TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures\n",
+          "    runner_test.go:52: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+          "--- FAIL: TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "explicit unsupported-host guard"
+      },
+      {
+        "test": "TestRunReportsPreparationProgressAndCompletedCounts",
+        "outputs": [
+          "=== RUN   TestRunReportsPreparationProgressAndCompletedCounts\n",
+          "    runner_test.go:110: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+          "--- FAIL: TestRunReportsPreparationProgressAndCompletedCounts (0.00s)\n"
+        ],
+        "descendant_errors": [],
+        "classification": "explicit unsupported-host guard"
+      }
+    ],
+    "unterminated": [
+      {
+        "test": "TestRunReportsPeriodicProgressWhileTargetIsRunning",
+        "classification": "started but no terminal action before 600s capture timeout; periodic test waits executor.started after native preparation refusal; no assertion execution credited"
+      }
+    ],
+    "unstarted_selected_test_names_not_passed": true
+  },
+  "original_early_characterization_bytes": "package runner\n\nimport (\n\t\"context\"\n\t\"crypto/sha256\"\n\t\"errors\"\n\t\"testing\"\n\n\t\"go.temporal.io/server/tools/gomad3/deterministicio\"\n\t\"go.temporal.io/server/tools/gomad3/runner/internal/campaign\"\n\t\"go.temporal.io/server/tools/gomad3/runner/internal/execution\"\n)\n\nfunc TestRunEarlyCompletionCountersRemainUnclassified(t *testing.T) {\n\tfor _, test := range []struct {\n\t\tname   string\n\t\tconfig func(*testing.T) CampaignSpec\n\t\treason string\n\t\twant   campaign.CampaignStatistics\n\t}{\n\t\t{\n\t\t\tname: \"supervision failure\",\n\t\t\tconfig: func(t *testing.T) CampaignSpec {\n\t\t\t\tconfig, _ := completionCampaign(t, StrategySeed, CoverageNone, nil, execution.ErrChoiceTraceMalformed)\n\t\t\t\treturn config\n\t\t\t},\n\t\t\treason: \"choice_trace_malformed\", want: campaign.CampaignStatistics{Attempted: 1},\n\t\t},\n\t\t{\n\t\t\tname: \"prepared target integrity\",\n\t\t\tconfig: func(t *testing.T) CampaignSpec {\n\t\t\t\treturn testConfig(t, newFakePreparer(t), mutatingExecutor{}, \"1\", PolicyAll, 1)\n\t\t\t},\n\t\t\treason: \"prepared_target_integrity\", want: campaign.CampaignStatistics{Attempted: 1},\n\t\t},\n\t\t{\n\t\t\tname: \"world evidence\",\n\t\t\tconfig: func(t *testing.T) CampaignSpec {\n\t\t\t\tconfig, _ := completionCampaign(t, StrategySeed, CoverageNone, func(result *execution.Result) {\n\t\t\t\t\tresult.WorldRecord = completionWorldRecord(t, 8)\n\t\t\t\t}, nil)\n\t\t\t\treturn config\n\t\t\t},\n\t\t\treason: \"world_record\", want: campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},\n\t\t},\n\t\t{\n\t\t\tname: \"coverage evidence\",\n\t\t\tconfig: func(t *testing.T) CampaignSpec {\n\t\t\t\tconfig, _ := completionCampaign(t, StrategySeed, CoverageSemantic, func(result *execution.Result) {\n\t\t\t\t\tpayload := []byte(\"not an I/O transcript\")\n\t\t\t\t\tresult.IOTranscript = deterministicio.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}\n\t\t\t\t}, nil)\n\t\t\t\treturn config\n\t\t\t},\n\t\t\treason: \"semantic_coverage\", want: campaign.CampaignStatistics{Attempted: 1},\n\t\t},\n\t\t{\n\t\t\tname: \"success publication\",\n\t\t\tconfig: func(t *testing.T) CampaignSpec {\n\t\t\t\tconfig := testConfig(t, newFakePreparer(t), &fakeExecutor{}, \"1\", PolicyAll, 1)\n\t\t\t\tconfig.KeepSuccesses = KeepSuccessesAll\n\t\t\t\tconfig.SuccessArtifactLimit = 1\n\t\t\t\tconfig.SuccessBytesLimit = 1 << 20\n\t\t\t\treturn config\n\t\t\t},\n\t\t\treason: \"success_artifact_publication\", want: campaign.CampaignStatistics{Attempted: 1},\n\t\t},\n\t} {\n\t\tt.Run(test.name, func(t *testing.T) {\n\t\t\tsummary, err := Explore(context.Background(), test.config(t))\n\t\t\tvar hostError *HostError\n\t\t\tif !errors.As(err, &hostError) || hostError.Reason != test.reason {\n\t\t\t\tt.Fatalf(\"Explore() error = %v, want %q\", err, test.reason)\n\t\t\t}\n\t\t\tgot := campaign.CampaignStatistics{\n\t\t\t\tAttempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures,\n\t\t\t\tWatchdogs: summary.Watchdogs, ReplayDivergences: summary.ReplayDivergences,\n\t\t\t\tCancelled: summary.Cancelled, DistinctFailures: summary.DistinctFailures,\n\t\t\t\tStopReason: campaign.ControllerStopReason(summary.StopReason),\n\t\t\t}\n\t\t\tif got != test.want {\n\t\t\t\tt.Fatalf(\"statistics = %#v, want %#v\", got, test.want)\n\t\t\t}\n\t\t})\n\t}\n}\n",
+  "early_migration_rows": [
+    {
+      "original": "supervision choice trace malformed",
+      "current_function": "TestSeedCompletionFaultsKeepCampaignStatistics",
+      "current_cell": "supervision rejected the choice trace",
+      "vector": "Attempted:1",
+      "exact_trigger": "execution.ErrChoiceTraceMalformed",
+      "whole_statistics": true
+    },
+    {
+      "original": "prepared target integrity",
+      "current_function": "TestSeedCompletionKeepsCampaignStatistics",
+      "current_cell": "prepared target integrity",
+      "vector": "Attempted:1",
+      "exact_trigger": "mutatingExecutor{}",
+      "whole_statistics": true
+    },
+    {
+      "original": "World record wrong seed8",
+      "current_function": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence",
+      "current_cell": "World seed mismatch/seed",
+      "vector": "Attempted1 Failures0 DistinctFailures1",
+      "exact_trigger": "completionWorldRecord(t, 8)",
+      "whole_statistics": true,
+      "additional_whole_statistics_cell": "TestSeedCompletionFaultsKeepCampaignStatistics/malformed World preserves whole Attempted1 Distinct1 vector on same World-assessment early exit, but is a distinct malformed-payload trigger",
+      "additive_restoration": true,
+      "assertion_execution": "unexecuted: native preparation guard prevents original completion assertion, then the added whole-statistics assertion"
+    },
+    {
+      "original": "malformed semantic coverage",
+      "current_function": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence",
+      "current_cell": "malformed semantic coverage/seed",
+      "vector": "Attempted1 Succeeded0 Failures0 Watchdogs0 DistinctFailures0",
+      "exact_trigger": "[]byte(\"not an I/O transcript\")",
+      "whole_statistics": true,
+      "additive_restoration": true,
+      "assertion_execution": "unexecuted: native preparation guard prevents original completion assertion, then the added whole-statistics assertion"
+    },
+    {
+      "original": "success publication",
+      "current_function": "TestRunRejectsSuccessfulRetentionWithoutReplayTranscript",
+      "vector": "Attempted:1, every other field zero",
+      "exact_trigger": "&fakeExecutor{}, KeepSuccessesAll, limit1, bytes1<<20",
+      "whole_statistics": true,
+      "additive_restoration": true
+    }
+  ],
+  "current_functions": [
+    {
+      "path": "tools/gomad3/runner/seed_completion_characterization_test.go",
+      "signature": "func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {",
+      "start": 74,
+      "end": 224,
+      "body": "func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {\n\tconst failedCampaign = \"campaign recoverable-failure\"\n\tsupervisionErr := errors.New(\"supervisor broke\")\n\tfailSupervision := func(context.Context) (execution.Result, error) {\n\t\treturn processResult(0, \"\", \"\"), supervisionErr\n\t}\n\tfor _, test := range []struct {\n\t\tname      string\n\t\tconfigure func(*testing.T) (context.Context, injectedCampaign)\n\t\twant      seedCompletionObservation\n\t}{\n\t\t{\n\t\t\tname: \"successes\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\treturn context.Background(), injectedTestConfig(t, newFakePreparer(t), &fakeExecutor{}, \"1-3\", PolicyAll, 2)\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Counts: [5]uint64{3, 3, 0, 0, 0}, Journal: []string{\"success success exit\", \"success success exit\", \"success success exit\"}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 3, Succeeded: 3, StopReason: campaign.StopSeedsExhausted},\n\t\t\t},\n\t\t},\n\t\t{\n\t\t\tname: \"distinct and duplicate failures\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\texecutor := &fakeExecutor{result: func(seed uint64) execution.Result {\n\t\t\t\t\tswitch seed {\n\t\t\t\t\tcase 1:\n\t\t\t\t\t\treturn processResult(0, \"\", \"\")\n\t\t\t\t\tcase 4:\n\t\t\t\t\t\treturn processResult(1, \"different\", \"\")\n\t\t\t\t\t}\n\t\t\t\t\treturn processResult(1, \"same\", \"\")\n\t\t\t\t}}\n\t\t\t\treturn context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, \"1-4\", PolicyAll, 1)\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Counts: [5]uint64{4, 1, 3, 0, 2}, Artifacts: []string{\"gomad3.target-failure/v1 nonzero_exit exact none no-choices\", \"gomad3.target-failure/v1 nonzero_exit exact none no-choices\"}, Journal: []string{\"success success exit\", \"target nonzero_exit exit\", \"target nonzero_exit exit\", \"target nonzero_exit exit\"}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 4, Succeeded: 1, Failures: 3, DistinctFailures: 2, StopReason: campaign.StopSeedsExhausted},\n\t\t\t},\n\t\t},\n\t\t{\n\t\t\tname: \"first failure cancels active\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\treturn context.Background(), injectedTestConfig(t, newFakePreparer(t), newFirstFailureExecutor(3), \"1-10\", PolicyFirst, 3)\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Counts: [5]uint64{3, 0, 1, 0, 1}, Artifacts: []string{\"gomad3.target-failure/v1 nonzero_exit exact none no-choices\"}, Journal: []string{\"target nonzero_exit exit\", \"runner runner_cancelled none\", \"runner runner_cancelled none\"}, Partials: []string{\"00000000000000000001-2 preserve-partial\", \"00000000000000000002-3 preserve-partial\"}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 3, Failures: 1, Cancelled: 2, DistinctFailures: 1, StopReason: campaign.StopFirstFailure},\n\t\t\t},\n\t\t},\n\t\t{\n\t\t\tname: \"failure budget\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\texecutor := &fakeExecutor{result: func(seed uint64) execution.Result {\n\t\t\t\t\tif seed == 4 {\n\t\t\t\t\t\treturn processResult(1, \"different\", \"\")\n\t\t\t\t\t}\n\t\t\t\t\treturn processResult(1, \"same\", \"\")\n\t\t\t\t}}\n\t\t\t\tconfig := injectedTestConfig(t, newFakePreparer(t), executor, \"1-10\", PolicyBudget, 1)\n\t\t\t\tconfig.FailureBudget = 2\n\t\t\t\treturn context.Background(), config\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Counts: [5]uint64{4, 0, 4, 0, 2}, Artifacts: []string{\"gomad3.target-failure/v1 nonzero_exit exact none no-choices\", \"gomad3.target-failure/v1 nonzero_exit exact none no-choices\"}, Journal: []string{\"target nonzero_exit exit\", \"target nonzero_exit exit\", \"target nonzero_exit exit\", \"target nonzero_exit exit\"}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 4, Failures: 4, DistinctFailures: 2, StopReason: campaign.StopFailureBudget},\n\t\t\t},\n\t\t},\n\t\t{\n\t\t\tname: \"supervision failure\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\treturn context.Background(), injectedTestConfig(t, newFakePreparer(t), scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision}}, \"1\", PolicyAll, 1)\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Reason: \"target_supervision\", Cause: \"supervisor broke\", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{\"gomad3.runner-failure/v1 target_supervision none none no-choices\"}, Journal: []string{\"runner target_supervision none\"}, Partials: []string{\"00000000000000000000-1 preserve-partial\", failedCampaign}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},\n\t\t\t},\n\t\t},\n\t\t{\n\t\t\tname: \"supervision failure drains a cancelled attempt\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\texecutor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision, 2: cancelledByCampaign}}\n\t\t\t\treturn context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, \"1-2\", PolicyAll, 2)\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Reason: \"target_supervision\", Cause: \"supervisor broke\", Counts: [5]uint64{2, 0, 0, 0, 1}, Artifacts: []string{\"gomad3.runner-failure/v1 target_supervision none none no-choices\"}, Journal: []string{\"runner target_supervision none\", \"runner target_supervision none\"}, Partials: []string{\"00000000000000000000-1 preserve-partial\", \"00000000000000000001-2 preserve-partial\", failedCampaign}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 2, Cancelled: 1, DistinctFailures: 1},\n\t\t\t},\n\t\t},\n\t\t{\n\t\t\tname: \"supervision failure drains a success\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\texecutor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision}}\n\t\t\t\treturn context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, \"1-2\", PolicyAll, 2)\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Reason: \"target_supervision\", Cause: \"supervisor broke\", Counts: [5]uint64{2, 0, 0, 0, 0}, Artifacts: []string{\"gomad3.runner-failure/v1 target_supervision none none no-choices\"}, Journal: []string{\"runner target_supervision none\", \"success success exit\"}, Partials: []string{\"00000000000000000000-1 preserve-partial\", failedCampaign}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 2},\n\t\t\t},\n\t\t},\n\t\t{\n\t\t\tname: \"supervision failure drains a failure\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\texecutor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision, 2: func(context.Context) (execution.Result, error) {\n\t\t\t\t\treturn processResult(1, \"failed\", \"\"), nil\n\t\t\t\t}}}\n\t\t\t\treturn context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, \"1-2\", PolicyFirst, 2)\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Reason: \"target_supervision\", Cause: \"supervisor broke\", Counts: [5]uint64{2, 0, 1, 0, 2}, Artifacts: []string{\"gomad3.runner-failure/v1 target_supervision none none no-choices\", \"gomad3.target-failure/v1 nonzero_exit exact none no-choices\"}, Journal: []string{\"runner target_supervision none\", \"target nonzero_exit exit\"}, Partials: []string{\"00000000000000000000-1 preserve-partial\", failedCampaign}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 2, Failures: 1, DistinctFailures: 2},\n\t\t\t},\n\t\t},\n\t\t{\n\t\t\tname: \"prepared target integrity\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\treturn context.Background(), injectedTestConfig(t, newFakePreparer(t), mutatingExecutor{}, \"1\", PolicyAll, 1)\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Reason: \"prepared_target_integrity\", Cause: \"prepared target changed after preparation\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-1 captured\", failedCampaign}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 1},\n\t\t\t},\n\t\t},\n\t\t{\n\t\t\tname: \"campaign cancelled while running\",\n\t\t\tconfigure: func(t *testing.T) (context.Context, injectedCampaign) {\n\t\t\t\tconfig := injectedTestConfig(t, newFakePreparer(t), blockingExecutor{}, \"1\", PolicyAll, 1)\n\t\t\t\tconfig.TerminateGrace = 10 * time.Millisecond\n\t\t\t\tctx := cancelOnProgress(t, &config.CampaignSpec, func(progress CampaignEvent) bool { return progress.Running == 1 })\n\t\t\t\treturn ctx, config\n\t\t\t},\n\t\t\twant: seedCompletionObservation{\n\t\t\t\tCompletion: completionObservation{Reason: \"cancelled\", Cause: \"context canceled\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-1 starting\", failedCampaign}},\n\t\t\t\tStatistics: campaign.CampaignStatistics{Attempted: 1},\n\t\t\t},\n\t\t},\n\t} {\n\t\tt.Run(test.name, func(t *testing.T) {\n\t\t\tctx, config := test.configure(t)\n\t\t\tsummary, err := exploreWith(ctx, config.CampaignSpec, config.dependencies)\n\t\t\tobserved := observeSeedCompletion(t, summary, err)\n\t\t\tif !reflect.DeepEqual(observed, test.want) {\n\t\t\t\tt.Fatalf(\"seed completion = %#v, want %#v\", observed, test.want)\n\t\t\t}\n\t\t})\n\t}\n}\n\n// The completion faults that end a seed attempt before or during\n// classification keep every statistic, not only the counters the shared\n// completion table pins.",
+      "sha256": "93bb1d47e820205588d3ac2cc5c02f6d59b4092693279e4d24ea3a8986b073d8",
+      "actual_owner": "ca3345469a2541b7686606268b0f19cde030a8fe Merge local Gomad changes with rebased remote history"
+    },
+    {
+      "path": "tools/gomad3/runner/seed_completion_characterization_test.go",
+      "signature": "func TestSeedCompletionFaultsKeepCampaignStatistics(t *testing.T) {",
+      "start": 225,
+      "end": 263,
+      "body": "func TestSeedCompletionFaultsKeepCampaignStatistics(t *testing.T) {\n\tmalformedWorld := func(result *execution.Result) {\n\t\tresult.WorldRecord = completionWorldRecord(t, 7)\n\t\tresult.WorldRecord[len(result.WorldRecord)-1] ^= 1\n\t}\n\twatchdog := func(result *execution.Result) {\n\t\tresult.Termination = execution.TerminationSignal\n\t\tresult.Signal = \"SIGKILL\"\n\t\tresult.WatchdogTimeout = true\n\t\tresult.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}\n\t}\n\tcancelled := func(result *execution.Result) {\n\t\tresult.Termination = execution.TerminationSignal\n\t\tresult.Signal = \"killed\"\n\t\tresult.Cancelled = true\n\t\tresult.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}\n\t}\n\tfor _, test := range []struct {\n\t\tname     string\n\t\tcoverage CoverageMode\n\t\tfault    func(*execution.Result)\n\t\terr      error\n\t\twant     campaign.CampaignStatistics\n\t}{\n\t\t{name: \"malformed World\", fault: malformedWorld, want: campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1}},\n\t\t{name: \"supervision rejected the choice trace\", err: execution.ErrChoiceTraceMalformed, want: campaign.CampaignStatistics{Attempted: 1}},\n\t\t{name: \"watchdog\", coverage: CoverageSemanticChoice, fault: watchdog, want: campaign.CampaignStatistics{Attempted: 1, Failures: 1, Watchdogs: 1, DistinctFailures: 1, StopReason: campaign.StopSeedsExhausted}},\n\t\t{name: \"cancelled execution\", coverage: CoverageSemanticChoice, fault: cancelled, want: campaign.CampaignStatistics{Attempted: 1, Failures: 1, DistinctFailures: 1, StopReason: campaign.StopSeedsExhausted}},\n\t} {\n\t\tt.Run(test.name, func(t *testing.T) {\n\t\t\tconfig, _ := injectedCompletionCampaign(t, StrategySeed, test.coverage, test.fault, test.err)\n\t\t\tsummary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)\n\t\t\tif observed := observeSeedCompletion(t, summary, err).Statistics; observed != test.want {\n\t\t\t\tt.Fatalf(\"statistics = %#v, want %#v\", observed, test.want)\n\t\t\t}\n\t\t})\n\t}\n}\n",
+      "sha256": "fcad911f9d413ee3340dc8b0adeba535e37bc84febd0d61ec7f238325a944889",
+      "actual_owner": "ca3345469a2541b7686606268b0f19cde030a8fe Merge local Gomad changes with rebased remote history"
+    },
+    {
+      "path": "tools/gomad3/runner/completion_characterization_test.go",
+      "signature": "func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {",
+      "start": 193,
+      "end": 359,
+      "body": "func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {\n\tconst failedCampaign = \"campaign recoverable-failure\"\n\tmalformedWorld := func(result *execution.Result) {\n\t\tresult.WorldRecord = completionWorldRecord(t, 7)\n\t\tresult.WorldRecord[len(result.WorldRecord)-1] ^= 1\n\t}\n\tseedMismatch := func(result *execution.Result) { result.WorldRecord = completionWorldRecord(t, 8) }\n\tmalformedCoverage := func(result *execution.Result) {\n\t\tpayload := []byte(\"not an I/O transcript\")\n\t\tresult.IOTranscript = deterministicio.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}\n\t}\n\t// The digest and record count are consistent, so supervision accepts the\n\t// trace and only the coverage projection decodes the payload.\n\tmalformedChoices := func(result *execution.Result) {\n\t\tpayload := []byte(\"not a choice trace\")\n\t\tresult.ChoiceTrace.Trace = choice.Trace{Version: choice.Version3, Bytes: payload, SHA256: sha256.Sum256(payload), Summary: choice.Summary{Terminal: choice.TerminalComplete}}\n\t}\n\tunterminated := func(result *execution.Result) { result.ChoiceTrace = execution.ChoiceTrace{} }\n\twatchdog := func(result *execution.Result) {\n\t\tresult.Termination = execution.TerminationSignal\n\t\tresult.Signal = \"SIGKILL\"\n\t\tresult.WatchdogTimeout = true\n\t\tresult.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}\n\t}\n\tunprojectableChoices := func(result *execution.Result) { result.ChoiceTrace.Trace.Bytes = []byte(\"x\") }\n\tcancelled := func(result *execution.Result) {\n\t\tresult.Termination = execution.TerminationSignal\n\t\tresult.Signal = \"killed\"\n\t\tresult.Cancelled = true\n\t\tresult.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}\n\t}\n\tall := func(faults ...func(*execution.Result)) func(*execution.Result) {\n\t\treturn func(result *execution.Result) {\n\t\t\tfor _, fault := range faults {\n\t\t\t\tfault(result)\n\t\t\t}\n\t\t}\n\t}\n\tfor _, test := range []struct {\n\t\tname            string\n\t\tcoverage        CoverageMode\n\t\tfault           func(*execution.Result)\n\t\terr             error\n\t\tseed            completionObservation\n\t\texploration     completionObservation\n\t\tsimulationCause string\n\t\tstatistics      *campaign.CampaignStatistics\n\t}{\n\t\t{\n\t\t\tname: \"malformed World\", fault: malformedWorld,\n\t\t\tseed:        completionObservation{Reason: \"world_record\", Cause: \"decode World terminal: invalid character '|' after object key:value pair\", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{\"gomad3.runner-failure/v1 world_record none none choices\"}, Journal: []string{\"runner world_record none\"}, Partials: []string{\"00000000000000000000-7 captured\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"world_record\", Cause: \"decode World terminal: invalid character '|' after object key:value pair\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"World seed mismatch\", fault: seedMismatch,\n\t\t\tstatistics:  &campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},\n\t\t\tseed:        completionObservation{Reason: \"world_record\", Cause: \"World record seed or schema does not match seed 7\", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{\"gomad3.runner-failure/v1 world_record none none choices\"}, Journal: []string{\"runner world_record none\"}, Partials: []string{\"00000000000000000000-7 captured\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"world_record\", Cause: \"World record seed or schema does not match seed 7\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"malformed semantic coverage\", coverage: CoverageSemantic, fault: malformedCoverage,\n\t\t\tstatistics:  &campaign.CampaignStatistics{Attempted: 1},\n\t\t\tseed:        completionObservation{Reason: \"semantic_coverage\", Cause: \"I/O transcript has invalid length 21\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 preserve-partial\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"semantic_coverage\", Cause: \"I/O transcript has invalid length 21\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"malformed choice trace\", coverage: CoverageChoice, fault: malformedChoices,\n\t\t\tseed:        completionObservation{Reason: \"choice_coverage\", Cause: \"project choice coverage: malformed choice trace\\ninvalid choice terminal values\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 preserve-partial\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"choice_coverage\", Cause: \"project choice coverage: malformed choice trace\\ninvalid choice terminal values\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"choice trace rejected by supervision\", err: execution.ErrChoiceTraceMalformed,\n\t\t\tseed:        completionObservation{Reason: \"choice_trace_malformed\", Cause: \"choice trace malformed\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 preserve-partial\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"choice_trace_malformed\", Cause: \"choice trace malformed\", Partials: []string{failedCampaign, \"00000000000000000000 exited\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"unterminated choice trace rejected by supervision\", err: execution.ErrChoiceTraceUnterminated,\n\t\t\tseed:        completionObservation{Reason: \"choice_trace_unterminated\", Cause: \"choice trace unterminated\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 preserve-partial\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"choice_trace_unterminated\", Cause: \"choice trace unterminated\", Partials: []string{failedCampaign, \"00000000000000000000 exited\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"missing terminal choice frame\", fault: unterminated,\n\t\t\tseed:        completionObservation{Reason: \"choice_trace_unterminated\", Cause: \"choice trace unterminated\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 preserve-partial\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"choice_trace_unterminated\", Cause: \"choice trace unterminated\", Partials: []string{failedCampaign, \"00000000000000000000 exited\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"watchdog\", coverage: CoverageSemanticChoice, fault: watchdog,\n\t\t\tseed:        completionObservation{Counts: [5]uint64{1, 0, 1, 1, 1}, Artifacts: []string{\"gomad3.watchdog-timeout/v1 watchdog_timeout diagnostic none no-choices\"}, Journal: []string{\"watchdog watchdog_timeout timeout\"}},\n\t\t\texploration: completionObservation{Reason: \"choice_trace_malformed\", Cause: \"invalid choice decision tape\\nchoice trace is not complete v3 evidence\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"cancelled execution\", coverage: CoverageSemanticChoice, fault: cancelled,\n\t\t\tseed:            completionObservation{Counts: [5]uint64{1, 0, 1, 0, 1}, Artifacts: []string{\"gomad3.runner-failure/v1 runner_cancelled none none no-choices\"}, Journal: []string{\"runner runner_cancelled none\"}},\n\t\t\texploration:     completionObservation{Reason: \"runner_cancelled\", Cause: \"choice-exploration candidate was cancelled\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t\tsimulationCause: \"simulation exploration candidate was cancelled\",\n\t\t},\n\t\t{\n\t\t\tname: \"malformed World, semantic coverage and choice trace\", coverage: CoverageSemanticChoice, fault: all(malformedWorld, malformedCoverage, malformedChoices),\n\t\t\tseed:        completionObservation{Reason: \"world_record\", Cause: \"decode World terminal: invalid character '|' after object key:value pair\\npublish Runner failure artifact: validate choice trace payload: malformed choice trace\\ninvalid choice terminal values\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 captured\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"world_record\", Cause: \"decode World terminal: invalid character '|' after object key:value pair\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"malformed semantic coverage and choice trace\", coverage: CoverageSemanticChoice, fault: all(malformedCoverage, malformedChoices),\n\t\t\tseed:        completionObservation{Reason: \"semantic_coverage\", Cause: \"I/O transcript has invalid length 21\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 preserve-partial\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"semantic_coverage\", Cause: \"I/O transcript has invalid length 21\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"watchdog and malformed World\", fault: all(watchdog, malformedWorld),\n\t\t\tseed:        completionObservation{Reason: \"world_record\", Cause: \"decode World terminal: invalid character '|' after object key:value pair\\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 captured\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"world_record\", Cause: \"decode World terminal: invalid character '|' after object key:value pair\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"watchdog and malformed semantic coverage\", coverage: CoverageSemantic, fault: all(watchdog, malformedCoverage),\n\t\t\tseed:        completionObservation{Reason: \"semantic_coverage\", Cause: \"I/O transcript has invalid length 21\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 preserve-partial\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"semantic_coverage\", Cause: \"I/O transcript has invalid length 21\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"watchdog and malformed choice trace\", coverage: CoverageChoice, fault: all(watchdog, unprojectableChoices),\n\t\t\tseed:        completionObservation{Reason: \"artifact_publication\", Cause: \"unexpected choice trace payload\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 classified\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"choice_trace_malformed\", Cause: \"invalid choice decision tape\\nchoice trace is not complete v3 evidence\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t},\n\t\t{\n\t\t\tname: \"cancelled execution and malformed World\", fault: all(cancelled, malformedWorld),\n\t\t\tseed:            completionObservation{Reason: \"world_record\", Cause: \"decode World terminal: invalid character '|' after object key:value pair\\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 captured\", failedCampaign}},\n\t\t\texploration:     completionObservation{Reason: \"runner_cancelled\", Cause: \"choice-exploration candidate was cancelled\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t\tsimulationCause: \"simulation exploration candidate was cancelled\",\n\t\t},\n\t\t{\n\t\t\tname: \"cancelled execution and malformed semantic coverage\", coverage: CoverageSemantic, fault: all(cancelled, malformedCoverage),\n\t\t\tseed:            completionObservation{Reason: \"semantic_coverage\", Cause: \"I/O transcript has invalid length 21\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 preserve-partial\", failedCampaign}},\n\t\t\texploration:     completionObservation{Reason: \"runner_cancelled\", Cause: \"choice-exploration candidate was cancelled\", Partials: []string{failedCampaign, \"00000000000000000000 captured\"}},\n\t\t\tsimulationCause: \"simulation exploration candidate was cancelled\",\n\t\t},\n\t\t{\n\t\t\tname: \"supervision failure and World seed mismatch\", fault: seedMismatch, err: execution.ErrChoiceTraceMalformed,\n\t\t\tseed:        completionObservation{Reason: \"choice_trace_malformed\", Cause: \"choice trace malformed\", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{\"00000000000000000000-7 preserve-partial\", failedCampaign}},\n\t\t\texploration: completionObservation{Reason: \"choice_trace_malformed\", Cause: \"choice trace malformed\", Partials: []string{failedCampaign, \"00000000000000000000 exited\"}},\n\t\t},\n\t} {\n\t\tfor _, strategy := range completionStrategies {\n\t\t\tt.Run(test.name+\"/\"+string(strategy), func(t *testing.T) {\n\t\t\t\twant := test.seed\n\t\t\t\tif strategy != StrategySeed {\n\t\t\t\t\twant = test.exploration\n\t\t\t\t\tif strategy == StrategySimulationExploration && test.simulationCause != \"\" {\n\t\t\t\t\t\twant.Cause = test.simulationCause\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tconfig, _, configDependencies := completionCampaign(t, strategy, test.coverage, test.fault, test.err)\n\t\t\t\tsummary, err := exploreWith(context.Background(), config, configDependencies)\n\t\t\t\tif observed := observeCompletion(t, summary, err); !reflect.DeepEqual(observed, want) {\n\t\t\t\t\tt.Fatalf(\"completion = %#v, want %#v\", observed, want)\n\t\t\t\t}\n\t\t\t\tif strategy == StrategySeed && test.statistics != nil {\n\t\t\t\t\tif observed := observeSeedCompletion(t, summary, err).Statistics; observed != *test.statistics {\n\t\t\t\t\t\tt.Fatalf(\"statistics = %#v, want %#v\", observed, *test.statistics)\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t})\n\t\t}\n\t}\n}\n\n// A context cancelled while executions run fails the Campaign as a\n// cancellation. A seed Campaign leaves a resumable plan and its partials; an\n// exploration round fails ahead of the cancelled results its candidates then\n// report.",
+      "sha256": "388f38185fab35eec451ca49666e6ef2a6373d51515b620da8f4d3ee7ce06fef",
+      "actual_owner": "ebc5ea1e099777c9a3bda922666c200e56c9540e gomad: consolidate the CLI and Runner change-detector tests into tables"
+    },
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "signature": "func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {",
+      "start": 414,
+      "end": 428,
+      "body": "func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {\n\tconfig, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, \"1\", PolicyAll, 1)\n\tconfig.KeepSuccesses = KeepSuccessesAll\n\tconfig.SuccessArtifactLimit = 1\n\tconfig.SuccessBytesLimit = 1 << 20\n\tsummary, err := exploreWith(context.Background(), config, configDependencies)\n\tvar hostError *HostError\n\tif !errors.As(err, &hostError) || hostError.Reason != \"success_artifact_publication\" || !strings.Contains(err.Error(), \"complete I/O transcript\") {\n\t\tt.Fatalf(\"exploreWith() error = %v\", err)\n\t}\n\tif got := observeSeedCompletion(t, summary, err).Statistics; got != (campaign.CampaignStatistics{Attempted: 1}) {\n\t\tt.Fatalf(\"statistics = %#v, want %#v\", got, campaign.CampaignStatistics{Attempted: 1})\n\t}\n}\n",
+      "sha256": "24269440cace9fede1be465508f2314f8df8c62a11c06815948c711f2fa5058d",
+      "actual_owner": "ebc5ea1e099777c9a3bda922666c200e56c9540e gomad: consolidate the CLI and Runner change-detector tests into tables"
+    }
+  ],
+  "guard_sources": [
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "sha256": "cc4661f1a5f06acd3c07105b95eb72c1916a66cc55109d5a09b9fb066e4f03c6"
+    },
+    {
+      "path": "tools/gomad3/internal/preparation/preparation.go",
+      "sha256": "a4ef74ce1c76104fa7567d2a8c7b23019188b77c2bb06261166e8669037a07bc"
+    },
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b"
+    }
+  ],
+  "static_supported_source_inventory": {
+    "receipt": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source-inventories-pinned.json",
+    "receipt_sha256": "d467060c7b6af8b4eb05f1d353854c32d76442fa72088031caaa149726cd97d0",
+    "stdout_sha256": "e5db8479e0f26b36dcac62da353bd3141aab8747b246d6c031efd6e056260635",
+    "platforms": [
+      "darwin/arm64",
+      "linux/amd64"
+    ],
+    "reused": "only exact87 runtime bindings/raw72/archive independently rechecked in final-source-proof; no old whole-tree/full-host pass",
+    "native": false
+  },
+  "mutation_scope": "Controller behavior sensitivity only; restored Runner publication assertion not reached on this host",
+  "native_owners": [
+    "fn-149",
+    "fn-128"
+  ]
+}

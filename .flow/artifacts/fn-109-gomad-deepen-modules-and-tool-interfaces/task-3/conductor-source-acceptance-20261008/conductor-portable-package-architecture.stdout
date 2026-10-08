@@ -1,0 +1,16 @@
+{"Time":"2026-10-08T11:35:38.578360519Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3"}
+{"Time":"2026-10-08T11:35:38.579728977Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture"}
+{"Time":"2026-10-08T11:35:38.579764144Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture","Output":"=== RUN   TestPackageArchitecture\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:35:40.592478062Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture","Output":"--- PASS: TestPackageArchitecture (2.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:35:40.592590312Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture","Elapsed":2.01}
+{"Time":"2026-10-08T11:35:40.592635187Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportTypeAliases"}
+{"Time":"2026-10-08T11:35:40.592637645Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportTypeAliases","Output":"=== RUN   TestPublicPackagesDoNotExportTypeAliases\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:35:45.571824231Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportTypeAliases","Output":"--- PASS: TestPublicPackagesDoNotExportTypeAliases (4.98s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:35:45.572317856Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportTypeAliases","Elapsed":4.98}
+{"Time":"2026-10-08T11:35:45.572482439Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestRunnerExternalConsumerCompiles"}
+{"Time":"2026-10-08T11:35:45.572497272Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestRunnerExternalConsumerCompiles","Output":"=== RUN   TestRunnerExternalConsumerCompiles\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:35:45.697879939Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestRunnerExternalConsumerCompiles","Output":"--- PASS: TestRunnerExternalConsumerCompiles (0.13s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:35:45.697921272Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestRunnerExternalConsumerCompiles","Elapsed":0.13}
+{"Time":"2026-10-08T11:35:45.697962772Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T11:35:45.703583022Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"ok  \tgo.temporal.io/server/tools/gomad3\t7.125s\n"}
+{"Time":"2026-10-08T11:35:45.703649356Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Elapsed":7.125}

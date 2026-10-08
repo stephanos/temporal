@@ -1,0 +1,715 @@
+{
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.3",
+  "status": "in_progress",
+  "base_commit": "b4dd0531c0a7e0a31a2285d307484f2d41f02559",
+  "commits": [],
+  "prs": [],
+  "review_verdict": null,
+  "native": false,
+  "native_qualification": false,
+  "tier": "session (jev-unavailable(no_key))",
+  "baseline": "pre-edit broad stock-Go Runner gate red/refused/timeout on unsupported linux/arm64; portable Controller green; no BASELINE_HANDOFF asserted",
+  "source_identity_sha256": "082e9ebea022300c9769d4ac0fcf402905f3618cf8fc90342375a087713b56db",
+  "admitted_test_edits": [
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "before_sha256": "7cb8fe0f7cd3abed0ed244b04254d8793ad606eb01e9bde8278e739a7b3432d8",
+      "after_sha256": "5a7e92b82de7901dbc0d4483879f57cbd901f0359e262c8acd3ff3351ba2c998",
+      "scope": "TestRunRejectsSuccessfulRetentionWithoutReplayTranscript"
+    },
+    {
+      "path": "tools/gomad3/runner/completion_characterization_test.go",
+      "before_sha256": "e733fed7ad2349f849ab0efc8d0671b09f5e353e259dd967f46083ce7939032c",
+      "after_sha256": "7128a2f2b93a4f84033e284e76766b90db4bd9874112d38e1504f24cacf6a9d1",
+      "scope": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence"
+    }
+  ],
+  "tests": [
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-proof.mjs after",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-proof.mjs before",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/artifact-whitespace.mjs",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep ./runner/internal/campaign",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep ./runner/internal/campaign -run ^TestSeedControllerCompletionKeepsWholeStatistics$/^unclassified_attempt$",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep ./runner -run ^TestRunRejectsSuccessfulRetentionWithoutReplayTranscript$",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-additive.mjs after",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-additive.mjs after",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-additive.mjs before",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner ./runner/internal/campaign",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=48a2c8cd9eafe45e435022838c72864be16453f3 GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/missing-unclassified-attempted-overlay.json ./runner/internal/campaign -run ^TestSeedControllerCompletionKeepsWholeStatistics$/^unclassified_attempt$",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-wrongly-classified-success-overlay.json ./runner/internal/campaign -run ^TestSeedControllerCompletionKeepsWholeStatistics$/^unclassified_attempt$",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-proof.mjs",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-proof.mjs",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-proof.mjs",
+    "git diff --check",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=48a2c8cd9eafe45e435022838c72864be16453f3 GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-proof.mjs accepted-coverage-proof.json",
+    "git diff --check",
+    "git diff --check",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner ./runner/internal/campaign",
+    "make -C tools/gomad3 validate",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l tools/gomad3/runner/runner_test.go tools/gomad3/runner/completion_characterization_test.go",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-proof.mjs accepted-lint-proof.json",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-proof.mjs accepted-lint-proof.json",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep ./runner -run ^(TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestRunRejectsSuccessfulRetentionWithoutReplayTranscript)$/^(World_seed_mismatch|malformed_semantic_coverage)$/^seed$",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep ./runner -run ^(TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds|TestSuccessPublicationFailureSeparatesCapacityFromPublication|TestSuccessRetentionAnnotatesTheJournalRecord|TestExecutionArtifactInputCarriesTheCapturedEvidence|TestChoiceTraceObservedExcludesWatchdogAndCancellation|TestDecodeCoordinatorMessages.*|TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance)$",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV= GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 LINT_CODE_TARGETS=./runner ./runner/internal/campaign ALL_TEST_TAGS=test_dep",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-proof.mjs",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-proof.mjs accepted-source-proof.json",
+    "make -C tools/gomad3 validate",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-proof.mjs",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-proof.mjs",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep ./runner/internal/campaign -run SeedController|Controller",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep -run ^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestRunnerExternalConsumerCompiles)$ .",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep ./runner -run ^(TestSeedCompletion|TestCompletion|TestCancellationIsAHostFailure|TestShardedSeedController|TestRunPreparesOnce|TestRunReportsPreparation|TestRunReportsPeriodic|TestRunFirstFailure|TestRunBudget|TestRunCountsConnectedWorldReplayDivergence|TestRunRejectsInvalidConnectedWorld|TestRunRejectsPreparedTargetMutation|TestRunResumesVerifiedBatch|TestRunResumeRejectsChangedEvidence|TestRunPreparationFailure|TestRunClassifiesWatchdog)",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -json -count=1 -tags test_dep ./runner -run ^(TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds|TestSuccessPublicationFailureSeparatesCapacityFromPublication|TestSuccessRetentionAnnotatesTheJournalRecord|TestExecutionArtifactInputCarriesTheCapturedEvidence|TestChoiceTraceObservedExcludesWatchdogAndCancellation|TestDecodeCoordinatorMessages.*|TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance)$",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof.mjs",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof.mjs",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l tools/gomad3/runner/internal/campaign/controller.go tools/gomad3/runner/internal/campaign/controller_test.go tools/gomad3/runner/internal/campaign/controller_completion_test.go tools/gomad3/runner/runner.go tools/gomad3/runner/campaign_test.go tools/gomad3/runner/seed_completion_characterization_test.go tools/gomad3/runner/completion_characterization_test.go tools/gomad3/runner/runner_test.go",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV= GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 LINT_CODE_TARGETS=./runner ./runner/internal/campaign ALL_TEST_TAGS=test_dep"
+  ],
+  "receipts": [
+    {
+      "path": "additive-binding.json",
+      "sha256": "f83c498b21992a48e87bfbfc3f0e992d718f5fdf48415635c0dad17d6609a814",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-proof.mjs",
+        "after"
+      ]
+    },
+    {
+      "path": "additive-preimage.json",
+      "sha256": "7e676ff5f637e0a0240a34ae41337454993dc5d6d224468519ec729f253b36d5",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/additive-proof.mjs",
+        "before"
+      ]
+    },
+    {
+      "path": "artifact-staged-style-whitespace.json",
+      "sha256": "081b4cce586a2c549a91105692f771a3c1327deaea952f8de26ac6e0997a90a8",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/artifact-whitespace.mjs"
+      ]
+    },
+    {
+      "path": "campaign-state-machines.json",
+      "sha256": "73b59071f17afa48f9ce5695dff379d904fa18a9c8820c766d5c8e3edfb82d29",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner/internal/campaign"
+      ]
+    },
+    {
+      "path": "canonical-controller-after-mutations.json",
+      "sha256": "e5f737674a56ab786cbe34ddc7f313ffc6d40a21a7663e4210b13b3b60738db9",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner/internal/campaign",
+        "-run",
+        "^TestSeedControllerCompletionKeepsWholeStatistics$/^unclassified_attempt$"
+      ]
+    },
+    {
+      "path": "canonical-success-publication.json",
+      "sha256": "d6c712feba67418ed2132c8752d03a5bc3155c375ab4b3890f2ff3bb687af2cb",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "-run",
+        "^TestRunRejectsSuccessfulRetentionWithoutReplayTranscript$"
+      ]
+    },
+    {
+      "path": "completion-delta-binding.json",
+      "sha256": "443242e1d8446a2c3d7bf027ec603f003f6f3cdbef6acab78de7a82852906138",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-additive.mjs",
+        "after"
+      ]
+    },
+    {
+      "path": "completion-delta-corrected.json",
+      "sha256": "fa9207f394d58b9657f30d0d541244ac3d4ee059e1436c4d4ce3e471e5770b73",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-additive.mjs",
+        "after"
+      ]
+    },
+    {
+      "path": "completion-preimage.json",
+      "sha256": "3264ee83068d215bd6c4c9adef0ac7878c8fba977480860fcb6187f013396d21",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/completion-additive.mjs",
+        "before"
+      ]
+    },
+    {
+      "path": "configured-errortype.json",
+      "sha256": "dec158fc2e06d117043ab37f092226475d8c97aa3ee6bc4149a89f13596b9a0e",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-style-check=false",
+        "./runner",
+        "./runner/internal/campaign"
+      ]
+    },
+    {
+      "path": "configured-fast-lint.json",
+      "sha256": "0b3076632426acf472bf9e2a3c95479c2bcdee25b9f6b8179b1286158b728a48",
+      "exit": 2,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT_BASE_REV=48a2c8cd9eafe45e435022838c72864be16453f3",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "ALL_TEST_TAGS=test_dep"
+      ]
+    },
+    {
+      "path": "controller-missing-attempted.json",
+      "sha256": "45fe1fd08667c60b2a7d0d6f663ef73d8f2f1044da0fc7da77ad6242e20b0a67",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/missing-unclassified-attempted-overlay.json",
+        "./runner/internal/campaign",
+        "-run",
+        "^TestSeedControllerCompletionKeepsWholeStatistics$/^unclassified_attempt$"
+      ]
+    },
+    {
+      "path": "controller-wrong-success.json",
+      "sha256": "966494130f9a4f7c615998722042c0081aaf615e2db3b1440536ce7a07f28894",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/controller-wrongly-classified-success-overlay.json",
+        "./runner/internal/campaign",
+        "-run",
+        "^TestSeedControllerCompletionKeepsWholeStatistics$/^unclassified_attempt$"
+      ]
+    },
+    {
+      "path": "coverage-migration-binding.json",
+      "sha256": "73a69f1aefd1192acfd1b09d51297768535b39f350108a558abdc0a4b2897c67",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-proof.mjs"
+      ]
+    },
+    {
+      "path": "coverage-migration-corrected.json",
+      "sha256": "e1bc6bdd628dfc0191ba20ddab589e2f5d05cb2be26d8fb3b1d4e0ceabd625ef",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-proof.mjs"
+      ]
+    },
+    {
+      "path": "coverage-migration-final.json",
+      "sha256": "0378cf9236f95d90b1421119c4c6c28c361efcc6c99022742bd9dc76d0b3618c",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-proof.mjs"
+      ]
+    },
+    {
+      "path": "diff-whitespace.json",
+      "sha256": "780fe228e11d99609feeb52e196c40b563b14c4a406ab6c53a612f116a31fbf0",
+      "exit": 2,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ]
+    },
+    {
+      "path": "final-configured-fast-lint.json",
+      "sha256": "6d478cea63088590f0761db52aa682e448f74dc267d0764502b75b8f035ad294",
+      "exit": 2,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT_BASE_REV=48a2c8cd9eafe45e435022838c72864be16453f3",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "ALL_TEST_TAGS=test_dep"
+      ]
+    },
+    {
+      "path": "final-coverage-binding.json",
+      "sha256": "46f8e94b9172ef0752f9943bc5bcaae4d2f343e700fab8b89798873eee88cf0c",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/coverage-proof.mjs",
+        "accepted-coverage-proof.json"
+      ]
+    },
+    {
+      "path": "final-diff-check.json",
+      "sha256": "87f9309c9d6750805b7224d8bb25e9994dee9c5453c102985aacc21416d9b2d8",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ]
+    },
+    {
+      "path": "final-diff-whitespace.json",
+      "sha256": "eea2162cf61f89928198914e95e83116ec78fc57cb4e1af57aefa65f19a07ff5",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ]
+    },
+    {
+      "path": "final-errortype.json",
+      "sha256": "c931896eb9a0c3cf2863c796ce5e8f1ca9e89aae5d11ffffb0b7f39ab3ed570b",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-style-check=false",
+        "./runner",
+        "./runner/internal/campaign"
+      ]
+    },
+    {
+      "path": "final-generated-validation.json",
+      "sha256": "9a26ed1e5cd3e0fd59d001561092cfa9e6cfb7bfd7584313b5b1461031b4abd8",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ]
+    },
+    {
+      "path": "final-gofmt.json",
+      "sha256": "d541deaa6095741d1e2a0afb112b6ceaad43a8eb325db1293838fcb492b154a1",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+        "-l",
+        "tools/gomad3/runner/runner_test.go",
+        "tools/gomad3/runner/completion_characterization_test.go"
+      ]
+    },
+    {
+      "path": "final-lint-context-binding.json",
+      "sha256": "2d0a078482887138902c24fad8b9eac8ef26442b74175c77464bbc0097924fc1",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-proof.mjs",
+        "accepted-lint-proof.json"
+      ]
+    },
+    {
+      "path": "final-lint-preservation.json",
+      "sha256": "cd8bd1d9bfa236cbc20e6d6d81a727458e3323321b1e9306c9811e191281d171",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-proof.mjs",
+        "accepted-lint-proof.json"
+      ]
+    },
+    {
+      "path": "final-native-guarded-assertions.json",
+      "sha256": "f2d712bca0403d24675eb8122c35d6c92ffe2ac40a83d22ad42d2b416bf3d36f",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "-run",
+        "^(TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestRunRejectsSuccessfulRetentionWithoutReplayTranscript)$/^(World_seed_mismatch|malformed_semantic_coverage)$/^seed$"
+      ]
+    },
+    {
+      "path": "final-portable-runner-boundaries.json",
+      "sha256": "42273929fe4cf28bb177358d9e1d683482fc9b8bff1603667366c7300015927b",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "-run",
+        "^(TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds|TestSuccessPublicationFailureSeparatesCapacityFromPublication|TestSuccessRetentionAnnotatesTheJournalRecord|TestExecutionArtifactInputCarriesTheCapturedEvidence|TestChoiceTraceObservedExcludesWatchdogAndCancellation|TestDecodeCoordinatorMessages.*|TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance)$"
+      ]
+    },
+    {
+      "path": "final-relevant-unfiltered-lint.json",
+      "sha256": "f0516c99ff3064da38cba403d24f3995d073b957a4065cf0a51c2ca405ed0e64",
+      "exit": 2,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT_BASE_REV=",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "LINT_CODE_TARGETS=./runner ./runner/internal/campaign",
+        "ALL_TEST_TAGS=test_dep"
+      ]
+    },
+    {
+      "path": "final-source-binding.json",
+      "sha256": "c4d2252b8fa75a49a7bf330236fed7dfd405e88cbd0484276b7a36531ceb9363",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-proof.mjs"
+      ]
+    },
+    {
+      "path": "final-three-file-binding.json",
+      "sha256": "661c9e27954ef2edcbff1b3807f4a7bb4bc278fa2b22fe93e82815a5de507b5b",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/final-proof.mjs",
+        "accepted-source-proof.json"
+      ]
+    },
+    {
+      "path": "generated-validation.json",
+      "sha256": "122ebc8436fc9ef528c4f1e7c4fe0f89e6616caac06d44fd289fc8690ee7f352",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ]
+    },
+    {
+      "path": "lint-attribution-corrected.json",
+      "sha256": "6d6ef1ad33b551265e65c5cf87fa148d8251b90e6776185c895cd66d4a34803d",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-proof.mjs"
+      ]
+    },
+    {
+      "path": "lint-attribution.json",
+      "sha256": "c2b051afc5221f0260241cb39ec1368f7b7440b83edd9b61296b31146aa86430",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/lint-proof.mjs"
+      ]
+    },
+    {
+      "path": "portable-controller.json",
+      "sha256": "cf809be0d3649ac48b89c020a6e390f730b93875dda9c294fb47d0fc0aa1e1fc",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner/internal/campaign",
+        "-run",
+        "SeedController|Controller"
+      ]
+    },
+    {
+      "path": "portable-package-architecture.json",
+      "sha256": "425b8cda24c5373e91296100f8b05a700b001e2efb787d625831fed00b3039b4",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestRunnerExternalConsumerCompiles)$",
+        "."
+      ]
+    },
+    {
+      "path": "portable-runner-boundaries.json",
+      "sha256": "2c321fb7164ba5e30f7a033583d4dd31ae82a23fa0cf507c644899e58ffc2583",
+      "exit": null,
+      "signal": "SIGTERM",
+      "error": "spawnSync /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go ETIMEDOUT",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "-run",
+        "^(TestSeedCompletion|TestCompletion|TestCancellationIsAHostFailure|TestShardedSeedController|TestRunPreparesOnce|TestRunReportsPreparation|TestRunReportsPeriodic|TestRunFirstFailure|TestRunBudget|TestRunCountsConnectedWorldReplayDivergence|TestRunRejectsInvalidConnectedWorld|TestRunRejectsPreparedTargetMutation|TestRunResumesVerifiedBatch|TestRunResumeRejectsChangedEvidence|TestRunPreparationFailure|TestRunClassifiesWatchdog)"
+      ]
+    },
+    {
+      "path": "portable-runner-pure-boundaries.json",
+      "sha256": "b73a1f566a251809ccb927cc216ea07cb15508c87a5b01bedeccd03fdb37c28e",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "-run",
+        "^(TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds|TestSuccessPublicationFailureSeparatesCapacityFromPublication|TestSuccessRetentionAnnotatesTheJournalRecord|TestExecutionArtifactInputCarriesTheCapturedEvidence|TestChoiceTraceObservedExcludesWatchdogAndCancellation|TestDecodeCoordinatorMessages.*|TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance)$"
+      ]
+    },
+    {
+      "path": "proof-authoring-first.json",
+      "sha256": "c681cd9f01a26760b0b04698fd2cb397ceea396e2348042a1a67ebeb95d0581b",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof.mjs"
+      ]
+    },
+    {
+      "path": "proof-authoring-second.json",
+      "sha256": "9079e45922eeb0fd607c0a6d01981892b8f8bfc7fcdff9ab53e94d18c752a0bd",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-acceptance-20261008/proof.mjs"
+      ]
+    },
+    {
+      "path": "read-only-gofmt.json",
+      "sha256": "53476d1a9cf5dc9f03f2395184277f3c9fa6798edc4d8b7234e9acb8672bfcb7",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+        "-l",
+        "tools/gomad3/runner/internal/campaign/controller.go",
+        "tools/gomad3/runner/internal/campaign/controller_test.go",
+        "tools/gomad3/runner/internal/campaign/controller_completion_test.go",
+        "tools/gomad3/runner/runner.go",
+        "tools/gomad3/runner/campaign_test.go",
+        "tools/gomad3/runner/seed_completion_characterization_test.go",
+        "tools/gomad3/runner/completion_characterization_test.go",
+        "tools/gomad3/runner/runner_test.go"
+      ]
+    },
+    {
+      "path": "relevant-unfiltered-lint.json",
+      "sha256": "753e9900ff2b3ee673759c4e7ed9cf29a25e8d30633b97d30d7f4fdcf5c3ff46",
+      "exit": 2,
+      "signal": null,
+      "error": null,
+      "argv": [
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT_BASE_REV=",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "LINT_CODE_TARGETS=./runner ./runner/internal/campaign",
+        "ALL_TEST_TAGS=test_dep"
+      ]
+    }
+  ],
+  "portable_unique_top_level_tests": 95,
+  "source_proof": "accepted-source-proof.json",
+  "coverage_proof": "accepted-coverage-proof.json",
+  "lint_proof": "accepted-lint-proof.json",
+  "fast_lint_findings": 56,
+  "unfiltered_relevant_findings": 17,
+  "global_lint_green": false,
+  "mutation_controls": "Controller only: two intended statistic mismatches RED, canonical GREEN",
+  "restored_runner_assertions": "three historical vectors restored additively; native preparation guard prevents executing their assertions here",
+  "native_owners": [
+    "fn-149",
+    "fn-128"
+  ],
+  "lane": "released at terminal return; no attributable process remains",
+  "worker_history_unchanged": true
+}

@@ -1,0 +1,82 @@
+{
+  "patch_sha256": "52705d516b65c4ce03ec2fdf3f276e64456c4713d3140480b086ddd0265c153b",
+  "four_modified_images": 4,
+  "new_characterization_images": 1,
+  "rows": [
+    {
+      "path": "tools/gomad3/runner/internal/campaign/controller.go",
+      "pre_sha256": "1192ea922a4686cfc3fd71dfe81a33f3c48d98d8f49331765e19d5f3e92d4134",
+      "post_sha256": "ddb9b33cab6e7ae0d571d502871872963c0da215c7e244c12b7131c13859aca4",
+      "current_sha256": "043981c7ac6e97713971c62a308693089ec0f0499e75d52d6c7d9474eec843de",
+      "unchanged": false,
+      "hunks": [
+        "@@ -21,6 +21,22 @@",
+        "@@ -95,31 +111,31 @@",
+        "@@ -129,7 +145,7 @@"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/controller_test.go",
+      "pre_sha256": "c4fd06a469b27181928efb89c3ae047392b473fc0b3b6a05fbd70b8715124d63",
+      "post_sha256": "77de1a00eb606ffd121894186280c07d5491388bb3b3027eeb9824819abffbf2",
+      "current_sha256": "3a8ce5ffc13578cccbdd1e9d78007d6f65606025d4c287fecf73a3720cc669a3",
+      "unchanged": false,
+      "hunks": [
+        "@@ -31,16 +31,13 @@",
+        "@@ -66,6 +63,7 @@",
+        "@@ -83,27 +81,77 @@"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "pre_sha256": "358a37dafa538e66b7b02baea2c0c8cff78268fee35f3a0c5cd75d653eee3e0f",
+      "post_sha256": "157eb0abf82c8191253c46991bdecbcd073fd80fe3ab8ba9e141bd388c48fe1f",
+      "current_sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b",
+      "unchanged": false,
+      "hunks": [
+        "@@ -685,6 +685,11 @@",
+        "@@ -800,9 +805,8 @@",
+        "@@ -811,6 +815,7 @@",
+        "@@ -829,6 +834,7 @@",
+        "@@ -840,8 +846,7 @@",
+        "@@ -869,6 +874,7 @@",
+        "@@ -881,6 +887,7 @@",
+        "@@ -895,6 +902,7 @@",
+        "@@ -905,6 +913,7 @@",
+        "@@ -917,6 +926,7 @@",
+        "@@ -925,6 +935,7 @@",
+        "@@ -946,6 +957,7 @@",
+        "@@ -973,6 +985,7 @@",
+        "@@ -986,6 +999,7 @@",
+        "@@ -1002,10 +1016,11 @@",
+        "@@ -1013,6 +1028,7 @@",
+        "@@ -1022,6 +1038,7 @@",
+        "@@ -1031,6 +1048,7 @@",
+        "@@ -1039,6 +1057,7 @@",
+        "@@ -1049,6 +1068,7 @@",
+        "@@ -1064,8 +1084,9 @@"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_test.go",
+      "pre_sha256": "89c2fe246c95e4658902c4c0df9924a6ba8ade91e6344ebb9470c2e425112ea2",
+      "post_sha256": "f34a5e236c0f880e4fb9e4e2339f985c5c98f054d523531a1ce136bc1743f885",
+      "current_sha256": "f34a5e236c0f880e4fb9e4e2339f985c5c98f054d523531a1ce136bc1743f885",
+      "unchanged": true,
+      "hunks": [
+        "@@ -1,6 +1,10 @@",
+        "@@ -28,10 +32,8 @@"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/seed_completion_characterization_test.go",
+      "pre_sha256": null,
+      "post_sha256": "f6118cfcb23a456ac456e442ba1a7c86d6d23da247d0d4d8ff7d27a1a013ebed",
+      "current_sha256": "b35b3ec2d623c5746cc58e8996ff033b8e584813e6308f5fe7e0a03fde76e2b6",
+      "unchanged": false,
+      "hunks": [
+        "@@ -0,0 +1,86 @@"
+      ]
+    }
+  ]
+}

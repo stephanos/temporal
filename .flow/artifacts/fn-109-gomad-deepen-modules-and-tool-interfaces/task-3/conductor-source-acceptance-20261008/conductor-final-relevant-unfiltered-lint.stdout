@@ -1,0 +1,57 @@
+[1;36mLinting code...[0m
+tools/gomad3/runner/campaign.go:11:4: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+			panic("gomad3: duplicate execution completion")
+			^
+tools/gomad3/runner/campaign.go:25:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: execution completion order has an unresolved gap")
+		^
+tools/gomad3/runner/choice_exploration_divergence_test.go:234:5: missing cases in switch of type choice.DivergenceReason: choice.DivergenceAlternativeSet, choice.DivergenceTapeExhausted, choice.DivergenceIdentityMissing, choice.DivergenceIdentityDuplicate, choice.DivergenceAlternativeCapacity, choice.DivergenceObservation (exhaustive)
+				switch reason {
+				^
+tools/gomad3/runner/choice_exploration_divergence_unix_test.go:60:19: Error return value of `input.Close` is not checked (errcheck)
+	defer input.Close()
+	                 ^
+tools/gomad3/runner/completion.go:39:10: ST1005: error strings should not be capitalized (staticcheck)
+			err = fmt.Errorf("World record seed or schema does not match seed %d", seed)
+			      ^
+tools/gomad3/runner/completion_characterization_test.go:95:2: missing cases in switch of type runner.Strategy: runner.StrategySeed (exhaustive)
+	switch strategy {
+	^
+tools/gomad3/runner/diagnostics_test.go:133:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/inspect.go:401:21: Error return value of `opened.Close` is not checked (errcheck)
+		defer opened.Close()
+		                  ^
+tools/gomad3/runner/inspect.go:638:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("unknown validated choice kind %d", kind))
+		^
+tools/gomad3/runner/inspect_test.go:121:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/inspect_test.go:247:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World seed does not match target seed")
+		            ^
+tools/gomad3/runner/retention_characterization_test.go:750:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/runner.go:1189:33: ST1005: error strings should not be capitalized (staticcheck)
+			return SeedSelection{}, nil, fmt.Errorf("Runner build identity is required for campaign resume")
+			                             ^
+tools/gomad3/runner/runner_test.go:895:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/runner_test.go:2262:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/runner_test.go:2369:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+17 issues:
+* errcheck: 9
+* exhaustive: 2
+* forbidigo: 3
+* staticcheck: 3

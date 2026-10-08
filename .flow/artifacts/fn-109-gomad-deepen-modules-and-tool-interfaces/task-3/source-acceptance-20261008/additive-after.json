@@ -1,0 +1,43 @@
+{
+  "path": "tools/gomad3/runner/runner_test.go",
+  "name": "TestRunRejectsSuccessfulRetentionWithoutReplayTranscript",
+  "before_sha256": "7cb8fe0f7cd3abed0ed244b04254d8793ad606eb01e9bde8278e739a7b3432d8",
+  "after_sha256": "5a7e92b82de7901dbc0d4483879f57cbd901f0359e262c8acd3ff3351ba2c998",
+  "before_function": {
+    "signature": "func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {",
+    "start": 414,
+    "end": 425,
+    "body": "func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {\n\tconfig, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, \"1\", PolicyAll, 1)\n\tconfig.KeepSuccesses = KeepSuccessesAll\n\tconfig.SuccessArtifactLimit = 1\n\tconfig.SuccessBytesLimit = 1 << 20\n\t_, err := exploreWith(context.Background(), config, configDependencies)\n\tvar hostError *HostError\n\tif !errors.As(err, &hostError) || hostError.Reason != \"success_artifact_publication\" || !strings.Contains(err.Error(), \"complete I/O transcript\") {\n\t\tt.Fatalf(\"exploreWith() error = %v\", err)\n\t}\n}\n"
+  },
+  "after_function": {
+    "signature": "func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {",
+    "start": 414,
+    "end": 428,
+    "body": "func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {\n\tconfig, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, \"1\", PolicyAll, 1)\n\tconfig.KeepSuccesses = KeepSuccessesAll\n\tconfig.SuccessArtifactLimit = 1\n\tconfig.SuccessBytesLimit = 1 << 20\n\tsummary, err := exploreWith(context.Background(), config, configDependencies)\n\tvar hostError *HostError\n\tif !errors.As(err, &hostError) || hostError.Reason != \"success_artifact_publication\" || !strings.Contains(err.Error(), \"complete I/O transcript\") {\n\t\tt.Fatalf(\"exploreWith() error = %v\", err)\n\t}\n\tif got := observeSeedCompletion(t, summary, err).Statistics; got != (campaign.CampaignStatistics{Attempted: 1}) {\n\t\tt.Fatalf(\"statistics = %#v, want %#v\", got, campaign.CampaignStatistics{Attempted: 1})\n\t}\n}\n"
+  },
+  "exact_single_function_delta": true,
+  "original_statistics_vector": {
+    "Attempted": 1,
+    "Succeeded": 0,
+    "Failures": 0,
+    "Watchdogs": 0,
+    "ReplayDivergences": 0,
+    "Cancelled": 0,
+    "DistinctFailures": 0,
+    "StopReason": ""
+  },
+  "mutants": [
+    {
+      "name": "missing-unclassified-attempted",
+      "path": "tools/gomad3/runner/internal/campaign/controller.go",
+      "sha256": "fdbc7e97488bf87d3c612be68f8ead2ace0f61346f25e567445c311e14b752e9",
+      "execution": "not attempted: canonical test refused before executor by unchanged unsupported native host guard; no meaningful mutation RED can be obtained here"
+    },
+    {
+      "name": "wrongly-classified-success",
+      "path": "tools/gomad3/runner/runner.go",
+      "sha256": "f5f5eef362eed1e574a5fcecad0dca373fecf70295112a7af7d44e5f1069107a",
+      "execution": "not attempted: canonical test refused before executor by unchanged unsupported native host guard; no meaningful mutation RED can be obtained here"
+    }
+  ]
+}

@@ -236,6 +236,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 		seed            completionObservation
 		exploration     completionObservation
 		simulationCause string
+		statistics      *campaign.CampaignStatistics
 	}{
 		{
 			name: "malformed World", fault: malformedWorld,
@@ -244,11 +245,13 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 		},
 		{
 			name: "World seed mismatch", fault: seedMismatch,
+			statistics:  &campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},
 			seed:        completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
 			exploration: completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "malformed semantic coverage", coverage: CoverageSemantic, fault: malformedCoverage,
+			statistics:  &campaign.CampaignStatistics{Attempted: 1},
 			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
 			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
@@ -339,6 +342,11 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 				summary, err := exploreWith(context.Background(), config, configDependencies)
 				if observed := observeCompletion(t, summary, err); !reflect.DeepEqual(observed, want) {
 					t.Fatalf("completion = %#v, want %#v", observed, want)
+				}
+				if strategy == StrategySeed && test.statistics != nil {
+					if observed := observeSeedCompletion(t, summary, err).Statistics; observed != *test.statistics {
+						t.Fatalf("statistics = %#v, want %#v", observed, *test.statistics)
+					}
 				}
 			})
 		}

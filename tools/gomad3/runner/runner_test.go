@@ -416,10 +416,13 @@ func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
 	config.KeepSuccesses = KeepSuccessesAll
 	config.SuccessArtifactLimit = 1
 	config.SuccessBytesLimit = 1 << 20
-	_, err := exploreWith(context.Background(), config, configDependencies)
+	summary, err := exploreWith(context.Background(), config, configDependencies)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "success_artifact_publication" || !strings.Contains(err.Error(), "complete I/O transcript") {
 		t.Fatalf("exploreWith() error = %v", err)
+	}
+	if got := observeSeedCompletion(t, summary, err).Statistics; got != (campaign.CampaignStatistics{Attempted: 1}) {
+		t.Fatalf("statistics = %#v, want %#v", got, campaign.CampaignStatistics{Attempted: 1})
 	}
 }
 

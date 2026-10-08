@@ -1,0 +1,208 @@
+{
+  "argv": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-json",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./runner/internal/campaign",
+    "-run",
+    "SeedController|Controller"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "removed_environment": [
+    "GOROOT",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED",
+    "GOMAD3_CAPTURE_OPTIONS_BASELINE",
+    "GOMAD3_CAPTURE_OPTIONS_AFTER"
+  ],
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T11:05:28.398Z",
+  "ended": "2026-10-08T11:05:28.916Z",
+  "elapsed_seconds": 0.518,
+  "sources_before_sha256": "afa017cd8c08b75b4d2b77483a871c3fc178ddce28b46075df6b4e9dc5130f93",
+  "sources_after_sha256": "afa017cd8c08b75b4d2b77483a871c3fc178ddce28b46075df6b4e9dc5130f93",
+  "source_changes": [],
+  "stdout_sha256": "d0a453135ca8ae48178a53768fade0269f7f5d0be30973cc458017de23cde0a7",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "golangci_lint": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/success",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/cancellation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/unclassified_attempt",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/watchdog",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/replay_divergence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/distinct_and_duplicate_failures",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/first_failure_cancels_active_work_once",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/budget_counts_distinct_failures",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/budget_unclassified_attempts_never_stop",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/all_never_stops",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/stopped_campaign_keeps_classifying_without_a_policy_stop",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/resume_seeded_counters_accumulate",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics/resume_seeded_first_policy_without_failures",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletionKeepsWholeStatistics",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRejectsCompletionWithoutClassification",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRejectsCompletionWithoutActiveWork",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerSchedulesAndAggregatesDeterministically",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerAppliesFailurePolicies/first",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerAppliesFailurePolicies/budget",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerAppliesFailurePolicies/all",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerAppliesFailurePolicies",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerCompletesUnclassifiedAndDuplicateFailureAtomically",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRejectsInactiveCompletionBeforeChangingStatistics",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRestoresSatisfiedPolicy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRestoresAdmissionAndWholeStatistics/all_admits_retained_failures",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_below_threshold_admits",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_at_threshold_stops",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_above_threshold_stops",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRestoresAdmissionAndWholeStatistics",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "test": "TestSeedControllerRejectsInvalidConfiguration",
+      "action": "pass"
+    }
+  ],
+  "top_level_counts": {
+    "pass": 10,
+    "fail": 0,
+    "skip": 0
+  }
+}
