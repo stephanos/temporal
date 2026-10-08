@@ -677,9 +677,21 @@ private val externalCancelRequested = externalRead(
   system.Fact.statusCancelRequested,
   Taking(client.requestCancel, 1)
 )
-private val externalCompleted = externalRead("externalCompleted", system.Fact.statusCompleted)
-private val externalFailed = externalRead("externalFailed", system.Fact.statusFailed)
-private val externalCanceled = externalRead("externalCanceled", system.Fact.statusCanceled)
+private val externalCompleted = externalRead(
+  "externalCompleted",
+  system.Fact.statusCompleted,
+  Taking(service.respondCompletedByID, 1)
+)
+private val externalFailed = externalRead(
+  "externalFailed",
+  system.Fact.statusFailed,
+  Taking(service.respondFailedByID(Failure.fatal), 1)
+)
+private val externalCanceled = externalRead(
+  "externalCanceled",
+  system.Fact.statusCanceled,
+  Taking(service.respondCanceledByID, 1)
+)
 private val running = Condition.equal(
   Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
   Operand.enumValue(ACTIVITY_EXECUTION_STATUS_RUNNING)
@@ -819,6 +831,12 @@ object HeldFailureByID
       extends Evidences(
         answered(system.Fact.statusScheduled, startExternal),
         externalStarted,
+        delivered(
+          system.Fact.attemptCount,
+          externalFailureAttempts,
+          attempt = 2,
+          after = startExternal
+        ),
         externalFailed
       )
   object serverSteps extends ServerSteps(fatalExternalSettlement)
@@ -845,6 +863,12 @@ object HeldCancellationByID
       extends Evidences(
         answered(system.Fact.statusScheduled, startExternal),
         externalStarted,
+        delivered(
+          system.Fact.attemptCount,
+          externalCancellationAttempts,
+          attempt = 2,
+          after = startExternal
+        ),
         externalCancelRequested,
         externalCanceled
       )

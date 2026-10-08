@@ -804,6 +804,8 @@ object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
         .total(19008)
         .expect(satisfied)
 
+// A closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule
+// out a silent rejected repeat: the explanations of each By-ID witness disagree, as terminate's do.
 object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
   object properties:
     val completedByID = property when service.respondCompletedByID holds { after =>
@@ -814,7 +816,7 @@ object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
     val scheduledCompletedByID =
       (query find properties.completedByID in scheduledCompletion limits three)
         .total(9504)
-        .expect(satisfied)
+        .expect(inconclusive(Reason.explanationsDisagree))
 
 object ByIDFailure extends Derived(ActivitySystem.unmonitored):
   object properties:
@@ -830,7 +832,7 @@ object ByIDFailure extends Derived(ActivitySystem.unmonitored):
     val heldFailedByID =
       (query find properties.fatalFailureByID in heldFatalFailure limits three)
         .total(14256)
-        .expect(satisfied)
+        .expect(inconclusive(Reason.explanationsDisagree))
 
 object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
   object properties:
@@ -851,7 +853,7 @@ object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
     val heldCanceledByID =
       (query find properties.canceledByID in heldCancellation limits four)
         .total(19008)
-        .expect(satisfied)
+        .expect(inconclusive(Reason.explanationsDisagree))
     val cancelIsRequested =
       (query(
         "activitySystem.cancelIsRequested"

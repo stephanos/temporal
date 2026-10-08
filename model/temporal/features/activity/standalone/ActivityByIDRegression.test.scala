@@ -161,7 +161,10 @@ class ActivityByIDRegression extends munit.FunSuite:
       assert(!query.scenario.free)
       assertEquals(query.scenario.actions, actions)
       assertEquals(query.total, Some(4752L * actions.size))
-      assertEquals(query.expectedRun, Some(temporal.realize.satisfied))
+      assertEquals(
+        query.expectedRun,
+        Some(temporal.realize.inconclusive(umpire.realize.Reason.explanationsDisagree))
+      )
       val before = actions.init.foldLeft(ActivitySystem.init)((s, a) => take(s, a).state)
       val after = take(before, actions.last)
       assertEquals(after.state.phase, phase)
