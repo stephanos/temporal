@@ -45,6 +45,45 @@ func (a *accounting) resetSettlements() error {
 	return nil
 }
 
+// resetPlacement is where a path places one reset settlement's steps: how many resets and selected
+// timers it takes, the attempt group each of the last ones falls in and their positions, and how
+// many attempts it delivers.
+type resetPlacement struct {
+	resets, timers                 int
+	resetAt, timerAt               int
+	resetGroup, timerGroup, groups int64
+}
+
+func (l *lowering) resetPlacement(e *umpirespb.ActivityResetSettlement, script *umpirespb.Script) resetPlacement {
+	var resetKeys []string
+	for _, s := range l.a.r.GetScripts() {
+		for _, item := range s.GetItems() {
+			for _, p := range item.GetPerforms() {
+				if p.GetCommand().GetId() == e.GetResetRequest() {
+					resetKeys = append(resetKeys, l.adapter.classKey(p.GetStep()))
+				}
+			}
+		}
+	}
+	timer := l.adapter.classKey(e.GetTimer())
+	starts, _ := l.attemptClasses(script)
+	out := resetPlacement{resetAt: -1, timerAt: -1}
+	for at, key := range l.keys {
+		if starts[key] {
+			out.groups++
+		}
+		if slices.Contains(resetKeys, key) {
+			out.resets++
+			out.resetAt, out.resetGroup = at, out.groups
+		}
+		if key == timer {
+			out.timers++
+			out.timerAt, out.timerGroup = at, out.groups
+		}
+	}
+	return out
+}
+
 // resetOccurrences holds a reset settlement to the path it lowers: the held group publishes before
 // the controller's one reset, the selected timer ends that group exactly once after the reset, and
 // the next delivery is the fresh group the declaration names.
@@ -60,42 +99,17 @@ func (l *lowering) resetOccurrences() (problems []error) {
 			problems = append(problems, errorAt(e.GetPosition(), "reset settlement %s names no activity script %s", e.GetResetRequest(), e.GetActivity()))
 			continue
 		}
-		var resetKeys []string
-		for _, s := range l.a.r.GetScripts() {
-			for _, item := range s.GetItems() {
-				for _, p := range item.GetPerforms() {
-					if p.GetCommand().GetId() == e.GetResetRequest() {
-						resetKeys = append(resetKeys, l.adapter.classKey(p.GetStep()))
-					}
-				}
-			}
-		}
-		timer := l.adapter.classKey(e.GetTimer())
-		starts, _ := l.attemptClasses(script)
-		resetAt, timerAt, delivered, resetGroup, timerGroup := -1, -1, int64(0), int64(0), int64(0)
-		resets, timers := 0, 0
-		for at, key := range l.keys {
-			if starts[key] {
-				delivered++
-			}
-			if slices.Contains(resetKeys, key) {
-				resets++
-				resetAt, resetGroup = at, delivered
-			}
-			if key == timer {
-				timers++
-				timerAt, timerGroup = at, delivered
-			}
-		}
+		p := l.resetPlacement(e, script)
 		switch {
-		case resets != 1 || timers != 1:
-			problems = append(problems, errorAt(e.GetPosition(), "reset settlement %s requires exactly one reset and one selected timer; got %d and %d", e.GetResetRequest(), resets, timers))
-		case resetAt > timerAt:
+		case p.resets != 1 || p.timers != 1:
+			problems = append(problems, errorAt(e.GetPosition(), "reset settlement %s requires exactly one reset and one selected timer; got %d and %d", e.GetResetRequest(), p.resets, p.timers))
+		case p.resetAt > p.timerAt:
 			problems = append(problems, errorAt(e.GetPosition(), "reset settlement %s: the reset must precede the timer that applies it", e.GetResetRequest()))
-		case timerGroup != e.GetAttempt() || resetGroup != e.GetAttempt():
-			problems = append(problems, errorAt(e.GetPosition(), "reset settlement %s declares attempt %d; the reset holds attempt %d and the selected timer ends attempt %d", e.GetResetRequest(), e.GetAttempt(), resetGroup, timerGroup))
-		case delivered < e.GetFreshAttempt():
-			problems = append(problems, errorAt(e.GetPosition(), "reset settlement %s declares fresh attempt %d; the path delivers %d", e.GetResetRequest(), e.GetFreshAttempt(), delivered))
+		case p.timerGroup != e.GetAttempt() || p.resetGroup != e.GetAttempt():
+			problems = append(problems, errorAt(e.GetPosition(), "reset settlement %s declares attempt %d; the reset holds attempt %d and the selected timer ends attempt %d", e.GetResetRequest(), e.GetAttempt(), p.resetGroup, p.timerGroup))
+		case p.groups < e.GetFreshAttempt():
+			problems = append(problems, errorAt(e.GetPosition(), "reset settlement %s declares fresh attempt %d; the path delivers %d", e.GetResetRequest(), e.GetFreshAttempt(), p.groups))
+		default:
 		}
 	}
 	return problems
