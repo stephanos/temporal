@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { out, read, sha } from './capture.mjs';
+const path = '/tmp/impl-review-receipt-657da2bc4466-fn-109-gomad-deepen-modules-and-tool-interfaces.6.json';
+const receipt = JSON.parse(read(path));
+assert.equal(receipt.verdict, 'SHIP');
+assert.equal(receipt.base, 'ec677836aca3ad367100b84a2c7ed12be6b79423');
+assert.equal(receipt.findings.headSha, 'c96fb60e654a5f0413b4da630d6a8fe8daf501e7');
+assert.equal(receipt.introduced_count, 0);
+assert.equal(receipt.draws.length, 3);
+assert(receipt.draws.every(d => !d.failed && d.model === 'gpt-6.1-sol'));
+const directory = '.flow/review-fanout/' + receipt.rid;
+const paths = [path, directory + '/meta.json', ...['correctness', 'contracts', 'integration'].flatMap(axis => [directory + '/' + axis + '.json', directory + '/' + axis + '.review.md'])];
+const records = paths.map(path => {
+  const bytes = read(path), data = bytes.toString('base64');
+  assert.deepEqual(Buffer.from(data, 'base64'), bytes);
+  return { path, bytes: bytes.length, sha256: sha(bytes), encoding: 'base64', data };
+});
+writeFileSync(resolve(out, 'source-review.json'), JSON.stringify({ task: receipt.id, rid: receipt.rid, reviewed_base: receipt.base, reviewed_head: receipt.findings.headSha, verdict: receipt.verdict, records }, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ rid: receipt.rid, verdict: receipt.verdict, introduced: receipt.introduced_count, pre_existing: receipt.pre_existing_count, lossless_records: records.length }));

@@ -153,7 +153,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | --- | --- | --- |
 | [fn-105.1](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.1.md) | ✅ Done | D1: shared completed-execution assessment owner |
 | [fn-105.2](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.2.md) | ✅ Done | D2: shared retention policy without merging strategy transactions |
-| [fn-105.3](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.3.md) | ⬜ Todo | D3: move public executor injection behind private dependencies |
+| [fn-105.3](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.3.md) | ✅ Done | D3: move public executor injection behind private dependencies |
 | [fn-105.4](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.4.md) | ⬜ Todo | D4: architecture fitness checks for package coverage, purity, and signature visibility |
 | [fn-105.5](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.5.md) | ⬜ Todo | D5: reconcile architecture, platform, and determinism documentation |
 | [fn-105.6](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.6.md) | ⬜ Todo | D6: seeded and fixed virtual-clock tick policies |
@@ -195,7 +195,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.3](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.3.md) | ✅ Done | Give the seed controller one atomic completion transition |
 | [fn-109.4](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.4.md) | ✅ Done | Resolve CLI installation and private child modes through one application construction path |
 | [fn-109.5](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md) | ✅ Done | Share plan and explore parsing directly and move semantic normalization to Runner |
-| [fn-109.6](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md) | 🔄 In progress | Move public executor injection behind private dependencies (D3); current source acceptance. |
+| [fn-109.6](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md) | ✅ Done | Move public executor injection behind private dependencies (D3); current source acceptance. |
 | [fn-109.7](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.7.md) | ⬜ Todo | Introduce the complete preparation owner and migrate explore and portable planning |
 | [fn-109.8](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.8.md) | ⬜ Todo | Move analysis and compatibility review onto the preparation owner's inspection operation |
 | [fn-109.9](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md) | ⬜ Todo | Bounded adapter listing integrated; original acceptance gates remain open |
