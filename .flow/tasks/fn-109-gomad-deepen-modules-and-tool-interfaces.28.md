@@ -55,45 +55,24 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-SOURCE_PROGRESS_ONLY; authoritative Flow status is blocked, not done.
+Campaign developers can run unfiltered pinned lint while retaining both pre-mutation invariant panics. One exact-path, exact-source, diagnostic-specific forbidigo rule covers only the two owner-approved statements. The existing seventeen exclusion rules remain byte-identical; actual root/nested analyzer controls reject unrelated statements, paths, changed messages and trailing comments. The AST regression pins the first two SeedController.Complete guards, conditions, ordering and matching occurrences. Duplicate, moved-method and changed-condition mutants fail.
 
-The reviewed seven-file source correction checks thirteen cleanup returns at their
-original lifetimes and replaces two policy switches with equivalent direct
-predicates. First-only cancellation, budget drain, both pre-mutation invariant
-panics, original completion vectors, public function types and transaction order
-remain unchanged. Conditional production joins preserve the original error object
-and data when Close returns nil.
+The seven earlier campaign source files remain bound to the task's retained correction receipts. Their thirteen checked cleanup returns and two equivalent policy predicates are reused. Controller code, rejection/zero-mutation tests, canonical bytes, transaction order and public signatures remain unchanged. Unix os.Root.Close returns nil; real nonnil-root-close execution remains unproved and no artificial injection is claimed.
 
-Actual unfiltered pinned campaign lint changes from 17 to 2 diagnostics: thirteen
-errcheck and two exhaustive findings resolved, no introduced findings, and two
-unchanged invariant forbidigo findings retained. The intermediate QF1003 findings
-were fixed without a rule change. The initial failed characterization calibrated
-an existing two-cause error expectation; it is not a runtime RED claim.
+Fresh worker and conductor checks pass for ordinary campaign tests, focused behavior, actual-tool lint policy, unfiltered campaign lint and changed-package fast lint/errortype. Worker receipts also cover check-only generated validation, both-source-set architecture/public signatures and the external Runner consumer. Conductor verified 56 references, 22 lossless logs, 150 current-source bindings, seven historical campaign hashes and the preserved configuration bytes. Campaign lint changes from two approved findings to zero; no full-project count is inferred.
 
-The worker's whole ordinary package, focused tests, errortype, boundary and make
-validate checks pass on stock Go 1.27.1 developmental linux/arm64. Fresh independent
-review reran ordinary package, 51 focused tests, errortype and boundary checks,
-verified all selected source/tool/log receipts and found no actionable introduced
-Critical, Important or Minor issue. Root verified the frozen source and review
-bindings before this source-progress commit. The active Unix Root.Close returns
-nil; no real nonnil-root-close execution is demonstrated.
+Fresh correctness, contracts and integration reviews of actual commit be40909b7b81e345ae57d1c7c736b42ca7005166 each return SHIP with zero findings. Mechanical finalization records SHIP. Reviewers checked retained source-bound receipts; their attempted Go reruns could not create temporary build directories in the read-only sandbox. Reviewer and writer selectors are gpt-6.1-sol/high, the same GPT family, with actual execution metadata unavailable. An earlier empty-range SHIP explicitly approved no product change and supplies no completion credit; its limitation remains retained.
 
-Original task 3/predecessors, R16/R18/R19, task 21, matched first-baseline identities,
-full/formal and both native patched-runtime qualifications remain open wherever
-unproved. The broader 419-finding receipt is historical; no new whole-Gomad count
-is inferred from package-only progress. Implementation review and plan-sync are
-deferred: no formal SHIP, task-done event or downstream synchronization is claimed.
+This completes the bounded source correction owner. Parent fn-109.3/.21, aggregate R19 lint and all unaffected fixed-identity preservation remain open wherever unproved. Native Linux/Darwin obligations remain deferred under fn-128/fn-149; stock linux/arm64 results qualify no native platform. No push, PR or CI action occurred.
 
-stage: impl-review - skipped(policy: conductor-deferred; fresh independent source review passed, but full/native qualification remains red)
-stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
-
+stage: impl-review - SHIP (actual nonempty committed product range; receipt retained in source-review.json)
+stage: plan-sync - skipped(config: planSync.enabled=false)
+Quality checks: focused source gates and applicable standards pass; parent full lint remains open.
+Tracker sync: n/a (bridge inactive)
 ## Evidence
-- Source progress and qualification: [handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/handover.md), [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/evidence.json), [acceptance open](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/acceptance-open.md).
-- Fresh independent review: [review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/independent-source-review.md), [checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/independent-source-review-checks.json).
-- Root checkpoint verification: [checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/source-checkpoint-verification.json).
-- Commits: f34369bf64eabf00d50ac3c720dd42bda07ccc25 (verified source progress; not a Flow completion receipt).
-- PRs: none; no push.
-
+- Commits: f34369bf64eabf00d50ac3c720dd42bda07ccc25, be40909b7b81e345ae57d1c7c736b42ca7005166
+- Tests: LINT_POLICY_GOLANGCI=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 go test -count=1 -tags test_dep ./cmd/tools/lintcode, go -C tools/gomad3 test -count=1 -tags test_dep ./runner/internal/campaign, go -C tools/gomad3 test -count=1 -tags test_dep -run 'SeedController|Controller|Plan|Publication|TornActiveTail|ChangedRuns|JournalPublishes' ./runner/internal/campaign, golangci-lint-v2.13.0 run --config=.github/.golangci.yml --fix=false --build-tags=test_dep ./runner/internal/campaign (cwd tools/gomad3; config absolute in retained argv), make lint-code-fast GOLANGCI_LINT_BASE_REV=58aa272e92af2c1bc8b355f5021522a630bcd57a GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep, go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner/internal/campaign, make -C tools/gomad3 validate, go -C tools/gomad3 test -count=1 -tags test_dep -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestRunnerExternalConsumerCompiles)$' ., flowctl validate --all
+- PRs:
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

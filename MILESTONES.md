@@ -217,7 +217,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.25](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.25.md) | ⬜ Todo | Preserve lifecycle fault resolution while repairing exhaustive lint |
 | [fn-109.26](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.26.md) | ⬜ Todo | Restore Runner semantic ownership in CLI callers |
 | [fn-109.27](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.27.md) | ⬜ Todo | Correct current R18 preservation disclosures |
-| [fn-109.28](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.28.md) | 🚧 In progress | Preserve campaign policies while checking cleanup errors |
+| [fn-109.28](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.28.md) | ✅ Done | Preserve campaign policies while checking cleanup errors |
 | [fn-109.29](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.29.md) | ⬜ Todo | Preserve private artifact payload cleanup and error identity |
 | [fn-109.30](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.30.md) | ⬜ Todo | Preserve public artifact copy cleanup and handle lifetime |
 | [fn-109.31](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.31.md) | ⬜ Todo | Preserve artifact directory and shared-verifier cleanup |

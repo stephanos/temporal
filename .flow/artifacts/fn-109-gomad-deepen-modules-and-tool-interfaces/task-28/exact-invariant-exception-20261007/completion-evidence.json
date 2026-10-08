@@ -1,0 +1,20 @@
+{
+  "commits": ["f34369bf64eabf00d50ac3c720dd42bda07ccc25", "be40909b7b81e345ae57d1c7c736b42ca7005166"],
+  "tests": [
+    "LINT_POLICY_GOLANGCI=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 go test -count=1 -tags test_dep ./cmd/tools/lintcode",
+    "go -C tools/gomad3 test -count=1 -tags test_dep ./runner/internal/campaign",
+    "go -C tools/gomad3 test -count=1 -tags test_dep -run 'SeedController|Controller|Plan|Publication|TornActiveTail|ChangedRuns|JournalPublishes' ./runner/internal/campaign",
+    "golangci-lint-v2.13.0 run --config=.github/.golangci.yml --fix=false --build-tags=test_dep ./runner/internal/campaign (cwd tools/gomad3; config absolute in retained argv)",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=58aa272e92af2c1bc8b355f5021522a630bcd57a GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner/internal/campaign",
+    "make -C tools/gomad3 validate",
+    "go -C tools/gomad3 test -count=1 -tags test_dep -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestRunnerExternalConsumerCompiles)$' .",
+    "flowctl validate --all"
+  ],
+  "prs": [],
+  "source_gate_evidence": "evidence.json",
+  "conductor_gate_receipts": ["conductor-policy.receipt.json", "conductor-campaign.receipt.json", "conductor-campaign-lint.receipt.json", "conductor-fast-lint.receipt.json"],
+  "review": "source-review.json",
+  "native_qualification": "deferred under fn-128/fn-149; no platform pass",
+  "aggregate_lint": "open under parent fn-109.21; focused green only"
+}
