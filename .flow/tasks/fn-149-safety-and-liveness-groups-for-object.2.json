@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T15:38:28.440330Z",
+  "depends_on": [
+    "fn-149-safety-and-liveness-groups-for-object.1"
+  ],
+  "id": "fn-149-safety-and-liveness-groups-for-object.2",
+  "priority": null,
+  "spec": "fn-149-safety-and-liveness-groups-for-object",
+  "spec_path": ".flow/tasks/fn-149-safety-and-liveness-groups-for-object.2.md",
+  "status": "todo",
+  "title": "Enforce safety and liveness declaration placement",
+  "updated_at": "2026-10-08T15:38:28.440330Z"
+}

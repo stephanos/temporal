@@ -15,7 +15,9 @@
     "fn-139-actor-grouped-rules-per-rpc-actions",
     "fn-140-one-sentence-witness-queries-with",
     "fn-123-declare-faults-as-the-environments",
-    "fn-148-consolidate-testpilot-evidence-and"
+    "fn-148-consolidate-testpilot-evidence-and",
+    "fn-146-adopt-cel-for-runtime-predicates-and",
+    "fn-147-migrate-elapsed-time-fields-to-protobuf"
   ],
   "id": "fn-141-shrink-the-ir-generator-one-description",
   "impl_review_rounds": {},
@@ -38,5 +40,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T03:44:11.915084Z"
+  "updated_at": "2026-10-08T19:03:55.693814Z"
 }

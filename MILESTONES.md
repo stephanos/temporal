@@ -12,6 +12,10 @@ As of 2026-10-08.
   description; set a task's status in place
   when it changes. Keep completed tasks listed until the whole spec is complete, then remove the spec.
   Flow and git keep the history.
+- Group scheduled specs under the batch that shares their regeneration (see Batches). Task rows
+  record the task's own evidence; the batch-deferred checks are implied and need not be repeated.
+- Only the root agent edits this page. Workers report status in their handoffs, so isolated
+  worktrees never carry a conflicting copy of it into a join.
 - Close a cancelled or abandoned spec in Flow (tasks blocked, a "Closed: won't do" note in the
   spec) and remove it from this page.
 - Update the "As of" date with every edit.
@@ -20,6 +24,13 @@ As of 2026-10-08.
 
 Apply these instructions when implementing the milestones:
 
+- The root agent owns scheduling, dependency decisions, integration and Flow status. Sub-agents own
+  task-local investigation, implementation, testing and fixes; independent reviewers assess the
+  work. Workers return concise handoffs linking commits, verification evidence and remaining
+  blockers. Root inspects the evidence needed for acceptance without importing entire task
+  histories. Resume the same worker for fixes where possible.
+- A blocked task holds its dependents, not unrelated work. Continue at the safe ready frontier,
+  using isolated worktrees and the workflow's ownership, dependency and heavy-command constraints.
 - Reuse the previous task's passing baseline when its commands, source scope, fixtures and
   environment still apply. Inspect its recorded evidence; a new task or agent is not a reason to
   rerun it. Changes to relevant inputs invalidate the affected results.
@@ -49,6 +60,40 @@ Apply these instructions when implementing the milestones:
   only for an explicit requirement or a concrete uncovered risk. Move to the next implementation
   task once the required checks and review pass.
 
+## Batches
+
+A batch is a run of specs that share one baseline: one production regeneration, one full gate run
+(Go suite, model gate, goldens, lint, dependency checks), one independent review and, when the batch
+changes Cases or runtime behavior, one live run. Batching buys throughput with attribution, so a
+batch boundary falls where a failure must stay attributable: after a meaning-preserving refactor's
+equivalence proof that later work builds on, and at a format activation.
+
+- Inside a batch, tasks run focused source, lowering and runtime checks and declare their IR change;
+  production artifacts, full gates, review and live evidence are batch-deferred.
+- A meaning-preserving spec seals its comparison (a scratch regeneration whose diff is exactly the
+  stated mapping) before a later spec in the same batch changes meaning. The seal is focused evidence,
+  not a full gate.
+- Shared close: the batch's final close task runs the regeneration, gates, review and live run once;
+  the other close tasks finish their own code and docs and link that evidence. No spec in a batch
+  closes before the batch boundary.
+- Flow cannot express cross-spec task edges, so the conductor enforces the listed source gates
+  without spec-close dependencies inside a batch.
+- Batches run serially; Flow records that as each spec depending on every spec of the previous
+  batch (batch 2 instead waits on the conductor, since its preparation predates batch 1's close).
+  The next batch's preparation may run in isolated worktrees alongside the
+  current one, but joins serially onto the closed baseline.
+
+| # | Batch | Specs | Nature | Shared close | Live run |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Activity model | fn-128 → fn-138 → fn-129 | meaning | fn-128.6, fn-129.5 | once |
+| 2 | Structural moves | fn-142 → fn-143 → fn-145 | equivalence | fn-142.1, fn-143.1, fn-145.4 | none |
+| 3 | Authoring | fn-140 → fn-123 | equivalence sealed, then meaning | fn-140.6, fn-123.8 | once |
+| 4 | Testpilot format | fn-146 → fn-147 → fn-148 | breaking format | fn-146.7, fn-147.4, fn-148.7 | once |
+| 5 | Lifter | fn-141 | byte-identical | fn-141.14 | none |
+
+Batches 2 to 5 replace eight per-spec regeneration and full-gate cycles (and three Run-companion
+migrations) with four batch closes and one companion migration.
+
 ## Direction
 
 The Scala model (`model/`) is the model. Lean is the past, and nothing has to look like it.
@@ -65,70 +110,145 @@ The planned work below continues that direction: the Scala layer first, then the
 
 ## Specs
 
-Listed in delivery order. Flow records spec and task dependencies; the conductor also holds
-batch-close gates and serializes work that shares a regeneration baseline.
+Listed in delivery order, grouped by batch. Flow records spec and task dependencies; the conductor
+also holds batch-close gates and serializes work that shares a regeneration baseline.
 
-### Activity model batch: fn-128 → fn-138 → fn-129
+### Batch 1, activity model: fn-128 → fn-138 → fn-129
 
-Ready 2026-10-07. These specs run as one batch: one regeneration, one gate run, and one live run serving
-fn-128.6 and fn-129.5. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Each task declares its IR change,
-which is checked at the batch regeneration.
+Ready 2026-10-07. One regeneration, one gate run, and one live run serving fn-128.6 and fn-129.5.
+Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Each task declares its IR change, which is checked at
+the batch regeneration.
 
 Approved source gates: fn-138 implementation starts after fn-128.5 is done; fn-129 implementation
-starts after fn-138.3 is done. Flow cannot express these cross-spec task edges, so the conductor
-enforces them without spec-close dependencies inside the batch. fn-128.6 and fn-129.5 share the
-regeneration, review and live-run evidence; no activity spec closes before that boundary.
-The fn-142 then fn-143 preparation may run alongside this batch in isolated worktrees. The fn-142
-join dry-run found a milestones-file conflict; preserve its isolated work and serially rerun the
-move after this batch closes, with a separate regeneration baseline. Re-anchor later task paths
-after those moves; fn-143 still waits for fn-142 to close.
+starts after fn-138.3 is done. fn-128.6 and fn-129.5 share the regeneration, review and live-run
+evidence; no activity spec closes before that boundary.
+Current-source replay also exposes two inherited failures that must be resolved before batch
+closure: the non-retryable failure claim's visibility ambiguity and pause/resume's correlated
+per-event work ceiling. Neither is waived or counted as passing source-batch evidence.
+The independently reviewed correction plan seals fn-138's original/adopted R3 comparison before
+fn-129 changes Source, then runs fn-128.7 and .8 as disjoint parallel candidates after fn-129.4.
+The close checks every authored expected status/reason exactly, including the retained retry
+Property-only `explanationsDisagree` expectations. Fatal satisfaction, satisfied Contracts,
+conformance and bounded pause/resume execution/replay remain required; only the named
+ShutdownWorker race permits an additional inconclusive.
 
-### fn-128: Close the activity's precision gaps
+#### fn-128: Close the activity's precision gaps
 
-Tasks run in order.
+Tasks 1-5 are done. Tasks 7 and 8 are parallel candidates after the source gates above; task 6
+closes the shared batch after both corrections and all activity sources.
 
 | Task | Status | What |
 | --- | --- | --- |
 | fn-128.1 | ✅ done | Dispatch as a field replacing the `backingOff` phase; start delay; unpause-after-backoff and schedule-to-start-in-backoff fixed |
-| fn-128.2 | ✅ done | Explicit rejection rows and repeated RequestCancel refusal; owned lint subjects removed; focused tests pass; artifacts/full gates remain batch-deferred |
-| fn-128.3 | ✅ done | 2026-10-08: finite retry policy and retryable start-to-close timeout; exhaustion/timeout-retry Queries and bounded withholding bridge; focused source/lowering/runtime checks pass; artifacts/full gates/review/live remain batch-deferred |
-| fn-128.4 | 🔄 in progress | Stutter facts checked: `visible` on `ActivitySystem`'s refinement |
-| fn-128.5 | ⬜ todo | `cancelIsNotUndone` Property; attempt count in every Case; time-window `because` |
+| fn-128.2 | ✅ done | Explicit rejection rows and repeated RequestCancel refusal; owned lint subjects removed; focused tests pass |
+| fn-128.3 | ✅ done | 2026-10-08: finite retry policy and retryable start-to-close timeout; exhaustion/timeout-retry Queries and bounded withholding bridge; focused source/lowering/runtime checks pass |
+| fn-128.4 | ✅ done | All public status facts visible; Product carries creation/held pause/withdrawal; focused checks and current-source refinement/mutant replay pass |
+| fn-128.5 | ✅ done | Checked `cancelIsNotUndone`; final typed raw attempt-count read in all 13 supported Cases; seven timer explanations; integrated source proofs pass |
+| fn-128.7 | ⬜ todo | Accepted fatal-settlement classification through typed public last-failure evidence; unchanged fatal Property satisfied in scratch recording/replay |
+| fn-128.8 | ⬜ todo | Separate caller-owned pauseResume and heartbeat-retry Profiles; immutable preflight/execution/replay binding, final-shape charge proof and admission negatives |
 | fn-128.6 | ⬜ todo | Evidence map, live Cases run once (the batch's live run); close |
 
-### fn-138: Retries and Deadline capabilities
+#### fn-138: Retries and Deadline capabilities
 
 Runs after fn-128.5: fn-128.1 replaces the `backingOff` phase and fn-128.3 adds the retry policy,
-both of which Retries reads. Open questions for the owner are in the spec; tasks .1 and .2 settle them
-before writing Properties.
+both of which Retries reads. The approved recommendations resolve the earlier owner questions;
+the refreshed plan passed independent review on 2026-10-08.
 
-Retries (a retryable failure of a `Held` attempt lands in `Waiting`, a non-retryable one in `Failed`,
-attempts never exceed the bound) and Deadline capabilities are declared by the activity and Nexus
-workflow systems; their timer windows become role tests.
+Retries checks before-state policy eligibility and control-aware failure settlement, including
+Nexus failures from Waiting. Deadline checks armed timer windows and retry/terminal settlement.
+Activity and Nexus declare both; Nexus capabilities are explicit IR roots. Existing Query and Case
+semantics remain protected by the reviewed comparison contract.
+Retries' finite policy projection uses `Option[UpTo[N]]`, with explicit unlimited `None` and a
+policy-value catalog independent of the attempt-count domain. This type correction passed the
+same independent plan review; the task updates both existing Scala and Go vocabulary gates.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-138.1 | ⬜ todo | Retries capability: kit Properties and lifter refusals (owner question first) |
-| fn-138.2 | ⬜ todo | Deadline capability: kit Properties, per-declaration names and lifter refusals |
-| fn-138.3 | ⬜ todo | Activity and Nexus workflow systems declare Retries and Deadlines; timer windows as role tests; docs |
+| fn-138.1 | ✅ done | Retries and selected before-state transition verification integrated; 130 fixture checks and 98 integrated focused checks pass; full generated-IR parity pending at the batch close |
+| fn-138.2 | ✅ done | Typed Deadline capability integrated; three exact goldens, 30 located refusals and 123 fresh integrated focused checks pass; production generation pending at the batch close |
+| fn-138.3 | ✅ done | Activity/Nexus adoption integrated; strict R3 proof preserves 121 Queries and 21 exact Cases; 24 native and 42 integrated reader checks pass |
 
-### fn-129: Activity coverage
+#### fn-129: Activity coverage
 
 Runs after fn-138. Tasks run in order.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-129.1 | ⬜ todo | Heartbeat action and retryable heartbeat timeout; realized |
-| fn-129.2 | ⬜ todo | Respond by ID as a `service` actor; realized |
+| fn-129.1 | ✅ done | Typed heartbeat protocol; canonical lint, native/six-root checks, three fresh scratch Case recordings/replays and Profile negatives pass |
+| fn-129.2 | 🔄 in progress | By-ID source checkpoint `ee6921ca`; focused tests/lint pass; four Case proofs and required Quick pending after two OOM kills |
 | fn-129.3 | ⬜ todo | Reset with `keepPaused` and deferred apply; precedence Property extended; realized |
 | fn-129.4 | ⬜ todo | Exploration on the activity's `find` Queries |
 | fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
 
-### fn-140: One-sentence witness Queries with explicit live expectations
+### Batch 2, structural moves: fn-142 → fn-143 → fn-145
 
-Runs next. It rewrites the Models' `properties` and `queries` sections and its R5 renames Definition
+Starts from batch 1's closed baseline. All three change layout, not meaning: the IR differs only in
+paths, positions, the `umpire.`→`framework.` package mapping and the schema's file layout. One
+regeneration and one equivalence gate prove the combined diff is exactly those mappings; one full Go
+suite and one review close the batch at fn-145.4. No live run is needed.
+
+fn-142's isolated move and fn-145.1 to .3 (protobuf files, descriptors and the Scala jar exclusions)
+are disjoint enough to prepare in isolated worktrees during batch 1; they join serially in the order
+fn-142, fn-143, fn-145, and each re-anchors its paths to the moves before it. The fn-142 join dry-run
+found a milestones-file conflict; preserve its isolated work and serially rerun the move onto
+batch 1's closed baseline.
+
+Moving fn-145 ahead of fn-140 and fn-123 means both author against the modular schema, so fn-123.1's
+IR `Fault` record lands in its responsibility file instead of being moved later.
+
+#### fn-142: Split `model/temporal/shared` into `foundations` and `actors`
+
+Mechanical move: the task queue goes to `foundations/taskqueue`, the worker to `actors/worker`,
+`Client.scala` to `actors/client/`, and `Bounds.scala` to `model/temporal/`; the IR differs only in
+paths and positions.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-142.1 | 🔄 in progress | Isolated move and equivalence checks passed; preserve worktree and serially rerun from the closed activity batch after the join dry-run found a milestones-file conflict; integrated review/gates at the batch close |
+
+#### fn-143: Rename `model/umpire` to `model/framework`
+
+Source gate: after fn-142.1. Folder and package both become `framework`; product names (`tools/umpire`, `umpire-*` targets, `umpire.v1`) stay. The IR differs only in paths and positions.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-143.1 | ⬜ todo | Move, rename the package, prove the diff is the umpire.→framework. mapping, docs |
+
+#### fn-145: Modularize the Umpire IR schema
+
+Source gate: after fn-143.1 joins. Nine files, one existing protobuf package and an acyclic import
+graph. This owns fn-131's realization extraction slice; fn-131 retains metadata, canonicalization,
+level checks and producer provenance. No declaration is removed merely because generated production
+Models omit it. Shared settings and disposition/cleanup leaves receive a maintenance evaluation, not
+an assumed shared schema. Planned 2026-10-06 from the schema research (see batch 4).
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-145.1 | ⬜ todo | Full schema closure, linked descriptors and Scala jar exclusions; multi-file proof |
+| fn-145.2 | ⬜ todo | Extract the nine responsibility files without changing declarations or Model meaning |
+| fn-145.3 | ⬜ todo | Local empty marker → `google.protobuf.Empty`; preserve oneof meanings |
+| fn-145.4 | ⬜ todo | Equivalence gates, shared-leaf evaluation, schema ownership docs; close (the batch's regeneration and gates) |
+
+### Batch 3, authoring: fn-140 → fn-123
+
+Starts from batch 2's closed baseline, with task paths re-anchored to the completed moves. Both specs
+rewrite Model declarations, so they share one production regeneration, one full gate, one review and
+one live run at fn-123.8. fn-140 is meaning-preserving apart from its declared renames: fn-140.6
+seals its assessment-equivalence comparison before fn-123 changes meaning, so a fault change can
+never hide inside the witness migration.
+
+Source gate: fn-123 implementation starts after fn-140.6's seal. fn-123 is written against the names
+fn-140 leaves (`when` blocks, `.live`, the shared `Outcome`, the fault instruction and typed `perform`).
+
+Batching candidate: fn-149 rewrites the same `properties` sections. If the owner schedules it, it
+joins this batch between fn-140 and fn-123 (its fn-149.4 migration and fn-140.6 touch every Model
+once instead of twice), with its own equivalence seal.
+
+#### fn-140: One-sentence witness Queries with explicit live expectations
+
+It rewrites the Models' `properties` and `queries` sections and its R5 renames Definition
 IDs. Ready, with six M-sized tasks. The three foundations run in order; task 4 and the documentation
-task 5 are disjoint parallel candidates, and task 6 joins them for final regeneration and gates.
+task 5 are disjoint parallel candidates, and task 6 joins them for the equivalence seal.
 
 `witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
 
@@ -139,16 +259,14 @@ task 5 are disjoint parallel candidates, and task 6 joins them for final regener
 | fn-140.3 | ⬜ todo | Query `.live`; source-only non-satisfied reasons; all caller and fixture spellings |
 | fn-140.4 | ⬜ todo | First Activity conversion and assessment equivalence proof; duplicate terminate removed |
 | fn-140.5 | ⬜ todo | Author docs, core form and layout template witness |
-| fn-140.6 | ⬜ todo | Other eligible Models, source-aware triple lint, final regeneration and equivalence gates |
+| fn-140.6 | ⬜ todo | Other eligible Models, source-aware triple lint, sealed regeneration diff and equivalence proof |
 
-### fn-123: Declare faults as the environment's actions
+#### fn-123: Declare faults as the environment's actions
 
-Ready 2026-10-07. Starts after fn-140 and is written against the names it leaves (`when` blocks,
-`.live`, the shared `Outcome`, the fault instruction and typed `perform`). The approved delivery order
-then runs fn-145 through fn-148, with fn-141 last against the settled schema. Tasks run in order; 6 and 7 need
-only 5. Task 3 is the proof: Go derives crash rows equal to `crashDetail`'s from a durability
-classification, or the work stops for the owner. Planning took defaults for five owner questions,
-listed in the spec's Open Questions.
+Ready 2026-10-07. Tasks run in order; 6 and 7 need only 5, so they are parallel candidates. Task 3
+is the proof: Go derives crash rows equal to `crashDetail`'s from a durability classification, or the
+work stops for the owner. Planning took defaults for five owner questions, listed in the spec's Open
+Questions.
 
 A fault is declared once with its kind, budget and whether it can be realized; a machine classifies
 its fields as durable or in-memory, and Go derives the crash. The explorer half of R7 and the P clause
@@ -163,74 +281,49 @@ of R8 were dropped, since neither tool exists.
 | fn-123.5 | ⬜ todo | Budgets: `budgetedBy`, four table rules in Go, `LostStartAnswer` bound to `lossAvailable` |
 | fn-123.6 | ⬜ todo | Choice-level fault performance; lowering refuses model-only faults and unperformed choices |
 | fn-123.7 | ⬜ todo | Trace output and Quint export of derived crashes and budgets |
-| fn-123.8 | ⬜ todo | `umpire-faults` report, docs; close |
+| fn-123.8 | ⬜ todo | `umpire-faults` report, docs; close (the batch's regeneration, gates and live run) |
 
-### fn-142: Split `model/temporal/shared` into `foundations` and `actors`
-
-Mechanical move: the task queue goes to `foundations/taskqueue`, the worker to `actors/worker`,
-`Client.scala` to `actors/client/`, and `Bounds.scala` to `model/temporal/`; the IR differs only in
-paths and positions.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-142.1 | 🔄 in progress | Isolated move and equivalence checks passed; preserve worktree and serially rerun from the closed activity batch after the join dry-run found a milestones-file conflict; integrated review/gates pending |
-
-### fn-143: Rename `model/umpire` to `model/framework`
-
-Gate: after fn-142. Folder and package both become `framework`; product names (`tools/umpire`, `umpire-*` targets, `umpire.v1`) stay. The IR differs only in paths and positions.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-143.1 | ⬜ todo | Move, rename the package, regenerate, prove the diff is the umpire.→framework. mapping, docs |
-
-### IR schema research: fn-145 → fn-146 → fn-147 → fn-148
+### Batch 4, Testpilot format: fn-146 → fn-147 → fn-148
 
 Planned 2026-10-06 from [Umpire IR schema research](.plans/UMPIRE_IR_SCHEMA_RESEARCH.md) and
-[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Gate: fn-142/fn-143 and fn-123 close
-before fn-145; each following spec waits for its predecessor, and fn-141 executes last after fn-148.
-These are separate migrations, each with its own baseline, regeneration and full gates, not another
-DSL batch. Serialize fn-140, fn-131 and any revived fn-144 or Model batch against these migrations; re-anchor their tasks
-to the schema and vocabulary left by completed work. Deferred specs do not block this chain.
+[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Starts from batch 3's closed
+baseline; each spec's implementation starts after its predecessor's last implementation task, and
+fn-141 executes after this batch. Serialize fn-131 and any revived fn-144 or Model batch against it;
+re-anchor their tasks to the schema and vocabulary left by completed work. Deferred specs do not block
+this chain.
 
 Owner decision: breaking IR changes are allowed. Producers, consumers, generated artifacts and
 recorded Case/Run companions migrate together. No compatibility decoders, legacy evaluators or
 parallel old field spellings are required; retired formats reject explicitly. The declaration-only
 split still proves semantic and artifact equivalence, not a historical compatibility promise.
 
-### fn-145: Modularize the Umpire IR schema
+That decision lets the three specs share one breaking format: fn-146.1's migration contract is the
+contract for all three, and fn-148.6 activates format 4.0 once, carrying fn-146's and fn-147's
+changes. fn-146.7 and fn-147.4 retire their machinery, categorize their identity changes and write
+their docs; Run companions are regenerated once, at fn-148.7, with one full gate and review. Each
+spec's proof task (fn-146.4, fn-147.1, fn-148.1) still runs on its own, so a failure stays
+attributable to one spec.
 
-Nine files, one existing protobuf package and an acyclic import graph. This owns fn-131's realization
-extraction slice; fn-131 retains metadata, canonicalization, level checks and producer provenance.
-No declaration is removed merely because generated production Models omit it. Shared settings and
-disposition/cleanup leaves receive a maintenance evaluation, not an assumed shared schema.
+#### fn-146: Adopt CEL for runtime predicates and values
 
-| Task | Status | What |
-| --- | --- | --- |
-| fn-145.1 | ⬜ todo | Full schema closure, linked descriptors and Scala jar exclusions; multi-file proof |
-| fn-145.2 | ⬜ todo | Extract the nine responsibility files without changing declarations or Model meaning |
-| fn-145.3 | ⬜ todo | Local empty marker → `google.protobuf.Empty`; preserve oneof meanings |
-| fn-145.4 | ⬜ todo | Equivalence gates, shared-leaf evaluation, schema ownership docs; close |
-
-### fn-146: Adopt CEL for runtime predicates and values
-
-Gate: after fn-145. Testpilot owns the restricted CEL environment and descriptor-aware value adapter;
+Testpilot owns the restricted CEL environment and descriptor-aware value adapter;
 Umpire lowers symbolic realization operands into it. Finite Model expressions, `ModelValue` and
 descriptor-exact `ValueType` remain separate. Formats and identities move together, without legacy
 runtime paths. Tasks run in order; admission and value adaptation share edit surfaces.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-146.1 | ⬜ todo | Breaking format, deterministic canonical identity and companion migration contract |
+| fn-146.1 | ⬜ todo | Breaking format, deterministic canonical identity and companion migration contract (the batch's contract) |
 | fn-146.2 | ⬜ todo | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
 | fn-146.3 | ⬜ todo | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
 | fn-146.4 | ⬜ todo | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
 | fn-146.5 | ⬜ todo | Contract and correlated verification, rule expansion and reference walkers |
 | fn-146.6 | ⬜ todo | Umpire operand lowering, Run Event guards and conformance agreement |
-| fn-146.7 | ⬜ todo | Retire custom machinery, regenerate companions, full gates and docs; close |
+| fn-146.7 | ⬜ todo | Retire custom machinery, categorize identities, docs; close (companions and full gates at fn-148.7) |
 
-### fn-147: Migrate elapsed-time fields to protobuf Duration
+#### fn-147: Migrate elapsed-time fields to protobuf Duration
 
-Gate: after fn-146. Seven Testpilot elapsed-time fields and corresponding Umpire hints/defaults
+Source gate: after fn-146.6. Seven Testpilot elapsed-time fields and corresponding Umpire hints/defaults
 migrate through checked whole-millisecond conversions. Absent polling interval means one read;
 present positive interval means polling. Counts, logical bounds, percentages and timestamps stay.
 Scalar-only singleton-oneof presence cleanup belongs here. Tasks run in order.
@@ -240,11 +333,11 @@ Scalar-only singleton-oneof presence cleanup belongs here. Tasks run in order.
 | fn-147.1 | ⬜ todo | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
 | fn-147.2 | ⬜ todo | Replace schemas and migrate Scala authoring, lifting, realization admission and producers |
 | fn-147.3 | ⬜ todo | Runtime consumers, polling policy and scalar presence |
-| fn-147.4 | ⬜ todo | Regenerate artifacts and Run companions, categorize identities, full gates and docs; close |
+| fn-147.4 | ⬜ todo | Categorize identities, docs; close (artifacts, Run companions and full gates at fn-148.7) |
 
-### fn-148: Consolidate Testpilot evidence and correlated state schemas
+#### fn-148: Consolidate Testpilot evidence and correlated state schemas
 
-Gate: after fn-147. One generalized evidence declaration replaces inline extraction. Response lifts
+Source gate: after fn-147.3. One generalized evidence declaration replaces inline extraction. Response lifts
 keep ordered first-match behavior; Run Event overlaps still fail. Contract evidence policies remain
 independent. Complete states include both atom and fields; results are separate from authorized
 prior-state transitions, and projection result order stays explicit. Tasks run in order.
@@ -256,18 +349,24 @@ prior-state transitions, and projection result order stays explicit. Tasks run i
 | fn-148.3 | ⬜ todo | Complete-state and result tables in schema/lowering; compact-size measurement |
 | fn-148.4 | ⬜ todo | Normalized admission/verification, causal authorization and expanded-work ceilings |
 | fn-148.5 | ⬜ todo | Derived Contract kind, fixed correlated clock and explicit support Boolean |
-| fn-148.6 | ⬜ todo | Local references, cardinality, Empty markers and coordinated format 4.0 activation |
-| fn-148.7 | ⬜ todo | Artifact/companion migration, measurements, full gates and ownership docs; close |
+| fn-148.6 | ⬜ todo | Local references, cardinality, Empty markers and coordinated format 4.0 activation (the batch's single activation) |
+| fn-148.7 | ⬜ todo | Artifact/companion migration, measurements, full gates and ownership docs; close (the batch's regeneration, gates and live run) |
 
-### fn-141: Shrink the IR generator: one description of each DSL construct
+### Batch 5, lifter: fn-141
 
-Ready 2026-10-08. The approved delivery order puts this spec last, after fn-148 closes, against the
+#### fn-141: Shrink the IR generator: one description of each DSL construct
+
+Ready 2026-10-08. The approved delivery order puts this spec last, after batch 4 closes, against the
 settled schema and the vocabulary left by fn-140, fn-123 and fn-145 through fn-148.
 Because its tasks were planned against the earlier tree, each re-reads its files and recounts first.
 Tasks run in order; 1 and 2 depend on nothing, and 6 and 7 need only them. Task 5 is the proof for the
 export part and task 8 its size proof; either can stop tasks 9 to 13, and tasks 1 to 4 stand without
 them. Source: a full read of `model/irgen` on 2026-10-06 (8,242 lines, of which about 10% lifts
 function bodies and types and 1,479 are lints that emit no IR).
+
+Every step leaves `model/ir` and `model/cases` byte-identical, so each task's gate is that
+byte-identity plus the lifter's own tests; the Go suite's baseline from batch 4 stays valid while the
+IR is unchanged, and runs once more at fn-141.14.
 
 Each DSL construct is described once. Four parts, in this order: the declaration-order lint, the
 structure lint and the marker checks leave `model/irgen` for their own gate step; spellings no Model
@@ -297,18 +396,56 @@ half of the realization lifter's lines net of what it adds.
 | fn-141.13 | ⬜ todo | Capability expansions exported, in the shape the current framework leaves |
 | fn-141.14 | ⬜ todo | Dead lifter code, rules of record, docs, backends check, size report; close |
 
-## Captured, not yet scheduled
+## Planned, not yet scheduled
 
 ### fn-149: Safety and liveness groups for object properties
 
-[Spec](.flow/specs/fn-149-safety-and-liveness-groups-for-object.md) captured with six acceptance
-criteria; no tasks yet and not marked ready. Split authored claims into `properties.safety` and
+[Spec](.flow/specs/fn-149-safety-and-liveness-groups-for-object.md) planned with five M-sized tasks
+covering all six acceptance criteria; not marked ready. Split authored claims into `properties.safety` and
 `properties.liveness`, enforce declaration kinds, and carry the distinction into existing diagnostics
 and reports. Liveness retains explicit bounds and assumptions. Migrate Models, shared laws and docs
 while preserving behavior and check results.
 
 Coordinate with fn-140's property/Query authoring changes and fn-141's declaration lifting changes.
-Scheduling remains open; the approved delivery order above is unchanged.
+Scheduling remains open; batch 3 names it as a batching candidate.
+
+Cross-machine safety uses compositions today. New composition progress support is tracked separately
+in fn-150; it is not a prerequisite for fn-149's grouping.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-149.1 | ⬜ todo | Group discovery and registration equivalence proof |
+| fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
+| fn-149.3 | ⬜ todo | Derived safety/liveness classification in existing reports |
+| fn-149.4 | ⬜ todo | Model and capability migration with behavior/identity pins |
+| fn-149.5 | ⬜ todo | Author docs, integrated artifact checks and final gates |
+
+Waves: `.1` and `.3` are parallel candidates; `.2` follows `.1`; `.4` follows `.2` and `.3`;
+`.5` joins `.3` and `.4`. Shared generation and test resources still require serialization.
+
+### fn-150: Bounded liveness across composed machines
+
+[Spec](.flow/specs/fn-150-bounded-liveness-across-composed.md) planned with five M-sized tasks covering
+all five acceptance criteria; not marked ready. Let a composition own bounded progress claims over multiple
+member states. Count composed steps, resolve fairness against synchronized and member-only actions,
+and preserve deadlock, cycle, deadline and incomplete-check distinctions. Include one concrete
+Temporal composition with passing and negative examples.
+
+Related to fn-149's safety/liveness groups. Coordinate with fn-141 and the queued schema changes;
+execution remains unscheduled. Live Case generation for compositions is outside this spec.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-150.1 | ⬜ todo | Composition progress admission and existing-checker proof |
+| fn-150.2 | ⬜ todo | Structured fairness references, inherited/replacement mapping |
+| fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
+| fn-150.4 | ⬜ todo | Bound, fairness, holes, starts and witness-replay regressions |
+| fn-150.5 | ⬜ todo | Temporal positive/negative example, docs and integrated gates |
+
+Waves: `.1` then `.2`; `.3` and `.4` are parallel candidates; `.5` joins them.
+Neither spec has a hard dependency on the other. Serialize their overlapping edits and regeneration
+with each other and the approved delivery chain, and re-anchor paths after completed migrations.
+If both are scheduled together, they form one batch: one regeneration and gate for both.
 
 ## Deferred
 
@@ -367,3 +504,7 @@ Rendered views per Model (signature, phase diagram, refinement, compositions, de
 - Whether upstream's Go conformance harness (`tests/activity_driver.go`) should run our IR through the Go interpreter instead of its hand-written model, making one Model drive both (`.plans/ACTIVITY_MODEL_COMPARISON.md` P3-12); needs the owning team. A workflow-scheduled activity realization (P3-11) overlaps the deferred fn-119.
 - The canary policy's `workflowPath` names the deleted production-canary workflow, so production dispatch
   fails closed.
+- Batch reorganization (2026-10-08): batches 2 to 4 replace the earlier per-spec migrations, and
+  Flow's spec dependencies match: each spec depends on every spec of the previous batch, with no
+  spec dependencies inside a batch. Reverting to the earlier order means restoring per-spec
+  regenerations and those dependencies; the tasks are unchanged.

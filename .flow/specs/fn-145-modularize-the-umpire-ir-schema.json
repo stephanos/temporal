@@ -12,10 +12,7 @@
     "fn-135-effect-and-is-blocks-for-effects-and",
     "fn-136-phase-roles-on-lifecycle-enums",
     "fn-137-capabilities-read-phase-roles",
-    "fn-139-actor-grouped-rules-per-rpc-actions",
-    "fn-142-split-modeltemporalshared-into",
-    "fn-143-rename-modelumpire-to-modelframework",
-    "fn-123-declare-faults-as-the-environments"
+    "fn-139-actor-grouped-rules-per-rpc-actions"
   ],
   "id": "fn-145-modularize-the-umpire-ir-schema",
   "impl_review_rounds": {},
@@ -153,5 +150,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T03:44:12.174525Z"
+  "updated_at": "2026-10-08T19:03:46.054002Z"
 }

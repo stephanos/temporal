@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T15:38:28.441506Z",
+  "depends_on": [
+    "fn-149-safety-and-liveness-groups-for-object.3",
+    "fn-149-safety-and-liveness-groups-for-object.4"
+  ],
+  "id": "fn-149-safety-and-liveness-groups-for-object.5",
+  "priority": null,
+  "spec": "fn-149-safety-and-liveness-groups-for-object",
+  "spec_path": ".flow/tasks/fn-149-safety-and-liveness-groups-for-object.5.md",
+  "status": "todo",
+  "title": "Document grouped authoring and close integrated gates",
+  "updated_at": "2026-10-08T15:38:28.441506Z"
+}

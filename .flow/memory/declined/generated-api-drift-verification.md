@@ -6,6 +6,10 @@ The generator is intentionally generation-only for now. Its focused and golden t
 
 ## Prior requests
 
+- 2026-10-08 - Planned fn-149's claim grouping and fn-150's composition progress. Retain focused
+  declaration, schema, replay and behavior pins plus existing regeneration gates; broad generated
+  API drift verification and new CI coverage remain excluded.
+
 - 2026-10-08 - Re-anchored fn-129 after fn-138 source integration/seal. Necessary typed native schema mirrors and focused scratch lift/lower, replay and artifact identity checks stay in scope; broad generated API drift verification and new CI coverage remain excluded.
 
 - 2026-10-08 - Planned fn-128's shared activity closure. Preserve its existing focused IR/Case generation, fixture, replay and artifact-identity checks; broad generated API drift verification and new CI coverage remain excluded.

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T15:38:29.169264Z",
+  "depends_on": [
+    "fn-150-bounded-liveness-across-composed.3",
+    "fn-150-bounded-liveness-across-composed.4"
+  ],
+  "id": "fn-150-bounded-liveness-across-composed.5",
+  "priority": null,
+  "spec": "fn-150-bounded-liveness-across-composed",
+  "spec_path": ".flow/tasks/fn-150-bounded-liveness-across-composed.5.md",
+  "status": "todo",
+  "title": "Demonstrate Temporal composition progress and close gates",
+  "updated_at": "2026-10-08T15:38:29.169264Z"
+}

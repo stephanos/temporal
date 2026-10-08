@@ -1,0 +1,72 @@
+{
+  "branch_name": "fn-150-bounded-liveness-across-composed",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-08T05:22:40.276309Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-150-bounded-liveness-across-composed",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T15:42:33.903577Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "f51472cbdfc8a4efddde352c8b2455b7538719dea0b77195560268886cfeb3ce",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c63c0c5fdb8e9665a3a370bb1a7cfd07384584d9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 365591,
+      "output_sha256": "96a87e504e15def31ba73a9dfabc09d3048110d8b82ec43cd56dce3bbd522266",
+      "reservation_id": "4789747f3af0497cb3b85e592c719e35",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T15:42:33.894353Z",
+      "tool_calls": 23,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-150-bounded-liveness-across-composed.md",
+  "status": "open",
+  "title": "Bounded liveness across composed machines",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-08T15:42:33.905873Z"
+}

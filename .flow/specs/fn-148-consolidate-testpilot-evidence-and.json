@@ -7,7 +7,9 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-147-migrate-elapsed-time-fields-to-protobuf"
+    "fn-145-modularize-the-umpire-ir-schema",
+    "fn-140-one-sentence-witness-queries-with",
+    "fn-123-declare-faults-as-the-environments"
   ],
   "id": "fn-148-consolidate-testpilot-evidence-and",
   "impl_review_rounds": {},
@@ -177,5 +179,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T04:25:51.908734Z"
+  "updated_at": "2026-10-08T19:03:54.737341Z"
 }

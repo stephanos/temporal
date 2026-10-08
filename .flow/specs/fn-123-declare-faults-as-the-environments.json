@@ -10,7 +10,9 @@
     "fn-112-make-the-standalone-activity-scala",
     "fn-139-actor-grouped-rules-per-rpc-actions",
     "fn-137-capabilities-read-phase-roles",
-    "fn-140-one-sentence-witness-queries-with"
+    "fn-142-split-modeltemporalshared-into",
+    "fn-143-rename-modelumpire-to-modelframework",
+    "fn-145-modularize-the-umpire-ir-schema"
   ],
   "id": "fn-123-declare-faults-as-the-environments",
   "impl_review_rounds": {},
@@ -228,5 +230,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T03:44:10.786720Z"
+  "updated_at": "2026-10-08T19:03:49.484914Z"
 }

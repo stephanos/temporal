@@ -1,11 +1,134 @@
 {
   "branch_name": "fn-149-safety-and-liveness-groups-for-object",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-08T05:18:27.667926Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-149-safety-and-liveness-groups-for-object",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T15:48:02.400387Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "ac7fbe11cce10da1f4f88ed9bd266d8fee7e9e6ddfd3ddb395ee66f8d9c7c9d6",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cd0234b4e8d3e502562769fd426032c7",
+            "classification": "introduced",
+            "findingId": "finding-cd0234b4e8d3e502562769fd426032c7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3bd40d8efc366bbf4ebcb76b56460752",
+            "classification": "introduced",
+            "findingId": "finding-3bd40d8efc366bbf4ebcb76b56460752",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c63c0c5fdb8e9665a3a370bb1a7cfd07384584d9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 442982,
+      "output_sha256": "a936e8c05dadab9e31a1e012e902b8689fa748c08c2bfa10093a9c580d34a9fa",
+      "reservation_id": "e99cc0e54667432aba7f57aebadc57da",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T15:42:59.628845Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "16421e83dac81b52b8db230243d5815ebc97b2d109c5356be9e3e77a84c16952",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cd0234b4e8d3e502562769fd426032c7",
+            "classification": "introduced",
+            "findingId": "finding-cd0234b4e8d3e502562769fd426032c7",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3bd40d8efc366bbf4ebcb76b56460752",
+            "classification": "introduced",
+            "findingId": "finding-3bd40d8efc366bbf4ebcb76b56460752",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c63c0c5fdb8e9665a3a370bb1a7cfd07384584d9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 601,
+      "output_sha256": "836963246adccfa927aaf0d0b1f534f76d6a50ced97ce5c40b7f0bcd6a264f7e",
+      "reservation_id": "a1e2ce657d844f9e9c7118fa9a9581a2",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T15:48:02.394761Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-149-safety-and-liveness-groups-for-object.md",
   "status": "open",
   "title": "Safety and liveness groups for object properties",
@@ -20,5 +143,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T05:18:27.685365Z"
+  "updated_at": "2026-10-08T15:48:02.401065Z"
 }

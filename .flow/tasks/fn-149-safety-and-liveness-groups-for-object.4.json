@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T15:38:28.441154Z",
+  "depends_on": [
+    "fn-149-safety-and-liveness-groups-for-object.1",
+    "fn-149-safety-and-liveness-groups-for-object.2",
+    "fn-149-safety-and-liveness-groups-for-object.3"
+  ],
+  "id": "fn-149-safety-and-liveness-groups-for-object.4",
+  "priority": null,
+  "spec": "fn-149-safety-and-liveness-groups-for-object",
+  "spec_path": ".flow/tasks/fn-149-safety-and-liveness-groups-for-object.4.md",
+  "status": "todo",
+  "title": "Migrate Model claims and capability references with behavior pins",
+  "updated_at": "2026-10-08T15:47:35.420682Z"
+}

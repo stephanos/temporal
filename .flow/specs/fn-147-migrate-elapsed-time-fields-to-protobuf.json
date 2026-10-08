@@ -7,7 +7,9 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-146-adopt-cel-for-runtime-predicates-and"
+    "fn-145-modularize-the-umpire-ir-schema",
+    "fn-140-one-sentence-witness-queries-with",
+    "fn-123-declare-faults-as-the-environments"
   ],
   "id": "fn-147-migrate-elapsed-time-fields-to-protobuf",
   "impl_review_rounds": {},
@@ -161,5 +163,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T04:25:51.032631Z"
+  "updated_at": "2026-10-08T19:03:52.545408Z"
 }
