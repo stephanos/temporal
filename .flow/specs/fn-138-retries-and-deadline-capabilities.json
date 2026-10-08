@@ -7,7 +7,8 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-137-capabilities-read-phase-roles"
+    "fn-137-capabilities-read-phase-roles",
+    "fn-141-shrink-the-ir-generator-one-description"
   ],
   "id": "fn-138-retries-and-deadline-capabilities",
   "impl_review_rounds": {},
@@ -262,5 +263,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T07:43:38.405243Z"
+  "updated_at": "2026-10-08T23:50:29.006361Z"
 }

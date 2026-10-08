@@ -8,7 +8,6 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-134-capabilities-own-their-properties",
-    "fn-129-activity-coverage",
     "fn-143-rename-modelumpire-to-modelframework",
     "fn-142-split-modeltemporalshared-into",
     "fn-145-modularize-the-umpire-ir-schema"
@@ -134,5 +133,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T19:03:47.536947Z"
+  "updated_at": "2026-10-08T23:50:27.862949Z"
 }

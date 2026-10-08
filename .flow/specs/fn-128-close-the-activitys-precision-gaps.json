@@ -11,7 +11,8 @@
     "fn-132-group-the-nexus-and-activity-models-by",
     "fn-133-lean-typed-realizations",
     "fn-134-capabilities-own-their-properties",
-    "fn-135-effect-and-is-blocks-for-effects-and"
+    "fn-135-effect-and-is-blocks-for-effects-and",
+    "fn-141-shrink-the-ir-generator-one-description"
   ],
   "id": "fn-128-close-the-activitys-precision-gaps",
   "impl_review_rounds": {},
@@ -306,5 +307,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T16:24:15.257557Z"
+  "updated_at": "2026-10-08T23:50:28.453107Z"
 }
