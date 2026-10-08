@@ -310,20 +310,6 @@ while preserving behavior and check results.
 Coordinate with fn-140's property/Query authoring changes and fn-141's declaration lifting changes.
 Scheduling remains open; the approved delivery order above is unchanged.
 
-Cross-machine safety uses compositions today. New composition progress support is tracked separately
-in fn-150; it is not a prerequisite for fn-149's grouping.
-
-### fn-150: Bounded liveness across composed machines
-
-[Spec](.flow/specs/fn-150-bounded-liveness-across-composed.md) captured with five acceptance criteria;
-no tasks yet and not marked ready. Let a composition own bounded progress claims over multiple
-member states. Count composed steps, resolve fairness against synchronized and member-only actions,
-and preserve deadlock, cycle, deadline and incomplete-check distinctions. Include one concrete
-Temporal composition with passing and negative examples.
-
-Related to fn-149's safety/liveness groups. Coordinate with fn-141 and the queued schema changes;
-execution remains unscheduled. Live Case generation for compositions is outside this spec.
-
 ## Deferred
 
 Specs the owner deferred keep their tasks here so they can be revived as planned.
