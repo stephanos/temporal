@@ -71,25 +71,25 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       .asScala
       .toSeq
 
-  test("three retry presets retain all 24 distinct start classes and their command identities"):
+  test("three retry presets retain all 48 distinct start classes and their command identities"):
     val controller = items("temporal.features.activity.standalone.system.Standalone")
     val itemCommands = controller.filter(_.has("command")).map(_.at("/command/id").asText())
     assertEquals(itemCommands.distinct.size, itemCommands.size)
     val starts = controller
       .flatMap(_.path("performs").elements().asScala)
       .filter(_.at("/step/action").asText().endsWith("client.start"))
-    assertEquals(starts.size, 24)
+    assertEquals(starts.size, 48)
     val classes = starts.map(_.path("step"))
-    assertEquals(classes.distinct.size, 24)
+    assertEquals(classes.distinct.size, 48)
     val policyCounts =
-      starts.groupBy(_.at("/step/inputs/4/enum/case").asText()).view.mapValues(_.size).toMap
-    assertEquals(policyCounts, Map("unlimited" -> 8, "one" -> 8, "two" -> 8))
+      starts.groupBy(_.at("/step/inputs/5/enum/case").asText()).view.mapValues(_.size).toMap
+    assertEquals(policyCounts, Map("unlimited" -> 16, "one" -> 16, "two" -> 16))
     for step <- starts do
       val assignments = step.at("/command/rpc/assign").elements().asScala.toSeq
       assertEquals(assignments.map(_.path("target").asText()).distinct.size, assignments.size)
       val maximum =
         assignments.find(_.path("target").asText() == "retry_policy.maximum_attempts").get
-      val expected = step.at("/step/inputs/4/enum/case").asText() match
+      val expected = step.at("/step/inputs/5/enum/case").asText() match
         case "unlimited" => "0"
         case "one"       => "1"
         case "two"       => "2"
