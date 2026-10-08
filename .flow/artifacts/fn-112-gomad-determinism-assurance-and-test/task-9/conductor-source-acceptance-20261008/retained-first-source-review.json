@@ -1,0 +1,52 @@
+{
+  "argv": [
+    "node",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/retain-first-review.mjs"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOCACHE": null
+  },
+  "removed_environment": [
+    "GOROOT",
+    "GOBIN",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T15:36:55.020Z",
+  "ended": "2026-10-08T15:36:55.616Z",
+  "monotonic_elapsed_nanos": "595841917",
+  "elapsed_seconds": 0.595841917,
+  "sources_before_sha256": "0148b44d88de8684601e0695af56b8b16f903ee09b5f5136066b0ac2ee23408e",
+  "sources_after_sha256": "0148b44d88de8684601e0695af56b8b16f903ee09b5f5136066b0ac2ee23408e",
+  "source_changes": [],
+  "stdout_sha256": "42bb3d6753c936a9f2456502d5f42873d1bdf2fa47c93f71345ed42b0ea9c19f",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "golangci_lint": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "tests": [],
+  "top_level_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "native": false
+}

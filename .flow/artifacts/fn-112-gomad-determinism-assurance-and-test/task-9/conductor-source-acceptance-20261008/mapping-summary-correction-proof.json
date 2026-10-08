@@ -1,0 +1,42 @@
+{
+  "source": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-current-mapping-analysis.json",
+    "sha256": "4de3c1e84c7ea8864f7893df1743e2c0456f9a31b452459c59c462338e3160a4"
+  },
+  "corrected": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/current-mapping-corrected.json",
+    "sha256": "e2412333209ccbbce7f43e14011b5b8b1763a11725c8861e6d118214fae6f5f6"
+  },
+  "original_report_retained_unchanged": true,
+  "every_row_and_other_field_exact": true,
+  "earlier_summary": {
+    "fail": 76,
+    "pass": 85,
+    "not observed in bounded focused selection": 104,
+    "authorized-housekeeping": 11,
+    "skip": 6
+  },
+  "current_summary": {
+    "fail": 76,
+    "pass": 85,
+    "NOT REACHED; ancestor FAIL": 104,
+    "authorized-housekeeping": 11,
+    "skip": 6
+  },
+  "controls": [
+    {
+      "name": "stale_summary",
+      "rejected": true
+    },
+    {
+      "name": "changed_row_status",
+      "rejected": true
+    },
+    {
+      "name": "missing_row",
+      "rejected": true
+    }
+  ],
+  "native": false,
+  "review_verdict": null
+}

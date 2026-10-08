@@ -1,0 +1,42 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: status summary must equal actual final row aggregation
++ actual - expected
+
+  {
+-   'NOT REACHED; ancestor FAIL': 104,
+    'authorized-housekeeping': 11,
++   'not observed in bounded focused selection': 104,
+    fail: 76,
+    pass: 85,
+    skip: 6
+  }
+
+    at verifySummary (file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/mapping-summary-test.mjs:14:10)
+    at file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/mapping-summary-test.mjs:21:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: {
+    fail: 76,
+    pass: 85,
+    'not observed in bounded focused selection': 104,
+    'authorized-housekeeping': 11,
+    skip: 6
+  },
+  expected: {
+    fail: 76,
+    pass: 85,
+    'NOT REACHED; ancestor FAIL': 104,
+    'authorized-housekeeping': 11,
+    skip: 6
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

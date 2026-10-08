@@ -1,0 +1,13 @@
+# Task9 mapping-summary review correction
+
+The first formal source review reached NEEDS_WORK for one contracts finding. Its correctness and integration draws reached SHIP. `first-source-review.json` retains the actual receipt, fan-out metadata and three draw results losslessly before re-review replaces the live receipt. The conductor authors no review verdict.
+
+The frozen worker report classified 104 detailed mapping rows as `NOT REACHED; ancestor FAIL`, but its summary retained the earlier `not observed in bounded focused selection` bucket. `current-mapping-corrected.json` is the authoritative corrected summary. Its 282 rows and every field except `counts_by_actual_status` match the frozen report exactly. The frozen report remains unchanged with SHA256 `4de3c1e84c7ea8864f7893df1743e2c0456f9a31b452459c59c462338e3160a4`.
+
+`mapping-summary-red` reproduces the stale-summary failure. `mapping-summary-green` accepts the corrected report. `mapping-summary-correction-proof.json` retains the source/output hashes and three rejected controls for a stale summary, changed row status and missing row. The corrected counts are 76 fail, 85 pass, 104 not reached after an ancestor failed, 11 individually authorized housekeeping removals and 6 skip. None of the 104 not-reached rows is a pass or skip.
+
+`post-review-worker-verification` verifies the unchanged frozen manifest, terminal seal, source identities and negative receipt controls. `post-review-restored-runner` reruns both private completion and World tests against current production successfully. This correction changes no Go source, assertion, fixture, runtime, native claim or behavior admission. The independent source audit and raw mixed-suite failures remain retained; portable checks do not establish full-host or native qualification. Existing lint findings remain owned by their correction tasks and are neither suppressed nor called globally green.
+
+Native Darwin qualification remains deferred under fn149 and Linux qualification and CI under fn128. No PR, push or CI action is part of this correction.
+
+The post-review fast-lint run exits 2 with the same three inherited findings: unchecked `fmt.Fprintf` in `internal/gomadtool/architecture/initialization.go:123` and `standard.go:392`, and the capitalized error in `world/recording.go:95`. The root-module portion reports zero issues. No finding targets a restored assertion or this metadata-only correction. `post-review-alias-guards` passes both current architecture guards. The three Go source hashes and both user-document hashes still match their recorded pre-review identities.

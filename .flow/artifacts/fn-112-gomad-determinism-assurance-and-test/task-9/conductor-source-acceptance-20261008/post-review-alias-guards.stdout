@@ -1,0 +1,12 @@
+{"Time":"2026-10-08T15:44:19.935153711Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3"}
+{"Time":"2026-10-08T15:44:19.942060794Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportTypeAliases"}
+{"Time":"2026-10-08T15:44:19.942140503Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportTypeAliases","Output":"=== RUN   TestPublicPackagesDoNotExportTypeAliases\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:44:24.491863588Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportTypeAliases","Output":"--- PASS: TestPublicPackagesDoNotExportTypeAliases (4.55s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:44:24.492034047Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportTypeAliases","Elapsed":4.55}
+{"Time":"2026-10-08T15:44:24.492088713Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportForwardingAliases"}
+{"Time":"2026-10-08T15:44:24.492095463Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportForwardingAliases","Output":"=== RUN   TestPublicPackagesDoNotExportForwardingAliases\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:44:24.52455838Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportForwardingAliases","Output":"--- PASS: TestPublicPackagesDoNotExportForwardingAliases (0.03s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:44:24.524643047Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPublicPackagesDoNotExportForwardingAliases","Elapsed":0.03}
+{"Time":"2026-10-08T15:44:24.524677922Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:44:24.531079255Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"ok  \tgo.temporal.io/server/tools/gomad3\t4.596s\n"}
+{"Time":"2026-10-08T15:44:24.531123547Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Elapsed":4.596}

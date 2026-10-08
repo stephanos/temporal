@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "verdict": "REVIEW",
+  "mode": "triage_review",
+  "reason": "code change detected: .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/audit.mjs",
+  "source": "deterministic",
+  "base": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "changed_file_count": 603
+}
