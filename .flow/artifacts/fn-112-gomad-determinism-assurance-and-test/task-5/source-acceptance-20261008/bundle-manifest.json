@@ -66,8 +66,8 @@
   },
   {
     "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-verify.mjs",
-    "bytes": 3624,
-    "sha256": "c2fbc775ae05039570afdc0af2942b0b5fecd20b66214418b314fdba0d5387d3"
+    "bytes": 3601,
+    "sha256": "5ca04d36fbb92ac75003447a4bbcaae04c42e7f41b92fc497af646e57ec5d92b"
   },
   {
     "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/configured-vet.json",

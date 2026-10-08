@@ -1,0 +1,14 @@
+{
+  "commits": [
+    "806d2d462aa22d4d059e2f6967ac50fbc98547b1"
+  ],
+  "tests": [
+    "conductor: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run ^(TestDrawInventoryRejectsUnclassifiedReference|TestSeededDrawInventoryRejectsUnclassifiedReference|TestRuntimeCampaignCollectorProfile|TestPackageArchitecture|TestChoiceWire.*|Test(ProjectFindings|LookupBoundarySymbol|IsGuardSymbol|Extract(MachO|ELF)Record|Decode).*)$ ./toolchain ./internal/gomadtool/conformance ./choice/internal/wire ./target/internal/livecap .",
+    "conductor: make -C tools/gomad3 validate",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-verify.mjs",
+    "configured errortype vet over toolchain/conformance/wire/livecap/execution: exit 0; exact argv in configured-vet.json",
+    "41 bundle-manifest entries verified after one metadata hash correction",
+    "flowctl codex impl-review-fanout + finalize rid05e1be3dc45d4654a50d7753c3807fce: three actual SHIP draws; no native qualification"
+  ],
+  "prs": []
+}

@@ -262,7 +262,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-112.2](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.2.md) | ✅ Done | Run the orphaned simulation, overlay, and choice-replay tests in a gate |
 | [fn-112.3](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.3.md) | ✅ Done | Record a runtime-state digest at each choice point in a diagnostic trace |
 | [fn-112.4](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.4.md) | ✅ Done | Plumb diagnostics through the Runner and add the trace differ |
-| [fn-112.5](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md) | 🚧 In progress | Inventory seeded-stream draw sites and check host-timed paths at runtime |
+| [fn-112.5](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md) | ✅ Done | Inventory seeded-stream draw sites and check host-timed paths at runtime |
 | [fn-112.6](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.6.md) | ✅ Done | Add conformance fixtures for unverified channels and state the closure-mode limit |
 | [fn-112.7](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md) | ✅ Done | Compare the filesystem and TCP models with the host OS on generated sequences |
 | [fn-112.8](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md) | ✅ Done | Drive explore, replay, and kill-then-resume through the built CLI |
