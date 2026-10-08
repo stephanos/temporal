@@ -1,3 +1,6 @@
+---
+satisfies: [R1, R2, R3]
+---
 # fn-143-rename-modelumpire-to-modelframework.1 Move model/umpire to model/framework, package umpire to framework; regenerate; prove the diff is the umpire.→framework. mapping; docs
 
 ## Description
