@@ -429,7 +429,7 @@
         "named": "fixture.deadlinecapabilities.DeadlineState"
       }
     }, {
-      "name": "after",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }
@@ -692,7 +692,10 @@
               }
             },
             "right": {
-              "position": { },
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 115
+              },
               "binary": {
                 "op": "OP_AND",
                 "left": {
@@ -1010,7 +1013,10 @@
               }
             },
             "right": {
-              "position": { },
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 96
+              },
               "binary": {
                 "op": "OP_AND",
                 "left": {
@@ -1365,7 +1371,7 @@
         "named": "fixture.deadlinecapabilities.DeadlineState"
       }
     }, {
-      "name": "after",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }
@@ -3959,7 +3965,10 @@
               }
             },
             "right": {
-              "position": { },
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 96
+              },
               "binary": {
                 "op": "OP_AND",
                 "left": {
@@ -4298,7 +4307,7 @@
         "named": "fixture.deadlinecapabilities.SimplePhase"
       }
     }, {
-      "name": "after",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }

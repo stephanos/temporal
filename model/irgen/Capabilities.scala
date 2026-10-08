@@ -983,7 +983,7 @@ private[irgen] trait Capabilities:
           val actual = declaredType(bringing.head, role.tpe)
           if actual =:= role.tpe.dealias then super.transformTerm(typed)(owner)
           else TypeApply.copy(typed)(transformTerm(fn)(owner), List(Inferred(actual)))
-        case Apply(Select(value: Ref, "forall"), List(predicate))
+        case quantified @ Apply(Select(value: Ref, "forall"), List(predicate))
             if families.contains(value.symbol) =>
           val (formal, body) = lambda(predicate).getOrElse(
             fail(at, s"$propertyName quantifies its fact family with a predicate")
@@ -1016,7 +1016,10 @@ private[irgen] trait Capabilities:
                 case other                          => super.transformTerm(other)(owner)
             transformTerm(substituted.transformTerm(body)(owner))(owner)
           }
-          terms.reduceLeft((left, right) => Apply(Select.unique(left, "&&"), List(right)))
+          // Each conjunction is a copy of the quantifier, so it is placed where the quantifier is written.
+          terms.reduceLeft((left, right) =>
+            Apply.copy(quantified)(Select.unique(left, "&&"), List(right))
+          )
         case other => super.transformTerm(other)(owner)
     val expanded = DefDef.copy(statement)(
       statement.name,
