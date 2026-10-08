@@ -1,0 +1,9 @@
+{
+  "kind": "injected private helper counterfactual, not unchanged-source or real hostfs fault",
+  "original": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/upgrade/adapterregen/transaction.go",
+  "original_sha256": "e80b96009c011783e3844f9fb1d557bf8f6c6566b869a1f9a75b99386caec8be",
+  "helper_sha256": "811b994b80c96d9dbdb17fa5bc3876e539556fdc96f7c1c89655c521cb51cb85",
+  "mutant_sha256": "6dd6bcfb245686a90ff25127920be61380923ea0ebdb3afc5e904c41f90412cf",
+  "overlay_sha256": "6d3887d23ec8b967fe8b733bbd166e495a6b76fdc3d1ff3150d5482da283bc31",
+  "replacement": "func releaseRegenerationLock(result *publication, primary error, release func() error) error {\n\trelease()\n\treturn primary\n}\n"
+}

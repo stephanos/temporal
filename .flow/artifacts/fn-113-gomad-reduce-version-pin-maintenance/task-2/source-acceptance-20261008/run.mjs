@@ -1,0 +1,64 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+
+const repo = process.cwd();
+const out = path.join(repo, '.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008');
+const go = '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go';
+const env = {...process.env, PATH:path.dirname(go)+':'+process.env.PATH, GOENV:'off', GOWORK:'off', GOTOOLCHAIN:'local', GOFLAGS:'', GOCACHE:'/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r', TMPDIR:'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX', GOTMPDIR:'/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX'};
+const moduleCacheFile = path.join(out, 'private-module-cache.json');
+if (fs.existsSync(moduleCacheFile)) {
+  const cache = JSON.parse(fs.readFileSync(moduleCacheFile, 'utf8'));
+  if (!cache.copy_completed) throw Error('private module cache seed incomplete');
+  env.GOMODCACHE = cache.destination;
+  env.GOLANGCI_LINT_CACHE = path.join(cache.destination, '.lint-cache');
+  env.TEST_TELEMETRY_DIR = path.join(cache.destination, '.go-telemetry');
+}
+const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const git = (...args) => {
+  const r = spawnSync('git',args,{cwd:repo,encoding:'utf8'});
+  if(r.status!==0) throw Error(r.stderr);
+  return r.stdout;
+};
+const files = () => [...new Set([...git('ls-files','tools/gomad3','go.mod','go.sum','tools/gomad3integration/go.mod','tools/gomad3integration/go.sum','.github/.golangci.yml','Makefile','cmd/tools/lintcode').trim().split('\n'),...git('ls-files','--others','--exclude-standard','tools/gomad3').trim().split('\n')].filter(Boolean))].sort();
+const bindings = () => files().map(p=>({path:p,sha256:fs.existsSync(p)?hash(fs.readFileSync(p)):null}));
+const initial = bindings();
+const sourceHash = hash(JSON.stringify(initial));
+const toolBindings = () => [go,'/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0','/tmp/fn109-lint-tools.ZdNe1t50/errortype'].map(p=>({path:p,sha256:hash(fs.readFileSync(p))}));
+const tools = toolBindings();
+const [name,command,expectedText='0'] = process.argv.slice(2);
+if(!name || !command) throw Error('run.mjs NAME COMMAND [EXPECTED|any]');
+const overlayPath = command.match(/-overlay=([^\s"']+)/)?.[1];
+const overlayBindings = () => {
+  if (!overlayPath) return null;
+  const mapping = JSON.parse(fs.readFileSync(overlayPath, 'utf8')).Replace;
+  return {path:overlayPath,sha256:hash(fs.readFileSync(overlayPath)),entries:Object.entries(mapping).sort(([a],[b])=>a.localeCompare(b)).map(([logical,actual])=>({logical,actual,original_sha256:fs.existsSync(logical)?hash(fs.readFileSync(logical)):null,executing_sha256:hash(fs.readFileSync(actual))}))};
+};
+const overlay = overlayBindings();
+const effective = new Map(initial.map(file=>[file.path,file.sha256]));
+for (const entry of overlay?.entries ?? []) effective.set(path.relative(repo, entry.logical), entry.executing_sha256);
+const effectiveBindings = [...effective].sort(([a],[b])=>a.localeCompare(b)).map(([path,sha256])=>({path,sha256}));
+const effectiveHash = overlay ? hash(JSON.stringify(effectiveBindings)) : sourceHash;
+const log = path.join(out,name+'.log');
+const fd = fs.openSync(log,'w');
+const started = new Date().toISOString();
+const r = spawnSync('timeout',['600','bash','-c',command],{cwd:repo,env,stdio:['ignore',fd,fd]});
+fs.closeSync(fd);
+const finalHash = hash(JSON.stringify(bindings()));
+const text = fs.readFileSync(log,'utf8');
+const events = text.split('\n').filter(s=>s.startsWith('{')).flatMap(s=>{try{return [JSON.parse(s)];}catch{return [];}});
+const counts = Object.fromEntries(['pass','fail','skip'].map(action=>[action,events.filter(e=>e.Action===action && e.Test).length]));
+const toolsUnchanged = JSON.stringify(tools) === JSON.stringify(toolBindings());
+const receipt = {name,command,started,ended:new Date().toISOString(),exit_code:r.status,signal:r.signal,error:r.error?.message??null,log:path.basename(log),log_sha256:hash(fs.readFileSync(log)),base_commit:fs.readFileSync('.flow/tmp/base_commit','utf8').trim(),source_tree_sha256:sourceHash,source_unchanged:sourceHash===finalHash,effective_source_tree_sha256:effectiveHash,overlay,overlay_unchanged:JSON.stringify(overlay)===JSON.stringify(overlayBindings()),tools,environment:Object.fromEntries(Object.entries(env).filter(([k])=>['PATH','GOENV','GOWORK','GOTOOLCHAIN','GOFLAGS','GOCACHE','GOMODCACHE','GOLANGCI_LINT_CACHE','TEST_TELEMETRY_DIR','TMPDIR','GOTMPDIR'].includes(k))),module_cache_binding:fs.existsSync(moduleCacheFile)?hash(fs.readFileSync(moduleCacheFile)):null,counts,skips:events.filter(e=>e.Action==='skip'),failures:events.filter(e=>e.Action==='fail')};
+receipt.tools_unchanged = toolsUnchanged;
+receipt.harness_revision = 'complete scoped path re-enumeration and before/after tool hashes';
+receipt.harness_sha256 = hash(fs.readFileSync(path.join(out,'run.mjs')));
+receipt.command_environment_overrides = Object.fromEntries([...command.matchAll(/(?:^|\s)(GOCACHE|GOTMPDIR|TMPDIR|GOOS|GOARCH|CGO_ENABLED)=([^\s&]+)/g)].map(match=>[match[1],match[2]]));
+fs.writeFileSync(path.join(out,name+'-receipt.json'),JSON.stringify(receipt,null,2)+'\n');
+fs.writeFileSync(path.join(out,name+'-source.json'),JSON.stringify(initial,null,2)+'\n');
+console.log(JSON.stringify({name,exit_code:r.status,source_tree_sha256:sourceHash,source_unchanged:sourceHash===finalHash,counts}));
+if(sourceHash!==finalHash) throw Error('source changed during gate');
+if(!receipt.overlay_unchanged) throw Error('executing overlay changed during gate');
+if(!toolsUnchanged) throw Error('tool identity changed during gate');
+if(expectedText!=='any' && r.status!==Number(expectedText)) throw Error('unexpected exit; read '+log);

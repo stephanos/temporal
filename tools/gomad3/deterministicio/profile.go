@@ -295,23 +295,31 @@ func (profile Spec) ValidatePreparedTarget(spec target.Spec, prepared target.Pre
 	if err != nil {
 		return err
 	}
-	if spec.Kind != prepared.Kind || spec.Source != prepared.Source {
-		return fmt.Errorf("deterministic I/O target identity does not match its build specification")
-	}
-	if len(prepared.Argv) == 0 || prepared.Argv[0] != "gomad3-target" || !equalStrings(spec.Args, prepared.Argv[1:]) {
-		return fmt.Errorf("deterministic I/O target arguments do not match their build specification")
-	}
-	if prepared.GoVersion != definition.target.GoVersion || prepared.TargetGOOS != definition.target.GOOS || prepared.TargetGOARCH != definition.target.GOARCH {
-		return fmt.Errorf("deterministic I/O requires Go %s on %s/%s; target was built with %s for %s/%s", definition.target.GoVersion, definition.target.GOOS, definition.target.GOARCH, prepared.GoVersion, prepared.TargetGOOS, prepared.TargetGOARCH)
-	}
-	adapters := make([]Adapter, len(prepared.Adapters))
-	for index, adapter := range prepared.Adapters {
-		adapters[index] = Adapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
+	adapters, err := validatePreparedTargetShape(definition, spec, prepared)
+	if err != nil {
+		return err
 	}
 	if err := profile.VerifyAdapters(adapters); err != nil {
 		return fmt.Errorf("deterministic I/O target adapters: %w", err)
 	}
 	return nil
+}
+
+func validatePreparedTargetShape(definition *profileDefinition, spec target.Spec, prepared target.Prepared) ([]Adapter, error) {
+	if spec.Kind != prepared.Kind || spec.Source != prepared.Source {
+		return nil, fmt.Errorf("deterministic I/O target identity does not match its build specification")
+	}
+	if len(prepared.Argv) == 0 || prepared.Argv[0] != "gomad3-target" || !equalStrings(spec.Args, prepared.Argv[1:]) {
+		return nil, fmt.Errorf("deterministic I/O target arguments do not match their build specification")
+	}
+	if prepared.GoVersion != definition.target.GoVersion || prepared.TargetGOOS != definition.target.GOOS || prepared.TargetGOARCH != definition.target.GOARCH {
+		return nil, fmt.Errorf("deterministic I/O requires Go %s on %s/%s; target was built with %s for %s/%s", definition.target.GoVersion, definition.target.GOOS, definition.target.GOARCH, prepared.GoVersion, prepared.TargetGOOS, prepared.TargetGOARCH)
+	}
+	adapters := make([]Adapter, len(prepared.Adapters))
+	for index, adapter := range prepared.Adapters {
+		adapters[index] = Adapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
+	}
+	return adapters, nil
 }
 
 func digest(value []byte) Digest {

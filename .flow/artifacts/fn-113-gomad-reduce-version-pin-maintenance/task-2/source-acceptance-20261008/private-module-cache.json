@@ -1,0 +1,63 @@
+{
+  "origin": "/home/agent/go/pkg/mod",
+  "destination": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+  "started": "2026-10-08T17:24:39.754Z",
+  "ended": "2026-10-08T17:27:29.453Z",
+  "copy_completed": true,
+  "observations": [
+    {
+      "command": [
+        "mktemp",
+        "-d",
+        "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-XXXXXXXX"
+      ],
+      "exit_code": 0,
+      "stdout": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "df",
+        "-h",
+        "/home/agent/go/pkg/mod",
+        "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc"
+      ],
+      "exit_code": 0,
+      "stdout": "Filesystem      Size  Used Avail Use% Mounted on\noverlay         118G  112G     0 100% /\nhost            927G  860G   67G  93% /Users/stephan/Workspace/skunkworks\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "cp",
+        "-a",
+        "/home/agent/go/pkg/mod/.",
+        "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "du",
+        "-sb",
+        "/home/agent/go/pkg/mod",
+        "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc"
+      ],
+      "exit_code": 0,
+      "stdout": "2364454759\t/home/agent/go/pkg/mod\n2364454759\t/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "df",
+        "-h",
+        "/home/agent/go/pkg/mod",
+        "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc"
+      ],
+      "exit_code": 0,
+      "stdout": "Filesystem      Size  Used Avail Use% Mounted on\noverlay         118G  112G     0 100% /\nhost            927G  863G   65G  94% /Users/stephan/Workspace/skunkworks\n",
+      "stderr": ""
+    }
+  ]
+}

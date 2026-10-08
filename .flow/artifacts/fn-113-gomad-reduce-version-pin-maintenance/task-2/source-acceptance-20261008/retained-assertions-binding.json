@@ -1,0 +1,675 @@
+{
+  "actual": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/retained-assertions-generated.go",
+  "generated_sha256": "1202b2cf5b9863d25b2eb256f81bb4a3c64e54a1055ff1a15c57dcda7cf6dcf7",
+  "kind": "additive portable retained assertions; originals and guards unchanged; no native credit",
+  "logical": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/deterministicio/retained_assertions_portable_generated_test.go",
+  "mapping_sha256": "3a06616cef8feb7611bb63dd9bb168770f93d15ceb3559c8a3fb31d1b232cbc9",
+  "origins": [
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "function": "TestRewriteAdapterSourceRejectsDrift",
+      "portable": "TestPortableRetainedRewriteAdapterSourceRejectsDrift",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "function_sha256": "ab97d20b50eda92f5f8590152099e89805732bdf46988f1b57d7182aebd05979",
+      "generated_sha256": "7afe7f2b8d35d9e561df5e37eb5f09ee978f1447091b744f0b5e9a44b6b0a9e0",
+      "replacements": [
+        {
+          "start": 74,
+          "end": 91,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 41,
+          "from": "TestRewriteAdapterSourceRejectsDrift",
+          "to": "TestPortableRetainedRewriteAdapterSourceRejectsDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestPinnedAdapterModuleInventories",
+      "portable": "TestPortableRetainedPinnedAdapterModuleInventories",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "6fe4f4ece706b7c3e839d923f9cb3819cdd9e7f3764713cc44bd574ff9c0f5eb",
+      "generated_sha256": "90f51b8a095facdcfe6d209f107ed5f25d72ee64d21b64d750552fb7fa7e7319",
+      "replacements": [
+        {
+          "start": 219,
+          "end": 236,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 152,
+          "end": 186,
+          "from": "TestPinnedAdapterModuleInventories",
+          "to": "TestPortableRetainedPinnedAdapterModuleInventories"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+      "portable": "TestPortableRetainedRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "90f96a21a10d3c3948ec9aaf75f51fef0503c70403b0fb6fba54cafdccd75f14",
+      "generated_sha256": "1c2cb8752e6f027e339de036204ec07a5f69db25f28495f04c3c567262abdf95",
+      "replacements": [
+        {
+          "start": 90,
+          "end": 113,
+          "from": "readPinnedGRPCKeepalive",
+          "to": "portableRetainedReadPinnedGRPCKeepalive"
+        },
+        {
+          "start": 5,
+          "end": 62,
+          "from": "TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+          "to": "TestPortableRetainedRewriteGRPCKeepalivePreservesDialerWithoutHostControl"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+      "portable": "TestPortableRetainedRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "52a0d2dde2365b2c5bd0c87fad22a8aa78d520268a65b57c83a43bee1255d060",
+      "generated_sha256": "962861e3321480442ef7e824bd3010d6c22cf21cb1464a803cce97175db563f2",
+      "replacements": [
+        {
+          "start": 111,
+          "end": 128,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 65,
+          "from": "TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+          "to": "TestPortableRetainedRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+      "portable": "TestPortableRetainedRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "fb3ac87e1293e52b912e43a2ac2b6671457ed6e1d2c825eca629c5e8d7dfb077",
+      "generated_sha256": "7a4259b50928ab93721fc341a12c586b1b21b60f886aae6a1c65ab275ba31707",
+      "replacements": [
+        {
+          "start": 90,
+          "end": 113,
+          "from": "readPinnedGRPCKeepalive",
+          "to": "portableRetainedReadPinnedGRPCKeepalive"
+        },
+        {
+          "start": 5,
+          "end": 55,
+          "from": "TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+          "to": "TestPortableRetainedRewriteGRPCKeepaliveRejectsSourceIdentityDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+      "portable": "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "515231ebdde7c0469e895e775700776d46723a0e458883957d283929eb5b7946",
+      "generated_sha256": "3e9be5ad3f18b5504a1a62c0c865f310a66cf393f0ce8e2cd30ac1359d5a584e",
+      "replacements": [
+        {
+          "start": 106,
+          "end": 129,
+          "from": "readPinnedGRPCKeepalive",
+          "to": "portableRetainedReadPinnedGRPCKeepalive"
+        },
+        {
+          "start": 5,
+          "end": 55,
+          "from": "TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+          "to": "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsChangedAnchor"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+      "portable": "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "de6b0f68a1110835682e1d778acf16d026b85b5907c82083aa3780e73dda52ad",
+      "generated_sha256": "dd3d32a33cd8022cfb8328fb69ba8d03ef1d39482d74bccfa27275545c70c7cb",
+      "replacements": [
+        {
+          "start": 85,
+          "end": 108,
+          "from": "readPinnedGRPCKeepalive",
+          "to": "portableRetainedReadPinnedGRPCKeepalive"
+        },
+        {
+          "start": 5,
+          "end": 57,
+          "from": "TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+          "to": "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestPrepareGRPCRecordsExactPrivateReplacement",
+      "portable": "TestPortableRetainedPrepareGRPCRecordsExactPrivateReplacement",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "e4bde0d44ef5688f58915676a7b8a31eb25c2dd5c2dc5567ebe56fdacc82df75",
+      "generated_sha256": "364fc965fdee2630454915a9c741df557a087be10508e151b302bcf9be2a6ea6",
+      "replacements": [
+        {
+          "start": 83,
+          "end": 100,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 50,
+          "from": "TestPrepareGRPCRecordsExactPrivateReplacement",
+          "to": "TestPortableRetainedPrepareGRPCRecordsExactPrivateReplacement"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestPrepareGRPCRejectsChangedIdentity",
+      "portable": "TestPortableRetainedPrepareGRPCRejectsChangedIdentity",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "3af8f47c8908696f6fb7ee063c3c1507b7a72fb5bfe283c6b04bd8147246b769",
+      "generated_sha256": "bb9c24a303be099e2ec276ed485ca1fddabe49d735a624462b0f2e5575adcda8",
+      "replacements": [
+        {
+          "start": 200,
+          "end": 217,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 42,
+          "from": "TestPrepareGRPCRejectsChangedIdentity",
+          "to": "TestPortableRetainedPrepareGRPCRejectsChangedIdentity"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "readPinnedGRPCKeepalive",
+      "portable": "portableRetainedReadPinnedGRPCKeepalive",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "b86e8ceaa28f350ed50d9838be40ef791e719ab507c80dfab1ea55a6c47f4830",
+      "generated_sha256": "6cedfeec58aa395886b2d739dc24531fc9890784c942519d784a116514cd908a",
+      "replacements": [
+        {
+          "start": 108,
+          "end": 125,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 28,
+          "from": "readPinnedGRPCKeepalive",
+          "to": "portableRetainedReadPinnedGRPCKeepalive"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_dns_test.go",
+      "function": "TestGRPCDNSRewrite",
+      "portable": "TestPortableRetainedGRPCDNSRewrite",
+      "source_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "function_sha256": "7357d5178159d168963600cb28438a365d0b32378081c8de74d2c60e86b90389",
+      "generated_sha256": "ccac9041d82379179e6b94ce81789345654e93a319376c61349ea3d8b43dc144",
+      "replacements": [
+        {
+          "start": 154,
+          "end": 171,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 41,
+          "end": 61,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 23,
+          "from": "TestGRPCDNSRewrite",
+          "to": "TestPortableRetainedGRPCDNSRewrite"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_dns_test.go",
+      "function": "TestGRPCDNSConsumer",
+      "portable": "TestPortableRetainedGRPCDNSConsumer",
+      "source_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "function_sha256": "b3c8d24206af3d1dfd4df805696ba40a308dd5a7419b6580912dcbce6cfe5165",
+      "generated_sha256": "cff6941c98106a9404c836da0bf4175cb539a03d1ed5073f75825ad173578c5a",
+      "replacements": [
+        {
+          "start": 699,
+          "end": 705,
+          "from": "\"test\"",
+          "to": "\"test\", \"-tags=test_dep\""
+        },
+        {
+          "start": 125,
+          "end": 142,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 42,
+          "end": 62,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 24,
+          "from": "TestGRPCDNSConsumer",
+          "to": "TestPortableRetainedGRPCDNSConsumer"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+      "portable": "TestPortableRetainedRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "158ec5a0a5f03c8db3857f704f5b34ff3f45cfa275f2768c8b70e0e45143a998",
+      "generated_sha256": "82407076f6b0ae2844e80cbda97ea68bf78fafc5e93dcc1647b8d87b79d64431",
+      "replacements": [
+        {
+          "start": 93,
+          "end": 122,
+          "from": "readPinnedModerncMemorySource",
+          "to": "portableRetainedReadPinnedModerncMemorySource"
+        },
+        {
+          "start": 5,
+          "end": 65,
+          "from": "TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+          "to": "TestPortableRetainedRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestRewriteModerncMemoryRejectsSourceIdentityDrift",
+      "portable": "TestPortableRetainedRewriteModerncMemoryRejectsSourceIdentityDrift",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "7efcb5eda09edc24d564a9f4eb53607a6d35c2db15d42f61b62c2ee0a6bb3c14",
+      "generated_sha256": "2da2ecf244d47aca542f5d46791b313a0c373dd807ecb418632bd3af6ccf0ead",
+      "replacements": [
+        {
+          "start": 151,
+          "end": 180,
+          "from": "readPinnedModerncMemorySource",
+          "to": "portableRetainedReadPinnedModerncMemorySource"
+        },
+        {
+          "start": 5,
+          "end": 55,
+          "from": "TestRewriteModerncMemoryRejectsSourceIdentityDrift",
+          "to": "TestPortableRetainedRewriteModerncMemoryRejectsSourceIdentityDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestModerncMemoryRewriteRejectsAnchorDrift",
+      "portable": "TestPortableRetainedModerncMemoryRewriteRejectsAnchorDrift",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "dfcb357ba4ce88a82aac6ed0318c6757419f430831f7bcf1213eaa468c38b8b0",
+      "generated_sha256": "3e6ea6e24b2b717243f5148e960c623f909be7eb973e489a55bacaae2372185b",
+      "replacements": [
+        {
+          "start": 75,
+          "end": 104,
+          "from": "readPinnedModerncMemorySource",
+          "to": "portableRetainedReadPinnedModerncMemorySource"
+        },
+        {
+          "start": 5,
+          "end": 47,
+          "from": "TestModerncMemoryRewriteRejectsAnchorDrift",
+          "to": "TestPortableRetainedModerncMemoryRewriteRejectsAnchorDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestPrepareModerncMemoryRejectsModuleDrift",
+      "portable": "TestPortableRetainedPrepareModerncMemoryRejectsModuleDrift",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "295a9e349449f9296d7292dfee08fe795d074752bf5c6869754cb73db5b7efe3",
+      "generated_sha256": "c6110c6b28f6f708341a2f998792785342c18493a07dbb1692699ef74343a634",
+      "replacements": [
+        {
+          "start": 197,
+          "end": 214,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 47,
+          "from": "TestPrepareModerncMemoryRejectsModuleDrift",
+          "to": "TestPortableRetainedPrepareModerncMemoryRejectsModuleDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestModerncMemoryRejectsChangedReplacementInventory",
+      "portable": "TestPortableRetainedModerncMemoryRejectsChangedReplacementInventory",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "f4e0f81a147676122aa6e915d26f0ee55b2482e1bb7340d73f35e79167b73ad4",
+      "generated_sha256": "4e69ec90bf8444cef9ec48b60fc008ca5c9eba00ffd0e29dfad392f397ffa048",
+      "replacements": [
+        {
+          "start": 315,
+          "end": 332,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 56,
+          "from": "TestModerncMemoryRejectsChangedReplacementInventory",
+          "to": "TestPortableRetainedModerncMemoryRejectsChangedReplacementInventory"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestPrepareModerncMemoryRecordsExactPrivateReplacement",
+      "portable": "TestPortableRetainedPrepareModerncMemoryRecordsExactPrivateReplacement",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "130d5bf4a6248cc1e6009421bd57bf74c21190300090b3773e81afb53687fede",
+      "generated_sha256": "3edc366ad37dd2c4c6518dbe6b56541b8ff7317f1b4576a7efca8dcc78f044b6",
+      "replacements": [
+        {
+          "start": 223,
+          "end": 240,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 59,
+          "from": "TestPrepareModerncMemoryRecordsExactPrivateReplacement",
+          "to": "TestPortableRetainedPrepareModerncMemoryRecordsExactPrivateReplacement"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestPrepareModerncMemoryRejectsChangedIdentity",
+      "portable": "TestPortableRetainedPrepareModerncMemoryRejectsChangedIdentity",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "06c4e3f600ddc115848584e8251b481d70a7d167394149900aeeddf7f9bc944d",
+      "generated_sha256": "60dbfbf952e7290347d313c0cd41b1dc18ec0b3283bbb22b64e51aed7e923ef4",
+      "replacements": [
+        {
+          "start": 375,
+          "end": 392,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 51,
+          "from": "TestPrepareModerncMemoryRejectsChangedIdentity",
+          "to": "TestPortableRetainedPrepareModerncMemoryRejectsChangedIdentity"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "readPinnedModerncMemorySource",
+      "portable": "portableRetainedReadPinnedModerncMemorySource",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "baf2169183b32d46e124766f81f1c35ca6e40f71e603318097be48b604a7df23",
+      "generated_sha256": "4b91ca617a5226491b4437ca3e40405f4386537149c39d8abc4d59564668076e",
+      "replacements": [
+        {
+          "start": 114,
+          "end": 131,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 34,
+          "from": "readPinnedModerncMemorySource",
+          "to": "portableRetainedReadPinnedModerncMemorySource"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "function": "TestSockaddrBoundaryConsumer",
+      "portable": "TestPortableRetainedSockaddrBoundaryConsumer",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "function_sha256": "643acd45b51fb977d3956f96715b56ec55d0cd9c1835187cf1e48d845b0517ca",
+      "generated_sha256": "f8c7a8be26a8688d69d6ae5bea25e2301fe7775917ea5be4c86de4376c24f052",
+      "replacements": [
+        {
+          "start": 1777,
+          "end": 1783,
+          "from": "\"test\"",
+          "to": "\"test\", \"-tags=test_dep\""
+        },
+        {
+          "start": 1578,
+          "end": 1584,
+          "from": "\"test\"",
+          "to": "\"test\", \"-tags=test_dep\""
+        },
+        {
+          "start": 845,
+          "end": 862,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 51,
+          "end": 71,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 33,
+          "from": "TestSockaddrBoundaryConsumer",
+          "to": "TestPortableRetainedSockaddrBoundaryConsumer"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "function": "TestSockaddrBoundaryRewritesRejectDrift",
+      "portable": "TestPortableRetainedSockaddrBoundaryRewritesRejectDrift",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "function_sha256": "354716d3e1e959b3898f93c904b8e61038cabf98d18eb93c3f549a9dd912854b",
+      "generated_sha256": "f00a946be2f99c66e455d5dfb285af773fc0e2cd5d1dfcb856bc02628c2697ae",
+      "replacements": [
+        {
+          "start": 152,
+          "end": 169,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 62,
+          "end": 82,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 44,
+          "from": "TestSockaddrBoundaryRewritesRejectDrift",
+          "to": "TestPortableRetainedSockaddrBoundaryRewritesRejectDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "function": "TestSockaddrBoundaryPreservesOriginalComments",
+      "portable": "TestPortableRetainedSockaddrBoundaryPreservesOriginalComments",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "function_sha256": "ba1a1e21d6d1f2b1ba07c92fe77c5e81c2dedc3b64fd164e3715fccb610ca591",
+      "generated_sha256": "e6899d89865ad87e8ab66f18e8225a63a253dff182f715cf1019048a29b2156d",
+      "replacements": [
+        {
+          "start": 158,
+          "end": 175,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 68,
+          "end": 88,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 50,
+          "from": "TestSockaddrBoundaryPreservesOriginalComments",
+          "to": "TestPortableRetainedSockaddrBoundaryPreservesOriginalComments"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "function": "TestRewriteXNetSocketDeniesRawSocketOptions",
+      "portable": "TestPortableRetainedRewriteXNetSocketDeniesRawSocketOptions",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "function_sha256": "afde2b8045222556f3c9e957eed9e0eb16bfdb907a8bd92228020be5e50da72a",
+      "generated_sha256": "16e01e691583a075737cca7f547fc557c3ee94d1f0555409e88ff080bd6bf071",
+      "replacements": [
+        {
+          "start": 92,
+          "end": 119,
+          "from": "readPinnedXNetSocketSources",
+          "to": "portableRetainedReadPinnedXNetSocketSources"
+        },
+        {
+          "start": 5,
+          "end": 48,
+          "from": "TestRewriteXNetSocketDeniesRawSocketOptions",
+          "to": "TestPortableRetainedRewriteXNetSocketDeniesRawSocketOptions"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "function": "TestRewriteXNetSocketRejectsSourceIdentityDrift",
+      "portable": "TestPortableRetainedRewriteXNetSocketRejectsSourceIdentityDrift",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "function_sha256": "886f22ed5feced10be58adcba1788263d1f7c07fe7fa2eca024a5424573a742e",
+      "generated_sha256": "f5521ccd633c964385ba38a191a18447f3fd8fd7b3bd4a80778a7649b03356d9",
+      "replacements": [
+        {
+          "start": 96,
+          "end": 123,
+          "from": "readPinnedXNetSocketSources",
+          "to": "portableRetainedReadPinnedXNetSocketSources"
+        },
+        {
+          "start": 5,
+          "end": 52,
+          "from": "TestRewriteXNetSocketRejectsSourceIdentityDrift",
+          "to": "TestPortableRetainedRewriteXNetSocketRejectsSourceIdentityDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "function": "TestPrepareXNetRecordsExactPrivateReplacement",
+      "portable": "TestPortableRetainedPrepareXNetRecordsExactPrivateReplacement",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "function_sha256": "a8449ca47ae80d28b8c7c06aee1b1836c73be32d231f0d6375071fae2a408b4a",
+      "generated_sha256": "a35c899da0b20f661e61d6b67cef77101903d0f08b51c4a7b25194f390512ac2",
+      "replacements": [
+        {
+          "start": 199,
+          "end": 216,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 50,
+          "from": "TestPrepareXNetRecordsExactPrivateReplacement",
+          "to": "TestPortableRetainedPrepareXNetRecordsExactPrivateReplacement"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "function": "TestPrepareXNetRejectsChangedIdentity",
+      "portable": "TestPortableRetainedPrepareXNetRejectsChangedIdentity",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "function_sha256": "587b707cfc278c7daa90aa953ac0b79454f0e36a1da5170d5f3fc57b5293b323",
+      "generated_sha256": "95d606a9d3365cf14550719b4aee7745bfadf3f3cc931c3d1dae0e55908f9393",
+      "replacements": [
+        {
+          "start": 190,
+          "end": 207,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 42,
+          "from": "TestPrepareXNetRejectsChangedIdentity",
+          "to": "TestPortableRetainedPrepareXNetRejectsChangedIdentity"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "function": "readPinnedXNetSocketSources",
+      "portable": "portableRetainedReadPinnedXNetSocketSources",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "function_sha256": "80eb0c98ff7524174ed3440fa253e5471697206fc60579f3652032aa9f23ed29",
+      "generated_sha256": "2b44094a1e849587daad9e42e27b2d355784c3090100952ca096b33963c7ab19",
+      "replacements": [
+        {
+          "start": 101,
+          "end": 118,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 32,
+          "from": "readPinnedXNetSocketSources",
+          "to": "portableRetainedReadPinnedXNetSocketSources"
+        }
+      ]
+    }
+  ],
+  "recipe_sha256": "66c5d986f1b3ec553ba79b87b76f675d37f96959cd20b5cbb447a30dbc7b59a4",
+  "transformations": "AST identifier replacements and the two explicitly admitted test_dep argument additions; every other origin byte preserved"
+}

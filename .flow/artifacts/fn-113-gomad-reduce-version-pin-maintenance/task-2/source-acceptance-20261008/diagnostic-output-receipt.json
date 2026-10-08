@@ -1,0 +1,66 @@
+{
+  "name": "diagnostic-output",
+  "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool -run \"^TestRunAdapterRegenerateOutputFailuresPreserveStatus$\"",
+  "started": "2026-10-08T17:20:22.210Z",
+  "ended": "2026-10-08T17:20:26.602Z",
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "log": "diagnostic-output.log",
+  "log_sha256": "3e4de8ba0a497ed866f99a937f28744cf0128fbbb11079e5c2a84dc0a5b24e34",
+  "base_commit": "ca6fd855868fac364b69cb31394c87ad2912e623",
+  "source_tree_sha256": "ee949979de02ed8a2a6eec3d27de3ca37746329fe27c800553477bf6dcffd91b",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+  },
+  "counts": {
+    "pass": 1,
+    "fail": 2,
+    "skip": 0
+  },
+  "skips": [],
+  "failures": [
+    {
+      "Time": "2026-10-08T17:20:24.461750627Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunAdapterRegenerateOutputFailuresPreserveStatus/human",
+      "Elapsed": 1.32
+    },
+    {
+      "Time": "2026-10-08T17:20:26.420712086Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunAdapterRegenerateOutputFailuresPreserveStatus",
+      "Elapsed": 3.28
+    },
+    {
+      "Time": "2026-10-08T17:20:26.423137169Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Elapsed": 3.286
+    }
+  ]
+}

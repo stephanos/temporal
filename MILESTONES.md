@@ -307,7 +307,7 @@ CI, PR, or push authority.
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ✅ Done | Pin-impact source acceptance; [current inventory](.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008/current-inventory.json) and [bump steps](.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008/manual-steps.md) |
-| [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ⬜ Todo | Verifier cleanup checked; finish retained source regeneration acceptance |
+| [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | 🚧 In progress | Verifier cleanup checked; finish retained source regeneration acceptance |
 | [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ⬜ Todo | Selected v041 restored; finish retained R4 source acceptance |
 | [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ⬜ Todo | Bump procedure and matched baseline measurement; native gates moved to fn-149/fn-128 |
 

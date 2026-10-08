@@ -1,0 +1,8 @@
+{
+  "task_title": "Read-only preparation-owner source acceptance gap audit",
+  "task_body": "Inspect current committed fn-109.7 preparation-owner source and its retained task-7 evidence. Identify portable assertions hidden by native guards, baseline/snapshot provenance limitations, current source drift, relevant lint and static boundaries, and exact recommended next source admissions. Do not implement, run Go/build/lint/generator commands, change Flow state, or claim review or completion.",
+  "acceptance": "Return a concise path- and source-identity-backed digest distinguishing reusable current proof from historical or missing proof for every retained fn-109.7 acceptance requirement. Preserve native deferrals and existing delivery order.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

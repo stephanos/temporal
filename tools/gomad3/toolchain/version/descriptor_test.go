@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestGenerateAcceptsPinnedPseudoVersion(t *testing.T) {
@@ -88,6 +89,12 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	makeConsumer := "include version_generated.mk\n\nprint:\n\t@printf '%s|%s|%s|%s\\n' '$(GOMAD3_GO_VERSION)' '$(GOMAD3_PATCH_FILE)' '$(GOMAD3_EXPECTED_INTERCEPTS)' '$(GOMAD3_BOUNDARY_REPORT)'\n"
 	if err := os.WriteFile(filepath.Join(root, "consumer.mk"), []byte(makeConsumer), 0o600); err != nil {
 		t.Fatal(err)
+	}
+	fixtureTime := time.Unix(946684800, 0)
+	for _, name := range []string{"consumer.mk", "version_generated.mk"} {
+		if err := os.Chtimes(filepath.Join(root, name), fixtureTime, fixtureTime); err != nil {
+			t.Fatal(err)
+		}
 	}
 	// GNU make prints directory banners when a parent make -C exported -w in MAKEFLAGS.
 	makeCommand := exec.Command("make", "--no-print-directory", "-f", "consumer.mk", "print")

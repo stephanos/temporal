@@ -39,29 +39,39 @@ func runAdapterRegenerate(arguments []string, stdout, stderr io.Writer) int {
 	verify := flags.Bool("verify", false, "check the compiled adapter against --module-dir")
 	moduleDirectory := flags.String("module-dir", "", "module source directory for --verify")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 {
-		fmt.Fprintln(stderr, adapterRegenerateUsage)
+		if _, writeErr := fmt.Fprintln(stderr, adapterRegenerateUsage); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if *approval != "" && *approveAlias != "" && *approval != *approveAlias {
-		fmt.Fprintln(stderr, "--approve and --approve-review must name the same digest")
+		if _, writeErr := fmt.Fprintln(stderr, "--approve and --approve-review must name the same digest"); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if *approval == "" {
 		*approval = *approveAlias
 	}
 	if *stageOnly && *approval == "" {
-		fmt.Fprintln(stderr, "--stage-only requires an approval digest")
+		if _, writeErr := fmt.Fprintln(stderr, "--stage-only requires an approval digest"); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	ctx := context.Background()
 	absoluteRoot, err := filepath.Abs(*root)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if *recoverOnly {
 		if err := adapterregen.Recover(absoluteRoot); err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return adapterRegenerateStatus(err)
+			}
 			return adapterRegenerateStatus(err)
 		}
 		return 0
@@ -74,30 +84,42 @@ func runAdapterRegenerate(arguments []string, stdout, stderr io.Writer) int {
 		*goCommand, err = filepath.Abs(*goCommand)
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "adapter regeneration requires the pinned go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err)
+		if _, writeErr := fmt.Fprintf(stderr, "adapter regeneration requires the pinned go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	if *verify {
 		if *module == "" || *moduleDirectory == "" {
-			fmt.Fprintln(stderr, adapterRegenerateUsage)
+			if _, writeErr := fmt.Fprintln(stderr, adapterRegenerateUsage); writeErr != nil {
+				return 2
+			}
 			return 2
 		}
 		if err := adapterregen.Verify(ctx, *module, *moduleDirectory, *goCommand); err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 1
+			}
 			return 1
 		}
 		return 0
 	}
 	if *module == "" || *version == "" {
-		fmt.Fprintln(stderr, adapterRegenerateUsage)
-		fmt.Fprintf(stderr, "regenerable adapters: %s\n", strings.Join(adapterregen.Regenerable(), ", "))
+		if _, writeErr := fmt.Fprintln(stderr, adapterRegenerateUsage); writeErr != nil {
+			return 2
+		}
+		if _, writeErr := fmt.Fprintf(stderr, "regenerable adapters: %s\n", strings.Join(adapterregen.Regenerable(), ", ")); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	result, err := adapterregen.Run(ctx, adapterregen.Spec{
 		Root: absoluteRoot, Module: *module, Version: *version, GoCommand: *goCommand, Environment: os.Environ(), Approval: *approval, StageOnly: *stageOnly,
 	})
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return adapterRegenerateStatus(err)
+		}
 		return adapterRegenerateStatus(err)
 	}
 	if *jsonOutput {
@@ -108,7 +130,9 @@ func runAdapterRegenerate(arguments []string, stdout, stderr io.Writer) int {
 		err = adapterregen.Render(stdout, result)
 	}
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	return 0

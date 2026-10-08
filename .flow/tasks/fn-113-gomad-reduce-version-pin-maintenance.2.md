@@ -82,6 +82,181 @@ Controls must prove unchanged regular publication and same-byte regular replacem
 
 Retain frozen source/tool/config bindings, RED/GREEN command exits and timings. Run all portable adapterregen tests, scoped vet/errortype, formatting, check-only validate, architecture boundaries, unfiltered scoped lint comparison and mandatory changed-line fast lint with fixes disabled. Report inherited full lint failures separately. A fresh independent source-progress review must check the public fault, regular-file compatibility, refusal before publication, unchanged recovery and evidence scope. The conductor retains lifecycle and a separate source-progress commit. Source progress supplies no formal SHIP or task completion; native Darwin/full/default/functional/affected-consumer requirements remain open where unproved. Linux qualification remains deferred and unverified under fn128.
 
+### Current R3 release and libc-test admission (2026-10-08)
+
+The predecessor fn-113.1 now has retained source acceptance. Complete this task's
+full retained R3 acceptance rather than another cleanup-only checkpoint. The two
+corrections below supersede earlier exclusions only at their exact sites; all
+other preservation requirements and native deferrals remain in force.
+
+**Release touches:** `tools/gomad3/upgrade/adapterregen/transaction.go`, additive
+focused tests under `tools/gomad3/upgrade/adapterregen/`, and current task evidence.
+Check `Lock.Release` exactly once in the existing `apply` and `Recover` deferred
+boundaries. Keep apply's stage-cleanup, lock-release, outer-download-cleanup order.
+Nil release errors preserve exact primary identity, unwrap shape and results.
+Before completed publication, return a sole release error directly or join it
+after the primary error, retaining InputError/BlockedError classification. After
+completed publication, append a lock-release warning after existing stage/scan
+warnings, preserving Applied, Published, Staged, prior warnings and nil operation
+error. Recover composes a release failure after its existing primary error using
+the same nil/sole/primary-first rules, without changing recovery decisions.
+Recover may name its existing error result to compose at that same deferred
+boundary; its exported function type and argument/result types stay unchanged.
+
+Use a private composition helper if needed to characterize release failures and
+exactly-once execution safely. Label those faults as injected helper controls,
+not actual hostfs release failures. Public no-fault Run/Recover controls must
+prove lock reacquisition and unchanged publication/recovery behavior. Retain the
+actual unchanged-source lint RED and public no-fault baseline. Since the additive
+helper has no baseline symbol, a missing-symbol compile failure is not behavioral
+RED. A test-only counterfactual of the helper that calls release once and discards
+its error may prove the injected assertions detect the original policy; label it
+counterfactual rather than unchanged-source execution. Retain final GREEN and
+independently review both actual deferred call sites and their return composition.
+Keep hostfs, public signatures, journal
+retirement, publication/recovery branches, pins, schemas, native guards and
+toolchain inputs unchanged. Add no public or Spec fault seam and no suppression.
+
+**Libc test touches:** the exact stale
+`TestRegenerateAdapterRefusesCustomPreparation` control in
+`tools/gomad3/deterministicio/adapter_regenerate_test.go`, additive portable
+regeneration tests under `tools/gomad3/deterministicio/`, and current task evidence.
+Reconcile its superseded refusal/count expectation with the existing approved
+libc regeneration implementation: registeredRewrittenModule still reports libc
+as custom preparation, an incomplete public libc regeneration request reports
+its existing incomplete-request error, and RegenerableAdapters includes all 15
+registered adapters. Retain the original failing baseline and add actual portable
+libc regeneration and negative structural controls. Preserve production dispatch,
+the pinnedReleaseGo/newRegenerationFixture guards, error policy and source pins;
+neither exclude this portable failure nor count native skips as passing coverage.
+
+Both corrections require owned-source lint, static both-source-set checks,
+generator validation, preservation evidence and independent integrated review
+before task completion. No qualification, PR, push or CI authority is added.
+
+### Retained source-test overlay admission (2026-10-08)
+
+For source-only tests that stop in the hardcoded pinned cache/download bootstrap,
+admit a reproducible additive test overlay rather than permanent duplicate test
+bodies. Select and enumerate the exact original tests. Keep original test and
+production files unchanged; copy selected bodies under explicit
+`TestPortableRetained*` names and replace only cache/download bootstrap calls
+with the actual pinned stock-Go portable helpers. Preserve every assertion,
+literal, comment, guard and non-bootstrap operation. If further transformations
+are needed, report their exact scope before applying them.
+
+Retain original function/source hashes, exact transformation rules, generated
+test and overlay-mapping hashes, selected and excluded test names with reasons,
+actual tool/cache inputs, command results and the effective overlay source
+binding. Main-tree source hashes alone do not bind the executed overlay. The
+retained recipe must regenerate the same test content from its bound origins.
+Independent review checks assertion preservation and executed coverage. Label
+these as portable retained-assertion runs, not unchanged-original-test execution
+or native qualification. Keep native runtime tests excluded and named, native
+guards unchanged, and all original R3 requirements in force.
+
+Exact supplementary transformations: clone readPinnedGRPCKeepalive,
+readPinnedModerncMemorySource and readPinnedXNetSocketSources under explicit
+PortableRetained helper names. Preserve their bodies except the pinned cache
+bootstrap call, and rename only their selected copied callers. Add
+`-tags=test_dep` to the existing stock Go test arguments in copied
+TestGRPCDNSConsumer and TestSockaddrBoundaryConsumer; retain all other arguments
+and assertions. Include these changes in the reproducible transformation and
+effective-source manifest. Supported-host Default/profile controls retain their
+legitimate host refusal and must be named with their precise remaining owner;
+an unsupported-host failure alone does not transfer a portable source assertion.
+
+### Integrated cleanup fixture reconciliation (2026-10-08)
+
+Admit only adding `deterministicio/adapter_pin_decisions_test.go` to the exact
+local expected-path slice in `checkCleanupResult` in
+`tools/gomad3/upgrade/adapterregen/publication_cleanup_test.go`. fn-113.1 added
+this file's actual Sentry pin references; unchanged SourceEdits now stages nine
+paths instead of eight. Keep exact set/order equality, cleanup, error identity,
+warning and real EACCES controls intact. Retain the full-package failing
+baseline; do not change production or generalize the expected set.
+
+The new deleted-working-directory diagnostic control may compare stderr with
+the actual os.Getwd PathError rather than a hardcoded operation label, while
+retaining exact status 2, no stdout and real EBADF assertions. Additive stock
+Hashicorp metrics consumer and both-supported-source-set listing controls may
+use the existing private registry with unchanged fixture assertions, preserving
+the public host guard and distinguishing lower-layer coverage from wrapper
+execution.
+
+After the frozen control demonstrated different successive Getwd error
+provenance, admit only a test-local `t.Setenv("PWD", "")` before deleting its
+working directory. Both real Getwd observations must then use the same syscall
+path; preserve exact observed error comparison, status, output and checked
+restoration. Retain the failed run and its independent make clock-skew warning.
+Do not alter production diagnostics, descriptor assertions or warning policy.
+
+The unchanged `toolchain/version/descriptor_test.go`
+TestGenerateRendersDescriptorConsumers twice failed solely on real GNU make
+future-mtime warnings from its workspace-backed fixture. Admit only checked
+`os.Chtimes` with a fixed past `time.Unix` value for its `consumer.mk` and
+included `version_generated.mk`, after they exist and before its unchanged make
+invocation. Preserve generated bytes, exact make output/error assertions,
+Generate(check) controls, comments and production generators. Retain both failed
+runs and bind the precise fixture delta and unchanged generated bytes. Do not
+sleep, filter warnings, skip the test or generalize timestamp normalization.
+
+The unchanged cache-cleanup fixture and its bounded real filesystem probe
+observed nonempty mode-000 trees with ReadDir EACCES but nine nil RemoveAll
+results in 32 workspace-virtiofs cases. Admit a unique task-private tmpfs TMPDIR
+only for TestAdapterCacheCleanupOwnerErrors,
+TestAdapterCacheCleanupRegistryPublicationReuseRetry,
+TestAdapterCacheCleanupValidationControls and
+TestAdapterCacheCleanupRegistryPrimary, plus the matching bounded filesystem
+hypothesis probe. These tiny callback fixtures need no child executables; the
+verified tmpfs is noexec. Keep GOTMPDIR, build/module caches and tools on the
+assigned workspace. Original bodies, actual fault assertions, checked
+restoration and zero skips remain required. Retain failed workspace runs, actual
+effective environment/filesystem bindings and the exact complementary coverage
+mapping. Do not claim a full single-environment package pass, qualification or
+underlying filesystem fix. No remount, source/test weakening, shared cleanup or
+permission waiver is admitted.
+
+### Actual pure-helper testability admission (2026-10-08)
+
+To execute retained pure assertions through actual production code without a
+host override or copied production-tail test doubles, admit only these private
+extractions under `tools/gomad3/deterministicio/`, their focused tests and proof:
+
+- `adapter_registry.go`: move VerifyAdapters' post-validation comparator into
+  private adapterRegistry.verify. Keep the public validated call first and
+  delegate using its actual registry. Preserve the comparator, allowing only
+  the necessary receiver/selector substitution for definition.adapters.
+- `requirements.go`: extract only evidence construction,
+  addAdapterRequirementEvidence and projectRequirements composition into
+  private projectAdapterRequirements. Keep both original public validation and
+  VerifyAdapters calls, their order and error returns intact.
+- `bootstrap.go`: keep BootstrapFrame's validation first, then delegate its
+  existing pure body to private encodeBootstrapFrame with the same profile,
+  prepared target, runner digest and seed. Preserve argv encoding before
+  profile.Identity, codec operations, digest order, bytes and errors.
+- `profile.go`: extract only ValidatePreparedTarget's kind/source/argv/build
+  checks and adapter projection into private validatePreparedTargetShape,
+  returning the projected adapters. Keep public validation first and
+  VerifyAdapters plus its existing wrapping last. Preserve empty/nil shapes,
+  check precedence and exact messages.
+
+Preserve public signatures, comments, host refusals, identities, schemas,
+source pins, native guards and unrelated behavior. Add no callback injection,
+public host override, global mutation, dependency or suppression. Retain actual
+before/after source and public-guard controls, direct pure assertions through
+the production helpers, and reviewed tail/control-flow equivalence. Missing new
+helper symbols are not behavioral RED. Counterfactuals must fail actual cause
+assertions and be labeled accordingly.
+
+Re-freeze after these changes. Reconcile generator input coverage, validate
+unchanged generated outputs, architecture/public-signature and both-source-set
+static boundaries, all affected portable packages, owned lint and preservation
+before independent integrated review. Historical or pre-extraction gates do not
+bind the final candidate merely because the extraction is intended to preserve
+behavior. Public qualified-host execution remains unclaimed and retains its
+native owner; every portable pure assertion needs an explicit executed mapping.
+
 ## Acceptance
 
 

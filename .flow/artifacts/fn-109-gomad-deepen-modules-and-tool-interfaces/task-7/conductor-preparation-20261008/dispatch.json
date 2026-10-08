@@ -1,0 +1,15 @@
+{
+  "assignment": "read-only preparation-owner acceptance-gap audit",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.7",
+  "base_commit": "ca6fd855868fac364b69cb31394c87ad2912e623",
+  "scout": "/root/prep_fn1097_source",
+  "requested_model": "gpt-6-astra at high",
+  "requested_model_is_not_actual_model_evidence": true,
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "judge_input": "scout-state.json",
+  "judge_setup_observation": "Initial full-task judge invocation did not describe the bounded scout. Corrected to the actual state-file before dispatch; both returned no_key. No running assignment was rerouted.",
+  "writes_or_gates_authorized": false,
+  "task_status_changed": false,
+  "delivery_order": "fn-113.2, .3 and .4 still precede fn-109.7",
+  "shared_gate_lane": "/root/complete_fn1132_source"
+}

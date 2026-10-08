@@ -1,0 +1,116 @@
+{
+  "source_tree_sha256": "1ea646fc66ac63aa0d2dde38e434f8b5529c28ac9040b55b7a04c56c4ebc0f3f",
+  "original_test_file": "tools/gomad3/deterministicio/adapter_cache_cleanup_test.go",
+  "original_and_current_file_sha256": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc",
+  "original_body_preserved": true,
+  "effective_TMPDIR": "/dev/shm/gomad-fn1132-cleanup-3pOD0l3j",
+  "mount": "/dev/shm shm tmpfs rw,nosuid,nodev,noexec,relatime,size=65536k",
+  "workspace_mount": "/Users/stephan/Workspace/skunkworks host[/Users/stephan/Workspace/skunkworks] virtiofs rw,nosuid,nodev,relatime",
+  "current_tmpfs_children": [],
+  "parent_retained_for_conductor": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "unchanged_build_environment": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc"
+  },
+  "probe_program_sha256": "2f72cc7a80afeea6641206d33f7e4b0a06c0d3259e3c5e8efe0447c61c4c925b",
+  "probes": [
+    {
+      "name": "cleanup-filesystem-probe",
+      "receipt": "cleanup-filesystem-probe-receipt.json",
+      "log_sha256": "2e2d65263406ec018931744d71be58d924be4ab71f33eff776f1b8c48fe541ad",
+      "cases": 32,
+      "permission_cleanup": 23,
+      "nil_cleanup": 9
+    },
+    {
+      "name": "cleanup-tmpfs-probe",
+      "receipt": "cleanup-tmpfs-probe-receipt.json",
+      "log_sha256": "9c2f69601dbe4975f220e10d46a15c9706a6f248b7a6cb5f28286b7bc42f1700",
+      "cases": 32,
+      "permission_cleanup": 32,
+      "nil_cleanup": 0
+    }
+  ],
+  "tmpfs_selected": [
+    "TestAdapterCacheCleanupOwnerErrors",
+    "TestAdapterCacheCleanupRegistryPrimary",
+    "TestAdapterCacheCleanupRegistryPublicationReuseRetry",
+    "TestAdapterCacheCleanupValidationControls"
+  ],
+  "workspace_selected": [
+    "TestAdapterModuleSumRecords",
+    "TestAdapterPreparedSourceSetPinsReproduceOnEveryHost",
+    "TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration",
+    "TestAdapterRegistryPortablePinDecisions",
+    "TestAdapterRegistryPublishesReplacementAtStableToolchainLocation",
+    "TestAdapterRegistryUsesExactVersionReplacement",
+    "TestAdapterReplacementUsesExplicitModuleRoot",
+    "TestCopyAdapterModuleAppliesReplacementsAndAdditions",
+    "TestCopyAdapterModuleRejectsSpecialFile",
+    "TestCopyAdapterModuleRejectsSymlink",
+    "TestCopyAdapterModuleReturnsTypedByteCapacityError",
+    "TestCopyAdapterModuleReturnsTypedFileCapacityError",
+    "TestDecodeSemanticCoverageRejectsUnknownAndDuplicateProbes",
+    "TestDecodeSemanticCoverageReturnsStableSortedBoundaryProbes",
+    "TestDefaultProfile",
+    "TestDefaultReturnsAnImmutableProfileSpecification",
+    "TestDetectModuleVersionRejectsDuplicateRequirements",
+    "TestDeterministicProfileCompatibilityGolden",
+    "TestLibcRegenerationKeepsExactSourceAndPreparedPins",
+    "TestManifestInterceptsBeforeHostDispatch",
+    "TestMemberlistSuppliedTCPConsumer",
+    "TestMissingRequiredSemanticProbesValidatesNames",
+    "TestModerncLibcAdapterTemplateHasPinnedIdentity",
+    "TestNewAdapterRegistryAllowsNoAdapters",
+    "TestNewAdapterRegistryRejectsDuplicateImplementations",
+    "TestNewAdapterRegistryRequiresAnImplementationForEveryIdentity",
+    "TestPortableAdapterConfigurationRefusals",
+    "TestPortableAdapterPreparedSourcePins",
+    "TestPortableAdapterRegenerationRefusals",
+    "TestPortableAdapterRegenerationSourceEdits",
+    "TestPortableAdapterSourcePreservation",
+    "TestPortableBootstrapFrameIdentity",
+    "TestPortableBootstrapPlatformGoldens",
+    "TestPortableLibcPreparedContract",
+    "TestPortableLibcRegeneration",
+    "TestPortableLibcSelectionConfiguration",
+    "TestPortableMetricsConsumer",
+    "TestPortablePreparedTargetShape",
+    "TestPortableProfilePublicGuardsRemainFirst",
+    "TestPortableRequirementsProjection",
+    "TestPortableRewrittenModuleConsumers",
+    "TestPortableSelectedAdapterIdentities",
+    "TestPortableServerGraphPreparedSourceIdentities",
+    "TestPrepareGRPCReturnsTypedInventoryCapacityError",
+    "TestProfileOwnsIdentityProjectionAndVerification",
+    "TestRegenerateAdapterRefusesCustomPreparation",
+    "TestRejectLibcHostImportsRejectsForbiddenImports",
+    "TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity",
+    "TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs",
+    "TestSessionCollectTerminal",
+    "TestSummarizeSemanticProbesCanonicalizesAUnion",
+    "TestValidatePreparedTargetRejectsIdentityMismatch",
+    "TestVerifyGRPCModuleRejectsInventoryDrift",
+    "TestVerifyRegisteredAdapterScratchCleanup",
+    "TestVersionReferencesNeverMatchInsideAnotherModulePath"
+  ],
+  "complete_selected_count": 59,
+  "union_complete": true,
+  "overlap": [],
+  "full_single_environment_package_pass": false
+}

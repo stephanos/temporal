@@ -27,6 +27,10 @@ func (profile Spec) BootstrapFrame(prepared target.Prepared, runnerSHA256 string
 	if err != nil {
 		return nil, err
 	}
+	return encodeBootstrapFrame(profile, prepared, runnerSHA256, seed)
+}
+
+func encodeBootstrapFrame(profile Spec, prepared target.Prepared, runnerSHA256 string, seed uint64) ([]byte, error) {
 	argv, err := canonicalJSON(prepared.Argv)
 	if err != nil {
 		return nil, fmt.Errorf("encode target argv identity: %w", err)

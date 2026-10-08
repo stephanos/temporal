@@ -1,0 +1,5 @@
+flag provided but not defined: -errortype.style
+usage: go vet [build flags] [-vettool prog] [vet flags] [packages]
+Run 'go help vet' for details.
+Run '/tmp/fn109-lint-tools.ZdNe1t50/errortype help' for a full list of flags and analyzers.
+Run '/tmp/fn109-lint-tools.ZdNe1t50/errortype -help' for an overview.

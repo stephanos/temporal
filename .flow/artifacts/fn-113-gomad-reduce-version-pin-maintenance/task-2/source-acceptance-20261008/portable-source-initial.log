@@ -1,0 +1,7 @@
+{"ImportPath":"github.com/stretchr/testify/require","Action":"build-output","Output":"# go.temporal.io/server/tools/gomad3/deterministicio\n"}
+{"ImportPath":"github.com/stretchr/testify/require","Action":"build-output","Output":"deterministicio/adapter_regenerate_portable_test.go:12:2: no required module provides package github.com/stretchr/testify/require; to add it:\n"}
+{"ImportPath":"github.com/stretchr/testify/require","Action":"build-output","Output":"\tgo get github.com/stretchr/testify/require\n"}
+{"ImportPath":"github.com/stretchr/testify/require","Action":"build-fail"}
+{"Time":"2026-10-08T17:09:50.840028033Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/deterministicio"}
+{"Time":"2026-10-08T17:09:50.840057658Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/deterministicio [setup failed]\n","OutputType":"frame"}
+{"Time":"2026-10-08T17:09:50.840069574Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Elapsed":0,"FailedBuild":"github.com/stretchr/testify/require"}

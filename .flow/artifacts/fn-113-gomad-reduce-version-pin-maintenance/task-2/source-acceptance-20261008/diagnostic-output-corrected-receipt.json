@@ -1,0 +1,45 @@
+{
+  "name": "diagnostic-output-corrected",
+  "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool -run \"^TestRunAdapterRegenerateOutputFailuresPreserveStatus$\"",
+  "started": "2026-10-08T17:20:51.080Z",
+  "ended": "2026-10-08T17:20:55.882Z",
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "log": "diagnostic-output-corrected.log",
+  "log_sha256": "a6b7bd5c7e763a59b12dd5ccd9aebfb5e68afa5254d8256ba9d087b7079d64aa",
+  "base_commit": "ca6fd855868fac364b69cb31394c87ad2912e623",
+  "source_tree_sha256": "178af2030e1bb858c300635f52845bdbdd18fb4f26bcbedfcbb9bd2323d51c3c",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+  },
+  "counts": {
+    "pass": 3,
+    "fail": 0,
+    "skip": 0
+  },
+  "skips": [],
+  "failures": []
+}

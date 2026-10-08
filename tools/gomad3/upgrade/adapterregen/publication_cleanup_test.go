@@ -348,6 +348,7 @@ func checkCleanupResult(t *testing.T, result, review Result, applied bool) {
 		t.Fatalf("regeneration result changed: %+v", result)
 	}
 	want := []string{
+		"deterministicio/adapter_pin_decisions_test.go",
 		"deterministicio/adapter_registry_test.go",
 		"deterministicio/sentry_adapter.go",
 		"deterministicio/testdata/pebble/go.mod",

@@ -1,0 +1,1464 @@
+{
+  "source_bootstrap_failures_are_not_native_waivers": true,
+  "selected": [
+    {
+      "name": "TestAdapterCacheCleanupOwnerErrors",
+      "file": "adapter_cache_cleanup_test.go",
+      "source_sha256": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc"
+    },
+    {
+      "name": "TestAdapterCacheCleanupRegistryPrimary",
+      "file": "adapter_cache_cleanup_test.go",
+      "source_sha256": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc"
+    },
+    {
+      "name": "TestAdapterCacheCleanupRegistryPublicationReuseRetry",
+      "file": "adapter_cache_cleanup_test.go",
+      "source_sha256": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc"
+    },
+    {
+      "name": "TestAdapterCacheCleanupValidationControls",
+      "file": "adapter_cache_cleanup_test.go",
+      "source_sha256": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc"
+    },
+    {
+      "name": "TestAdapterModuleSumRecords",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435"
+    },
+    {
+      "name": "TestAdapterPreparedSourceSetPinsReproduceOnEveryHost",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be"
+    },
+    {
+      "name": "TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435"
+    },
+    {
+      "name": "TestAdapterRegistryPortablePinDecisions",
+      "file": "adapter_pin_decisions_test.go",
+      "source_sha256": "5bf60b2f658a4c99bcd5f863b73de1c78336f059c232b50efaf076a32c6a11ba"
+    },
+    {
+      "name": "TestAdapterRegistryPublishesReplacementAtStableToolchainLocation",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435"
+    },
+    {
+      "name": "TestAdapterRegistryUsesExactVersionReplacement",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435"
+    },
+    {
+      "name": "TestAdapterReplacementUsesExplicitModuleRoot",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435"
+    },
+    {
+      "name": "TestCopyAdapterModuleAppliesReplacementsAndAdditions",
+      "file": "adapter_copy_test.go",
+      "source_sha256": "cbe7eda37d6f11a78957d7aee0d1773b7237f66ae09180d336f82f13c6d0f887"
+    },
+    {
+      "name": "TestCopyAdapterModuleRejectsSpecialFile",
+      "file": "adapter_copy_test.go",
+      "source_sha256": "cbe7eda37d6f11a78957d7aee0d1773b7237f66ae09180d336f82f13c6d0f887"
+    },
+    {
+      "name": "TestCopyAdapterModuleRejectsSymlink",
+      "file": "adapter_copy_test.go",
+      "source_sha256": "cbe7eda37d6f11a78957d7aee0d1773b7237f66ae09180d336f82f13c6d0f887"
+    },
+    {
+      "name": "TestCopyAdapterModuleReturnsTypedByteCapacityError",
+      "file": "adapter_copy_test.go",
+      "source_sha256": "cbe7eda37d6f11a78957d7aee0d1773b7237f66ae09180d336f82f13c6d0f887"
+    },
+    {
+      "name": "TestCopyAdapterModuleReturnsTypedFileCapacityError",
+      "file": "adapter_copy_test.go",
+      "source_sha256": "cbe7eda37d6f11a78957d7aee0d1773b7237f66ae09180d336f82f13c6d0f887"
+    },
+    {
+      "name": "TestDecodeSemanticCoverageRejectsUnknownAndDuplicateProbes",
+      "file": "semantic_coverage_test.go",
+      "source_sha256": "aab5d1609e291f3d62b2f5c52186c925dcdd82c358b9fa94535ec037ca9b5e53"
+    },
+    {
+      "name": "TestDecodeSemanticCoverageReturnsStableSortedBoundaryProbes",
+      "file": "semantic_coverage_test.go",
+      "source_sha256": "aab5d1609e291f3d62b2f5c52186c925dcdd82c358b9fa94535ec037ca9b5e53"
+    },
+    {
+      "name": "TestDefaultProfile",
+      "file": "profile_test.go",
+      "source_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8"
+    },
+    {
+      "name": "TestDefaultReturnsAnImmutableProfileSpecification",
+      "file": "profile_test.go",
+      "source_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8"
+    },
+    {
+      "name": "TestDetectModuleVersionRejectsDuplicateRequirements",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435"
+    },
+    {
+      "name": "TestDeterministicProfileCompatibilityGolden",
+      "file": "profile_test.go",
+      "source_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8"
+    },
+    {
+      "name": "TestLibcRegenerationKeepsExactSourceAndPreparedPins",
+      "file": "libc_regenerate_test.go",
+      "source_sha256": "8b06ecef241b539b50e9ef3f201e5b380e04f02ac436f361ca07bc8ac4e0bc8b"
+    },
+    {
+      "name": "TestManifestInterceptsBeforeHostDispatch",
+      "file": "host_dispatch_patch_test.go",
+      "source_sha256": "3c057631299f138cde58343c79166c91d87660e14fad22576343b46330117084"
+    },
+    {
+      "name": "TestMemberlistSuppliedTCPConsumer",
+      "file": "memberlist_adapter_test.go",
+      "source_sha256": "f02e255e85ff730a4274df27083df8121aaa0a0ba6776bbfdbc88e3ec1559c15"
+    },
+    {
+      "name": "TestMissingRequiredSemanticProbesValidatesNames",
+      "file": "semantic_coverage_test.go",
+      "source_sha256": "aab5d1609e291f3d62b2f5c52186c925dcdd82c358b9fa94535ec037ca9b5e53"
+    },
+    {
+      "name": "TestModerncLibcAdapterTemplateHasPinnedIdentity",
+      "file": "libc_adapter_test.go",
+      "source_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987"
+    },
+    {
+      "name": "TestNewAdapterRegistryAllowsNoAdapters",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435"
+    },
+    {
+      "name": "TestNewAdapterRegistryRejectsDuplicateImplementations",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435"
+    },
+    {
+      "name": "TestNewAdapterRegistryRequiresAnImplementationForEveryIdentity",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435"
+    },
+    {
+      "name": "TestPortableAdapterConfigurationRefusals",
+      "file": "adapter_configuration_portable_test.go",
+      "source_sha256": "7fb748f3a781ed3a6b76830e8c0709129ca33b2827ef2e8827e7f59032660f42"
+    },
+    {
+      "name": "TestPortableAdapterPreparedSourcePins",
+      "file": "adapter_regenerate_portable_test.go",
+      "source_sha256": "ae1ab267295505d7ba146199e02fd54265760f8e0851ac4b0eac5a701cff86bf"
+    },
+    {
+      "name": "TestPortableAdapterRegenerationRefusals",
+      "file": "adapter_regenerate_portable_test.go",
+      "source_sha256": "ae1ab267295505d7ba146199e02fd54265760f8e0851ac4b0eac5a701cff86bf"
+    },
+    {
+      "name": "TestPortableAdapterRegenerationSourceEdits",
+      "file": "adapter_regenerate_portable_test.go",
+      "source_sha256": "ae1ab267295505d7ba146199e02fd54265760f8e0851ac4b0eac5a701cff86bf"
+    },
+    {
+      "name": "TestPortableAdapterSourcePreservation",
+      "file": "adapter_preservation_portable_test.go",
+      "source_sha256": "16c18726d46e301f30bee38ec19c6fd549cd67762cd2ff21ab1fca46333b244e"
+    },
+    {
+      "name": "TestPortableBootstrapFrameIdentity",
+      "file": "profile_portable_test.go",
+      "source_sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4"
+    },
+    {
+      "name": "TestPortableBootstrapPlatformGoldens",
+      "file": "profile_portable_test.go",
+      "source_sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4"
+    },
+    {
+      "name": "TestPortableLibcPreparedContract",
+      "file": "adapter_regenerate_portable_test.go",
+      "source_sha256": "ae1ab267295505d7ba146199e02fd54265760f8e0851ac4b0eac5a701cff86bf"
+    },
+    {
+      "name": "TestPortableLibcRegeneration",
+      "file": "adapter_regenerate_portable_test.go",
+      "source_sha256": "ae1ab267295505d7ba146199e02fd54265760f8e0851ac4b0eac5a701cff86bf"
+    },
+    {
+      "name": "TestPortableLibcSelectionConfiguration",
+      "file": "adapter_configuration_portable_test.go",
+      "source_sha256": "7fb748f3a781ed3a6b76830e8c0709129ca33b2827ef2e8827e7f59032660f42"
+    },
+    {
+      "name": "TestPortableMetricsConsumer",
+      "file": "metrics_consumer_portable_test.go",
+      "source_sha256": "e446f13e23903848f7f8c2e4e3b9a8a73576afa0721f962496d0f50db3b67636"
+    },
+    {
+      "name": "TestPortablePreparedTargetShape",
+      "file": "profile_portable_test.go",
+      "source_sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4"
+    },
+    {
+      "name": "TestPortableProfilePublicGuardsRemainFirst",
+      "file": "profile_portable_test.go",
+      "source_sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4"
+    },
+    {
+      "name": "TestPortableRequirementsProjection",
+      "file": "profile_portable_test.go",
+      "source_sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4"
+    },
+    {
+      "name": "TestPortableRewrittenModuleConsumers",
+      "file": "adapter_consumers_portable_test.go",
+      "source_sha256": "d2df7e69581f0bc8caba49097c5831f3904bb4a46d1a9de0200bc415472f0f27"
+    },
+    {
+      "name": "TestPortableSelectedAdapterIdentities",
+      "file": "profile_portable_test.go",
+      "source_sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4"
+    },
+    {
+      "name": "TestPortableServerGraphPreparedSourceIdentities",
+      "file": "adapter_graph_portable_test.go",
+      "source_sha256": "126754dae10dca15c0367ee60c90e459f04b900b5bfd1d76b6e8535d68743149"
+    },
+    {
+      "name": "TestPrepareGRPCReturnsTypedInventoryCapacityError",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984"
+    },
+    {
+      "name": "TestProfileOwnsIdentityProjectionAndVerification",
+      "file": "profile_test.go",
+      "source_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8"
+    },
+    {
+      "name": "TestRegenerateAdapterRefusesCustomPreparation",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be"
+    },
+    {
+      "name": "TestRejectLibcHostImportsRejectsForbiddenImports",
+      "file": "libc_adapter_test.go",
+      "source_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987"
+    },
+    {
+      "name": "TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef"
+    },
+    {
+      "name": "TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs",
+      "file": "semantic_coverage_test.go",
+      "source_sha256": "aab5d1609e291f3d62b2f5c52186c925dcdd82c358b9fa94535ec037ca9b5e53"
+    },
+    {
+      "name": "TestSessionCollectTerminal",
+      "file": "session_test.go",
+      "source_sha256": "39340d0c47bedc9bb4d8a62673d7cf56821510efe8fdf6006561d1d3bbfae8da"
+    },
+    {
+      "name": "TestSummarizeSemanticProbesCanonicalizesAUnion",
+      "file": "semantic_coverage_test.go",
+      "source_sha256": "aab5d1609e291f3d62b2f5c52186c925dcdd82c358b9fa94535ec037ca9b5e53"
+    },
+    {
+      "name": "TestValidatePreparedTargetRejectsIdentityMismatch",
+      "file": "profile_test.go",
+      "source_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8"
+    },
+    {
+      "name": "TestVerifyGRPCModuleRejectsInventoryDrift",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984"
+    },
+    {
+      "name": "TestVerifyRegisteredAdapterScratchCleanup",
+      "file": "adapter_verify_cleanup_test.go",
+      "source_sha256": "9449dfd22e7c4aa9c01a148a1448035d36d37ff86683a92eab501db12c14db10"
+    },
+    {
+      "name": "TestVersionReferencesNeverMatchInsideAnotherModulePath",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be"
+    }
+  ],
+  "excluded": [
+    {
+      "name": "TestAdapterSourceEditsRejectAnAnchorThatIsNotALiteral",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls"
+    },
+    {
+      "name": "TestAdapterSourceEditsReplaceEveryAnchor",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls"
+    },
+    {
+      "name": "TestBootstrapFrameBindsLaunchIdentity",
+      "file": "profile_test.go",
+      "source_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "portable": [
+        "TestPortableBootstrapFrameIdentity",
+        "TestPortableBootstrapPlatformGoldens",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual production codec/identity helpers; unchanged public qualified-host wrapper remains native"
+    },
+    {
+      "name": "TestDeterministicProfileAcceptsArbitraryTargetArguments",
+      "file": "profile_test.go",
+      "source_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "portable": [
+        "TestPortablePreparedTargetShape",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual shape helper argv/build projection; public host validation preserved"
+    },
+    {
+      "name": "TestGRPCDNSConsumer",
+      "file": "grpc_dns_test.go",
+      "source_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "portable": [
+        "TestPortableRetainedGRPCDNSConsumer"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestGRPCDNSRewrite",
+      "file": "grpc_dns_test.go",
+      "source_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "portable": [
+        "TestPortableRetainedGRPCDNSRewrite"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestHashicorpMetricsAdapterConsumer",
+      "file": "hashicorpmetrics_adapter_test.go",
+      "source_sha256": "1a132adc9a2c5a8e47c2bbe7f8dcb8500322169bb17406cc041f3a6bc82aef5f",
+      "portable": [
+        "TestPortableMetricsConsumer",
+        "TestPortableAdapterConfigurationRefusals"
+      ],
+      "reason": "real stock fixture behavior, exact private registry and both-platform source listing; qualified public profile/capability wrapper native"
+    },
+    {
+      "name": "TestModerncMemoryPreparedPackageSourceSetIdentity",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableAdapterPreparedSourcePins",
+        "TestPortableServerGraphPreparedSourceIdentities",
+        "TestPortableRewrittenModuleConsumers"
+      ],
+      "reason": "actual preparation and both-platform source listings, root dependency context when selected; public profile/capability/native wrapper unclaimed"
+    },
+    {
+      "name": "TestModerncMemoryRejectsChangedReplacementInventory",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedModerncMemoryRejectsChangedReplacementInventory"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestModerncMemoryRewriteRejectsAnchorDrift",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedModerncMemoryRewriteRejectsAnchorDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestPinnedAdapterModuleInventories",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedPinnedAdapterModuleInventories"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestPrepareBuildAdaptersClassifiesInvalidTargetConfiguration",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "portable": [
+        "TestPortableAdapterConfigurationRefusals",
+        "TestPortableLibcSelectionConfiguration"
+      ],
+      "reason": "actual registry typed invalid-input refusals; qualified public wrapper native"
+    },
+    {
+      "name": "TestPrepareGRPCRecordsExactPrivateReplacement",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedPrepareGRPCRecordsExactPrivateReplacement"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestPrepareGRPCRejectsChangedIdentity",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedPrepareGRPCRejectsChangedIdentity"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestPrepareModerncMemoryRecordsExactPrivateReplacement",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedPrepareModerncMemoryRecordsExactPrivateReplacement"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestPrepareModerncMemoryRejectsChangedIdentity",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedPrepareModerncMemoryRejectsChangedIdentity"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestPrepareModerncMemoryRejectsModuleDrift",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedPrepareModerncMemoryRejectsModuleDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "portable": [
+        "TestAdapterModuleSumRecords",
+        "TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration",
+        "TestPortableAdapterConfigurationRefusals"
+      ],
+      "reason": "actual selected sum validation and no-write private preparation; public unchanged pre-download ordering source preservation, qualified wrapper native"
+    },
+    {
+      "name": "TestPrepareXNetRecordsExactPrivateReplacement",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableRetainedPrepareXNetRecordsExactPrivateReplacement"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestPrepareXNetRejectsChangedIdentity",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableRetainedPrepareXNetRejectsChangedIdentity"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestProfilePreparesPinnedModerncLibcAdapter",
+      "file": "libc_adapter_test.go",
+      "source_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "portable": [
+        "TestPortableLibcPreparedContract",
+        "TestPortableLibcSelectionConfiguration",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual libc preparation, projection, shim checks and selection refusals; public wrapper and patched internal/gomadio compilation native"
+    },
+    {
+      "name": "TestProfileRejectsAdapterConfigurationDrift",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterConfigurationRefusals",
+        "TestPortableLibcSelectionConfiguration"
+      ],
+      "reason": "actual registry typed invalid-input refusals; qualified public wrapper native"
+    },
+    {
+      "name": "TestProfileRejectsUnsupportedModerncLibcVersion",
+      "file": "libc_adapter_test.go",
+      "source_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "portable": [
+        "TestPortableLibcPreparedContract",
+        "TestPortableLibcSelectionConfiguration",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual libc preparation, projection, shim checks and selection refusals; public wrapper and patched internal/gomadio compilation native"
+    },
+    {
+      "name": "TestProfileSelectsDownstreamAdapters",
+      "file": "downstream_adapter_registry_test.go",
+      "source_sha256": "b603a4d49d3c6133be6aff84f43a07d0fe7d92082931bcd318b3663b49e915bd",
+      "portable": [
+        "TestPortableRewrittenModuleConsumers",
+        "TestPortableMetricsConsumer"
+      ],
+      "reason": "real stock original consumers and private selection/source listings; public profile/capability/runtime wrapper remains native"
+    },
+    {
+      "name": "TestProfileSelectsSentryAdapter",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableRewrittenModuleConsumers",
+        "TestPortableMetricsConsumer"
+      ],
+      "reason": "real stock original consumers and private selection/source listings; public profile/capability/runtime wrapper remains native"
+    },
+    {
+      "name": "TestProfileVerifiesSelectedAdapterIdentities",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "portable": [
+        "TestPortableSelectedAdapterIdentities",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual comparator valid/modified identity; public host validation preserved"
+    },
+    {
+      "name": "TestProfileWithoutModerncLibcNeedsNoAdapter",
+      "file": "libc_adapter_test.go",
+      "source_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "portable": [
+        "TestPortableLibcPreparedContract",
+        "TestPortableLibcSelectionConfiguration",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual libc preparation, projection, shim checks and selection refusals; public wrapper and patched internal/gomadio compilation native"
+    },
+    {
+      "name": "TestRegenerateAdapterDerivesAnchorsForChangedUpstreamSource",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls"
+    },
+    {
+      "name": "TestRegenerateAdapterFailsWhenARewrittenFileIsDeletedUpstream",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls"
+    },
+    {
+      "name": "TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls"
+    },
+    {
+      "name": "TestRegenerateAdapterRederivesBaseRewrites",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls"
+    },
+    {
+      "name": "TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls"
+    },
+    {
+      "name": "TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure",
+      "file": "requirements_test.go",
+      "source_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "portable": [
+        "TestPortableRequirementsProjection",
+        "TestPortableSelectedAdapterIdentities",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual production comparator/projection; unchanged public qualified-host wrapper remains native"
+    },
+    {
+      "name": "TestRequirementsProjectsKnownInventoryDomainsConservatively",
+      "file": "requirements_test.go",
+      "source_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "portable": [
+        "TestPortableRequirementsProjection",
+        "TestPortableSelectedAdapterIdentities",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual production comparator/projection; unchanged public qualified-host wrapper remains native"
+    },
+    {
+      "name": "TestRequirementsRejectsUnselectedAdapterIdentity",
+      "file": "requirements_test.go",
+      "source_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "portable": [
+        "TestPortableRequirementsProjection",
+        "TestPortableSelectedAdapterIdentities",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual production comparator/projection; unchanged public qualified-host wrapper remains native"
+    },
+    {
+      "name": "TestRewriteAdapterSourceRejectsDrift",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableRetainedRewriteAdapterSourceRejectsDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCKeepalivePreservesDialerWithoutHostControl"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCKeepaliveRejectsSourceIdentityDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsChangedAnchor"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewriteModerncMemoryRejectsSourceIdentityDrift",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedRewriteModerncMemoryRejectsSourceIdentityDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewriteXNetSocketDeniesRawSocketOptions",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableRetainedRewriteXNetSocketDeniesRawSocketOptions"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewriteXNetSocketRejectsSourceIdentityDrift",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableRetainedRewriteXNetSocketRejectsSourceIdentityDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestRewrittenModuleConsumers",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableRewrittenModuleConsumers",
+        "TestPortableMetricsConsumer"
+      ],
+      "reason": "real stock original consumers and private selection/source listings; public profile/capability/runtime wrapper remains native"
+    },
+    {
+      "name": "TestRewrittenModuleInventoriesMatchPinnedModules",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterSourcePreservation",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual immutable prepared inventories, exact pins, comments and identity/inventory negatives; original cache bootstrap unavailable"
+    },
+    {
+      "name": "TestRewrittenModulePreparedPackageSourceSetIdentity",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterPreparedSourcePins",
+        "TestPortableServerGraphPreparedSourceIdentities",
+        "TestPortableRewrittenModuleConsumers"
+      ],
+      "reason": "actual preparation and both-platform source listings, root dependency context when selected; public profile/capability/native wrapper unclaimed"
+    },
+    {
+      "name": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterSourcePreservation",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual immutable prepared inventories, exact pins, comments and identity/inventory negatives; original cache bootstrap unavailable"
+    },
+    {
+      "name": "TestRewrittenModulesRejectChangedIdentity",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterSourcePreservation",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual immutable prepared inventories, exact pins, comments and identity/inventory negatives; original cache bootstrap unavailable"
+    },
+    {
+      "name": "TestRewrittenModulesRejectUnrewrittenInventoryDrift",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterSourcePreservation",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual immutable prepared inventories, exact pins, comments and identity/inventory negatives; original cache bootstrap unavailable"
+    },
+    {
+      "name": "TestSockaddrBoundaryConsumer",
+      "file": "sockaddr_boundary_test.go",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "portable": [
+        "TestPortableRetainedSockaddrBoundaryConsumer"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestSockaddrBoundaryPreservesOriginalComments",
+      "file": "sockaddr_boundary_test.go",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "portable": [
+        "TestPortableRetainedSockaddrBoundaryPreservesOriginalComments"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestSockaddrBoundaryRewritesRejectDrift",
+      "file": "sockaddr_boundary_test.go",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "portable": [
+        "TestPortableRetainedSockaddrBoundaryRewritesRejectDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit"
+    },
+    {
+      "name": "TestToolchainLeavesFD5ForProcessesWithoutIOProfile",
+      "file": "bootstrap_toolchain_test.go",
+      "source_sha256": "14b016f2568e25b0431b35107bad2f021d460e5e117ebae61e6bf62e96e56d0e",
+      "portable": [],
+      "reason": "actual patched runtime FD5 process assertion only; native owners fn149.2/fn128.4 (aggregates fn149.4/fn128.7)"
+    },
+    {
+      "name": "TestVerifyRegisteredAdapterChecksEveryPin",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls"
+    },
+    {
+      "name": "TestXNetPreparedPackageSourceSetIdentity",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableAdapterPreparedSourcePins",
+        "TestPortableServerGraphPreparedSourceIdentities",
+        "TestPortableRewrittenModuleConsumers"
+      ],
+      "reason": "actual preparation and both-platform source listings, root dependency context when selected; public profile/capability/native wrapper unclaimed"
+    }
+  ],
+  "overlay_selected": [
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "function": "TestRewriteAdapterSourceRejectsDrift",
+      "portable": "TestPortableRetainedRewriteAdapterSourceRejectsDrift",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "function_sha256": "ab97d20b50eda92f5f8590152099e89805732bdf46988f1b57d7182aebd05979",
+      "generated_sha256": "7afe7f2b8d35d9e561df5e37eb5f09ee978f1447091b744f0b5e9a44b6b0a9e0",
+      "replacements": [
+        {
+          "start": 74,
+          "end": 91,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 41,
+          "from": "TestRewriteAdapterSourceRejectsDrift",
+          "to": "TestPortableRetainedRewriteAdapterSourceRejectsDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestPinnedAdapterModuleInventories",
+      "portable": "TestPortableRetainedPinnedAdapterModuleInventories",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "6fe4f4ece706b7c3e839d923f9cb3819cdd9e7f3764713cc44bd574ff9c0f5eb",
+      "generated_sha256": "90f51b8a095facdcfe6d209f107ed5f25d72ee64d21b64d750552fb7fa7e7319",
+      "replacements": [
+        {
+          "start": 219,
+          "end": 236,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 152,
+          "end": 186,
+          "from": "TestPinnedAdapterModuleInventories",
+          "to": "TestPortableRetainedPinnedAdapterModuleInventories"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+      "portable": "TestPortableRetainedRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "90f96a21a10d3c3948ec9aaf75f51fef0503c70403b0fb6fba54cafdccd75f14",
+      "generated_sha256": "1c2cb8752e6f027e339de036204ec07a5f69db25f28495f04c3c567262abdf95",
+      "replacements": [
+        {
+          "start": 90,
+          "end": 113,
+          "from": "readPinnedGRPCKeepalive",
+          "to": "portableRetainedReadPinnedGRPCKeepalive"
+        },
+        {
+          "start": 5,
+          "end": 62,
+          "from": "TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+          "to": "TestPortableRetainedRewriteGRPCKeepalivePreservesDialerWithoutHostControl"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+      "portable": "TestPortableRetainedRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "52a0d2dde2365b2c5bd0c87fad22a8aa78d520268a65b57c83a43bee1255d060",
+      "generated_sha256": "962861e3321480442ef7e824bd3010d6c22cf21cb1464a803cce97175db563f2",
+      "replacements": [
+        {
+          "start": 111,
+          "end": 128,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 65,
+          "from": "TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+          "to": "TestPortableRetainedRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+      "portable": "TestPortableRetainedRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "fb3ac87e1293e52b912e43a2ac2b6671457ed6e1d2c825eca629c5e8d7dfb077",
+      "generated_sha256": "7a4259b50928ab93721fc341a12c586b1b21b60f886aae6a1c65ab275ba31707",
+      "replacements": [
+        {
+          "start": 90,
+          "end": 113,
+          "from": "readPinnedGRPCKeepalive",
+          "to": "portableRetainedReadPinnedGRPCKeepalive"
+        },
+        {
+          "start": 5,
+          "end": 55,
+          "from": "TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+          "to": "TestPortableRetainedRewriteGRPCKeepaliveRejectsSourceIdentityDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+      "portable": "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "515231ebdde7c0469e895e775700776d46723a0e458883957d283929eb5b7946",
+      "generated_sha256": "3e9be5ad3f18b5504a1a62c0c865f310a66cf393f0ce8e2cd30ac1359d5a584e",
+      "replacements": [
+        {
+          "start": 106,
+          "end": 129,
+          "from": "readPinnedGRPCKeepalive",
+          "to": "portableRetainedReadPinnedGRPCKeepalive"
+        },
+        {
+          "start": 5,
+          "end": 55,
+          "from": "TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+          "to": "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsChangedAnchor"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+      "portable": "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "de6b0f68a1110835682e1d778acf16d026b85b5907c82083aa3780e73dda52ad",
+      "generated_sha256": "dd3d32a33cd8022cfb8328fb69ba8d03ef1d39482d74bccfa27275545c70c7cb",
+      "replacements": [
+        {
+          "start": 85,
+          "end": 108,
+          "from": "readPinnedGRPCKeepalive",
+          "to": "portableRetainedReadPinnedGRPCKeepalive"
+        },
+        {
+          "start": 5,
+          "end": 57,
+          "from": "TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+          "to": "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestPrepareGRPCRecordsExactPrivateReplacement",
+      "portable": "TestPortableRetainedPrepareGRPCRecordsExactPrivateReplacement",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "e4bde0d44ef5688f58915676a7b8a31eb25c2dd5c2dc5567ebe56fdacc82df75",
+      "generated_sha256": "364fc965fdee2630454915a9c741df557a087be10508e151b302bcf9be2a6ea6",
+      "replacements": [
+        {
+          "start": 83,
+          "end": 100,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 50,
+          "from": "TestPrepareGRPCRecordsExactPrivateReplacement",
+          "to": "TestPortableRetainedPrepareGRPCRecordsExactPrivateReplacement"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "function": "TestPrepareGRPCRejectsChangedIdentity",
+      "portable": "TestPortableRetainedPrepareGRPCRejectsChangedIdentity",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "function_sha256": "3af8f47c8908696f6fb7ee063c3c1507b7a72fb5bfe283c6b04bd8147246b769",
+      "generated_sha256": "bb9c24a303be099e2ec276ed485ca1fddabe49d735a624462b0f2e5575adcda8",
+      "replacements": [
+        {
+          "start": 200,
+          "end": 217,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 42,
+          "from": "TestPrepareGRPCRejectsChangedIdentity",
+          "to": "TestPortableRetainedPrepareGRPCRejectsChangedIdentity"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_dns_test.go",
+      "function": "TestGRPCDNSRewrite",
+      "portable": "TestPortableRetainedGRPCDNSRewrite",
+      "source_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "function_sha256": "7357d5178159d168963600cb28438a365d0b32378081c8de74d2c60e86b90389",
+      "generated_sha256": "ccac9041d82379179e6b94ce81789345654e93a319376c61349ea3d8b43dc144",
+      "replacements": [
+        {
+          "start": 154,
+          "end": 171,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 41,
+          "end": 61,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 23,
+          "from": "TestGRPCDNSRewrite",
+          "to": "TestPortableRetainedGRPCDNSRewrite"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_dns_test.go",
+      "function": "TestGRPCDNSConsumer",
+      "portable": "TestPortableRetainedGRPCDNSConsumer",
+      "source_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "function_sha256": "b3c8d24206af3d1dfd4df805696ba40a308dd5a7419b6580912dcbce6cfe5165",
+      "generated_sha256": "cff6941c98106a9404c836da0bf4175cb539a03d1ed5073f75825ad173578c5a",
+      "replacements": [
+        {
+          "start": 699,
+          "end": 705,
+          "from": "\"test\"",
+          "to": "\"test\", \"-tags=test_dep\""
+        },
+        {
+          "start": 125,
+          "end": 142,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 42,
+          "end": 62,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 24,
+          "from": "TestGRPCDNSConsumer",
+          "to": "TestPortableRetainedGRPCDNSConsumer"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+      "portable": "TestPortableRetainedRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "158ec5a0a5f03c8db3857f704f5b34ff3f45cfa275f2768c8b70e0e45143a998",
+      "generated_sha256": "82407076f6b0ae2844e80cbda97ea68bf78fafc5e93dcc1647b8d87b79d64431",
+      "replacements": [
+        {
+          "start": 93,
+          "end": 122,
+          "from": "readPinnedModerncMemorySource",
+          "to": "portableRetainedReadPinnedModerncMemorySource"
+        },
+        {
+          "start": 5,
+          "end": 65,
+          "from": "TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+          "to": "TestPortableRetainedRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestRewriteModerncMemoryRejectsSourceIdentityDrift",
+      "portable": "TestPortableRetainedRewriteModerncMemoryRejectsSourceIdentityDrift",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "7efcb5eda09edc24d564a9f4eb53607a6d35c2db15d42f61b62c2ee0a6bb3c14",
+      "generated_sha256": "2da2ecf244d47aca542f5d46791b313a0c373dd807ecb418632bd3af6ccf0ead",
+      "replacements": [
+        {
+          "start": 151,
+          "end": 180,
+          "from": "readPinnedModerncMemorySource",
+          "to": "portableRetainedReadPinnedModerncMemorySource"
+        },
+        {
+          "start": 5,
+          "end": 55,
+          "from": "TestRewriteModerncMemoryRejectsSourceIdentityDrift",
+          "to": "TestPortableRetainedRewriteModerncMemoryRejectsSourceIdentityDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestModerncMemoryRewriteRejectsAnchorDrift",
+      "portable": "TestPortableRetainedModerncMemoryRewriteRejectsAnchorDrift",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "dfcb357ba4ce88a82aac6ed0318c6757419f430831f7bcf1213eaa468c38b8b0",
+      "generated_sha256": "3e6ea6e24b2b717243f5148e960c623f909be7eb973e489a55bacaae2372185b",
+      "replacements": [
+        {
+          "start": 75,
+          "end": 104,
+          "from": "readPinnedModerncMemorySource",
+          "to": "portableRetainedReadPinnedModerncMemorySource"
+        },
+        {
+          "start": 5,
+          "end": 47,
+          "from": "TestModerncMemoryRewriteRejectsAnchorDrift",
+          "to": "TestPortableRetainedModerncMemoryRewriteRejectsAnchorDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestPrepareModerncMemoryRejectsModuleDrift",
+      "portable": "TestPortableRetainedPrepareModerncMemoryRejectsModuleDrift",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "295a9e349449f9296d7292dfee08fe795d074752bf5c6869754cb73db5b7efe3",
+      "generated_sha256": "c6110c6b28f6f708341a2f998792785342c18493a07dbb1692699ef74343a634",
+      "replacements": [
+        {
+          "start": 197,
+          "end": 214,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 47,
+          "from": "TestPrepareModerncMemoryRejectsModuleDrift",
+          "to": "TestPortableRetainedPrepareModerncMemoryRejectsModuleDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestModerncMemoryRejectsChangedReplacementInventory",
+      "portable": "TestPortableRetainedModerncMemoryRejectsChangedReplacementInventory",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "f4e0f81a147676122aa6e915d26f0ee55b2482e1bb7340d73f35e79167b73ad4",
+      "generated_sha256": "4e69ec90bf8444cef9ec48b60fc008ca5c9eba00ffd0e29dfad392f397ffa048",
+      "replacements": [
+        {
+          "start": 315,
+          "end": 332,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 56,
+          "from": "TestModerncMemoryRejectsChangedReplacementInventory",
+          "to": "TestPortableRetainedModerncMemoryRejectsChangedReplacementInventory"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestPrepareModerncMemoryRecordsExactPrivateReplacement",
+      "portable": "TestPortableRetainedPrepareModerncMemoryRecordsExactPrivateReplacement",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "130d5bf4a6248cc1e6009421bd57bf74c21190300090b3773e81afb53687fede",
+      "generated_sha256": "3edc366ad37dd2c4c6518dbe6b56541b8ff7317f1b4576a7efca8dcc78f044b6",
+      "replacements": [
+        {
+          "start": 223,
+          "end": 240,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 59,
+          "from": "TestPrepareModerncMemoryRecordsExactPrivateReplacement",
+          "to": "TestPortableRetainedPrepareModerncMemoryRecordsExactPrivateReplacement"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "function": "TestPrepareModerncMemoryRejectsChangedIdentity",
+      "portable": "TestPortableRetainedPrepareModerncMemoryRejectsChangedIdentity",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "function_sha256": "06c4e3f600ddc115848584e8251b481d70a7d167394149900aeeddf7f9bc944d",
+      "generated_sha256": "60dbfbf952e7290347d313c0cd41b1dc18ec0b3283bbb22b64e51aed7e923ef4",
+      "replacements": [
+        {
+          "start": 375,
+          "end": 392,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 51,
+          "from": "TestPrepareModerncMemoryRejectsChangedIdentity",
+          "to": "TestPortableRetainedPrepareModerncMemoryRejectsChangedIdentity"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "function": "TestSockaddrBoundaryConsumer",
+      "portable": "TestPortableRetainedSockaddrBoundaryConsumer",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "function_sha256": "643acd45b51fb977d3956f96715b56ec55d0cd9c1835187cf1e48d845b0517ca",
+      "generated_sha256": "f8c7a8be26a8688d69d6ae5bea25e2301fe7775917ea5be4c86de4376c24f052",
+      "replacements": [
+        {
+          "start": 1777,
+          "end": 1783,
+          "from": "\"test\"",
+          "to": "\"test\", \"-tags=test_dep\""
+        },
+        {
+          "start": 1578,
+          "end": 1584,
+          "from": "\"test\"",
+          "to": "\"test\", \"-tags=test_dep\""
+        },
+        {
+          "start": 845,
+          "end": 862,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 51,
+          "end": 71,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 33,
+          "from": "TestSockaddrBoundaryConsumer",
+          "to": "TestPortableRetainedSockaddrBoundaryConsumer"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "function": "TestSockaddrBoundaryRewritesRejectDrift",
+      "portable": "TestPortableRetainedSockaddrBoundaryRewritesRejectDrift",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "function_sha256": "354716d3e1e959b3898f93c904b8e61038cabf98d18eb93c3f549a9dd912854b",
+      "generated_sha256": "f00a946be2f99c66e455d5dfb285af773fc0e2cd5d1dfcb856bc02628c2697ae",
+      "replacements": [
+        {
+          "start": 152,
+          "end": 169,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 62,
+          "end": 82,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 44,
+          "from": "TestSockaddrBoundaryRewritesRejectDrift",
+          "to": "TestPortableRetainedSockaddrBoundaryRewritesRejectDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "function": "TestSockaddrBoundaryPreservesOriginalComments",
+      "portable": "TestPortableRetainedSockaddrBoundaryPreservesOriginalComments",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "function_sha256": "ba1a1e21d6d1f2b1ba07c92fe77c5e81c2dedc3b64fd164e3715fccb610ca591",
+      "generated_sha256": "e6899d89865ad87e8ab66f18e8225a63a253dff182f715cf1019048a29b2156d",
+      "replacements": [
+        {
+          "start": 158,
+          "end": 175,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 68,
+          "end": 88,
+          "from": "downloadPinnedModule",
+          "to": "portableRetainedDownloadPinnedModule"
+        },
+        {
+          "start": 5,
+          "end": 50,
+          "from": "TestSockaddrBoundaryPreservesOriginalComments",
+          "to": "TestPortableRetainedSockaddrBoundaryPreservesOriginalComments"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "function": "TestRewriteXNetSocketDeniesRawSocketOptions",
+      "portable": "TestPortableRetainedRewriteXNetSocketDeniesRawSocketOptions",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "function_sha256": "afde2b8045222556f3c9e957eed9e0eb16bfdb907a8bd92228020be5e50da72a",
+      "generated_sha256": "16e01e691583a075737cca7f547fc557c3ee94d1f0555409e88ff080bd6bf071",
+      "replacements": [
+        {
+          "start": 92,
+          "end": 119,
+          "from": "readPinnedXNetSocketSources",
+          "to": "portableRetainedReadPinnedXNetSocketSources"
+        },
+        {
+          "start": 5,
+          "end": 48,
+          "from": "TestRewriteXNetSocketDeniesRawSocketOptions",
+          "to": "TestPortableRetainedRewriteXNetSocketDeniesRawSocketOptions"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "function": "TestRewriteXNetSocketRejectsSourceIdentityDrift",
+      "portable": "TestPortableRetainedRewriteXNetSocketRejectsSourceIdentityDrift",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "function_sha256": "886f22ed5feced10be58adcba1788263d1f7c07fe7fa2eca024a5424573a742e",
+      "generated_sha256": "f5521ccd633c964385ba38a191a18447f3fd8fd7b3bd4a80778a7649b03356d9",
+      "replacements": [
+        {
+          "start": 96,
+          "end": 123,
+          "from": "readPinnedXNetSocketSources",
+          "to": "portableRetainedReadPinnedXNetSocketSources"
+        },
+        {
+          "start": 5,
+          "end": 52,
+          "from": "TestRewriteXNetSocketRejectsSourceIdentityDrift",
+          "to": "TestPortableRetainedRewriteXNetSocketRejectsSourceIdentityDrift"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "function": "TestPrepareXNetRecordsExactPrivateReplacement",
+      "portable": "TestPortableRetainedPrepareXNetRecordsExactPrivateReplacement",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "function_sha256": "a8449ca47ae80d28b8c7c06aee1b1836c73be32d231f0d6375071fae2a408b4a",
+      "generated_sha256": "a35c899da0b20f661e61d6b67cef77101903d0f08b51c4a7b25194f390512ac2",
+      "replacements": [
+        {
+          "start": 199,
+          "end": 216,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 50,
+          "from": "TestPrepareXNetRecordsExactPrivateReplacement",
+          "to": "TestPortableRetainedPrepareXNetRecordsExactPrivateReplacement"
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "function": "TestPrepareXNetRejectsChangedIdentity",
+      "portable": "TestPortableRetainedPrepareXNetRejectsChangedIdentity",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "function_sha256": "587b707cfc278c7daa90aa953ac0b79454f0e36a1da5170d5f3fc57b5293b323",
+      "generated_sha256": "95d606a9d3365cf14550719b4aee7745bfadf3f3cc931c3d1dae0e55908f9393",
+      "replacements": [
+        {
+          "start": 190,
+          "end": 207,
+          "from": "pinnedModuleCache",
+          "to": "portableRetainedModuleCache"
+        },
+        {
+          "start": 5,
+          "end": 42,
+          "from": "TestPrepareXNetRejectsChangedIdentity",
+          "to": "TestPortableRetainedPrepareXNetRejectsChangedIdentity"
+        }
+      ]
+    }
+  ],
+  "expression": "^(TestAdapterCacheCleanupOwnerErrors|TestAdapterCacheCleanupRegistryPrimary|TestAdapterCacheCleanupRegistryPublicationReuseRetry|TestAdapterCacheCleanupValidationControls|TestAdapterModuleSumRecords|TestAdapterPreparedSourceSetPinsReproduceOnEveryHost|TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration|TestAdapterRegistryPortablePinDecisions|TestAdapterRegistryPublishesReplacementAtStableToolchainLocation|TestAdapterRegistryUsesExactVersionReplacement|TestAdapterReplacementUsesExplicitModuleRoot|TestCopyAdapterModuleAppliesReplacementsAndAdditions|TestCopyAdapterModuleRejectsSpecialFile|TestCopyAdapterModuleRejectsSymlink|TestCopyAdapterModuleReturnsTypedByteCapacityError|TestCopyAdapterModuleReturnsTypedFileCapacityError|TestDecodeSemanticCoverageRejectsUnknownAndDuplicateProbes|TestDecodeSemanticCoverageReturnsStableSortedBoundaryProbes|TestDefaultProfile|TestDefaultReturnsAnImmutableProfileSpecification|TestDetectModuleVersionRejectsDuplicateRequirements|TestDeterministicProfileCompatibilityGolden|TestLibcRegenerationKeepsExactSourceAndPreparedPins|TestManifestInterceptsBeforeHostDispatch|TestMemberlistSuppliedTCPConsumer|TestMissingRequiredSemanticProbesValidatesNames|TestModerncLibcAdapterTemplateHasPinnedIdentity|TestNewAdapterRegistryAllowsNoAdapters|TestNewAdapterRegistryRejectsDuplicateImplementations|TestNewAdapterRegistryRequiresAnImplementationForEveryIdentity|TestPortableAdapterConfigurationRefusals|TestPortableAdapterPreparedSourcePins|TestPortableAdapterRegenerationRefusals|TestPortableAdapterRegenerationSourceEdits|TestPortableAdapterSourcePreservation|TestPortableBootstrapFrameIdentity|TestPortableBootstrapPlatformGoldens|TestPortableLibcPreparedContract|TestPortableLibcRegeneration|TestPortableLibcSelectionConfiguration|TestPortableMetricsConsumer|TestPortablePreparedTargetShape|TestPortableProfilePublicGuardsRemainFirst|TestPortableRequirementsProjection|TestPortableRewrittenModuleConsumers|TestPortableSelectedAdapterIdentities|TestPortableServerGraphPreparedSourceIdentities|TestPrepareGRPCReturnsTypedInventoryCapacityError|TestProfileOwnsIdentityProjectionAndVerification|TestRegenerateAdapterRefusesCustomPreparation|TestRejectLibcHostImportsRejectsForbiddenImports|TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity|TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs|TestSessionCollectTerminal|TestSummarizeSemanticProbesCanonicalizesAUnion|TestValidatePreparedTargetRejectsIdentityMismatch|TestVerifyGRPCModuleRejectsInventoryDrift|TestVerifyRegisteredAdapterScratchCleanup|TestVersionReferencesNeverMatchInsideAnotherModulePath)$"
+}

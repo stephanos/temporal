@@ -257,12 +257,15 @@ func TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin(t *testing.T) {
 }
 
 func TestRegenerateAdapterRefusesCustomPreparation(t *testing.T) {
-	_, err := RegenerateAdapter(context.Background(), AdapterRegenerationRequest{Module: libcModulePath})
+	_, err := registeredRewrittenModule(libcModulePath)
 	var custom *AdapterNotRegenerableError
 	if !errors.As(err, &custom) || !IsAdapterRegenerationBlocked(err) {
 		t.Fatalf("libc regeneration error = %v", err)
 	}
-	if modules := RegenerableAdapters(); len(modules) != len(deterministicAdapters.definitions)-1 {
+	if _, err := RegenerateAdapter(context.Background(), AdapterRegenerationRequest{Module: libcModulePath}); err == nil || err.Error() != "libc regeneration request is incomplete" || IsAdapterRegenerationBlocked(err) {
+		t.Fatalf("incomplete libc regeneration error = %v", err)
+	}
+	if modules := RegenerableAdapters(); len(modules) != len(deterministicAdapters.definitions) || !containsString(modules, libcModulePath) {
 		t.Fatalf("regenerable adapters = %v", modules)
 	}
 }

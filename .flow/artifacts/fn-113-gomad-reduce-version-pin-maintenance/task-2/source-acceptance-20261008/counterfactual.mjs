@@ -1,0 +1,22 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+
+const root = process.cwd();
+const out = path.join(root, '.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008');
+const original = path.join(root, 'tools/gomad3/upgrade/adapterregen/transaction.go');
+const source = fs.readFileSync(original, 'utf8');
+const start = source.indexOf('func releaseRegenerationLock(');
+const end = source.indexOf('\n}\n', start) + 3;
+if (start < 0 || end <= start) throw Error('composition helper absent');
+const helper = source.slice(start, end);
+const signature = helper.slice(0, helper.indexOf('{'));
+const replacement = signature + '{\n\trelease()\n\treturn primary\n}\n';
+const mutant = source.slice(0, start) + replacement + source.slice(end);
+const file = path.join(out, 'transaction-release-discard.go');
+const overlay = path.join(out, 'release-counterfactual-overlay.json');
+const hash = value => crypto.createHash('sha256').update(value).digest('hex');
+fs.writeFileSync(file, mutant);
+fs.writeFileSync(overlay, JSON.stringify({Replace: {[original]: file}}, null, 2) + '\n');
+fs.writeFileSync(path.join(out, 'release-counterfactual-binding.json'), JSON.stringify({kind: 'injected private helper counterfactual, not unchanged-source or real hostfs fault', original, original_sha256: hash(source), helper_sha256: hash(helper), mutant_sha256: hash(mutant), overlay_sha256: hash(fs.readFileSync(overlay)), replacement}, null, 2) + '\n');
+console.log(overlay);

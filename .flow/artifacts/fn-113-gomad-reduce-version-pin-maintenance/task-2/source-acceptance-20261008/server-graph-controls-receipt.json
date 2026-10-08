@@ -1,0 +1,108 @@
+{
+  "name": "server-graph-controls",
+  "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run \"^TestPortableServerGraphPreparedSourceIdentities$\" ./deterministicio",
+  "started": "2026-10-08T17:53:39.393Z",
+  "ended": "2026-10-08T17:53:51.554Z",
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "log": "server-graph-controls.log",
+  "log_sha256": "5047fa05c826e9ffe2af5d32c9425ac3149bf439260f46f93558c4129aa7b4fb",
+  "base_commit": "ca6fd855868fac364b69cb31394c87ad2912e623",
+  "source_tree_sha256": "17ddc2a3a830a5e3494bfd35ec8bce755b9aa4d9031c18a6822b39188866a6a0",
+  "source_unchanged": true,
+  "effective_source_tree_sha256": "17ddc2a3a830a5e3494bfd35ec8bce755b9aa4d9031c18a6822b39188866a6a0",
+  "overlay": null,
+  "overlay_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.go-telemetry"
+  },
+  "module_cache_binding": "8d41ecb321232cf212b7810ccabb320fc9532efd5495023e3fcc046e55f42fb1",
+  "counts": {
+    "pass": 4,
+    "fail": 7,
+    "skip": 0
+  },
+  "skips": [],
+  "failures": [
+    {
+      "Time": "2026-10-08T17:53:48.128686685Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "Test": "TestPortableServerGraphPreparedSourceIdentities/fx/darwin/arm64",
+      "Elapsed": 0.2
+    },
+    {
+      "Time": "2026-10-08T17:53:48.236137269Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "Test": "TestPortableServerGraphPreparedSourceIdentities/fx/linux/amd64",
+      "Elapsed": 0.11
+    },
+    {
+      "Time": "2026-10-08T17:53:49.804744686Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "Test": "TestPortableServerGraphPreparedSourceIdentities/temporal-sdk/darwin/arm64",
+      "Elapsed": 1.57
+    },
+    {
+      "Time": "2026-10-08T17:53:50.09841277Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "Test": "TestPortableServerGraphPreparedSourceIdentities/temporal-sdk/linux/amd64",
+      "Elapsed": 0.29
+    },
+    {
+      "Time": "2026-10-08T17:53:50.67182702Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "Test": "TestPortableServerGraphPreparedSourceIdentities/otel-sdk/darwin/arm64",
+      "Elapsed": 0.57
+    },
+    {
+      "Time": "2026-10-08T17:53:50.792176187Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "Test": "TestPortableServerGraphPreparedSourceIdentities/otel-sdk/linux/amd64",
+      "Elapsed": 0.12
+    },
+    {
+      "Time": "2026-10-08T17:53:51.203343854Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "Test": "TestPortableServerGraphPreparedSourceIdentities",
+      "Elapsed": 11.02
+    },
+    {
+      "Time": "2026-10-08T17:53:51.203674062Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "Elapsed": 11.033
+    }
+  ]
+}

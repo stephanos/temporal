@@ -20,6 +20,10 @@ func (profile Spec) Requirements(closure target.CapabilityClosure, adapters []Ad
 	if err := profile.VerifyAdapters(adapters); err != nil {
 		return nil, err
 	}
+	return projectAdapterRequirements(closure, adapters)
+}
+
+func projectAdapterRequirements(closure target.CapabilityClosure, adapters []Adapter) ([]Requirement, error) {
 	evidence := packageRequirementEvidence(closure)
 	if err := addAdapterRequirementEvidence(evidence, closure, adapters); err != nil {
 		return nil, err

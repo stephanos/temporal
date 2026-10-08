@@ -123,11 +123,15 @@ func (profile Spec) VerifyAdapters(adapters []Adapter) error {
 	if err != nil {
 		return err
 	}
+	return definition.adapters.verify(adapters)
+}
+
+func (registry adapterRegistry) verify(adapters []Adapter) error {
 	if adapters == nil {
 		return errors.New("selected adapter identities are missing")
 	}
-	available := make(map[string]gomadversion.AdapterIdentity, len(definition.adapters.definitions))
-	for _, adapter := range definition.adapters.definitions {
+	available := make(map[string]gomadversion.AdapterIdentity, len(registry.definitions))
+	for _, adapter := range registry.definitions {
 		available[adapter.identity.Module] = adapter.identity
 	}
 	for index, adapter := range adapters {

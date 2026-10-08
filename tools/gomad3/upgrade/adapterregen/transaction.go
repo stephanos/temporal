@@ -86,7 +86,7 @@ func apply(ctx context.Context, spec Spec, regeneration deterministicio.AdapterR
 		}
 		return publication{}, err
 	}
-	defer lock.Release()
+	defer func() { returnErr = releaseRegenerationLock(&result, returnErr, lock.Release) }()
 	if spec.StageOnly {
 		if pending, err := publicationPending(spec.Root); err != nil || pending {
 			return publication{}, errors.Join(err, &BlockedError{Err: errors.New("an interrupted adapter publication is pending; run with --recover to complete it")})
@@ -207,7 +207,7 @@ func readOptional(path string) ([]byte, error) {
 }
 
 // Recover completes an interrupted publication under the transaction lock.
-func Recover(root string) error {
+func Recover(root string) (returnErr error) {
 	state := filepath.Join(root, filepath.FromSlash(stateDirectory))
 	if err := os.MkdirAll(state, 0o700); err != nil {
 		return err
@@ -216,9 +216,24 @@ func Recover(root string) error {
 	if err != nil {
 		return err
 	}
-	defer lock.Release()
+	defer func() { returnErr = releaseRegenerationLock(nil, returnErr, lock.Release) }()
 	_, err = recoverPublication(root)
 	return err
+}
+
+func releaseRegenerationLock(result *publication, primary error, release func() error) error {
+	releaseErr := release()
+	if releaseErr == nil {
+		return primary
+	}
+	if result != nil && result.published != nil {
+		result.warnings = append(result.warnings, fmt.Sprintf("published, but releasing adapter regeneration lock failed: %v", releaseErr))
+		return primary
+	}
+	if primary == nil {
+		return releaseErr
+	}
+	return errors.Join(primary, releaseErr)
 }
 
 func publicationPending(root string) (bool, error) {

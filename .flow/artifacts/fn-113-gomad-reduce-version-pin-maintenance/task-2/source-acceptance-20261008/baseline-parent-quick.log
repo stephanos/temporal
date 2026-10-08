@@ -1,0 +1,213 @@
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	18.029s
+--- FAIL: TestRegenerateAdapterDerivesAnchorsForChangedUpstreamSource (0.00s)
+    adapter_regenerate_test.go:149: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRegenerateAdapterRederivesBaseRewrites (0.00s)
+    adapter_regenerate_test.go:186: download google.golang.org/grpc@v1.83.2: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce (0.00s)
+    --- FAIL: TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/moved (0.00s)
+        adapter_regenerate_test.go:219: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/twice (0.00s)
+        adapter_regenerate_test.go:219: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRegenerateAdapterFailsWhenARewrittenFileIsDeletedUpstream (0.00s)
+    adapter_regenerate_test.go:239: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin (0.00s)
+    adapter_regenerate_test.go:252: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRegenerateAdapterRefusesCustomPreparation (0.00s)
+    adapter_regenerate_test.go:263: libc regeneration error = libc regeneration request is incomplete
+--- FAIL: TestAdapterSourceEditsReplaceEveryAnchor (0.07s)
+    adapter_regenerate_test.go:274: download github.com/hashicorp/memberlist@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestAdapterSourceEditsRejectAnAnchorThatIsNotALiteral (0.00s)
+    adapter_regenerate_test.go:332: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestVerifyRegisteredAdapterChecksEveryPin (0.07s)
+    adapter_regenerate_test.go:354: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestPrepareBuildAdaptersClassifiesInvalidTargetConfiguration (0.07s)
+    adapter_registry_test.go:77: PrepareBuildAdapters() error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestProfileVerifiesSelectedAdapterIdentities (0.00s)
+    adapter_registry_test.go:152: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading (0.01s)
+    adapter_registry_test.go:193: PrepareTargetBuildAdapters() error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRewrittenModuleInventoriesMatchPinnedModules (0.00s)
+    adapter_rewrite_test.go:169: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewrittenModulesRejectChangedIdentity (0.49s)
+    --- FAIL: TestRewrittenModulesRejectChangedIdentity/populated (0.00s)
+        adapter_rewrite_test.go:232: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewriteAdapterSourceRejectsDrift (0.07s)
+    adapter_rewrite_test.go:255: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewrittenModulePreparedPackageSourceSetIdentity (0.00s)
+    adapter_rewrite_test.go:309: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestProfileSelectsSentryAdapter (0.00s)
+    adapter_rewrite_test.go:387: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestProfileRejectsAdapterConfigurationDrift (5.88s)
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/version (0.07s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want unsupported github.com/getsentry/sentry-go version
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/replacement (0.14s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/getsentry/sentry-go
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/version-replacement (0.00s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/getsentry/sentry-go
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/replacement-block (0.28s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/getsentry/sentry-go
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/sum (0.35s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/missing-sum (0.00s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/build-modfile (0.42s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want existing build modfile
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version (0.42s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want unsupported github.com/hashicorp/go-metrics version
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement (0.07s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/hashicorp/go-metrics
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version-replacement (0.35s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/hashicorp/go-metrics
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement-block (0.21s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/hashicorp/go-metrics
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/sum (0.56s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/missing-sum (1.05s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/build-modfile (0.00s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want existing build modfile
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/version (0.00s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want unsupported google.golang.org/grpc version
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/replacement (0.28s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces google.golang.org/grpc
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/version-replacement (0.21s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces google.golang.org/grpc
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/replacement-block (0.35s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces google.golang.org/grpc
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/sum (0.35s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/missing-sum (0.42s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum
+    --- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/build-modfile (0.35s)
+        adapter_rewrite_test.go:465: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want existing build modfile
+--- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift (0.77s)
+    --- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sprig (0.35s)
+        adapter_rewrite_test.go:483: download github.com/Masterminds/sprig/v3@v3.3.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/validator (0.00s)
+        adapter_rewrite_test.go:483: download github.com/go-playground/validator/v10@v10.30.1: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/pebble (0.14s)
+        adapter_rewrite_test.go:483: download github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/cactusstatsd (0.14s)
+        adapter_rewrite_test.go:483: download github.com/cactus/go-statsd-client/v5@v5.1.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/memberlist (0.00s)
+        adapter_rewrite_test.go:483: download github.com/hashicorp/memberlist@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sentry (0.14s)
+        adapter_rewrite_test.go:483: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/hashicorp-metrics (0.00s)
+        adapter_rewrite_test.go:483: download github.com/hashicorp/go-metrics@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift (0.42s)
+    --- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/sprig (0.07s)
+        adapter_rewrite_test.go:553: download github.com/Masterminds/sprig/v3@v3.3.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/validator (0.00s)
+        adapter_rewrite_test.go:553: download github.com/go-playground/validator/v10@v10.30.1: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/pebble (0.00s)
+        adapter_rewrite_test.go:553: download github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/cactusstatsd (0.07s)
+        adapter_rewrite_test.go:553: download github.com/cactus/go-statsd-client/v5@v5.1.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/memberlist (0.14s)
+        adapter_rewrite_test.go:553: download github.com/hashicorp/memberlist@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/sentry (0.00s)
+        adapter_rewrite_test.go:553: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/hashicorp-metrics (0.14s)
+        adapter_rewrite_test.go:553: download github.com/hashicorp/go-metrics@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewrittenModuleConsumers (0.21s)
+    --- FAIL: TestRewrittenModuleConsumers/sprig (0.14s)
+        adapter_rewrite_test.go:616: download github.com/Masterminds/sprig/v3@v3.3.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleConsumers/validator (0.00s)
+        adapter_rewrite_test.go:616: download github.com/go-playground/validator/v10@v10.30.1: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleConsumers/pebble (0.00s)
+        adapter_rewrite_test.go:616: download github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleConsumers/cactusstatsd (0.07s)
+        adapter_rewrite_test.go:616: download github.com/cactus/go-statsd-client/v5@v5.1.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleConsumers/memberlist (0.00s)
+        adapter_rewrite_test.go:616: download github.com/hashicorp/memberlist@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+    --- FAIL: TestRewrittenModuleConsumers/sentry (0.00s)
+        adapter_rewrite_test.go:616: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestToolchainLeavesFD5ForProcessesWithoutIOProfile (0.00s)
+    bootstrap_toolchain_test.go:24: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestProfileSelectsDownstreamAdapters (0.01s)
+    --- FAIL: TestProfileSelectsDownstreamAdapters/sprig (0.00s)
+        downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestProfileSelectsDownstreamAdapters/validator (0.00s)
+        downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestProfileSelectsDownstreamAdapters/pebble (0.00s)
+        downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestProfileSelectsDownstreamAdapters/cactusstatsd (0.00s)
+        downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestProfileSelectsDownstreamAdapters/memberlist (0.00s)
+        downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestPinnedAdapterModuleInventories (0.00s)
+    grpc_adapter_test.go:18: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl (0.00s)
+    grpc_adapter_test.go:35: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations (0.00s)
+    grpc_adapter_test.go:62: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift (0.00s)
+    grpc_adapter_test.go:90: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor (0.00s)
+    grpc_adapter_test.go:97: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor (0.00s)
+    grpc_adapter_test.go:104: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestPrepareGRPCRecordsExactPrivateReplacement (0.00s)
+    grpc_adapter_test.go:113: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestPrepareGRPCRejectsChangedIdentity (0.00s)
+    grpc_adapter_test.go:140: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestGRPCDNSRewrite (0.00s)
+    grpc_dns_test.go:17: download google.golang.org/grpc@v1.83.2: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestGRPCDNSConsumer (0.00s)
+    grpc_dns_test.go:69: download google.golang.org/grpc@v1.83.2: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestHashicorpMetricsAdapterConsumer (0.00s)
+    hashicorpmetrics_adapter_test.go:14: download github.com/hashicorp/go-metrics@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestProfilePreparesPinnedModerncLibcAdapter (0.00s)
+    libc_adapter_test.go:33: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestProfileRejectsUnsupportedModerncLibcVersion (0.07s)
+    libc_adapter_test.go:117: PrepareBuildOverlay() error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestProfileWithoutModerncLibcNeedsNoAdapter (0.00s)
+    libc_adapter_test.go:129: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings (0.00s)
+    memory_adapter_test.go:15: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewriteModerncMemoryRejectsSourceIdentityDrift (0.00s)
+    memory_adapter_test.go:36: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestModerncMemoryRewriteRejectsAnchorDrift (0.00s)
+    memory_adapter_test.go:42: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestPrepareModerncMemoryRejectsModuleDrift (0.00s)
+    memory_adapter_test.go:64: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestModerncMemoryRejectsChangedReplacementInventory (0.00s)
+    memory_adapter_test.go:119: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestPrepareModerncMemoryRecordsExactPrivateReplacement (0.00s)
+    memory_adapter_test.go:127: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestPrepareModerncMemoryRejectsChangedIdentity (0.00s)
+    memory_adapter_test.go:155: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestModerncMemoryPreparedPackageSourceSetIdentity (0.00s)
+    memory_adapter_test.go:181: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestDeterministicProfileAcceptsArbitraryTargetArguments (0.00s)
+    profile_test.go:148: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestBootstrapFrameBindsLaunchIdentity (0.00s)
+    profile_test.go:189: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRequirementsProjectsKnownInventoryDomainsConservatively (0.00s)
+    requirements_test.go:24: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRequirementsRejectsUnselectedAdapterIdentity (0.00s)
+    requirements_test.go:37: Requirements() error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure (0.00s)
+    requirements_test.go:47: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestSockaddrBoundaryConsumer (0.00s)
+    sockaddr_boundary_test.go:24: download github.com/hashicorp/go-sockaddr@v1.0.7: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestSockaddrBoundaryRewritesRejectDrift (0.00s)
+    sockaddr_boundary_test.go:98: download github.com/hashicorp/go-sockaddr@v1.0.7: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestSockaddrBoundaryPreservesOriginalComments (0.00s)
+    sockaddr_boundary_test.go:130: download github.com/hashicorp/go-sockaddr@v1.0.7: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewriteXNetSocketDeniesRawSocketOptions (0.00s)
+    xnet_adapter_test.go:15: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestRewriteXNetSocketRejectsSourceIdentityDrift (0.00s)
+    xnet_adapter_test.go:53: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestPrepareXNetRecordsExactPrivateReplacement (0.00s)
+    xnet_adapter_test.go:64: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestPrepareXNetRejectsChangedIdentity (0.00s)
+    xnet_adapter_test.go:88: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestXNetPreparedPackageSourceSetIdentity (0.00s)
+    xnet_adapter_test.go:113: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/deterministicio	25.696s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	(cached)
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	(cached)
+FAIL

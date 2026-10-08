@@ -1,0 +1,9 @@
+{"Time":"2026-10-08T17:19:59.286973156Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen"}
+{"Time":"2026-10-08T17:19:59.291198365Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRealAdapterVersionUsesDefaultPipeline"}
+{"Time":"2026-10-08T17:19:59.29128049Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRealAdapterVersionUsesDefaultPipeline","Output":"=== RUN   TestRealAdapterVersionUsesDefaultPipeline\n","OutputType":"frame"}
+{"Time":"2026-10-08T17:20:09.727213661Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRealAdapterVersionUsesDefaultPipeline","Output":"    default_pipeline_test.go:97: real controlled version github.com/Masterminds/sprig/v3@v3.3.0 -\u003e v3.2.3: 6 published files; production pins unchanged\n"}
+{"Time":"2026-10-08T17:20:09.757794745Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRealAdapterVersionUsesDefaultPipeline","Output":"--- PASS: TestRealAdapterVersionUsesDefaultPipeline (10.47s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T17:20:09.757925745Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRealAdapterVersionUsesDefaultPipeline","Elapsed":10.47}
+{"Time":"2026-10-08T17:20:09.757993536Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T17:20:09.760837161Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Output":"ok  \tgo.temporal.io/server/tools/gomad3/upgrade/adapterregen\t10.474s\n"}
+{"Time":"2026-10-08T17:20:09.760912828Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Elapsed":10.474}
