@@ -4,17 +4,50 @@ satisfies: [R1, R5]
 # fn-129-activity-coverage.1 Heartbeat: worker.heartbeat and a retryable heartbeat timeout
 
 ## Description
-**Batch:** deferred Model batch (see MILESTONES.md, Deferred, fn-128). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at that batch's single regeneration against its baseline (the tree at the DSL batch's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
-R1, R5 (comparison P2-6). Current source after fn-132.2: `model/temporal/features/activity/standalone/Standalone.scala` owns the form; `product/Product.scala` and `system/System.scala` each own their local `Phase`, `State` and `Fact`. Actions are `client.start` and `client.control` on the `activity` entity. All three System realizations remain in `system/Realization.scala`. The kind header `features/activity/Activity.scala` declares `Timeout`, `TimeoutType`, `AttemptResult`, the worker's `poll` and `respond`, `timers` and `deadline` (fn-132.6); the form binds the worker actions to its `activity` entity. IR stems are `activity-standalone`, `activity-standalone-record` and `activity-standalone-race`. The retry policy is fn-128's.
 
-A `worker.heartbeat` action, enabled while the worker holds the attempt and disabled elsewhere (a heartbeat on a closed activity follows fn-128's rejection rows). A `deadline.heartbeat` armed by a `heartbeat: Timeout` start input; its timeout is retryable under fn-128's retry policy (`retriesRemaining`). An observation of heartbeat details if the realization can read them (Describe); otherwise record why not.
+Implement R1's bounded heartbeat protocol and authored R5 live witnesses against integrated source `d254ab531775ab1756e7d0910bf0f1201da6bb6f`, after the conductor's fn-138.3 done/seal. This task owns focused source/native bridge proof and an original commit. Shared live and production Model artifacts remain pending .5.
 
-Realize the heartbeat (RecordActivityTaskHeartbeat from the Case's worker) and the start input, with at least one live Query (e.g. a heartbeat timeout that retries and completes).
+**Size:** L by file count, bounded to one cohesive typed protocol slice under the owner's fixed five-task decomposition.
+**Files:** activity kind/form/Product/System/Realization and co-located heartbeat/role/refinement pins; existing Temporal kit, lifter, realization admission/lowering, Testpilot Program/Profile/VM and SDK fixtures; necessary internal-proto/native mirrors; owning protocol docs.
+**Touches:** [model/temporal/features/activity/Activity.scala, model/temporal/features/activity/standalone/**, model/temporal/realize/Realize.scala, model/temporal/realize/Kit.scala, model/temporal/realize/Modules.scala, model/temporal/realize/Behavior.scala, model/irgen/Realizations.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/realizationRefusals/**, proto/internal/temporal/server/api/umpire/v1/ir.proto, proto/internal/temporal/server/api/testpilot/v1/instruction.proto, proto/internal/temporal/server/api/testpilot/v1/run.proto, api/umpire/v1/ir*.pb.go, api/testpilot/v1/instruction*.pb.go, api/testpilot/v1/run*.pb.go, common/testing/testpilot/contract.go, common/testing/testpilot/driver.go, common/testing/testpilot/contract/profile.go, common/testing/testpilot/contract/profile_test.go, common/testing/testpilot/internal/execution/**, common/testing/testpilot/temporal/profile.go, common/testing/testpilot/temporal/profile_test.go, common/testing/testpilot/temporal/worker/interpreter.go, common/testing/testpilot/temporal/worker/sdk.go, common/testing/testpilot/temporal/worker/driver.go, common/testing/testpilot/temporal/worker/session.go, common/testing/testpilot/temporal/worker/*activity*test.go, tools/umpire/realization/**, tools/umpire/lower/**, model/README.md, model/SEMANTICS.md, common/testing/testpilot/README.md, common/testing/testpilot/temporal/README.md, common/testing/testpilot/temporal/worker/README.md]
+
+## Approach
+
+- Declare independent held heartbeat rows, heartbeat start input, typed timeout and retry/terminal branches using current `Failure` and per-RPC actions. Recompute finite catalogs, totals and bounds. Re-anchor the complete Deadline timeout-fact family, every exhaustive Fact match, Product projection and all four current realizations. Declare the visibility of heartbeat facts explicitly; do not blanket-hide new facts to make refinement pass. Preserve old ordered fact subsequences and raw public attempt-count observations.
+- Prove the worker protocol first through `activity_transport_test.go:174`. Admit only linear immutable attempt groups with zero or one heartbeat prefix and exactly one declared terminal disposition. Reuse `EntrypointPlan`, preparation, Profile charges and activation VM; legacy terminal-only scripts keep one node per group. Run a group in one SDK delivery without consuming the next group's response.
+- Add typed activity-only heartbeat details, explicit context versus SDK-pending withholding mode and truthful local pending response. Carry the smallest typed request-field timeout basis through the kit/lifter/Umpire IR. Authorize opcodes/modes and count reservations by groups. Native generation is limited to the declared changed internal-proto closure and ignored `model/build/ir-scalapb.jar`/`api-scalapb.jar`; retain unrelated generated bytes.
+- Return exact unwrapped `activity.ErrResultPending` for declared pending mode. SDK v1.48.0 compares it directly and emits no Respond RPC. Preserve cancellation/refusal semantics, duplicate-delivery idempotence, earlier-reservation Drain and bounded cleanup of the detached server activity. Context withholding requires an SDK start-to-close/schedule-to-close basis; a positive heartbeat timer alone cannot satisfy it.
+- Split invocation from receipt. The local SDK heartbeat outcome proves only invocation; preserve Payloads through raw converter values. Derive pending record publication after the admitted group and before the server timer. Update answer counting and cause classification so heartbeat is not an answer and pending is not an accepted server write. Keep located early/late/duplicate evidence refusals.
+- Declare bounded Describe receipt polling with requested heartbeat details/count and last-failure timeout type. Require actual HEARTBEAT plus second SDK delivery identity and terminal completion for `heartbeatTimeoutRetriesThenCompletes`; second delivery alone cannot identify the timer. Also author `heartbeatThenCompletes` and an exhaustion witness if needed to cover the terminal branch. No correlated payload equality or exhaustive Describe-source claim.
+- Extend focused admission/lifter/carrier/lowering/SDK tests, seeded timeout-type/publication mutations and co-located heartbeat/refinement tests. Scratch lift the current source, keep unfiltered IR and ordered receipts, and lower the named Queries through the existing explicit-Model seam. Retain Case/Program/Contract identities and intentional source deltas separately from sealed fn-138 proof. Update the owning protocol docs now; leave production `model/ir`, `model/cases` and managed fixture trees unchanged.
+
+## Investigation targets
+
+**Required** (read before coding):
+- `model/temporal/features/activity/standalone/system/System.scala:478` and `model/temporal/features/activity/standalone/system/Realization.scala:144`.
+- `common/testing/testpilot/temporal/worker/interpreter.go:209` and `common/testing/testpilot/temporal/worker/sdk.go:263`.
+- `common/testing/testpilot/internal/execution/program.go` and `common/testing/testpilot/temporal/profile.go:239`.
+- `tools/umpire/lower/lower.go:372` and `tools/umpire/lower/realization.go:515`.
+- `model/temporal/realize/Realize.scala:168` and `model/temporal/realize/Modules.scala`.
+- `proto/internal/temporal/server/api/testpilot/v1/instruction.proto:142` and `proto/internal/temporal/server/api/testpilot/v1/run.proto`.
+- `common/testing/testpilot/temporal/worker/activity_transport_test.go:174`.
+
+## Quick commands
+
+```bash
+mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only '*Activity*' --require-tests
+go test -tags test_dep -p 2 -timeout 30m ./common/testing/testpilot/internal/execution ./common/testing/testpilot/temporal/worker ./common/testing/testpilot/temporal -run 'Activity|Transport|ReservationOutcome'
+go test -tags test_dep -p 2 -timeout 30m ./tools/umpire/realization ./tools/umpire/lower -run 'Heartbeat|Withholding|Carriers|ReadsWait'
+```
+
+Serialize scratch lifts/heavy commands with `/usr/bin/flock /tmp/umpire-heavy-gates.lock`; record actual selectors, commands, exits and elapsed time. Run focused lifter fixtures and scoped format/lint for changed files. Full suites, production Model generation and live execution belong to .5.
+
 ## Acceptance
-- [ ] `worker.heartbeat` and `deadline.heartbeat` exist; the timeout retries while attempts remain.
-- [ ] At least one live Query is realized and its Case ran once.
-- [ ] Heartbeat details are observed, or the reason they are not is recorded.
-- [ ] New Cases listed (for R5); the spec's Verification gates pass.
+
+- [ ] Independent rows, complete timeout family, projections/refinements and focused retry/deadline/heartbeat pins pass, including a seeded wrong timer/type and unchanged raw attempt-count observation.
+- [ ] Real-SDK transport fixture proves same-attempt heartbeat+Finish, heartbeat+pending then second-attempt Finish, exact token method/details, no first-attempt answer RPC, immediate pending Drain and idempotent duplicate delivery.
+- [ ] Wrong context/opcode/mode, excessive details, missing terminal, multiple heartbeat prefixes, unsupported DAG, unarmed pending, heartbeat-only context withholding, crossed identities and incorrect publication refuse before their target effects; failed invocation supplies no server-receipt credit.
+- [ ] Scratch current-source lift/lower produces named heartbeat Cases with truthful invocation/receipt/HEARTBEAT/second-delivery evidence; fixture recording and offline replay preserve status/reason/support and bounded cleanup. Unfiltered receipts, mutations, source/native closure diff and original commit are retained. Production/full/live R5 evidence remains explicitly pending .5.
 
 ## Done summary
 TBD
