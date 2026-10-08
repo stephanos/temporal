@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "verdict": "REVIEW",
+  "mode": "triage_review",
+  "reason": "code change detected: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/conductor-source-acceptance-20261008/append-context.mjs",
+  "source": "deterministic",
+  "base": "adf32d48330e6768309244b4fc61a5a81ce3e204",
+  "changed_file_count": 200
+}
