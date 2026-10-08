@@ -203,6 +203,81 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       assertEquals(query.expectedRun, Some(temporal.realize.satisfied))
   }
 
+  test(
+    "heartbeat exhaustion claim covers exhausted policies without contradicting eligible retries"
+  ) {
+    val declared = HeartbeatExhaustion.properties.heartbeatExhausts.decl
+    assert(declared.holds2.isEmpty, "the pinned FIND must retain a same-step claim")
+    val holds = declared.holds2 match
+      case Some(predicate) =>
+        predicate.asInstanceOf[(system.State, Step[system.State, Outcome, system.Fact]) => Boolean]
+        // scalafix:ok DisableSyntax.asInstanceOf
+      case None =>
+        val predicate = declared.holds.get
+          .asInstanceOf[Step[system.State, Outcome, system.Fact] => Boolean]
+        // scalafix:ok DisableSyntax.asInstanceOf
+        (_: system.State, after: Step[system.State, Outcome, system.Fact]) => predicate(after)
+    val rows = summon[Finite[system.State]].values.flatMap(before =>
+      take(before, deadline.heartbeat()).map(after => before -> after)
+    )
+    for (before, after) <- rows do
+      assertEquals(after.state.attempts, before.attempts)
+      assertEquals(after.state.maxAttempts, before.maxAttempts)
+      assertEquals(
+        ActivitySystem.states.retriesRemaining(after.state),
+        ActivitySystem.states.retriesRemaining(before)
+      )
+      assert(holds(before, after), s"legitimate heartbeat row: $before -> $after")
+      assert(after.records(system.Fact.heartbeatTimedOut))
+      assert(
+        !holds(
+          before,
+          after.copy(facts = after.facts.filterNot(_ == system.Fact.heartbeatTimedOut))
+        ),
+        "heartbeat evidence is mandatory for eligible and exhausted policies"
+      )
+      if !ActivitySystem.states.retriesRemaining(before) then
+        assertEquals(after.state.phase, system.Phase.timedOut)
+        assert(!holds(before, after.copy(state = after.state.copy(phase = system.Phase.scheduled))))
+        assert(
+          !holds(
+            before,
+            after.copy(facts =
+              List(
+                system.Fact.heartbeatTimedOut,
+                system.Fact.statusTimedOut(TimeoutType.startToClose)
+              )
+            )
+          )
+        )
+      else if before.phase != system.Phase.cancelRequested then
+        assert(
+          !holds(
+            before.copy(maxAttempts = MaxAttempts.one, attempts = UpTo(1)),
+            after.copy(state = after.state.copy(maxAttempts = MaxAttempts.one, attempts = UpTo(1)))
+          ),
+          "an exhausted policy cannot authorize this retry landing"
+        )
+    assertEquals(rows.count((before, _) => !ActivitySystem.states.retriesRemaining(before)), 216)
+    assertEquals(rows.size, 648)
+    assertEquals(
+      rows.count((before, _) =>
+        ActivitySystem.states.retriesRemaining(
+          before
+        ) && before.phase != system.Phase.cancelRequested
+      ),
+      288
+    )
+    assertEquals(
+      rows.count((before, _) =>
+        ActivitySystem.states.retriesRemaining(
+          before
+        ) && before.phase == system.Phase.cancelRequested
+      ),
+      144
+    )
+  }
+
   test("local heartbeat invocation confirms only delivery and keeps attempt and delivery roles") {
     for declarations <- List(
         HeartbeatThenCompletion.evidence,
@@ -242,7 +317,8 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       )
     do
       val count = declarations.items.collect {
-        case delivery: TypedEvidence[?] if delivery.evidence.records == system.Fact.attemptCount =>
+        case delivery: TypedEvidence[?]
+            if delivery.evidence.id == temporal.realize.evidenceId(system.Fact.attemptCount) =>
           delivery.evidence
       }
       assertEquals(count.size, 1)
@@ -258,6 +334,46 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
           case record: Recorded.TypedRunEvent[?] if record.attempt.exists(_.number == 1) => record
         }
       assertEquals(first.size, 1)
+  }
+
+  test("heartbeat retry confirms both timer and second poll with their common attempt fact") {
+    val selected = RetryAfterHeartbeat.evidence.items.collect {
+      case evidence: TypedEvidence[?]
+          if evidence.evidence.confirms.nonEmpty &&
+            evidence.evidence.id == temporal.realize.evidenceId(system.Fact.heartbeatTimedOut) =>
+        evidence.evidence
+    }.head
+    assertEquals(selected.records, system.Fact.attemptCount)
+    assertEquals(selected.confirms, Vector(Taking(deadline.heartbeat, 1), Taking(worker.poll, 2)))
+    val started = ActivitySystem.init.copy(
+      phase = system.Phase.started,
+      attempts = UpTo(1),
+      heartbeat = Timeout.expires,
+      maxAttempts = MaxAttempts.two
+    )
+    val expired = take(started, deadline.heartbeat()).head
+    val second = take(expired.state.copy(dispatch = system.Dispatch.now), worker.poll()).head
+    assert(expired.facts.contains(selected.records))
+    assert(second.facts.contains(selected.records))
+    val unusedKind = RetryAfterHeartbeat.evidence.items.collect {
+      case evidence: TypedEvidence[?]
+          if evidence.evidence.records == system.Fact.heartbeatTimedOut =>
+        evidence.evidence
+    }
+    assertEquals(unusedKind.size, 1)
+    assert(unusedKind.head.confirms.isEmpty)
+    assertNotEquals(unusedKind.head.id, selected.id)
+  }
+
+  test("heartbeat exhaustion declares the complete timeout kind but selects its typed timer read") {
+    val reads = ExhaustAfterHeartbeat.evidence.items.collect { case evidence: EvidenceRef[?, ?] =>
+      evidence.evidence
+    }
+    val timeout = reads.find(_.records == temporal.realize.everyValue(system.Fact.statusTimedOut))
+    assert(timeout.nonEmpty, "missing generic statusTimedOut kind for the terminal heartbeat row")
+    assert(timeout.get.confirms.isEmpty)
+    val heartbeat = reads.find(_.records == system.Fact.heartbeatTimedOut).get
+    assertEquals(heartbeat.confirms, Vector(Taking(deadline.heartbeat, 1)))
   }
 
   test("first heartbeat delivery requires the authored local disposition enum") {

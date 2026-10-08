@@ -766,9 +766,13 @@ object HeartbeatRetry extends Derived(ActivitySystem.unmonitored):
 
 object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
   object properties:
-    val heartbeatExhausts = property when deadline.heartbeat holds { s =>
-      s.state.phase == Phase.timedOut && s.records(Fact.statusTimedOut(TimeoutType.heartbeat))
-    }
+    val heartbeatExhausts = property.when(deadline.heartbeat) holds (after =>
+      after.records(Fact.heartbeatTimedOut) &&
+        (ActivitySystem.states.retriesRemaining(after.state) ||
+          (after.state.phase == Phase.timedOut && after.records(
+            Fact.statusTimedOut(TimeoutType.heartbeat)
+          )))
+    )
   object queries:
     val heartbeatExhausted = scenario.actions(
       client.start(heartbeat := expires, maxAttempts := MaxAttempts.one),

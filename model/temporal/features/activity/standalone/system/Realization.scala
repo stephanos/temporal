@@ -142,7 +142,8 @@ private val heartbeatExpired = Evidence.read(
   commitment = Commitment.reported,
   fields = Vector(
     EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId))
-  )
+  ),
+  confirms = Vector(Taking(deadline.heartbeat, 1))
 )
 private val awaitHeartbeatExpiration = await(heartbeatExpired, calls)(
   Condition.all(
@@ -202,6 +203,42 @@ private def heartbeatDelivered(attempts: Script, response: ActivityAttemptRespon
     ),
     confirms = Vector(Taking(worker.poll, 1))
   )
+
+private def heartbeatRetryDelivered(
+    attempts: Script,
+    id: String,
+    records: RealizationFact,
+    confirms: Taking*
+) = Evidence.runEvent(
+  id = id,
+  records = records,
+  source = runRecord,
+  from = Recorded.runEvent[InstructionOutcome](
+    EventKind.diagnostic,
+    controllerScript,
+    startActivity,
+    key = Operand.runKey(),
+    guard = Some(
+      Condition.all(
+        Condition.present(Field[InstructionOutcome, Option[ActivityAttempt]](_.activityAttempt)),
+        Condition.not(
+          Condition.equal(
+            Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
+            Operand.text("")
+          )
+        )
+      )
+    ),
+    attempt = Some(AttemptOf(attempts, 2))
+  ),
+  commitment = Commitment.reported,
+  fields = Vector(
+    attemptField(Field(_.getActivityAttempt.sdkAttempt)),
+    deliveryField(Field(_.getActivityAttempt.deliveryId)),
+    activityRunField(Field(_.getActivityAttempt.activityRunId))
+  ),
+  confirms = Vector(confirms*)
+)
 
 // ### The controller
 
@@ -528,16 +565,20 @@ object RetryAfterHeartbeat
         answered(system.Fact.statusScheduled, startActivity),
         heartbeatDelivered(heartbeatAttempts, ACTIVITY_ATTEMPT_RESPONSE_PENDING),
         heartbeatReceipt,
-        delivered(
-          system.Fact.heartbeatTimedOut,
+        heartbeatRetryDelivered(
           heartbeatAttempts,
-          attempt = 2,
-          after = startActivity,
+          evidenceId(system.Fact.heartbeatTimedOut),
+          system.Fact.attemptCount,
           Taking(deadline.heartbeat, 1),
           Taking(worker.poll, 2)
         ),
         heartbeatCompleted,
-        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity)
+        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
+        heartbeatRetryDelivered(
+          heartbeatAttempts,
+          evidenceId("heartbeatTimedOutKind"),
+          system.Fact.heartbeatTimedOut
+        )
       )
 
 object ExhaustAfterHeartbeat
@@ -570,7 +611,8 @@ object ExhaustAfterHeartbeat
         heartbeatDelivered(heartbeatAttempts, ACTIVITY_ATTEMPT_RESPONSE_PENDING),
         heartbeatReceipt,
         heartbeatExpired,
-        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity)
+        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
+        described(everyValue(system.Fact.statusTimedOut))
       )
 
 // ### The held race
