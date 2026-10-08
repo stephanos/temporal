@@ -122,6 +122,10 @@ the batch regeneration.
 Approved source gates: fn-138 implementation starts after fn-128.5 is done; fn-129 implementation
 starts after fn-138.3 is done. fn-128.6 and fn-129.5 share the regeneration, review and live-run
 evidence; no activity spec closes before that boundary.
+Batch 1 regressions found during batch 2 preparation (schema ledger, framework names, source positions,
+stale lifter fixtures, the one-bringer Cancelable capability) are fixed on `umpire`; Cancelable is retired
+and `cancelIsRequested` is Nexus's own claim. Until the batch regeneration, the carriers and source-position
+checks fail on stale production IR.
 Current-source replay also exposes two inherited failures that must be resolved before batch
 closure: the non-retryable failure claim's visibility ambiguity and pause/resume's correlated
 per-event work ceiling. Neither is waived or counted as passing source-batch evidence.
@@ -175,7 +179,7 @@ Runs after fn-138. Tasks run in order.
 | Task | Status | What |
 | --- | --- | --- |
 | fn-129.1 | ✅ done | Typed heartbeat protocol; canonical lint, native/six-root checks, three fresh scratch Case recordings/replays and Profile negatives pass |
-| fn-129.2 | 🔄 in progress | By-ID source checkpoint `ee6921ca`; focused tests/lint pass; four Case proofs and required Quick pending after two OOM kills |
+| fn-129.2 | ✅ done | Independent by-ID service settlement; four fresh Case recordings replay exactly, three candidate native Quick commands pass; by-ID witnesses expect `explanationsDisagree` |
 | fn-129.3 | ⬜ todo | Reset with `keepPaused` and deferred apply; precedence Property extended; realized |
 | fn-129.4 | ⬜ todo | Exploration on the activity's `find` Queries |
 | fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
@@ -504,6 +508,10 @@ Rendered views per Model (signature, phase diagram, refinement, compositions, de
 - Whether upstream's Go conformance harness (`tests/activity_driver.go`) should run our IR through the Go interpreter instead of its hand-written model, making one Model drive both (`.plans/ACTIVITY_MODEL_COMPARISON.md` P3-12); needs the owning team. A workflow-scheduled activity realization (P3-11) overlaps the deferred fn-119.
 - The canary policy's `workflowPath` names the deleted production-canary workflow, so production dispatch
   fails closed.
+- The three by-ID witnesses (`ByIDCompletion`, `ByIDFailure`, `ByIDCancellation`) expect
+  `inconclusive(explanationsDisagree)`: the Model's NotFound rows let a silent rejected repeat explain the
+  same evidence, as for `terminate` and `cancelIsRequested` (fn-129.2). Sharper witnesses would need
+  repeated-call rejection to be observable.
 - Batch reorganization (2026-10-08): batches 2 to 4 replace the earlier per-spec migrations, and
   Flow's spec dependencies match: each spec depends on every spec of the previous batch, with no
   spec dependencies inside a batch. Reverting to the earlier order means restoring per-spec

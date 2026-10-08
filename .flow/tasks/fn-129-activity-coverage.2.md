@@ -63,9 +63,18 @@ Retain the pre-edit lower Quick source-position RED in `TestEveryQueryOfTheActiv
 - [ ] Focused scratch recording/replay retains exact authored assessment/reason and Case/Program/Contract identities for completion/failure/cancellation, with original source/native commit and new Query/Case inventory for .5. No production regeneration/full suite/live acceptance is claimed here.
 
 ## Done summary
-TBD
+Independent by-ID service settlement realized: Product/System requestCancel split into unheld direct cancel and held cancelRequested; explicit ByIDCancellation cancelIsRequested Property/Query; Objects.scala ServerSteps union; three typed ById request carriers with true learned run identity.
 
+Source proof (focused, batch-deferred production/full/live at fn-129.5): Activity Quick 44 tests, unfiltered lift 50/87/2 Queries, four fresh Case recordings with exact replay (Contracts satisfied, conformant, cleanup succeeded; scheduled completion has no reservations), three candidate native Quick commands pass under 30 minutes (realization+lower 107, worker 119, execution 159).
+
+Retry found and fixed real defects: Describe polls are pinned by each request's run_id instead of a runId condition that lowering refuses; held Cases declare the unreached attempt-2 kind; lower tests compare protobufs exactly and select realizations by name.
+
+Root decision: the three by-ID witnesses expect inconclusive(explanationsDisagree) instead of satisfied. The Model's own NotFound rows let a silent rejected repeat explain the same evidence (as for terminate and cancelIsRequested); a scratch Model without those rows gives never_evaluated, so satisfied is unreachable. Rows/bounds/totals unchanged; listed for the owner in MILESTONES.
+
+Expected until the batch-close regeneration: TestCarriersOfTheStandaloneActivity (stale production IR). Follow-ups for .5: other packages still use GetRealizations()[0]; NewProducer on the full Activity IR costs ~60 s and 7-11 GB per call.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3e6e73e2b8, a4ca185454, f1837bb16b, 4b12316f35, 075ba57671, bf1127856a
+- Tests: .flow/tmp/activity-batch/fn1292-source/retry3/case-proof.sh, .flow/tmp/activity-batch/fn1292-source/retry3/candidate-quick.sh, mise exec -- scala-cli test ... --test-only '*Activity*'
 - PRs:
