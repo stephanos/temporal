@@ -19,9 +19,77 @@ The realization sets each start request's retry policy. The fifth input needs mi
 - [ ] Changes listed for R6; the spec's Verification gates pass.
 
 ## Done summary
-TBD
+# fn-128-close-the-activitys-precision-gaps.3
 
+Implemented retained unlimited/one/two retry policy, bounded attempt counting, guarded retry versus typed terminal settlement, and timeout-first completion/exhaustion witnesses. The narrow realization bridge uses the existing Testpilot withholding opcode12; no new Testpilot runtime/opcode was added.
+
+Tier: implementer gpt-6.1-sol/high explicit AGENTS override; judge unavailable/no_key.
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+Independent review is mandatory at the shared Activity batch boundary and has not run here. One disjoint child contributed Go bridge/runtime tests; this worker remained the sole main-checkout committer. Host executed-model metadata is unavailable.
+
+### Scope and preserved semantics
+
+- Fifth start input maxAttempts defaults to unlimited and is retained in the seven-field System State. MaxAttempts owns the finite bound2 and saturating count. Minimal typed arity5 support extends existing Action/Rules/InputAt machinery.
+- Exhausted retryable failure settles Failed. Exhausted or cancellation-requested start-to-close timeout settles TimedOut. Retry under a pending pause is Suspended with Dispatch.backoff retained. Retrying timeout records scheduling/pause and attempt-count facts, not terminal statusTimedOut.
+- The independent Model's cancellation-requested retryable-failure settlement remains Canceled. The Go comparator settles Failed. This remains a genuine owner-required Model/conformance disagreement, not silently reconciled by this task.
+- The deadline helper requires an explicit Class preset for non-Timeout inputs, retains its values, accumulates all three policy catalogs and rejects ambiguous/defaulted non-Timeout or duplicate presets. Start RPCs assign maximum_attempts exactly once as0/1/2; command identities and legacy Timeout combinations are pinned.
+- TimeoutRetry is mechanically Derived from ActivitySystem.unmonitored. It has identical state/outcome/fact domains, starts, ends and rows, with separate local Properties and RetryAfterTimeout Realizes metadata. The old second-attempt evidence confirms failure1 and poll2 all-or-none and cannot confirm a timeout path with no failure1; the derived realization confirms actual timeout1 and poll2 occurrences without weakening confirms-all-or-none.
+- A typed attemptWithheld kit leaf and additive Umpire Command arm20 bridge to existing ActivityAttemptWithholding opcode12. Admission/lowering require one activity-owned onPath command under exactly one armed positively bounded server timer. Tests refuse unconditional, multiple/repeated conditions, repeated timer commands, repeated selected timer occurrences, unarmed/unbounded/non-timer selections, perform-bound withholding and wrong owner. The timeout remains a server event, not a performed action.
+- retryExhaustionByFailures is the retained six-action two-retryable-failure path as a pinned VERIFY Query. Its exact first-retry OR exact exhausted-terminal State/fact predicate is checked at both failures. Source mutants reject premature failure and an extra retry. It has no expected Run or Case.
+- retryAfterTimeout and retryExhaustion are six-action FIND Queries on TimeoutRetry. Both run start(two), poll1, timeout1, backoff, poll2; the former completes and the latter fails retryably after exhaustion. Each uses a full exact terminal State plus the terminal status conjunction that existing lowering supports. No generic OR predicate/end-selector architecture was added.
+- The original retry find retains its full-State equality, failure-first evidence and PROPERTY-only inconclusive(explanationsDisagree) expectation. Contract remains satisfied and conformance conformant.
+- Both new finds predict the same PROPERTY-only inconclusive(explanationsDisagree) limitation because status/attempt-only evidence cannot establish their entire State equality. This prediction is NOT established live proof or an assessment waiver. The shared live gate must validate exact Property assessment/reason, Contract and Conformance from actual captures, escalating mismatches.
+- Original startToCloseTimeout retains its name, terminal phaseTimedOut/statusTimedOut conjunction and baseline-known unsupported unanswerable-attempt standing. Its start explicitly selects maxOne. The broad retry-or-terminal law was refuted by predicate admission and removed; generic before-state/time-window laws remain fn138.
+- No heartbeat/reset/by-ID, Nexus, generic capability, new dependency or other task implementation. Only own MILESTONES fn128.3 row changed.
+
+### Verification and logs
+
+Baseline was fresh green before edits, 15 Activity tests. Old handoff was not reused because changed MILESTONES invalidated the .flow-only receipt condition. Base is 288d9bb1e6fd33c2f11dfb2246caab239bcdbc48. Logs below are in .flow/tmp/activity-batch/. Exit codes, not scraped pass lines, established each green result.
+
+Every heavy command used /usr/bin/flock /tmp/umpire-heavy-gates.lock timeout 600s before mise exec. No owned commands remain running at handoff.
+
+- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only '*Activity*' --require-tests. Baseline exit0,15 tests in fn1283-baseline.log; final exit0,20 tests in fn1283-activity-final.log.
+- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire --require-tests. Final exit0,45 framework tests in fn1283-framework-final.log.
+- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only '*RoleRefinements' --require-tests. Final exit0,3 Activity refinements and2 matching Nexus refinements in fn1283-refinements-final.log.
+- scala-cli --power package --server=false --suppress-outdated-dependency-warning --library model/project.scala model/umpire model/temporal -f -o model/build/model-scala.jar. Final exit0 in fn1283-package-final.log.
+- scala-cli test --server=false --suppress-outdated-dependency-warning model/irgen --test-only umpire.irgen.DeadlinePresetsSuite --require-tests. Final exit0,4 tests in fn1283-lifter-final.log.
+- go test -tags test_dep ./tools/umpire/ir ./tools/umpire/lower ./common/testing/testpilot/temporal/worker -run 'TestWithholdingRequiresOneActivityScriptServerTimer|TestAWithheldTimeoutRetryLowersToTwoAttempts|TestAWithholdingCommandRequiresOneTimerOccurrence|TestActivityScriptCompletesAfterAWithheldAttemptDeadline|TestSDKWorkflowRoutesItsActivityAttemptsToTheActivityScript|TestAnActivityScript|TestARecordOfAnAttemptReachesARunWithTheAttemptsAnswer|TestTheAttemptARunEventRecordsIsOfAnActivitysScript|TestDeclaredActivityAttemptsFollowTheirLifecycle' -count=1 -v. Final exit0,10 top-level tests across3packages in fn1283-go-final.log.
+- go run .flow/tmp/activity-batch/fn1283-proof.go. Final exit0 in fn1283-current-source-proof.log, structured output in fn1283-current-source-proof.json. It admits the entire actual-current-source scratch IR, covering all3 policy catalogs, checks every authored find and the pinned failure-exhaustion verify, then lowers and Prepare-checks selected Cases without changing their snapshot. Other free verify Queries and full batch suites are deferred.
+- Actual source finds are all Found with nonempty paths. retryExhaustionByFailures is verified-within-limits, exercised=true, expanded6/explored7 and NothingToRealize. Both new finds and retained retry are supported with six actions. Actual instruction ordering is failed/completed for old retry, withheld/completed for timeout completion, withheld/failed for exhaustion, with the corresponding controller terminal wait. Probe-only proofOneCompletion clones the authored completion Scenario/Property and changes only start policy toone, proving request value1 without adding a production Query. Actual Cases cover0/2; all3values are asserted.
+- cancel and cancelRequest remain baseline-known Unsupported due late attempt records; startToCloseTimeout remains baseline-known Unsupported due unanswered attempt. Unsupported is not counted as requested timeout-retry proof. Both new Cases are supported.
+- TestActivityScriptCompletesAfterAWithheldAttemptDeadline exercises the existing runtime seam directly. First delivery withholds until its bounded activity context deadline and publishes the deadline record; a second delivery on the same script instance completes. Actual server retry scheduling remains a shared live gate, not claimed here.
+- Scoped scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check over all Scala paths changed since base passed exit0 in fn1283-format.log. gofmt -l over all changed Go paths is empty in fn1283-gofmt-final.log; git diff --check passed.
+- Normal prerequisite scala-cli run --server=false --suppress-outdated-dependency-warning model/check -- --generate-ir passed exit0 in fn1283-ir-prerequisite.log and generated ScalaPB classes only. Narrow normal protogen generation updated api/umpire/v1/ir.pb.go for Command arm20 using existing project binaries; production Model IR/Cases/mirrors were not generated.
+- flowctl gate classify --base 288d9bb1e6fd33c2f11dfb2246caab239bcdbc48 returns FULL/exit1 with unmatched MILESTONES.md; see fn1283-gate-classify.log. The cumulative diff also contains executable/proto changes. Per the explicit active-batch contract, full gates remain deferred. No green full-gate receipt or fabricated GATE_SKIPPED was issued.
+
+Cheap intended red reproduction is committed at58887cda6e and captured in fn1283-red.log. Additional retained red logs pin duplicate timer commands (fn1283-go-red2.log), duplicate retry_policy assignment (fn1283-policy-red.log), exhaustion selection checked at both failures (fn1283-exhaustion-query-red.log), and the initial fixture issues (fn1283-lifter.log). The final green logs above are separate. Refuted speculative runtime/OR-law routes do not ship.
+
+### R6 expected artifact, answer and Case delta
+
+Measured from the actual current source scratch lift, not production regeneration:
+
+| Subject | States | Classes | Rows | Reachable | Unknown |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| activityProduct | 9 | 11 | 49 | 9 | 0 |
+| activitySystem | 2376 | 63 | 25488 | 917 | 0 |
+| timeoutRetry | 2376 | 63 | 25488 | 917 | 0 |
+
+- System State grows792→2376 with maxAttempts. Start inputs4→5, start classes16→48, total action classes31→63. Realized System start catalogs grow8→24, exactly8perpolicy. Product row/class counts remain unchanged, but started retryable failure now carries a named retry-scheduled versus retry-exhausted-failed choice. Other Product visibility/stutter work remains fn128.4.
+- TimeoutRetry adds a named derived machine with the same measured rows as System, plus RetryAfterTimeout realization/evidence/learned metadata and exported queries. Base failure-retry evidence and strict all-or-none coverage remain.
+- Three authored Queries are added. retryExhaustionByFailures is VERIFY with no Case; retryAfterTimeout and retryExhaustion are FIND with two additional supported Cases. The realized exhaustion first cause is timeout, while the original two-failure proof is retained separately.
+- Query state-world totals triple with State growth. Completion total is7128; old retry and the three new bounded Queries total14256. Pinned six-step search receipts remain non-vacuous. Existing omitted-policy starts default unlimited and their class spellings gain the fifth input.
+- Existing startToCloseTimeout path now explicitly selectsone, while its Property/name and Unsupported standing are retained. Old retry Property expectation remains inconclusive/explanationsDisagree with satisfied Contract and conformant Conformance. New find expectations are explicit predictions requiring live validation, not established results.
+- Umpire schema gains Empty Command.arm20 attempt_withheld and its generated Go binding. Scala typed kit/lifter and admission/lowering map it to existing opcode12. Testpilot schema/runtime does not change.
+- Expected generated artifact families are activity-standalone, activity-standalone-record and their shared composition, schemas/type/class IDs, tables, query receipts/answers, Cases and managed source-position mirrors. StandaloneActivity embeds the larger System State; record-activity embeds changed deadline queries and Product refinement. Exact production deltas, shared-composition ceilings and free-query answer counts must be measured at the single batch regeneration against ee32b5fa6023c4ab8dfcc928f07d79afe5587186, not guessed here.
+
+### Deferred batch boundary
+
+Conductor owns the single production Model regeneration and IR/answer/Case comparison, full Model/Go/lint/fixture/canary gates, fresh independent review, all free-query/refinement/composition results and live suite. No evidence here asserts these have passed. New expected Property assessments/reasons and the preserved cancellation-requested failure disagreement require explicit batch attention. Scope clarifications were recorded through Flow task/spec amendments before closure.
+
+Commit range and final status are recorded in fn1283-evidence.json and the Flow receipt. Scratch proof code, IR and Cases are ignored evidence only.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 58887cda6ec4637510a8da60c0013ae012bab1c6, 74d397b1f4f4d3f335dd9d40c96580f10390d617, 9817a1c83f106a9acbaf7d14065d2c78154267bc
+- Tests: /usr/bin/flock /tmp/umpire-heavy-gates.lock timeout 600s mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire --require-tests, /usr/bin/flock /tmp/umpire-heavy-gates.lock timeout 600s mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only '*Activity*' --require-tests, /usr/bin/flock /tmp/umpire-heavy-gates.lock timeout 600s mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only '*RoleRefinements' --require-tests, /usr/bin/flock /tmp/umpire-heavy-gates.lock timeout 600s mise exec -- scala-cli --power package --server=false --suppress-outdated-dependency-warning --library model/project.scala model/umpire model/temporal -f -o model/build/model-scala.jar, /usr/bin/flock /tmp/umpire-heavy-gates.lock timeout 600s mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/irgen --test-only umpire.irgen.DeadlinePresetsSuite --require-tests, /usr/bin/flock /tmp/umpire-heavy-gates.lock timeout 600s mise exec -- go test -tags test_dep ./tools/umpire/ir ./tools/umpire/lower ./common/testing/testpilot/temporal/worker -run 'TestWithholdingRequiresOneActivityScriptServerTimer|TestAWithheldTimeoutRetryLowersToTwoAttempts|TestAWithholdingCommandRequiresOneTimerOccurrence|TestActivityScriptCompletesAfterAWithheldAttemptDeadline|TestSDKWorkflowRoutesItsActivityAttemptsToTheActivityScript|TestAnActivityScript|TestARecordOfAnAttemptReachesARunWithTheAttemptsAnswer|TestTheAttemptARunEventRecordsIsOfAnActivitysScript|TestDeclaredActivityAttemptsFollowTheirLifecycle' -count=1 -v, /usr/bin/flock /tmp/umpire-heavy-gates.lock timeout 600s mise exec -- go run .flow/tmp/activity-batch/fn1283-proof.go, mapfile -t task_scala_files < <(git diff 288d9bb1e6fd33c2f11dfb2246caab239bcdbc48 --name-only -- '*.scala'); mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check "${task_scala_files[@]}", mapfile -t task_go_files < <(git diff 288d9bb1e6fd33c2f11dfb2246caab239bcdbc48 --name-only -- '*.go'); gofmt -l "${task_go_files[@]}" > .flow/tmp/activity-batch/fn1283-gofmt-final.log; test ! -s .flow/tmp/activity-batch/fn1283-gofmt-final.log, git diff --check
 - PRs:
