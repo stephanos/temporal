@@ -74,7 +74,7 @@ func (a *admission) deriveReservations() error {
 					return ir.Invalid(ir.Unsupported, nodePath(controller, carrierNode), fmt.Sprintf("instructions %s and %s both carry the reservation of entrypoint %s", previous.source.InstructionId, carrierNode.source.InstructionId, target.id))
 				}
 				carriedBy[target.id] = carrierNode
-				carrierNode.reservations = append(carrierNode.reservations, contract.ReservationTopology{EntrypointID: target.id, Kind: target.context, Count: count})
+				carrierNode.reservations = append(carrierNode.reservations, contract.ReservationTopology{EntrypointID: target.id, Kind: target.context, Count: count, Restart: a.restartOf(target.id)})
 			}
 		}
 	}

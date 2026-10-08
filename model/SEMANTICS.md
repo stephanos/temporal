@@ -590,6 +590,14 @@ The nested `Scheduled` variant completes an unpolled activity through the contro
 activity script, pending publication or held evidence. Both variants use the activity execution run
 learned from StartActivityExecution, never the Testpilot run ID as execution authority. Raw Describe
 attempt counts remain scheduling observations, not SDK delivery identity.
+`ActivityResetSettlement` links one held attempt's SDK-pending publication, on its positive
+per-attempt timer basis, to a bounded held Describe, one typed ResetActivityExecution of the learned
+execution, the selected timer that applies the reset, a terminal Describe and bounded cleanup. A reset
+is control, not an answer: it publishes and settles nothing. The declaration names the attempt group
+the server's next delivery runs, which the server numbers as its first attempt again. A record of
+that group, or a later one, is selected by the restarted number; the Driver admits a fresh delivery
+of that number under that group and replays the same delivery, and no SDK attempt is relabeled.
+Without the declaration, another delivery of an admitted attempt number replays it.
 An invocation record cannot prove server receipt: requested Describe details and count must do so,
 and only an actual HEARTBEAT failure together with the next SDK delivery and completion identifies
 a successful heartbeat-timeout retry. The

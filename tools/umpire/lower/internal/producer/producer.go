@@ -193,6 +193,7 @@ type ProgramPlan struct {
 	InstructionDefaults *testpilotspb.InstructionLimits
 	RunOrderIsCausal    bool
 	ExternalSettlements []*testpilotspb.ActivityExternalSettlement
+	ResetSettlements    []*testpilotspb.ActivityResetSettlement
 }
 
 // ActionBinding is what one action class is realized as. Key is the class key a Scenario spells;

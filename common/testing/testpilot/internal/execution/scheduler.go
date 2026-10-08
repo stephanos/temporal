@@ -121,6 +121,17 @@ func (s *scheduler) attemptNumbering(entrypointID string) *testpilotspb.AttemptN
 	return nil
 }
 
+// restartOf is the reservation ordinal at which the named activity entrypoint's declared reset
+// numbers its attempts from the first number again; zero declares none.
+func (s *scheduler) restartOf(entrypointID string) int64 {
+	for _, b := range s.values.program.resets {
+		if b.source.GetActivityEntrypointId() == entrypointID {
+			return b.source.GetFreshReservationOrdinal()
+		}
+	}
+	return 0
+}
+
 // reservationVerdict is what the Run does with the outcome a reservation settles with.
 type reservationVerdict uint8
 
@@ -208,8 +219,9 @@ var reservationOutcomes = map[reservationOutcome]reservationRule{
 // run the attempts of the same activity recorded so far named, empty when none is recorded. An
 // activity's attempts are numbered as its entrypoint declares: the reservation at ordinal is the
 // attempt numbered first + ordinal, and where every attempt is of one run, an outcome that names
-// another is crossed and rejected.
-func judgeReservation(kind contract.EntrypointKind, numbering *testpilotspb.AttemptNumbering, unused bool, ordinal int64, priorRun string, outcome *testpilotspb.InstructionOutcome) reservationVerdict {
+// another is crossed and rejected. A declared reset restarts the numbering at its fresh reservation
+// `restart`: that reservation is the attempt numbered first again, and those after it follow it.
+func judgeReservation(kind contract.EntrypointKind, numbering *testpilotspb.AttemptNumbering, restart int64, unused bool, ordinal int64, priorRun string, outcome *testpilotspb.InstructionOutcome) reservationVerdict {
 	attempt := outcome.GetActivityAttempt()
 	// An outcome the table does not list reads as the zero rule, whose verdict is rejection.
 	rule := reservationOutcomes[reservationOutcome{kind: kind, status: outcome.GetStatus(), response: attempt.GetResponse()}]
@@ -217,10 +229,14 @@ func judgeReservation(kind contract.EntrypointKind, numbering *testpilotspb.Atte
 		return reservationRejected
 	}
 	sameRun := !numbering.GetOneRun() || priorRun == "" || attempt.GetActivityRunId() == priorRun
+	numbered := ordinal
+	if restart > 0 && ordinal >= restart {
+		numbered = ordinal - restart
+	}
 	var valid bool
 	switch rule.attempt {
 	case deliveredAttempt:
-		valid = attempt.GetActivityRunId() != "" && sameRun && numbering.GetFirst() > 0 && int64(attempt.GetSdkAttempt()) == numbering.GetFirst()+ordinal && attempt.GetDeliveryId() != ""
+		valid = attempt.GetActivityRunId() != "" && sameRun && numbering.GetFirst() > 0 && int64(attempt.GetSdkAttempt()) == numbering.GetFirst()+numbered && attempt.GetDeliveryId() != ""
 	case undeliveredAttempt:
 		valid = priorRun != "" && attempt.GetActivityRunId() != "" && sameRun && attempt.GetSdkAttempt() == 0 && attempt.GetDeliveryId() == "" && !attempt.GetHeartbeatInvoked()
 	default:
@@ -721,6 +737,9 @@ func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, reque
 		if err := s.values.admitExternalRequest(n, request); err != nil {
 			return nil, err
 		}
+		if err := s.values.admitResetRequest(n, request); err != nil {
+			return nil, err
+		}
 		if s.attempts >= s.values.program.limits.MaxAttempts {
 			return nil, ir.Invalid(ir.LimitExceeded, "scheduler", "attempt ceiling exceeded")
 		}
@@ -954,7 +973,7 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		// The attempts of one activity share every part of their source but the ordinal.
 		activity := reservation.source[:strings.LastIndex(reservation.source, ".")]
 		prior := s.attemptFacts[activity]
-		verdict := judgeReservation(s.entrypointKind(id.EntrypointID), s.attemptNumbering(id.EntrypointID), s.performsNothing(id.EntrypointID), id.Ordinal, prior.activityRunID, outcome)
+		verdict := judgeReservation(s.entrypointKind(id.EntrypointID), s.attemptNumbering(id.EntrypointID), s.restartOf(id.EntrypointID), s.performsNothing(id.EntrypointID), id.Ordinal, prior.activityRunID, outcome)
 		if verdict == reservationRejected || !ir.IsNil(completion.result.Response) || outcome.Value != nil {
 			return Stop, s.recorder.completionFailure(ctx, "activation_failed", ir.Invalid(ir.Malformed, "reservation", "required activation failed or returned unexpected payload"))
 		}
@@ -977,6 +996,9 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		liftErr := s.liftRunEvents(ctx, reservation.values, []*testpilotspb.RunEvent{record})
 		record.ExecutionIncomplete = liftErr != nil
 		pendingSlot, pendingCommit, pendingErr := s.values.externalPublication(id, outcome.GetActivityAttempt())
+		if pendingErr == nil && pendingSlot == "" {
+			pendingSlot, pendingCommit, pendingErr = s.values.resetPublication(id, outcome.GetActivityAttempt())
+		}
 		if pendingErr != nil {
 			return Stop, s.recorder.completionFailure(ctx, "activation_failed", pendingErr)
 		}
@@ -1011,6 +1033,12 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
 	}
 	if err := s.values.checkExternalCarrierBatch(a.graph.nodes[task.index], batch); err != nil {
+		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
+	}
+	if err := s.values.checkResetReceipt(a.graph.nodes[task.index], completion.result); err != nil {
+		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
+	}
+	if err := s.values.checkResetCarrierBatch(a.graph.nodes[task.index], batch); err != nil {
 		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
 	}
 	source := s.nodeSource(task)
@@ -1051,6 +1079,7 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 			return err
 		}
 		s.values.markExternalSuccess(a.graph.nodes[task.index], batch.outcome)
+		s.values.markResetSuccess(a.graph.nodes[task.index], batch.outcome)
 		return nil
 	})
 }

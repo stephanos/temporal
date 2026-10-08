@@ -37,10 +37,12 @@ type realizing struct {
 	r *umpirespb.Realization
 	// label is what scopes the realization's declarations, and owner what a diagnostic calls it: its
 	// name, its id where it has no name, or where it was written where it has neither.
-	label        string
-	owner        string
-	roles        map[string]*umpirespb.Role
-	learned      map[string]*umpirespb.Learned
+	label   string
+	owner   string
+	roles   map[string]*umpirespb.Role
+	learned map[string]*umpirespb.Learned
+	// publications are the pending publications a settlement declares.
+	publications map[string]bool
 	observations map[string]bool
 	evidence     map[string]*umpirespb.Evidence
 	controls     map[string]bool
@@ -68,7 +70,7 @@ var (
 func Admit(d Admitter, r *umpirespb.Realization) {
 	at := r.GetPosition()
 	a := &realizing{d: d, r: r, label: r.GetName(), owner: "realization " + r.GetName(), roles: map[string]*umpirespb.Role{},
-		learned: map[string]*umpirespb.Learned{}, observations: map[string]bool{}, evidence: map[string]*umpirespb.Evidence{},
+		learned: map[string]*umpirespb.Learned{}, publications: map[string]bool{}, observations: map[string]bool{}, evidence: map[string]*umpirespb.Evidence{},
 		controls: map[string]bool{}, bound: map[string]string{}, performed: map[string]string{}, read: map[string]bool{},
 		closed: map[string]string{}, withheldTimers: map[string]string{}}
 	switch {
@@ -120,6 +122,8 @@ func Admit(d Admitter, r *umpirespb.Realization) {
 	a.held(mm)
 	a.behavior(mm)
 	a.externalSettlements()
+	a.resetSettlements()
+	a.publicationAwaits()
 }
 
 // attemptOf checks evidence that is the Run's record of an attempt: it names an attempt, counted from

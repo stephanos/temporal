@@ -3,6 +3,7 @@ package umpire
 
 import (
 	"fmt"
+
 	"google.golang.org/protobuf/proto"
 )
 
@@ -2329,6 +2330,43 @@ func (this *ActivityExternalSettlement) Equal(that interface{}) bool {
 	case *ActivityExternalSettlement:
 		that1 = t
 	case ActivityExternalSettlement:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ActivityResetSettlement to the protobuf v3 wire format
+func (val *ActivityResetSettlement) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ActivityResetSettlement from the protobuf v3 wire format
+func (val *ActivityResetSettlement) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ActivityResetSettlement) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ActivityResetSettlement values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ActivityResetSettlement) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ActivityResetSettlement
+	switch t := that.(type) {
+	case *ActivityResetSettlement:
+		that1 = t
+	case ActivityResetSettlement:
 		that1 = &t
 	default:
 		return false

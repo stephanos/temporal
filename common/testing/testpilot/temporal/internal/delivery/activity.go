@@ -76,12 +76,14 @@ func ActivityStartBinding(message protoreflect.Message) (ActivityBinding, protor
 // activity's script declares.
 var ErrAttemptUndeclared = errors.New("activity attempt is past the attempts its script declares")
 
-// AdmitActivity admits one delivery of the activity a carrier started. The attempt Temporal numbers
-// N is the Nth reservation of the operation, whatever order the attempts arrive in, so an attempt
-// is one activation and always the one its number names. A delivery of an attempt already
-// admitted, under whatever delivery identity, is a replay of that admission and consumes nothing.
-// An attempt past the last reservation is undeclared, one whose reservation was released is stale,
-// and an attempt of another run conflicts.
+// AdmitActivity admits one delivery of the activity a carrier started. Each reservation of the
+// operation declares the number Temporal gives its attempt: the Nth reservation is attempt N, and
+// after a declared reset the reservation the reset restarts at is attempt 1 again. A delivery is
+// admitted under the earliest reservation of its number not yet admitted, whatever order the
+// attempts arrive in. The same delivery again is a replay of its admission and consumes nothing, and
+// so is another delivery of an attempt whose every reservation is admitted. An attempt no
+// reservation declares is undeclared, one whose reservation was released is stale, and an attempt of
+// another run conflicts.
 func (l *Ledger) AdmitActivity(ctx context.Context, delivery ActivityDelivery) (Activation, error) {
 	encoded, err := decodeReservedHeader(delivery.Header, reservedActivityHeader, l.config.Limits.MaxHeaderBytes)
 	if err != nil {
@@ -125,11 +127,11 @@ func (l *Ledger) AdmitActivity(ctx context.Context, delivery ActivityDelivery) (
 		l.mu.Unlock()
 		return Activation{}, ErrRouteConflict
 	}
-	if int(delivery.Attempt) > len(operation.attempts) {
+	attempt := operation.activityAttempt(delivery)
+	if attempt == nil {
 		l.mu.Unlock()
 		return Activation{}, ErrAttemptUndeclared
 	}
-	attempt := operation.attempts[delivery.Attempt-1]
 	if attempt.activation.attempt != 0 {
 		l.mu.Unlock()
 		return Activation{ledger: l, state: attempt, data: attempt.activation, replay: true}, nil
@@ -140,6 +142,44 @@ func (l *Ledger) AdmitActivity(ctx context.Context, delivery ActivityDelivery) (
 		return Activation{}, ErrRouteStale
 	}
 	return l.consumeLocked(ctx, attempt, activationData{temporalRunID: delivery.ActivityRunID, attempt: delivery.Attempt, deliveryID: delivery.DeliveryID})
+}
+
+// declaredAttempt is the number Temporal gives the attempt of the reservation at ordinal: one more
+// than the ordinal, counted from restart where a declared reset restarts the numbering.
+func declaredAttempt(ordinal, restart int64) int64 {
+	if restart > 0 && ordinal >= restart {
+		return ordinal - restart + 1
+	}
+	return ordinal + 1
+}
+
+// activityAttempt is the reservation a delivery of the operation is admitted under: the one that
+// already admitted the same delivery, else the earliest of the delivered attempt's number not yet
+// admitted, else the last of that number, whose admission the delivery replays. Nil when no
+// reservation declares the number.
+func (b *bundleState) activityAttempt(delivery ActivityDelivery) *routeState {
+	var restart int64
+	if len(b.plan.Reservations) == 1 {
+		restart = b.plan.Reservations[0].Restart
+	}
+	var numbered []*routeState
+	for ordinal, attempt := range b.attempts {
+		if attempt.activation.attempt != 0 && attempt.activation.deliveryID == delivery.DeliveryID {
+			return attempt
+		}
+		if declaredAttempt(int64(ordinal), restart) == int64(delivery.Attempt) {
+			numbered = append(numbered, attempt)
+		}
+	}
+	for _, attempt := range numbered {
+		if attempt.activation.attempt == 0 {
+			return attempt
+		}
+	}
+	if len(numbered) == 0 {
+		return nil
+	}
+	return numbered[len(numbered)-1]
 }
 
 // ReleaseActivityAttempts releases the declared attempts of a closed activity that no attempt was

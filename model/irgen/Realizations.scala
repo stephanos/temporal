@@ -1910,8 +1910,12 @@ private[irgen] trait Realizations:
           isNamed(declaration.term.tpe, "temporal.realize.ActivityExternalSettlement") ||
           isNamed(declaration.term.tpe, "temporal.realize.ActivityExternalSettlement$.Scheduled")
         }
+        val reset = stepDeclarations.filter(b =>
+          isNamed(reduce(b).term.tpe, "temporal.realize.ActivityResetSettlement")
+        )
         val stated = stepDeclarations
           .filterNot(external.contains)
+          .filterNot(reset.contains)
           .map(b =>
             b -> ir.ServerStep.messageReads.read(
               message(valueOf(irField(ir.Realization.scalaDescriptor, "server_steps", at), b), at)
@@ -1931,6 +1935,7 @@ private[irgen] trait Realizations:
           }
           .withServerSteps(serverSteps(emitted, machine, stated, at))
           .withExternalSettlements(external.map(b => emit(ir.ActivityExternalSettlement, b)))
+          .withResetSettlements(reset.map(b => emit(ir.ActivityResetSettlement, b)))
         classesOfMachine(r, machine)
         distinctName("realizations", realizations.values.map(r => r.name -> r.id), r.name, id, at)
         realizations(id) = r

@@ -140,6 +140,9 @@ type ReservationTopology struct {
 	EntrypointID string
 	Kind         EntrypointKind
 	Count        int64
+	// Restart is the ordinal of an activity entrypoint's reservation that a declared reset makes the
+	// server's first attempt again; the reservations after it follow it. Zero declares none.
+	Restart int64
 }
 
 // ReservationRoute routes one schedule command of a reserved workflow activation to the activation

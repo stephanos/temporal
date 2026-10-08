@@ -675,6 +675,17 @@ func (a *admission) scope(g *graph, n *node) map[ir.Reference]ir.Binding {
 			binding.Available = true
 			scope[ir.Reference{Kind: ir.SlotReference, ID: b.runSlot}] = binding
 		}
+		for _, b := range a.prepared.resets {
+			if b.cleanup != n {
+				continue
+			}
+			for _, previous := range []*node{b.carrier, b.settlement} {
+				scope[ir.Reference{Kind: ir.OutcomeReference, Entrypoint: b.controller.id, ID: previous.source.InstructionId, Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS)}] = ir.Binding{Type: previous.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS], Available: true}
+			}
+			binding := scope[ir.Reference{Kind: ir.SlotReference, ID: b.runSlot}]
+			binding.Available = true
+			scope[ir.Reference{Kind: ir.SlotReference, ID: b.runSlot}] = binding
+		}
 	}
 	return scope
 }

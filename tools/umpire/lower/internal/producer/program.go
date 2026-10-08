@@ -23,6 +23,7 @@ func (p *production) assembleProgram(rules []EvidenceRule) (*testpilotspb.Progra
 		InstructionDefaults: p.r.Plan.InstructionDefaults, RunOrderIsCausal: p.r.Plan.RunOrderIsCausal}
 	program.Slots = append(program.Slots, p.r.Plan.Slots...)
 	program.ActivityExternalSettlements = p.r.Plan.ExternalSettlements
+	program.ActivityResetSettlements = p.r.Plan.ResetSettlements
 	if p.r.Plan.InstanceSlots != nil {
 		program.Slots = append(program.Slots, p.r.Plan.InstanceSlots(a.placement)...)
 	}

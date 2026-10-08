@@ -71,12 +71,12 @@ func TestReservationOutcomesAreJudgedByOneClosedTable(t *testing.T) {
 		for _, status := range statuses {
 			for _, unused := range []bool{false, true} {
 				absent := combination{kind: kind, status: status, unused: unused}
-				require.Equal(t, allowed[absent], judgeReservation(kind, numbering, unused, 1, "activity-run", &testpilotspb.InstructionOutcome{Status: status}), fmt.Sprint(absent))
+				require.Equal(t, allowed[absent], judgeReservation(kind, numbering, 0, unused, 1, "activity-run", &testpilotspb.InstructionOutcome{Status: status}), fmt.Sprint(absent))
 				judged++
 				for _, response := range responses {
 					present := combination{kind: kind, status: status, response: response, attempt: true, unused: unused}
 					outcome := &testpilotspb.InstructionOutcome{Status: status, ActivityAttempt: wellFormed(response)}
-					require.Equal(t, allowed[present], judgeReservation(kind, numbering, unused, 1, "activity-run", outcome), fmt.Sprint(present))
+					require.Equal(t, allowed[present], judgeReservation(kind, numbering, 0, unused, 1, "activity-run", outcome), fmt.Sprint(present))
 					judged++
 				}
 			}
@@ -88,7 +88,7 @@ func TestReservationOutcomesAreJudgedByOneClosedTable(t *testing.T) {
 	// The table holds nothing the list above does not: one row per allowed combination, whatever
 	// the entrypoint performs.
 	require.Len(t, reservationOutcomes, 12)
-	require.Equal(t, reservationRejected, judgeReservation(activity, numbering, false, 1, "activity-run", nil))
+	require.Equal(t, reservationRejected, judgeReservation(activity, numbering, 0, false, 1, "activity-run", nil))
 }
 
 // An attempt fact is admitted only with the identities its response requires: a delivered attempt
@@ -130,7 +130,7 @@ func TestReservationOutcomeRequiresTheIdentitiesOfItsResponse(t *testing.T) {
 		"one that claims a heartbeat invocation":  {notNeeded(func(a *testpilotspb.ActivityAttempt) { a.HeartbeatInvoked = true }), "activity-run", reservationRejected},
 	} {
 		t.Run(name, func(t *testing.T) {
-			require.Equal(t, test.want, judgeReservation(contract.ActivityEntrypoint, temporal, false, 1, test.priorRun, test.outcome))
+			require.Equal(t, test.want, judgeReservation(contract.ActivityEntrypoint, temporal, 0, false, 1, test.priorRun, test.outcome))
 		})
 	}
 	// The numbering is the entrypoint's: counted from another first, the position takes another
@@ -151,7 +151,7 @@ func TestReservationOutcomeRequiresTheIdentitiesOfItsResponse(t *testing.T) {
 		"a delivered attempt with no numbering": {nil, offered(func(*testpilotspb.ActivityAttempt) {}), "activity-run", reservationRejected},
 	} {
 		t.Run(name, func(t *testing.T) {
-			require.Equal(t, test.want, judgeReservation(contract.ActivityEntrypoint, test.numbering, false, 1, test.priorRun, test.outcome))
+			require.Equal(t, test.want, judgeReservation(contract.ActivityEntrypoint, test.numbering, 0, false, 1, test.priorRun, test.outcome))
 		})
 	}
 }

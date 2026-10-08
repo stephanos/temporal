@@ -223,6 +223,25 @@ object ActivityExternalSettlement:
       cleanup: Command
   ) extends SystemStep
 
+// A held attempt's pending publication, then the controller's reset of it, which the selected
+// per-attempt `timer` applies. The server's next delivery is a first attempt again, the attempt group
+// `freshAttempt` runs; the activity script's numbering restarts there, never by relabeling one.
+final case class ActivityResetSettlement(
+    carrier: Command | Instruction,
+    activity: Script,
+    attempt: Long,
+    pending: ActivityPublication,
+    held: Command | Instruction,
+    resetRequest: Instruction.TypedRpc[
+      io.temporal.api.workflowservice.v1.ResetActivityExecutionRequest,
+      io.temporal.api.workflowservice.v1.ResetActivityExecutionResponse
+    ],
+    timer: ClassRef,
+    freshAttempt: Long,
+    settlement: Command | Instruction,
+    cleanup: Command
+) extends SystemStep
+
 extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](write: MethodDescriptor[Req, Rsp])
   // That the effect of the call `write` is visible to `read` `when`.
   def visibleTo[RReq <: GeneratedMessage, RRsp <: GeneratedMessage](

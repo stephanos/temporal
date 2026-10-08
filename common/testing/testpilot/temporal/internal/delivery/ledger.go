@@ -268,7 +268,7 @@ var Carried = map[string][]testpilot.EntrypointKind{
 // it starts, with no route.
 func (b startBinding) carries(plan testpilot.ReservationCarrierPlan) bool {
 	for _, reservation := range plan.Reservations {
-		if !slices.Contains(Carried[plan.Method], reservation.Kind) {
+		if !slices.Contains(Carried[plan.Method], reservation.Kind) || reservation.Restart != 0 && b.kind != activityRoute {
 			return false
 		}
 	}
@@ -277,7 +277,8 @@ func (b startBinding) carries(plan testpilot.ReservationCarrierPlan) bool {
 		return plan.Method == primitive.StartWorkflowPath && validBinding(b.workflow)
 	case activityRoute:
 		return plan.Method == StartActivityPath && validActivityBinding(b.activity) && len(plan.Routes) == 0 &&
-			len(plan.Reservations) == 1 && plan.Reservations[0].Count >= 1
+			len(plan.Reservations) == 1 && plan.Reservations[0].Count >= 1 &&
+			plan.Reservations[0].Restart >= 0 && plan.Reservations[0].Restart < plan.Reservations[0].Count
 	default:
 		return false
 	}

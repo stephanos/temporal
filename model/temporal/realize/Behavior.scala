@@ -31,6 +31,14 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
       METHOD_DESCRIBE_ACTIVITY_EXECUTION,
       Visible.atOnce
     ),
+    // A reset applies in its own transaction: to a waiting or paused activity at once, and to a
+    // held attempt as RESET_REQUESTED, which Describe reads as the attempt it holds:
+    // chasm/lib/activity/handler.go:449-489, operator_commands.go:428-563,
+    // statemachine.go:285-345, responses.go:55-62.
+    METHOD_RESET_ACTIVITY_EXECUTION.visibleTo(
+      METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+      Visible.atOnce
+    ),
     // A cancel request applies CANCEL_REQUESTED, and CANCELED where no attempt runs, in its own
     // transaction: chasm/lib/activity/handler.go:352-375, operator_commands.go:236-286,
     // statemachine.go:176-190, :552-564.

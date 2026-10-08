@@ -209,9 +209,27 @@ func (a *realizing) externalSettlements() {
 			}
 		}
 	}
-	for _, c := range controllers {
-		if id := c.GetAwaitActivityPublication(); id != "" && !seenSlots[id] {
-			a.report(c.GetPosition(), "command %s awaits unknown activity publication %s", c.GetId(), id)
+	for id := range seenSlots {
+		a.publications[id] = true
+	}
+}
+
+// publicationAwaits reports a controller's wait for a publication no settlement declares.
+func (a *realizing) publicationAwaits() {
+	for _, s := range a.r.GetScripts() {
+		if s.GetController() == nil {
+			continue
+		}
+		for _, item := range s.GetItems() {
+			commands := []*umpirespb.Command{item.GetCommand()}
+			for _, p := range item.GetPerforms() {
+				commands = append(commands, p.GetCommand())
+			}
+			for _, c := range commands {
+				if id := c.GetAwaitActivityPublication(); id != "" && !a.publications[id] {
+					a.report(c.GetPosition(), "command %s awaits unknown activity publication %s", c.GetId(), id)
+				}
+			}
 		}
 	}
 }

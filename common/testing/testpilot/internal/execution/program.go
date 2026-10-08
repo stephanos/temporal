@@ -99,6 +99,7 @@ type PreparedProgram struct {
 	carriers   map[carrierCoordinate]contract.ReservationCarrierPlan
 	roles      map[string]contract.PreparedRole
 	external   []*activityExternalSettlement
+	resets     []*activityResetSettlement
 	// evidence holds every declaration by identity; runEventLifts the ones a recorded Run Event
 	// feeds, in declaration order; correlatedObservationID the one CorrelatedEvidence Observation
 	// those lifts, and a read's, emit into.

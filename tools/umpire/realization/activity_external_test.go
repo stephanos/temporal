@@ -96,12 +96,14 @@ func cloneExternalAssignments(in []*umpirespb.Assignment) []*umpirespb.Assignmen
 
 func externalProblems(r *umpirespb.Realization) []string {
 	d := &externalAdmitter{}
-	a := &realizing{d: d, r: r, roles: map[string]*umpirespb.Role{"frontend": {Kind: umpirespb.Role_KIND_ENDPOINT}}, learned: map[string]*umpirespb.Learned{"execution-run": {Kind: umpirespb.Learned_KIND_TEXT}}, read: map[string]bool{}, bound: map[string]string{}, observations: map[string]bool{}}
+	a := &realizing{d: d, r: r, roles: map[string]*umpirespb.Role{"frontend": {Kind: umpirespb.Role_KIND_ENDPOINT}}, learned: map[string]*umpirespb.Learned{"execution-run": {Kind: umpirespb.Learned_KIND_TEXT}}, read: map[string]bool{}, bound: map[string]string{}, observations: map[string]bool{}, publications: map[string]bool{}}
 	a.evidence = map[string]*umpirespb.Evidence{}
 	for _, e := range r.GetEvidence() {
 		a.evidence[e.GetId()] = e
 	}
 	a.externalSettlements()
+	a.resetSettlements()
+	a.publicationAwaits()
 	return d.problems
 }
 

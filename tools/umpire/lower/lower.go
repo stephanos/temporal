@@ -872,6 +872,7 @@ func (p *Producer) check(a *asked, identity Identity) (*lowering, []error) {
 		problems = append(problems, err)
 	}
 	problems = append(problems, l.withholdingOccurrences()...)
+	problems = append(problems, l.resetOccurrences()...)
 	receipt, ok := p.found[name]
 	witnessed := ok && receipt.Kind == check.Found && receipt.Witness != nil
 	if !witnessed {
@@ -966,6 +967,7 @@ var realizationFields = map[protoreflect.Name]func(*accounting) error{
 	"server_steps":         (*accounting).serverSteps,
 	"rejection_codes":      (*accounting).rejectionCodes,
 	"external_settlements": (*accounting).externalSettlements,
+	"reset_settlements":    (*accounting).resetSettlements,
 }
 
 var correlationFields = map[protoreflect.Name]func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error{
@@ -1616,6 +1618,9 @@ func parts(c *testpilotspb.Case) []string {
 					id := element.Get(element.Descriptor().Fields().ByNumber(1)).String()
 					if binding, ok := element.Interface().(*testpilotspb.ActivityExternalSettlement); ok {
 						id = binding.GetAnswer().GetInstructionId()
+					}
+					if binding, ok := element.Interface().(*testpilotspb.ActivityResetSettlement); ok {
+						id = binding.GetResetRequest().GetInstructionId()
 					}
 					each := path + "[" + id + "]"
 					out = append(out, each)

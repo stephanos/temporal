@@ -43,7 +43,11 @@ attempts of each activity the workflow's schedule commands reach, which the work
 A reserved `StartActivityExecution` call passes through a `Carrier` the same way: it carries the
 activations of the one standalone activity it starts, one per attempt the activity's script
 declares, checks the physical activity binding against the reserved activity entrypoint, and pins
-the returned activity run ID.
+the returned activity run ID. Each attempt's reservation declares the number the server gives it:
+the Nth is attempt N, and the topology's `Restart`, from a prepared reset settlement, makes that
+reservation attempt 1 again. A delivery is admitted under the earliest unadmitted reservation of its
+number; the same delivery again, or another delivery of a number all of whose reservations are
+admitted, replays that admission.
 Calls without a declared carrier retain ordinary RPC request and response behavior.
 
 The SDK's system callback identifier is resolved only against the trusted

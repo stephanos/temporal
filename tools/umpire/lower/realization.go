@@ -141,6 +141,33 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 		}}}}
 		out.Plan.Cleanup.Instructions = append(out.Plan.Cleanup.Instructions, node)
 	}
+	for _, e := range a.r.GetResetSettlements() {
+		binding, err := a.resetSettlement(e)
+		if err != nil {
+			problems = append(problems, err)
+			continue
+		}
+		out.Plan.ResetSettlements = append(out.Plan.ResetSettlements, binding)
+		out.Plan.Slots = append(out.Plan.Slots, &testpilotspb.Slot{
+			SlotId: e.GetPending(),
+			Content: &testpilotspb.Slot_Value{Value: &testpilotspb.ValueType{
+				Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{
+					Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.ActivityAttempt"}},
+				}},
+			}},
+		})
+		cleanup, err := a.command(&umpirespb.Script{Id: a.r.GetCleanup()}, e.GetCleanup())
+		if err != nil {
+			problems = append(problems, err)
+			continue
+		}
+		node := cleanup.with(e.GetCleanup().GetId(), nil)
+		node.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
+			externalSucceeded(binding.GetCarrier()),
+			{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: externalSucceeded(binding.GetSettlement())}}},
+		}}}}
+		out.Plan.Cleanup.Instructions = append(out.Plan.Cleanup.Instructions, node)
+	}
 	for _, s := range a.r.GetRequiredSettings() {
 		out.Plan.RequiredSettings = append(out.Plan.RequiredSettings, &testpilotspb.RequiredSetting{Key: s.GetKey(), Value: s.GetValue()})
 	}
@@ -280,7 +307,7 @@ func (a *adapter) guardOf(e *umpirespb.Evidence, source *umpirespb.RunEventSourc
 	if _, err := walk(at, payload, attemptNumber); err != nil {
 		return nil, err
 	}
-	numbered := cp.Equal(cp.Path(cp.ProjectedValue(), attemptNumber), cp.Literal(cp.SignedInteger(of.GetNumber())))
+	numbered := cp.Equal(cp.Path(cp.ProjectedValue(), attemptNumber), cp.Literal(cp.SignedInteger(realization.ServerAttempt(a.r, of.GetScript(), of.GetNumber()))))
 	if guard == nil {
 		return numbered, nil
 	}
@@ -572,7 +599,7 @@ func (a *adapter) command(s *umpirespb.Script, c *umpirespb.Command) (built, err
 		opts = append(opts, cp.Guard(guard))
 	}
 	node := cp.Node(c.GetId(), instruction, opts...)
-	if s.GetController() != nil && len(a.r.GetExternalSettlements()) > 0 {
+	if s.GetController() != nil && len(a.r.GetExternalSettlements())+len(a.r.GetResetSettlements()) > 0 {
 		var dependencies []string
 		if c.GetAfter() != nil {
 			dependencies = c.GetAfter().GetCommands()

@@ -8,6 +8,7 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/realization"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -140,6 +141,12 @@ func newReader(r *umpirespb.Realization, source *testpilotspb.Case) (*reader, er
 			return nil, located(at, "case %s carries evidence of kind %s, which realization %s does not declare", source.GetCaseId(), rule.GetKind(), r.GetName())
 		}
 		k := &kind{local: rule.GetKind(), source: spelled(e.GetSource()), records: e.GetRecords(), fields: rule.GetFields(), record: e.GetRunEvent()}
+		// The record of an attempt is selected by the number the server gives it, which a declared
+		// reset restarts.
+		if of := k.record.GetAttempt(); of != nil {
+			k.record = proto.CloneOf(k.record)
+			k.record.Attempt.Number = realization.ServerAttempt(r, of.GetScript(), of.GetNumber())
+		}
 		if !slices.Contains(out.sources, k.source) {
 			return nil, located(e.GetPosition(), "evidence %s is recorded from %s, which is not a source of the Case %s", e.GetId(), k.source, source.GetCaseId())
 		}

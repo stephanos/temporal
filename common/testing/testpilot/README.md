@@ -144,6 +144,14 @@ declarations and the causal run order above:
   RUNNING/CANCEL_REQUESTED before the answer. The controller-only completion variant declares no
   worker or pending slot. Missing held fields cannot stand for that absence. All variants pin the
   namespace name, activity ID and learned execution run, with an empty workflow ID.
+- **Activity reset settlement.** The activity-local declaration binds the start, the held
+  reservation's pending-publication slot, a held RUNNING/STARTED Describe, one typed
+  ResetActivityExecution, the fresh reservation after the held one and a terminal Describe with
+  bounded cleanup. The held reservation must end SDK-pending on its timer basis; no reset request
+  reaches the server before that publication and the held read succeeded. The fresh reservation is
+  the attempt numbered first again, carried to the Driver as the topology's `Restart`, and judged by
+  that number; without the declaration a rewound attempt number is refused. A reset of the learned
+  execution with no declaration is refused.
 - **Instruction limits.** An instruction's timeout and attempts are each its own `limits`, else the
   Program's declared `instruction_defaults`, else the Profile's `InstructionDefaults`; an
   instruction none of them covers is refused at preparation. A Temporal Case declares its defaults,

@@ -187,7 +187,11 @@ prefix invokes the SDK once; cancellation separately heartbeats every 100 ms unt
 for cancellation. The worker caps the SDK heartbeat throttle at that period. Context withholding
 requires a positive start-to-close or schedule-to-close request timeout; SDK-pending withholding
 requires a standalone start with a positive heartbeat timeout, including on the actual SDK delivery,
-unless its prepared external-settlement declaration supplies the timer-free basis.
+unless its prepared external-settlement declaration supplies the timer-free basis. A reset
+settlement keeps the heartbeat basis: its held attempt publishes as an external one does, the
+controller resets it, and the timer that ends the attempt applies the reset; the server's next
+delivery is attempt 1 under a new task token, which the ledger admits under the declared fresh
+reservation.
 The pending answer settles the local reservation immediately without offering a completion,
 failure, or cancellation to the server.
 

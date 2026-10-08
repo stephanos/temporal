@@ -74,7 +74,7 @@ abstract class Evidences(val items: (Evidence | EvidenceRef[?, ?] | TypedEvidenc
 // The server steps the realization states beyond, or instead of, the derived ones.
 abstract class ServerSteps(
     val steps: (ServerStep | ActivityExternalSettlement[?, ?] |
-      ActivityExternalSettlement.Scheduled)*
+      ActivityExternalSettlement.Scheduled | ActivityResetSettlement)*
 )
 
 // The actuators a run needs beyond its commands.

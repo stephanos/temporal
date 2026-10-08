@@ -56,10 +56,17 @@ func newActivityFixture(t *testing.T, runID, sessionID string) *activityFixture 
 // reservation identity and the others are numbered by their ordinal.
 func newActivityFixtureOf(t *testing.T, runID, sessionID string, attempts int64) *activityFixture {
 	t.Helper()
+	return newActivityFixtureWith(t, runID, sessionID, activityPlanOf(attempts))
+}
+
+// newActivityFixtureWith reserves the attempts plan's one activity topology declares.
+func newActivityFixtureWith(t *testing.T, runID, sessionID string, plan testpilot.ReservationCarrierPlan) *activityFixture {
+	t.Helper()
+	attempts := plan.Reservations[0].Count
 	ledger, err := New(Config{RunID: runID, SessionID: sessionID, Limits: Limits{MaxRoutes: 8, MaxHeaderBytes: 4096, MaxHandles: 8, MaxDiagnostics: 8}})
 	require.NoError(t, err)
 	origin := testpilot.Coordinate{RunID: runID, EntrypointID: "controller", ActivationID: "controller.0", InstructionID: "start-activity", Attempt: 1}
-	f := &activityFixture{ledger: ledger, origin: origin, plan: activityPlanOf(attempts), binding: ActivityBinding{Namespace: "namespace", ActivityID: "activity-id", ActivityType: "activity-type", TaskQueue: "task-queue"}}
+	f := &activityFixture{ledger: ledger, origin: origin, plan: plan, binding: ActivityBinding{Namespace: "namespace", ActivityID: "activity-id", ActivityType: "activity-type", TaskQueue: "task-queue"}}
 	for ordinal := int64(0); ordinal < attempts; ordinal++ {
 		id := sessionID + "-activity"
 		if ordinal > 0 {

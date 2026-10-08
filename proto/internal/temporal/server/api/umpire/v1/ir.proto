@@ -749,6 +749,7 @@ message Realization {
   // Temporal realization kit attaches the complete table to every realization.
   repeated RejectionCode rejection_codes = 18;
   repeated ActivityExternalSettlement external_settlements = 19;
+  repeated ActivityResetSettlement reset_settlements = 20;
 }
 
 // One local pending publication followed by a typed controller answer and bounded cleanup.
@@ -763,6 +764,23 @@ message ActivityExternalSettlement {
   string request_cancel = 8;
   string settlement = 9;
   Command cleanup = 10;
+}
+
+// One held attempt's local pending publication, then the controller's reset of that attempt, which
+// the selected per-attempt timer applies; the server's next delivery is a first attempt again,
+// whose group `fresh_attempt` names, followed by a terminal read and bounded cleanup.
+message ActivityResetSettlement {
+  Position position = 1;
+  string carrier = 2;
+  string activity = 3;
+  int64 attempt = 4;
+  string pending = 5;
+  string held = 6;
+  string reset_request = 7;
+  ActionClass timer = 8;
+  int64 fresh_attempt = 9;
+  string settlement = 10;
+  Command cleanup = 11;
 }
 
 // A dynamic-configuration setting a realization requires: its key and its value, each spelled as

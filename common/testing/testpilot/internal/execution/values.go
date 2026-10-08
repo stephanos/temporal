@@ -293,6 +293,19 @@ func (a *activationValues) evaluate(w *valueWork, e *ir.Expression) (*testpilots
 					}
 					return nil
 				}
+				for _, b := range s.program.resets {
+					if a.graph.id != b.source.Cleanup.EntrypointId || ref.Entrypoint != b.controller.id || ref.ID != b.carrier.source.InstructionId && ref.ID != b.settlement.source.InstructionId {
+						continue
+					}
+					for _, controller := range s.activations {
+						if controller.graph == b.controller {
+							if batch := controller.latest[ref.ID]; batch != nil {
+								return batch.fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS]
+							}
+						}
+					}
+					return nil
+				}
 			}
 		default:
 		}

@@ -1418,6 +1418,11 @@ terminal Describe reads, the typed By-ID answer and bounded cleanup. The `Schedu
 controller-only completion and cleanup without declaring a worker. The start binds its actual
 execution run ID once; requests pin that learned run, namespace name and activity ID, with empty
 workflow ID. A pending diagnostic proves local publication, not server acceptance or a timer event.
+`ActivityResetSettlement` instead links one held attempt's pending publication, on its heartbeat
+timer basis, to the held Describe and the typed ResetActivityExecution of the learned run, which the
+selected timer applies; it names the attempt group the server's rewound first attempt runs, so that
+group's record is selected as attempt 1 and the Driver admits its fresh delivery there
+(`system.ResetAfterHeartbeat`). Only the declared group restarts the numbering.
 
 A realization whose system serves the feature only behind a flag says so,
 `requiredSettings = Vector(RequiredSetting(key, value))`, with the kit's `RequiredSetting`, the
