@@ -360,9 +360,17 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         s.state == completedOnRetry && s.records(Fact.statusCompleted)
       }
 
+    // The pinned exhaustion path takes this action twice, so both failures must satisfy the
+    // Property: the exact first retry, then the exact exhausted settlement.
     val retryExhausts = property when worker.respondFailed(Failure.retryable) holds { s =>
-      s.state == completedOnRetry.copy(phase = Phase.failed, maxAttempts = MaxAttempts.two) &&
-      s.records(Fact.statusFailed)
+      (s.state == completedOnRetry.copy(
+        phase = Phase.scheduled,
+        dispatch = Dispatch.backoff,
+        attempts = UpTo(1),
+        maxAttempts = MaxAttempts.two
+      ) && s.records(Fact.statusScheduled) && s.records(Fact.attemptCount)) ||
+      (s.state == completedOnRetry.copy(phase = Phase.failed, maxAttempts = MaxAttempts.two) &&
+        s.records(Fact.statusFailed))
     }
 
     val cancelRequestedWhileStarted =
@@ -379,8 +387,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       s.state.phase == Phase.terminated && s.records(Fact.statusTerminated)
     }
 
-    // Each deadline times the activity out and the status records which it was. With both
-    // schedule-to-start and schedule-to-close set and no attempt started, either may fire first.
+    // Terminal deadline witnesses record which deadline settled the activity. Start-to-close
+    // uses a one-attempt start; with both scheduling deadlines set, either may fire first.
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
       s.state.phase == Phase.timedOut &&
       s.records(Fact.statusTimedOut(TimeoutType.scheduleToStart))
@@ -392,11 +400,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     }
 
     val startToCloseFires = property when deadline.startToClose holds { s =>
-      (s.state.phase == Phase.timedOut &&
-        s.records(Fact.statusTimedOut(TimeoutType.startToClose))) ||
-      (s.state.dispatch == Dispatch.backoff && s.records(Fact.attemptCount) &&
-        ((s.state.phase == Phase.scheduled && s.records(Fact.statusScheduled)) ||
-          (s.state.phase == Phase.paused && s.records(Fact.statusPaused))))
+      s.state.phase == Phase.timedOut &&
+      s.records(Fact.statusTimedOut(TimeoutType.startToClose))
     }
 
   // What the System machine is, as its capability Properties read it, which a find through its
@@ -507,8 +512,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     val retry =
       (query find properties.retryCompletes in retriedThenCompleted limits six)
         .expect(inconclusive(Reason.explanationsDisagree))
-    val retryExhaustion =
-      query find properties.retryExhausts in exhausted limits six
+    val retryExhaustionByFailures =
+      query verify properties.retryExhausts in exhausted limits six
     val cancel =
       query find properties.canceledByWorker in cancelRequestedThenCanceled limits four
     // The worker stops before the start, so no attempt is in flight when the client terminates.
@@ -542,6 +547,13 @@ object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
         maxAttempts = MaxAttempts.two
       ) && s.records(Fact.statusCompleted)
     }
+    val failsAfterTimeout = property when worker.respondFailed(Failure.retryable) holds { s =>
+      s.state == ActivitySystem.properties.completedOnRetry.copy(
+        phase = Phase.failed,
+        startToClose = Timeout.expires,
+        maxAttempts = MaxAttempts.two
+      ) && s.records(Fact.statusFailed)
+    }
   object queries:
     val timedOutThenCompleted = scenario.actions(
       client.start(startToClose := expires, maxAttempts := MaxAttempts.two),
@@ -551,8 +563,22 @@ object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
       worker.poll,
       worker.respondCompleted
     )
+    val timedOutThenFailed = scenario.actions(
+      client.start(startToClose := expires, maxAttempts := MaxAttempts.two),
+      worker.poll,
+      deadline.startToClose,
+      timers.backoff,
+      worker.poll,
+      worker.respondFailed(Failure.retryable)
+    )
+    // Both full-State finds predict explanationsDisagree from status/attempt-only evidence.
+    // The shared live gate must check actual Property assessments and reasons.
     val retryAfterTimeout =
-      query find properties.completesAfterTimeout in timedOutThenCompleted limits six
+      (query find properties.completesAfterTimeout in timedOutThenCompleted limits six)
+        .expect(inconclusive(Reason.explanationsDisagree))
+    val retryExhaustion =
+      (query find properties.failsAfterTimeout in timedOutThenFailed limits six)
+        .expect(inconclusive(Reason.explanationsDisagree))
 
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 

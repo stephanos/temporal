@@ -387,6 +387,31 @@ func (l *lowering) attemptClasses(s *umpirespb.Script) (started, answered map[st
 	return started, answered
 }
 
+// An on-path item emits one withholding instruction, not one per occurrence of its timer. Refuse
+// a repeated selected timer rather than counting two attempt ends for that one instruction.
+func (l *lowering) withholdingOccurrences() (problems []error) {
+	for _, script := range l.a.r.GetScripts() {
+		for _, item := range script.GetItems() {
+			command := item.GetCommand()
+			if command.GetAttemptWithheld() == nil {
+				continue
+			}
+			key := l.adapter.classKey(item.GetWhen()[0])
+			count := 0
+			for _, taken := range l.keys {
+				if taken == key {
+					count++
+				}
+			}
+			if count > 1 {
+				problems = append(problems, errorAt(command.GetPosition(),
+					"withholding command %s requires exactly one occurrence of its armed timer; got %d", command.GetId(), count))
+			}
+		}
+	}
+	return problems
+}
+
 // unanswered is the attempts of an activity that a path starts and gives no answer: for each activity
 // script, how many more steps of the path are a delivery the script starts with than are performed by
 // one of its commands. An activity entrypoint's instructions are its attempts' answers, and none waits,
@@ -788,6 +813,7 @@ func (p *Producer) check(a *asked, identity Identity) (*lowering, []error) {
 	if err := l.performed(); err != nil {
 		problems = append(problems, err)
 	}
+	problems = append(problems, l.withholdingOccurrences()...)
 	receipt, ok := p.found[name]
 	witnessed := ok && receipt.Kind == check.Found && receipt.Witness != nil
 	if !witnessed {

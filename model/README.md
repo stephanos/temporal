@@ -360,7 +360,7 @@ Model of another system could be written in it. What a system has of its own its
 declares, by extending the framework's open traits `Addressee`, `Activation`, `Instruction`,
 `Recorded`, `Setting`, `Behavior` and `SystemStep`. Temporal's are in `temporal.realize`: `Role` and
 `RoleKind`, the worker activations `WorkerActivation.{Workflow, NexusHandler, Activity}`, the
-instructions `WorkerInstruction.{AttemptFailure, AttemptCanceled, Fault, WorkflowCommand,
+instructions `WorkerInstruction.{AttemptFailure, AttemptCanceled, AttemptWithheld, Fault, WorkflowCommand,
 NexusReply, NexusCompletion}` with `FaultKind`, the history read `WorkflowHistory.event`, the
 dynamic-configuration `RequiredSetting`, and the API behavior hints `ApiBehavior` and `ServerStep`
 with `WaitBound`, `Visible`, `CauseKind`, `AttemptNumbering` and `InstructionLimit`. `TestFrameworkNamesNoTemporal` in `tools/umpire/ir`
@@ -474,7 +474,7 @@ The IR generator reads what an author wrote, as written:
   names a call, such as `answered(fact, call)`, matches every `withFields` variant of it, since
   each keeps the call's name. A feature file (a file under a `features` directory) writes the
   kit's lower-case instruction forms, `fault`, `hold`, `release`, `finish`, `command`,
-  `awaitCommand`, `awaitLearned`, `attemptFailure`, `attemptCanceled`, `workflowCommand`,
+  `awaitCommand`, `awaitLearned`, `attemptFailure`, `attemptCanceled`, `attemptWithheld`, `workflowCommand`,
   `nexusReply` and `nexusCompletion` (`temporal/realize/Kit.scala`), never their case classes, and
   never writes a command out with `Command(id, …)`: two commands of one realization share a name
   only through `aliasOf`, or as `withFields` variants of one call. The kit's evidence modules
@@ -490,7 +490,13 @@ The IR generator reads what an author wrote, as written:
   value, unset)(input.sets(_.field), …)` binds every class of the action the declared `Timeout`
   inputs make, combined ones too, each the call with the expiring inputs' fields set to `value`; a
   class expiring an input it leaves out is unrealizable. `onPath(action)` of an action with inputs
-  stands for each class its `deadlines` binds. umpire-lint reports a binding of a class no
+  stands for each class its `deadlines` binds. An action with non-Timeout inputs uses an explicit
+  Class preset instead of the bare action: those inputs retain their values, while Timeout inputs
+  must be at their defaults. Several presets accumulate distinct class catalogs; a duplicate is
+  refused. An activity script may use `onPath(deadline.startToClose)(attemptWithheld)` to offer no
+  answer until the attempt's context deadline ends it. This is not a performance of the timeout,
+  which stays a positively bounded server timer. One timer of one script has at most one such
+  item, and a selected path takes it exactly once. umpire-lint reports a binding of a class no
   realizable path reaches (`unreachable-binding`) and a class of a performed action a realizable
   path can take that no binding performs (`uncovered-class`), accepted with why where it is
   unrealizable. A declaration

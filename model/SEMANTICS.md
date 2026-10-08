@@ -790,7 +790,9 @@ A reader rejects, before any check and at the position the IR gives, a Model tha
   some Cases do not carry;
 - declares a control that holds what a step dispatched and names no class its machine binds, or no
   task-queue role;
-- fails an attempt, or answers one as canceled, in a script no activity activates;
+- fails an attempt, answers one as canceled, or withholds its answer, in a script no activity activates;
+- withholds an attempt outside an on-path item naming exactly one armed positive-deadline server
+  timer, under a performance, or by two commands for the same timer of one script;
 - names, in a realization, a role, learned value, observation, kind of evidence, control, channel or
   command it does not declare, a role of another kind than its use needs, or a class the
   realization's machine does not bind;
@@ -835,7 +837,7 @@ resolve, and a value observed into an observation of another message. It reads t
 `field`, `field[*]` and `oneof<member>` and refuses the others. It lowers an activity's script to
 the attempts of an activity entrypoint, a failing one as an attempt failure and never as a result
 that is a failure, and refuses, where they are written, what Testpilot would refuse: a command of
-that script that is no answer to an attempt, a failure that is neither an application failure nor
+that script that neither answers an attempt nor withholds it until an armed server deadline, a failure that is neither an application failure nor
 one of no kind, and a poll's condition that reads the run, its environment or a learned value. It
 types a poll's condition and the guard, the key and the fields of the Run's own record against the
 descriptor of what they read, the instruction outcome for the Run's record, and refuses, as an error
@@ -846,7 +848,12 @@ the lowered guard, at the controller's instruction the source names and keyed by
 payload's path, and refuses such evidence of a command no controller runs; evidence read from one
 message to a single read; a kept field to the Program's field declaration and the Contract's retained
 field, as the text, flag or unsigned integer its descriptor makes it; and an attempt answered as
-canceled to the instruction of that name. It lowers the hold and the release of a control that holds
+canceled to the instruction of that name. An activity script's `onPath(deadline)(attemptWithheld)`
+lowers to Testpilot's existing ActivityAttemptWithholding: it offers no answer until the attempt's
+context deadline ends it. The deadline remains a server timer, not a worker performance or carrier.
+The timer must be armed and positively bounded, and a selected path must take it exactly once,
+since one on-path item emits one withholding instruction. Attempt records publish at that deadline
+end, so the same evidence-order check applies as at an answered attempt. It lowers the hold and the release of a control that holds
 what a step dispatched to the Driver's delivery controls of the control's task-queue role, which a
 Profile admits only where its environment supplies a delivery control; and evidence of a durable
 commit where it is the Run's own record, of the release that observed it. A machine's monitors are no
@@ -856,7 +863,7 @@ history: neither reports a commit of the receiver. A control that holds the deli
 and a command that holds or releases one: a Driver holds only what a step dispatched to a task queue.
 A redacted field: a lift reads a value for every field its evidence declares, so none
 carries a field without its value. An attempt of an activity the path starts and gives no answer: an
-activity entrypoint's instructions are answers, and none waits out a deadline. And the record of an
+activity entrypoint must declare an answer or an armed withholding instruction for each attempt. And the record of an
 attempt that a Run would record out of the path's order, which the Contract reads evidence in. And
 the record of an attempt in a Case that runs two activities: a Run records an attempt at the command
 that carries it, by its number and under no script's name, and the one carrier of a Case carries

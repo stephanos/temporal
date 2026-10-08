@@ -50,7 +50,8 @@ type realizing struct {
 	performed map[string]string
 	read      map[string]bool
 	// closed names the command whose read closes an exhaustive kind of evidence.
-	closed map[string]string
+	closed         map[string]string
+	withheldTimers map[string]string
 }
 
 var (
@@ -69,7 +70,7 @@ func Admit(d Admitter, r *umpirespb.Realization) {
 	a := &realizing{d: d, r: r, label: r.GetName(), owner: "realization " + r.GetName(), roles: map[string]*umpirespb.Role{},
 		learned: map[string]*umpirespb.Learned{}, observations: map[string]bool{}, evidence: map[string]*umpirespb.Evidence{},
 		controls: map[string]bool{}, bound: map[string]string{}, performed: map[string]string{}, read: map[string]bool{},
-		closed: map[string]string{}}
+		closed: map[string]string{}, withheldTimers: map[string]string{}}
 	switch {
 	case r.GetName() != "":
 		d.Once(at, "realizations named", r.GetName())
@@ -595,8 +596,14 @@ func (a *realizing) withholding(s *umpirespb.Script, item *umpirespb.Item) {
 		return
 	}
 	key := a.d.ClassKey(item.GetWhen()[0])
+	scoped := s.GetId() + "\x00" + key
+	if other, exists := a.withheldTimers[scoped]; exists {
+		a.report(at, "command %s withholds timer %s already withheld by %s", item.GetCommand().GetId(), key, other)
+		return
+	}
 	for _, step := range a.r.GetServerSteps() {
 		if a.d.ClassKey(step.GetStep()) == key && step.GetKind() == umpirespb.CAUSE_KIND_TIMER && step.GetDeadlineMs() > 0 {
+			a.withheldTimers[scoped] = item.GetCommand().GetId()
 			return
 		}
 	}

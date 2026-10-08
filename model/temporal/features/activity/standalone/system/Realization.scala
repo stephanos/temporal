@@ -1,5 +1,5 @@
-// How a Case runs the standalone activity's three System machines: StandaloneActivity, HeldDispatch
-// and LostStartAnswer.
+// How a Case runs the standalone activity's System machines: StandaloneActivity, HeldDispatch,
+// LostStartAnswer and TimeoutRetry.
 //
 // For StandaloneActivity a controller starts one activity with StartActivityExecution, controls it,
 // and reads its status back with DescribeActivityExecution. The Case's own worker runs the attempts,
@@ -10,6 +10,8 @@
 //
 // HeldDispatch and LostStartAnswer are races at admission: a controller holds the activity's
 // dispatch and then releases it, or loses the answer to it, and reads what admission committed.
+// TimeoutRetry runs the same rules with occurrence evidence for a timed-out first attempt instead
+// of a failed one; the worker withholds its first answer until the armed deadline expires.
 //
 // The roles, bindings, window and run records are the kit's (temporal/realize). Go lowers a Query's
 // witness through these declarations (tools/umpire/lower).
@@ -67,12 +69,14 @@ private val startActivity = rpc(calls, METHOD_START_ACTIVITY_EXECUTION) {
   field(_.getActivityType.name) := Operand.named(activityType)
   field(_.getTaskQueue.name) := taskQueueName
   field(_.requestId) := run
+}
+private val startUnlimited = startActivity.withFields {
   field(_.getRetryPolicy.maximumAttempts) := Operand.integer(0)
 }
 // The start of a class that sets no start-to-close deadline. The server refuses a start that sets
 // neither a start-to-close nor a schedule-to-close deadline, so it carries a start-to-close
 // deadline no Case lives to see.
-private val startUnreached = startActivity.withFields {
+private val startUnreached = startUnlimited.withFields {
   field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
 }
 
@@ -134,7 +138,10 @@ private val timeoutAttempts = script(
   WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
 )(
   onPath(deadline.startToClose)(withholdAttempt),
-  perform(worker.respondCompleted -> completeAttempt)
+  perform(
+    worker.respondCompleted -> completeAttempt,
+    worker.respondFailed(Failure.retryable) -> failAttempt
+  )
 )
 
 // The kind of the unpause's answer, which confirms that the activity was scheduled again.
@@ -162,7 +169,7 @@ object Standalone extends Realizes(ActivitySystem):
         // deadline no start sets, so a class that expires one is unrealizable.
         deadlines[StartActivityExecutionRequest](
           client.start(maxAttempts := MaxAttempts.unlimited),
-          startActivity,
+          startUnlimited,
           duration(deadlineSeconds),
           unset = Some(startToClose -> startUnreached)
         )(
@@ -202,9 +209,6 @@ object Standalone extends Realizes(ActivitySystem):
           described.await(system.Fact.statusCompleted)
         ),
         onPath(worker.respondFailed(Failure.fatal))(
-          described.await(system.Fact.statusFailed)
-        ),
-        onPath(client.start(maxAttempts := MaxAttempts.two))(
           described.await(system.Fact.statusFailed)
         ),
         onPath(worker.respondCanceled)(described.await(system.Fact.statusCanceled)),
@@ -252,7 +256,7 @@ object Standalone extends Realizes(ActivitySystem):
   object controls extends Controls(unstartedDispatch)
 
 // Uses the unchanged System rows, but only the timeout path's second-delivery evidence. The first
-// attempt withholds its answer until its armed deadline; the second completes.
+// attempt withholds its answer until its armed deadline; the second completes or exhausts retries.
 object RetryAfterTimeout extends Realizes(TimeoutRetry):
   object controller
       extends Controller(
@@ -266,7 +270,8 @@ object RetryAfterTimeout extends Realizes(TimeoutRetry):
           scheduleToStart.sets(_.getScheduleToStartTimeout),
           startToClose.sets(_.getStartToCloseTimeout)
         ),
-        onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted))
+        onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted)),
+        onPath(worker.respondFailed(Failure.retryable))(described.await(system.Fact.statusFailed))
       )
   object workers extends Workers(timeoutAttempts)
   object evidence
@@ -287,7 +292,8 @@ object RetryAfterTimeout extends Realizes(TimeoutRetry):
           Taking(deadline.startToClose, 1),
           Taking(worker.poll, 2)
         ),
-        described(system.Fact.statusCompleted)
+        described(system.Fact.statusCompleted),
+        described(system.Fact.statusFailed)
       )
 
 // ### The held race

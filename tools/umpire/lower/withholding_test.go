@@ -17,30 +17,47 @@ func withheldTimeoutRetry(t *testing.T) *umpirespb.Model {
 	t.Helper()
 	m := loaded(t, "activity-standalone")
 	timer := &umpirespb.ActionClass{Action: "temporal.features.activity.deadline.startToClose"}
+	var stateFields []*umpirespb.Field
+	for _, typ := range m.GetTypes() {
+		if typ.GetName() == "temporal.features.activity.standalone.system.State" {
+			stateFields = typ.GetRecord().GetFields()
+		}
+	}
+	timeoutArgument := slices.IndexFunc(stateFields, func(field *umpirespb.Field) bool { return field.GetName() == "startToClose" })
+	require.NotEqual(t, -1, timeoutArgument)
+	hasMaxAttempts := slices.ContainsFunc(stateFields, func(field *umpirespb.Field) bool { return field.GetName() == "maxAttempts" })
+	startTimeout := -1
+	for _, action := range m.GetActions() {
+		if action.GetId() == "temporal.features.activity.standalone.client.start" {
+			startTimeout = slices.IndexFunc(action.GetInputs(), func(input *umpirespb.Param) bool { return input.GetName() == "startToClose" })
+		}
+	}
+	require.NotEqual(t, -1, startTimeout)
 	for _, scenario := range m.GetScenarios() {
 		if scenario.GetName() == "retriedThenCompleted" {
-			scenario.Actions[0].Inputs[2].GetEnum().Case = "expires"
+			scenario.Actions[0].Inputs[startTimeout].GetEnum().Case = "expires"
 			scenario.Actions[2] = proto.CloneOf(timer)
 		}
 	}
 	for _, function := range m.GetFunctions() {
 		if function.GetName() == "activitySystem.property.retryCompletes" {
-			function.GetBody().GetBinary().GetLeft().GetBinary().GetRight().GetConstruct().Args[4].GetLiteral().GetEnum().Case = "expires"
+			function.GetBody().GetBinary().GetLeft().GetBinary().GetRight().GetConstruct().Args[timeoutArgument].GetLiteral().GetEnum().Case = "expires"
 		}
 		// The checked-in fixture predates timeout retries; this isolates the bridge from model regeneration.
-		if function.GetName() == "activitySystem.rules.startToClose" {
+		if !hasMaxAttempts && function.GetName() == "activitySystem.rules.startToClose" {
 			call := function.GetBody().GetIf().GetThen().GetCall()
 			call.Function = "temporal.features.activity.standalone.system.ActivitySystem$.effects$.backOff"
 			call.Args = call.GetArgs()[:1]
 		}
 	}
-	r := m.GetRealizations()[0]
+	r := realizationNamed(t, m, "standalone")
 	script := scriptNamed(t, r, "attempts")
 	script.Items = append([]*umpirespb.Item{{Position: script.GetPosition(), When: []*umpirespb.ActionClass{timer},
 		Command: &umpirespb.Command{Id: "withhold-attempt", Position: script.GetPosition(), Instruction: &umpirespb.Command_AttemptWithheld{AttemptWithheld: &umpirespb.Empty{}}}}}, script.GetItems()...)
-	first := evidenceOf(t, m, "statusStarted")
+	evidenceModel := &umpirespb.Model{Realizations: []*umpirespb.Realization{r}}
+	first := evidenceOf(t, evidenceModel, "statusStarted")
 	first.Confirms = []*umpirespb.Taking{{Step: proto.CloneOf(script.GetActivity().GetStarts()[0]), Occurrence: 1}}
-	second := evidenceOf(t, m, "attemptCount")
+	second := evidenceOf(t, evidenceModel, "attemptCount")
 	second.Confirms[0].Step = proto.CloneOf(timer)
 	controller := scriptNamed(t, r, "controller")
 	controller.Items = slices.DeleteFunc(controller.GetItems(), func(item *umpirespb.Item) bool {
@@ -91,4 +108,22 @@ func TestAWithheldTimeoutRetryLowersToTwoAttempts(t *testing.T) {
 	require.Len(t, second.GetRunEvent().GetGuard().GetAll().GetOperands(), 2)
 	protorequire.ProtoEqual(t, cp.Equal(cp.Path(cp.ProjectedValue(), "activity_attempt.sdk_attempt"), cp.Literal(cp.SignedInteger(2))), second.GetRunEvent().GetGuard().GetAll().GetOperands()[1])
 	preparedAsIs(t, c)
+}
+
+func TestAWithholdingCommandRequiresOneTimerOccurrence(t *testing.T) {
+	p, err := NewProducer(withheldTimeoutRetry(t))
+	require.NoError(t, err)
+	a, _, err := p.ask("retry")
+	require.NoError(t, err)
+	path, problems := p.check(a, activityIdentity("retry"))
+	require.Empty(t, problems)
+	require.Empty(t, path.withholdingOccurrences())
+
+	timer := path.adapter.classKey(&umpirespb.ActionClass{Action: "temporal.features.activity.deadline.startToClose"})
+	path.keys = append(path.keys, timer)
+	gaps := path.withholdingOccurrences()
+	require.Len(t, gaps, 1)
+	require.ErrorContains(t, gaps[0], "withholding command withhold-attempt requires exactly one occurrence")
+	require.ErrorContains(t, gaps[0], "got 2")
+	require.ErrorContains(t, gaps[0], activityRealizationAt+":")
 }

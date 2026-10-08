@@ -51,6 +51,18 @@ class ActivityRetryRegression extends munit.FunSuite:
           policy == MaxAttempts.unlimited || (policy == MaxAttempts.two && attempt < 2)
         assertEquals(ActivitySystem.states.retriesRemaining(state), retryAllowed)
         val failed = take(state, worker.respondFailed(Failure.retryable))
+        if policy == MaxAttempts.two then
+          val satisfies = ActivitySystem.properties.retryExhausts.decl.holds.get
+            .asInstanceOf[Step[
+              system.State,
+              Outcome,
+              system.Fact
+            ] => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
+          assert(satisfies(failed))
+          val wrong = if retryAllowed then
+            failed.copy(state = failed.state.copy(attempts = UpTo(2)))
+          else failed.copy(state = failed.state.copy(attempts = UpTo(1)))
+          assert(!satisfies(wrong))
         assertEquals(
           failed.state.phase,
           if retryAllowed then system.Phase.scheduled else system.Phase.failed

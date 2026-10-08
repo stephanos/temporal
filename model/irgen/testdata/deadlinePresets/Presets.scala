@@ -23,9 +23,11 @@ final case class DeviceState(done: Boolean) derives Finite
 object Device extends Machine[DeviceState, Outcome, Nothing]:
   val init = DeviceState(false)
   def end(s: DeviceState) = s.done
+  object effects:
+    def start(s: DeviceState, a: Timeout, b: Timeout) = enter(s.copy(done = a == b))
   object rules extends Rules:
     on(caller.start) {
-      always ~> ((s: DeviceState, a: Timeout, b: Timeout) => enter(s.copy(done = a == b)))
+      always ~> effects.start
     }
 
 private val calls =
@@ -49,6 +51,27 @@ object Bare extends Realizes(ActivitySystem):
         deadlines[StartActivityExecutionRequest](client.start, launch, value)(
           startToClose.sets(_.getStartToCloseTimeout)
         )
+      )
+
+object Catalog extends Realizes(ActivitySystem):
+  object controller
+      extends Controller(
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.unlimited),
+          launch,
+          value
+        )(startToClose.sets(_.getStartToCloseTimeout)),
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.one),
+          launch,
+          value
+        )(startToClose.sets(_.getStartToCloseTimeout)),
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.two),
+          launch,
+          value
+        )(startToClose.sets(_.getStartToCloseTimeout)),
+        onPath(client.start)(launch)
       )
 
 object ExpiringPreset extends Realizes(ActivitySystem):

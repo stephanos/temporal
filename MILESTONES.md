@@ -89,7 +89,7 @@ Tasks run in order.
 | --- | --- | --- |
 | fn-128.1 | ✅ done | Dispatch as a field replacing the `backingOff` phase; start delay; unpause-after-backoff and schedule-to-start-in-backoff fixed |
 | fn-128.2 | ✅ done | Explicit rejection rows and repeated RequestCancel refusal; owned lint subjects removed; focused tests pass; artifacts/full gates remain batch-deferred |
-| fn-128.3 | ⬜ todo | Retry policy: `maxAttempts` input, `retriesRemaining`, retryable start-to-close timeout |
+| fn-128.3 | ✅ done | 2026-10-08: finite retry policy and retryable start-to-close timeout; exhaustion/timeout-retry Queries and bounded withholding bridge; focused source/lowering/runtime checks pass; artifacts/full gates/review/live remain batch-deferred |
 | fn-128.4 | ⬜ todo | Stutter facts checked: `visible` on `ActivitySystem`'s refinement |
 | fn-128.5 | ⬜ todo | `cancelIsNotUndone` Property; attempt count in every Case; time-window `because` |
 | fn-128.6 | ⬜ todo | Evidence map, live Cases run once (the batch's live run); close |

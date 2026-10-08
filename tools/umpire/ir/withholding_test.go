@@ -2,6 +2,7 @@ package ir
 
 import (
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -51,7 +52,9 @@ func TestWithholdingRequiresOneActivityScriptServerTimer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			m, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
 			require.NoError(t, err)
-			r := m.GetRealizations()[0]
+			index := slices.IndexFunc(m.GetRealizations(), func(r *umpirespb.Realization) bool { return r.GetName() == "standalone" })
+			require.NotEqual(t, -1, index)
+			r := m.GetRealizations()[index]
 			script := admScript(t, r, "attempts")
 			item := &umpirespb.Item{Position: script.GetPosition(), When: []*umpirespb.ActionClass{{Action: "temporal.features.activity.deadline.startToClose"}},
 				Command: &umpirespb.Command{Id: "withhold-attempt", Position: script.GetPosition(), Instruction: &umpirespb.Command_AttemptWithheld{AttemptWithheld: &umpirespb.Empty{}}}}

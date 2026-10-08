@@ -44,6 +44,8 @@ R3 scope clarification, approved 2026-10-08 under delegated recommendations: a m
 
 ## Verification
 
+R3 exhaustion witness clarification, approved 2026-10-08. `retryExhaustion` and `retryAfterTimeout` are six-action finds on the same `TimeoutRetry` derived machine. Both retry after timeout on attempt1, then fail retryably with an exhausted finite-two policy or complete on attempt2. Each Property pins its full terminal State and status fact as a conjunction. `retryExhaustionByFailures` retains the two-retryable-failure six-action path as a non-vacuous pinned verify Query, checking the exact first retry OR exact exhausted settlement with no live expectation or Case. The monitor reads both failures, while the Case predicate bridge accepts conjunctions. This preserves both proofs without extending lower/Contract/core/end-selector semantics. The old failure-retry find and its assessment remain unchanged; R6 lists all three new Queries and two new Cases.
+
 - The model gate, `make lint-model`, the full Go suite, `make umpire-check-cases`, `umpire-check-fixtures`, `canary-check-case` and `lint-code-fast` pass.
 - The live generated Cases are run once. Only the known ShutdownWorker-race INCONCLUSIVEs are allowed.
 - Re-run the comparison's three divergences as Queries or fixtures: each now refuses what the server refuses.
