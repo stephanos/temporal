@@ -1,0 +1,252 @@
+[
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/acceptance-complete.md",
+    "bytes": 657,
+    "sha256": "6cef0a87f44000ecca9df4a5292cc304548a4f43af7dee76c65866820a13f9e3"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/baseline-evidence.json",
+    "bytes": 1979,
+    "sha256": "52ed8496708752e546375a1ddca293595d3b6681fb67c8b614fa4f41ddd1f024"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/baseline-overlay/characterization.log",
+    "bytes": 4351,
+    "sha256": "864e8878807c5371661bce20cc646439134ca9b6c10bd270256382b24683ac33"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/baseline-overlay/empty.go",
+    "bytes": 12,
+    "sha256": "55feb8da8d74ead61adcf05dfbc90d4ec717e9510e8f14e0e89bf1e838d3bd23"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/baseline-overlay/overlay.json",
+    "bytes": 6287,
+    "sha256": "ed35289ab2d2a488c1292febc4a7fd6c05a5901af8717dcabb49e85879fbfabf"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/capture.sh",
+    "bytes": 1099,
+    "sha256": "c07a0e848b08ce9ca439e15f5f3efeda2996c40a6ffeebdaad704a52c6b2193a"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/cli-capture.txt",
+    "bytes": 31774,
+    "sha256": "1554ea0500a09fff3455b31f12390cade99c0666eeb1f7690ed6199cb3a8ac8c"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/evidence.txt",
+    "bytes": 7195,
+    "sha256": "90f9b7c1f66a25be7398386cb5e36faeff40188e311078f58cc3c6abae0acca3"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/final-completion-evidence.json",
+    "bytes": 3744,
+    "sha256": "7387268d7adc4d23878575f0cb1158f83326a1b2d649ec8e7e7f71aa157945cc"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/final-completion-summary.md",
+    "bytes": 2105,
+    "sha256": "7f34601cc012dcb161535f5d972385ff8f97a0806d9bd5a8f08cf3a4e35ca08d"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/final-source-manifest.json",
+    "bytes": 3097,
+    "sha256": "5343b2e3947482602f6acff87ccb2a318d6052d7efda3ba69ea61969ca6bac22"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/full-host.log",
+    "bytes": 4487,
+    "sha256": "94bacb0cd7b7117344a03f780d9b0ce1830e5e7a79c29237250e10e0e5b55953"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/handover.json",
+    "bytes": 4604,
+    "sha256": "ce3a7a3676a66a9ef8f73d5fe20d6c46e8564850fd3e27f7011314cc0aec0b29"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/handover.sha256",
+    "bytes": 80,
+    "sha256": "77183352965dd5d6586bd0c63fa9120dc0ccdc64973f77c1561822dda8daf711"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/parent-final-characterization.log",
+    "bytes": 4501,
+    "sha256": "763d865128e89f8f4fa472625f36a280478e15a100352744358fbca47646eebe"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/parent-original-characterization.log",
+    "bytes": 4351,
+    "sha256": "3fd090466842f2877a629f6a2f8bae5a464f10a5f028c2d768db9ad45a88ac32"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/parent-review-backend.json",
+    "bytes": 484,
+    "sha256": "779e37b4f37a5d3a534644b261c59143309ee7a90665d4e255d853136fb31ee2"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/parent-source-verification.json",
+    "bytes": 2291,
+    "sha256": "b1bf4b97504f6e4b72301d477c9724db1672b515bcb50e586dd169aa329692f5"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/post-lint-focused-test.log",
+    "bytes": 70,
+    "sha256": "41bd463280af4b3565fbd2702b9f8157b2779733f3a2d85a386ea37b6672dbc4"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/post-review-status.json",
+    "bytes": 2017,
+    "sha256": "6e265bc79fd957a012649af597fcc32d61a2c250b78a23c108a5de6ba274dc65"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/analyze.go",
+    "bytes": 9524,
+    "sha256": "442b70a1cf5e059bd122c56b0ab8c190e445e1f48afd9823b6c9abbfb3d4af5b"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+    "bytes": 5066,
+    "sha256": "de295c0b5557e9ab2229b2fb1efc88230d5023550a187e5753f8c0134c83c1b9"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/campaign_shards_test.go",
+    "bytes": 881,
+    "sha256": "d380cecbcfb99e10c1458eed3d6ca118b8d39033328496da8743daf57430da28"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/cli.go",
+    "bytes": 53964,
+    "sha256": "e336ab6bc627fe51e536fbe97c49921612afbae04b64188093f36e3305ad4148"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+    "bytes": 73577,
+    "sha256": "0914a9182dbe2faabf913538031c855317707dc9d95ae2820174407ed8c3db5f"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/compare_support.go",
+    "bytes": 3117,
+    "sha256": "a25f1d105e099c46eda0e16335efb67a335abd1e76c24d67824e68dc7cbd72df"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go",
+    "bytes": 8260,
+    "sha256": "548c4f83c84ef2879f38468aa53aa4f3ff0e0495130f04dd18944894c49632d7"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/doctor.go",
+    "bytes": 6255,
+    "sha256": "38497993ba4461375794c02be49a4b7a09a24ff673bd220d54d852fa24273e79"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/doctor_test.go",
+    "bytes": 4833,
+    "sha256": "3243eebce07a40e2f9e49f2a6a0a8596c453a967c846945eb1bc791e9b8a3e3e"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/exploration_divergence_test.go",
+    "bytes": 3313,
+    "sha256": "27d360a5bd10760a4ba871aed8ba3911a7126cf5322f43d22e06139d21ccb2d6"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+    "bytes": 14611,
+    "sha256": "3e92f3982e6bf7c3c8e7c1fee6d1bd8c0056d87d4c75fa0ab4232d569842b646"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/guidance_test.go",
+    "bytes": 3832,
+    "sha256": "36b3aa9c4e490b49b503979949045e87c0c1e3d9439287da6a92692dcc164682"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/inspect_target_sharing_test.go",
+    "bytes": 3825,
+    "sha256": "7dc5eec262377f73b17f2b4bde11dbb4e2db662fa32a27086909def4c69cf3b1"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+    "bytes": 12423,
+    "sha256": "05e3a890b2b34bf98f0e7774cdcaa4befee188dc11b450388163c578c098d756"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/qualify_set.go",
+    "bytes": 7671,
+    "sha256": "138b893add2c02e2bcef0329f177a379dcef9aa2df5db2e04d453bdb28f0b57d"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/quote.go",
+    "bytes": 325,
+    "sha256": "da7729dd608389a0af4d09beb5d3ad7a1e7f0a88c7d230f6805da7da9d521039"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/quote_test.go",
+    "bytes": 414,
+    "sha256": "de6277d9e2a9c710b786c5c1f3aca9fedbef46384bde2e0d9974bb24f38f2b02"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/recover.go",
+    "bytes": 1829,
+    "sha256": "8e2259bb41b0cbe4ff423aa04e2bc77b0b1d4183050f1145ace63208efac239f"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/resume.go",
+    "bytes": 2877,
+    "sha256": "6f36c46d707ae86aebb9d9a49c2259224c31d7210ec0c394984410e344f7e83b"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/working_directory.go",
+    "bytes": 954,
+    "sha256": "120d733112f122f7658d0d5094e4763ba10b74c7fd689c08756500c50ea606bb"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/working_directory_test.go",
+    "bytes": 1503,
+    "sha256": "a38d27b28eb109b3a97fa148bf4df2a9ac8f8b6c0b105d70c5bf5b6e1cc46f03"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage-manifest.json",
+    "bytes": 3714,
+    "sha256": "eba25bb00055f07df660f255b1f39bcc06f25d8a1e353b64e6abee4fd57c6466"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/quick-cmd-gomad.log",
+    "bytes": 128,
+    "sha256": "50106d8bb4cbe557456eb128b88a3a3b41efa3aaa3653a6e58c7baffe9b3bc47"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/review-console.log",
+    "bytes": 432926,
+    "sha256": "3ce917f54cbcb1c6bf45f9b0d6cb28c4a74247d7536abb9e605def921efc3c9f"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/runner-build.log",
+    "bytes": 1516,
+    "sha256": "308d007f356c883e45f7e9bf00bd8e299c45180d5a647af1b8543dfd02552a02"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/scoped-lint-new.log",
+    "bytes": 10,
+    "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/scoped-lint.log",
+    "bytes": 51098,
+    "sha256": "365097b0c23f6da6b44ab8c16997e52936ec1fca099dabdf20173202b0c76e74"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/scoped-vet.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/task-only.patch",
+    "bytes": 32078,
+    "sha256": "81982cf10aa9cf0a6c52e4be5c9aa0ce173c5ccd2af636866beeedd5efe8288c"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/working-tree-review.json",
+    "bytes": 7583,
+    "sha256": "069f2e36192015ff2bbb55be0c1b857c874f1f2b9bb5d2682edefd3fb8d7a08a"
+  }
+]

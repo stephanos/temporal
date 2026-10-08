@@ -1,0 +1,51 @@
+{
+  "argv": [
+    "bash",
+    "-c",
+    "result=$(/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l tools/gomad3/cmd/gomad/internal/cli/*.go); rc=$?; printf \"%s\" \"$result\"; test \"$rc\" -eq 0 && test -z \"$result\""
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOCACHE": null
+  },
+  "removed_environment": [
+    "GOROOT",
+    "GOBIN",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T12:06:21.022Z",
+  "ended": "2026-10-08T12:06:21.045Z",
+  "elapsed_seconds": 0.023,
+  "sources_before_sha256": "d171c750bb116a281977a3f56ea0a3a17e2a59db3439af1a8f4a4e9ba11ec97d",
+  "sources_after_sha256": "d171c750bb116a281977a3f56ea0a3a17e2a59db3439af1a8f4a4e9ba11ec97d",
+  "source_changes": [],
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "golangci_lint": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "tests": [],
+  "top_level_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  }
+}

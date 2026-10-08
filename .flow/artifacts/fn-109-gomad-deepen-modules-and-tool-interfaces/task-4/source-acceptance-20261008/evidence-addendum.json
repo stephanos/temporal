@@ -1,0 +1,15 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.4",
+  "status": "in_progress",
+  "review_verdict": null,
+  "native": false,
+  "commits": [],
+  "prs": [],
+  "primary": "evidence.json",
+  "late_bindings": ["identity-admission.json", "writer-equivalence.json"],
+  "late_authoring_receipts": ["admission-authoring-separator-error.json", "admission-binding-corrected.json", "freeze-authoring-exit-classification-error.json", "pre-freeze-proof-audit.json"],
+  "late_authoring_error": "The initial admission helper compared full section bytes and failed because the spec has one additional separator newline. The corrected helper checks the exact documented one-newline difference, retaining both complete section texts. The initial freeze helper treated no-index exit1 with empty stdout/stderr as a tooling failure; the corrected helper records normal difference exit1 separately from whitespace output and preserves all raw bytes. Both are authoring failures, not actual test failures.",
+  "bounded_decision": "The chronological source-gaps.json remains unchanged. The conductor's subsequent dated task/spec amendment admits only the already-integrated shared validated-digest path, regular/executable validation, staged open/stat/hash/close failures and wrapping. All unrelated preservation and lint rules remain strict.",
+  "tooling_notes": "Read-only ad hoc inspection commands also encountered an extra closing brace in one Node expression and missing guessed inspection paths. They wrote no files, ran no Go suites and supplied no gate observations. The corrected bounded reads are separate from actual test receipts.",
+  "postfreeze_receipts": "All subsequent verifier output must live outside the strict frozen directory."
+}

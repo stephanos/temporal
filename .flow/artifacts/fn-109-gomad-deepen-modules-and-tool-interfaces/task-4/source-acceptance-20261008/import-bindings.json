@@ -1,0 +1,12 @@
+[
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/owner-chain.mjs",
+    "bytes": 3261,
+    "sha256": "575394b1c14ac4737ed580cf54ee97210cbbef13144d22f15dd2fdee3e49ee0b"
+  },
+  {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/reconstruct.mjs",
+    "bytes": 3836,
+    "sha256": "f0f1ac64d81b59a5a0217c0afb35ff494de4d9e868ada239a8124bb1b72ad752"
+  }
+]

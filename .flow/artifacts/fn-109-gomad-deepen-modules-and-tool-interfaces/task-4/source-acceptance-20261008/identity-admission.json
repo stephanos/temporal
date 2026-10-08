@@ -1,0 +1,40 @@
+{
+  "chronological_gap": {
+    "path": "source-gaps.json",
+    "sha256": "4f51663507c1ce341f2b802448b70fbf982eb3ded0b9b7587dc34f6ab7a868f7",
+    "initial_contract_snapshots": [
+      {
+        "path": "initial-contract-0.md",
+        "sha256": "388b3c80854a8b17920ff89a6b9f534a9ba47aabc0ebe8d64e831d440b41060a"
+      },
+      {
+        "path": "initial-contract-1.md",
+        "sha256": "5a9bb2b4b5428133cddf05407b745a020b73a939fbc8bff94e99c96cd5a8b1ee"
+      }
+    ]
+  },
+  "current_dated_amendment": [
+    {
+      "path": "contract-task-at-freeze.md",
+      "sha256": "92855f3a6e63428d1e961990a4b5819b138dffdde5edda776fa230e4c9e10b5d",
+      "text": "\nThe owner instructed the conductor to complete MILESTONES.md and follow its recommendations instead of asking when in doubt. The conductor therefore selects retaining the existing fail-closed shared CLI Runner digest rather than reverting its integrated validation. This is a new dated decision, not a retroactive claim that the original dirty task4 implementation had the same behavior.\n\nFor task4/R6 and its R18 preservation consumer, recognize only the existing shared-installation reuse of digestRunner. The retained original application.identity hashes os.ReadFile bytes; the integrated application.install reuses the existing doctor digest, rejects non-regular or non-executable Runner files, and retains its staged open/stat/hash/close failures and wrapping. Keep this exact existing hardening, its current rejection assertions and normal executable SHA256 identity. Original and current analysis both depend on reading/hashing the executable; no new analysis dependency is inferred. The actual debca5eb56e7719c566eb4552a04279631982671, a3b9f80efab9356c0be2080779133337e2471ac0 and ca334546 source/merge owners and original/current inputs must be retained as evidence.\n\nThis supersedes exact-original preservation only for that already-integrated validated-digest path. Preserve all other lazy discovery, installation precedence, private commands, command grammar/defaults, bytes, writer attempts/classification/status, comments and fixed supplied identities. Do not add a validator, change product code, recapture fixtures, relax another expectation or treat later-owner blame as a semantic waiver. The fn-114.11/.12 migrations retain their separate approved contracts. The only approved lint exception remains fn-109.28's two exact invariant-panic sites; no additional lint suppression follows. Native qualification and Linux CI remain deferred, with no PR, push or qualification pass."
+    },
+    {
+      "path": "contract-spec-at-freeze.md",
+      "sha256": "5f2f3361cce1da8aecfe17068cec81f75058bfb5f81ac1a27ce4f424bc85a86c",
+      "text": "\nThe owner instructed the conductor to complete MILESTONES.md and follow its recommendations instead of asking when in doubt. The conductor therefore selects retaining the existing fail-closed shared CLI Runner digest rather than reverting its integrated validation. This is a new dated decision, not a retroactive claim that the original dirty task4 implementation had the same behavior.\n\nFor task4/R6 and its R18 preservation consumer, recognize only the existing shared-installation reuse of digestRunner. The retained original application.identity hashes os.ReadFile bytes; the integrated application.install reuses the existing doctor digest, rejects non-regular or non-executable Runner files, and retains its staged open/stat/hash/close failures and wrapping. Keep this exact existing hardening, its current rejection assertions and normal executable SHA256 identity. Original and current analysis both depend on reading/hashing the executable; no new analysis dependency is inferred. The actual debca5eb56e7719c566eb4552a04279631982671, a3b9f80efab9356c0be2080779133337e2471ac0 and ca334546 source/merge owners and original/current inputs must be retained as evidence.\n\nThis supersedes exact-original preservation only for that already-integrated validated-digest path. Preserve all other lazy discovery, installation precedence, private commands, command grammar/defaults, bytes, writer attempts/classification/status, comments and fixed supplied identities. Do not add a validator, change product code, recapture fixtures, relax another expectation or treat later-owner blame as a semantic waiver. The fn-114.11/.12 migrations retain their separate approved contracts. The only approved lint exception remains fn-109.28's two exact invariant-panic sites; no additional lint suppression follows. Native qualification and Linux CI remain deferred, with no PR, push or qualification pass.\n"
+    }
+  ],
+  "scope": "Only existing shared-installation digestRunner reuse, regular/executable validation, staged open/stat/hash/close failures and wrapping; normal SHA identity and original analysis hash dependency remain. All unrelated CLI grammar/default/bytes/writer behavior/comments/identity preservation remains strict.",
+  "new_validator": false,
+  "product_or_test_edits": [],
+  "new_lint_waiver": false,
+  "retroactive_original_equivalence_claim": false,
+  "source_owner_commits": [
+    "debca5eb56e7719c566eb4552a04279631982671",
+    "a3b9f80efab9356c0be2080779133337e2471ac0",
+    "ca3345469a2541b7686606268b0f19cde030a8fe"
+  ],
+  "review_verdict": null,
+  "native": false
+}

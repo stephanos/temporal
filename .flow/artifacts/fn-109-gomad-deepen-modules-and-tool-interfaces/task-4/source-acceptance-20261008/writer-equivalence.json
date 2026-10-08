@@ -1,0 +1,84 @@
+{
+  "original_doctor": {
+    "signature": "func runDoctorWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {",
+    "start": 359,
+    "end": 418,
+    "body": "func runDoctorWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {\n\tflags := flag.NewFlagSet(\"gomad doctor\", flag.ContinueOnError)\n\tflags.SetOutput(stderr)\n\tartifacts := flags.String(\"artifacts\", \".gomad/artifacts\", \"artifact root to verify\")\n\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")\n\tjsonOutput := flags.Bool(\"json\", false, \"emit stable JSON\")\n\tif err := flags.Parse(arguments); err != nil {\n\t\treturn 2\n\t}\n\tif flags.NArg() != 0 {\n\t\tfmt.Fprint(stderr, usage)\n\t\treturn 2\n\t}\n\texecutable, err := app.executable()\n\tif err != nil {\n\t\treturn writeCommandError(stderr, 3, \"resolve gomad executable: %v\\n\", err)\n\t}\n\texecutable, err = filepath.Abs(executable)\n\tif err != nil {\n\t\tfmt.Fprintf(stderr, \"resolve gomad executable path: %v\\n\", err)\n\t\treturn 3\n\t}\n\tartifactRoot, err := filepath.Abs(*artifacts)\n\tif err != nil {\n\t\tfmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)\n\t\treturn 2\n\t}\n\tresolved, _, err := app.installation(*toolchainRoot)\n\tif err != nil {\n\t\tif _, writeErr := fmt.Fprintf(stderr, \"%v\\n\", err); writeErr != nil {\n\t\t\treturn 3\n\t\t}\n\t\treturn 2\n\t}\n\treport := app.check(Config{\n\t\tToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,\n\t\tRunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,\n\t})\n\tif *jsonOutput {\n\t\tencoded, marshalErr := json.Marshal(report)\n\t\tif marshalErr != nil {\n\t\t\tfmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)\n\t\t\treturn 3\n\t\t}\n\t\tfmt.Fprintf(stdout, \"%s\\n\", encoded)\n\t} else {\n\t\tfmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)\n\t\tfor _, check := range report.Checks {\n\t\t\tfmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)\n\t\t}\n\t\tif _, err := fmt.Fprintf(stdout, \"installation: source=%s toolchain=%s\\nrepair: %s\\n\", report.InstallationSource, report.ToolchainRoot, report.RepairInstruction); err != nil {\n\t\t\treturn 3\n\t\t}\n\t}\n\tif !report.Available {\n\t\treturn 1\n\t}\n\treturn 0\n}\n",
+    "sha256": "fc3ef8641018c2f2b3335f6fdf1c14d34a2eb140d673cacabef729307997727b"
+  },
+  "current_doctor": {
+    "signature": "func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) int {",
+    "start": 354,
+    "end": 421,
+    "body": "func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) int {\n\tflags := flag.NewFlagSet(\"gomad doctor\", flag.ContinueOnError)\n\tflags.SetOutput(stderr)\n\tartifacts := flags.String(\"artifacts\", \".gomad/artifacts\", \"artifact root to verify\")\n\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")\n\tjsonOutput := flags.Bool(\"json\", false, \"emit stable JSON\")\n\tif err := flags.Parse(arguments); err != nil {\n\t\treturn 2\n\t}\n\tif flags.NArg() != 0 {\n\t\tfmt.Fprint(stderr, usage)\n\t\treturn 2\n\t}\n\texecutable, err := app.executablePath()\n\tif err != nil {\n\t\tfmt.Fprintln(stderr, err)\n\t\treturn 3\n\t}\n\texecutable, err = absoluteExecutable(executable)\n\tif err != nil {\n\t\tfmt.Fprintln(stderr, err)\n\t\treturn 3\n\t}\n\tartifactRoot, err := filepath.Abs(*artifacts)\n\tif err != nil {\n\t\tfmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)\n\t\treturn 2\n\t}\n\tresolved, err := app.resolveInstallation(executable, *toolchainRoot)\n\tif err != nil {\n\t\tif _, writeErr := fmt.Fprintf(stderr, \"resolve Gomad installation: %v\\n\", err); writeErr != nil {\n\t\t\treturn 3\n\t\t}\n\t\treturn 2\n\t}\n\treport := Check(Config{\n\t\tToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,\n\t\tRunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,\n\t})\n\tif *jsonOutput {\n\t\tencoded, marshalErr := json.Marshal(report)\n\t\tif marshalErr != nil {\n\t\t\tfmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)\n\t\t\treturn 3\n\t\t}\n\t\tfmt.Fprintf(stdout, \"%s\\n\", encoded)\n\t} else {\n\t\tfmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)\n\t\tfor _, check := range report.Checks {\n\t\t\tfmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)\n\t\t}\n\t\tif _, err := fmt.Fprintf(stdout, \"installation: source=%s toolchain=%s\\nrepair: %s\\n\", report.InstallationSource, report.ToolchainRoot, report.RepairInstruction); err != nil {\n\t\t\treturn 3\n\t\t}\n\t}\n\tif !report.Available {\n\t\treturn 1\n\t}\n\treturn 0\n}\n\ntype exploreDependencies struct {\n\tinstall          func(string) (installation, error)\n\tworkingDirectory func() (string, error)\n\texplore          func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)\n\tplan             func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error)\n}\n",
+    "sha256": "ebdddf5d4ff9bed2638c67324fc8e79a2e4d5a1915ee55f6dca3c30aa456f05d"
+  },
+  "original_private_dispatch": {
+    "signature": "func Run(arguments []string, stdout, stderr io.Writer) int {",
+    "start": 93,
+    "end": 141,
+    "body": "func Run(arguments []string, stdout, stderr io.Writer) int {\n\tif len(arguments) == 0 {\n\t\tfmt.Fprint(stderr, usage)\n\t\treturn 2\n\t}\n\tapp := newApplication()\n\tswitch arguments[0] {\n\tcase \"__coordinator\", \"__target_bootstrap\", \"__supervisor\":\n\t\tif err := app.dispatchPrivateMode(arguments[0]); err != nil {\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\treturn 3\n\t\t}\n\t\treturn 0\n\tcase \"explore\":\n\t\treturn runExploreWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"plan\":\n\t\treturn runPlanWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"execute-shard\":\n\t\treturn runCampaignShardWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"merge\":\n\t\treturn runMergeCampaigns(arguments[1:], stdout, stderr)\n\tcase \"qualify\":\n\t\treturn runQualifyWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"qualify-set\":\n\t\treturn runQualifySetWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"merge-set\":\n\t\treturn runMergeSet(arguments[1:], stdout, stderr)\n\tcase \"compare-support\":\n\t\treturn runCompareSupport(arguments[1:], stdout, stderr)\n\tcase \"analyze\":\n\t\treturn runAnalyzeWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"resume\":\n\t\treturn runResumeWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"recover\":\n\t\treturn runRecover(arguments[1:], stdout, stderr)\n\tcase \"replay\":\n\t\treturn runReplayWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"minimize\":\n\t\treturn runMinimizeWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"doctor\":\n\t\treturn runDoctorWithApplication(arguments[1:], stdout, stderr, app)\n\tcase \"inspect\":\n\t\treturn runInspect(arguments[1:], stdout, stderr)\n\tdefault:\n\t\tfmt.Fprintf(stderr, \"unknown gomad command %q\\n%s\", arguments[0], usage)\n\t\treturn 2\n\t}\n}\n",
+    "sha256": "0ce3fa71226578e6e3deb2b388207a95968adbc5fa4f7e5fb3b66d5411c75267"
+  },
+  "current_private_dispatch": {
+    "signature": "func (app application) runPrivateMode(mode string, stderr io.Writer) int {",
+    "start": 86,
+    "end": 94,
+    "body": "func (app application) runPrivateMode(mode string, stderr io.Writer) int {\n\tif err := app.dispatch(mode, app.privateInput, app.privateOutput); err != nil {\n\t\tfmt.Fprintln(stderr, err)\n\t\treturn 3\n\t}\n\treturn 0\n}\n\n// executablePath reports the running gomad executable as the host names it.",
+    "sha256": "919669820aca63eaa8ff1c2bb5fcf9ef7982af88c2376b4ad0ece51221c8a70e"
+  },
+  "branch_bindings": [
+    {
+      "branch": "Executable discovery failure",
+      "original": "writeCommandError(stderr,3,\"resolve gomad executable: %v\\n\", err)",
+      "current": "app.executablePath wraps resolve gomad executable: %w; fmt.Fprintln(stderr,err); return3",
+      "writes": 1,
+      "stdout_bytes": "",
+      "stderr_format": "resolve gomad executable: <error>\n",
+      "successful_writer_status": 3,
+      "failed_writer_status": 3
+    },
+    {
+      "branch": "Absolute executable path failure",
+      "original": "fmt.Fprintf(stderr,\"resolve gomad executable path: %v\\n\",err);return3",
+      "current": "absoluteExecutable wraps resolve gomad executable path: %w;fmt.Fprintln(stderr,err);return3",
+      "writes": 1,
+      "successful_writer_status": 3,
+      "failed_writer_status": 3
+    },
+    {
+      "branch": "Absolute artifact directory failure",
+      "original_and_current": "fmt.Fprintf(stderr,\"resolve artifact directory: %v\\n\",err);return2",
+      "writes": 1,
+      "successful_writer_status": 2,
+      "failed_writer_status": 2
+    },
+    {
+      "branch": "Installation resolution failure",
+      "original": "app.installation wraps resolve Gomad installation: %w; checked fmt.Fprintf(stderr,\"%v\\n\",err)",
+      "current": "app.resolveInstallation returns resolver error; checked fmt.Fprintf(stderr,\"resolve Gomad installation: %v\\n\",err)",
+      "writes": 1,
+      "successful_writer_status": 2,
+      "failed_writer_status": 3
+    },
+    {
+      "branch": "Doctor JSON stdout",
+      "original_and_current": "fmt.Fprintf(stdout,\"%s\\n\",encoded) return ignored, followed by report availability classification",
+      "writes": 1,
+      "available_status": 0,
+      "unavailable_status": 1,
+      "failed_writer_status": "same0/1",
+      "pre_existing": true
+    },
+    {
+      "branch": "Private dispatch failure",
+      "original": "app.dispatchPrivateMode -> Runner dispatcher; fmt.Fprintln(stderr,err);return3",
+      "current": "app.dispatch using private process streams; fmt.Fprintln(stderr,err);return3",
+      "writes": 1,
+      "successful_writer_status": 3,
+      "failed_writer_status": 3
+    }
+  ],
+  "basis": "Exact retained function bodies plus current wrapper definitions; source equivalence table is separate from actual test observations. No failed-writer0/1 repair or new waiver.",
+  "runtime_original_reproduction": false
+}

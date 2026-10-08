@@ -1,0 +1,39 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
+  '\n' +
+    'The owner instructed the conductor to complete MILESTONES.md and follow its recommendations instead of asking when in doubt. The conductor therefore selects retaining the existing fail-closed shared CLI Runner digest rather than reverting its integrated validation. This is a new dated decision, not a retroactive claim that the original dirty task4 implementation had the same behavior.\n' +
+    '\n' +
+    'For task4/R6 and its R18 preservation consumer, recognize only the existing shared-installation reuse of digestRunner. The retained original application.identity hashes os.ReadFile bytes; the integrated application.install reuses the existing doctor digest, rejects non-regular or non-executable Runner files, and retains its staged open/stat/hash/close failures and wrapping. Keep this exact existing hardening, its current rejection assertions and normal executable SHA256 identity. Original and current analysis both depend on reading/hashing the executable; no new analysis dependency is inferred. The actual debca5eb56e7719c566eb4552a04279631982671, a3b9f80efab9356c0be2080779133337e2471ac0 and ca334546 source/merge owners and original/current inputs must be retained as evidence.\n' +
+    '\n' +
++   "This supersedes exact-original preservation only for that already-integrated validated-digest path. Preserve all other lazy discovery, installation precedence, private commands, command grammar/defaults, bytes, writer attempts/classification/status, comments and fixed supplied identities. Do not add a validator, change product code, recapture fixtures, relax another expectation or treat later-owner blame as a semantic waiver. The fn-114.11/.12 migrations retain their separate approved contracts. The only approved lint exception remains fn-109.28's two exact invariant-panic sites; no additional lint suppression follows. Native qualification and Linux CI remain deferred, with no PR, push or qualification pass."
+-   "This supersedes exact-original preservation only for that already-integrated validated-digest path. Preserve all other lazy discovery, installation precedence, private commands, command grammar/defaults, bytes, writer attempts/classification/status, comments and fixed supplied identities. Do not add a validator, change product code, recapture fixtures, relax another expectation or treat later-owner blame as a semantic waiver. The fn-114.11/.12 migrations retain their separate approved contracts. The only approved lint exception remains fn-109.28's two exact invariant-panic sites; no additional lint suppression follows. Native qualification and Linux CI remain deferred, with no PR, push or qualification pass.\n"
+
+    at admission (file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/source-acceptance-20261008/admission.mjs:6:422)
+    at file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/source-acceptance-20261008/admission.mjs:13:86
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '\n' +
+    'The owner instructed the conductor to complete MILESTONES.md and follow its recommendations instead of asking when in doubt. The conductor therefore selects retaining the existing fail-closed shared CLI Runner digest rather than reverting its integrated validation. This is a new dated decision, not a retroactive claim that the original dirty task4 implementation had the same behavior.\n' +
+    '\n' +
+    'For task4/R6 and its R18 preservation consumer, recognize only the existing shared-installation reuse of digestRunner. The retained original application.identity hashes os.ReadFile bytes; the integrated application.install reuses the existing doctor digest, rejects non-regular or non-executable Runner files, and retains its staged open/stat/hash/close failures and wrapping. Keep this exact existing hardening, its current rejection assertions and normal executable SHA256 identity. Original and current analysis both depend on reading/hashing the executable; no new analysis dependency is inferred. The actual debca5eb56e7719c566eb4552a04279631982671, a3b9f80efab9356c0be2080779133337e2471ac0 and ca334546 source/merge owners and original/current inputs must be retained as evidence.\n' +
+    '\n' +
+    "This supersedes exact-original preservation only for that already-integrated validated-digest path. Preserve all other lazy discovery, installation precedence, private commands, command grammar/defaults, bytes, writer attempts/classification/status, comments and fixed supplied identities. Do not add a validator, change product code, recapture fixtures, relax another expectation or treat later-owner blame as a semantic waiver. The fn-114.11/.12 migrations retain their separate approved contracts. The only approved lint exception remains fn-109.28's two exact invariant-panic sites; no additional lint suppression follows. Native qualification and Linux CI remain deferred, with no PR, push or qualification pass.",
+  expected: '\n' +
+    'The owner instructed the conductor to complete MILESTONES.md and follow its recommendations instead of asking when in doubt. The conductor therefore selects retaining the existing fail-closed shared CLI Runner digest rather than reverting its integrated validation. This is a new dated decision, not a retroactive claim that the original dirty task4 implementation had the same behavior.\n' +
+    '\n' +
+    'For task4/R6 and its R18 preservation consumer, recognize only the existing shared-installation reuse of digestRunner. The retained original application.identity hashes os.ReadFile bytes; the integrated application.install reuses the existing doctor digest, rejects non-regular or non-executable Runner files, and retains its staged open/stat/hash/close failures and wrapping. Keep this exact existing hardening, its current rejection assertions and normal executable SHA256 identity. Original and current analysis both depend on reading/hashing the executable; no new analysis dependency is inferred. The actual debca5eb56e7719c566eb4552a04279631982671, a3b9f80efab9356c0be2080779133337e2471ac0 and ca334546 source/merge owners and original/current inputs must be retained as evidence.\n' +
+    '\n' +
+    "This supersedes exact-original preservation only for that already-integrated validated-digest path. Preserve all other lazy discovery, installation precedence, private commands, command grammar/defaults, bytes, writer attempts/classification/status, comments and fixed supplied identities. Do not add a validator, change product code, recapture fixtures, relax another expectation or treat later-owner blame as a semantic waiver. The fn-114.11/.12 migrations retain their separate approved contracts. The only approved lint exception remains fn-109.28's two exact invariant-panic sites; no additional lint suppression follows. Native qualification and Linux CI remain deferred, with no PR, push or qualification pass.\n",
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

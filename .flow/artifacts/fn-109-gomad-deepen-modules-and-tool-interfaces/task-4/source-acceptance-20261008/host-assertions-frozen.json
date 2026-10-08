@@ -1,0 +1,420 @@
+{
+  "host_bound_failures": [
+    {
+      "test": "TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput",
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+      "current": {
+        "signature": "func TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput(t *testing.T) {",
+        "start": 524,
+        "end": 556,
+        "body": "func TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput(t *testing.T) {\n\tdirectory := t.TempDir()\n\tif err := os.WriteFile(filepath.Join(directory, \"go.mod\"), []byte(\"module example.com/target\\n\\ngo 1.26.4\\n\\nrequire github.com/stretchr/testify v1.11.1\\n\"), 0o600); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif err := os.WriteFile(filepath.Join(directory, \"main.go\"), []byte(\"package main\\n\\nimport _ \\\"github.com/stretchr/testify/require\\\"\\n\\nfunc main() {}\\n\"), 0o600); err != nil {\n\t\tt.Fatal(err)\n\t}\n\ttoolchain, err := filepath.Abs(\"../../../../.toolchain\")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tdependencies := analyzeDependencies{\n\t\ttoolchain:        func(string) (string, error) { return toolchain, nil },\n\t\tidentity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },\n\t\tworkingDirectory: func() (string, error) { return directory, nil },\n\t\treview:           target.ReviewCapabilities,\n\t\tbuild: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {\n\t\t\tt.Fatal(\"analysis report was built after invalid read-only module resolution\")\n\t\t\treturn capabilityanalysis.Report{}, nil\n\t\t},\n\t}\n\tvar stdout, stderr bytes.Buffer\n\tif status := runAnalyzeWith([]string{\"go-run\", \".\"}, &stdout, &stderr, dependencies); status != 2 || !strings.Contains(stderr.String(), \"missing go.sum entry\") {\n\t\tt.Fatalf(\"status=%d stdout=%q stderr=%q\", status, stdout.String(), stderr.String())\n\t}\n\tif _, statErr := os.Stat(filepath.Join(directory, \"go.sum\")); !os.IsNotExist(statErr) {\n\t\tt.Fatalf(\"read-only analysis wrote go.sum: %v\", statErr)\n\t}\n}\n\ntype failingWriter struct{}\n"
+      },
+      "original": {
+        "signature": "func TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput(t *testing.T) {",
+        "start": 467,
+        "end": 497,
+        "body": "func TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput(t *testing.T) {\n\tdirectory := t.TempDir()\n\tif err := os.WriteFile(filepath.Join(directory, \"go.mod\"), []byte(\"module example.com/target\\n\\ngo 1.26.4\\n\\nrequire github.com/stretchr/testify v1.11.1\\n\"), 0o600); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif err := os.WriteFile(filepath.Join(directory, \"main.go\"), []byte(\"package main\\n\\nimport _ \\\"github.com/stretchr/testify/require\\\"\\n\\nfunc main() {}\\n\"), 0o600); err != nil {\n\t\tt.Fatal(err)\n\t}\n\ttoolchain, err := filepath.Abs(\"../../../../.toolchain\")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tdependencies := analyzeDependencies{\n\t\ttoolchain:        func(string) (string, error) { return toolchain, nil },\n\t\tidentity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },\n\t\tworkingDirectory: func() (string, error) { return directory, nil },\n\t\treview:           target.ReviewCapabilities,\n\t\tbuild: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {\n\t\t\tt.Fatal(\"analysis report was built after invalid read-only module resolution\")\n\t\t\treturn capabilityanalysis.Report{}, nil\n\t\t},\n\t}\n\tvar stdout, stderr bytes.Buffer\n\tif status := runAnalyzeWith([]string{\"go-run\", \".\"}, &stdout, &stderr, dependencies); status != 2 || !strings.Contains(stderr.String(), \"missing go.sum entry\") {\n\t\tt.Fatalf(\"status=%d stdout=%q stderr=%q\", status, stdout.String(), stderr.String())\n\t}\n\tif _, statErr := os.Stat(filepath.Join(directory, \"go.sum\")); !os.IsNotExist(statErr) {\n\t\tt.Fatalf(\"read-only analysis wrote go.sum: %v\", statErr)\n\t}\n}\n"
+      },
+      "assertion_alignment": [
+        {
+          "before": 0,
+          "after": 0
+        },
+        {
+          "before": 1,
+          "after": 1
+        },
+        {
+          "before": 2,
+          "after": 2
+        },
+        {
+          "before": 3,
+          "after": 3
+        },
+        {
+          "before": 4,
+          "after": 4
+        },
+        {
+          "before": 5,
+          "after": 5
+        },
+        {
+          "before": 6,
+          "after": 6
+        },
+        {
+          "before": 7,
+          "after": 7
+        },
+        {
+          "before": 8,
+          "after": 8
+        },
+        {
+          "before": 9,
+          "after": 9
+        },
+        {
+          "before": 10,
+          "after": 10
+        },
+        {
+          "before": 11,
+          "after": 11
+        },
+        {
+          "before": 12,
+          "after": 12
+        },
+        {
+          "before": 13,
+          "after": 13
+        },
+        {
+          "before": 14,
+          "after": 14
+        },
+        {
+          "before": 15,
+          "after": 15
+        },
+        {
+          "before": 16,
+          "after": 16
+        },
+        {
+          "before": 17,
+          "after": 17
+        },
+        {
+          "before": 18,
+          "after": 18
+        },
+        {
+          "before": 19,
+          "after": 19
+        },
+        {
+          "before": 20,
+          "after": 20
+        },
+        {
+          "before": 21,
+          "after": 21
+        },
+        {
+          "before": 22,
+          "after": 22
+        },
+        {
+          "before": 23,
+          "after": 23
+        },
+        {
+          "before": 24,
+          "after": 24
+        },
+        {
+          "before": 25,
+          "after": 25
+        },
+        {
+          "before": 26,
+          "after": 26
+        },
+        {
+          "before": 27,
+          "after": 27
+        },
+        {
+          "before": 28,
+          "after": 28
+        },
+        {
+          "before": 29,
+          "after": 29
+        },
+        {
+          "before": 30,
+          "after": 30
+        }
+      ],
+      "current_sha256": "7f3cbb81ea70e25559e789c9eea3c22f36f2865834528a3a1d9be44952665b2c",
+      "original_sha256": "88baf4cdfe38d8e36561fe6dc9c8b5bde4fab65af0de641248fa583d105ebe49",
+      "current_blame": "0a10990ceb2d1b39d879d3f77d52d836cf441d21 219 524 8\nauthor stephanos\nauthor-mail <github@stephanbehnke.com>\nauthor-time 1786664152\nauthor-tz -0700\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004815\ncommitter-tz -0700\nsummary Add Gomad v3 capability analysis and choice tracing\nprevious 8ceee49a682a9c0962cb86ce2d8d494cde972de1 tools/gomadv3/cmd/gomad/main_test.go\nfilename tools/gomadv3/cmd/gomad/main_test.go\n\tfunc TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput(t *testing.T) {\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 220 525\n\t\tdirectory := t.TempDir()\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 221 526\n\t\tif err := os.WriteFile(filepath.Join(directory, \"go.mod\"), []byte(\"module example.com/target\\n\\ngo 1.26.4\\n\\nrequire github.com/stretchr/testify v1.11.1\\n\"), 0o600); err != nil {\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 222 527\n\t\t\tt.Fatal(err)\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 223 528\n\t\t}\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 224 529\n\t\tif err := os.WriteFile(filepath.Join(directory, \"main.go\"), []byte(\"package main\\n\\nimport _ \\\"github.com/stretchr/testify/require\\\"\\n\\nfunc main() {}\\n\"), 0o600); err != nil {\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 225 530\n\t\t\tt.Fatal(err)\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 226 531\n\t\t}\n3fb5cb4210940e6c73c28f2d5389bd95ae49970d 364 532 1\nauthor stephanos\nauthor-mail <github@stephanbehnke.com>\nauthor-time 1786810459\nauthor-tz -0700\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004816\ncommitter-tz -0700\nsummary Refactor Gomad v3 package architecture\nprevious 7cf65eff561bb0f4976271d8b322944b0c60f0fa tools/gomadv3/cmd/gomad/main_test.go\nfilename tools/gomadv3/cmd/gomad/internal/cli/cli_test.go\n\t\ttoolchain, err := filepath.Abs(\"../../../../.toolchain\")\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 228 533 8\n\t\tif err != nil {\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 229 534\n\t\t\tt.Fatal(err)\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 230 535\n\t\t}\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 231 536\n\t\tdependencies := analyzeDependencies{\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 232 537\n\t\t\ttoolchain:        func(string) (string, error) { return toolchain, nil },\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 233 538\n\t\t\tidentity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 234 539\n\t\t\tworkingDirectory: func() (string, error) { return directory, nil },\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 235 540\n\t\t\treview:           target.ReviewCapabilities,\n2f0cd2754bc0ac4ddcd6c9305c2a05d57cfe9301 474 541 1\nauthor stephanos\nauthor-mail <github@stephanbehnke.com>\nauthor-time 1787357606\nauthor-tz -0700\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004817\ncommitter-tz -0700\nsummary Reorganize GOMADv3 architecture\nprevious ac21aafc5b511449ceba5b41c049bdb2d896a7af tools/gomadv3/cmd/gomad/internal/cli/cli_test.go\nfilename tools/gomadv3/cmd/gomad/internal/cli/cli_test.go\n\t\t\tbuild: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 237 542 1\n\t\t\t\tt.Fatal(\"analysis report was built after invalid read-only module resolution\")\n2f0cd2754bc0ac4ddcd6c9305c2a05d57cfe9301 476 543 1\n\t\t\t\treturn capabilityanalysis.Report{}, nil\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 239 544 11\n\t\t\t},\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 240 545\n\t\t}\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 241 546\n\t\tvar stdout, stderr bytes.Buffer\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 242 547\n\t\tif status := runAnalyzeWith([]string{\"go-run\", \".\"}, &stdout, &stderr, dependencies); status != 2 || !strings.Contains(stderr.String(), \"missing go.sum entry\") {\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 243 548\n\t\t\tt.Fatalf(\"status=%d stdout=%q stderr=%q\", status, stdout.String(), stderr.String())\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 244 549\n\t\t}\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 245 550\n\t\tif _, statErr := os.Stat(filepath.Join(directory, \"go.sum\")); !os.IsNotExist(statErr) {\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 246 551\n\t\t\tt.Fatalf(\"read-only analysis wrote go.sum: %v\", statErr)\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 247 552\n\t\t}\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 248 553\n\t}\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 249 554\n\t\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 289 555 2\n\ttype failingWriter struct{}\n0a10990ceb2d1b39d879d3f77d52d836cf441d21 290 556\n\t\n",
+      "trigger": "real target.ReviewCapabilities starts absent .toolchain/bin/go before the expected missing go.sum diagnostic",
+      "portable_pass_claimed": false
+    },
+    {
+      "test": "TestRunDoctorReportsAvailableContractAsJSON",
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+      "current": {
+        "signature": "func TestRunDoctorReportsAvailableContractAsJSON(t *testing.T) {",
+        "start": 561,
+        "end": 574,
+        "body": "func TestRunDoctorReportsAvailableContractAsJSON(t *testing.T) {\n\texecutable, artifacts := writeDoctorCommandFixture(t)\n\tvar stdout, stderr bytes.Buffer\n\tstatus := application{executable: func() (string, error) { return executable, nil }, environment: os.Getenv}.runDoctor([]string{\"--json\", \"--artifacts\", artifacts}, &stdout, &stderr)\n\tif status != 0 || stderr.Len() != 0 {\n\t\tt.Fatalf(\"status = %d, stdout = %q, stderr = %q\", status, stdout.String(), stderr.String())\n\t}\n\tfor _, value := range []string{`\"schema\":\"gomad3.doctor/v3\"`, `\"available\":true`, `\"boundary_manifest_version\":`, `\"adapters\":[`, `\"installation_source\":\"adjacent\"`, `\"repair_instruction\":`} {\n\t\tif !strings.Contains(stdout.String(), value) {\n\t\t\tt.Fatalf(\"doctor JSON = %q, missing %q\", stdout.String(), value)\n\t\t}\n\t}\n}\n"
+      },
+      "original": {
+        "signature": "func TestRunDoctorReportsAvailableContractAsJSON(t *testing.T) {",
+        "start": 543,
+        "end": 556,
+        "body": "func TestRunDoctorReportsAvailableContractAsJSON(t *testing.T) {\n\texecutable, artifacts := writeDoctorCommandFixture(t)\n\tvar stdout, stderr bytes.Buffer\n\tstatus := runDoctor([]string{\"--json\", \"--artifacts\", artifacts}, &stdout, &stderr, executable)\n\tif status != 0 || stderr.Len() != 0 {\n\t\tt.Fatalf(\"status = %d, stdout = %q, stderr = %q\", status, stdout.String(), stderr.String())\n\t}\n\tfor _, value := range []string{`\"schema\":\"gomad3.doctor/v3\"`, `\"available\":true`, `\"boundary_manifest_version\":`, `\"adapters\":[`, `\"installation_source\":\"adjacent\"`, `\"repair_instruction\":`} {\n\t\tif !strings.Contains(stdout.String(), value) {\n\t\t\tt.Fatalf(\"doctor JSON = %q, missing %q\", stdout.String(), value)\n\t\t}\n\t}\n}\n"
+      },
+      "assertion_alignment": [
+        {
+          "before": 0,
+          "after": 0
+        },
+        {
+          "before": 1,
+          "after": 1
+        },
+        {
+          "before": 2,
+          "after": 2
+        },
+        {
+          "before": 4,
+          "after": 4
+        },
+        {
+          "before": 5,
+          "after": 5
+        },
+        {
+          "before": 6,
+          "after": 6
+        },
+        {
+          "before": 7,
+          "after": 7
+        },
+        {
+          "before": 8,
+          "after": 8
+        },
+        {
+          "before": 9,
+          "after": 9
+        },
+        {
+          "before": 10,
+          "after": 10
+        },
+        {
+          "before": 11,
+          "after": 11
+        },
+        {
+          "before": 12,
+          "after": 12
+        },
+        {
+          "before": 13,
+          "after": 13
+        }
+      ],
+      "current_sha256": "f017c7c9cd4db6fac149baf7cf35cd26a9e98903c13a7997bd8e72c8d2e2a037",
+      "original_sha256": "5143097e9bd62f9c7718481a40537a15f4b9ecc232186176275e0a61e698116e",
+      "current_blame": "c1f8f84c7498ca549cb07fcb45ac8b559351a9f4 103 561 3\nauthor stephanos\nauthor-mail <github@stephanbehnke.com>\nauthor-time 1786594131\nauthor-tz -0700\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004815\ncommitter-tz -0700\nsummary Harden Gomad v3 qualification and recovery\nprevious 4281c1f5fbfa6396a30e33025be7ffdf351b0ebb tools/gomadv3/cmd/gomad/main_test.go\nfilename tools/gomadv3/cmd/gomad/main_test.go\n\tfunc TestRunDoctorReportsAvailableContractAsJSON(t *testing.T) {\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 104 562\n\t\texecutable, artifacts := writeDoctorCommandFixture(t)\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 105 563\n\t\tvar stdout, stderr bytes.Buffer\ndebca5eb56e7719c566eb4552a04279631982671 546 564 1\nauthor Stephan Behnke\nauthor-mail <stephanos@users.noreply.github.com>\nauthor-time 1791001343\nauthor-tz -0700\ncommitter Stephan Behnke\ncommitter-mail <stephanos@users.noreply.github.com>\ncommitter-time 1791001343\ncommitter-tz -0700\nsummary gomad: resolve CLI installation, Runner build and private child modes through one application value\nprevious 9032202898117bce5a38aa04078da136e4f767bf tools/gomad3/cmd/gomad/internal/cli/cli_test.go\nfilename tools/gomad3/cmd/gomad/internal/cli/cli_test.go\n\t\tstatus := application{executable: func() (string, error) { return executable, nil }, environment: os.Getenv}.runDoctor([]string{\"--json\", \"--artifacts\", artifacts}, &stdout, &stderr)\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 107 565 3\n\t\tif status != 0 || stderr.Len() != 0 {\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 108 566\n\t\t\tt.Fatalf(\"status = %d, stdout = %q, stderr = %q\", status, stdout.String(), stderr.String())\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 109 567\n\t\t}\n53c5cebc9076bdbb439a36b7fa78cc02bc051ab9 540 568 1\nauthor Stephan Behnke\nauthor-mail <stephanos@users.noreply.github.com>\nauthor-time 1787538984\nauthor-tz -0700\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004841\ncommitter-tz -0700\nsummary wip\nprevious 8f90925aa1601c4e61995215480e737e8173eef9 tools/gomadv3/cmd/gomad/internal/cli/cli_test.go\nfilename tools/gomad3/cmd/gomad/internal/cli/cli_test.go\n\t\tfor _, value := range []string{`\"schema\":\"gomad3.doctor/v3\"`, `\"available\":true`, `\"boundary_manifest_version\":`, `\"adapters\":[`, `\"installation_source\":\"adjacent\"`, `\"repair_instruction\":`} {\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 111 569 6\n\t\t\tif !strings.Contains(stdout.String(), value) {\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 112 570\n\t\t\t\tt.Fatalf(\"doctor JSON = %q, missing %q\", stdout.String(), value)\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 113 571\n\t\t\t}\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 114 572\n\t\t}\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 115 573\n\t}\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 116 574\n\t\n",
+      "trigger": "runtime.GOOS/runtime.GOARCH supplies actual linux/arm64; hostCheck rejects it before Available can be true",
+      "portable_pass_claimed": false
+    },
+    {
+      "test": "TestCheckReportsAvailableContract",
+      "path": "tools/gomad3/cmd/gomad/internal/cli/doctor_test.go",
+      "current": {
+        "signature": "func TestCheckReportsAvailableContract(t *testing.T) {",
+        "start": 11,
+        "end": 37,
+        "body": "func TestCheckReportsAvailableContract(t *testing.T) {\n\troot, runner, artifacts := writeDoctorFixture(t, runtime.GOOS, runtime.GOARCH)\n\treport := Check(Config{\n\t\tToolchainRoot: filepath.Join(root, \".toolchain\"), InstallationSource: \"test\", RepairInstruction: \"repair test toolchain\",\n\t\tRunnerPath: runner, ArtifactRoot: artifacts, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,\n\t})\n\tif !report.Available || report.GoVersion != \"go1.27.1\" || report.ToolchainBuild != strings.Repeat(\"a\", 64) {\n\t\tt.Fatalf(\"report = %#v\", report)\n\t}\n\tgotAdapters := make([]string, len(report.Adapters))\n\tfor index, adapter := range report.Adapters {\n\t\tgotAdapters[index] = adapter.Module + \":\" + adapter.Status\n\t}\n\twantAdapters := []string{\"github.com/Masterminds/sprig/v3:available\", \"github.com/cactus/go-statsd-client/v5:available\", \"github.com/cockroachdb/pebble:available\", \"github.com/getsentry/sentry-go:available\", \"github.com/go-playground/validator/v10:available\", \"github.com/hashicorp/go-metrics:available\", \"github.com/hashicorp/go-sockaddr:available\", \"github.com/hashicorp/memberlist:available\", \"go.opentelemetry.io/otel/sdk:available\", \"go.temporal.io/sdk:available\", \"go.uber.org/fx:available\", \"golang.org/x/net:available\", \"google.golang.org/grpc:available\", \"modernc.org/libc:available\", \"modernc.org/memory:available\"}\n\tif report.RunnerBuild == \"\" || report.BoundaryManifestVersion == \"\" || strings.Join(gotAdapters, \",\") != strings.Join(wantAdapters, \",\") {\n\t\tt.Fatalf(\"identity = %#v\", report)\n\t}\n\tif report.ArtifactDirectory != artifacts || report.InstallationSource != \"test\" || report.RepairInstruction != \"repair test toolchain\" || len(report.Checks) != 19 {\n\t\tt.Fatalf(\"diagnostics = %#v\", report)\n\t}\n\tfor _, check := range report.Checks {\n\t\tif check.Status != \"ok\" {\n\t\t\tt.Fatalf(\"check = %#v\", check)\n\t\t}\n\t}\n}\n"
+      },
+      "original": {
+        "signature": "func TestCheckReportsAvailableContract(t *testing.T) {",
+        "start": 11,
+        "end": 37,
+        "body": "func TestCheckReportsAvailableContract(t *testing.T) {\n\troot, runner, artifacts := writeDoctorFixture(t, runtime.GOOS, runtime.GOARCH)\n\treport := Check(Config{\n\t\tToolchainRoot: filepath.Join(root, \".toolchain\"), InstallationSource: \"test\", RepairInstruction: \"repair test toolchain\",\n\t\tRunnerPath: runner, ArtifactRoot: artifacts, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,\n\t})\n\tif !report.Available || report.GoVersion != \"go1.27.1\" || report.ToolchainBuild != strings.Repeat(\"a\", 64) {\n\t\tt.Fatalf(\"report = %#v\", report)\n\t}\n\tgotAdapters := make([]string, len(report.Adapters))\n\tfor index, adapter := range report.Adapters {\n\t\tgotAdapters[index] = adapter.Module + \":\" + adapter.Status\n\t}\n\twantAdapters := []string{\"github.com/Masterminds/sprig/v3:available\", \"github.com/cactus/go-statsd-client/v5:available\", \"github.com/cockroachdb/pebble:available\", \"github.com/getsentry/sentry-go:available\", \"github.com/go-playground/validator/v10:available\", \"github.com/hashicorp/go-metrics:available\", \"github.com/hashicorp/go-sockaddr:available\", \"github.com/hashicorp/memberlist:available\", \"go.opentelemetry.io/otel/sdk:available\", \"go.temporal.io/sdk:available\", \"go.uber.org/fx:available\", \"golang.org/x/net:available\", \"google.golang.org/grpc:available\", \"modernc.org/libc:available\", \"modernc.org/memory:available\"}\n\tif report.RunnerBuild == \"\" || report.BoundaryManifestVersion == \"\" || strings.Join(gotAdapters, \",\") != strings.Join(wantAdapters, \",\") {\n\t\tt.Fatalf(\"identity = %#v\", report)\n\t}\n\tif report.ArtifactDirectory != artifacts || report.InstallationSource != \"test\" || report.RepairInstruction != \"repair test toolchain\" || len(report.Checks) != 19 {\n\t\tt.Fatalf(\"diagnostics = %#v\", report)\n\t}\n\tfor _, check := range report.Checks {\n\t\tif check.Status != \"ok\" {\n\t\t\tt.Fatalf(\"check = %#v\", check)\n\t\t}\n\t}\n}\n"
+      },
+      "assertion_alignment": [
+        {
+          "before": 0,
+          "after": 0
+        },
+        {
+          "before": 1,
+          "after": 1
+        },
+        {
+          "before": 2,
+          "after": 2
+        },
+        {
+          "before": 3,
+          "after": 3
+        },
+        {
+          "before": 4,
+          "after": 4
+        },
+        {
+          "before": 5,
+          "after": 5
+        },
+        {
+          "before": 6,
+          "after": 6
+        },
+        {
+          "before": 7,
+          "after": 7
+        },
+        {
+          "before": 8,
+          "after": 8
+        },
+        {
+          "before": 9,
+          "after": 9
+        },
+        {
+          "before": 10,
+          "after": 10
+        },
+        {
+          "before": 11,
+          "after": 11
+        },
+        {
+          "before": 12,
+          "after": 12
+        },
+        {
+          "before": 13,
+          "after": 13
+        },
+        {
+          "before": 14,
+          "after": 14
+        },
+        {
+          "before": 15,
+          "after": 15
+        },
+        {
+          "before": 16,
+          "after": 16
+        },
+        {
+          "before": 17,
+          "after": 17
+        },
+        {
+          "before": 18,
+          "after": 18
+        },
+        {
+          "before": 19,
+          "after": 19
+        },
+        {
+          "before": 20,
+          "after": 20
+        },
+        {
+          "before": 21,
+          "after": 21
+        },
+        {
+          "before": 22,
+          "after": 22
+        },
+        {
+          "before": 23,
+          "after": 23
+        },
+        {
+          "before": 24,
+          "after": 24
+        },
+        {
+          "before": 25,
+          "after": 25
+        },
+        {
+          "before": 26,
+          "after": 26
+        }
+      ],
+      "current_sha256": "4fe5f84a917d2d87d41b58b35b9d11fc408b0d2172572d103b952fdcb1d58519",
+      "original_sha256": "4fe5f84a917d2d87d41b58b35b9d11fc408b0d2172572d103b952fdcb1d58519",
+      "current_blame": "c1f8f84c7498ca549cb07fcb45ac8b559351a9f4 10 11 1\nauthor stephanos\nauthor-mail <github@stephanbehnke.com>\nauthor-time 1786594131\nauthor-tz -0700\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004815\ncommitter-tz -0700\nsummary Harden Gomad v3 qualification and recovery\nfilename tools/gomadv3/internal/doctor/doctor_test.go\n\tfunc TestCheckReportsAvailableContract(t *testing.T) {\n00614c8ebe299872e3575e53117c5842e3e108eb 12 12 1\nauthor Claude\nauthor-mail <noreply@anthropic.com>\nauthor-time 1790470157\nauthor-tz +0000\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004921\ncommitter-tz -0700\nsummary gomad3: pin GOROOT for the upstream tier and make the doctor test host-aware\nprevious c88537f4c660091b9fdb729861694f878588673f tools/gomad3/cmd/gomad/internal/cli/doctor_test.go\nfilename tools/gomad3/cmd/gomad/internal/cli/doctor_test.go\n\t\troot, runner, artifacts := writeDoctorFixture(t, runtime.GOOS, runtime.GOARCH)\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 12 13 1\n\t\treport := Check(Config{\nc7bbba23bac905f5eb7a7bd6596fce967cf2350a 13 14 1\nauthor stephanos\nauthor-mail <github@stephanbehnke.com>\nauthor-time 1786631749\nauthor-tz -0700\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004815\ncommitter-tz -0700\nsummary Complete Gomad v3 qualification and guidance\nprevious c1f8f84c7498ca549cb07fcb45ac8b559351a9f4 tools/gomadv3/internal/doctor/doctor_test.go\nfilename tools/gomadv3/internal/doctor/doctor_test.go\n\t\t\tToolchainRoot: filepath.Join(root, \".toolchain\"), InstallationSource: \"test\", RepairInstruction: \"repair test toolchain\",\n00614c8ebe299872e3575e53117c5842e3e108eb 15 15 1\n\t\t\tRunnerPath: runner, ArtifactRoot: artifacts, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 14 16 1\n\t\t})\n00614c8ebe299872e3575e53117c5842e3e108eb 17 17 1\n\t\tif !report.Available || report.GoVersion != \"go1.27.1\" || report.ToolchainBuild != strings.Repeat(\"a\", 64) {\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 16 18 2\n\t\t\tt.Fatalf(\"report = %#v\", report)\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 17 19\n\t\t}\n98d28f52b4975843f584b9f696f46a87d002f1f2 19 20 4\nauthor stephanos\nauthor-mail <github@stephanbehnke.com>\nauthor-time 1787327676\nauthor-tz -0700\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004817\ncommitter-tz -0700\nsummary wip\nprevious a449e5a4fdd51ab856f42858c34c7d1daf2a3a1c tools/gomadv3/cmd/gomad/internal/cli/doctor_test.go\nfilename tools/gomadv3/cmd/gomad/internal/cli/doctor_test.go\n\t\tgotAdapters := make([]string, len(report.Adapters))\n98d28f52b4975843f584b9f696f46a87d002f1f2 20 21\n\t\tfor index, adapter := range report.Adapters {\n98d28f52b4975843f584b9f696f46a87d002f1f2 21 22\n\t\t\tgotAdapters[index] = adapter.Module + \":\" + adapter.Status\n98d28f52b4975843f584b9f696f46a87d002f1f2 22 23\n\t\t}\n9dc0d15701cfbed55be8831bccf9a735829a632b 24 24 1\nauthor Stephan Behnke\nauthor-mail <stephanos@users.noreply.github.com>\nauthor-time 1790816038\nauthor-tz -0700\ncommitter stephanos\ncommitter-mail <github@stephanbehnke.com>\ncommitter-time 1791004947\ncommitter-tz -0700\nsummary gomad: add exact downstream adapters and generic integration evidence\nprevious 50041f25a65aed56c47171cf63f31c4758351a9f tools/gomad3/cmd/gomad/internal/cli/doctor_test.go\nfilename tools/gomad3/cmd/gomad/internal/cli/doctor_test.go\n\t\twantAdapters := []string{\"github.com/Masterminds/sprig/v3:available\", \"github.com/cactus/go-statsd-client/v5:available\", \"github.com/cockroachdb/pebble:available\", \"github.com/getsentry/sentry-go:available\", \"github.com/go-playground/validator/v10:available\", \"github.com/hashicorp/go-metrics:available\", \"github.com/hashicorp/go-sockaddr:available\", \"github.com/hashicorp/memberlist:available\", \"go.opentelemetry.io/otel/sdk:available\", \"go.temporal.io/sdk:available\", \"go.uber.org/fx:available\", \"golang.org/x/net:available\", \"google.golang.org/grpc:available\", \"modernc.org/libc:available\", \"modernc.org/memory:available\"}\n98d28f52b4975843f584b9f696f46a87d002f1f2 24 25 1\n\t\tif report.RunnerBuild == \"\" || report.BoundaryManifestVersion == \"\" || strings.Join(gotAdapters, \",\") != strings.Join(wantAdapters, \",\") {\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 19 26 2\n\t\t\tt.Fatalf(\"identity = %#v\", report)\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 20 27\n\t\t}\n9dc0d15701cfbed55be8831bccf9a735829a632b 28 28 1\n\t\tif report.ArtifactDirectory != artifacts || report.InstallationSource != \"test\" || report.RepairInstruction != \"repair test toolchain\" || len(report.Checks) != 19 {\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 22 29 9\n\t\t\tt.Fatalf(\"diagnostics = %#v\", report)\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 23 30\n\t\t}\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 24 31\n\t\tfor _, check := range report.Checks {\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 25 32\n\t\t\tif check.Status != \"ok\" {\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 26 33\n\t\t\t\tt.Fatalf(\"check = %#v\", check)\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 27 34\n\t\t\t}\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 28 35\n\t\t}\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 29 36\n\t}\nc1f8f84c7498ca549cb07fcb45ac8b559351a9f4 30 37\n\t\n",
+      "trigger": "runtime.GOOS/runtime.GOARCH supplies actual linux/arm64; hostCheck rejects it before Available can be true",
+      "portable_pass_claimed": false
+    }
+  ],
+  "source_triggers": [
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/doctor.go",
+      "signature": "func Check(config Config) Report {",
+      "start": 58,
+      "end": 111,
+      "body": "func Check(config Config) Report {\n\tprofile := deterministicio.Default()\n\tprofileIdentity := profile.Identity()\n\treport := Report{\n\t\tSchema: reportSchema, Host: config.HostOS + \"/\" + config.HostArch,\n\t\tSupportedPlatforms:      append([]string(nil), gomadversion.SupportedPlatforms[:]...),\n\t\tBoundaryManifestVersion: gomadversion.BoundaryManifestVersion,\n\t\tIOInventorySHA256:       record.SHA256(profileIdentity.InventorySHA256), IOImplementationSHA256: record.SHA256(profileIdentity.ImplementationSHA256),\n\t\tAdapters:           []Adapter{},\n\t\tInstallationSource: config.InstallationSource,\n\t\tToolchainRoot:      config.ToolchainRoot,\n\t\tArtifactDirectory:  config.ArtifactRoot,\n\t\tRepairInstruction:  config.RepairInstruction,\n\t\tChecks:             make([]CheckResult, 0, 4+len(profile.Adapters())),\n\t}\n\tfor _, identity := range profile.Adapters() {\n\t\treport.Adapters = append(report.Adapters, Adapter{\n\t\t\tModule: identity.Module, Version: identity.Version, Sum: identity.Sum, Status: \"available\",\n\t\t})\n\t}\n\treport.Checks = append(report.Checks, hostCheck(report.Host, report.SupportedPlatforms))\n\tidentity, err := target.ReadToolchainIdentity(config.ToolchainRoot)\n\tif err != nil {\n\t\treport.Checks = append(report.Checks, failedCheck(\"toolchain\", err.Error()+\"; \"+report.RepairInstruction))\n\t} else {\n\t\treport.GoVersion = identity.GoVersion\n\t\treport.ToolchainBuild = identity.BuildKey\n\t\treport.Checks = append(report.Checks, passedCheck(\"toolchain\", identity.GoVersion+\" build=\"+identity.BuildKey))\n\t}\n\trunnerDigest, err := digestRunner(config.RunnerPath)\n\tif err != nil {\n\t\treport.Checks = append(report.Checks, failedCheck(\"runner\", err.Error()+\"; reinstall the Gomad executable at \"+config.RunnerPath))\n\t} else {\n\t\treport.RunnerBuild = runnerDigest\n\t\treport.Checks = append(report.Checks, passedCheck(\"runner\", string(runnerDigest)))\n\t}\n\tfor _, adapter := range report.Adapters {\n\t\treport.Checks = append(report.Checks, passedCheck(\"adapter:\"+adapter.Module, adapter.Module+\"@\"+adapter.Version+\" \"+adapter.Sum))\n\t}\n\tif err := checkArtifactDirectory(config.ArtifactRoot); err != nil {\n\t\treport.Checks = append(report.Checks, failedCheck(\"artifacts\", err.Error()))\n\t} else {\n\t\treport.Checks = append(report.Checks, passedCheck(\"artifacts\", config.ArtifactRoot))\n\t}\n\treport.Available = true\n\tfor _, check := range report.Checks {\n\t\tif check.Status != \"ok\" {\n\t\t\treport.Available = false\n\t\t\tbreak\n\t\t}\n\t}\n\treturn report\n}\n",
+      "sha256": "c17a285e9f3f4f7c1396edac865f35b9c281bd0803b5ba9ffe99a57dda7de9e0"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/doctor.go",
+      "signature": "func hostCheck(host string, supported []string) CheckResult {",
+      "start": 112,
+      "end": 120,
+      "body": "func hostCheck(host string, supported []string) CheckResult {\n\tfor _, platform := range supported {\n\t\tif host == platform {\n\t\t\treturn passedCheck(\"host\", host)\n\t\t}\n\t}\n\treturn failedCheck(\"host\", host+\" is unsupported; supported=\"+strings.Join(supported, \",\"))\n}\n",
+      "sha256": "447308e3c7c1da3ab450a7489e5ae5910feed844a1c53732ace6544efbbca9ab"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "signature": "func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) int {",
+      "start": 354,
+      "end": 421,
+      "body": "func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) int {\n\tflags := flag.NewFlagSet(\"gomad doctor\", flag.ContinueOnError)\n\tflags.SetOutput(stderr)\n\tartifacts := flags.String(\"artifacts\", \".gomad/artifacts\", \"artifact root to verify\")\n\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")\n\tjsonOutput := flags.Bool(\"json\", false, \"emit stable JSON\")\n\tif err := flags.Parse(arguments); err != nil {\n\t\treturn 2\n\t}\n\tif flags.NArg() != 0 {\n\t\tfmt.Fprint(stderr, usage)\n\t\treturn 2\n\t}\n\texecutable, err := app.executablePath()\n\tif err != nil {\n\t\tfmt.Fprintln(stderr, err)\n\t\treturn 3\n\t}\n\texecutable, err = absoluteExecutable(executable)\n\tif err != nil {\n\t\tfmt.Fprintln(stderr, err)\n\t\treturn 3\n\t}\n\tartifactRoot, err := filepath.Abs(*artifacts)\n\tif err != nil {\n\t\tfmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)\n\t\treturn 2\n\t}\n\tresolved, err := app.resolveInstallation(executable, *toolchainRoot)\n\tif err != nil {\n\t\tif _, writeErr := fmt.Fprintf(stderr, \"resolve Gomad installation: %v\\n\", err); writeErr != nil {\n\t\t\treturn 3\n\t\t}\n\t\treturn 2\n\t}\n\treport := Check(Config{\n\t\tToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,\n\t\tRunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,\n\t})\n\tif *jsonOutput {\n\t\tencoded, marshalErr := json.Marshal(report)\n\t\tif marshalErr != nil {\n\t\t\tfmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)\n\t\t\treturn 3\n\t\t}\n\t\tfmt.Fprintf(stdout, \"%s\\n\", encoded)\n\t} else {\n\t\tfmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)\n\t\tfor _, check := range report.Checks {\n\t\t\tfmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)\n\t\t}\n\t\tif _, err := fmt.Fprintf(stdout, \"installation: source=%s toolchain=%s\\nrepair: %s\\n\", report.InstallationSource, report.ToolchainRoot, report.RepairInstruction); err != nil {\n\t\t\treturn 3\n\t\t}\n\t}\n\tif !report.Available {\n\t\treturn 1\n\t}\n\treturn 0\n}\n\ntype exploreDependencies struct {\n\tinstall          func(string) (installation, error)\n\tworkingDirectory func() (string, error)\n\texplore          func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)\n\tplan             func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error)\n}\n",
+      "sha256": "ebdddf5d4ff9bed2638c67324fc8e79a2e4d5a1915ee55f6dca3c30aa456f05d"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/analyze.go",
+      "signature": "func runAnalyzeWith(arguments []string, stdout, stderr io.Writer, dependencies analyzeDependencies) (status int) {",
+      "start": 52,
+      "end": 65,
+      "body": "func runAnalyzeWith(arguments []string, stdout, stderr io.Writer, dependencies analyzeDependencies) (status int) {\n\tparsed, status := parseAnalyzeArguments(arguments, stderr)\n\tif status != 0 {\n\t\treturn status\n\t}\n\tspec, identity, status := resolveAnalyzeTarget(parsed, stderr, dependencies)\n\tif status != 0 {\n\t\treturn status\n\t}\n\tctx, cancel := context.WithTimeout(context.Background(), parsed.timeout)\n\tdefer cancel()\n\treturn executeAnalysis(ctx, stdout, stderr, parsed.format, spec, identity, dependencies)\n}\n",
+      "sha256": "3a8d6bab8787ef13e4001572f6a80e9dfe42788657219a2db4721c8be3f488d8"
+    }
+  ],
+  "doctor_json_ignored_writer": {
+    "statement": "\t\tfmt.Fprintf(stdout, \"%s\\n\", encoded)",
+    "original_pre": {
+      "signature": "func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) int {",
+      "start": 361,
+      "end": 418,
+      "body": "func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) int {\n\tflags := flag.NewFlagSet(\"gomad doctor\", flag.ContinueOnError)\n\tflags.SetOutput(stderr)\n\tartifacts := flags.String(\"artifacts\", \".gomad/artifacts\", \"artifact root to verify\")\n\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")\n\tjsonOutput := flags.Bool(\"json\", false, \"emit stable JSON\")\n\tif err := flags.Parse(arguments); err != nil {\n\t\treturn 2\n\t}\n\tif flags.NArg() != 0 {\n\t\tfmt.Fprint(stderr, usage)\n\t\treturn 2\n\t}\n\texecutable, err := filepath.Abs(executable)\n\tif err != nil {\n\t\tfmt.Fprintf(stderr, \"resolve gomad executable path: %v\\n\", err)\n\t\treturn 3\n\t}\n\tartifactRoot, err := filepath.Abs(*artifacts)\n\tif err != nil {\n\t\tfmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)\n\t\treturn 2\n\t}\n\tresolved, err := toolchain.ResolveInstallation(toolchain.InstallationSpec{\n\t\tExecutable: executable, ExplicitToolchainRoot: *toolchainRoot, EnvironmentToolchainRoot: os.Getenv(\"GOMAD3_TOOLCHAIN_DIR\"),\n\t})\n\tif err != nil {\n\t\tif _, writeErr := fmt.Fprintf(stderr, \"resolve Gomad installation: %v\\n\", err); writeErr != nil {\n\t\t\treturn 3\n\t\t}\n\t\treturn 2\n\t}\n\treport := Check(Config{\n\t\tToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,\n\t\tRunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,\n\t})\n\tif *jsonOutput {\n\t\tencoded, marshalErr := json.Marshal(report)\n\t\tif marshalErr != nil {\n\t\t\tfmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)\n\t\t\treturn 3\n\t\t}\n\t\tfmt.Fprintf(stdout, \"%s\\n\", encoded)\n\t} else {\n\t\tfmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)\n\t\tfor _, check := range report.Checks {\n\t\t\tfmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)\n\t\t}\n\t\tif _, err := fmt.Fprintf(stdout, \"installation: source=%s toolchain=%s\\nrepair: %s\\n\", report.InstallationSource, report.ToolchainRoot, report.RepairInstruction); err != nil {\n\t\t\treturn 3\n\t\t}\n\t}\n\tif !report.Available {\n\t\treturn 1\n\t}\n\treturn 0\n}\n"
+    },
+    "original_post": {
+      "signature": "func runDoctorWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {",
+      "start": 359,
+      "end": 418,
+      "body": "func runDoctorWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {\n\tflags := flag.NewFlagSet(\"gomad doctor\", flag.ContinueOnError)\n\tflags.SetOutput(stderr)\n\tartifacts := flags.String(\"artifacts\", \".gomad/artifacts\", \"artifact root to verify\")\n\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")\n\tjsonOutput := flags.Bool(\"json\", false, \"emit stable JSON\")\n\tif err := flags.Parse(arguments); err != nil {\n\t\treturn 2\n\t}\n\tif flags.NArg() != 0 {\n\t\tfmt.Fprint(stderr, usage)\n\t\treturn 2\n\t}\n\texecutable, err := app.executable()\n\tif err != nil {\n\t\treturn writeCommandError(stderr, 3, \"resolve gomad executable: %v\\n\", err)\n\t}\n\texecutable, err = filepath.Abs(executable)\n\tif err != nil {\n\t\tfmt.Fprintf(stderr, \"resolve gomad executable path: %v\\n\", err)\n\t\treturn 3\n\t}\n\tartifactRoot, err := filepath.Abs(*artifacts)\n\tif err != nil {\n\t\tfmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)\n\t\treturn 2\n\t}\n\tresolved, _, err := app.installation(*toolchainRoot)\n\tif err != nil {\n\t\tif _, writeErr := fmt.Fprintf(stderr, \"%v\\n\", err); writeErr != nil {\n\t\t\treturn 3\n\t\t}\n\t\treturn 2\n\t}\n\treport := app.check(Config{\n\t\tToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,\n\t\tRunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,\n\t})\n\tif *jsonOutput {\n\t\tencoded, marshalErr := json.Marshal(report)\n\t\tif marshalErr != nil {\n\t\t\tfmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)\n\t\t\treturn 3\n\t\t}\n\t\tfmt.Fprintf(stdout, \"%s\\n\", encoded)\n\t} else {\n\t\tfmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)\n\t\tfor _, check := range report.Checks {\n\t\t\tfmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)\n\t\t}\n\t\tif _, err := fmt.Fprintf(stdout, \"installation: source=%s toolchain=%s\\nrepair: %s\\n\", report.InstallationSource, report.ToolchainRoot, report.RepairInstruction); err != nil {\n\t\t\treturn 3\n\t\t}\n\t}\n\tif !report.Available {\n\t\treturn 1\n\t}\n\treturn 0\n}\n"
+    },
+    "current": {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "signature": "func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) int {",
+      "start": 354,
+      "end": 421,
+      "body": "func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) int {\n\tflags := flag.NewFlagSet(\"gomad doctor\", flag.ContinueOnError)\n\tflags.SetOutput(stderr)\n\tartifacts := flags.String(\"artifacts\", \".gomad/artifacts\", \"artifact root to verify\")\n\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")\n\tjsonOutput := flags.Bool(\"json\", false, \"emit stable JSON\")\n\tif err := flags.Parse(arguments); err != nil {\n\t\treturn 2\n\t}\n\tif flags.NArg() != 0 {\n\t\tfmt.Fprint(stderr, usage)\n\t\treturn 2\n\t}\n\texecutable, err := app.executablePath()\n\tif err != nil {\n\t\tfmt.Fprintln(stderr, err)\n\t\treturn 3\n\t}\n\texecutable, err = absoluteExecutable(executable)\n\tif err != nil {\n\t\tfmt.Fprintln(stderr, err)\n\t\treturn 3\n\t}\n\tartifactRoot, err := filepath.Abs(*artifacts)\n\tif err != nil {\n\t\tfmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)\n\t\treturn 2\n\t}\n\tresolved, err := app.resolveInstallation(executable, *toolchainRoot)\n\tif err != nil {\n\t\tif _, writeErr := fmt.Fprintf(stderr, \"resolve Gomad installation: %v\\n\", err); writeErr != nil {\n\t\t\treturn 3\n\t\t}\n\t\treturn 2\n\t}\n\treport := Check(Config{\n\t\tToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,\n\t\tRunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,\n\t})\n\tif *jsonOutput {\n\t\tencoded, marshalErr := json.Marshal(report)\n\t\tif marshalErr != nil {\n\t\t\tfmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)\n\t\t\treturn 3\n\t\t}\n\t\tfmt.Fprintf(stdout, \"%s\\n\", encoded)\n\t} else {\n\t\tfmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)\n\t\tfor _, check := range report.Checks {\n\t\t\tfmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)\n\t\t}\n\t\tif _, err := fmt.Fprintf(stdout, \"installation: source=%s toolchain=%s\\nrepair: %s\\n\", report.InstallationSource, report.ToolchainRoot, report.RepairInstruction); err != nil {\n\t\t\treturn 3\n\t\t}\n\t}\n\tif !report.Available {\n\t\treturn 1\n\t}\n\treturn 0\n}\n\ntype exploreDependencies struct {\n\tinstall          func(string) (installation, error)\n\tworkingDirectory func() (string, error)\n\texplore          func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)\n\tplan             func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error)\n}\n",
+      "sha256": "ebdddf5d4ff9bed2638c67324fc8e79a2e4d5a1915ee55f6dca3c30aa456f05d"
+    },
+    "original_status_when_available": 0,
+    "current_status_when_available": 0,
+    "pre_existing": true,
+    "preserved": true,
+    "new_test_or_waiver_added": false
+  },
+  "assertion_edits": []
+}

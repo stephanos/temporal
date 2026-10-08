@@ -1,0 +1,920 @@
+{
+  "readonly": true,
+  "no_go": true,
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.4",
+  "worker_evidence_sha256": "07a5943dbcba1a096f9f9d079117c5babc8603b4854d994efbda69fdde2149f5",
+  "worker_freeze_sha256": "c631913782b13e66e991664381cf42a946f25122a8116a3748ee5c0be6c182c2",
+  "source_identity_sha256": "d171c750bb116a281977a3f56ea0a3a17e2a59db3439af1a8f4a4e9ba11ec97d",
+  "receipts": [
+    {
+      "label": "worker-integrity",
+      "sha256": "f1ae7cb61da9e29c6faeff6d70165da73428c5bb7500d9fee4481536796d617f",
+      "exit": 0
+    },
+    {
+      "label": "portable-cli-passing-set",
+      "sha256": "5a0fd7e82e2062232abe477ddb37856fbf1529353380c70d827d4e8f1b489af6",
+      "exit": 0
+    },
+    {
+      "label": "portable-architecture-installation",
+      "sha256": "29036384a7835602f6007043fc5c60c1ece8e13f74cd213f4573a8046a0c9986",
+      "exit": 0
+    },
+    {
+      "label": "portable-qualification-control",
+      "sha256": "874c4d98f55b0a81ab0ca7c5de4b536803e3dae427a0970b0b46ae7ee1ae6075",
+      "exit": 0
+    },
+    {
+      "label": "configured-generators",
+      "sha256": "d1dd5fc8d4d1f0212a4f0eb166bd44676b730b4ae1cb65883cbd6ca1eb857607",
+      "exit": 0
+    },
+    {
+      "label": "configured-cli-errortype",
+      "sha256": "4a3280d705d560675adac8e9182f34d73de75166bbb560e60b37ac2c3e38f4b1",
+      "exit": 0
+    },
+    {
+      "label": "cli-format-check",
+      "sha256": "964a35dcf47e36f164bb49b07264f523c33bd34a2044bc09c965bd718353888b",
+      "exit": 0
+    },
+    {
+      "label": "configured-fast-lint",
+      "sha256": "b45715dc08004230f31a1538cf638dbb2adead8dafa6a967fc34ab0633b85264",
+      "exit": 2
+    },
+    {
+      "label": "unfiltered-cli-lint",
+      "sha256": "5a155700f2e576d44d2fa0de3210f3b1c1830b0277f6e3d6cb5b25e64bb1f948",
+      "exit": 2
+    }
+  ],
+  "unique_fresh_portable_pass": 129,
+  "fail": 0,
+  "skip": 0,
+  "full_cli_worker_observation": {
+    "pass": 89,
+    "fail": 3,
+    "all_cli_green": false
+  },
+  "lint": {
+    "configured_fast": 68,
+    "unfiltered_cli": 53,
+    "exact_pre_or_post_rows": 44,
+    "bounded_source_dispositions": [
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+        "line": 88,
+        "rule": "errcheck",
+        "current_function_sha256": "919669820aca63eaa8ff1c2bb5fcf9ef7982af88c2376b4ad0ece51221c8a70e",
+        "exception_applied": false,
+        "disposition": "Source-equivalent relocated writer attempt: one stderr write, status3 for successful or failed writer. Executable discovery/path prefixes and wrapping bound separately by writer-equivalence.json; not an old-runtime reproduction or a lint waiver.",
+        "source_equivalence_receipt_sha256": "b926ff0dcdaec97c5c5cc912299e3385bbbc41d99a1c298cad77d2bbd7f338a5"
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 369,
+        "rule": "errcheck",
+        "current_function_sha256": "ebdddf5d4ff9bed2638c67324fc8e79a2e4d5a1915ee55f6dca3c30aa456f05d",
+        "exception_applied": false,
+        "disposition": "Source-equivalent relocated writer attempt: one stderr write, status3 for successful or failed writer. Executable discovery/path prefixes and wrapping bound separately by writer-equivalence.json; not an old-runtime reproduction or a lint waiver.",
+        "source_equivalence_receipt_sha256": "b926ff0dcdaec97c5c5cc912299e3385bbbc41d99a1c298cad77d2bbd7f338a5"
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 374,
+        "rule": "errcheck",
+        "current_function_sha256": "ebdddf5d4ff9bed2638c67324fc8e79a2e4d5a1915ee55f6dca3c30aa456f05d",
+        "exception_applied": false,
+        "disposition": "Source-equivalent relocated writer attempt: one stderr write, status3 for successful or failed writer. Executable discovery/path prefixes and wrapping bound separately by writer-equivalence.json; not an old-runtime reproduction or a lint waiver.",
+        "source_equivalence_receipt_sha256": "b926ff0dcdaec97c5c5cc912299e3385bbbc41d99a1c298cad77d2bbd7f338a5"
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 450,
+        "rule": "errcheck",
+        "current_function_sha256": "036efda4f154359419036ecd105be007f2b887f9dfafe69a9b645ff4c2d00822",
+        "exception_applied": false,
+        "disposition": "Whole original explore failure branch relocated with one indentation level removed; writer attempts and status/classification unchanged. Finding remains open.",
+        "original_pre_and_post": [
+          {
+            "label": "pre",
+            "function_sha256": "049d8b8e2f499bce1a4c21fbb29374b47266c811ad5006ff4bd271bcdd0840ac",
+            "start": 701,
+            "end": 709,
+            "branch": [
+              "\t\tif summary.ChoiceTrace != nil {",
+              "\t\t\tfmt.Fprintf(stderr, \"gomad:%s\\n\", formatChoiceTrace(summary.ChoiceTrace))",
+              "\t\t}",
+              "\t\tclassification := classifyExploreError(err)",
+              "\t\tif writeErr := reporter.Error(classification, err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}",
+              "\t\treturn exploreErrorStatus(classification)"
+            ],
+            "transform": "Exactly one leading tab removed from each line of the entire extracted error branch; no token or ordering change."
+          },
+          {
+            "label": "post",
+            "function_sha256": "8cb737adc4abb09ca83856cf7ca74b7de238c97cf5818244d6bc45329297fc49",
+            "start": 707,
+            "end": 715,
+            "branch": [
+              "\t\tif summary.ChoiceTrace != nil {",
+              "\t\t\tfmt.Fprintf(stderr, \"gomad:%s\\n\", formatChoiceTrace(summary.ChoiceTrace))",
+              "\t\t}",
+              "\t\tclassification := classifyExploreError(err)",
+              "\t\tif writeErr := reporter.Error(classification, err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}",
+              "\t\treturn exploreErrorStatus(classification)"
+            ],
+            "transform": "Exactly one leading tab removed from each line of the entire extracted error branch; no token or ordering change."
+          }
+        ]
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 454,
+        "rule": "errcheck",
+        "current_function_sha256": "036efda4f154359419036ecd105be007f2b887f9dfafe69a9b645ff4c2d00822",
+        "exception_applied": false,
+        "disposition": "Whole original explore failure branch relocated with one indentation level removed; writer attempts and status/classification unchanged. Finding remains open.",
+        "original_pre_and_post": [
+          {
+            "label": "pre",
+            "function_sha256": "049d8b8e2f499bce1a4c21fbb29374b47266c811ad5006ff4bd271bcdd0840ac",
+            "start": 701,
+            "end": 709,
+            "branch": [
+              "\t\tif summary.ChoiceTrace != nil {",
+              "\t\t\tfmt.Fprintf(stderr, \"gomad:%s\\n\", formatChoiceTrace(summary.ChoiceTrace))",
+              "\t\t}",
+              "\t\tclassification := classifyExploreError(err)",
+              "\t\tif writeErr := reporter.Error(classification, err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}",
+              "\t\treturn exploreErrorStatus(classification)"
+            ],
+            "transform": "Exactly one leading tab removed from each line of the entire extracted error branch; no token or ordering change."
+          },
+          {
+            "label": "post",
+            "function_sha256": "8cb737adc4abb09ca83856cf7ca74b7de238c97cf5818244d6bc45329297fc49",
+            "start": 707,
+            "end": 715,
+            "branch": [
+              "\t\tif summary.ChoiceTrace != nil {",
+              "\t\t\tfmt.Fprintf(stderr, \"gomad:%s\\n\", formatChoiceTrace(summary.ChoiceTrace))",
+              "\t\t}",
+              "\t\tclassification := classifyExploreError(err)",
+              "\t\tif writeErr := reporter.Error(classification, err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}",
+              "\t\treturn exploreErrorStatus(classification)"
+            ],
+            "transform": "Exactly one leading tab removed from each line of the entire extracted error branch; no token or ordering change."
+          }
+        ]
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 491,
+        "rule": "errcheck",
+        "current_function_sha256": "a3c588d309617fc982b66aee6e79ed45e1269787d2fb1bf78d7b99c906398222",
+        "exception_applied": false,
+        "disposition": "Original plan JSON marshal/error branch extracted by task5; same stderr attempt and status3, existing finding remains open.",
+        "original_pre_and_post": [
+          {
+            "label": "pre",
+            "function_sha256": "049d8b8e2f499bce1a4c21fbb29374b47266c811ad5006ff4bd271bcdd0840ac",
+            "start": 686,
+            "branch": [
+              "\t\t\tencoded, err := json.Marshal(planned)",
+              "\t\t\tif err != nil {",
+              "\t\t\t\tfmt.Fprintln(stderr, err)",
+              "\t\t\t\treturn 3",
+              "\t\t\t}",
+              "\t\t\tif _, err := fmt.Fprintf(stdout, \"%s\\n\", encoded); err != nil {"
+            ],
+            "transform": "Exactly one leading tab removed from each of the six marshal/error branch lines."
+          },
+          {
+            "label": "post",
+            "function_sha256": "8cb737adc4abb09ca83856cf7ca74b7de238c97cf5818244d6bc45329297fc49",
+            "start": 692,
+            "branch": [
+              "\t\t\tencoded, err := json.Marshal(planned)",
+              "\t\t\tif err != nil {",
+              "\t\t\t\tfmt.Fprintln(stderr, err)",
+              "\t\t\t\treturn 3",
+              "\t\t\t}",
+              "\t\t\tif _, err := fmt.Fprintf(stdout, \"%s\\n\", encoded); err != nil {"
+            ],
+            "transform": "Exactly one leading tab removed from each of the six marshal/error branch lines."
+          }
+        ]
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+        "line": 83,
+        "rule": "errcheck",
+        "current_function_sha256": "ed144b266224dd469e228116292992f516500ab8c4922d4780dc4d31675d8a68",
+        "exception_applied": false,
+        "disposition": "Original named dependency-helper error branch preserved exactly; frozen alias mapper selected its wrapper instead. Finding remains open, not waived.",
+        "original_pre_and_post": [
+          {
+            "function": "runQualifyWith",
+            "function_sha256": "ae05941e594ad710b0a1ab31d59626998294d372ef06bafbd025ac7f268f9d86",
+            "line": 83,
+            "branch": [
+              "\t\tif writeErr := reporter.Error(\"invalid_input\", err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}"
+            ]
+          },
+          {
+            "function": "runQualifyWith",
+            "function_sha256": "986ab0fdfa6b941727b91323b04ac48a70f5deaeb5f528cd99d3b38a2ce67b35",
+            "line": 88,
+            "branch": [
+              "\t\tif writeErr := reporter.Error(\"invalid_input\", err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+        "line": 181,
+        "rule": "errcheck",
+        "current_function_sha256": "ed144b266224dd469e228116292992f516500ab8c4922d4780dc4d31675d8a68",
+        "exception_applied": false,
+        "disposition": "Original named dependency-helper error branch preserved exactly; frozen alias mapper selected its wrapper instead. Finding remains open, not waived.",
+        "original_pre_and_post": [
+          {
+            "function": "runQualifyWith",
+            "function_sha256": "ae05941e594ad710b0a1ab31d59626998294d372ef06bafbd025ac7f268f9d86",
+            "line": 181,
+            "branch": [
+              "\tif err := reporter.Result(result.Report, result.ReportPath); err != nil {",
+              "\t\tfmt.Fprintln(stderr, err)",
+              "\t\treturn 3",
+              "\t}"
+            ]
+          },
+          {
+            "function": "runQualifyWith",
+            "function_sha256": "986ab0fdfa6b941727b91323b04ac48a70f5deaeb5f528cd99d3b38a2ce67b35",
+            "line": 191,
+            "branch": [
+              "\tif err := reporter.Result(result.Report, result.ReportPath); err != nil {",
+              "\t\tfmt.Fprintln(stderr, err)",
+              "\t\treturn 3",
+              "\t}"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 32,
+        "rule": "errcheck",
+        "current_function_sha256": "32957b5047022dfaccb4ddd735d2c66d75788e50e32c9425880f8cdbfba60a4e",
+        "exception_applied": false,
+        "disposition": "Original named dependency-helper error branch preserved exactly; frozen alias mapper selected its wrapper instead. Finding remains open, not waived.",
+        "original_pre_and_post": [
+          {
+            "function": "runResumeWith",
+            "function_sha256": "2c8c96a50709766f5ee2942087288be8f6180d937b209b744bfb4b6866999662",
+            "line": 32,
+            "branch": [
+              "\t\tif writeErr := reporter.Error(\"invalid_input\", err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}"
+            ]
+          },
+          {
+            "function": "runResumeWith",
+            "function_sha256": "f502e4db68edae45862a25d5d355584ac8a90a7489551c0b40746864f50a9c22",
+            "line": 37,
+            "branch": [
+              "\t\tif writeErr := reporter.Error(\"invalid_input\", err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 44,
+        "rule": "errcheck",
+        "current_function_sha256": "32957b5047022dfaccb4ddd735d2c66d75788e50e32c9425880f8cdbfba60a4e",
+        "exception_applied": false,
+        "disposition": "Original named dependency-helper error branch preserved exactly; frozen alias mapper selected its wrapper instead. Finding remains open, not waived.",
+        "original_pre_and_post": [
+          {
+            "function": "runResumeWith",
+            "function_sha256": "2c8c96a50709766f5ee2942087288be8f6180d937b209b744bfb4b6866999662",
+            "line": 44,
+            "branch": [
+              "\t\tif err := reporter.Error(\"invalid_input\", errors.New(\"resume requires one interrupted campaign path\")); err != nil {",
+              "\t\t\tfmt.Fprintln(stderr, err)",
+              "\t\t\treturn 3",
+              "\t\t}"
+            ]
+          },
+          {
+            "function": "runResumeWith",
+            "function_sha256": "f502e4db68edae45862a25d5d355584ac8a90a7489551c0b40746864f50a9c22",
+            "line": 49,
+            "branch": [
+              "\t\tif err := reporter.Error(\"invalid_input\", errors.New(\"resume requires one interrupted campaign path\")); err != nil {",
+              "\t\t\tfmt.Fprintln(stderr, err)",
+              "\t\t\treturn 3",
+              "\t\t}"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 52,
+        "rule": "errcheck",
+        "current_function_sha256": "32957b5047022dfaccb4ddd735d2c66d75788e50e32c9425880f8cdbfba60a4e",
+        "exception_applied": false,
+        "disposition": "Original named dependency-helper error branch preserved exactly; frozen alias mapper selected its wrapper instead. Finding remains open, not waived.",
+        "original_pre_and_post": [
+          {
+            "function": "runResumeWith",
+            "function_sha256": "2c8c96a50709766f5ee2942087288be8f6180d937b209b744bfb4b6866999662",
+            "line": 52,
+            "branch": [
+              "\t\tif writeErr := reporter.Error(\"runner_failure\", err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t}",
+              "\t\treturn 3"
+            ]
+          },
+          {
+            "function": "runResumeWith",
+            "function_sha256": "f502e4db68edae45862a25d5d355584ac8a90a7489551c0b40746864f50a9c22",
+            "line": 57,
+            "branch": [
+              "\t\tif writeErr := reporter.Error(\"runner_failure\", err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t}",
+              "\t\treturn 3"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 70,
+        "rule": "errcheck",
+        "current_function_sha256": "32957b5047022dfaccb4ddd735d2c66d75788e50e32c9425880f8cdbfba60a4e",
+        "exception_applied": false,
+        "disposition": "Original named dependency-helper error branch preserved exactly; frozen alias mapper selected its wrapper instead. Finding remains open, not waived.",
+        "original_pre_and_post": [
+          {
+            "function": "runResumeWith",
+            "function_sha256": "2c8c96a50709766f5ee2942087288be8f6180d937b209b744bfb4b6866999662",
+            "line": 70,
+            "branch": [
+              "\t\tif writeErr := reporter.Error(classification, err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}"
+            ]
+          },
+          {
+            "function": "runResumeWith",
+            "function_sha256": "f502e4db68edae45862a25d5d355584ac8a90a7489551c0b40746864f50a9c22",
+            "line": 80,
+            "branch": [
+              "\t\tif writeErr := reporter.Error(classification, err); writeErr != nil {",
+              "\t\t\tfmt.Fprintln(stderr, writeErr)",
+              "\t\t\treturn 3",
+              "\t\t}"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 76,
+        "rule": "errcheck",
+        "current_function_sha256": "32957b5047022dfaccb4ddd735d2c66d75788e50e32c9425880f8cdbfba60a4e",
+        "exception_applied": false,
+        "disposition": "Original named dependency-helper error branch preserved exactly; frozen alias mapper selected its wrapper instead. Finding remains open, not waived.",
+        "original_pre_and_post": [
+          {
+            "function": "runResumeWith",
+            "function_sha256": "2c8c96a50709766f5ee2942087288be8f6180d937b209b744bfb4b6866999662",
+            "line": 76,
+            "branch": [
+              "\tif err := reporter.Result(summary); err != nil {",
+              "\t\tfmt.Fprintln(stderr, err)",
+              "\t\treturn 3",
+              "\t}"
+            ]
+          },
+          {
+            "function": "runResumeWith",
+            "function_sha256": "f502e4db68edae45862a25d5d355584ac8a90a7489551c0b40746864f50a9c22",
+            "line": 86,
+            "branch": [
+              "\tif err := reporter.Result(summary); err != nil {",
+              "\t\tfmt.Fprintln(stderr, err)",
+              "\t\treturn 3",
+              "\t}"
+            ]
+          }
+        ]
+      }
+    ],
+    "outside_original_task4_edit_set": [
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/artifact/manifest_copy.go",
+        "line": 59,
+        "rule": "forbidigo",
+        "owner": "3a3c31b0a7b22ab2c669735743d3f1e2d2985bab",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 42,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 46,
+        "rule": "errcheck",
+        "owner": "ca3345469a2541b7686606268b0f19cde030a8fe",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 53,
+        "rule": "errcheck",
+        "owner": "ca3345469a2541b7686606268b0f19cde030a8fe",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 59,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 64,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 77,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 82,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 86,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 92,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 93,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 100,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "line": 111,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+        "line": 24,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+        "line": 41,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+        "line": 219,
+        "rule": "errcheck",
+        "owner": "d17d746111442fc5d574a02c90af84a0bb679de6",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+        "line": 270,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+        "line": 275,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+        "line": 280,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+        "line": 305,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+        "line": 51,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+        "line": 56,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+        "line": 61,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+        "line": 66,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+        "line": 77,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+        "line": 85,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+        "line": 97,
+        "rule": "errcheck",
+        "owner": "ca3345469a2541b7686606268b0f19cde030a8fe",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+        "line": 114,
+        "rule": "errcheck",
+        "owner": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 40,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 45,
+        "rule": "errcheck",
+        "owner": "ca3345469a2541b7686606268b0f19cde030a8fe",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 56,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 63,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 69,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 74,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 92,
+        "rule": "errcheck",
+        "owner": "a3b9f80efab9356c0be2080779133337e2471ac0",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 102,
+        "rule": "errcheck",
+        "owner": "d617a8a1cde3938b33bbe58b8d0087fe83f6c056",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 107,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 112,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 121,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 129,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 134,
+        "rule": "errcheck",
+        "owner": "a3b9f80efab9356c0be2080779133337e2471ac0",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 144,
+        "rule": "errcheck",
+        "owner": "32a26e6c226611b4ee55f4e52aca4fe9acc37d7a",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 156,
+        "rule": "errcheck",
+        "owner": "ca3345469a2541b7686606268b0f19cde030a8fe",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 165,
+        "rule": "errcheck",
+        "owner": "ca3345469a2541b7686606268b0f19cde030a8fe",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 171,
+        "rule": "errcheck",
+        "owner": "a3b9f80efab9356c0be2080779133337e2471ac0",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 186,
+        "rule": "errcheck",
+        "owner": "ca3345469a2541b7686606268b0f19cde030a8fe",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/soak.go",
+        "line": 37,
+        "rule": "errcheck",
+        "owner": "bae373d14736d1e4437f840bbb66a173ab960052",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/soak.go",
+        "line": 47,
+        "rule": "errcheck",
+        "owner": "bae373d14736d1e4437f840bbb66a173ab960052",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/soak.go",
+        "line": 55,
+        "rule": "errcheck",
+        "owner": "bae373d14736d1e4437f840bbb66a173ab960052",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/cmd/gomadtool/soak.go",
+        "line": 62,
+        "rule": "errcheck",
+        "owner": "bae373d14736d1e4437f840bbb66a173ab960052",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/internal/gomadtool/architecture/initialization.go",
+        "line": 123,
+        "rule": "errcheck",
+        "owner": "4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/internal/gomadtool/architecture/standard.go",
+        "line": 392,
+        "rule": "errcheck",
+        "owner": "4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+        "line": 15,
+        "rule": "errcheck",
+        "owner": "70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+        "line": 16,
+        "rule": "errcheck",
+        "owner": "70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/runner/replay_operation.go",
+        "line": 483,
+        "rule": "staticcheck",
+        "owner": "3a3c31b0a7b22ab2c669735743d3f1e2d2985bab",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/upgrade/adapterregen/transaction.go",
+        "line": 89,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/upgrade/adapterregen/transaction.go",
+        "line": 219,
+        "rule": "errcheck",
+        "owner": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      },
+      {
+        "label": "configured-fast-lint",
+        "path": "tools/gomad3/world/recording.go",
+        "line": 95,
+        "rule": "staticcheck",
+        "owner": "4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7",
+        "disposition": "Outside the exact ten-file original task4 edit set; separate correction/aggregate obligations remain open, not accepted through blame alone."
+      }
+    ],
+    "new_exceptions": [],
+    "global_green": false
+  },
+  "native": false
+}

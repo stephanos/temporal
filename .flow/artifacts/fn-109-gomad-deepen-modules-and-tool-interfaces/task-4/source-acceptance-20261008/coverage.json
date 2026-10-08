@@ -1,0 +1,2937 @@
+{
+  "unique_top_level": 132,
+  "unique_pass": 129,
+  "unique_fail": 3,
+  "unique_skip": 0,
+  "duplicated_observations": 29,
+  "observations": [
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3/toolchain",
+      "test": "TestResolvePrefersExplicitThenEnvironment",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolvePrefersExplicitThenEnvironment"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3/toolchain",
+      "test": "TestResolveReadsAdjacentBundleManifest",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveReadsAdjacentBundleManifest"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3/toolchain",
+      "test": "TestResolveUsesExistingAdjacentCheckoutFallback",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveUsesExistingAdjacentCheckoutFallback"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3/toolchain",
+      "test": "TestResolveRejectsRelativeOverridesAndMalformedManifest",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveRejectsRelativeOverridesAndMalformedManifest"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3/toolchain",
+      "test": "TestEveryResolutionSourceYieldsAValidatedDescription",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestEveryResolutionSourceYieldsAValidatedDescription"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3/toolchain",
+      "test": "TestResolveRejectsMalformedManifestsAndInvalidRoots",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveRejectsMalformedManifestsAndInvalidRoots"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestArchitectureInventoryFixtures"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestArchitecturePublicSignatureFixtures"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestArchitectureEffectFixtures"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestPackageArchitecture",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestPackageArchitecture"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestPublicPackagesDoNotExportTypeAliases",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestPublicPackagesDoNotExportTypeAliases"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestPureModulesHaveNoHostEffects",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestPureModulesHaveNoHostEffects"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestRunnerExecutionInjectionIsPrivate",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestRunnerExecutionInjectionIsPrivate"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestCurrentVocabularyHasNoLegacyCampaignBoundary",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestCurrentVocabularyHasNoLegacyCampaignBoundary"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestMakeTargetsMatchTheirOwnership",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestMakeTargetsMatchTheirOwnership"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestExactModuleEdges",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestExactModuleEdges"
+    },
+    {
+      "receipt": "portable-architecture-installation.json",
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestDomainModulesDoNotExportWireFraming",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3::TestDomainModulesDoNotExportWireFraming"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPublicCommandExplicitZeroAndIrrelevantFlagClassification",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandExplicitZeroAndIrrelevantFlagClassification"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPlanAndExploreRejectHiddenPlanRoute",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanAndExploreRejectHiddenPlanRoute"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPlanValidationOrderAndJSONRouting",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanValidationOrderAndJSONRouting"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPublicCommandWriterFailuresPreserveStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandWriterFailuresPreserveStatus"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationRetainsInstallationIdentityAndPrivateCommands",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationRetainsInstallationIdentityAndPrivateCommands"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationInstallFailsClosed",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallFailsClosed"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationDispatchesPrivateModesOverProcessStreams",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationDispatchesPrivateModesOverProcessStreams"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationResolvesOnlyAfterInputValidation",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationResolvesOnlyAfterInputValidation"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeHelpAndUsage",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHelpAndUsage"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeUnknownCommandsAndPrivateModes",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeUnknownCommandsAndPrivateModes"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeInputRejection",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInputRejection"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeByteSizeAndFlagValueRejection",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeByteSizeAndFlagValueRejection"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeInstallationResolution",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationResolution"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeExploreRequestDefaultsAndWiring",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreRequestDefaultsAndWiring"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeExploreOutputAndStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreOutputAndStatus"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanRequestAndOutput",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestAndOutput"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeReplayRequestOutputAndStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeReplayRequestOutputAndStatus"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeExecuteShardRequestOutputAndStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExecuteShardRequestOutputAndStatus"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeInstallationWiring",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationWiring"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeOutputWriterFailures",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeOutputWriterFailures"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanRequestDefaults",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestDefaults"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanInputRejection",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanInputRejection"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanFlagErrors",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanFlagErrors"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanOperationErrors",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanOperationErrors"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeExploreErrorWriteRouting",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreErrorWriteRouting"
+    },
+    {
+      "receipt": "portable-cli-characterization.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeHiddenPlanFlag",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHiddenPlanFlag"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPublicCommandExplicitZeroAndIrrelevantFlagClassification",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandExplicitZeroAndIrrelevantFlagClassification"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPlanAndExploreRejectHiddenPlanRoute",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanAndExploreRejectHiddenPlanRoute"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPlanValidationOrderAndJSONRouting",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanValidationOrderAndJSONRouting"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPublicCommandWriterFailuresPreserveStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandWriterFailuresPreserveStatus"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationRetainsInstallationIdentityAndPrivateCommands",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationRetainsInstallationIdentityAndPrivateCommands"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationInstallFailsClosed",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallFailsClosed"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationDispatchesPrivateModesOverProcessStreams",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationDispatchesPrivateModesOverProcessStreams"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestApplicationResolvesOnlyAfterInputValidation",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationResolvesOnlyAfterInputValidation"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCampaignSemanticValidationBelongsToRunner",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCampaignSemanticValidationBelongsToRunner"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestParseCampaignShardUsesZeroBasedIndex",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestParseCampaignShardUsesZeroBasedIndex"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestFormatMissingOrdinalsCompactsRanges",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestFormatMissingOrdinalsCompactsRanges"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeHelpAndUsage",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHelpAndUsage"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeUnknownCommandsAndPrivateModes",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeUnknownCommandsAndPrivateModes"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeInputRejection",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInputRejection"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeByteSizeAndFlagValueRejection",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeByteSizeAndFlagValueRejection"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeInstallationResolution",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationResolution"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeExploreRequestDefaultsAndWiring",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreRequestDefaultsAndWiring"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeExploreOutputAndStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreOutputAndStatus"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanRequestAndOutput",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestAndOutput"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeReplayRequestOutputAndStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeReplayRequestOutputAndStatus"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeExecuteShardRequestOutputAndStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExecuteShardRequestOutputAndStatus"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeInstallationWiring",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationWiring"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeOutputWriterFailures",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeOutputWriterFailures"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestByteSizeFlagParsesBinaryUnitsCanonically",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestByteSizeFlagParsesBinaryUnitsCanonically"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunCompareSupportMapsReviewAndIncomparableStatuses",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunCompareSupportMapsReviewAndIncomparableStatuses"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResolveExploreSeedsSupportsCountWithoutAmbiguity",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreSeedsSupportsCountWithoutAmbiguity"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResolveExploreStrategyRejectsExplorationBoundsForSeeds",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRejectsExplorationBoundsForSeeds"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResolveExploreTypedErrorPresentation",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreTypedErrorPresentation"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunRejectsUnknownCommandWithUsageStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRejectsUnknownCommandWithUsageStatus"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestParseTargetPreservesArgumentVector",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestParseTargetPreservesArgumentVector"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestParseCapabilityModeUsesClosedVocabulary",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestParseCapabilityModeUsesClosedVocabulary"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCapabilityAnalysisTimeoutAllowsLinkedBuild",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCapabilityAnalysisTimeoutAllowsLinkedBuild"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunAnalyzeForwardsTargetAndClassifiesReport",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunAnalyzeForwardsTargetAndClassifiesReport"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput",
+      "action": "fail",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunDoctorReportsAvailableContractAsJSON",
+      "action": "fail",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunDoctorReportsAvailableContractAsJSON"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunDoctorReportsRepairCommandWhenToolchainIsMissing",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunDoctorReportsRepairCommandWhenToolchainIsMissing"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunInspectReportsBatchAsTextAndJSON",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectReportsBatchAsTextAndJSON"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunInspectRejectsChoicesForBatch",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectRejectsChoicesForBatch"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPrintInspectionReportsInterruptedSimulationExplorationWork",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPrintInspectionReportsInterruptedSimulationExplorationWork"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestPrintInspectionReportsSimulationExplorationEvidence",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPrintInspectionReportsSimulationExplorationEvidence"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunInspectReportsOutputFailure",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectReportsOutputFailure"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunRecoverReportsStableTextAndJSON",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRecoverReportsStableTextAndJSON"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunRecoverRepairsPublishedBatchPrivateState",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRecoverRepairsPublishedBatchPrivateState"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestExploreReporterEmitsStableJSONEventsAndEveryArtifact",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterEmitsStableJSONEventsAndEveryArtifact"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestExploreReporterReportsRetainedSuccessfulRuns",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterReportsRetainedSuccessfulRuns"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestExploreReporterReportsGuidedCorpusUpdates",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterReportsGuidedCorpusUpdates"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunExploreReportsFlagErrorsAsJSON",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunExploreReportsFlagErrorsAsJSON"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunQualifyForwardsFlagsAndClassifiesOutcome",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunQualifyForwardsFlagsAndClassifiesOutcome"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunResumeForwardsCampaignAndClassifiesResult",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunResumeForwardsCampaignAndClassifiesResult"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestExploreReporterHumanOutputIncludesProgressAndReplayCommands",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterHumanOutputIncludesProgressAndReplayCommands"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestClassifyExploreErrorDistinguishesInputTargetAndRunner",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestClassifyExploreErrorDistinguishesInputTargetAndRunner"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestExploreErrorStatusDistinguishesUserAndOperationalFailures",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreErrorStatusDistinguishesUserAndOperationalFailures"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestClassifyExploreSummaryDistinguishesWatchdogAndReplayDivergence",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestClassifyExploreSummaryDistinguishesWatchdogAndReplayDivergence"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestReportReplayResultStatesWhetherFailureWasReproduced",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestReportReplayResultStatesWhetherFailureWasReproduced"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunMinimizeForwardsFlags",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunMinimizeForwardsFlags"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunQualifySetForwardsFlags",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunQualifySetForwardsFlags"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunMergeSetMapsStatuses",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunMergeSetMapsStatuses"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestQualifyDiagnosticsRetainsInterruptedReports",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyDiagnosticsRetainsInterruptedReports"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCheckReportsAvailableContract",
+      "action": "fail",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCheckReportsAvailableContract"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCheckExplainsMissingToolchain",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCheckExplainsMissingToolchain"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCheckRejectsUnsupportedHostAndUnwritableArtifacts",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCheckRejectsUnsupportedHostAndUnwritableArtifacts"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestChoiceExplorationDivergenceClassificationAndStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestChoiceExplorationDivergenceClassificationAndStatus"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestInspectReportsCandidateReplayDivergence",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestInspectReportsCandidateReplayDivergence"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestGuidanceReportsNoCorpusSelectionAndNewExecutions",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestGuidanceReportsNoCorpusSelectionAndNewExecutions"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResumeGuidanceModePreservesExplicitFalseAndTrue",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResumeGuidanceModePreservesExplicitFalseAndTrue"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestGuideRegressionRequiresGuidance",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestGuideRegressionRequiresGuidance"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestRunInspectReportsWhetherTheTargetIsShared",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectReportsWhetherTheTargetIsShared"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanRequestDefaults",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestDefaults"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanInputRejection",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanInputRejection"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanFlagErrors",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanFlagErrors"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizePlanOperationErrors",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanOperationErrors"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeExploreErrorWriteRouting",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreErrorWriteRouting"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestCharacterizeHiddenPlanFlag",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHiddenPlanFlag"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestQuoteArgumentProducesOnePOSIXShellWord",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQuoteArgumentProducesOnePOSIXShellWord"
+    },
+    {
+      "receipt": "portable-cli-full-temp-retry.json",
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "test": "TestResolveWorkingDirectory",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveWorkingDirectory"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationRejectsChangedDiagnosticTraceAndEvidence"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsPreserveInterruptedQualificationEvidence",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsPreserveInterruptedQualificationEvidence"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsRejectCorruptedSavedReportBindings"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsUnavailableForEveryInterruptedRun",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsUnavailableForEveryInterruptedRun"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsOffReportFieldsRemainAbsent",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsOffReportFieldsRemainAbsent"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationEventStreamReturnsRetainedResult",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationEventStreamReturnsRetainedResult"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDecodeResultEventRejectsInvalidStreams",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDecodeResultEventRejectsInvalidStreams"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportQualifiesRepeatedSuccessfulEvidence",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportQualifiesRepeatedSuccessfulEvidence"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportNamesFirstEvidenceDivergence",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportNamesFirstEvidenceDivergence"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRecordsFailureReplay",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRecordsFailureReplay"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRecordsPerRunSuccessfulReplay",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRecordsPerRunSuccessfulReplay"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRejectsMismatchedPerRunReplay",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRejectsMismatchedPerRunReplay"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRejectsInvalidEvidenceSet",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRejectsInvalidEvidenceSet"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildFailureRetainsFirstUnsupportedBoundary",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildFailureRetainsFirstUnsupportedBoundary"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestWriteReportRetainsCanonicalPrivateFile",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestWriteReportRetainsCanonicalPrivateFile"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestWriteRejectsInconsistentDeterministicOutcome",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestWriteRejectsInconsistentDeterministicOutcome"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportStoragePreservation",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationReportStoragePreservation"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportWriteValidationPreservation",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationReportWriteValidationPreservation"
+    },
+    {
+      "receipt": "portable-qualification-control.json",
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation",
+      "action": "pass",
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationReportReadValidationPreservation"
+    }
+  ],
+  "unique": [
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationDispatchesPrivateModesOverProcessStreams",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationDispatchesPrivateModesOverProcessStreams",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationDispatchesPrivateModesOverProcessStreams"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationDispatchesPrivateModesOverProcessStreams",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationDispatchesPrivateModesOverProcessStreams"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallFailsClosed",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationInstallFailsClosed",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallFailsClosed"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationInstallFailsClosed",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallFailsClosed"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationResolvesOnlyAfterInputValidation",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationResolvesOnlyAfterInputValidation",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationResolvesOnlyAfterInputValidation"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationResolvesOnlyAfterInputValidation",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationResolvesOnlyAfterInputValidation"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationRetainsInstallationIdentityAndPrivateCommands",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationRetainsInstallationIdentityAndPrivateCommands",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationRetainsInstallationIdentityAndPrivateCommands"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestApplicationRetainsInstallationIdentityAndPrivateCommands",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestApplicationRetainsInstallationIdentityAndPrivateCommands"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestByteSizeFlagParsesBinaryUnitsCanonically",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestByteSizeFlagParsesBinaryUnitsCanonically",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestByteSizeFlagParsesBinaryUnitsCanonically"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCampaignSemanticValidationBelongsToRunner",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCampaignSemanticValidationBelongsToRunner",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCampaignSemanticValidationBelongsToRunner"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCapabilityAnalysisTimeoutAllowsLinkedBuild",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCapabilityAnalysisTimeoutAllowsLinkedBuild",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCapabilityAnalysisTimeoutAllowsLinkedBuild"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeByteSizeAndFlagValueRejection",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeByteSizeAndFlagValueRejection",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeByteSizeAndFlagValueRejection"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeByteSizeAndFlagValueRejection",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeByteSizeAndFlagValueRejection"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExecuteShardRequestOutputAndStatus",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeExecuteShardRequestOutputAndStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExecuteShardRequestOutputAndStatus"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeExecuteShardRequestOutputAndStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExecuteShardRequestOutputAndStatus"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreErrorWriteRouting",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeExploreErrorWriteRouting",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreErrorWriteRouting"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeExploreErrorWriteRouting",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreErrorWriteRouting"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreOutputAndStatus",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeExploreOutputAndStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreOutputAndStatus"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeExploreOutputAndStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreOutputAndStatus"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreRequestDefaultsAndWiring",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeExploreRequestDefaultsAndWiring",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreRequestDefaultsAndWiring"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeExploreRequestDefaultsAndWiring",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreRequestDefaultsAndWiring"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHelpAndUsage",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeHelpAndUsage",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHelpAndUsage"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeHelpAndUsage",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHelpAndUsage"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHiddenPlanFlag",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeHiddenPlanFlag",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHiddenPlanFlag"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeHiddenPlanFlag",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHiddenPlanFlag"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInputRejection",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeInputRejection",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInputRejection"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeInputRejection",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInputRejection"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationResolution",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeInstallationResolution",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationResolution"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeInstallationResolution",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationResolution"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationWiring",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeInstallationWiring",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationWiring"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeInstallationWiring",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationWiring"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeOutputWriterFailures",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeOutputWriterFailures",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeOutputWriterFailures"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeOutputWriterFailures",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeOutputWriterFailures"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanFlagErrors",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanFlagErrors",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanFlagErrors"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanFlagErrors",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanFlagErrors"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanInputRejection",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanInputRejection",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanInputRejection"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanInputRejection",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanInputRejection"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanOperationErrors",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanOperationErrors",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanOperationErrors"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanOperationErrors",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanOperationErrors"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestAndOutput",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanRequestAndOutput",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestAndOutput"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanRequestAndOutput",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestAndOutput"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestDefaults",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanRequestDefaults",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestDefaults"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizePlanRequestDefaults",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestDefaults"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeReplayRequestOutputAndStatus",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeReplayRequestOutputAndStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeReplayRequestOutputAndStatus"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeReplayRequestOutputAndStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeReplayRequestOutputAndStatus"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeUnknownCommandsAndPrivateModes",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeUnknownCommandsAndPrivateModes",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeUnknownCommandsAndPrivateModes"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCharacterizeUnknownCommandsAndPrivateModes",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeUnknownCommandsAndPrivateModes"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCheckExplainsMissingToolchain",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCheckExplainsMissingToolchain",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCheckExplainsMissingToolchain"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCheckRejectsUnsupportedHostAndUnwritableArtifacts",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCheckRejectsUnsupportedHostAndUnwritableArtifacts",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCheckRejectsUnsupportedHostAndUnwritableArtifacts"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCheckReportsAvailableContract",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestCheckReportsAvailableContract",
+          "action": "fail",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCheckReportsAvailableContract"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestChoiceExplorationDivergenceClassificationAndStatus",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestChoiceExplorationDivergenceClassificationAndStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestChoiceExplorationDivergenceClassificationAndStatus"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestClassifyExploreErrorDistinguishesInputTargetAndRunner",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestClassifyExploreErrorDistinguishesInputTargetAndRunner",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestClassifyExploreErrorDistinguishesInputTargetAndRunner"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestClassifyExploreSummaryDistinguishesWatchdogAndReplayDivergence",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestClassifyExploreSummaryDistinguishesWatchdogAndReplayDivergence",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestClassifyExploreSummaryDistinguishesWatchdogAndReplayDivergence"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreErrorStatusDistinguishesUserAndOperationalFailures",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestExploreErrorStatusDistinguishesUserAndOperationalFailures",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreErrorStatusDistinguishesUserAndOperationalFailures"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterEmitsStableJSONEventsAndEveryArtifact",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestExploreReporterEmitsStableJSONEventsAndEveryArtifact",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterEmitsStableJSONEventsAndEveryArtifact"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterHumanOutputIncludesProgressAndReplayCommands",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestExploreReporterHumanOutputIncludesProgressAndReplayCommands",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterHumanOutputIncludesProgressAndReplayCommands"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterReportsGuidedCorpusUpdates",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestExploreReporterReportsGuidedCorpusUpdates",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterReportsGuidedCorpusUpdates"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterReportsRetainedSuccessfulRuns",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestExploreReporterReportsRetainedSuccessfulRuns",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterReportsRetainedSuccessfulRuns"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestFormatMissingOrdinalsCompactsRanges",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestFormatMissingOrdinalsCompactsRanges",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestFormatMissingOrdinalsCompactsRanges"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestGuidanceReportsNoCorpusSelectionAndNewExecutions",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestGuidanceReportsNoCorpusSelectionAndNewExecutions",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestGuidanceReportsNoCorpusSelectionAndNewExecutions"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestGuideRegressionRequiresGuidance",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestGuideRegressionRequiresGuidance",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestGuideRegressionRequiresGuidance"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestInspectReportsCandidateReplayDivergence",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestInspectReportsCandidateReplayDivergence",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestInspectReportsCandidateReplayDivergence"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestParseCampaignShardUsesZeroBasedIndex",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestParseCampaignShardUsesZeroBasedIndex",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestParseCampaignShardUsesZeroBasedIndex"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestParseCapabilityModeUsesClosedVocabulary",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestParseCapabilityModeUsesClosedVocabulary",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestParseCapabilityModeUsesClosedVocabulary"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestParseTargetPreservesArgumentVector",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestParseTargetPreservesArgumentVector",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestParseTargetPreservesArgumentVector"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanAndExploreRejectHiddenPlanRoute",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPlanAndExploreRejectHiddenPlanRoute",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanAndExploreRejectHiddenPlanRoute"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPlanAndExploreRejectHiddenPlanRoute",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanAndExploreRejectHiddenPlanRoute"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanValidationOrderAndJSONRouting",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPlanValidationOrderAndJSONRouting",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanValidationOrderAndJSONRouting"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPlanValidationOrderAndJSONRouting",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanValidationOrderAndJSONRouting"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPrintInspectionReportsInterruptedSimulationExplorationWork",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPrintInspectionReportsInterruptedSimulationExplorationWork",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPrintInspectionReportsInterruptedSimulationExplorationWork"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPrintInspectionReportsSimulationExplorationEvidence",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPrintInspectionReportsSimulationExplorationEvidence",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPrintInspectionReportsSimulationExplorationEvidence"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandExplicitZeroAndIrrelevantFlagClassification",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPublicCommandExplicitZeroAndIrrelevantFlagClassification",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandExplicitZeroAndIrrelevantFlagClassification"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPublicCommandExplicitZeroAndIrrelevantFlagClassification",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandExplicitZeroAndIrrelevantFlagClassification"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandWriterFailuresPreserveStatus",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPublicCommandWriterFailuresPreserveStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandWriterFailuresPreserveStatus"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestPublicCommandWriterFailuresPreserveStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandWriterFailuresPreserveStatus"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyDiagnosticsRetainsInterruptedReports",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestQualifyDiagnosticsRetainsInterruptedReports",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyDiagnosticsRetainsInterruptedReports"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments",
+      "observations": [
+        {
+          "receipt": "portable-cli-characterization.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments"
+        },
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQuoteArgumentProducesOnePOSIXShellWord",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestQuoteArgumentProducesOnePOSIXShellWord",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQuoteArgumentProducesOnePOSIXShellWord"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestReportReplayResultStatesWhetherFailureWasReproduced",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestReportReplayResultStatesWhetherFailureWasReproduced",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestReportReplayResultStatesWhetherFailureWasReproduced"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreSeedsSupportsCountWithoutAmbiguity",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResolveExploreSeedsSupportsCountWithoutAmbiguity",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreSeedsSupportsCountWithoutAmbiguity"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRejectsExplorationBoundsForSeeds",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResolveExploreStrategyRejectsExplorationBoundsForSeeds",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRejectsExplorationBoundsForSeeds"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreTypedErrorPresentation",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResolveExploreTypedErrorPresentation",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreTypedErrorPresentation"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveWorkingDirectory",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResolveWorkingDirectory",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveWorkingDirectory"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResumeGuidanceModePreservesExplicitFalseAndTrue",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestResumeGuidanceModePreservesExplicitFalseAndTrue",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResumeGuidanceModePreservesExplicitFalseAndTrue"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput",
+          "action": "fail",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunAnalyzeForwardsTargetAndClassifiesReport",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunAnalyzeForwardsTargetAndClassifiesReport",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunAnalyzeForwardsTargetAndClassifiesReport"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunCompareSupportMapsReviewAndIncomparableStatuses",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunCompareSupportMapsReviewAndIncomparableStatuses",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunCompareSupportMapsReviewAndIncomparableStatuses"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunDoctorReportsAvailableContractAsJSON",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunDoctorReportsAvailableContractAsJSON",
+          "action": "fail",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunDoctorReportsAvailableContractAsJSON"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunDoctorReportsRepairCommandWhenToolchainIsMissing",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunDoctorReportsRepairCommandWhenToolchainIsMissing",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunDoctorReportsRepairCommandWhenToolchainIsMissing"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunExploreReportsFlagErrorsAsJSON",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunExploreReportsFlagErrorsAsJSON",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunExploreReportsFlagErrorsAsJSON"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectRejectsChoicesForBatch",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunInspectRejectsChoicesForBatch",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectRejectsChoicesForBatch"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectReportsBatchAsTextAndJSON",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunInspectReportsBatchAsTextAndJSON",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectReportsBatchAsTextAndJSON"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectReportsOutputFailure",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunInspectReportsOutputFailure",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectReportsOutputFailure"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectReportsWhetherTheTargetIsShared",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunInspectReportsWhetherTheTargetIsShared",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunInspectReportsWhetherTheTargetIsShared"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunMergeSetMapsStatuses",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunMergeSetMapsStatuses",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunMergeSetMapsStatuses"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunMinimizeForwardsFlags",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunMinimizeForwardsFlags",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunMinimizeForwardsFlags"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunQualifyForwardsFlagsAndClassifiesOutcome",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunQualifyForwardsFlagsAndClassifiesOutcome",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunQualifyForwardsFlagsAndClassifiesOutcome"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunQualifySetForwardsFlags",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunQualifySetForwardsFlags",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunQualifySetForwardsFlags"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRecoverRepairsPublishedBatchPrivateState",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunRecoverRepairsPublishedBatchPrivateState",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRecoverRepairsPublishedBatchPrivateState"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRecoverReportsStableTextAndJSON",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunRecoverReportsStableTextAndJSON",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRecoverReportsStableTextAndJSON"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRejectsUnknownCommandWithUsageStatus",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunRejectsUnknownCommandWithUsageStatus",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunRejectsUnknownCommandWithUsageStatus"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunResumeForwardsCampaignAndClassifiesResult",
+      "observations": [
+        {
+          "receipt": "portable-cli-full-temp-retry.json",
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+          "test": "TestRunResumeForwardsCampaignAndClassifiesResult",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunResumeForwardsCampaignAndClassifiesResult"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildFailureRetainsFirstUnsupportedBoundary",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestBuildFailureRetainsFirstUnsupportedBoundary",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildFailureRetainsFirstUnsupportedBoundary"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportNamesFirstEvidenceDivergence",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestBuildReportNamesFirstEvidenceDivergence",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportNamesFirstEvidenceDivergence"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportQualifiesRepeatedSuccessfulEvidence",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestBuildReportQualifiesRepeatedSuccessfulEvidence",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportQualifiesRepeatedSuccessfulEvidence"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRecordsFailureReplay",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestBuildReportRecordsFailureReplay",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRecordsFailureReplay"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRecordsPerRunSuccessfulReplay",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestBuildReportRecordsPerRunSuccessfulReplay",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRecordsPerRunSuccessfulReplay"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRejectsInvalidEvidenceSet",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestBuildReportRejectsInvalidEvidenceSet",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRejectsInvalidEvidenceSet"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRejectsMismatchedPerRunReplay",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestBuildReportRejectsMismatchedPerRunReplay",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRejectsMismatchedPerRunReplay"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDecodeResultEventRejectsInvalidStreams",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestDecodeResultEventRejectsInvalidStreams",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestDecodeResultEventRejectsInvalidStreams"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsOffReportFieldsRemainAbsent",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestDiagnosticsOffReportFieldsRemainAbsent",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsOffReportFieldsRemainAbsent"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsPreserveInterruptedQualificationEvidence",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestDiagnosticsPreserveInterruptedQualificationEvidence",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsPreserveInterruptedQualificationEvidence"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsRejectCorruptedSavedReportBindings",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestDiagnosticsRejectCorruptedSavedReportBindings",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsRejectCorruptedSavedReportBindings"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsUnavailableForEveryInterruptedRun",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestDiagnosticsUnavailableForEveryInterruptedRun",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestDiagnosticsUnavailableForEveryInterruptedRun"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationEventStreamReturnsRetainedResult",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestQualificationEventStreamReturnsRetainedResult",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationEventStreamReturnsRetainedResult"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationRejectsChangedDiagnosticTraceAndEvidence",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationRejectsChangedDiagnosticTraceAndEvidence"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationReportReadValidationPreservation",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestQualificationReportReadValidationPreservation",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationReportReadValidationPreservation"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationReportStoragePreservation",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestQualificationReportStoragePreservation",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationReportStoragePreservation"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationReportWriteValidationPreservation",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestQualificationReportWriteValidationPreservation",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestQualificationReportWriteValidationPreservation"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestWriteRejectsInconsistentDeterministicOutcome",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestWriteRejectsInconsistentDeterministicOutcome",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestWriteRejectsInconsistentDeterministicOutcome"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/qualification::TestWriteReportRetainsCanonicalPrivateFile",
+      "observations": [
+        {
+          "receipt": "portable-qualification-control.json",
+          "package": "go.temporal.io/server/tools/gomad3/qualification",
+          "test": "TestWriteReportRetainsCanonicalPrivateFile",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/qualification::TestWriteReportRetainsCanonicalPrivateFile"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestEveryResolutionSourceYieldsAValidatedDescription",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3/toolchain",
+          "test": "TestEveryResolutionSourceYieldsAValidatedDescription",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/toolchain::TestEveryResolutionSourceYieldsAValidatedDescription"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolvePrefersExplicitThenEnvironment",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3/toolchain",
+          "test": "TestResolvePrefersExplicitThenEnvironment",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolvePrefersExplicitThenEnvironment"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveReadsAdjacentBundleManifest",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3/toolchain",
+          "test": "TestResolveReadsAdjacentBundleManifest",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveReadsAdjacentBundleManifest"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveRejectsMalformedManifestsAndInvalidRoots",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3/toolchain",
+          "test": "TestResolveRejectsMalformedManifestsAndInvalidRoots",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveRejectsMalformedManifestsAndInvalidRoots"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveRejectsRelativeOverridesAndMalformedManifest",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3/toolchain",
+          "test": "TestResolveRejectsRelativeOverridesAndMalformedManifest",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveRejectsRelativeOverridesAndMalformedManifest"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveUsesExistingAdjacentCheckoutFallback",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3/toolchain",
+          "test": "TestResolveUsesExistingAdjacentCheckoutFallback",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3/toolchain::TestResolveUsesExistingAdjacentCheckoutFallback"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestArchitectureEffectFixtures",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestArchitectureEffectFixtures",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestArchitectureEffectFixtures"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestArchitectureInventoryFixtures",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestArchitectureInventoryFixtures",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestArchitectureInventoryFixtures"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestArchitecturePublicSignatureFixtures",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestArchitecturePublicSignatureFixtures",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestArchitecturePublicSignatureFixtures"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestCurrentVocabularyHasNoLegacyCampaignBoundary",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestCurrentVocabularyHasNoLegacyCampaignBoundary",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestCurrentVocabularyHasNoLegacyCampaignBoundary"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestDomainModulesDoNotExportWireFraming",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestDomainModulesDoNotExportWireFraming",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestDomainModulesDoNotExportWireFraming"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestExactModuleEdges",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestExactModuleEdges",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestExactModuleEdges"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestMakeTargetsMatchTheirOwnership",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestMakeTargetsMatchTheirOwnership",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestMakeTargetsMatchTheirOwnership"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestPackageArchitecture",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestPackageArchitecture",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestPackageArchitecture"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestPublicPackagesDoNotExportTypeAliases",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestPublicPackagesDoNotExportTypeAliases",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestPublicPackagesDoNotExportTypeAliases"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestPureModulesHaveNoHostEffects",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestPureModulesHaveNoHostEffects",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestPureModulesHaveNoHostEffects"
+        }
+      ]
+    },
+    {
+      "key": "go.temporal.io/server/tools/gomad3::TestRunnerExecutionInjectionIsPrivate",
+      "observations": [
+        {
+          "receipt": "portable-architecture-installation.json",
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestRunnerExecutionInjectionIsPrivate",
+          "action": "pass",
+          "key": "go.temporal.io/server/tools/gomad3::TestRunnerExecutionInjectionIsPrivate"
+        }
+      ]
+    }
+  ],
+  "zero_match_suites": [
+    {
+      "receipt": "patched-driver-availability.json",
+      "exit": 1,
+      "error": null
+    },
+    {
+      "receipt": "portable-cli-full.json",
+      "exit": 1,
+      "error": null
+    }
+  ]
+}

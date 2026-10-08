@@ -1,0 +1,7 @@
+Validation for all specs:
+  Specs: 22
+  Tasks: 198
+  Valid: True
+  Warnings:
+    - Spec fn-104-gomad-run-a-downstream-cell-under-the: uncovered R-IDs: R4
+    - Spec fn-107-gomad-finish-downstream-cell: uncovered R-IDs: R10, R12, R7, R8
