@@ -173,13 +173,13 @@ lift: model/irgen/testdata/lifts/RoleRejects.scala:71: failed of fixture.rolerej
 lift: model/irgen/testdata/lifts/RuleRejects.scala:28: on(cool) sits in from(cook), and cook declares no cool: a from holds the blocks of the actions its declarer declares
 lift: model/irgen/testdata/lifts/RuleRejects.scala:38: not a rule of importedTwice's from(cook): import fixture.grouped.clock.{_}; a from holds its declarer's import, first, then `on(action) { case ~> effect }` blocks
 lift: model/irgen/testdata/lifts/RuleRejects.scala:14: from(clock) sits in from(cook): a from holds on blocks alone
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:196: Doubled holds a second realization, Inner: a realization object holds one, so declare it as an object of its own
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:201: inspect is no action activitySystem binds: a realization binds its own machine's actions
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:222: the base controller has no step whose command is stopped: a derived realization changes the steps its base has
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:215: the realization states the server step it derives for temporal.features.activity.deadline.scheduleToStart: drop it
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:198: Doubled holds a second realization, Inner: a realization object holds one, so declare it as an object of its own
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:203: inspect is no action activitySystem binds: a realization binds its own machine's actions
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:226: the base controller has no step whose command is stopped: a derived realization changes the steps its base has
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:219: the realization states the server step it derives for temporal.features.activity.deadline.scheduleToStart: drop it
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:137: the described status lists no statusCompleted: add `statusCompleted -> status` to it
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:120: the call assigns namespace the value its request base gives it: drop the assignment
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:183: failure is no Timeout input of start: a deadline names one of its action's Timeout inputs
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:185: failure is no Timeout input of start: a deadline names one of its action's Timeout inputs
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:149: the described status lists statusPaused twice: list each fact once
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:105: expires is a case of Timeout, and activitySystem records facts of temporal.features.activity.standalone.system.Fact: a realization names the facts its machine records
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:157: workflow_execution_started_event_attributes has no scheduled_event_id, the field the history keys each kind to its operation by
@@ -192,7 +192,7 @@ lift: model/irgen/testdata/lifts/ScriptRejects.scala:31: perform names at least 
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:40: the status table lists statusPaused twice
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:64: the status table lists no statusCompleted: add `statusCompleted -> value` to it
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:28: a command is named after the val that declares it: declare it as a val and refer to it by value
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:191: controller comes before evidence: a realization object's sections are controller, workers, evidence, serverSteps, controls, in that order
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:193: controller comes before evidence: a realization object's sections are controller, workers, evidence, serverSteps, controls, in that order
 lift: model/irgen/testdata/lifts/StatusFactRejects.scala:30: the effect block of pause assigns phase a value that names no case: the status it records is the declared status of a case, so name the case, `phase = Phase.paused`
 lift: model/irgen/testdata/lifts/StatusFactRejects.scala:20: the effect block of pause records statusPaused, which its assignment of phase already records: drop the record(statusPaused)
 lift: model/irgen/testdata/lifts/StatusFactRejects.scala:39: stage_=, declared at model/irgen/testdata/lifts/StatusFactRejects.scala:12, assigns phase, whose values declare their status, so it hands the draft the value whose status the step records: `def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(phase = p))`

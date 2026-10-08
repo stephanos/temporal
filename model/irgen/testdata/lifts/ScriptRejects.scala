@@ -177,7 +177,9 @@ private val started = rpc(baseCalls, METHOD_START_ACTIVITY_EXECUTION) {}
 // A deadlines declaration naming an input that is no Timeout of the action (fn-133.4).
 val deadlineNoTimeout: Realization = realizing(
   deadlines[io.temporal.api.workflowservice.v1.StartActivityExecutionRequest](
-    client.start(temporal.features.activity.standalone.maxAttempts := temporal.features.activity.standalone.MaxAttempts.unlimited),
+    client.start(
+      temporal.features.activity.standalone.maxAttempts := temporal.features.activity.standalone.MaxAttempts.unlimited
+    ),
     started,
     duration(2)
   )(temporal.features.activity.failure.sets(_.getStartToCloseTimeout))
@@ -205,7 +207,9 @@ object Restated extends Realizes(activitySystem):
   object controller
       extends Controller(
         deadlines[io.temporal.api.workflowservice.v1.StartActivityExecutionRequest](
-          client.start(temporal.features.activity.standalone.maxAttempts := temporal.features.activity.standalone.MaxAttempts.unlimited),
+          client.start(
+            temporal.features.activity.standalone.maxAttempts := temporal.features.activity.standalone.MaxAttempts.unlimited
+          ),
           started,
           duration(2)
         )(scheduleToStart.sets(_.getScheduleToStartTimeout))
