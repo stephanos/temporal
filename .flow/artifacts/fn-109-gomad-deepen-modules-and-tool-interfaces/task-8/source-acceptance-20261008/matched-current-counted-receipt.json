@@ -1,0 +1,306 @@
+{
+  "name": "matched-current-counted",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ncd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-w36Kpu/current/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-w36Kpu/current-caller-overlay.json' ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run 'TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSource|TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim|TestBuild|TestDecodeValidatesCanonicalCapabilityReport|TestPrepareCapabilityReview'"
+  ],
+  "command": "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-w36Kpu/current/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-w36Kpu/current-caller-overlay.json' ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run 'TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSource|TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim|TestBuild|TestDecodeValidatesCanonicalCapabilityReport|TestPrepareCapabilityReview'",
+  "started": "2026-10-08T22:45:37.185Z",
+  "ended": "2026-10-08T22:46:04.451Z",
+  "elapsed_seconds": 27.265047763000002,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "log": "matched-current-counted.log",
+  "log_sha256": "eddcf4660736245c55fad80ffef8a2cfbcccbad01a36df682754cc6a65c2a7d3",
+  "base_commit": "410c463429a1deca56693e5fd123b44a75f5709e",
+  "review_base": "19a66244503cee636607b0449081d31e69cd769a",
+  "head": "410c463429a1deca56693e5fd123b44a75f5709e",
+  "source_manifest": "source-edb8645102d6ed8e370649049a3a784cc63f3949ab1a10fe66b6471bcb8e0365.json",
+  "source_tree_sha256": "edb8645102d6ed8e370649049a3a784cc63f3949ab1a10fe66b6471bcb8e0365",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "tools_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off"
+  },
+  "counts": {
+    "pass": 34,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-08T22:45:43.398051388Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.39833743Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildReportsLexicographicallyFirstShortestDependencyPath",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.398532638Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildRedactsPathBearingArgumentsDeterministically",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.398740263Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildUsesAllSortedRootsAndRejectsUnreachableFindings",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.398921763Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildSupportedReportHasCanonicalNonNullEvidence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.399698097Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildLinkedReportSeparatesEliminatedClosureBlockers",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.400214638Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestBuildGuardedReportSeparatesNonblockingGuardEvidence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.400308763Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestDecodeValidatesCanonicalCapabilityReport",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.501466597Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure/no_command",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.501864347Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure/unknown_command",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.50198568Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure/no_command_closed_writer",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.507807388Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure/unknown_command_closed_writer",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T22:45:43.508051222Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-08T22:45:43.514563763Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceUsageCharacterization",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T22:45:43.651179264Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestPrepareCapabilityReviewOwnsPrivateAdapterLifecycle",
+      "Elapsed": 0.25
+    },
+    {
+      "Time": "2026-10-08T22:45:43.657281139Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/text",
+      "Elapsed": 0.22
+    },
+    {
+      "Time": "2026-10-08T22:45:43.834362764Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/json",
+      "Elapsed": 0.18
+    },
+    {
+      "Time": "2026-10-08T22:45:44.081494972Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/unsupported",
+      "Elapsed": 0.24
+    },
+    {
+      "Time": "2026-10-08T22:45:44.267396222Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/unresolved",
+      "Elapsed": 0.19
+    },
+    {
+      "Time": "2026-10-08T22:45:44.557008722Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/cleanup-supported",
+      "Elapsed": 0.28
+    },
+    {
+      "Time": "2026-10-08T22:45:44.881990347Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/cleanup-unsupported",
+      "Elapsed": 0.33
+    },
+    {
+      "Time": "2026-10-08T22:45:45.160966931Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/cleanup-unresolved",
+      "Elapsed": 0.28
+    },
+    {
+      "Time": "2026-10-08T22:45:45.161028556Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer",
+      "Elapsed": 1.73
+    },
+    {
+      "Time": "2026-10-08T22:45:45.397350431Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceActualOwnerConsumers/removed/ordinary/valid-review",
+      "Elapsed": 1.88
+    },
+    {
+      "Time": "2026-10-08T22:45:45.649261181Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/ordinary/valid-review",
+      "Elapsed": 0.25
+    },
+    {
+      "Time": "2026-10-08T22:45:45.780349723Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceActualOwnerConsumers/removed/ordinary/invalid-review",
+      "Elapsed": 0.13
+    },
+    {
+      "Time": "2026-10-08T22:45:45.937073973Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/ordinary/invalid-review",
+      "Elapsed": 0.16
+    },
+    {
+      "Time": "2026-10-08T22:45:47.195756682Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceActualOwnerConsumers/removed/closed/valid-review",
+      "Elapsed": 1.26
+    },
+    {
+      "Time": "2026-10-08T22:45:47.545191057Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/closed/valid-review",
+      "Elapsed": 0.35
+    },
+    {
+      "Time": "2026-10-08T22:45:47.633051724Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceActualOwnerConsumers/removed/closed/invalid-review",
+      "Elapsed": 0.09
+    },
+    {
+      "Time": "2026-10-08T22:45:47.805897265Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/closed/invalid-review",
+      "Elapsed": 0.17
+    },
+    {
+      "Time": "2026-10-08T22:45:47.806091474Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestCompatibilityPackSourceActualOwnerConsumers",
+      "Elapsed": 4.29
+    },
+    {
+      "Time": "2026-10-08T22:46:03.962771232Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestPrepareCapabilityReviewSupportsTemporalBackoffWithGRPCAdapter",
+      "Elapsed": 20.31
+    },
+    {
+      "Time": "2026-10-08T22:46:04.12436019Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestPreparedReviewSourceActualOwnerFailedClose",
+      "Elapsed": 0.16
+    }
+  ],
+  "harness_sha256": "3770df7cbe26473e36174d8b55bfc40f5848bd78c4eec25c6d7ef92f0b0963e7",
+  "control_manifest": "controls-f1649bb73dc95ab6bb71d24f7ee5c62c1b144aa3c1a8577a30d602fb1e39f1ae.json",
+  "control_tree_sha256": "f1649bb73dc95ab6bb71d24f7ee5c62c1b144aa3c1a8577a30d602fb1e39f1ae",
+  "controls_unchanged": true
+}

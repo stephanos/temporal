@@ -1,0 +1,49 @@
+--- current/cmd/gomadtool/compatibility_pack.go
++++ current/cmd/gomadtool/compatibility_pack.go (SOURCE only)
+@@ -15,6 +15,7 @@
+ 
+ 	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
+ 	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
++	"go.temporal.io/server/tools/gomad3/target"
+ )
+ 
+ const compatibilityPackTimeout = 2 * time.Minute
+@@ -48,6 +49,10 @@
+ }
+ 
+ func runCompatibilityPackDiscover(arguments []string, stdout, stderr io.Writer) int {
++	return runCompatibilityPackDiscoverWith(arguments, stdout, stderr, capabilityanalysis.PrepareCapabilityReview)
++}
++
++func runCompatibilityPackDiscoverWith(arguments []string, stdout, stderr io.Writer, prepare func(context.Context, target.Spec) (capabilityanalysis.PreparedCapabilityReview, error)) int {
+ 	flags := flag.NewFlagSet("gomadtool compatibility-pack discover", flag.ContinueOnError)
+ 	flags.SetOutput(stderr)
+ 	root := flags.String("root", "", "Gomad v3 module root")
+@@ -74,7 +79,7 @@
+ 	}
+ 	ctx, cancel := context.WithTimeout(context.Background(), compatibilityPackTimeout)
+ 	defer cancel()
+-	prepared, err := capabilityanalysis.PrepareCapabilityReview(
++	prepared, err := prepare(
+ 		ctx,
+ 		draft.ReviewSpec(*workingDirectory, filepath.Join(resolvedRoot, ".toolchain")),
+ 	)
+@@ -323,13 +328,17 @@
+ }
+ 
+ func qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, workingDirectory string, stdout, stderr io.Writer) (status int, outputErr error) {
++	return qualifyCompatibilityPackRequestWith(resolvedRoot, resolvedRequest, workingDirectory, stdout, stderr, capabilityanalysis.PrepareCapabilityReview)
++}
++
++func qualifyCompatibilityPackRequestWith(resolvedRoot, resolvedRequest, workingDirectory string, stdout, stderr io.Writer, prepare func(context.Context, target.Spec) (capabilityanalysis.PreparedCapabilityReview, error)) (status int, outputErr error) {
+ 	request, status := readReviewedCompatibilityPackRequest(resolvedRequest, stderr)
+ 	if status != 0 {
+ 		return status, nil
+ 	}
+ 	ctx, cancel := context.WithTimeout(context.Background(), compatibilityPackTimeout)
+ 	defer cancel()
+-	prepared, err := capabilityanalysis.PrepareCapabilityReview(
++	prepared, err := prepare(
+ 		ctx,
+ 		request.ReviewSpec(workingDirectory, filepath.Join(resolvedRoot, ".toolchain")),
+ 	)

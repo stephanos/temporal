@@ -1,0 +1,15 @@
+--- current/qualification/analysis/prepared_review.go
++++ current/qualification/analysis/prepared_review.go (SOURCE only)
+@@ -19,7 +19,11 @@
+ }
+ 
+ func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (PreparedCapabilityReview, error) {
+-	inspected, err := preparation.Inspect(ctx, spec)
++	return prepareCapabilityReviewWith(ctx, spec, preparation.Inspect)
++}
++
++func prepareCapabilityReviewWith(ctx context.Context, spec target.Spec, inspect func(context.Context, target.Spec) (preparation.Inspection, error)) (PreparedCapabilityReview, error) {
++	inspected, err := inspect(ctx, spec)
+ 	if err != nil {
+ 		return PreparedCapabilityReview{}, err
+ 	}

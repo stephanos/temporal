@@ -1,0 +1,108 @@
+{
+  "original": "matched-original-counted",
+  "current": "matched-current-counted",
+  "original_log_sha256": "45a47ba628d1501a7d572c72085a717da2c79df6e13f4197e50c7942801683f6",
+  "current_log_sha256": "eddcf4660736245c55fad80ffef8a2cfbcccbad01a36df682754cc6a65c2a7d3",
+  "original_snapshot_sha256": "bf40edece576cdc68044b75aa4e14aa23730caf427c314e0fbbfde41e82d242e",
+  "current_snapshot_sha256": "ce30a446f9163392f2a3942a16aa628a2c5d66b7cd173f13542de35f01a65696",
+  "rows": 27,
+  "differences": [
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/removed/ordinary/valid-review",
+      "field": "attempted",
+      "original": "SOURCE-remove-failed\n",
+      "current": "remove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/removed/ordinary/valid-review",
+      "field": "stderr",
+      "original": "SOURCE-remove-failed\n",
+      "current": "remove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/removed/ordinary/valid-review",
+      "field": "attempted",
+      "original": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nSOURCE-remove-failed\n",
+      "current": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nremove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/removed/ordinary/valid-review",
+      "field": "stderr",
+      "original": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nSOURCE-remove-failed\n",
+      "current": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nremove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli|TestAnalyzeSourceActualOwnerConsumer/cleanup-supported",
+      "field": "status",
+      "original": 0,
+      "current": 3
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli|TestAnalyzeSourceActualOwnerConsumer/cleanup-supported",
+      "field": "stderr",
+      "original": "clean capability analysis preparation: SOURCE-remove-failed\n",
+      "current": "clean capability analysis preparation: remove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli|TestAnalyzeSourceActualOwnerConsumer/cleanup-unsupported",
+      "field": "stderr",
+      "original": "clean capability analysis preparation: SOURCE-remove-failed\n",
+      "current": "clean capability analysis preparation: remove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli|TestAnalyzeSourceActualOwnerConsumer/cleanup-unresolved",
+      "field": "stderr",
+      "original": "analyze target capabilities: inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nclean capability analysis preparation: SOURCE-remove-failed\n",
+      "current": "analyze target capabilities: inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nremove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/ordinary/valid-review",
+      "field": "attempted",
+      "original": "SOURCE-remove-failed\n",
+      "current": "remove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/ordinary/valid-review",
+      "field": "stderr",
+      "original": "SOURCE-remove-failed\n",
+      "current": "remove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/ordinary/invalid-review",
+      "field": "attempted",
+      "original": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nSOURCE-remove-failed\n",
+      "current": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nremove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/ordinary/invalid-review",
+      "field": "stderr",
+      "original": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nSOURCE-remove-failed\n",
+      "current": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nremove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/removed/closed/valid-review",
+      "field": "attempted",
+      "original": "SOURCE-remove-failed\n",
+      "current": "remove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/removed/closed/valid-review",
+      "field": "attempted",
+      "original": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nSOURCE-remove-failed\n",
+      "current": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nremove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/closed/valid-review",
+      "field": "attempted",
+      "original": "SOURCE-remove-failed\n",
+      "current": "remove capability review preparation directory: SOURCE-remove-failed\n"
+    },
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomadtool|TestCompatibilityPackSourceActualOwnerConsumers/failed-removal/closed/invalid-review",
+      "field": "attempted",
+      "original": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nSOURCE-remove-failed\n",
+      "current": "inspect target capability closure: exit status 1: main.go:2:8: cannot find module providing package example.com/SOURCE-unavailable: import lookup disabled by -mod=readonly\n\nremove capability review preparation directory: SOURCE-remove-failed\n"
+    }
+  ],
+  "source_native": false
+}

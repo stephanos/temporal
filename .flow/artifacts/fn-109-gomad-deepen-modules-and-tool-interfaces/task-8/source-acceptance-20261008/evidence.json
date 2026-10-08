@@ -1,0 +1,446 @@
+{
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.8",
+  "status": "in_progress",
+  "base_commit": "410c463429a1deca56693e5fd123b44a75f5709e",
+  "task_review_base": "19a66244503cee636607b0449081d31e69cd769a",
+  "commits": [],
+  "tests": [
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/preparation ./target ./cmd/gomad/internal/cli ./cmd/gomadtool -run \"TestInspectSource|TestReviewCapabilitiesSource|TestAnalyzeSource|TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported|TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure\"",
+    "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-overlay.json' ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run 'TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSource|TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim|TestBuild|TestDecodeValidatesCanonicalCapabilityReport|TestPrepareCapabilityReview'",
+    "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-overlay.json' ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run 'TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSource|TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim|TestBuild|TestDecodeValidatesCanonicalCapabilityReport|TestPrepareCapabilityReview'",
+    "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-overlay.json' ./internal/preparation -run 'TestInspectClosureDoesNotBuildOrLaunch|TestInspectRejectsCallerRootAndPreservesReviewClassificationOnCleanupFailure|TestInspectCloseSurfacesCleanupFailure|TestInspectPreservesInvalidAdapterSum|TestInspectRetainsUnsupportedClosureClassification'",
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run \"TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet|TestInspectionSourceOwnershipDelegation|TestExactModuleEdges\"",
+    "GOFLAGS=\"-tags=test_dep -count=1\" make -C tools/gomad3 validate GOCACHE=/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/compatibilitypack -run \"^TestHostPacksBindCurrentProfile$\"",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=19a66244503cee636607b0449081d31e69cd769a GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config ../../.github/.golangci.yml --build-tags test_dep ./internal/preparation/... ./qualification/analysis/... ./cmd/gomad/internal/cli ./cmd/gomadtool ./target .",
+    "cd \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3\" && go test -json -count=1 -tags test_dep -overlay \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-classification-overlay-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.json\" ./cmd/gomad/internal/cli -run TestAnalyzeSourceActualOwnerClassification",
+    "cd \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3\" && go test -json -count=1 -tags test_dep -overlay \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-classification-overlay-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.json\" ./cmd/gomad/internal/cli -run TestAnalyzeSourceActualOwnerClassification",
+    "cd \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3\" && go test -json -count=1 -tags test_dep -overlay \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-overlay.json\" ./cmd/gomad/internal/cli -run \"TestRunAnalyzeForwardsTargetAndClassifiesReport|TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput\"",
+    "test -z \"$(gofmt -l tools/gomad3/architecture_test.go tools/gomad3/cmd/gomad/internal/cli/analyze.go tools/gomad3/cmd/gomad/internal/cli/analyze_source_test.go tools/gomad3/cmd/gomadtool/compatibility_pack.go tools/gomad3/cmd/gomadtool/compatibility_pack_source_test.go tools/gomad3/internal/preparation/inspection.go tools/gomad3/internal/preparation/inspection_source_test.go tools/gomad3/target/capability.go tools/gomad3/target/capability_source_test.go)\" && git diff --check"
+  ],
+  "prs": [],
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "review": "skipped(policy: conductor-deferred - root owns independent review)",
+  "source_only": true,
+  "native": {
+    "darwin_arm64": "deferred/unverified fn149",
+    "linux_amd64_ci": "deferred/unverified fn128",
+    "actual_host": "linux/arm64 stock Go1.27.1",
+    "host_profile_binding": "explicit skip; no native pack proof"
+  },
+  "baseline": {
+    "native_quick": "exit127 absent patched .toolchain/bin/go",
+    "stock_source_quick": "exit1;521pass40fail2skip; inherited guards/missing driver and other owners",
+    "architecture": "exit0",
+    "compatibility": "exit0 with unsupported-host binding skip"
+  },
+  "final_receipts": [
+    {
+      "file": "final-permanent-source-bounded-diagnostics-receipt.json",
+      "sha256": "60ef4602e4e293e9558e25ba73f687431015ce47972441228a85ead9bb791550",
+      "name": "final-permanent-source-bounded-diagnostics",
+      "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/preparation ./target ./cmd/gomad/internal/cli ./cmd/gomadtool -run \"TestInspectSource|TestReviewCapabilitiesSource|TestAnalyzeSource|TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported|TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure\"",
+      "exit_code": 0,
+      "elapsed_seconds": 1.0119678339999998,
+      "counts": {
+        "pass": 25,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-9a363469434a4a30cf470792d1309cb4c3b08404a20bb785cd423efb45792b9d.json",
+      "log": "final-permanent-source-bounded-diagnostics.log",
+      "log_sha256": "9d602679eb24139963cee3f8318a640e066c8e3f9996e017b5217ddb29cfdf16"
+    },
+    {
+      "file": "final-original-consumers-receipt.json",
+      "sha256": "e7c5605717340555cb7272d1a1fdb87893c134957a0d406180675c42e1ad7a0b",
+      "name": "final-original-consumers",
+      "command": "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-overlay.json' ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run 'TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSource|TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim|TestBuild|TestDecodeValidatesCanonicalCapabilityReport|TestPrepareCapabilityReview'",
+      "exit_code": 0,
+      "elapsed_seconds": 15.773757008,
+      "counts": {
+        "pass": 33,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-0b74e35094f34350b011fcab6f21476a85ea7eddec33134b298a578f4c1105a2.json",
+      "log": "final-original-consumers.log",
+      "log_sha256": "c839c39865c3a517d3d2bad40c73de0c76415836e8ff2f1bc5e4d8843e1990e5"
+    },
+    {
+      "file": "final-current-consumers-receipt.json",
+      "sha256": "52c320a852032b85ec88ae2b9069add4614f06b763f4f113899893a60f465775",
+      "name": "final-current-consumers",
+      "command": "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-overlay.json' ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run 'TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSource|TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim|TestBuild|TestDecodeValidatesCanonicalCapabilityReport|TestPrepareCapabilityReview'",
+      "exit_code": 0,
+      "elapsed_seconds": 11.774773754999998,
+      "counts": {
+        "pass": 38,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-0b74e35094f34350b011fcab6f21476a85ea7eddec33134b298a578f4c1105a2.json",
+      "log": "final-current-consumers.log",
+      "log_sha256": "dcc75ab00aed03f4afa362c3daacd3982970170f0566ba28fdcb7d89910b180b"
+    },
+    {
+      "file": "final-existing-inspection-receipt.json",
+      "sha256": "a811b72a191f57d6954834c7ccd85bda45f44d57ed51c680914a689442209653",
+      "name": "final-existing-inspection",
+      "command": "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-overlay.json' ./internal/preparation -run 'TestInspectClosureDoesNotBuildOrLaunch|TestInspectRejectsCallerRootAndPreservesReviewClassificationOnCleanupFailure|TestInspectCloseSurfacesCleanupFailure|TestInspectPreservesInvalidAdapterSum|TestInspectRetainsUnsupportedClosureClassification'",
+      "exit_code": 0,
+      "elapsed_seconds": 0.9207473339999999,
+      "counts": {
+        "pass": 5,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-0b74e35094f34350b011fcab6f21476a85ea7eddec33134b298a578f4c1105a2.json",
+      "log": "final-existing-inspection.log",
+      "log_sha256": "3574b5e583e1200758db4b5f55021ff14e5024c06daa73015e8de7d4c112628e"
+    },
+    {
+      "file": "final-static-architecture-receipt.json",
+      "sha256": "00404e4b9bc16ed3ee9cf4101c95247808bcd412653033ee85b9c1b4ca0f8afc",
+      "name": "final-static-architecture",
+      "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run \"TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet|TestInspectionSourceOwnershipDelegation|TestExactModuleEdges\"",
+      "exit_code": 0,
+      "elapsed_seconds": 53.749103859,
+      "counts": {
+        "pass": 13,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-0b74e35094f34350b011fcab6f21476a85ea7eddec33134b298a578f4c1105a2.json",
+      "log": "final-static-architecture.log",
+      "log_sha256": "c285542bb6d18cfb0f6a09f51c26e032469d32e724bf559b7c7b5f8944155719"
+    },
+    {
+      "file": "final-generated-check-receipt.json",
+      "sha256": "887097d8333449a8655ebee4cf552ac33a67c0ec043d0b553796a2fda5ac05dc",
+      "name": "final-generated-check",
+      "command": "GOFLAGS=\"-tags=test_dep -count=1\" make -C tools/gomad3 validate GOCACHE=/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+      "exit_code": 0,
+      "elapsed_seconds": 5.460686002,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-0b74e35094f34350b011fcab6f21476a85ea7eddec33134b298a578f4c1105a2.json",
+      "log": "final-generated-check.log",
+      "log_sha256": "d26a8d324425ecbba0dafcc13f0c00c051c443ca954af4c9a17eb0ea81ff6606"
+    },
+    {
+      "file": "final-host-profile-binding-observation-receipt.json",
+      "sha256": "3d5139ca1e3f1f90940ca8a8f7d9ee2a6d30b13bb9b65d8bdaa66aae07c5efb2",
+      "name": "final-host-profile-binding-observation",
+      "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/compatibilitypack -run \"^TestHostPacksBindCurrentProfile$\"",
+      "exit_code": 0,
+      "elapsed_seconds": 0.5094217920000002,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 1
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-0b74e35094f34350b011fcab6f21476a85ea7eddec33134b298a578f4c1105a2.json",
+      "log": "final-host-profile-binding-observation.log",
+      "log_sha256": "1ba640e2f53575066b943407225e5c1234da80bff969e16cb722a2c527898e79"
+    },
+    {
+      "file": "final-lint-code-fast-receipt.json",
+      "sha256": "31a90287e46761f3b2f2f8d15f2d9e0ad5776fc871f75ee761657ca768290178",
+      "name": "final-lint-code-fast",
+      "command": "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=19a66244503cee636607b0449081d31e69cd769a GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "exit_code": 0,
+      "elapsed_seconds": 10.583104797,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-0b74e35094f34350b011fcab6f21476a85ea7eddec33134b298a578f4c1105a2.json",
+      "log": "final-lint-code-fast.log",
+      "log_sha256": "d1192275e723031fdc71c84838c3f2fe0512b8011397a31c956e68adb8a2d5e0"
+    },
+    {
+      "file": "final-lint-scoped-unfiltered-receipt.json",
+      "sha256": "b61c409cdf7ea3181e253426c8b41df7d1989df850284e1f43e3128fe238ee49",
+      "name": "final-lint-scoped-unfiltered",
+      "command": "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config ../../.github/.golangci.yml --build-tags test_dep ./internal/preparation/... ./qualification/analysis/... ./cmd/gomad/internal/cli ./cmd/gomadtool ./target .",
+      "exit_code": 1,
+      "elapsed_seconds": 3.6446622099999995,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-5b3cf6a90a574bb0f1d49919e97a4039fcfef205fd4b01f3cfb6a981998ff3d6.json",
+      "log": "final-lint-scoped-unfiltered.log",
+      "log_sha256": "d72783445b52a6c94386d2cff5698f84320519a323fb3c53829833e5054acedc"
+    },
+    {
+      "file": "classification-original-observed-boundary-receipt.json",
+      "sha256": "2fabdd238020ec2a7005ce94a66d193351ed34d6b721035d7ac09ec3909dd197",
+      "name": "classification-original-observed-boundary",
+      "command": "cd \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3\" && go test -json -count=1 -tags test_dep -overlay \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-classification-overlay-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.json\" ./cmd/gomad/internal/cli -run TestAnalyzeSourceActualOwnerClassification",
+      "exit_code": 0,
+      "elapsed_seconds": 2.6584274179999996,
+      "counts": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-5b3cf6a90a574bb0f1d49919e97a4039fcfef205fd4b01f3cfb6a981998ff3d6.json",
+      "log": "classification-original-observed-boundary.log",
+      "log_sha256": "a41a884e6bf72d078e2df232424b433c72f293e31f7b55780a6b78ff6987a1ff"
+    },
+    {
+      "file": "classification-current-observed-boundary-receipt.json",
+      "sha256": "68c46daefbebede42e2b9747f2b757945ef4f3011f12e495c07cf5571d887d26",
+      "name": "classification-current-observed-boundary",
+      "command": "cd \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3\" && go test -json -count=1 -tags test_dep -overlay \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-classification-overlay-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.json\" ./cmd/gomad/internal/cli -run TestAnalyzeSourceActualOwnerClassification",
+      "exit_code": 0,
+      "elapsed_seconds": 1.4316075839999998,
+      "counts": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-5b3cf6a90a574bb0f1d49919e97a4039fcfef205fd4b01f3cfb6a981998ff3d6.json",
+      "log": "classification-current-observed-boundary.log",
+      "log_sha256": "a2e33476ef2ccb09196798cb3b198e7785ae967e0dc447d8fef2606285786fa2"
+    },
+    {
+      "file": "final-existing-cli-status-controls-receipt.json",
+      "sha256": "6cbda3a6470535ccc758517b91ed4f7be8685044330fb2d206d41bbd2af25126",
+      "name": "final-existing-cli-status-controls",
+      "command": "cd \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3\" && go test -json -count=1 -tags test_dep -overlay \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-overlay.json\" ./cmd/gomad/internal/cli -run \"TestRunAnalyzeForwardsTargetAndClassifiesReport|TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput\"",
+      "exit_code": 0,
+      "elapsed_seconds": 0.8428762920000001,
+      "counts": {
+        "pass": 11,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-5b3cf6a90a574bb0f1d49919e97a4039fcfef205fd4b01f3cfb6a981998ff3d6.json",
+      "log": "final-existing-cli-status-controls.log",
+      "log_sha256": "04239de351ecd284576d3f02ee9a27ce5e8cf6754815c5e8020360a2162c3364"
+    },
+    {
+      "file": "final-format-and-diff-check-receipt.json",
+      "sha256": "a907069cbc6d62edf24310cb04d0c8ad80e8d9f76bb3b778aa89541400e93695",
+      "name": "final-format-and-diff-check",
+      "command": "test -z \"$(gofmt -l tools/gomad3/architecture_test.go tools/gomad3/cmd/gomad/internal/cli/analyze.go tools/gomad3/cmd/gomad/internal/cli/analyze_source_test.go tools/gomad3/cmd/gomadtool/compatibility_pack.go tools/gomad3/cmd/gomadtool/compatibility_pack_source_test.go tools/gomad3/internal/preparation/inspection.go tools/gomad3/internal/preparation/inspection_source_test.go tools/gomad3/target/capability.go tools/gomad3/target/capability_source_test.go)\" && git diff --check",
+      "exit_code": 0,
+      "elapsed_seconds": 0.1041954169999999,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source_tree_sha256": "e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99",
+      "source_unchanged": true,
+      "controls_unchanged": true,
+      "tools_unchanged": true,
+      "source_manifest": "source-e17c73f71f1cdfbdcf119ce613ef130a31a7802f03b05ac3398031565d4a2f99.json",
+      "control_manifest": "controls-5b3cf6a90a574bb0f1d49919e97a4039fcfef205fd4b01f3cfb6a981998ff3d6.json",
+      "log": "final-format-and-diff-check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9"
+    },
+    {
+      "file": "caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371"
+    },
+    {
+      "file": "classification-controls.json",
+      "sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55"
+    },
+    {
+      "file": "original-control-source.json",
+      "sha256": "65b517d240e3db3eb9972026c3f8136a3ddbabd6ade72682b4a1e49d73c77a3d"
+    },
+    {
+      "file": "current-control-source.json",
+      "sha256": "992995cc9e470e7890457841036ebb3cca55fbfca27ba24c36f49e5461c25ddf"
+    },
+    {
+      "file": "final-consumer-comparison.json",
+      "sha256": "ea20ee0c8899dc0200cc9147b4672a10272a472f39e482df8293c1342b0e5f5e"
+    },
+    {
+      "file": "final-bound-classification-comparison.json",
+      "sha256": "ec112dc329e3d42943f507bf6730625fc0f25665c07750bd638404cfe87f63b0"
+    },
+    {
+      "file": "final-bound-lint-attribution.json",
+      "sha256": "6ce3a3620c09826f11b7fe003448a2e42b75e15c31a6af88501932ab5d64b545"
+    },
+    {
+      "file": "final-bound-evidence-audit.json",
+      "sha256": "60c5136c63343b011ef3ded0f044f9433b90fafa9408150fc6de47ec877f3729"
+    },
+    {
+      "file": "final-cache-state.json",
+      "sha256": "115824ee2b0a5fc2159fafea3caadb5de4d7ddb3deb3aa22d0ef44d2bad7ef1f"
+    },
+    {
+      "file": "at-run-metadata-snapshots-bound.json",
+      "sha256": "7faaa3e50c093d8da34888a7b769674611b8c8789d343808fe965270aab55efc"
+    }
+  ],
+  "assertion_coverage": {
+    "matched_inherited_analysis_tests": 10,
+    "matched_consumer_observations": 31,
+    "matched_additive_classification_observations": 3,
+    "only_consumer_delta": "cleanup-supported status0→3, admitted historical task8 regression; all literal public bytes/counts otherwise match",
+    "target_command_proof": "Actual review/build/extraction bodies; scripted synthetic record, no compiler or target launch",
+    "owner_lifetime": "Actual Inspect Mkdtemp/chmod0700/keep/Close/remove/failure/idempotence",
+    "new_internal_observation_api": "preparation.InspectionErrorParts exact direct owner composite only"
+  },
+  "lint": {
+    "configured_changed_code": "exit0 fixes disabled",
+    "unfiltered": "exit1;119 findings=24 compatibility diagnostics+95 other-owner findings;6 exact admitted sites resolved;no introduced findings in selected scope",
+    "full_clean_claim": false
+  },
+  "authority": {
+    "implementation": "worker",
+    "commits_review_flow_completion": "root",
+    "task_done": false,
+    "review_verdict_claimed": false
+  },
+  "handles": {
+    "running": [],
+    "terminal": "All worker gate sessions observed terminal; no background jobs started"
+  },
+  "handover": "handover.md",
+  "authored_evidence_sources": [
+    {
+      "file": "analyze_consumer_test.go",
+      "sha256": "e4d4c105669d564cfdcf8e9a805c11baeb88a3107147bddafd8eefed0967ecc5"
+    },
+    {
+      "file": "audit.mjs",
+      "sha256": "4f8575db259ea94df64793fc98ebcc9d7d099b61f29ae9fb8f3563e92d1c7ec7"
+    },
+    {
+      "file": "build-evidence.mjs",
+      "sha256": "73fa3ca76592219ca526f16fc969df6e4919edaf38a9e368d8905f6057b2f88b"
+    },
+    {
+      "file": "cache-state.mjs",
+      "sha256": "478459dda1ec5470d3664a9411829582697079437fd753f1d8c04937310ac029"
+    },
+    {
+      "file": "caller-controls.mjs",
+      "sha256": "01db14d0ddb18cc184ed6566b76490938cf91ad405cbaf978fe4ce0bfa1eac56"
+    },
+    {
+      "file": "classification-controls.mjs",
+      "sha256": "850e68628c6d83dc63d167f3854f1c2b5f8504a329ade59cfd64304ca2534734"
+    },
+    {
+      "file": "classification-driver.mjs",
+      "sha256": "6018aa850b671f8d839eaa14dbf9a686bd519284c1ec3713c8628377629cf882"
+    },
+    {
+      "file": "classification_consumer_test.go",
+      "sha256": "ceecf72592b017b2c8048ffeea3be9135f79785e9455a074695eea8a82c0570c"
+    },
+    {
+      "file": "compare-consumers.mjs",
+      "sha256": "668d2da58a84b7a3f4f50d6e4d53cbc9a3e1a1bcb02c55f3076becac61faf1db"
+    },
+    {
+      "file": "compatibility_consumer_test.go",
+      "sha256": "e54abfc88633a041bae2c07805dfe2101580ccb6b9d3ca3dcc7990db59fe346d"
+    },
+    {
+      "file": "metadata-snapshots.mjs",
+      "sha256": "84a5ac19e19558f36bc3f74baf0ffcbcadcbc6b4ff5abbd919c9e065de00f063"
+    },
+    {
+      "file": "review_consumer_test.go",
+      "sha256": "f5bea64daa99b300888b9e23b94924a67ce39cc62b64110529778aff70d82686"
+    },
+    {
+      "file": "run-controls.mjs",
+      "sha256": "963c97e0fa660560ad1ef9289a4c794d1036cd524210902b815e2e71c6b95b60"
+    },
+    {
+      "file": "run.mjs",
+      "sha256": "d751daece9c00a32929b676f21dd6c4cc142ecc04312cc1bc8002708f95b4066"
+    },
+    {
+      "file": "source-controls.mjs",
+      "sha256": "41534f59c71e241a97eca049de084ca0cfbf5dda979a437f1fb276deed6d0df4"
+    }
+  ]
+}

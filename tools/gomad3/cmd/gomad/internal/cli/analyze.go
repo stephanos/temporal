@@ -143,7 +143,14 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 		inspected, inspectErr := dependencies.inspect(ctx, spec)
 		if inspectErr != nil {
 			if preparation.StageOf(inspectErr) == preparation.StageReview {
-				return reportAnalyzeError(stderr, inspectErr)
+				primary, cleanup := preparation.InspectionErrorParts(inspectErr)
+				status = reportAnalyzeError(stderr, primary)
+				if cleanup != nil {
+					if _, writeErr := fmt.Fprintf(stderr, "clean capability analysis preparation: %v\n", cleanup); writeErr != nil || status == 0 {
+						status = 3
+					}
+				}
+				return status
 			}
 			if deterministicio.IsInvalidBuildAdapterConfiguration(inspectErr) {
 				return writeCommandError(stderr, 2, "prepare capability analysis: %v\n", inspectErr)

@@ -21,7 +21,9 @@ const compatibilityPackTimeout = 2 * time.Minute
 
 func runCompatibilityPack(arguments []string, stdout, stderr io.Writer) int {
 	if len(arguments) == 0 {
-		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]")
+		if _, err := fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|refresh|generate|check|qualify [flags]"); err != nil {
+			return 1
+		}
 		return 2
 	}
 	switch arguments[0] {
@@ -38,7 +40,9 @@ func runCompatibilityPack(arguments []string, stdout, stderr io.Writer) int {
 	case "refresh":
 		return runCompatibilityPackRefresh(arguments[1:], stdout, stderr)
 	default:
-		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]")
+		if _, err := fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|refresh|generate|check|qualify [flags]"); err != nil {
+			return 1
+		}
 		return 2
 	}
 }
@@ -75,13 +79,17 @@ func runCompatibilityPackDiscover(arguments []string, stdout, stderr io.Writer) 
 		draft.ReviewSpec(*workingDirectory, filepath.Join(resolvedRoot, ".toolchain")),
 	)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	discovered, digest, err := authoring.Discover(draft, prepared.Review)
 	err = errors.Join(err, prepared.Close())
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if !pathWithin(compatibilityRoot, resolvedRequest) {
@@ -326,13 +334,17 @@ func qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, workingDirec
 		request.ReviewSpec(workingDirectory, filepath.Join(resolvedRoot, ".toolchain")),
 	)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1, nil
+		}
 		return 1, nil
 	}
 	err = authoring.Qualify(request, prepared.Review)
 	err = errors.Join(err, prepared.Close())
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1, nil
+		}
 		return 1, nil
 	}
 	_, outputErr = fmt.Fprintf(stdout, "qualified compatibility-pack request %s\n", request.ID)

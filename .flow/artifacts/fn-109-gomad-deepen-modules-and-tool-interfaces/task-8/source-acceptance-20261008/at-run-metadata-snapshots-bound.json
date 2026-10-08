@@ -1,0 +1,711 @@
+{
+  "rows": [
+    {
+      "receipt": "callers-current-exact-inventory-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "aaf1743d41be368e2779f74761c2eb794ecb1faf8579e372c357c77ca0368aee",
+      "snapshot": "caller-controls-aaf1743d41be368e2779f74761c2eb794ecb1faf8579e372c357c77ca0368aee.json",
+      "snapshot_sha256": "aaf1743d41be368e2779f74761c2eb794ecb1faf8579e372c357c77ca0368aee",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "callers-current-exact-inventory-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "795f1446e84a74e4d0bd18663ea4ba7cc33a63fb7a4387511a9ae29c091d5b11",
+      "snapshot": "source-controls-795f1446e84a74e4d0bd18663ea4ba7cc33a63fb7a4387511a9ae29c091d5b11.json",
+      "snapshot_sha256": "795f1446e84a74e4d0bd18663ea4ba7cc33a63fb7a4387511a9ae29c091d5b11",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-current-complete-installation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "classification-current-complete-installation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-controls.json",
+      "sha256": "305454281518b6f8764a75eac54da24b2476a1d90646ec49153c26bb6c445366",
+      "snapshot": "classification-controls-305454281518b6f8764a75eac54da24b2476a1d90646ec49153c26bb6c445366.json",
+      "snapshot_sha256": "305454281518b6f8764a75eac54da24b2476a1d90646ec49153c26bb6c445366",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-current-complete-installation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-current-observed-boundary-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "classification-current-observed-boundary-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-controls.json",
+      "sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "snapshot": "classification-controls-00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55.json",
+      "snapshot_sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-current-observed-boundary-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-original-complete-installation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "classification-original-complete-installation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-controls.json",
+      "sha256": "305454281518b6f8764a75eac54da24b2476a1d90646ec49153c26bb6c445366",
+      "snapshot": "classification-controls-305454281518b6f8764a75eac54da24b2476a1d90646ec49153c26bb6c445366.json",
+      "snapshot_sha256": "305454281518b6f8764a75eac54da24b2476a1d90646ec49153c26bb6c445366",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-original-complete-installation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-original-observed-boundary-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "classification-original-observed-boundary-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-controls.json",
+      "sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "snapshot": "classification-controls-00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55.json",
+      "snapshot_sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-original-observed-boundary-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-original-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "classification-original-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-controls.json",
+      "sha256": "9ac7e9fe40ca9e2d0566b1deddb56a743eecfbddbd5cdf65f4ab5a782c9a7c8e",
+      "snapshot": "classification-controls-9ac7e9fe40ca9e2d0566b1deddb56a743eecfbddbd5cdf65f4ab5a782c9a7c8e.json",
+      "snapshot_sha256": "9ac7e9fe40ca9e2d0566b1deddb56a743eecfbddbd5cdf65f4ab5a782c9a7c8e",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "classification-original-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-current-consumers-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-current-consumers-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-existing-cli-status-controls-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-existing-cli-status-controls-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-controls.json",
+      "sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "snapshot": "classification-controls-00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55.json",
+      "snapshot_sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-existing-cli-status-controls-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-existing-inspection-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-existing-inspection-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-format-and-diff-check-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-format-and-diff-check-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-controls.json",
+      "sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "snapshot": "classification-controls-00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55.json",
+      "snapshot_sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-format-and-diff-check-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-generated-check-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-generated-check-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-host-profile-binding-observation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-host-profile-binding-observation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-lint-code-fast-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-lint-code-fast-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-lint-scoped-unfiltered-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-lint-scoped-unfiltered-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-controls.json",
+      "sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "snapshot": "classification-controls-00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55.json",
+      "snapshot_sha256": "00e2a65cec6d95b46ea2d903142bac89997dc0bb24b88cd9fd14e511f2aeaa55",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-lint-scoped-unfiltered-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-original-consumers-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-original-consumers-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-permanent-source-bounded-diagnostics-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "snapshot": "caller-controls-846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900.json",
+      "snapshot_sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-permanent-source-bounded-diagnostics-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "4d0d0408e21896667e869004d7560336df1147abeb48dce042cf2fb41903fda8",
+      "snapshot": "source-controls-4d0d0408e21896667e869004d7560336df1147abeb48dce042cf2fb41903fda8.json",
+      "snapshot_sha256": "4d0d0408e21896667e869004d7560336df1147abeb48dce042cf2fb41903fda8",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-permanent-source-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "snapshot": "caller-controls-846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900.json",
+      "snapshot_sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-permanent-source-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "4d0d0408e21896667e869004d7560336df1147abeb48dce042cf2fb41903fda8",
+      "snapshot": "source-controls-4d0d0408e21896667e869004d7560336df1147abeb48dce042cf2fb41903fda8.json",
+      "snapshot_sha256": "4d0d0408e21896667e869004d7560336df1147abeb48dce042cf2fb41903fda8",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "final-static-architecture-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "snapshot": "caller-controls-c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371.json",
+      "snapshot_sha256": "c73eca9887ae5f4246cff4ce8f09ba7cbf11fea86bc11f757d71bf5b09ce4371",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "final-static-architecture-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "snapshot": "source-controls-a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9.json",
+      "snapshot_sha256": "a1c56bf57f08420efd4058d21eefb5b6f886dfa80e3d258ede6248aeae68d3f9",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "green-cleanup-context-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "snapshot": "caller-controls-846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900.json",
+      "snapshot_sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "green-cleanup-context-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "snapshot": "source-controls-af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5.json",
+      "snapshot_sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "green-usage-preservation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "snapshot": "caller-controls-11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802.json",
+      "snapshot_sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "green-usage-preservation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "snapshot": "source-controls-f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c.json",
+      "snapshot_sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "lint-scoped-unfiltered-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "aaf1743d41be368e2779f74761c2eb794ecb1faf8579e372c357c77ca0368aee",
+      "snapshot": "caller-controls-aaf1743d41be368e2779f74761c2eb794ecb1faf8579e372c357c77ca0368aee.json",
+      "snapshot_sha256": "aaf1743d41be368e2779f74761c2eb794ecb1faf8579e372c357c77ca0368aee",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "lint-scoped-unfiltered-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "795f1446e84a74e4d0bd18663ea4ba7cc33a63fb7a4387511a9ae29c091d5b11",
+      "snapshot": "source-controls-795f1446e84a74e4d0bd18663ea4ba7cc33a63fb7a4387511a9ae29c091d5b11.json",
+      "snapshot_sha256": "795f1446e84a74e4d0bd18663ea4ba7cc33a63fb7a4387511a9ae29c091d5b11",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "matched-current-counted-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "snapshot": "caller-controls-846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900.json",
+      "snapshot_sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "matched-current-counted-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "snapshot": "source-controls-af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5.json",
+      "snapshot_sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "matched-original-consumers-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "snapshot": "source-controls-f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c.json",
+      "snapshot_sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "matched-original-counted-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "snapshot": "caller-controls-846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900.json",
+      "snapshot_sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "matched-original-counted-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "snapshot": "source-controls-af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5.json",
+      "snapshot_sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "matched-original-diagnostics-counted-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "snapshot": "caller-controls-846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900.json",
+      "snapshot_sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "matched-original-diagnostics-counted-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "snapshot": "source-controls-af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5.json",
+      "snapshot_sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "matched-original-fixed-fixture-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "snapshot": "caller-controls-11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802.json",
+      "snapshot_sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "matched-original-fixed-fixture-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "snapshot": "source-controls-f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c.json",
+      "snapshot_sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "permanent-source-controls-corrected-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "snapshot": "caller-controls-11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802.json",
+      "snapshot_sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "permanent-source-controls-corrected-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "snapshot": "source-controls-f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c.json",
+      "snapshot_sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "permanent-source-controls-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "snapshot": "caller-controls-11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802.json",
+      "snapshot_sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "permanent-source-controls-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "snapshot": "source-controls-f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c.json",
+      "snapshot_sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "permanent-source-controls-selected-identities-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "snapshot": "caller-controls-11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802.json",
+      "snapshot_sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "permanent-source-controls-selected-identities-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "snapshot": "source-controls-f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c.json",
+      "snapshot_sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "red-cleanup-context-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "snapshot": "caller-controls-846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900.json",
+      "snapshot_sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "red-cleanup-context-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "snapshot": "source-controls-af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5.json",
+      "snapshot_sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "red-usage-preservation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "snapshot": "caller-controls-11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802.json",
+      "snapshot_sha256": "11e2f2f490a5bba03a99650af1cac90bde5432c0b4a5ed5d54859926b6eb1802",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "red-usage-preservation-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "snapshot": "source-controls-f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c.json",
+      "snapshot_sha256": "f7f91099bc85a5db0242f2cfe64a2265966a655ed3e440c450274f414489547c",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "source-existing-inspection-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "snapshot": "caller-controls-846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900.json",
+      "snapshot_sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "source-existing-inspection-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "snapshot": "source-controls-af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5.json",
+      "snapshot_sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "source-static-architecture-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "snapshot": "caller-controls-846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900.json",
+      "snapshot_sha256": "846be79c06f02d12c701c2af99b9879bbd64f0e6d3cf11aeb0a5ddd38d6f7900",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "source-static-architecture-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "snapshot": "source-controls-af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5.json",
+      "snapshot_sha256": "af4980eea6ce69c290e1b8f39f6de0c7ec303eb5b4de79767543bb10fa5d10c5",
+      "method": "Retained byte-identical metadata"
+    },
+    {
+      "receipt": "usage-original-exact-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+      "sha256": "aaf1743d41be368e2779f74761c2eb794ecb1faf8579e372c357c77ca0368aee",
+      "snapshot": "caller-controls-aaf1743d41be368e2779f74761c2eb794ecb1faf8579e372c357c77ca0368aee.json",
+      "snapshot_sha256": "aaf1743d41be368e2779f74761c2eb794ecb1faf8579e372c357c77ca0368aee",
+      "method": "Exact reconstruction from retained at-run graph/overlay bytes; SHA must equal recorded at-run identity"
+    },
+    {
+      "receipt": "usage-original-exact-receipt.json",
+      "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+      "sha256": "795f1446e84a74e4d0bd18663ea4ba7cc33a63fb7a4387511a9ae29c091d5b11",
+      "snapshot": "source-controls-795f1446e84a74e4d0bd18663ea4ba7cc33a63fb7a4387511a9ae29c091d5b11.json",
+      "snapshot_sha256": "795f1446e84a74e4d0bd18663ea4ba7cc33a63fb7a4387511a9ae29c091d5b11",
+      "method": "Retained byte-identical metadata"
+    }
+  ],
+  "unresolved": [
+    {
+      "receipt": "caller-current-listing-error-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+        "sha256": "5b0dd44f5e5f80a78d83645943221a33eb094354f686637b0aa3c47f2c2c0632"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "caller-current-listing-error-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+        "sha256": "0857682984a4146cc84cd2551a19b81fc49901bdaf586468da6ec53bf4a4ba94"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "caller-current-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+        "sha256": "7323baf6027f9482f6490921bbfdd515d266b01fac0484f80551e9c9565e9bb1"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "caller-current-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+        "sha256": "0857682984a4146cc84cd2551a19b81fc49901bdaf586468da6ec53bf4a4ba94"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "callers-current-characterized-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+        "sha256": "107e1b04f9b4f4f8e4cd2c7814fabc61bfb5f0b126ecb79273ab32fbb08cd6c6"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "callers-current-characterized-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+        "sha256": "0857682984a4146cc84cd2551a19b81fc49901bdaf586468da6ec53bf4a4ba94"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "green-target-host-source-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+        "sha256": "89fb275e0abd0f40827d712943e7487325ac74d073874ce063bda8ad20bd1a1f"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "green-target-seam-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+        "sha256": "89fb275e0abd0f40827d712943e7487325ac74d073874ce063bda8ad20bd1a1f"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "lint-pre-repair-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+        "sha256": "89fb275e0abd0f40827d712943e7487325ac74d073874ce063bda8ad20bd1a1f"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "matched-original-consumers-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/caller-controls.json",
+        "sha256": "9364ef39dc2e0e5f8584ac42de45529f8c09f0b09deba66bcab603a8549b6002"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "red-target-seam-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+        "sha256": "89fb275e0abd0f40827d712943e7487325ac74d073874ce063bda8ad20bd1a1f"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "ten-current-source-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+        "sha256": "89fb275e0abd0f40827d712943e7487325ac74d073874ce063bda8ad20bd1a1f"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    },
+    {
+      "receipt": "ten-original-source-receipt.json",
+      "entry": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/source-controls.json",
+        "sha256": "89fb275e0abd0f40827d712943e7487325ac74d073874ce063bda8ad20bd1a1f"
+      },
+      "reason": "No byte-identical retained/reconstructable metadata snapshot"
+    }
+  ],
+  "limitations": "Historical unresolved metadata is not final qualification authority. No receipt or raw log was changed; reconstructed snapshots are accepted only when exact recorded SHA matches."
+}

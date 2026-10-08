@@ -1,0 +1,6 @@
+{"ImportPath":"go.temporal.io/server/tools/gomad3/target [go.temporal.io/server/tools/gomad3/target.test]","Action":"build-output","Output":"# go.temporal.io/server/tools/gomad3/target [go.temporal.io/server/tools/gomad3/target.test]\n"}
+{"ImportPath":"go.temporal.io/server/tools/gomad3/target [go.temporal.io/server/tools/gomad3/target.test]","Action":"build-output","Output":"target/capability_source_test.go:115:16: undefined: reviewCapabilitiesWith\n"}
+{"ImportPath":"go.temporal.io/server/tools/gomad3/target [go.temporal.io/server/tools/gomad3/target.test]","Action":"build-fail"}
+{"Time":"2026-10-08T22:26:18.140468416Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/target"}
+{"Time":"2026-10-08T22:26:18.141266333Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/target [build failed]\n","OutputType":"frame"}
+{"Time":"2026-10-08T22:26:18.142526416Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/target","Elapsed":0.002,"FailedBuild":"go.temporal.io/server/tools/gomad3/target [go.temporal.io/server/tools/gomad3/target.test]"}

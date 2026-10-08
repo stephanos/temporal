@@ -319,6 +319,64 @@ func TestRunnerExecutionInjectionIsPrivate(t *testing.T) {
 	}
 }
 
+func TestInspectionSourceOwnershipDelegation(t *testing.T) {
+	for _, consumer := range []struct {
+		file, function, required string
+	}{
+		{"cmd/gomad/internal/cli/analyze.go", "runAnalyze", "preparation.Inspect"},
+		{"qualification/analysis/prepared_review.go", "PrepareCapabilityReview", "preparation.Inspect"},
+		{"cmd/gomadtool/compatibility_pack.go", "runCompatibilityPackDiscover", "capabilityanalysis.PrepareCapabilityReview"},
+		{"cmd/gomadtool/compatibility_pack.go", "qualifyCompatibilityPackRequest", "capabilityanalysis.PrepareCapabilityReview"},
+	} {
+		t.Run(consumer.function, func(t *testing.T) {
+			file, err := parser.ParseFile(token.NewFileSet(), consumer.file, nil, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var body *ast.BlockStmt
+			for _, declaration := range file.Decls {
+				if function, ok := declaration.(*ast.FuncDecl); ok && function.Name.Name == consumer.function {
+					body = function.Body
+				}
+			}
+			if body == nil {
+				t.Fatalf("missing consumer body %s", consumer.function)
+			}
+			qualifier, _, _ := strings.Cut(consumer.required, ".")
+			imported := false
+			for _, specification := range file.Imports {
+				if specification.Name != nil && specification.Name.Name == qualifier || specification.Name == nil && strings.HasSuffix(strings.Trim(specification.Path.Value, "\""), "/"+qualifier) {
+					expected := modulePath + "/internal/preparation"
+					if qualifier == "capabilityanalysis" {
+						expected = modulePath + "/qualification/analysis"
+					}
+					imported = specification.Path.Value == "\""+expected+"\""
+				}
+			}
+			if !imported {
+				t.Fatalf("consumer %s has no owner import for %s", consumer.function, consumer.required)
+			}
+			found := false
+			ast.Inspect(body, func(node ast.Node) bool {
+				selector, ok := node.(*ast.SelectorExpr)
+				if !ok {
+					return true
+				}
+				if qualifier, ok := selector.X.(*ast.Ident); ok && qualifier.Name+"."+selector.Sel.Name == consumer.required {
+					found = true
+				}
+				if slices.Contains([]string{"MkdirTemp", "Chmod", "RemoveAll", "PrepareTargetBuildAdapters", "ReviewCapabilities"}, selector.Sel.Name) {
+					t.Errorf("consumer %s owns inspection operation %s", consumer.function, selector.Sel.Name)
+				}
+				return true
+			})
+			if !found {
+				t.Errorf("consumer %s does not delegate through %s", consumer.function, consumer.required)
+			}
+		})
+	}
+}
+
 func TestRunnerRequestsCompileInExternalModule(t *testing.T) {
 	root, err := os.Getwd()
 	if err != nil {

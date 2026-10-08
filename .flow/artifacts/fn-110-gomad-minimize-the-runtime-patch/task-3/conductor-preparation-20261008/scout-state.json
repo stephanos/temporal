@@ -1,0 +1,8 @@
+{
+  "task_title": "Read-only preparation of fn-110.3 retained source acceptance",
+  "task_body": "Map existing crypto initialization/syscall declaration relocations, original source/archive/patch inputs, compatible baselines, current dependencies, exact required byte preservation, source-set constraints and unproved source assertions. Identify the smallest bounded future source verification/admission, without rerunning fn110.2 work or invoking Go/native/shared gates.",
+  "acceptance": "One findings.md grounded in authoritative source/task/spec/artifacts and current frozen relevant hashes. Cover every retained fn110.3 source requirement, exact original/current relocation/comments/symbols/constraint identities, patch/overlay measurement and task4 U3 handoff, pinned archive availability and regeneration/collision policy, current source evidence gaps and native owner transfers. No source edit, command gate, Flow mutation, staging, commit, verdict or native pass.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

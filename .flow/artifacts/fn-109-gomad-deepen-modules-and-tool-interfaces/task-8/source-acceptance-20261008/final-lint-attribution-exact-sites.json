@@ -1,0 +1,1271 @@
+{
+  "before": 125,
+  "after": 119,
+  "resolved": [
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 24,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]\")",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:24:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]\")\n\t\t            ^"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 41,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]\")",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:41:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]\")\n\t\t            ^"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 78,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:78:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 84,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:84:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 329,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:329:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 335,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:335:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^"
+    }
+  ],
+  "by_file": {
+    "tools/gomad3/cmd/gomad/internal/cli/application.go": 2,
+    "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go": 8,
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": 33,
+    "tools/gomad3/cmd/gomad/internal/cli/qualify.go": 3,
+    "tools/gomad3/cmd/gomad/internal/cli/resume.go": 5,
+    "tools/gomad3/cmd/gomadtool/boundary.go": 1,
+    "tools/gomad3/cmd/gomadtool/compatibility_pack.go": 24,
+    "tools/gomad3/cmd/gomadtool/diagnostic.go": 5,
+    "tools/gomad3/cmd/gomadtool/main.go": 27,
+    "tools/gomad3/cmd/gomadtool/protocol.go": 1,
+    "tools/gomad3/cmd/gomadtool/qualification_manifest.go": 2,
+    "tools/gomad3/cmd/gomadtool/soak.go": 4,
+    "tools/gomad3/cmd/gomadtool/upgrade.go": 3,
+    "tools/gomad3/cmd/gomadtool/version.go": 1
+  },
+  "introduced": [],
+  "residuals": [
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+      "line": 88,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/application.go:88:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+      "line": 185,
+      "column": 14,
+      "message": "ST1005: error strings should not be capitalized",
+      "linter": "staticcheck",
+      "source": "\t\treturn \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/application.go:185:14: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)\n\t\t           ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "line": 36,
+      "column": 13,
+      "message": "Error return value of `fmt.Fprint` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprint(stderr, usage)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:36:13: Error return value of `fmt.Fprint` is not checked (errcheck)\n\t\tfmt.Fprint(stderr, usage)\n\t\t          ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "line": 41,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:41:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "line": 46,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:46:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "line": 57,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:57:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "line": 63,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:63:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "line": 109,
+      "column": 13,
+      "message": "Error return value of `fmt.Fprint` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprint(stderr, usage)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:109:13: Error return value of `fmt.Fprint` is not checked (errcheck)\n\t\tfmt.Fprint(stderr, usage)\n\t\t          ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "line": 117,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stderr, \"gomad: %s: merge campaign shards: %v\\n\", classification, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:117:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stderr, \"gomad: %s: merge campaign shards: %v\\n\", classification, err)\n\t\t           ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "line": 123,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:123:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 98,
+      "column": 13,
+      "message": "Error return value of `fmt.Fprint` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprint(stderr, usage)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:98:13: Error return value of `fmt.Fprint` is not checked (errcheck)\n\t\tfmt.Fprint(stderr, usage)\n\t\t          ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 136,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stderr, \"unknown gomad command %q\\n%s\", arguments[0], usage)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:136:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stderr, \"unknown gomad command %q\\n%s\", arguments[0], usage)\n\t\t           ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 364,
+      "column": 13,
+      "message": "Error return value of `fmt.Fprint` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprint(stderr, usage)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:364:13: Error return value of `fmt.Fprint` is not checked (errcheck)\n\t\tfmt.Fprint(stderr, usage)\n\t\t          ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 369,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:369:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 374,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:374:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 379,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:379:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)\n\t\t           ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 396,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:396:15: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\t\tfmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)\n\t\t\t           ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 399,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stdout, \"%s\\n\", encoded)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:399:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stdout, \"%s\\n\", encoded)\n\t\t           ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 401,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:401:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)\n\t\t           ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 403,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:403:15: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\t\tfmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)\n\t\t\t           ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 442,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:442:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 477,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:477:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 486,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:486:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 494,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:494:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 599,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:599:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 611,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:611:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 619,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:619:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 677,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:677:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 685,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:685:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 692,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:692:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 700,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:700:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 708,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:708:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 722,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:722:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 739,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:739:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 749,
+      "column": 17,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:749:17: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 755,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:755:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 762,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:762:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 999,
+      "column": 13,
+      "message": "Error return value of `fmt.Fprint` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprint(stderr, usage)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:999:13: Error return value of `fmt.Fprint` is not checked (errcheck)\n\t\tfmt.Fprint(stderr, usage)\n\t\t          ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 1004,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:1004:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 1013,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:1013:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 1016,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:1016:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 1020,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stdout, \"gomad: verified %s\\n\", result.Artifact.Path)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:1020:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stdout, \"gomad: verified %s\\n\", result.Artifact.Path)\n\t\t           ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "line": 1025,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/cli.go:1025:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+      "line": 83,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/qualify.go:83:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+      "line": 181,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/qualify.go:181:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+      "line": 193,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/qualify.go:193:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, writeErr)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+      "line": 32,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/resume.go:32:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+      "line": 44,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/resume.go:44:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+      "line": 52,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/resume.go:52:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+      "line": 70,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, writeErr)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/resume.go:70:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, writeErr)\n\t\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+      "line": 76,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomad/internal/cli/resume.go:76:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.9/fn109.23/fn109.21: existing host-command/CLI diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/boundary.go",
+      "line": 55,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/boundary.go:55:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 62,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:62:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 67,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:67:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 72,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:72:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 96,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"compatibility-pack request must be below internal/compatibilitypack\")",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:96:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"compatibility-pack request must be below internal/compatibilitypack\")\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 100,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:100:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 121,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:121:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 126,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"compatibility-pack review output must be below internal/compatibilitypack\")",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:126:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"compatibility-pack review output must be below internal/compatibilitypack\")\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 135,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:135:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 157,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:157:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 162,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:162:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 166,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:166:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 179,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"compatibility-pack request must be below internal/compatibilitypack\")",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:179:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"compatibility-pack request must be below internal/compatibilitypack\")\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 187,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:187:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 207,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:207:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 212,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:212:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 220,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:220:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 227,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:227:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 259,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"compatibility-pack request must be below internal/compatibilitypack\")",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:259:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"compatibility-pack request must be below internal/compatibilitypack\")\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 278,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:278:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 283,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:283:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 288,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:288:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 313,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stderr, \"no compatibility-pack request names %s\\n\", platform)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:313:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stderr, \"no compatibility-pack request names %s\\n\", platform)\n\t\t           ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 428,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:428:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "line": 433,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/compatibility_pack.go:433:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.23/fn109.21: remaining developer diagnostics; authoring/task46 semantics unchanged"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+      "line": 21,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"usage: gomadtool diagnostic-diff [--json] EXPECTED_TRACE ACTUAL_TRACE\")",
+      "raw": "tools/gomad3/cmd/gomadtool/diagnostic.go:21:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"usage: gomadtool diagnostic-diff [--json] EXPECTED_TRACE ACTUAL_TRACE\")\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+      "line": 26,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/diagnostic.go:26:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+      "line": 31,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/diagnostic.go:31:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+      "line": 36,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/diagnostic.go:36:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+      "line": 50,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/diagnostic.go:50:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 32,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, usage)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:32:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, usage)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 73,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, usage)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:73:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, usage)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 80,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"usage: gomadtool checked-run <seconds> <expected-status> <label> <result-dir> -- <command> [args...]\")",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:80:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"usage: gomadtool checked-run <seconds> <expected-status> <label> <result-dir> -- <command> [args...]\")\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 86,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"gomad3 checked runner requires a positive timeout and numeric expected status\")",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:86:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"gomad3 checked runner requires a positive timeout and numeric expected status\")\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 91,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stderr, \"gomad3 checked runner result directory is invalid: %v\\n\", err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:91:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stderr, \"gomad3 checked runner result directory is invalid: %v\\n\", err)\n\t\t           ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 95,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:95:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 100,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:100:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 114,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, runErr)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:114:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, runErr)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 125,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:125:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 131,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintf(stderr, \"gomad3 process failed: %s: status 124 was not a timeout\\n\", arguments[2])",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:131:15: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\t\tfmt.Fprintf(stderr, \"gomad3 process failed: %s: status 124 was not a timeout\\n\", arguments[2])\n\t\t\t           ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 136,
+      "column": 13,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\tfmt.Fprintf(stderr, \"gomad3 process failed: %s: status %d, want %d\\n\", arguments[2], actual, expected)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:136:13: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\tfmt.Fprintf(stderr, \"gomad3 process failed: %s: status %d, want %d\\n\", arguments[2], actual, expected)\n\t           ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 138,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stderr, \"--- stdout ---\\n%s\", executed.Stdout.RawBytes)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:138:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stderr, \"--- stdout ---\\n%s\", executed.Stdout.RawBytes)\n\t\t           ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 141,
+      "column": 14,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintf(stderr, \"--- stderr ---\\n%s\", executed.Stderr.RawBytes)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:141:14: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stderr, \"--- stderr ---\\n%s\", executed.Stderr.RawBytes)\n\t\t           ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 175,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:175:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 192,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:192:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 207,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:207:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 235,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:235:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 240,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:240:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 319,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:319:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 347,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:347:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 352,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:352:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 356,
+      "column": 17,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\t\t\tfmt.Fprintf(stderr, \"--- stdout ---\\n%s\", result.Stdout)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:356:17: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\t\t\t\tfmt.Fprintf(stderr, \"--- stdout ---\\n%s\", result.Stdout)\n\t\t\t\t\t           ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 359,
+      "column": 17,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\t\t\tfmt.Fprintf(stderr, \"--- stderr ---\\n%s\", result.Stderr)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:359:17: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\t\t\t\tfmt.Fprintf(stderr, \"--- stderr ---\\n%s\", result.Stderr)\n\t\t\t\t\t           ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 367,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:367:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 393,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, \"gomad3 requires an installed bootstrap Go; set GOMAD3_BOOTSTRAP_GO\")",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:393:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, \"gomad3 requires an installed bootstrap Go; set GOMAD3_BOOTSTRAP_GO\")\n\t\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 400,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, \"gomad3 requires Bash to run upstream make.bash\")",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:400:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, \"gomad3 requires Bash to run upstream make.bash\")\n\t\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "line": 410,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/main.go:410:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/protocol.go",
+      "line": 20,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/protocol.go:20:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/qualification_manifest.go",
+      "line": 22,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"qualification-manifest-generate requires --spec and --output\")",
+      "raw": "tools/gomad3/cmd/gomadtool/qualification_manifest.go:22:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"qualification-manifest-generate requires --spec and --output\")\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/qualification_manifest.go",
+      "line": 26,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/qualification_manifest.go:26:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/soak.go",
+      "line": 37,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, \"usage: gomadtool soak --manifest=FILE --gomad=FILE --work=DIR --ledger=DIR --output=DIR [flags]\")",
+      "raw": "tools/gomad3/cmd/gomadtool/soak.go:37:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, \"usage: gomadtool soak --manifest=FILE --gomad=FILE --work=DIR --ledger=DIR --output=DIR [flags]\")\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/soak.go",
+      "line": 47,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintf` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\t\tfmt.Fprintf(stderr, \"invalid --seed %q\\n\", value)",
+      "raw": "tools/gomad3/cmd/gomadtool/soak.go:47:16: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\t\t\tfmt.Fprintf(stderr, \"invalid --seed %q\\n\", value)\n\t\t\t\t           ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/soak.go",
+      "line": 55,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/soak.go:55:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/soak.go",
+      "line": 62,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/soak.go:62:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/upgrade.go",
+      "line": 29,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/upgrade.go:29:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/upgrade.go",
+      "line": 41,
+      "column": 16,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/upgrade.go:41:16: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stderr, err)\n\t\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/upgrade.go",
+      "line": 64,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/upgrade.go:64:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/version.go",
+      "line": 20,
+      "column": 15,
+      "message": "Error return value of `fmt.Fprintln` is not checked",
+      "linter": "errcheck",
+      "source": "\t\tfmt.Fprintln(stderr, err)",
+      "raw": "tools/gomad3/cmd/gomadtool/version.go:20:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stderr, err)\n\t\t            ^",
+      "owner": "fn109.10/fn109.23/fn109.21: existing developer-command diagnostics"
+    }
+  ],
+  "supersedes": "final-lint-attribution.json resolved duplicate generic statements by multiset only, mislocated two fixes at416/421. This exact-site inventory binds the six admitted baseline sites and checks the remaining raw finding multiset unchanged.",
+  "limitations": "Configured diff-filtered make lint-code-fast passes; this unfiltered gate is RED. Residual ownership is carried work, not a waiver or full clean lint claim."
+}

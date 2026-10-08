@@ -1,0 +1,7 @@
+{"ImportPath":"go.temporal.io/server/tools/gomad3/runner/internal/execution","Action":"build-output","Output":"# go.temporal.io/server/tools/gomad3/runner/internal/execution\n"}
+{"ImportPath":"go.temporal.io/server/tools/gomad3/runner/internal/execution","Action":"build-output","Output":"runner/internal/execution/bootstrap_unix.go:161:20: undefined: syscall.Dup2\n"}
+{"ImportPath":"go.temporal.io/server/tools/gomad3/runner/internal/execution","Action":"build-output","Output":"runner/internal/execution/launch_plan_unix.go:334:21: undefined: syscall.Dup2\n"}
+{"ImportPath":"go.temporal.io/server/tools/gomad3/runner/internal/execution","Action":"build-fail"}
+{"Time":"2026-10-08T22:37:26.807046068Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/cmd/gomadtool"}
+{"Time":"2026-10-08T22:37:26.807235985Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/cmd/gomadtool","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/cmd/gomadtool [build failed]\n","OutputType":"frame"}
+{"Time":"2026-10-08T22:37:26.807261402Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/cmd/gomadtool","Elapsed":0,"FailedBuild":"go.temporal.io/server/tools/gomad3/runner/internal/execution"}

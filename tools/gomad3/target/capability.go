@@ -251,6 +251,10 @@ func ReviewCapabilityClosure(ctx context.Context, spec Spec) (CapabilityClosure,
 }
 
 func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error) {
+	return reviewCapabilitiesWith(ctx, spec, gocommand.Default())
+}
+
+func reviewCapabilitiesWith(ctx context.Context, spec Spec, runner gocommand.Runner) (CapabilityReview, error) {
 	if spec.Kind != KindGoRun && spec.Kind != KindGoTest {
 		return CapabilityReview{}, invalidCapabilityReview(errors.New("capability review requires a go-run or go-test target"))
 	}
@@ -278,7 +282,7 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if err != nil {
 		return CapabilityReview{}, invalidCapabilityReview(err)
 	}
-	review, err := reviewGoCapabilityReview(ctx, goCommand, spec, buildContext.Tags, buildContext.Directory, buildContext.Package)
+	review, _, err := reviewGoCapabilityPackagesWith(ctx, goCommand, spec, buildContext.Tags, buildContext.Directory, buildContext.Package, runner)
 	if err != nil {
 		return CapabilityReview{}, err
 	}
@@ -288,7 +292,7 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if spec.PreparationRoot == "" {
 		return CapabilityReview{}, invalidCapabilityReview(errors.New("linked capability review requires a preparation root"))
 	}
-	identity, err := readPinnedToolchainWith(context.Background(), spec.ToolchainRoot, gocommand.Default())
+	identity, err := readPinnedToolchainWith(context.Background(), spec.ToolchainRoot, runner)
 	if err != nil {
 		return CapabilityReview{}, err
 	}
@@ -296,7 +300,7 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if err != nil {
 		return CapabilityReview{}, fmt.Errorf("create linked capability review workspace: %w", err)
 	}
-	prepared, buildErr := buildGoTarget(ctx, spec, buildContext.Tags, identity, filepath.Join(workspace, "target"), goCommand, buildContext.Directory, buildContext.Package, review, allowUnsupported, nil)
+	prepared, buildErr := buildGoTargetWith(ctx, spec, buildContext.Tags, identity, filepath.Join(workspace, "target"), goCommand, buildContext.Directory, buildContext.Package, review, allowUnsupported, nil, runner)
 	cleanupErr := os.RemoveAll(workspace)
 	if buildErr != nil || cleanupErr != nil {
 		return CapabilityReview{}, errors.Join(buildErr, cleanupErr)

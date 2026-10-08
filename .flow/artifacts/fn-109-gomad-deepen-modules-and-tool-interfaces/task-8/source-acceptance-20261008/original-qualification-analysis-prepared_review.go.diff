@@ -1,0 +1,43 @@
+--- original/qualification/analysis/prepared_review.go
++++ original/qualification/analysis/prepared_review.go (SOURCE only)
+@@ -16,9 +16,14 @@
+ 	BuildAdapters []deterministicio.BuildAdapter
+ 	Adapters      []deterministicio.Adapter
+ 	root          string
++	remove        func(string) error
+ }
+ 
+-func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (_ PreparedCapabilityReview, retErr error) {
++func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (PreparedCapabilityReview, error) {
++	return prepareCapabilityReviewWith(ctx, spec, os.RemoveAll)
++}
++
++func prepareCapabilityReviewWith(ctx context.Context, spec target.Spec, remove func(string) error) (_ PreparedCapabilityReview, retErr error) {
+ 	if spec.PreparationRoot != "" {
+ 		return PreparedCapabilityReview{}, errors.New("capability review preparation root must be owned by the review")
+ 	}
+@@ -29,7 +34,7 @@
+ 	keep := false
+ 	defer func() {
+ 		if !keep {
+-			retErr = errors.Join(retErr, os.RemoveAll(root))
++			retErr = errors.Join(retErr, remove(root))
+ 		}
+ 	}()
+ 	if err := os.Chmod(root, 0o700); err != nil {
+@@ -47,7 +52,7 @@
+ 	keep = true
+ 	return PreparedCapabilityReview{
+ 		Spec: preparedSpec, Review: review, BuildAdapters: adapters,
+-		Adapters: deterministicio.SelectedAdapters(adapters), root: root,
++		Adapters: deterministicio.SelectedAdapters(adapters), root: root, remove: remove,
+ 	}, nil
+ }
+ 
+@@ -57,5 +62,5 @@
+ 	}
+ 	root := prepared.root
+ 	prepared.root = ""
+-	return os.RemoveAll(root)
++	return prepared.remove(root)
+ }

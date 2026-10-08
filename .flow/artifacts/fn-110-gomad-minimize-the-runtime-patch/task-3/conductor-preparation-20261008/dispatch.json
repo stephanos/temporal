@@ -1,0 +1,15 @@
+{
+  "assignment": "Read-only fn-110.3 retained-source preparation; not implementation admission",
+  "worker": "/root/prep_fn1103_source",
+  "base_commit": "410c463429a1deca56693e5fd123b44a75f5709e",
+  "task_status": "todo; left unchanged",
+  "judge": {"success": true, "available": false, "preset": "tier", "reason": "no_key", "tier_line": "Tier: session (jev-unavailable(no_key))", "spawn_model": null, "implementer": null},
+  "requested_model": "gpt-6-astra",
+  "requested_effort": "high",
+  "actual_model": null,
+  "scope": "scout-state.json; only findings.md may be written",
+  "execution_lane": "fn109.8 worker owns all Go/build/test/lint/generator commands; scout runs none",
+  "delivery_order": "Unchanged; actual fn110.3 admission follows fn109.8-12 and retained predecessors",
+  "native_owners": "fn149/fn128 remain deferred and unverified",
+  "review_or_acceptance": "none"
+}

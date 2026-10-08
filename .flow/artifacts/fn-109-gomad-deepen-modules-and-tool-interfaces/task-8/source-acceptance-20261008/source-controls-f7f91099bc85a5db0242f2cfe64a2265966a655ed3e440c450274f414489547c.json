@@ -1,0 +1,81 @@
+{
+  "scratch": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2",
+  "original": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/original/temporal/tools/gomad3",
+  "current": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/current/temporal/tools/gomad3",
+  "overlays": [
+    "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/original-overlay.json",
+    "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/current-overlay.json"
+  ],
+  "inputs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/original/temporal/tools/gomad3/deterministicio/profile.go",
+      "sha256": "1d32438c1bde926d6ca4552684ef961adc53e926712e50c2ad804bf419015aaa",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/original-deterministicio-profile.go",
+      "overlay_sha256": "e9051a6862123af792b676a7a77ced2b345b976ab90328287d17aa519ac086ea",
+      "occurrences": {
+        "GOOS": 1,
+        "GOARCH": 1
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/original/temporal/tools/gomad3/deterministicio/adapter_registry.go",
+      "sha256": "e1b90ea83678b0e08219040b6b56d638da1f65f3a75ba39b29214b6fbc735fda",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/original-deterministicio-adapter_registry.go",
+      "overlay_sha256": "f1d8871a56fdf03845b2d1818dd72d0f45abe5d5664f6effa1b7581938ac0650",
+      "occurrences": {
+        "GOOS": 1,
+        "GOARCH": 1
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/original/temporal/tools/gomad3/target/target.go",
+      "sha256": "ad0d54ce07278b8922364f9efcf42e371fc62e64a7e3cebf8c310ac36d5f41df",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/original-target-target.go",
+      "overlay_sha256": "01449bc86665e9c51c3927e30267dd7140c50a8f7d318f8efa69a0f08dc5b5f9",
+      "occurrences": {
+        "GOOS": 2,
+        "GOARCH": 2
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/current/temporal/tools/gomad3/deterministicio/profile.go",
+      "sha256": "d068900a3b76bc91e5b94f0d67e00e67e225c50c0f3d23cbf92ce992ef0c5f21",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/current-deterministicio-profile.go",
+      "overlay_sha256": "eb0f2877125d2c23639b516711f270b0201ed943d2d2274e359bd243a83fcf09",
+      "occurrences": {
+        "GOOS": 1,
+        "GOARCH": 1
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/current/temporal/tools/gomad3/deterministicio/adapter_registry.go",
+      "sha256": "308a7ca06057995978dd750b5073c0307c8053040748743b905b88d0625face9",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/current-deterministicio-adapter_registry.go",
+      "overlay_sha256": "a716ccd0a63b478ed09e4789d3f09e445b018ef76aa7fc387c99270be6d837e4",
+      "occurrences": {
+        "GOOS": 1,
+        "GOARCH": 1
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/current/temporal/tools/gomad3/target/target.go",
+      "sha256": "1488c09449df41c88b727c191034cdba45f908faa63f7cc6318d55792130654c",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-xOcPP2/current-target-target.go",
+      "overlay_sha256": "f09a527c21dbcfabffab774bde48cd7176e19b6fef7bc5d96dda6ac53d606053",
+      "occurrences": {
+        "GOOS": 2,
+        "GOARCH": 2
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    }
+  ],
+  "profile": "linux/amd64",
+  "host": "linux/arm64",
+  "native": false,
+  "scope": "actual SOURCE computation/listing/adapters/lifetimes; no compiled target launch"
+}

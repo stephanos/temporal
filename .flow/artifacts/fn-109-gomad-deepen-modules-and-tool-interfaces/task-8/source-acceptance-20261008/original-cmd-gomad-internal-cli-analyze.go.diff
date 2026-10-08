@@ -1,0 +1,19 @@
+--- original/cmd/gomad/internal/cli/analyze.go
++++ original/cmd/gomad/internal/cli/analyze.go (SOURCE only)
+@@ -55,11 +55,15 @@
+ }
+ 
+ func prepareAnalysisTarget(ctx context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
++	return prepareAnalysisTargetWith(ctx, spec, os.RemoveAll)
++}
++
++func prepareAnalysisTargetWith(ctx context.Context, spec target.Spec, remove func(string) error) (target.Spec, []deterministicio.Adapter, func() error, error) {
+ 	root, err := os.MkdirTemp("", "gomad3-analysis-")
+ 	if err != nil {
+ 		return target.Spec{}, nil, nil, fmt.Errorf("create analysis preparation directory: %w", err)
+ 	}
+-	cleanup := func() error { return os.RemoveAll(root) }
++	cleanup := func() error { return remove(root) }
+ 	if err := os.Chmod(root, 0o700); err != nil {
+ 		return target.Spec{}, nil, nil, errors.Join(fmt.Errorf("make analysis preparation directory private: %w", err), cleanup())
+ 	}

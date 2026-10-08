@@ -1,0 +1,11 @@
+--- original/runner/internal/execution/launch_plan_unix.go
++++ original/runner/internal/execution/launch_plan_unix.go (SOURCE only)
+@@ -331,7 +331,7 @@
+ 		if source == 0 {
+ 			return errors.Join(fmt.Errorf("descriptor resource %q has no bootstrap source", binding.resource), closeDescriptors(installed...))
+ 		}
+-		if err := syscall.Dup2(source, binding.fd); err != nil {
++		if err := sourceUnreachableDup2(source, binding.fd); err != nil {
+ 			return errors.Join(fmt.Errorf("install target descriptor %q: %w", binding.resource, err), closeDescriptors(installed...))
+ 		}
+ 		installed = append(installed, binding.fd)

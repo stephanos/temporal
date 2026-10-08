@@ -1,0 +1,376 @@
+{
+  "scratch": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk",
+  "original": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3",
+  "current": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3",
+  "overlays": [
+    "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-classification-overlay-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.json",
+    "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-classification-overlay-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.json"
+  ],
+  "inputs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3/deterministicio/profile.go",
+      "sha256": "1d32438c1bde926d6ca4552684ef961adc53e926712e50c2ad804bf419015aaa",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-deterministicio-profile.go",
+      "overlay_sha256": "e9051a6862123af792b676a7a77ced2b345b976ab90328287d17aa519ac086ea",
+      "occurrences": {
+        "GOOS": 1,
+        "GOARCH": 1
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3/deterministicio/adapter_registry.go",
+      "sha256": "e1b90ea83678b0e08219040b6b56d638da1f65f3a75ba39b29214b6fbc735fda",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-deterministicio-adapter_registry.go",
+      "overlay_sha256": "f1d8871a56fdf03845b2d1818dd72d0f45abe5d5664f6effa1b7581938ac0650",
+      "occurrences": {
+        "GOOS": 1,
+        "GOARCH": 1
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3/target/target.go",
+      "sha256": "ad0d54ce07278b8922364f9efcf42e371fc62e64a7e3cebf8c310ac36d5f41df",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-target-target.go",
+      "overlay_sha256": "01449bc86665e9c51c3927e30267dd7140c50a8f7d318f8efa69a0f08dc5b5f9",
+      "occurrences": {
+        "GOOS": 2,
+        "GOARCH": 2
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3/deterministicio/profile.go",
+      "sha256": "d068900a3b76bc91e5b94f0d67e00e67e225c50c0f3d23cbf92ce992ef0c5f21",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-deterministicio-profile.go",
+      "overlay_sha256": "eb0f2877125d2c23639b516711f270b0201ed943d2d2274e359bd243a83fcf09",
+      "occurrences": {
+        "GOOS": 1,
+        "GOARCH": 1
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3/deterministicio/adapter_registry.go",
+      "sha256": "308a7ca06057995978dd750b5073c0307c8053040748743b905b88d0625face9",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-deterministicio-adapter_registry.go",
+      "overlay_sha256": "a716ccd0a63b478ed09e4789d3f09e445b018ef76aa7fc387c99270be6d837e4",
+      "occurrences": {
+        "GOOS": 1,
+        "GOARCH": 1
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3/target/target.go",
+      "sha256": "1488c09449df41c88b727c191034cdba45f908faa63f7cc6318d55792130654c",
+      "overlay": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-target-target.go",
+      "overlay_sha256": "f09a527c21dbcfabffab774bde48cd7176e19b6fef7bc5d96dda6ac53d606053",
+      "occurrences": {
+        "GOOS": 2,
+        "GOARCH": 2
+      },
+      "change": "declared supported linux/amd64 SOURCE inputs; public production guard untouched"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-runner-internal-execution-bootstrap_unix.go",
+      "sha256": "9e212cfca16a32fd879692da825c67bd78094edc9e0b9a01c6955bac97f440e3"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-runner-internal-execution-launch_plan_unix.go",
+      "sha256": "b50055b45161192fb134d70001e3a27e2f23374b2e80ced218d7a4a3c3e7e40d"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-runner-internal-execution-source_control.go",
+      "sha256": "5ea6b0c0f05c2ffb88ba9f3cc938cb86e6166cc35a59c1a56c3c6d7beec7f271"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-cmd-gomad-internal-cli-analyze.go",
+      "sha256": "1cba4e49655664716fb3c57f16c6b4cccd62821428f92defbc7dd3e7c3e39af2"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-qualification-analysis-prepared_review.go",
+      "sha256": "9dcd5738fb0a14bc88b726c0031a12f3cee07de1de2fee9355ffffdd0114f1f7"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-qualification-analysis-source_control.go",
+      "sha256": "aa55575c6c931f2ab02a8b3b2a812b90600bd487d2be66123caec7ef02dd6e26"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-cmd-gomad-internal-cli-source_control.go",
+      "sha256": "d90177dec74696300dc067d73519bdad4535181206345e0af61a591b3ee08ab1"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-cmd-gomadtool-compatibility_pack.go",
+      "sha256": "4486384abadb7f453c4234065f4f5f477b415d88aa31ef0ff75db1e2a796f4aa"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-cmd-gomadtool-source_control.go",
+      "sha256": "a20a2e8c7edf1e694c860ccd818bf30fa53e4c89687f54a0a99ec19f04cb33fb"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-cmd-gomad-internal-cli-source_consumer_test.go",
+      "sha256": "e4d4c105669d564cfdcf8e9a805c11baeb88a3107147bddafd8eefed0967ecc5"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-qualification-analysis-source_consumer_test.go",
+      "sha256": "f5bea64daa99b300888b9e23b94924a67ce39cc62b64110529778aff70d82686"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-cmd-gomadtool-source_consumer_test.go",
+      "sha256": "e54abfc88633a041bae2c07805dfe2101580ccb6b9d3ca3dcc7990db59fe346d"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-internal-preparation-source_control.go",
+      "sha256": "039359d0fd031f0b1db88e5b7a7dd755aa449c0b24fe1b5d85cc8a5c381e2b92"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-qualification-analysis-prepared_review.go",
+      "sha256": "d438453f23f3e10a8470203a2e2869d0545140073ff827b1e68dafc6cfeb57d6"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-qualification-analysis-source_control.go",
+      "sha256": "7813c68ad6827c8d84fd9fdd96f1313bf82a61646b6efdb6c3f79cc71874dd78"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-cmd-gomad-internal-cli-source_control.go",
+      "sha256": "ae01cac21a8ce4aee81528e46d2dcff608f0c93b15fbd405f73fa524a4151328"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-cmd-gomadtool-compatibility_pack.go",
+      "sha256": "f086ffe4a6e2b78901f2ae88adca8be9c16bee701a6fb4ff943a644600bfb0ae"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-cmd-gomadtool-source_control.go",
+      "sha256": "6f8c1d0ece28122f2189b10cb87b8dad5b8bf2edab802c7502df13c79c33c59f"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-cmd-gomad-internal-cli-source_consumer_test.go",
+      "sha256": "e4d4c105669d564cfdcf8e9a805c11baeb88a3107147bddafd8eefed0967ecc5"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-qualification-analysis-source_consumer_test.go",
+      "sha256": "f5bea64daa99b300888b9e23b94924a67ce39cc62b64110529778aff70d82686"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-cmd-gomadtool-source_consumer_test.go",
+      "sha256": "e54abfc88633a041bae2c07805dfe2101580ccb6b9d3ca3dcc7990db59fe346d"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification_consumer_test.go",
+      "sha256": "ceecf72592b017b2c8048ffeea3be9135f79785e9455a074695eea8a82c0570c"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-driver.mjs",
+      "sha256": "6018aa850b671f8d839eaa14dbf9a686bd519284c1ec3713c8628377629cf882"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-classification-test-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.go",
+      "sha256": "44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-classification-helper.go",
+      "sha256": "3fc5883e59198372894e0a72149ff02de04a005853c14ffc00228372e7e08858"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3/deterministicio/testdata/sprig/go.mod",
+      "sha256": "18985351ee04afbcca3e9a294da63639196301acd43720e3dc3dc46bb62b00c2"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification_consumer_test.go",
+      "sha256": "ceecf72592b017b2c8048ffeea3be9135f79785e9455a074695eea8a82c0570c"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/classification-driver.mjs",
+      "sha256": "6018aa850b671f8d839eaa14dbf9a686bd519284c1ec3713c8628377629cf882"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-classification-test-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.go",
+      "sha256": "44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-classification-helper.go",
+      "sha256": "10ef1be1575d05c0576760bc01af45ec3d7fd295c86a138ac47afd340161a402"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3/deterministicio/testdata/sprig/go.mod",
+      "sha256": "18985351ee04afbcca3e9a294da63639196301acd43720e3dc3dc46bb62b00c2"
+    }
+  ],
+  "profile": "linux/amd64",
+  "host": "linux/arm64",
+  "native": false,
+  "scope": "additive actual full CLI invalid-sum and scripted malformed linked extraction; SOURCE only, no launch/native compiler",
+  "changes": [
+    {
+      "name": "original",
+      "file": "runner/internal/execution/bootstrap_unix.go",
+      "source_sha256": "fd907dba3cbd3c75371b63c08225f12fceffdab288572c1f146f520f1324fb53",
+      "overlay_sha256": "9e212cfca16a32fd879692da825c67bd78094edc9e0b9a01c6955bac97f440e3",
+      "original_lines": 222,
+      "overlay_lines": 222
+    },
+    {
+      "name": "original",
+      "file": "runner/internal/execution/launch_plan_unix.go",
+      "source_sha256": "b4ecb04475268ad39a5f08eb24bdb85788e5b79ba3353f30c055e8ff661a02c1",
+      "overlay_sha256": "b50055b45161192fb134d70001e3a27e2f23374b2e80ced218d7a4a3c3e7e40d",
+      "original_lines": 355,
+      "overlay_lines": 355
+    },
+    {
+      "name": "original",
+      "file": "runner/internal/execution/source_control.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "5ea6b0c0f05c2ffb88ba9f3cc938cb86e6166cc35a59c1a56c3c6d7beec7f271",
+      "original_lines": 1,
+      "overlay_lines": 3
+    },
+    {
+      "name": "original",
+      "file": "cmd/gomad/internal/cli/analyze.go",
+      "source_sha256": "cb4f0c9892968176b6768a0e9c370ee3add229c694def4fc6fe1bff202330bc2",
+      "overlay_sha256": "1cba4e49655664716fb3c57f16c6b4cccd62821428f92defbc7dd3e7c3e39af2",
+      "original_lines": 237,
+      "overlay_lines": 241
+    },
+    {
+      "name": "original",
+      "file": "qualification/analysis/prepared_review.go",
+      "source_sha256": "48a704d49df2d5cec66ea5cbaa39db1a1d8615afad343f8dac49b48bdc176e63",
+      "overlay_sha256": "9dcd5738fb0a14bc88b726c0031a12f3cee07de1de2fee9355ffffdd0114f1f7",
+      "original_lines": 62,
+      "overlay_lines": 67
+    },
+    {
+      "name": "original",
+      "file": "qualification/analysis/source_control.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "aa55575c6c931f2ab02a8b3b2a812b90600bd487d2be66123caec7ef02dd6e26",
+      "original_lines": 1,
+      "overlay_lines": 4
+    },
+    {
+      "name": "original",
+      "file": "cmd/gomad/internal/cli/source_control.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "d90177dec74696300dc067d73519bdad4535181206345e0af61a591b3ee08ab1",
+      "original_lines": 1,
+      "overlay_lines": 4
+    },
+    {
+      "name": "original",
+      "file": "cmd/gomadtool/compatibility_pack.go",
+      "source_sha256": "b2386dfb0a2c98787dd30e86bafe31aa3e0e5dffbc56a89671e53700a6d59de6",
+      "overlay_sha256": "4486384abadb7f453c4234065f4f5f477b415d88aa31ef0ff75db1e2a796f4aa",
+      "original_lines": 331,
+      "overlay_lines": 340
+    },
+    {
+      "name": "original",
+      "file": "cmd/gomadtool/source_control.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "a20a2e8c7edf1e694c860ccd818bf30fa53e4c89687f54a0a99ec19f04cb33fb",
+      "original_lines": 1,
+      "overlay_lines": 4
+    },
+    {
+      "name": "original",
+      "file": "cmd/gomad/internal/cli/source_consumer_test.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "e4d4c105669d564cfdcf8e9a805c11baeb88a3107147bddafd8eefed0967ecc5",
+      "original_lines": 1,
+      "overlay_lines": 153
+    },
+    {
+      "name": "original",
+      "file": "qualification/analysis/source_consumer_test.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "f5bea64daa99b300888b9e23b94924a67ce39cc62b64110529778aff70d82686",
+      "original_lines": 1,
+      "overlay_lines": 61
+    },
+    {
+      "name": "original",
+      "file": "cmd/gomadtool/source_consumer_test.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "e54abfc88633a041bae2c07805dfe2101580ccb6b9d3ca3dcc7990db59fe346d",
+      "original_lines": 1,
+      "overlay_lines": 255
+    },
+    {
+      "name": "current",
+      "file": "internal/preparation/source_control.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "039359d0fd031f0b1db88e5b7a7dd755aa449c0b24fe1b5d85cc8a5c381e2b92",
+      "original_lines": 1,
+      "overlay_lines": 4
+    },
+    {
+      "name": "current",
+      "file": "qualification/analysis/prepared_review.go",
+      "source_sha256": "61cc3485434bdb022f9e9582730d3bc5c074662d9280eeb79d74cb9777d78992",
+      "overlay_sha256": "d438453f23f3e10a8470203a2e2869d0545140073ff827b1e68dafc6cfeb57d6",
+      "original_lines": 60,
+      "overlay_lines": 64
+    },
+    {
+      "name": "current",
+      "file": "qualification/analysis/source_control.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "7813c68ad6827c8d84fd9fdd96f1313bf82a61646b6efdb6c3f79cc71874dd78",
+      "original_lines": 1,
+      "overlay_lines": 4
+    },
+    {
+      "name": "current",
+      "file": "cmd/gomad/internal/cli/source_control.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "ae01cac21a8ce4aee81528e46d2dcff608f0c93b15fbd405f73fa524a4151328",
+      "original_lines": 1,
+      "overlay_lines": 4
+    },
+    {
+      "name": "current",
+      "file": "cmd/gomadtool/compatibility_pack.go",
+      "source_sha256": "1372ebdc6d80efa644040d89a2c42c1302fc15660cbab79b94d78c1308eef7bd",
+      "overlay_sha256": "f086ffe4a6e2b78901f2ae88adca8be9c16bee701a6fb4ff943a644600bfb0ae",
+      "original_lines": 438,
+      "overlay_lines": 447
+    },
+    {
+      "name": "current",
+      "file": "cmd/gomadtool/source_control.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "6f8c1d0ece28122f2189b10cb87b8dad5b8bf2edab802c7502df13c79c33c59f",
+      "original_lines": 1,
+      "overlay_lines": 4
+    },
+    {
+      "name": "current",
+      "file": "cmd/gomad/internal/cli/source_consumer_test.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "e4d4c105669d564cfdcf8e9a805c11baeb88a3107147bddafd8eefed0967ecc5",
+      "original_lines": 1,
+      "overlay_lines": 153
+    },
+    {
+      "name": "current",
+      "file": "qualification/analysis/source_consumer_test.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "f5bea64daa99b300888b9e23b94924a67ce39cc62b64110529778aff70d82686",
+      "original_lines": 1,
+      "overlay_lines": 61
+    },
+    {
+      "name": "current",
+      "file": "cmd/gomadtool/source_consumer_test.go",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "overlay_sha256": "e54abfc88633a041bae2c07805dfe2101580ccb6b9d3ca3dcc7990db59fe346d",
+      "original_lines": 1,
+      "overlay_lines": 255
+    }
+  ],
+  "production": false
+}

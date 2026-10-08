@@ -1,0 +1,18 @@
+{
+  "original": "final-original-consumers",
+  "current": "final-current-consumers",
+  "original_log_sha256": "c839c39865c3a517d3d2bad40c73de0c76415836e8ff2f1bc5e4d8843e1990e5",
+  "current_log_sha256": "dcc75ab00aed03f4afa362c3daacd3982970170f0566ba28fdcb7d89910b180b",
+  "original_snapshot_sha256": "32aea326f7ab8b2bc279cf58b8e9ddd05f76f63cd6ce1a9fad5d997f6b91542a",
+  "current_snapshot_sha256": "54fe7e66ae943c19921d0effae3a8fa14a290d2afa473495f1c25f29842ce8cb",
+  "rows": 31,
+  "differences": [
+    {
+      "test": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli|TestAnalyzeSourceActualOwnerConsumer/cleanup-supported",
+      "field": "status",
+      "original": 0,
+      "current": 3
+    }
+  ],
+  "source_native": false
+}

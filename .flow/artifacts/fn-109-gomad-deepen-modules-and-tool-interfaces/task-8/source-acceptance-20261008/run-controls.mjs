@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+const out=path.dirname(new URL(import.meta.url).pathname);
+const [name,side,selection='all']=process.argv.slice(2);
+if(!['original','current'].includes(side)||!['all','diagnostics','inspection'].includes(selection))throw Error('NAME original|current all|diagnostics|inspection');
+const control=JSON.parse(fs.readFileSync(path.join(out,selection==='inspection'?'source-controls.json':'caller-controls.json')));
+const module=control[side],overlay=control.overlays[side==='original'?0:1];
+const pattern=selection==='all'?'TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSource|TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim|TestBuild|TestDecodeValidatesCanonicalCapabilityReport|TestPrepareCapabilityReview':selection==='diagnostics'?'TestCompatibilityPackSource':'TestInspectClosureDoesNotBuildOrLaunch|TestInspectRejectsCallerRootAndPreservesReviewClassificationOnCleanupFailure|TestInspectCloseSurfacesCleanupFailure|TestInspectPreservesInvalidAdapterSum|TestInspectRetainsUnsupportedClosureClassification';
+const packages=selection==='all'?'./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool':selection==='diagnostics'?'./cmd/gomadtool':'./internal/preparation';
+const command=`cd '${module}' && go test -json -count=1 -tags test_dep -overlay '${overlay}' ${packages} -run '${pattern}'`;
+const result=spawnSync(process.execPath,[path.join(out,'run.mjs'),name,command],{stdio:'inherit'});
+process.exitCode=result.status??1;

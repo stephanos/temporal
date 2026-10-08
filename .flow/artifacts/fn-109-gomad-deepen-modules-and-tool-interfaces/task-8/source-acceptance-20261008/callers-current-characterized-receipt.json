@@ -1,0 +1,131 @@
+{
+  "name": "callers-current-characterized",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ncd /Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-IFSmni/current/temporal/tools/gomad3 && go test -json -count=1 -tags test_dep -overlay /Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-IFSmni/current-caller-overlay.json ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run \"TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSourceUsageCharacterization\""
+  ],
+  "command": "cd /Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-IFSmni/current/temporal/tools/gomad3 && go test -json -count=1 -tags test_dep -overlay /Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-IFSmni/current-caller-overlay.json ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run \"TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSourceUsageCharacterization\"",
+  "started": "2026-10-08T22:33:46.911Z",
+  "ended": "2026-10-08T22:33:51.645Z",
+  "elapsed_seconds": 4.731424211,
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "log": "callers-current-characterized.log",
+  "log_sha256": "cf307b739fc0f12be772fa58c295c3257a33451b1c62dc6a6420cb2063c2129e",
+  "base_commit": "410c463429a1deca56693e5fd123b44a75f5709e",
+  "review_base": "19a66244503cee636607b0449081d31e69cd769a",
+  "head": "410c463429a1deca56693e5fd123b44a75f5709e",
+  "source_manifest": "source-1d210b0eab7a5f3b0da903fa2eed27eb1d35b0cce3f96a5c0cbcaebe76e56a8c.json",
+  "source_tree_sha256": "1d210b0eab7a5f3b0da903fa2eed27eb1d35b0cce3f96a5c0cbcaebe76e56a8c",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "tools_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off"
+  },
+  "counts": {
+    "pass": 9,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-08T22:33:49.786148881Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/qualification/analysis",
+      "Test": "TestPreparedReviewSourceActualOwnerFailedClose",
+      "Elapsed": 0.35
+    },
+    {
+      "Time": "2026-10-08T22:33:49.801126381Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/text",
+      "Elapsed": 0.33
+    },
+    {
+      "Time": "2026-10-08T22:33:49.950601132Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/json",
+      "Elapsed": 0.15
+    },
+    {
+      "Time": "2026-10-08T22:33:50.112060007Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/unsupported",
+      "Elapsed": 0.16
+    },
+    {
+      "Time": "2026-10-08T22:33:50.337363757Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/unresolved",
+      "Elapsed": 0.23
+    },
+    {
+      "Time": "2026-10-08T22:33:50.711411007Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/cleanup-supported",
+      "Elapsed": 0.37
+    },
+    {
+      "Time": "2026-10-08T22:33:51.15246209Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/cleanup-unsupported",
+      "Elapsed": 0.44
+    },
+    {
+      "Time": "2026-10-08T22:33:51.244547757Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer/cleanup-unresolved",
+      "Elapsed": 0.09
+    },
+    {
+      "Time": "2026-10-08T22:33:51.245217549Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "Test": "TestAnalyzeSourceActualOwnerConsumer",
+      "Elapsed": 1.78
+    }
+  ],
+  "harness_sha256": "94633a2828f689ab69387e0d92b173b4079e667237b64c2df02cbc8d7c8b48ce",
+  "control_manifest": "controls-13f8a1219365903cd4c552d4b679339199fa22991b79f1d2390b3b7df6a2a45f.json",
+  "control_tree_sha256": "13f8a1219365903cd4c552d4b679339199fa22991b79f1d2390b3b7df6a2a45f",
+  "controls_unchanged": true
+}
