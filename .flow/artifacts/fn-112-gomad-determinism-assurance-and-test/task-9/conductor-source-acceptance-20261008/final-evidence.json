@@ -1,0 +1,1345 @@
+{
+  "task_id": "fn-112-gomad-determinism-assurance-and-test.9",
+  "status": "in_progress",
+  "acceptance_scope": "R10 retained source acceptance prepared for conductor completion",
+  "review_mode": "host-deferred",
+  "base_commit": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "head": "da10d3bdad0c10b844832fcc9ebb318ebdd936a8",
+  "commits": [
+    "7fee2ee6ba7e0e60212be65e600ff515cd533fa8",
+    "da10d3bdad0c10b844832fcc9ebb318ebdd936a8"
+  ],
+  "tests": [
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-current-overlay.json -run '^TestRewrittenModulesRejectChangedIdentity$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-original-overlay.json -run '^Test(Sprig|Validator|Pebble|CactusStatsD|Memberlist|Sentry|HashicorpMetrics)RejectsChangedIdentity$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-original-unmodified-overlay.json -run '^Test(Sprig|Validator|Pebble|CactusStatsD|Memberlist|Sentry|HashicorpMetrics)RejectsChangedIdentity$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-control run -tags test_dep -mod=readonly .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-control run -tags test_dep -mod=readonly .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json ./cmd/gomad/internal/cli",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=3m -json ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json ./runner",
+    "make -C tools/gomad3 validate",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 build -trimpath -o /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad ./cmd/gomad",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad analyze --format=json --timeout 10s go-run ./tools/gomad3/testdata/helloworld",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad doctor --json --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-doctor-artifacts",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad explore --json --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-explore-artifacts --seeds 1 go-run ./tools/gomad3/testdata/helloworld",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad minimize --json --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-minimize-artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/missing-artifact",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad qualify --json --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-qualify-artifacts --seeds 1 --repeat 0 go-run ./tools/gomad3/testdata/helloworld",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad resume --json /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/missing-campaign",
+    "python3 -B .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -c -tags test_dep -o /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/architecture-test .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-current-mutant-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-original-normal-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-original-mutant-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/current-identity-derive.mjs --source-ref=worktree",
+    "sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/runtime-identities.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/runtime-identities.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/accounting-analysis.mjs",
+    "python3 -B /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json ./cmd/gomad/internal/cli",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^Test(RunRejectsSuccessfulRetentionWithoutReplayTranscript|AssessCompletionProjectsCoverageInOrderAndClassifies|CompletionFaultsKeepReasonPrecedenceAndEvidence|AssessWorldValidatesTheRecordAgainstItsSeed|IsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput)$' ./runner",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=3m -json ./deterministicio",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analyze-evidence.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analyze-evidence.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/failure-bindings.mjs",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs focused",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' env -json",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs nested",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-links.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-links.mjs",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestArchitecturePublicSignatureFixtures/private-storage$' .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestCannedCoordinatorHelper|TestCampaignOptionsLegacyCharacterization|TestCancellationIsAHostFailure|TestIsolatedRunnerPreservesCoordinatorResponse|TestReplayDoesNotStartTarget|TestRunPreparationFailureLeavesClassifiedPartial|TestRunResumeRejectsChangedEvidence|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput|TestRunRetainsSuccessesOnlyWithinExplicitBounds)$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/source-proof.mjs --final",
+    "/home/agent/.codex/scripts/flowctl show fn-112-gomad-determinism-assurance-and-test.9 --json",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV= LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=. ./deterministicio/... ./runner/... ./cmd/gomad/...'",
+    "make -C tools/gomad3 validate",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/verify.mjs",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-world-current-mutant-overlay.json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs focused",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad analyze --format=json --timeout 10s --toolchain-root /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain go-run ./tools/gomad3/cmd/gomad/testdata/seedfree",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad explore --json --working-dir /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-valid-explore-artifacts --seeds 1 go-run ./cmd/gomad/testdata/seedfree",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad qualify --json --working-dir /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-valid-qualify-artifacts --seed 1 --repeat 2 go-run ./cmd/gomad/testdata/seedfree",
+    "python3 -B /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json ./cmd/gomad/internal/cli",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=3m -json ./deterministicio",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs focused",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs nested",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestCannedCoordinatorHelper|TestCampaignOptionsLegacyCharacterization|TestCancellationIsAHostFailure|TestIsolatedRunnerPreservesCoordinatorResponse|TestReplayDoesNotStartTarget|TestRunPreparationFailureLeavesClassifiedPartial|TestRunResumeRejectsChangedEvidence|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput|TestRunRetainsSuccessesOnlyWithinExplicitBounds)$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV= LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=. ./deterministicio/... ./runner/... ./cmd/gomad/...'",
+    "make -C tools/gomad3 validate",
+    "uname -a",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-current-mutant-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt' -l tools/gomad3/architecture_test.go tools/gomad3/deterministicio/adapter_rewrite_test.go tools/gomad3/runner/completion_test.go",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestArchitectureEffectFixtures/(stored-callback|local-location)$' .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "env SIZE_COUNT_DETAIL=1 sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/source-proof.mjs --final --output=frozen-source-proof.json",
+    "/home/agent/.codex/scripts/flowctl show fn-112-gomad-determinism-assurance-and-test.9 --json",
+    "id",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs nested",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-fixture-run.mjs exported-alias",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-fixture-run.mjs valid",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestRewrittenModulesRejectChangedIdentity$/^empty$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-current-overlay.json -run '^TestRewrittenModulesRejectChangedIdentity$/^empty$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/accounting-analysis.mjs",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-current-mutant-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/map-current-status.mjs",
+    "df -h /home/agent/.cache/go-build /Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analyze-evidence.mjs --freeze",
+    "python3 -B /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json ./cmd/gomad/internal/cli",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=3m -json ./deterministicio",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs focused",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs nested",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestCannedCoordinatorHelper|TestCampaignOptionsLegacyCharacterization|TestCancellationIsAHostFailure|TestIsolatedRunnerPreservesCoordinatorResponse|TestReplayDoesNotStartTarget|TestRunPreparationFailureLeavesClassifiedPartial|TestRunResumeRejectsChangedEvidence|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput|TestRunRetainsSuccessesOnlyWithinExplicitBounds)$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV= LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=. ./deterministicio/... ./runner/... ./cmd/gomad/...'",
+    "make -C tools/gomad3 validate",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "env SIZE_COUNT_DETAIL=1 sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/source-proof.mjs --final --output=sealed-source-proof.json",
+    "/home/agent/.codex/scripts/flowctl show fn-112-gomad-determinism-assurance-and-test.9 --json",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV= GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=. ./deterministicio/... ./runner/... ./cmd/gomad/...' ALL_TEST_TAGS=test_dep",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-world-current-mutant-overlay.json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-original-normal-overlay.json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-world-original-mutant-overlay.json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/write-handover.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/seal.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/verify.mjs",
+    "/home/agent/.codex/scripts/flowctl show fn-112.2 --json",
+    "df -h /Users/stephan/Workspace/skunkworks/gomad/temporal /home/agent/.cache/go-build",
+    "node /tmp/fn1129-cause-restoration-admission-20261008.mjs",
+    "/home/agent/.codex/scripts/flowctl triage-skip --json --receipt /tmp/impl-review-receipt-657da2bc4466-fn-112-gomad-determinism-assurance-and-test.9.json --base a7d99f4e64990839f81df4acd9bc150b842f8ea6 --task fn-112-gomad-determinism-assurance-and-test.9 --no-llm",
+    "/home/agent/.codex/scripts/flowctl show fn-112.9 --json",
+    "/home/agent/.codex/scripts/flowctl review-route fn-112-gomad-determinism-assurance-and-test.9 --rotate-stale --json",
+    "/home/agent/.codex/scripts/flowctl triage-skip --json --receipt /tmp/impl-review-receipt-657da2bc4466-fn-112-gomad-determinism-assurance-and-test.9.json --base a7d99f4e64990839f81df4acd9bc150b842f8ea6 --task fn-112-gomad-determinism-assurance-and-test.9 --no-llm",
+    "python3 -B /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json ./cmd/gomad/internal/cli",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-current-mutant-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestArchitecture(PublicSignature|Effect)Fixtures$' .",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/audit.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/audit.mjs",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=3m -json ./deterministicio",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-current-overlay.json -run '^TestRewrittenModulesRejectChangedIdentity/empty$' ./deterministicio",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestRewrittenModulesRejectChangedIdentity/empty$' ./deterministicio",
+    "make lint-code-fast ALL_TEST_TAGS=test_dep GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs focused",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs nested",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation|TestPublicCommandExplicitZeroAndIrrelevantFlagClassification|TestPlanAndExploreRejectHiddenPlanRoute|TestPlanValidationOrderAndJSONRouting|TestPublicCommandWriterFailuresPreserveStatus|TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments|TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes|TestApplicationRetainsInstallationIdentityAndPrivateCommands|TestApplicationInstallFailsClosed|TestApplicationDispatchesPrivateModesOverProcessStreams|TestApplicationResolvesOnlyAfterInputValidation|TestCampaignSemanticValidationBelongsToRunner|TestParseCampaignShardUsesZeroBasedIndex|TestFormatMissingOrdinalsCompactsRanges|TestCharacterizeHelpAndUsage|TestCharacterizeUnknownCommandsAndPrivateModes|TestCharacterizeInputRejection|TestCharacterizeByteSizeAndFlagValueRejection|TestCharacterizeInstallationResolution|TestCharacterizeExploreRequestDefaultsAndWiring|TestCharacterizeExploreOutputAndStatus|TestCharacterizePlanRequestAndOutput|TestCharacterizeReplayRequestOutputAndStatus|TestCharacterizeExecuteShardRequestOutputAndStatus|TestCharacterizeInstallationWiring|TestCharacterizeOutputWriterFailures|TestByteSizeFlagParsesBinaryUnitsCanonically|TestRunCompareSupportMapsReviewAndIncomparableStatuses|TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures|TestResolveExploreSeedsSupportsCountWithoutAmbiguity|TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration|TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration|TestResolveExploreStrategyRejectsExplorationBoundsForSeeds|TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes|TestResolveExploreTypedErrorPresentation|TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus|TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity|TestRunRejectsUnknownCommandWithUsageStatus|TestParseTargetPreservesArgumentVector|TestParseCapabilityModeUsesClosedVocabulary|TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported|TestCapabilityAnalysisTimeoutAllowsLinkedBuild|TestRunAnalyzeForwardsTargetAndClassifiesReport|TestRunDoctorReportsRepairCommandWhenToolchainIsMissing|TestRunInspectReportsBatchAsTextAndJSON|TestRunInspectRejectsChoicesForBatch|TestPrintInspectionReportsInterruptedSimulationExplorationWork|TestPrintInspectionReportsSimulationExplorationEvidence|TestRunInspectReportsOutputFailure|TestRunRecoverReportsStableTextAndJSON|TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure|TestRunRecoverRepairsPublishedBatchPrivateState|TestExploreReporterEmitsStableJSONEventsAndEveryArtifact|TestExploreReporterReportsRetainedSuccessfulRuns|TestExploreReporterReportsGuidedCorpusUpdates|TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork|TestRunExploreReportsFlagErrorsAsJSON|TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure|TestRunQualifyForwardsFlagsAndClassifiesOutcome|TestRunResumeForwardsCampaignAndClassifiesResult|TestExploreReporterHumanOutputIncludesProgressAndReplayCommands|TestClassifyExploreErrorDistinguishesInputTargetAndRunner|TestExploreErrorStatusDistinguishesUserAndOperationalFailures|TestClassifyExploreSummaryDistinguishesWatchdogAndReplayDivergence|TestReportReplayResultStatesWhetherFailureWasReproduced|TestRunMinimizeForwardsFlags|TestRunQualifySetForwardsFlags|TestRunMergeSetMapsStatuses|TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses|TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation|TestQualifyDiagnosticsRetainsInterruptedReports|TestCheckExplainsMissingToolchain|TestCheckRejectsUnsupportedHostAndUnwritableArtifacts|TestChoiceExplorationDivergenceClassificationAndStatus|TestInspectReportsCandidateReplayDivergence|TestExploreErrorJoinsDiagnosticAndReporterWriterFailures|TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus|TestGuidanceReportsNoCorpusSelectionAndNewExecutions|TestResumeGuidanceModePreservesExplicitFalseAndTrue|TestGuideRegressionRequiresGuidance|TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered|TestRunInspectReportsWhetherTheTargetIsShared|TestCharacterizePlanRequestDefaults|TestCharacterizePlanInputRejection|TestCharacterizePlanFlagErrors|TestCharacterizePlanOperationErrors|TestCharacterizeExploreErrorWriteRouting|TestCharacterizeHiddenPlanFlag|TestQuoteArgumentProducesOnePOSIXShellWord|TestResolveWorkingDirectory)$' ./cmd/gomad/internal/cli",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestAdapterCacheCleanupOwnerErrors|TestAdapterCacheCleanupRegistryPublicationReuseRetry|TestAdapterCacheCleanupValidationControls|TestAdapterCacheCleanupRegistryPrimary|TestCopyAdapterModuleAppliesReplacementsAndAdditions|TestCopyAdapterModuleRejectsSymlink|TestCopyAdapterModuleRejectsSpecialFile|TestCopyAdapterModuleReturnsTypedFileCapacityError|TestCopyAdapterModuleReturnsTypedByteCapacityError|TestVersionReferencesNeverMatchInsideAnotherModulePath|TestAdapterModuleSumRecords|TestAdapterReplacementUsesExplicitModuleRoot|TestNewAdapterRegistryAllowsNoAdapters|TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration|TestAdapterRegistryUsesExactVersionReplacement|TestDetectModuleVersionRejectsDuplicateRequirements|TestNewAdapterRegistryRequiresAnImplementationForEveryIdentity|TestNewAdapterRegistryRejectsDuplicateImplementations|TestAdapterRegistryPublishesReplacementAtStableToolchainLocation|TestVerifyRegisteredAdapterScratchCleanup|TestPrepareGRPCReturnsTypedInventoryCapacityError|TestVerifyGRPCModuleRejectsInventoryDrift|TestManifestInterceptsBeforeHostDispatch|TestModerncLibcAdapterTemplateHasPinnedIdentity|TestRejectLibcHostImportsRejectsForbiddenImports|TestLibcRegenerationKeepsExactSourceAndPreparedPins|TestDefaultProfile|TestDefaultReturnsAnImmutableProfileSpecification|TestProfileOwnsIdentityProjectionAndVerification|TestValidatePreparedTargetRejectsIdentityMismatch|TestDecodeSemanticCoverageReturnsStableSortedBoundaryProbes|TestDecodeSemanticCoverageRejectsUnknownAndDuplicateProbes|TestMissingRequiredSemanticProbesValidatesNames|TestSummarizeSemanticProbesCanonicalizesAUnion|TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs|TestSessionCollectTerminal)$' ./deterministicio",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestCampaignOptionsLegacyCharacterization|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestRunPreparationFailureLeavesClassifiedPartial|TestIsolatedRunnerPreservesCoordinatorResponse|TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput)$' ./runner",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestRunRecoverRepairsPublishedBatchPrivateState$' ./cmd/gomad/internal/cli",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/restoration-source-audit.mjs",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestCannedCoordinatorHelper|TestCampaignOptionsLegacyCharacterization|TestCancellationIsAHostFailure|TestIsolatedRunnerPreservesCoordinatorResponse|TestReplayDoesNotStartTarget|TestRunPreparationFailureLeavesClassifiedPartial|TestRunResumeRejectsChangedEvidence|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput|TestRunRejectsSuccessfulRetentionWithoutReplayTranscript)$' ./runner",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "make lint-code ALL_TEST_TAGS=test_dep GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV= LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=. ./deterministicio/... ./runner/... ./cmd/gomad/...'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/three-file-restoration-audit.mjs",
+    "make -C tools/gomad3 validate",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/verify.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/world-and-cause-restoration-audit.mjs",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-world-current-mutant-overlay.json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/correct-mapping-summary.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/mapping-summary-test.mjs .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/current-mapping-corrected.json",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/mapping-summary-test.mjs .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-current-mapping-analysis.json",
+    "/home/agent/.codex/scripts/flowctl config get memory.enabled --json",
+    "/home/agent/.codex/scripts/flowctl config get planSync.enabled --json",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestPublicPackagesDoNotExport(ForwardingAliases|TypeAliases)$' .",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestRewrittenModulesRejectChangedIdentity/empty$' ./deterministicio",
+    "make lint-code-fast ALL_TEST_TAGS=test_dep GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies)$' ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/verify.mjs",
+    "node /tmp/fn1129-preservation-admission-20261008.mjs",
+    "/home/agent/.codex/scripts/flowctl cat fn-112-gomad-determinism-assurance-and-test.9",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/retain-first-review.mjs",
+    "/home/agent/.codex/scripts/flowctl show fn-109.6 --json",
+    "git diff --cached --check",
+    "git diff --cached --check -- . ':(exclude).flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/restoration-current-task.stdout' ':(exclude).flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-original-empty-cache-tests.go'",
+    "node /tmp/fn1129-world-restoration-admission-20261008.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/verify.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-closure-check.mjs"
+  ],
+  "prs": [],
+  "tier": "Tier: session (jev-unavailable(no_key)); project implementer pin retained.",
+  "baseline": {
+    "classification": "red",
+    "root_first_attempt": "PASS18top59sub before restoration",
+    "cli": "FAIL3missing-driver",
+    "deterministicio": "FAIL58top/48sub actual prerequisites",
+    "runner": "FAIL77top149sub plus five-minute timeout; incomplete, not full-suite pass"
+  },
+  "command_results": {
+    "worker_index": {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/evidence.json",
+      "commands_imported": 114,
+      "actual_statuses_and_receipt_hashes": "Read immutable evidence.json receipts[] in the same order as imported tests[]. Final three terminal commands are indexed separately below."
+    },
+    "worker_terminal_additions": [
+      {
+        "label": "handover-evidence-index",
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/handover-evidence-index.json",
+        "sha256": "22773ec76e28d2df06987960f42a1b69a8dbdbe9493dc1393e833db1b0c8ee06",
+        "argv": [
+          "node",
+          ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/write-handover.mjs"
+        ],
+        "exit": 0,
+        "started": "2026-10-08T15:16:16.623Z",
+        "ended": "2026-10-08T15:16:16.913Z"
+      },
+      {
+        "label": "manifest-freeze",
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/manifest-freeze.json",
+        "sha256": "856581442e9257c0106b842821bdd0a008f58c32e19ca86eafc99c3fa7e182e3",
+        "argv": [
+          "node",
+          ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/seal.mjs"
+        ],
+        "exit": 0,
+        "started": "2026-10-08T15:16:17.191Z",
+        "ended": "2026-10-08T15:16:17.491Z"
+      },
+      {
+        "label": "terminal-verification",
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/terminal-verification.json",
+        "sha256": "5342aa35f4a7ee450af6652146c86bcd9f3599908152d40546478b27d568930d",
+        "argv": [
+          "node",
+          ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/verify.mjs"
+        ],
+        "exit": 0,
+        "started": "2026-10-08T15:16:37.987Z",
+        "ended": "2026-10-08T15:16:45.516Z"
+      }
+    ],
+    "conductor": [
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/architecture-predecessor.json",
+        "sha256": "8eb82b924701e242cab031581d60a28423b3ac67145bcb5637dac14671a64454",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:25:24.734Z",
+        "ended": "2026-10-08T14:25:25.404Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.668556334
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/cache-filesystem-state.json",
+        "sha256": "43c518d8f011f497906862932a203a5ca97fdcbc3508fce6ca9db4e234e33d6c",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:06:46.331Z",
+        "ended": "2026-10-08T15:06:46.758Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.425833125
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/cause-restoration-admission.json",
+        "sha256": "1049ae5ba9459ce328bf75facd2e33fa0c2e51b9397b8e35426ccfc4148a9201",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:54:29.435Z",
+        "ended": "2026-10-08T14:54:30.949Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.512468751
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/committed-review-triage.json",
+        "sha256": "77b400da116b92bbdeb86501cca268c4f435ff55c3d52648120e2dd6b0d5d065",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:28:57.166Z",
+        "ended": "2026-10-08T15:28:58.087Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.920568959
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/current-claim.json",
+        "sha256": "b0f4babe6a5e1a047586ad32eb9f46f7c831c0b9a34a653cd1a1d75d51632604",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:25:22.027Z",
+        "ended": "2026-10-08T14:25:22.772Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.7442085
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/current-review-route.json",
+        "sha256": "e5d88fc155cede264b333096adf9067823bc7325ef2fd48a1b3ea009138a1351",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:27:25.480Z",
+        "ended": "2026-10-08T15:27:26.465Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.984730667
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/current-review-triage.json",
+        "sha256": "4e5d4446ca7082fe66cca77c320ccf3d4c99fb26a385f399372c08bc37e310d5",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:27:26.446Z",
+        "ended": "2026-10-08T15:27:27.325Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.875610459
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-checker-controls.json",
+        "sha256": "3b4b9b4a9a2a5a8f30df98bb3938b2a968e1d105b2b3d86d71f22411bdc077b3",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:48.357Z",
+        "ended": "2026-10-08T15:18:48.784Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.426486542
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-cli.json",
+        "sha256": "83771191e16e31d7243e05ad3fd39ca5d745a94157c882587c16feb2cf012d3f",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:11.406Z",
+        "ended": "2026-10-08T15:18:14.219Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 89,
+          "fail": 4,
+          "skip": 0
+        },
+        "elapsed_seconds": 2.810681751
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-completion-cause-mutant.json",
+        "sha256": "158eaea2108acec8897b1f960608714950f08988ba842a3110a82aa26e07d660",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:21:04.894Z",
+        "ended": "2026-10-08T15:21:07.182Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 1,
+          "skip": 0
+        },
+        "elapsed_seconds": 2.286840293
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-controlled-cache-fixtures.json",
+        "sha256": "1908df61578ca317bb55ecf3ff845e96d48af4d5beac4a92a86cbae4534ec9aa",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:25:25.504Z",
+        "ended": "2026-10-08T15:25:50.610Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 2,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 25.086043678
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-current-source-audit-corrected.json",
+        "sha256": "b8518d45059ce0e9cb75fc2a31f94f4e85b0540eaceae008408faecc2fd46d96",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:27:03.695Z",
+        "ended": "2026-10-08T15:27:11.061Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 7.365058671
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-current-source-audit.json",
+        "sha256": "f8e343f377a3dc99df7708cd44af9586fcd5857c4f2dfc41634f789b54945271",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:23:36.035Z",
+        "ended": "2026-10-08T15:23:39.168Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 3.131444626
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-deterministicio.json",
+        "sha256": "5409255709338739856dd203160cb2d066aefdc6697a8631fb230e9f66b8fd39",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:17:49.109Z",
+        "ended": "2026-10-08T15:18:10.735Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 36,
+          "fail": 58,
+          "skip": 4
+        },
+        "elapsed_seconds": 21.625203219
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-empty-cache-mutant.json",
+        "sha256": "99bba4de95f08288b3882f8feb10f711ed2ec2a115210b044be393cca7a401e7",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:21:02.986Z",
+        "ended": "2026-10-08T15:21:04.251Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 1,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.264875292
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-empty-cache-normal.json",
+        "sha256": "0444c0a5d5006a005925a9f1dd2bc3c894f65dc83b7450254a35d324feda04c4",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:21:01.130Z",
+        "ended": "2026-10-08T15:21:02.402Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 1,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.270645251
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-fast-lint.json",
+        "sha256": "095ebf808f2c64ca7fbebede7398e825e5eaa7d3b025e9cc745ff03d6b03f13b",
+        "exit": 2,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:26.112Z",
+        "ended": "2026-10-08T15:18:43.118Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 17.003955466
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-focused-format.json",
+        "sha256": "2b275a12f0e1e8d0420f5cc25c56a2ccd045d679873046271637779afe863bd3",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:45.564Z",
+        "ended": "2026-10-08T15:18:46.253Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.688966042
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-isolated-cache-root.json",
+        "sha256": "4f6bcc9f67623b6bace48f780c69f0c427dd574be725ceac96efca1b4c7e6561",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:15:23.656Z",
+        "ended": "2026-10-08T15:17:11.229Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 19,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 107.571585176
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-nested-format.json",
+        "sha256": "786c140cb6bf1a4a4112042f8bb364cb608ba40439c7167f60220b39a2105a8e",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:46.866Z",
+        "ended": "2026-10-08T15:18:47.738Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.871099084
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-portable-cli.json",
+        "sha256": "e101c45fd7fdd116fb2962cb3b221889c79cdd951b30f6d5e5acec9fbdb4b166",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:20:56.790Z",
+        "ended": "2026-10-08T15:20:58.906Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 90,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 2.114626501
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-portable-deterministicio.json",
+        "sha256": "397732223bfc7c6af484453b78d34977d87af8e6a9bb640dc3e0720ff3f43893",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:20:44.475Z",
+        "ended": "2026-10-08T15:20:56.173Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 36,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 11.64679938
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-portable-runner.json",
+        "sha256": "54cff0dde06c00fa37baa10da8e9df6fef1ffb821dd2d8c6fa465f3b04125cb8",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:20:59.500Z",
+        "ended": "2026-10-08T15:21:00.522Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 6,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.021556251
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-recovery-failure-recheck.json",
+        "sha256": "29fb439e3335dc2a5ee807275de2b8fbdb7f8a089ab69838df2ec3c357500b90",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:19:45.548Z",
+        "ended": "2026-10-08T15:19:46.695Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 1,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.146849584
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-restoration-source-audit.json",
+        "sha256": "f08623c0e66409a270dd50776ec413f36b412881b61d1be341a56dcacad8e520",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:41:39.284Z",
+        "ended": "2026-10-08T14:41:39.856Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.571512125
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-runner-mapped.json",
+        "sha256": "8c22eb92c784f5d08668d6bb2d2e2e21f982c0e08d325755b44ef9e8219fcd09",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:14.802Z",
+        "ended": "2026-10-08T15:18:17.586Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 6,
+          "fail": 5,
+          "skip": 1
+        },
+        "elapsed_seconds": 2.782387084
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-scoped-errortype.json",
+        "sha256": "1c70aeccc21e8c5e8313710dc9328fdd1029c2028e7bc3ef89d33e425d977ce4",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:22.859Z",
+        "ended": "2026-10-08T15:18:25.507Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 2.64823421
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-scoped-lint.json",
+        "sha256": "2cd97eb6f532018ce40990fc2bfda592a6b87f4f5d76d516e81db68ad38372ca",
+        "exit": 2,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:43.755Z",
+        "ended": "2026-10-08T15:18:44.971Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.214209168
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-scoped-vet.json",
+        "sha256": "f5267060a986d7bafd8051fd41a2aa33058ccc375093aea0a68e7bfa03356ecf",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:21.245Z",
+        "ended": "2026-10-08T15:18:22.206Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.9605765
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-three-file-restoration-audit.json",
+        "sha256": "12bfb2b13a0165b5e45b32b30383e4dafa0e15d1edaf0d8cdcf74f0478eb6084",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:57:25.816Z",
+        "ended": "2026-10-08T14:57:26.366Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.549770959
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-validate.json",
+        "sha256": "6cf31c16ebd965da46c2c3fef749fa7ede7566599fa795f473af346b283cc4d4",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:18:18.195Z",
+        "ended": "2026-10-08T15:18:20.639Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 2.443206876
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-worker-verification.json",
+        "sha256": "942588a503e682e022c68b6fa5e6ef6bad08fa9251fa4dc03d0adb7514935e55",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:17:40.828Z",
+        "ended": "2026-10-08T15:17:48.456Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 7.627357712
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-world-cause-restoration-audit.json",
+        "sha256": "bcdc4b14f73cf6b7c9d03fc196993379e8664a7bc65440d800c6b5670f8cf785",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:02:11.592Z",
+        "ended": "2026-10-08T15:02:12.134Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.541568167
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/independent-world-seed-mutant.json",
+        "sha256": "0b74f89ea17d91fbaa4624cfa2e3a0551ae0c9dae6023f69e53ea6c94f3b2d21",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:21:07.825Z",
+        "ended": "2026-10-08T15:21:09.947Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 1,
+          "skip": 0
+        },
+        "elapsed_seconds": 2.12119096
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/mapping-summary-correction.json",
+        "sha256": "718bfe342ef6a91495d8be3dac173b299d54a039a90bff436b41bdc72b981589",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:36:53.881Z",
+        "ended": "2026-10-08T15:36:54.492Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.609869125
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/mapping-summary-green.json",
+        "sha256": "4c20d2f4d91ebc3187df800fbb771af78d169b90050a8a233bd362b300db8300",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:42:39.765Z",
+        "ended": "2026-10-08T15:42:40.338Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.569936375
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/mapping-summary-red.json",
+        "sha256": "d97611a69a9860439d1621e7efb078ee3ef8250a300267cfa706fb195545aeaa",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:36:16.465Z",
+        "ended": "2026-10-08T15:36:17.049Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.5784655
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/memory-config.json",
+        "sha256": "066bdb8599327ff83e486b82f6e0b6d2f3aea0dd4c87bb5eb7b005e7f96d66f4",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:26:24.811Z",
+        "ended": "2026-10-08T14:26:25.477Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.665091375
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/plan-sync-config.json",
+        "sha256": "28235a41c0b4824fd8310d7eb86f772ea8f4a068f0909c2df272e3883ad6c51e",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:25:26.040Z",
+        "ended": "2026-10-08T14:25:26.711Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.670566375
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/post-review-alias-guards.json",
+        "sha256": "b04089479a1bf71d12f04c893a3ba69b4971a46cab7a89282acf9583c9c5caf5",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:44:19.629Z",
+        "ended": "2026-10-08T15:44:25.155Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 2,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 5.524335419
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/post-review-empty-cache.json",
+        "sha256": "5175cffbe32e5d7849a61bc709bcc1cf73665fde05fba32670ba3549229701c1",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:44:42.532Z",
+        "ended": "2026-10-08T15:44:43.449Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 1,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.916278208
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/post-review-fast-lint.json",
+        "sha256": "3358cd69f011c18caf84ae9b4719f6765b5692b2cec01b49e4ec34a702ee5304",
+        "exit": 2,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:43:58.877Z",
+        "ended": "2026-10-08T15:44:08.517Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 9.637443755
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/post-review-restored-runner.json",
+        "sha256": "fbcc07ec7b42e15a1f190680af8cff09d4102353de141fb17f2747a8f1aea158",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:43:25.262Z",
+        "ended": "2026-10-08T15:43:26.701Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 2,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.437751501
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/post-review-worker-verification.json",
+        "sha256": "5772418c5f5bb7d728183f094f998aed45f28b4e211d7a07d1e500b479f4f355",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:42:40.337Z",
+        "ended": "2026-10-08T15:42:48.263Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 7.925610671
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/preservation-admission.json",
+        "sha256": "6d91b34661e9fe99f3a0a05042e460535657687f3db23a34f37bc40e4f066cc8",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:37:06.030Z",
+        "ended": "2026-10-08T14:37:07.069Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.037981208
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/restoration-current-task.json",
+        "sha256": "ab4039d41c7b33151755823406bce8dde9f0dde1ee7a9a0299afbd88bd681eef",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:37:34.092Z",
+        "ended": "2026-10-08T14:37:34.840Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.746722542
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/retained-first-source-review.json",
+        "sha256": "603c9411bcb977745d362038eaaf241af9457feff21a1334c76ede8557bb5312",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:36:55.020Z",
+        "ended": "2026-10-08T15:36:55.616Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.595841917
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/source-predecessor.json",
+        "sha256": "0ce4e95817f624970da967e983b7d1ffb90f55694f67848b80a81a5fb7dac12b",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T14:25:23.406Z",
+        "ended": "2026-10-08T14:25:24.057Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.644320709
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/staged-raw-whitespace.json",
+        "sha256": "441f4930e19d17751f446d6b78289e381c59a75473ee78b34ef6f21f002cda25",
+        "exit": 2,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:27:52.943Z",
+        "ended": "2026-10-08T15:27:53.814Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.869887375
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/staged-source-and-script-whitespace.json",
+        "sha256": "47b6ecb9bf90f00e8643885a5a3eadcbd82b0195fa9879b3c063cceb8f0fbeb7",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:28:24.892Z",
+        "ended": "2026-10-08T15:28:25.425Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 0.531940125
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/world-restoration-admission.json",
+        "sha256": "902c7e91a454f4ceba8b5061b578a0ec2f9fa9d13b76471dbd4e527954e2041b",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T15:00:52.555Z",
+        "ended": "2026-10-08T15:00:53.653Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.096932834
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-closure-worker-verification.json",
+        "sha256": "3b66c9a2656b041becce96c1eda283ae37654d400a4e7506516dcb79464cf0ca",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T16:06:09.729Z",
+        "ended": "2026-10-08T16:06:17.676Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 7.918515129
+      },
+      {
+        "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-closure-integrity.json",
+        "sha256": "5667781e00da543b336311081ffbb057e08868404670f74e177c7be106f331d4",
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T16:07:56.300Z",
+        "ended": "2026-10-08T16:07:57.500Z",
+        "source_changes": [],
+        "top_level_counts": {
+          "pass": 0,
+          "fail": 0,
+          "skip": 0
+        },
+        "elapsed_seconds": 1.199204751
+      }
+    ],
+    "all_results_preserved_including_failures_and_mutants": true
+  },
+  "source_proofs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-source-proof.json",
+      "sha256": "e2cda9d6122449c9bb5001110909878ba69942019bcbc8ad258f06f441c5e449",
+      "bytes": 1255861
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-restoration-analysis.json",
+      "sha256": "7ab9271f52c967402c2df6a10a3ac0f236690d7ce4464bdaac590d57aae428a1",
+      "bytes": 13984
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-current-mapping-analysis.json",
+      "sha256": "4de3c1e84c7ea8864f7893df1743e2c0456f9a31b452459c59c462338e3160a4",
+      "bytes": 416455
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-static-bindings.json",
+      "sha256": "305a2443e90ac619c3ef07b805f828b6a9445ea17990ae053f116ed71aaa08f1",
+      "bytes": 827122
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-execution-analysis.json",
+      "sha256": "ca5773d9b1085895869393ee682e6b318a4e5764fe1a0ce516418c66917cf340",
+      "bytes": 1428292
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/terminal-failure-bindings.json",
+      "sha256": "6affa4844a74c5a9adbd5f65c41a627e6cd62a9ae8d3993667d3a0ce9e9edb07",
+      "bytes": 866541
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analysis-clarifications.json",
+      "sha256": "cb52e018244336a849e2b22722b60a814492a1954dc05d69db16a5aa872bc268",
+      "bytes": 1487
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-accounting-analysis.json",
+      "sha256": "8b41cff0904c144c5eedb862dc1d045ce75c3fcc472a186f979cee2af6ea9a61",
+      "bytes": 39245
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-diagnostic-fixture-binding.json",
+      "sha256": "12babd45f28743262268aede22c25b12fead92fcd54f8f94990c5423ad4db737",
+      "bytes": 13004
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/built-cli-process-bindings.json",
+      "sha256": "5022487382f52d4af0ea13e14a61ba32adccefd73494cd87168612f74b42f3dd",
+      "bytes": 19374
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/preservation-notes.md",
+      "sha256": "f6b99cb695b51eff96c521ea1d68ef3b95caa6b488d2761e9820adc0ff6d4455",
+      "bytes": 13984
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-verification-preflight.json",
+      "sha256": "87514dea08f02d67fc64781e71c235931565950e73ba0d8d0aca831d9c734a5e",
+      "bytes": 3026
+    }
+  ],
+  "final_integrity": {
+    "receipt": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-closure-integrity.json",
+    "output": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-closure-integrity.stdout",
+    "valid": true,
+    "head": "da10d3bdad0c10b844832fcc9ebb318ebdd936a8",
+    "module_source_paths_exact": 1070,
+    "worker_manifest_files": 448,
+    "worker_terminal_files": 6,
+    "worker_manifest_sha256": "25358815c9030c72348f560c6e17c646a8173bbb2e2c490c571ba3cab5accbe7",
+    "worker_seal_sha256": "a8fb30b9892076ac10fa9e45f976387c53cf25f2d8b8f4bb44c20b88aefebf1f",
+    "mapping_rows": 282,
+    "original_commits_and_parents_exact": 3,
+    "housekeeping_reasons": 11,
+    "unaffected_functions": 165,
+    "shared_bodies": 22,
+    "task6_mappings": 403,
+    "task6_bodies": 383,
+    "task3_bodies": 4,
+    "exact_runtime_inputs": 87,
+    "conductor_terminal_receipts": 52,
+    "published_receipt_sha256": "b5eeeb0f06be9c875c40312c13725ef1973d5bafce34dc4c0e94041925c62013",
+    "published_backend": "codex:gpt-6.1-sol:high",
+    "published_timestamp": "2026-10-08T15:46:16.017545Z",
+    "backend_response_sha256": "63812bcd292546a4464c1de210b9b2c934a485de1c037832897edebd4f428666",
+    "backend_response_bytes": 727,
+    "audit_nonflow_aggregate": "0148b44d88de8684601e0695af56b8b16f903ee09b5f5136066b0ac2ee23408e",
+    "current_nonflow_aggregate": "a394f938616a106477d4849418b6bd28fe7464d379177f61502060fa241807f9",
+    "current_milestones_sha256": "1fb6076a41dbd64d865538ab97c238b4afdea2fdb349dde3ccb4956b4558de7b",
+    "committed_milestones_sha256": "749b4699c84ee74d6a75eba651616e8fb372a8941ea86b5895e1b6051eff73bd",
+    "only_authorized_orchestration_document_difference": true,
+    "memory_path": ".flow/memory/bug/integration/recompute-mapping-summaries-after-final-2026-10-08.md",
+    "native": false,
+    "full_host_pass": false,
+    "global_lint_pass": false,
+    "whole_source_format_pass": false
+  },
+  "fresh_worker_verification": {
+    "receipt": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-closure-worker-verification.json",
+    "output": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-closure-worker-verification.stdout",
+    "exit": 0,
+    "terminal_worker_receipts": 117,
+    "module_source_hashes_exact": 1070,
+    "negative_receipt_controls_rejected": 4,
+    "suite_kind": "Node evidence-integrity verifier; no new Go/native/full-host suite"
+  },
+  "preservation": {
+    "mapping_edges": 282,
+    "housekeeping_individual_reasons": 11,
+    "unaffected_functions": 165,
+    "current_shared_bodies": 22,
+    "blocked_unreached_adapter_children": 104,
+    "all_statuses_separate": true,
+    "task6_accepted_named": 403,
+    "task6_current_bodies_exact": 383,
+    "task3_accepted_bodies_exact": 4
+  },
+  "size": {
+    "before_current_code_lines": 76587,
+    "after_current_code_lines": 76627,
+    "delta": 40,
+    "before_top_level_tests": 1799,
+    "after_top_level_tests": 1800,
+    "delta_top_level": 1,
+    "historical_minus1398_lines_minus88_tests_not_current": true
+  },
+  "current_mapping": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/current-mapping-corrected.json",
+    "sha256": "e2412333209ccbbce7f43e14011b5b8b1763a11725c8861e6d118214fae6f5f6",
+    "original_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-current-mapping-analysis.json",
+    "original_sha256": "4de3c1e84c7ea8864f7893df1743e2c0456f9a31b452459c59c462338e3160a4",
+    "proof": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/mapping-summary-correction-proof.json",
+    "rows": 282,
+    "counts": {
+      "fail": 76,
+      "pass": 85,
+      "NOT REACHED; ancestor FAIL": 104,
+      "authorized-housekeeping": 11,
+      "skip": 6
+    },
+    "every_row_and_other_field_exact": true,
+    "negative_controls": [
+      "stale_summary",
+      "changed_row_status",
+      "missing_row"
+    ]
+  },
+  "review": {
+    "owner": "conductor",
+    "backend_reported_model": "codex:gpt-6.1-sol:high",
+    "family_relationship": "Codex reviewer and Codex writer are same family; fresh independent conductor review contexts",
+    "first": {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/first-source-review.json",
+      "reservation": "551ca2a6ed8a4550bff5ce8f340d6aaa",
+      "reviewed_head": "7fee2ee6ba7e0e60212be65e600ff515cd533fa8",
+      "actual_backend_verdict": "NEEDS_WORK",
+      "axis_verdicts": {
+        "correctness": "SHIP",
+        "contracts": "NEEDS_WORK",
+        "integration": "SHIP"
+      },
+      "retained_losslessly": true
+    },
+    "final": {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-published-source-review.json",
+      "sha256": "b5eeeb0f06be9c875c40312c13725ef1973d5bafce34dc4c0e94041925c62013",
+      "reservation": "ff8fb1f132954bbd882a7716198fe056",
+      "reviewed_head": "da10d3bdad0c10b844832fcc9ebb318ebdd936a8",
+      "actual_backend_verdict": "SHIP",
+      "timestamp": "2026-10-08T15:46:16.017545Z",
+      "session_id": "01a11c22-4970-7573-966e-348597b5f286",
+      "unaddressed": [],
+      "finding_status": "fixed",
+      "publication": "published via conductor supported review-findings attach"
+    },
+    "prepublication": {
+      "snapshot": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-prepublication-review-journal.json",
+      "sha256": "ba25d87dec875f2f07c52204c7eae04506bbaac381c3717cf8ebd4b5a348f8db",
+      "ledger_snapshot": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-prepublication-flow-ledger.json",
+      "binding": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-prepublication-binding.json",
+      "original_response_bytes": 727,
+      "original_response_sha256": "63812bcd292546a4464c1de210b9b2c934a485de1c037832897edebd4f428666",
+      "original_journal_receipt_leg": "pending; preserved historical state"
+    },
+    "worker_dispatched_review": false,
+    "worker_issued_verdict": false
+  },
+  "stages": {
+    "impl_review": "ran [2026-10-08T15:29:31.067958Z..2026-10-08T15:46:16.017545Z] (model: codex:gpt-6.1-sol:high; conductor-owned)",
+    "plan_sync": "skipped(config: disabled)"
+  },
+  "memory_capture": {
+    "owner": "conductor",
+    "outcome": "created after low/empty overlap check",
+    "entry": "bug/integration/recompute-mapping-summaries-after-final-2026-10-08",
+    "path": ".flow/memory/bug/integration/recompute-mapping-summaries-after-final-2026-10-08.md",
+    "worker_prepared_body": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/conductor-source-acceptance-20261008/final-mapping-summary-memory-body.md"
+  },
+  "source_binding": {
+    "module_sources_exact": 1070,
+    "admitted_test_sha256": {
+      "tools/gomad3/architecture_test.go": "47520b50536baecd25aac7e75c62325ea256ffd96266707e3f4fbd5267920453",
+      "tools/gomad3/deterministicio/adapter_rewrite_test.go": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "tools/gomad3/runner/completion_test.go": "daafa0f019c31857edd46210e1608d8ef7a7bfa61ac9760784e77fe64034f93a"
+    },
+    "all_nonflow_source_identity_before_authorized_doc": "0148b44d88de8684601e0695af56b8b16f903ee09b5f5136066b0ac2ee23408e",
+    "current_all_nonflow_source_identity": "a394f938616a106477d4849418b6bd28fe7464d379177f61502060fa241807f9",
+    "approved_doc_difference": {
+      "path": "MILESTONES.md",
+      "scope": "only added Orchestration policy block at line 83",
+      "head_sha256": "749b4699c84ee74d6a75eba651616e8fb372a8941ea86b5895e1b6051eff73bd",
+      "current_sha256": "1fb6076a41dbd64d865538ab97c238b4afdea2fdb349dde3ccb4956b4558de7b",
+      "removing_exact_block_restores_earlier_all_nonflow_aggregate": true
+    },
+    "no_Go_or_fixture_source_drift": true
+  },
+  "limits": {
+    "native": false,
+    "full_host_pass": false,
+    "global_lint_pass": false,
+    "whole_source_format_pass": false,
+    "native_owners": [
+      "fn-149-gomad-deferred-darwin-qualification",
+      "fn-128-gomad-deferred-linux-qualification-and"
+    ],
+    "native_qualification": "unverified/deferred",
+    "host": "linux/aarch64 stock go1.27.1; patched runtime absent",
+    "isolated_root_and_portable_complete_distinct_top_passes": 151,
+    "empty_cache_parent_control": "partial selected parent; never whole package pass",
+    "scoped_lint": {
+      "exit": 2,
+      "findings": 92,
+      "waived": false
+    },
+    "fast_lint": {
+      "exit": 2,
+      "findings": 3,
+      "inherited": true,
+      "waived": false
+    },
+    "nested_format": {
+      "raw_gofmt_exit": 0,
+      "wrapper_exit": 1,
+      "printed_inherited_path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+      "waived": false
+    },
+    "runner_full_attempt": "five-minute timeout; incomplete; retained",
+    "mixed_host_failures": "all failed identities, assertions, ancestors and unsupported/missing-driver consequences retained",
+    "root_default_cache": "cache-local failure supported by isolated root and exact-PATH two fixtures; exhaustion versus corruption unresolved; shared cache untouched",
+    "CLI_recovery": "earlier directory.Sync permission-denied FAIL and later exact/portable PASS retained; cause unknown"
+  },
+  "tracker_sync": "n/a (bridge inactive); conductor final end-of-run check pending",
+  "commands_started_by_this_worker_running": 0,
+  "worker_mutations": "only new closure artifacts in conductor source evidence sibling",
+  "next_authority": "conductor reads handover, verifies final lifecycle/tracker state, calls flowctl done, updates MILESTONES status and commits task receipt; no next claim before completion"
+}

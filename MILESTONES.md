@@ -80,6 +80,31 @@ recommendation, and move to implementation. Revisit a decision only when new evi
    changes; push only when authorized. Broaden testing only for a concrete remaining risk,
    and retry an unchanged environment failure only when its cause or relevant inputs change.
 
+### Orchestration
+
+- **Root ownership.** The root/main agent owns task selection, dependencies, scope, dispatch,
+  integration, independent review coordination, Flow lifecycle, and completion. It remains
+  accountable for verifying every owned acceptance requirement against the integrated candidate.
+  The root may edit orchestration documentation and lifecycle metadata; it routes task code
+  and test fixes back to workers.
+- **Worker ownership.** Use a fresh task-worker subagent for each task's investigation,
+  implementation, tests, evidence, and review fixes. Independent reviewers assess the integrated
+  changes and supply review verdicts; workers cannot certify their own acceptance.
+- **Durable handovers.** Give each task a uniquely named, small handover using the evidence
+  fields above. Bind the actual source and tool inputs, commands and results, and remaining
+  requirements. Reference existing evidence and the independent review verdict.
+- **Parallel boundaries.** Implement tasks in parallel only when their dependencies are
+  independent and their scopes disjoint, using isolated worktrees. Serialize overlapping work
+  and shared Go, build, lint, and generator gates. Keep the checked source frozen throughout
+  each gate and bind its results to that candidate before integration or completion.
+- **Root context.** Retain decisions, dependencies, and handover pointers in the root context.
+  Resume workers from authoritative Flow records, handovers, and referenced evidence. Keep
+  full task histories with their workers and artifacts to reduce root context growth.
+
+Apply this division of work within the immediate delivery order, Flow rules, verification
+requirements, and native deferrals above. It grants no additional native qualification,
+CI, PR, or push authority.
+
 ## Constraints
 
 - **No policy widening.** Gomad never grants `syscall`, `os/exec`, `os/signal`, or
@@ -266,7 +291,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-112.6](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.6.md) | ✅ Done | Add conformance fixtures for unverified channels and state the closure-mode limit |
 | [fn-112.7](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md) | ✅ Done | Compare the filesystem and TCP models with the host OS on generated sequences |
 | [fn-112.8](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md) | ✅ Done | Drive explore, replay, and kill-then-resume through the built CLI |
-| [fn-112.9](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md) | 🔄 In progress | Consolidate the change-detector tests with a retained mapping; current source acceptance |
+| [fn-112.9](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md) | ✅ Done | Consolidate the change-detector tests with a retained mapping; retained source acceptance |
 | [fn-112.10](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md) | ⬜ Todo | Add the scheduled determinism soak gate and update the docs to the delivered state |
 | [fn-112.11](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.11.md) | ✅ Done | Preserve watchdog classification when a killed target has no I/O terminal |
 | [fn-112.12](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.12.md) | ✅ Done | Resolve the native model compiler from the standard host-test entrypoint |

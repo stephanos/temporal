@@ -1,0 +1,97 @@
+{
+  "backend": "codex",
+  "counter_scope": "impl:fn-112-gomad-determinism-assurance-and-test.9",
+  "failure_class": null,
+  "finalized": {
+    "digest": "complete",
+    "receipt": "pending",
+    "status": "not_applicable"
+  },
+  "findings_container": {
+    "backend": "codex",
+    "baseSha": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+    "headSha": "da10d3bdad0c10b844832fcc9ebb318ebdd936a8",
+    "items": [
+      {
+        "body": "`{...map, rows:finalRows, ...}` retains stale `counts_by_actual_status`. The final report classifies 104 rows as `NOT REACHED; ancestor FAIL`, but its summary counts them under `not observed in bounded focused selection`. The summary contradicts the detailed current outcomes.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-8d6f1c1f4216a98d6efb6629551306d094eaad5d930d093139209ba3e8e99bbb",
+        "id": "finding-d473403593db3788a5d14035fb6b9aba",
+        "lastSeenReceiptId": "review-2c0d9a351a5bc60ca6d6b4b43a0c36f10c3dfda1f831efa5ed2ae9586528417f",
+        "ordinal": 1,
+        "rIds": [
+          "R10"
+        ],
+        "severity": "P3",
+        "status": "fixed",
+        "suggestion": "Recompute the counts from `finalRows`, retain a corrected report under a fresh name, and verify that its summary equals the row aggregation.",
+        "title": "`{"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-2c0d9a351a5bc60ca6d6b4b43a0c36f10c3dfda1f831efa5ed2ae9586528417f",
+    "supersedesReceiptId": "review-8d6f1c1f4216a98d6efb6629551306d094eaad5d930d093139209ba3e8e99bbb"
+  },
+  "findings_digest": {
+    "backend": "codex",
+    "digest_truncated": false,
+    "items": [
+      {
+        "chainRoot": "finding-d473403593db3788a5d14035fb6b9aba",
+        "classification": "introduced",
+        "findingId": "finding-d473403593db3788a5d14035fb6b9aba",
+        "firstSeenThisRound": false,
+        "severity": "P3",
+        "status": "fixed"
+      }
+    ],
+    "reviewKind": "implementation"
+  },
+  "metadata": {
+    "artifact_sha256": "155ab76667320bc10507b51d831c7a6b48537e130738dc9cb955433c780ca524",
+    "counter_scope": "impl:fn-112-gomad-determinism-assurance-and-test.9",
+    "epoch": 1,
+    "exclusive": false,
+    "forced": false,
+    "review_type": "impl"
+  },
+  "outcome": "verdict",
+  "receipt_payload": {
+    "base": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+    "effort": "high",
+    "id": "fn-112-gomad-determinism-assurance-and-test.9",
+    "introduced_count": 0,
+    "mode": "codex",
+    "model": "gpt-6.1-sol",
+    "pre_existing_count": 0,
+    "review": "Prior finding #1: fixed\n\nThe corrected report recomputes counts from all 282 rows and correctly classifies 104 as `NOT REACHED; ancestor FAIL`. Verified hashes, unchanged rows and other fields, and rejection of stale summaries, changed statuses, and missing rows. The frozen original remains intact.\n\nNo new blocking findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R10 | met | Retained mappings and preservation controls; corrected summary matches every row; historical/current accounting retained. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+    "session_id": "01a11c22-4970-7573-966e-348597b5f286",
+    "spec": "codex:gpt-6.1-sol:high",
+    "timestamp": "2026-10-08T15:46:16.017545Z",
+    "type": "impl_review",
+    "unaddressed": [],
+    "verdict": "SHIP"
+  },
+  "receipt_target": "/tmp/impl-review-receipt-657da2bc4466-fn-112-gomad-determinism-assurance-and-test.9.json",
+  "reservation_id": "ff8fb1f132954bbd882a7716198fe056",
+  "reset_rounds_on_ship": true,
+  "response": "Prior finding #1: fixed\n\nThe corrected report recomputes counts from all 282 rows and correctly classifies 104 as `NOT REACHED; ancestor FAIL`. Verified hashes, unchanged rows and other fields, and rejection of stale summaries, changed statuses, and missing rows. The frozen original remains intact.\n\nNo new blocking findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R10 | met | Retained mappings and preservation controls; corrected summary matches every row; historical/current accounting retained. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "response_sha256": "63812bcd292546a4464c1de210b9b2c934a485de1c037832897edebd4f428666",
+  "review_kind": "impl",
+  "review_type": "impl",
+  "reviewed_base_sha": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "reviewed_effort": "high",
+  "reviewed_head_sha": "da10d3bdad0c10b844832fcc9ebb318ebdd936a8",
+  "reviewed_model": "gpt-6.1-sol",
+  "scope": "impl:fn-112-gomad-determinism-assurance-and-test.9",
+  "spec_id": "fn-112-gomad-determinism-assurance-and-test",
+  "status_target": null,
+  "superseded_by": null,
+  "task_id": "fn-112-gomad-determinism-assurance-and-test.9",
+  "timestamp": "2026-10-08T15:46:16.020576Z",
+  "tool_calls": null,
+  "verdict": "SHIP"
+}
