@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T03:42:01.384150Z",
+  "depends_on": [],
+  "id": "fn-140-one-sentence-witness-queries-with.1",
+  "priority": null,
+  "spec": "fn-140-one-sentence-witness-queries-with",
+  "spec_path": ".flow/tasks/fn-140-one-sentence-witness-queries-with.1.md",
+  "status": "todo",
+  "title": "Declare typed witness builders and their core Query values",
+  "updated_at": "2026-10-08T03:52:17.063520Z"
+}

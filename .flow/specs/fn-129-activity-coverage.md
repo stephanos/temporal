@@ -21,7 +21,7 @@ Current source after fn-132.2: `model/temporal/features/activity/standalone/Stan
 
 ## Boundaries
 
-- Runs after "Close the activity's precision gaps".
+- The approved activity-batch conductor gate starts implementation after fn-138.3 is done, with fn-138 itself starting after fn-128.5 is done. Flow cannot express cross-spec task dependencies, so these source gates supplement its metadata rather than waiting for either prerequisite spec to close. fn-128.6 and fn-129.5 share regeneration, review and live-run evidence at the batch boundary; no activity spec closes prematurely.
 - No workflow-scheduled activity: that stays with fn-119.
 - No change to upstream's Go model or its harness. Driving their harness from our IR (comparison P3-12) is an owner decision recorded in MILESTONES.
 

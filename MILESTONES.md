@@ -74,6 +74,13 @@ Ready 2026-10-07. These specs run as one batch: one regeneration, one gate run, 
 fn-128.6 and fn-129.5. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Each task declares its IR change,
 which is checked at the batch regeneration.
 
+Approved source gates: fn-138 implementation starts after fn-128.5 is done; fn-129 implementation
+starts after fn-138.3 is done. Flow cannot express these cross-spec task edges, so the conductor
+enforces them without spec-close dependencies inside the batch. fn-128.6 and fn-129.5 share the
+regeneration, review and live-run evidence; no activity spec closes before that boundary.
+The fn-142 then fn-143 preparation may run alongside this batch in isolated worktrees, with clean
+integrations and separate regeneration baselines. Re-anchor later task paths after those moves.
+
 ### fn-128: Close the activity's precision gaps
 
 Tasks run in order.
@@ -118,17 +125,27 @@ Runs after fn-138. Tasks run in order.
 ### fn-140: One-sentence witness Queries with explicit live expectations
 
 Runs next. It rewrites the Models' `properties` and `queries` sections and its R5 renames Definition
-IDs. Captured 2026-10-06 and marked ready; not yet planned, so the spec has no tasks.
+IDs. Ready, with six M-sized tasks. The three foundations run in order; task 4 and the documentation
+task 5 are disjoint parallel candidates, and task 6 joins them for final regeneration and gates.
 
 `witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-140.1 | ⬜ todo | Typed witness builders and existing core Query values |
+| fn-140.2 | ⬜ todo | Witness lifting, names, bounds, composed facts and capability duplicate refusals |
+| fn-140.3 | ⬜ todo | Query `.live`; source-only non-satisfied reasons; all caller and fixture spellings |
+| fn-140.4 | ⬜ todo | First Activity conversion and assessment equivalence proof; duplicate terminate removed |
+| fn-140.5 | ⬜ todo | Author docs, core form and layout template witness |
+| fn-140.6 | ⬜ todo | Other eligible Models, source-aware triple lint, final regeneration and equivalence gates |
 
 ### fn-123: Declare faults as the environment's actions
 
 Ready 2026-10-07. Starts after fn-140 and is written against the names it leaves (`when` blocks,
-`.live`, the shared `Outcome`, the fault instruction and typed `perform`). It runs before fn-141,
-because fn-141 keeps the IR schema unchanged and fn-123 adds to it. Tasks run in order; 6 and 7 need
+`.live`, the shared `Outcome`, the fault instruction and typed `perform`). The approved delivery order
+then runs fn-145 through fn-148, with fn-141 last against the settled schema. Tasks run in order; 6 and 7 need
 only 5. Task 3 is the proof: Go derives crash rows equal to `crashDetail`'s from a durability
-classification, or the work stops for the owner. Planning took defaults for six owner questions,
+classification, or the work stops for the owner. Planning took defaults for five owner questions,
 listed in the spec's Open Questions.
 
 A fault is declared once with its kind, budget and whether it can be realized; a machine classifies
@@ -145,43 +162,6 @@ of R8 were dropped, since neither tool exists.
 | fn-123.6 | ⬜ todo | Choice-level fault performance; lowering refuses model-only faults and unperformed choices |
 | fn-123.7 | ⬜ todo | Trace output and Quint export of derived crashes and budgets |
 | fn-123.8 | ⬜ todo | `umpire-faults` report, docs; close |
-
-### fn-141: Shrink the IR generator: one description of each DSL construct
-
-Ready 2026-10-07. Starts after fn-123; fn-140, the completed DSL work and fn-123 are its baseline.
-Because its tasks were planned against the earlier tree, each re-reads its files and recounts first.
-Tasks run in order; 1 and 2 depend on nothing, and 6 and 7 need only them. Task 5 is the proof for the
-export part and task 8 its size proof; either can stop tasks 9 to 13, and tasks 1 to 4 stand without
-them. Source: a full read of `model/irgen` on 2026-10-06 (8,242 lines, of which about 10% lifts
-function bodies and types and 1,479 are lints that emit no IR).
-
-Each DSL construct is described once. Four parts, in this order: the declaration-order lint, the
-structure lint and the marker checks leave `model/irgen` for their own gate step; spellings no Model
-or kit uses are retired; a sugar's definition becomes its only lowering, so the lifter knows core
-constructs and types alone; and declarations are exported from the constructed Models, one kind at
-a time with realizations first, so the lifter lifts function bodies and types only. Declaration-level
-Scala becomes free and function bodies stay in the liftable subset, so the IR schema, the Go consumers
-and the Quint export do not change, and every step leaves `model/ir` and `model/cases` byte-identical.
-It revises `.plans/DSL_OPERATORS.md` rule 5 and fn-113 R15: the framework uses `inline` and macros at
-its capture points only. Proof point: the realization step stops the work unless it removes at least
-half of the realization lifter's lines net of what it adds.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-141.1 | ⬜ todo | Order lint, structure lint and marker checks out of `model/irgen` into their own gate step |
-| fn-141.2 | ⬜ todo | Spellings no Model or kit uses retired, after a recount the owner confirms |
-| fn-141.3 | ⬜ todo | Generic sugar expansion; `enter`, `stay`, `reject`, `disabled`, `in`, `implies`, `records` lifted from their definitions (proof for the sugar part) |
-| fn-141.4 | ⬜ todo | Claim patterns and sticky monitors by definition; lifter's sugar file gone; syntax lint holds the lifter to core |
-| fn-141.5 | ⬜ todo | Capture points (name, ID, position; function span and captured values) and lifting a function by span (proof for the export part) |
-| fn-141.6 | ⬜ todo | Refusal ledger: one outcome per refusal kind (deleted, kept and where, left to Go) |
-| fn-141.7 | ⬜ todo | Realization factories keep everything they are given |
-| fn-141.8 | ⬜ todo | Exporter; realizations exported; two-run determinism; init-order refusal; size proof with stop |
-| fn-141.9 | ⬜ todo | Signature exported: actions, inputs, channels, assumptions, holes, Limits; `codeOf` gone |
-| fn-141.10 | ⬜ todo | Machines exported: header, rules, monitors, refinement, derivations |
-| fn-141.11 | ⬜ todo | Compositions and syncs exported; `sync` and `replaces` record what they pair |
-| fn-141.12 | ⬜ todo | Properties, Scenarios, Queries and progress exported; the lifter's fold deleted; comprehension fixture |
-| fn-141.13 | ⬜ todo | Capability expansions exported, in the shape the current framework leaves |
-| fn-141.14 | ⬜ todo | Dead lifter code, rules of record, docs, backends check, size report; close |
 
 ### fn-142: Split `model/temporal/shared` into `foundations` and `actors`
 
@@ -204,10 +184,10 @@ Gate: after fn-142. Folder and package both become `framework`; product names (`
 ### IR schema research: fn-145 → fn-146 → fn-147 → fn-148
 
 Planned 2026-10-06 from [Umpire IR schema research](.plans/UMPIRE_IR_SCHEMA_RESEARCH.md) and
-[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Gate: fn-142/fn-143 close before
-fn-145; each following spec waits for its predecessor. These are separate migrations,
-each with its own baseline, regeneration and full gates, not another DSL batch. Serialize fn-140,
-fn-131 and any revived fn-141/fn-144 or Model batch against these migrations; re-anchor their tasks
+[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Gate: fn-142/fn-143 and fn-123 close
+before fn-145; each following spec waits for its predecessor, and fn-141 executes last after fn-148.
+These are separate migrations, each with its own baseline, regeneration and full gates, not another
+DSL batch. Serialize fn-140, fn-131 and any revived fn-144 or Model batch against these migrations; re-anchor their tasks
 to the schema and vocabulary left by completed work. Deferred specs do not block this chain.
 
 Owner decision: breaking IR changes are allowed. Producers, consumers, generated artifacts and
@@ -276,6 +256,44 @@ prior-state transitions, and projection result order stays explicit. Tasks run i
 | fn-148.5 | ⬜ todo | Derived Contract kind, fixed correlated clock and explicit support Boolean |
 | fn-148.6 | ⬜ todo | Local references, cardinality, Empty markers and coordinated format 4.0 activation |
 | fn-148.7 | ⬜ todo | Artifact/companion migration, measurements, full gates and ownership docs; close |
+
+### fn-141: Shrink the IR generator: one description of each DSL construct
+
+Ready 2026-10-08. The approved delivery order puts this spec last, after fn-148 closes, against the
+settled schema and the vocabulary left by fn-140, fn-123 and fn-145 through fn-148.
+Because its tasks were planned against the earlier tree, each re-reads its files and recounts first.
+Tasks run in order; 1 and 2 depend on nothing, and 6 and 7 need only them. Task 5 is the proof for the
+export part and task 8 its size proof; either can stop tasks 9 to 13, and tasks 1 to 4 stand without
+them. Source: a full read of `model/irgen` on 2026-10-06 (8,242 lines, of which about 10% lifts
+function bodies and types and 1,479 are lints that emit no IR).
+
+Each DSL construct is described once. Four parts, in this order: the declaration-order lint, the
+structure lint and the marker checks leave `model/irgen` for their own gate step; spellings no Model
+or kit uses are retired; a sugar's definition becomes its only lowering, so the lifter knows core
+constructs and types alone; and declarations are exported from the constructed Models, one kind at
+a time with realizations first, so the lifter lifts function bodies and types only. Declaration-level
+Scala becomes free and function bodies stay in the liftable subset, so the IR schema, the Go consumers
+and the Quint export do not change, and every step leaves `model/ir` and `model/cases` byte-identical.
+It revises `.plans/DSL_OPERATORS.md` rule 5 and fn-113 R15: the framework uses `inline` and macros at
+its capture points only. Proof point: the realization step stops the work unless it removes at least
+half of the realization lifter's lines net of what it adds.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-141.1 | ⬜ todo | Order lint, structure lint and marker checks out of `model/irgen` into their own gate step |
+| fn-141.2 | ⬜ todo | Spellings no Model or kit uses retired, after a recount the owner confirms |
+| fn-141.3 | ⬜ todo | Generic sugar expansion; `enter`, `stay`, `reject`, `disabled`, `in`, `implies`, `records` lifted from their definitions (proof for the sugar part) |
+| fn-141.4 | ⬜ todo | Claim patterns and sticky monitors by definition; lifter's sugar file gone; syntax lint holds the lifter to core |
+| fn-141.5 | ⬜ todo | Capture points (name, ID, position; function span and captured values) and lifting a function by span (proof for the export part) |
+| fn-141.6 | ⬜ todo | Refusal ledger: one outcome per refusal kind (deleted, kept and where, left to Go) |
+| fn-141.7 | ⬜ todo | Realization factories keep everything they are given |
+| fn-141.8 | ⬜ todo | Exporter; realizations exported; two-run determinism; init-order refusal; size proof with stop |
+| fn-141.9 | ⬜ todo | Signature exported: actions, inputs, channels, assumptions, holes, Limits; `codeOf` gone |
+| fn-141.10 | ⬜ todo | Machines exported: header, rules, monitors, refinement, derivations |
+| fn-141.11 | ⬜ todo | Compositions and syncs exported; `sync` and `replaces` record what they pair |
+| fn-141.12 | ⬜ todo | Properties, Scenarios, Queries and progress exported; the lifter's fold deleted; comprehension fixture |
+| fn-141.13 | ⬜ todo | Capability expansions exported, in the shape the current framework leaves |
+| fn-141.14 | ⬜ todo | Dead lifter code, rules of record, docs, backends check, size report; close |
 
 ## Deferred
 

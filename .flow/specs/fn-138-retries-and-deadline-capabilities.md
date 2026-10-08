@@ -88,7 +88,7 @@ Retries reads `Held`, `Waiting` and `Failed` rather than `Retrying` (owner's cho
 
 Maintainability (plan review): duplication - task .3 keeps the hand-written timeout Properties (`scheduleToStartFires`, `scheduleToCloseFires`, `startToCloseFires` and the Nexus equivalents) beside Deadline Properties that state the same landing claim, because R3 forbids changing existing Queries; retiring them is an owner decision after this spec; structure - none identified
 
-[paraphrase] This spec is one of three split from one conversation. It depends on fn-137 ("Capabilities read phase roles"), which depends on fn-136 ("Phase roles on lifecycle enums"). It also waits for fn-128: fn-128.1 replaces the activity's `backingOff` phase with a dispatch field and fn-128.3 adds the retry policy, and both change what Retries reads.
+[paraphrase] This spec is one of three split from one conversation. It depends on fn-137 ("Capabilities read phase roles"), which depends on fn-136 ("Phase roles on lifecycle enums"). The approved activity-batch conductor gate starts implementation only after fn-128.5 is done: the precision source and realization work must be available before Retries reads it. Flow cannot express cross-spec task dependencies, so this source gate supplements its metadata rather than waiting for fn-128 to close. fn-128.6 and fn-129.5 share regeneration, review and live-run evidence at the batch boundary; no activity spec closes prematurely.
 
 
 ## Requirement coverage

@@ -7,8 +7,7 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-137-capabilities-read-phase-roles",
-    "fn-128-close-the-activitys-precision-gaps"
+    "fn-137-capabilities-read-phase-roles"
   ],
   "id": "fn-138-retries-and-deadline-capabilities",
   "impl_review_rounds": {},
@@ -100,5 +99,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T18:08:22.017087Z"
+  "updated_at": "2026-10-08T03:52:29.359839Z"
 }
