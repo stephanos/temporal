@@ -1,0 +1,269 @@
+{
+  "version": 1,
+  "artifact_directory": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-acceptance-20261008",
+  "logical_gate_bindings": 32,
+  "unique_exact_byte_manifests": 9,
+  "duplicate_files": 23,
+  "original_bytes": 5418690,
+  "retained_bytes": 1523148,
+  "removed_redundant_bytes": 3895542,
+  "recovery": "For each original filename, copy its canonical payload verbatim; original_payload_sha256 and original_bytes bind the exact original bytes, including formatting and EOF.",
+  "bindings": [
+    {
+      "gate": "baseline-lint",
+      "original": "baseline-lint-source.json",
+      "canonical": "baseline-lint-source.json",
+      "original_payload_sha256": "5d64fcdf556d73f6c6482b40fa4edd4144545372edd1007b3699516bea948363",
+      "original_bytes": 168882,
+      "source_tree_sha256": "1ea646fc66ac63aa0d2dde38e434f8b5529c28ac9040b55b7a04c56c4ebc0f3f"
+    },
+    {
+      "gate": "baseline-quick",
+      "original": "baseline-quick-source.json",
+      "canonical": "baseline-lint-source.json",
+      "original_payload_sha256": "5d64fcdf556d73f6c6482b40fa4edd4144545372edd1007b3699516bea948363",
+      "original_bytes": 168882,
+      "source_tree_sha256": "1ea646fc66ac63aa0d2dde38e434f8b5529c28ac9040b55b7a04c56c4ebc0f3f"
+    },
+    {
+      "gate": "baseline-validate",
+      "original": "baseline-validate-source.json",
+      "canonical": "baseline-lint-source.json",
+      "original_payload_sha256": "5d64fcdf556d73f6c6482b40fa4edd4144545372edd1007b3699516bea948363",
+      "original_bytes": 168882,
+      "source_tree_sha256": "1ea646fc66ac63aa0d2dde38e434f8b5529c28ac9040b55b7a04c56c4ebc0f3f"
+    },
+    {
+      "gate": "cleanup-listing-probe",
+      "original": "cleanup-listing-probe-source.json",
+      "canonical": "diagnostics-checked-source.json",
+      "original_payload_sha256": "e5be7d98cf211c9c5ab210ee4d3b871c2e9540658ada5394602ad2592ba265d3",
+      "original_bytes": 169418,
+      "source_tree_sha256": "d58a29dc62444ca3dc9950f8ccd80bb1ef05dea5af2e02479907dab7cb407b49"
+    },
+    {
+      "gate": "cleanup-probe",
+      "original": "cleanup-probe-source.json",
+      "canonical": "diagnostics-characterized-source.json",
+      "original_payload_sha256": "cbd3ba37c9a3d174e66af00743e6f4d7231b06cd3cf59cb148317503467b198a",
+      "original_bytes": 169418,
+      "source_tree_sha256": "e52f959a32581a7fcbd6bc2c28a960100885086ea5e552070018ae07b3c22064"
+    },
+    {
+      "gate": "cleanup-verifier-probe",
+      "original": "cleanup-verifier-probe-source.json",
+      "canonical": "diagnostics-checked-source.json",
+      "original_payload_sha256": "e5be7d98cf211c9c5ab210ee4d3b871c2e9540658ada5394602ad2592ba265d3",
+      "original_bytes": 169418,
+      "source_tree_sha256": "d58a29dc62444ca3dc9950f8ccd80bb1ef05dea5af2e02479907dab7cb407b49"
+    },
+    {
+      "gate": "current-lint-unfiltered",
+      "original": "current-lint-unfiltered-source.json",
+      "canonical": "diagnostics-checked-source.json",
+      "original_payload_sha256": "e5be7d98cf211c9c5ab210ee4d3b871c2e9540658ada5394602ad2592ba265d3",
+      "original_bytes": 169418,
+      "source_tree_sha256": "d58a29dc62444ca3dc9950f8ccd80bb1ef05dea5af2e02479907dab7cb407b49"
+    },
+    {
+      "gate": "default-pipeline-standalone-diagnostic",
+      "original": "default-pipeline-standalone-diagnostic-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "diagnostics-before",
+      "original": "diagnostics-before-source.json",
+      "canonical": "diagnostics-before-source.json",
+      "original_payload_sha256": "42be1b352129a00ea8e97ad0dea27df8cda5c79d257ce84593b4a893a731c04c",
+      "original_bytes": 169418,
+      "source_tree_sha256": "18a73225ae80aa9835b5f800755b3c5b49c9f9fb5c1b2e3ebbf4f907d4b3fe2c"
+    },
+    {
+      "gate": "diagnostics-characterized",
+      "original": "diagnostics-characterized-source.json",
+      "canonical": "diagnostics-characterized-source.json",
+      "original_payload_sha256": "cbd3ba37c9a3d174e66af00743e6f4d7231b06cd3cf59cb148317503467b198a",
+      "original_bytes": 169418,
+      "source_tree_sha256": "e52f959a32581a7fcbd6bc2c28a960100885086ea5e552070018ae07b3c22064"
+    },
+    {
+      "gate": "diagnostics-checked",
+      "original": "diagnostics-checked-source.json",
+      "canonical": "diagnostics-checked-source.json",
+      "original_payload_sha256": "e5be7d98cf211c9c5ab210ee4d3b871c2e9540658ada5394602ad2592ba265d3",
+      "original_bytes": 169418,
+      "source_tree_sha256": "d58a29dc62444ca3dc9950f8ccd80bb1ef05dea5af2e02479907dab7cb407b49"
+    },
+    {
+      "gate": "final-architecture",
+      "original": "final-architecture-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-build-refusal-counterparts",
+      "original": "final-build-refusal-counterparts-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-cli-packs",
+      "original": "final-cli-packs-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-darwin-static",
+      "original": "final-darwin-static-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-errortype",
+      "original": "final-errortype-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-format",
+      "original": "final-format-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-lint-fast",
+      "original": "final-lint-fast-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-lint-unfiltered",
+      "original": "final-lint-unfiltered-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-linux-static",
+      "original": "final-linux-static-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-ordinary-cli-packs",
+      "original": "final-ordinary-cli-packs-source.json",
+      "canonical": "diagnostics-checked-source.json",
+      "original_payload_sha256": "e5be7d98cf211c9c5ab210ee4d3b871c2e9540658ada5394602ad2592ba265d3",
+      "original_bytes": 169418,
+      "source_tree_sha256": "d58a29dc62444ca3dc9950f8ccd80bb1ef05dea5af2e02479907dab7cb407b49"
+    },
+    {
+      "gate": "final-pinimpact-portable",
+      "original": "final-pinimpact-portable-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-serialized-affected",
+      "original": "final-serialized-affected-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-validate",
+      "original": "final-validate-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "final-vet",
+      "original": "final-vet-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "ordinary-r4-packages",
+      "original": "ordinary-r4-packages-source.json",
+      "canonical": "ordinary-r4-packages-source.json",
+      "original_payload_sha256": "7f4bfba45de30781ae7c45df5cefb657624d13e6875e58998f96f3022734c113",
+      "original_bytes": 169239,
+      "source_tree_sha256": "19a9ab8773a9b83fe4a5304d5727b016d74097a7a8434c196b499f3c8c97f86f"
+    },
+    {
+      "gate": "publication-mode-probe",
+      "original": "publication-mode-probe-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "publication-parent-tmpfs",
+      "original": "publication-parent-tmpfs-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    },
+    {
+      "gate": "resolved-controls-corrected",
+      "original": "resolved-controls-corrected-source.json",
+      "canonical": "resolved-controls-corrected-source.json",
+      "original_payload_sha256": "9e8a355d5b85f45f5372567c4f776bc9880fb61aea126dad08417b091d281810",
+      "original_bytes": 169058,
+      "source_tree_sha256": "e3290b8803d3e899e0e91900a7a339c21fd7368f36dfb04c382b0c2d94b4b75a"
+    },
+    {
+      "gate": "resolved-controls-first",
+      "original": "resolved-controls-first-source.json",
+      "canonical": "resolved-controls-first-source.json",
+      "original_payload_sha256": "ab0cabe77c144d7e861d500a3d3baeba387b79caa264e0919400e5288bba41c3",
+      "original_bytes": 169058,
+      "source_tree_sha256": "5205f277a3595fc3b577eecb9ae5a4dc4eda289bfaa4c7cf66d142e200f43563"
+    },
+    {
+      "gate": "selectors-first",
+      "original": "selectors-first-source.json",
+      "canonical": "selectors-first-source.json",
+      "original_payload_sha256": "95de3fe4b3ad3235d8c44d5b60027ce581a739d3db15ced9f80d24670d7ea1ba",
+      "original_bytes": 169239,
+      "source_tree_sha256": "ff8962746c8d21d5a1c68d5e87764f84941814b21582b5e5c105aadd2588ec63"
+    },
+    {
+      "gate": "upgrade-publication-instrumented-diagnostic",
+      "original": "upgrade-publication-instrumented-diagnostic-source.json",
+      "canonical": "final-cli-packs-source.json",
+      "original_payload_sha256": "df0fa7044e35106f432f70a62192a4409e2f7a11be07b3150392ab6cd80e45fe",
+      "original_bytes": 169418,
+      "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10"
+    }
+  ]
+}

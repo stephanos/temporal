@@ -1,0 +1,8 @@
+{
+  "task_title": "Read-only fn-109.8 inspection-owner acceptance preparation",
+  "task_body": "At committed source 273ec2af11e787ece635ebf9d953bb0f41e40699, inspect preparation.Inspect and analysis/compatibility callers for current portable coverage, original fixed-identity byte-preservation proof and exact remaining lint ownership. Do not redo fn-109.7 Prepare research or execute any Go/build/test/lint/generator command. This is preparation only; task 8 remains Todo behind task 7.",
+  "acceptance": "Return a compact evidence-linked digest of current changes since historical task-8 source bindings, which actual source assertions can execute with stock Go without production host bypass, original baseline/overlay compatibility requirements, and the smallest precise future admission. Preserve native owners and original criteria; no code/Flow mutation or acceptance verdict.",
+  "touches_count": 6,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

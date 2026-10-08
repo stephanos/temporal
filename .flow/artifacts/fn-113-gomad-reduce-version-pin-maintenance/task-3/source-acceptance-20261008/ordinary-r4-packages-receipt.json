@@ -1,0 +1,104 @@
+{
+  "name": "ordinary-r4-packages",
+  "command": "go -C tools/gomad3 test -json -tags test_dep -count=1 ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade/...",
+  "started": "2026-10-08T19:01:59.389Z",
+  "ended": "2026-10-08T19:03:48.817Z",
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "log": "ordinary-r4-packages.log",
+  "log_sha256": "4689e39172735b421d6c60bc79d3c5e6d975eb10b94ad29b30102d40b08bed86",
+  "base_commit": "73a37433b526ae9d6165ffaf1400460f9a6b36d8",
+  "head": "273ec2af11e787ece635ebf9d953bb0f41e40699",
+  "source_tree_sha256": "19a9ab8773a9b83fe4a5304d5727b016d74097a7a8434c196b499f3c8c97f86f",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "tools_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.go-telemetry"
+  },
+  "counts": {
+    "pass": 780,
+    "fail": 4,
+    "skip": 1
+  },
+  "skips": [
+    {
+      "Time": "2026-10-08T19:02:01.441563887Z",
+      "Action": "skip",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "Test": "TestHostPacksBindCurrentProfile",
+      "Elapsed": 0
+    }
+  ],
+  "failures": [
+    {
+      "Time": "2026-10-08T19:02:02.044462221Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Test": "TestFixtureBumpMatchesBuildRejections",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T19:02:02.094110263Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Test": "TestSameVersionWithChangedSum",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T19:02:02.174939554Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Test": "TestReplacedModules",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-08T19:02:04.304263722Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Elapsed": 3.894
+    },
+    {
+      "Time": "2026-10-08T19:03:15.164988839Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "Test": "TestRealAdapterVersionUsesDefaultPipeline",
+      "Elapsed": 9.53
+    },
+    {
+      "Time": "2026-10-08T19:03:48.723469147Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "Elapsed": 108.313
+    }
+  ],
+  "harness_sha256": "f690806cc627d98ae2b0a8ed33a8651d1c8a7743a20e25c2ba650794a7bbf40b"
+}

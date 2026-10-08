@@ -1,0 +1,76 @@
+{
+  "name": "diagnostics-before",
+  "command": "go -C tools/gomad3 test -json -tags test_dep -count=1 -run \"^TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus$\" ./cmd/gomadtool",
+  "started": "2026-10-08T19:05:32.480Z",
+  "ended": "2026-10-08T19:05:35.193Z",
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "log": "diagnostics-before.log",
+  "log_sha256": "8cbcc59feff675d26add2c5800ec56fd6a0809643892ced8a396ca847b77979c",
+  "base_commit": "73a37433b526ae9d6165ffaf1400460f9a6b36d8",
+  "head": "273ec2af11e787ece635ebf9d953bb0f41e40699",
+  "source_tree_sha256": "18a73225ae80aa9835b5f800755b3c5b49c9f9fb5c1b2e3ebbf4f907d4b3fe2c",
+  "source_unchanged": true,
+  "tools": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  ],
+  "tools_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.go-telemetry"
+  },
+  "counts": {
+    "pass": 8,
+    "fail": 2,
+    "skip": 0
+  },
+  "skips": [],
+  "failures": [
+    {
+      "Time": "2026-10-08T19:05:34.688851489Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_Go",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T19:05:35.134232948Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus",
+      "Elapsed": 0.88
+    },
+    {
+      "Time": "2026-10-08T19:05:35.135109698Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Elapsed": 0.897
+    }
+  ],
+  "harness_sha256": "f690806cc627d98ae2b0a8ed33a8651d1c8a7743a20e25c2ba650794a7bbf40b"
+}

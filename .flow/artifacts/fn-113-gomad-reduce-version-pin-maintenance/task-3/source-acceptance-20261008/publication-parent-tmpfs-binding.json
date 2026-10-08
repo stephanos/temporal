@@ -1,0 +1,60 @@
+{
+  "admission": "root exact original parent only; filesystem-separated source acceptance, no cause or repair claim",
+  "command": "TMPDIR=/dev/shm/gomad-fn1133-publication-3fW3VO go -C tools/gomad3 test -tags test_dep -count=1 -json -p=1 -run=\"^TestRunReportsPublicationFailureAndKeepsPriorDossier$\" ./upgrade",
+  "original_file": "tools/gomad3/upgrade/upgrade_test.go",
+  "original_sha256": "062641bb09c77ee8c401e3337d62ab7ab1ec44ecec87802e33fb11a81917799a",
+  "original_unchanged": true,
+  "overlay": null,
+  "parent": "/dev/shm/gomad-fn1133-publication-3fW3VO",
+  "mode": "0700",
+  "uid": 1000,
+  "mount": "TARGET   SOURCE FSTYPE OPTIONS\n/dev/shm shm    tmpfs  rw,nosuid,nodev,noexec,relatime,size=65536k\n",
+  "available_bytes": 67108864,
+  "budget": "upgrade-parent-fixture-budget.json",
+  "effective_environment": {
+    "TMPDIR": "/dev/shm/gomad-fn1133-publication-3fW3VO",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.go-telemetry"
+  },
+  "only_environment_difference": {
+    "TMPDIR": {
+      "before": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+      "after": "/dev/shm/gomad-fn1133-publication-3fW3VO"
+    }
+  },
+  "GOTMPDIR_unchanged": true,
+  "build_tool_module_caches_unchanged": true,
+  "fixture_executables": false,
+  "absolute_child_executable": "/bin/sh",
+  "test_receipt": "publication-parent-tmpfs-receipt.json",
+  "expected_tests": [
+    "TestRunReportsPublicationFailureAndKeepsPriorDossier",
+    "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_created",
+    "TestRunReportsPublicationFailureAndKeepsPriorDossier/parent_is_a_file",
+    "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_renamed"
+  ],
+  "actual_passed_tests": [
+    "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_created",
+    "TestRunReportsPublicationFailureAndKeepsPriorDossier/parent_is_a_file",
+    "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_renamed",
+    "TestRunReportsPublicationFailureAndKeepsPriorDossier"
+  ],
+  "actual_counts": {
+    "pass": 4,
+    "fail": 0,
+    "skip": 0
+  },
+  "original_permission_and_prior_bytes_assertions_unchanged": true,
+  "errno_observation_limit": "Original test asserts errors.Is(os.ErrPermission) and exact prior bytes, not a printed numeric Run errno. Separate same-filesystem primitive probe records EACCES. No syscall trace or numeric Run errno is claimed.",
+  "observed_post_test_entries": [],
+  "checked_empty_and_removed": true,
+  "peak_fixture_footprint_not_observed": true
+}

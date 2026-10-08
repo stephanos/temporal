@@ -48,22 +48,30 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 	impactPath := flags.String("impact-report", "", "existing pin-impact JSON report for the bumped checkout")
 	goCommand := flags.String("go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "go command that resolves module graphs")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" || *baselineRef == "" {
-		fmt.Fprintln(stderr, compatibilityPackRefreshUsage)
+		if _, writeErr := fmt.Fprintln(stderr, compatibilityPackRefreshUsage); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	resolvedRoot, err := filepath.Abs(*root)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	compatibilityRoot, err := compatibilityRootFor(resolvedRoot, *compatibilityRootOverride)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	directories, err := authoring.LoadWorkingDirectories(compatibilityRoot)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return compatibilityPackRefreshStatus(err)
+		}
 		return compatibilityPackRefreshStatus(err)
 	}
 	if *goCommand == "" {
@@ -74,7 +82,9 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 		resolvedGo, err = filepath.Abs(resolvedGo)
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "compatibility-pack refresh requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err)
+		if _, writeErr := fmt.Fprintf(stderr, "compatibility-pack refresh requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	ctx := context.Background()
@@ -82,7 +92,12 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 	// would load, which come from GOMAD3_COMPATIBILITY_PACKS for an external root.
 	impact, err := packPinImpact(ctx, resolvedRoot, resolvedGo, *baselineRef, directories, filepath.Join(compatibilityRoot, "packs"))
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			if pinimpact.IsInputError(err) {
+				return 2
+			}
+			return 3
+		}
 		if pinimpact.IsInputError(err) {
 			return 2
 		}
@@ -94,7 +109,12 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 			impact, readErr = mergeSavedPackImpact(impact, saved, directories)
 		}
 		if readErr != nil {
-			fmt.Fprintln(stderr, readErr)
+			if _, writeErr := fmt.Fprintln(stderr, readErr); writeErr != nil {
+				if pinimpact.IsInputError(readErr) {
+					return 2
+				}
+				return 3
+			}
 			if pinimpact.IsInputError(readErr) {
 				return 2
 			}
@@ -111,7 +131,9 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 	}
 	results, err := authoring.Refresh(ctx, spec)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return compatibilityPackRefreshStatus(err)
+		}
 		return compatibilityPackRefreshStatus(err)
 	}
 	base := ""

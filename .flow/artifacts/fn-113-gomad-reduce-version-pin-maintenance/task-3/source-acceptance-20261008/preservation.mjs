@@ -1,0 +1,40 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {readSourceManifest} from './source-manifests.mjs';
+const out=path.dirname(new URL(import.meta.url).pathname), repo=process.cwd();
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const git=(...args)=>{const r=spawnSync('git',args);if(r.status!==0)throw Error(r.stderr);return r.stdout;};
+const baseline=readSourceManifest('baseline-quick-source.json'), final=readSourceManifest('final-cli-packs-source.json');
+const previous=new Map(baseline.map(x=>[x.path,x.sha256])), current=new Map(final.map(x=>[x.path,x.sha256]));
+const changed=baseline.filter(x=>current.get(x.path)!==x.sha256), added=final.filter(x=>!previous.has(x.path));
+if(changed.length!==1 || changed[0].path!=='tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go' || added.length!==3)throw Error('unexpected source diff');
+const production=changed[0].path, before=git('show','73a37433b526ae9d6165ffaf1400460f9a6b36d8:'+production).toString(), after=fs.readFileSync(production,'utf8');
+let checked=0;
+const reconstructed=after.replace(/^(\t+)if _, writeErr := (fmt\.F(?:printf|println)\(stderr,[^\n]+\)); writeErr != nil \{\n[\s\S]*?^\1\}/gm,(_,indent,expression)=>{checked++;return indent+expression;});
+if(checked!==8 || reconstructed!==before)throw Error('production diff exceeds exact eight diagnostic checks');
+const historical=['packs/modernc-libc-xsys-v041.json','reports/modernc-libc-xsys-v041.md','requests/modernc-libc-xsys-v041.json','testdata/v041/go.mod','testdata/v041/go.sum','testdata/v041/libc_test.go'].map(relative=>{
+ const name='tools/gomad3/internal/compatibilitypack/'+relative, origin=git('show','56148912df17e105dab3ec4b9e250ff5ef813318:'+name), bytes=fs.readFileSync(name);
+ if(!origin.equals(bytes))throw Error('historical bytes changed '+name);
+ return {path:name,sha256:hash(bytes),exact_origin_bytes:true};
+});
+const users=[['.turbo/plans/gomad3-glossary-update.md','97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188'],['.turbo/technical-debt.md','c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287']].map(([name,want])=>{
+ const actual=hash(fs.readFileSync(name)),status=git('status','--porcelain','--',name).toString().trim();
+ if(actual!==want || status!=='?? '+name)throw Error('user preservation failed '+name);
+ return {path:name,sha256:actual,status};
+});
+const headers=name=>fs.readFileSync(path.join(out,name+'.log'),'utf8').split('\n').filter(line=>/^\/.*:\d+:\d+: /.test(line));
+const allBefore=headers('baseline-lint'), allAfter=headers('final-lint-unfiltered'), owned=allBefore.filter(x=>x.includes('/cmd/gomadtool/compatibility_pack_refresh.go:')), other=allBefore.filter(x=>!owned.includes(x));
+if(owned.length!==8 || JSON.stringify(other)!==JSON.stringify(allAfter))throw Error('lint OTHER diagnostics changed');
+const blocks=name=>fs.readFileSync(path.join(out,name+'.log'),'utf8').split(/(?=^\/.*:\d+:\d+: )/m).filter(x=>/^\/.*:\d+:\d+: /.test(x)).map(x=>x.replace(/\n\d+ issues:[\s\S]*$/,'').trimEnd());
+const beforeBlocks=blocks('baseline-lint').filter(x=>!x.startsWith(repo+'/'+production+':')), afterBlocks=blocks('final-lint-unfiltered');
+if(JSON.stringify(beforeBlocks)!==JSON.stringify(afterBlocks))throw Error('lint OTHER full blocks changed');
+const otherFiles=[...new Set(other.map(line=>line.match(/^(.*?):\d+:/)[1].slice(repo.length+1)))].map(name=>{
+ if(previous.get(name)!==current.get(name))throw Error('OTHER owner changed '+name);
+ return {path:name,sha256:current.get(name)};
+});
+const result={base_commit:'73a37433b526ae9d6165ffaf1400460f9a6b36d8',baseline_source_sha256:hash(JSON.stringify(baseline)),final_source_sha256:hash(JSON.stringify(final)),unchanged_original_paths:baseline.length-changed.length,changed,added,historical,users,production_reconstructed_exactly:true,checked_stderr_sites:checked,existing_stdout_and_all_other_production_bytes_unchanged:true};
+fs.writeFileSync(path.join(out,'preservation.json'),JSON.stringify(result,null,2)+'\n');
+fs.writeFileSync(path.join(out,'lint-attribution.json'),JSON.stringify({same_command_scope:true,baseline_count:allBefore.length,owned_resolved:owned,remaining_count:allAfter.length,exact_other_diagnostics_and_full_blocks_unchanged:true,other_source_bindings:otherFiles,remaining:allAfter},null,2)+'\n');
+console.log(JSON.stringify({unchanged_paths:result.unchanged_original_paths,owned_lint_resolved:owned.length,remaining_other:allAfter.length,historical_exact:historical.length}));

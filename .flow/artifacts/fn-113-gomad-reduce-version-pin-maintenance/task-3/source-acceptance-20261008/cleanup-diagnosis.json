@@ -1,0 +1,503 @@
+{
+  "classification": "original portable ENOTEMPTY failure; root cause unknown; no source fix, cleanup retry or native transfer",
+  "original_receipt": "ordinary-r4-packages-receipt.json",
+  "failed_scratch": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad3-adapter-verify-3223755144",
+  "preserved_remaining_entries": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad3-adapter-verify-3223755144/sprig",
+      "mode": "700",
+      "uid": 1000,
+      "gid": 1000,
+      "inode": 412364510,
+      "size": 64,
+      "mtime": "2026-10-08T19:03:15.007Z",
+      "sha256": null
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad3-adapter-verify-3223755144/sprig/functions_windows_test.go",
+      "mode": "400",
+      "uid": 1000,
+      "gid": 1000,
+      "inode": 412364558,
+      "size": 660,
+      "mtime": "2026-10-08T19:03:14.941Z",
+      "sha256": "8edecd70ed1f32b971447395344fbdb887612f0a22151ffc511be1c340264946"
+    }
+  ],
+  "mount": "TARGET                              SOURCE                                    FSTYPE   OPTIONS\n/Users/stephan/Workspace/skunkworks host[/Users/stephan/Workspace/skunkworks] virtiofs rw,nosuid,nodev,relatime\n",
+  "ownerBindings": [
+    {
+      "path": "tools/gomad3/upgrade/adapterregen/default_pipeline_test.go",
+      "sha256": "3a0a64661f09e9722069bd7aecc7365188e9e4f4846347551d4c270b0bcad71c",
+      "unchanged_from_R3": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_regenerate.go",
+      "sha256": "f0264bc3f57d72278d689d9b1c36f861196bf1c111095c66a4fc1533c510596e",
+      "unchanged_from_R3": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_copy.go",
+      "sha256": "d296c328d80697e7808f95841a88f0b20bc4e167e38844e689765e669679a0a1",
+      "unchanged_from_R3": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite.go",
+      "sha256": "85f4101937d8f4dc580ea5d9c48c8d6eee3681eb02fe8747ace3309017052e06",
+      "unchanged_from_R3": true
+    },
+    {
+      "path": "tools/gomad3/target/adapter_source_set.go",
+      "sha256": "cceeb09d76033404ff684bb9c57efd648dd909b230f0656da7a818173f3cd31d",
+      "unchanged_from_R3": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/gocommand/command.go",
+      "sha256": "4b7a5fb580b6addd439c6e0f75d7558a95ab4f593798b908ac1af989cf531e9d",
+      "unchanged_from_R3": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostexec/command_unix.go",
+      "sha256": "d45c444c47f75089de9ec3f9369a85b4c8d2c60d21f191d3bef4733aa0726a45",
+      "unchanged_from_R3": true
+    }
+  ],
+  "probes": [
+    {
+      "name": "cleanup-probe",
+      "receipt": "cleanup-probe-receipt.json",
+      "log_sha256": "ca13b947e7c5088c161bb372055b91a627c297160cafc5428383025a6019f809",
+      "observations": [
+        {
+          "copied_files": 64,
+          "iteration": 0,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-00: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 1,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-01: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 2,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-02: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 3,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-03: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 4,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-04: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 5,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-05: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 6,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-06: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 7,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-07: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 8,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-08: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 9,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-09: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 10,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-10: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 11,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-11: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 12,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-12: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 13,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-13: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 14,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-14: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 15,
+          "mode": "400",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-400-15: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 0,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-00: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 1,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-01: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 2,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-02: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 3,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-03: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 4,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-04: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 5,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-05: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 6,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-06: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 7,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-07: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 8,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-08: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 9,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-09: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 10,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-10: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 11,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-11: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 12,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-12: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 13,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-13: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 14,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-14: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 15,
+          "mode": "600",
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075/mode-600-15: no such file or directory"
+        }
+      ]
+    },
+    {
+      "name": "cleanup-listing-probe",
+      "receipt": "cleanup-listing-probe-receipt.json",
+      "log_sha256": "388e6aa20781ba6c2f76b00fff79feeba5474d4d007da5571d366e546111d280",
+      "observations": [
+        {
+          "copied_files": 64,
+          "iteration": 0,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-00: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 1,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-01: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 2,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-02: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 3,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-03: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 4,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-04: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 5,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-05: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 6,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-06: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 7,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-07: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 8,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-08: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 9,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-09: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 10,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-10: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 11,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-11: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 12,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-12: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 13,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-13: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 14,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-14: no such file or directory"
+        },
+        {
+          "copied_files": 64,
+          "iteration": 15,
+          "remaining": [],
+          "remove_error": "<nil>",
+          "walk_error": "lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-15: no such file or directory"
+        }
+      ]
+    },
+    {
+      "name": "cleanup-verifier-probe",
+      "receipt": "cleanup-verifier-probe-receipt.json",
+      "log_sha256": "b0a3cdd2d09f46bdf635e0b62b3ce531abef7cdad20b1b4cece0992a5964896d",
+      "observations": [],
+      "actual_verifier_results": [
+        "actual unchanged verifier iteration 0 source /Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/github.com/!masterminds/sprig/v3@v3.3.0 result <nil>",
+        "actual unchanged verifier iteration 1 source /Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/github.com/!masterminds/sprig/v3@v3.3.0 result <nil>",
+        "actual unchanged verifier iteration 2 source /Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/github.com/!masterminds/sprig/v3@v3.3.0 result <nil>",
+        "actual unchanged verifier iteration 3 source /Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/github.com/!masterminds/sprig/v3@v3.3.0 result <nil>",
+        "actual unchanged verifier iteration 4 source /Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/github.com/!masterminds/sprig/v3@v3.3.0 result <nil>",
+        "actual unchanged verifier iteration 5 source /Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/github.com/!masterminds/sprig/v3@v3.3.0 result <nil>",
+        "actual unchanged verifier iteration 6 source /Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/github.com/!masterminds/sprig/v3@v3.3.0 result <nil>",
+        "actual unchanged verifier iteration 7 source /Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/github.com/!masterminds/sprig/v3@v3.3.0 result <nil>"
+      ]
+    }
+  ],
+  "probe_program_bindings": [
+    {
+      "path": "cleanup_probe.go",
+      "sha256": "55b453399f86aee323a1d553b57001a0e17e88d8596114dd1e888b969bab35a8"
+    },
+    {
+      "path": "cleanup_listing_probe.go",
+      "sha256": "662503bfebe26cee32829e2903f3ab943d8d82cca46804fee1f8e7e1947fd821"
+    },
+    {
+      "path": "cleanup_verifier_probe.go",
+      "sha256": "6cbceaa5863fa88e46c4e3dbf5b139dc1804866c4fe2b79bcd2066d3604273b4"
+    }
+  ],
+  "checked_empty_probe_cleanup": [
+    "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075",
+    "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140"
+  ],
+  "process_observation": [
+    "1611029  425484 Ssl  node .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-acceptance-20261008/run.mjs final-serialized-affected go -C tools/gomad3 test -tags test_dep -count=1 -json -p=1 ./cmd/gomadtool ./upgrade/adapterregen ./upgrade ./toolchain/version ./internal/compatibilitypack/... 0",
+    "1611039 1611029 S    timeout 600 bash -c go -C tools/gomad3 test -tags test_dep -count=1 -json -p=1 ./cmd/gomadtool ./upgrade/adapterregen ./upgrade ./toolchain/version ./internal/compatibilitypack/...",
+    "1611040 1611039 Sl   go -C tools/gomad3 test -tags test_dep -count=1 -json -p=1 ./cmd/gomadtool ./upgrade/adapterregen ./upgrade ./toolchain/version ./internal/compatibilitypack/...",
+    "1611104 1611040 Sl   /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/go-build108978069/b001/gomadtool.test -test.paniconexit0 -test.v=test2json -test.timeout=10m0s -test.count=1"
+  ],
+  "process_observation_note": "post-run observation only; production hostexec also waits/reaps and requires GroupGone before returning; this is not a syscall trace of the failed cleanup",
+  "r3_same_original_test": {
+    "log": "../../task-2/source-acceptance-20261008/accepted-public-packages.log",
+    "result": "PASS",
+    "elapsed_seconds": 8.44
+  },
+  "hypotheses": {
+    "file_modes_alone": "not reproduced: 16 mode0400 and 16 mode0600 no-child copies all cleaned",
+    "waited_source_listing_reads": "not reproduced: 16 copied0400 trees, both platform go list commands completed before cleanup, all cleaned",
+    "current_actual_verifier": "not reproduced: 8 unchanged pinned v3.3.0 verification operations returned nil",
+    "cross_package_concurrency": "one admitted focused original test with -p=1 passes; does not establish causation or repair"
+  },
+  "standalone_diagnostic": "default-pipeline-standalone-diagnostic-receipt.json",
+  "final_acceptance_note": "root separately admitted one -p=1 affected-package gate; serialized acceptance only, original broad failure retained"
+}

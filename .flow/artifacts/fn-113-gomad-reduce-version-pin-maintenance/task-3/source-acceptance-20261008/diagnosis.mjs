@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {readSourceManifest} from './source-manifests.mjs';
+const out=path.dirname(new URL(import.meta.url).pathname);
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const failed='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad3-adapter-verify-3223755144';
+const entries=[];
+const walk=directory=>{for(const name of fs.readdirSync(directory)){const file=path.join(directory,name),stat=fs.lstatSync(file);entries.push({path:file,mode:(stat.mode&0o777).toString(8),uid:stat.uid,gid:stat.gid,inode:stat.ino,size:stat.size,mtime:stat.mtime.toISOString(),sha256:stat.isFile()?hash(fs.readFileSync(file)):null});if(stat.isDirectory())walk(file);}};
+walk(failed);
+const probeNames=['cleanup-probe','cleanup-listing-probe','cleanup-verifier-probe'];
+const probes=probeNames.map(name=>{const receipt=JSON.parse(fs.readFileSync(path.join(out,name+'-receipt.json')));const log=fs.readFileSync(path.join(out,name+'.log'),'utf8');return {name,receipt:name+'-receipt.json',log_sha256:receipt.log_sha256,observations:log.split('\n').filter(x=>x.startsWith('{')).map(x=>JSON.parse(x)),actual_verifier_results:name==='cleanup-verifier-probe'?log.trim().split('\n'):undefined};});
+const sourceBefore=JSON.parse(fs.readFileSync(path.join(out,'../../task-2/source-acceptance-20261008/accepted-public-packages-source.json'))), sourceNow=readSourceManifest('ordinary-r4-packages-source.json');
+const ownerPaths=['tools/gomad3/upgrade/adapterregen/default_pipeline_test.go','tools/gomad3/deterministicio/adapter_regenerate.go','tools/gomad3/deterministicio/adapter_copy.go','tools/gomad3/deterministicio/adapter_rewrite.go','tools/gomad3/target/adapter_source_set.go','tools/gomad3/target/internal/gocommand/command.go','tools/gomad3/internal/hostexec/command_unix.go'];
+const ownerBindings=ownerPaths.map(name=>{const before=sourceBefore.find(x=>x.path===name)?.sha256,after=sourceNow.find(x=>x.path===name)?.sha256;if(!before||before!==after)throw Error('original source owner changed '+name);return {path:name,sha256:after,unchanged_from_R3:true};});
+const checkedEmptyProbeCleanup=[];
+for(const name of ['/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-probe-652755075','/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140']){
+ if(fs.readdirSync(name).length!==0)throw Error('probe parent not empty '+name);
+ fs.rmdirSync(name);
+ if(fs.existsSync(name))throw Error('probe parent survives '+name);
+ checkedEmptyProbeCleanup.push(name);
+}
+const processObservation=spawnSync('ps',['-eo','pid,ppid,stat,args'],{encoding:'utf8'});
+if(processObservation.status!==0)throw Error('process observation failed');
+const mount=spawnSync('findmnt',['-T',failed],{encoding:'utf8'});
+if(mount.status!==0)throw Error('mount observation failed');
+const result={classification:'original portable ENOTEMPTY failure; root cause unknown; no source fix, cleanup retry or native transfer',original_receipt:'ordinary-r4-packages-receipt.json',failed_scratch:failed,preserved_remaining_entries:entries,mount:mount.stdout,ownerBindings,probes,probe_program_bindings:['cleanup_probe.go','cleanup_listing_probe.go','cleanup_verifier_probe.go'].map(name=>({path:name,sha256:hash(fs.readFileSync(path.join(out,name)))})),checked_empty_probe_cleanup:checkedEmptyProbeCleanup,process_observation:processObservation.stdout.split('\n').filter(x=>/gomadtool|adapter-regenerate|go test|go list/.test(x)),process_observation_note:'post-run observation only; production hostexec also waits/reaps and requires GroupGone before returning; this is not a syscall trace of the failed cleanup',r3_same_original_test:{log:'../../task-2/source-acceptance-20261008/accepted-public-packages.log',result:'PASS',elapsed_seconds:8.44},hypotheses:{file_modes_alone:'not reproduced: 16 mode0400 and 16 mode0600 no-child copies all cleaned',waited_source_listing_reads:'not reproduced: 16 copied0400 trees, both platform go list commands completed before cleanup, all cleaned',current_actual_verifier:'not reproduced: 8 unchanged pinned v3.3.0 verification operations returned nil',cross_package_concurrency:'one admitted focused original test with -p=1 passes; does not establish causation or repair'},standalone_diagnostic:'default-pipeline-standalone-diagnostic-receipt.json',final_acceptance_note:'root separately admitted one -p=1 affected-package gate; serialized acceptance only, original broad failure retained'};
+fs.writeFileSync(path.join(out,'cleanup-diagnosis.json'),JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify({failed_scratch_preserved:true,remaining_entries:entries.length,original_owners_bound:ownerBindings.length,empty_probe_parents_removed:checkedEmptyProbeCleanup.length}));

@@ -1,0 +1,1122 @@
+{
+  "baseline_failed_original_names": [
+    "TestRegenerateAdapterDerivesAnchorsForChangedUpstreamSource",
+    "TestRegenerateAdapterRederivesBaseRewrites",
+    "TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce",
+    "TestRegenerateAdapterFailsWhenARewrittenFileIsDeletedUpstream",
+    "TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin",
+    "TestAdapterSourceEditsReplaceEveryAnchor",
+    "TestAdapterSourceEditsRejectAnAnchorThatIsNotALiteral",
+    "TestVerifyRegisteredAdapterChecksEveryPin",
+    "TestPrepareBuildAdaptersClassifiesInvalidTargetConfiguration",
+    "TestProfileVerifiesSelectedAdapterIdentities",
+    "TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading",
+    "TestRewrittenModuleInventoriesMatchPinnedModules",
+    "TestRewrittenModulesRejectChangedIdentity",
+    "TestRewriteAdapterSourceRejectsDrift",
+    "TestRewrittenModulePreparedPackageSourceSetIdentity",
+    "TestProfileSelectsSentryAdapter",
+    "TestProfileRejectsAdapterConfigurationDrift",
+    "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift",
+    "TestRewrittenModulesRejectUnrewrittenInventoryDrift",
+    "TestRewrittenModuleConsumers",
+    "TestToolchainLeavesFD5ForProcessesWithoutIOProfile",
+    "TestProfileSelectsDownstreamAdapters",
+    "TestPinnedAdapterModuleInventories",
+    "TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+    "TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+    "TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+    "TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+    "TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+    "TestPrepareGRPCRecordsExactPrivateReplacement",
+    "TestPrepareGRPCRejectsChangedIdentity",
+    "TestGRPCDNSRewrite",
+    "TestGRPCDNSConsumer",
+    "TestHashicorpMetricsAdapterConsumer",
+    "TestProfilePreparesPinnedModerncLibcAdapter",
+    "TestProfileRejectsUnsupportedModerncLibcVersion",
+    "TestProfileWithoutModerncLibcNeedsNoAdapter",
+    "TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+    "TestRewriteModerncMemoryRejectsSourceIdentityDrift",
+    "TestModerncMemoryRewriteRejectsAnchorDrift",
+    "TestPrepareModerncMemoryRejectsModuleDrift",
+    "TestModerncMemoryRejectsChangedReplacementInventory",
+    "TestPrepareModerncMemoryRecordsExactPrivateReplacement",
+    "TestPrepareModerncMemoryRejectsChangedIdentity",
+    "TestModerncMemoryPreparedPackageSourceSetIdentity",
+    "TestDeterministicProfileAcceptsArbitraryTargetArguments",
+    "TestBootstrapFrameBindsLaunchIdentity",
+    "TestRequirementsProjectsKnownInventoryDomainsConservatively",
+    "TestRequirementsRejectsUnselectedAdapterIdentity",
+    "TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure",
+    "TestSockaddrBoundaryConsumer",
+    "TestSockaddrBoundaryRewritesRejectDrift",
+    "TestSockaddrBoundaryPreservesOriginalComments",
+    "TestRewriteXNetSocketDeniesRawSocketOptions",
+    "TestRewriteXNetSocketRejectsSourceIdentityDrift",
+    "TestPrepareXNetRecordsExactPrivateReplacement",
+    "TestPrepareXNetRejectsChangedIdentity",
+    "TestXNetPreparedPackageSourceSetIdentity"
+  ],
+  "deterministicio_unsupported_originals": [
+    {
+      "name": "TestAdapterSourceEditsRejectAnAnchorThatIsNotALiteral",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls",
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "current_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestAdapterSourceEditsReplaceEveryAnchor",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls",
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "current_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestBootstrapFrameBindsLaunchIdentity",
+      "file": "profile_test.go",
+      "source_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "portable": [
+        "TestPortableBootstrapFrameIdentity",
+        "TestPortableBootstrapPlatformGoldens",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual production codec/identity helpers; unchanged public qualified-host wrapper remains native",
+      "path": "tools/gomad3/deterministicio/profile_test.go",
+      "current_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestDeterministicProfileAcceptsArbitraryTargetArguments",
+      "file": "profile_test.go",
+      "source_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "portable": [
+        "TestPortablePreparedTargetShape",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual shape helper argv/build projection; public host validation preserved",
+      "path": "tools/gomad3/deterministicio/profile_test.go",
+      "current_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestGRPCDNSConsumer",
+      "file": "grpc_dns_test.go",
+      "source_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "portable": [
+        "TestPortableRetainedGRPCDNSConsumer"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_dns_test.go",
+      "current_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestGRPCDNSRewrite",
+      "file": "grpc_dns_test.go",
+      "source_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "portable": [
+        "TestPortableRetainedGRPCDNSRewrite"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_dns_test.go",
+      "current_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestHashicorpMetricsAdapterConsumer",
+      "file": "hashicorpmetrics_adapter_test.go",
+      "source_sha256": "1a132adc9a2c5a8e47c2bbe7f8dcb8500322169bb17406cc041f3a6bc82aef5f",
+      "portable": [
+        "TestPortableMetricsConsumer",
+        "TestPortableAdapterConfigurationRefusals"
+      ],
+      "reason": "real stock fixture behavior, exact private registry and both-platform source listing; qualified public profile/capability wrapper native",
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+      "current_sha256": "1a132adc9a2c5a8e47c2bbe7f8dcb8500322169bb17406cc041f3a6bc82aef5f",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestModerncMemoryPreparedPackageSourceSetIdentity",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableAdapterPreparedSourcePins",
+        "TestPortableServerGraphPreparedSourceIdentities",
+        "TestPortableRewrittenModuleConsumers"
+      ],
+      "reason": "actual preparation and both-platform source listings, root dependency context when selected; public profile/capability/native wrapper unclaimed",
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "current_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestModerncMemoryRejectsChangedReplacementInventory",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedModerncMemoryRejectsChangedReplacementInventory"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "current_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestModerncMemoryRewriteRejectsAnchorDrift",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedModerncMemoryRewriteRejectsAnchorDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "current_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPinnedAdapterModuleInventories",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedPinnedAdapterModuleInventories"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "current_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPrepareBuildAdaptersClassifiesInvalidTargetConfiguration",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "portable": [
+        "TestPortableAdapterConfigurationRefusals",
+        "TestPortableLibcSelectionConfiguration"
+      ],
+      "reason": "actual registry typed invalid-input refusals; qualified public wrapper native",
+      "path": "tools/gomad3/deterministicio/adapter_registry_test.go",
+      "current_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPrepareGRPCRecordsExactPrivateReplacement",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedPrepareGRPCRecordsExactPrivateReplacement"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "current_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPrepareGRPCRejectsChangedIdentity",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedPrepareGRPCRejectsChangedIdentity"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "current_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPrepareModerncMemoryRecordsExactPrivateReplacement",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedPrepareModerncMemoryRecordsExactPrivateReplacement"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "current_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPrepareModerncMemoryRejectsChangedIdentity",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedPrepareModerncMemoryRejectsChangedIdentity"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "current_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPrepareModerncMemoryRejectsModuleDrift",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedPrepareModerncMemoryRejectsModuleDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "current_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "portable": [
+        "TestAdapterModuleSumRecords",
+        "TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration",
+        "TestPortableAdapterConfigurationRefusals"
+      ],
+      "reason": "actual selected sum validation and no-write private preparation; public unchanged pre-download ordering source preservation, qualified wrapper native",
+      "path": "tools/gomad3/deterministicio/adapter_registry_test.go",
+      "current_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPrepareXNetRecordsExactPrivateReplacement",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableRetainedPrepareXNetRecordsExactPrivateReplacement"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "current_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestPrepareXNetRejectsChangedIdentity",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableRetainedPrepareXNetRejectsChangedIdentity"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "current_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestProfilePreparesPinnedModerncLibcAdapter",
+      "file": "libc_adapter_test.go",
+      "source_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "portable": [
+        "TestPortableLibcPreparedContract",
+        "TestPortableLibcSelectionConfiguration",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual libc preparation, projection, shim checks and selection refusals; public wrapper and patched internal/gomadio compilation native",
+      "path": "tools/gomad3/deterministicio/libc_adapter_test.go",
+      "current_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestProfileRejectsAdapterConfigurationDrift",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterConfigurationRefusals",
+        "TestPortableLibcSelectionConfiguration"
+      ],
+      "reason": "actual registry typed invalid-input refusals; qualified public wrapper native",
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "current_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestProfileRejectsUnsupportedModerncLibcVersion",
+      "file": "libc_adapter_test.go",
+      "source_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "portable": [
+        "TestPortableLibcPreparedContract",
+        "TestPortableLibcSelectionConfiguration",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual libc preparation, projection, shim checks and selection refusals; public wrapper and patched internal/gomadio compilation native",
+      "path": "tools/gomad3/deterministicio/libc_adapter_test.go",
+      "current_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestProfileSelectsDownstreamAdapters",
+      "file": "downstream_adapter_registry_test.go",
+      "source_sha256": "b603a4d49d3c6133be6aff84f43a07d0fe7d92082931bcd318b3663b49e915bd",
+      "portable": [
+        "TestPortableRewrittenModuleConsumers",
+        "TestPortableMetricsConsumer"
+      ],
+      "reason": "real stock original consumers and private selection/source listings; public profile/capability/runtime wrapper remains native",
+      "path": "tools/gomad3/deterministicio/downstream_adapter_registry_test.go",
+      "current_sha256": "b603a4d49d3c6133be6aff84f43a07d0fe7d92082931bcd318b3663b49e915bd",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestProfileSelectsSentryAdapter",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableRewrittenModuleConsumers",
+        "TestPortableMetricsConsumer"
+      ],
+      "reason": "real stock original consumers and private selection/source listings; public profile/capability/runtime wrapper remains native",
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "current_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestProfileVerifiesSelectedAdapterIdentities",
+      "file": "adapter_registry_test.go",
+      "source_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "portable": [
+        "TestPortableSelectedAdapterIdentities",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual comparator valid/modified identity; public host validation preserved",
+      "path": "tools/gomad3/deterministicio/adapter_registry_test.go",
+      "current_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestProfileWithoutModerncLibcNeedsNoAdapter",
+      "file": "libc_adapter_test.go",
+      "source_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "portable": [
+        "TestPortableLibcPreparedContract",
+        "TestPortableLibcSelectionConfiguration",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual libc preparation, projection, shim checks and selection refusals; public wrapper and patched internal/gomadio compilation native",
+      "path": "tools/gomad3/deterministicio/libc_adapter_test.go",
+      "current_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRegenerateAdapterDerivesAnchorsForChangedUpstreamSource",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls",
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "current_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRegenerateAdapterFailsWhenARewrittenFileIsDeletedUpstream",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls",
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "current_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls",
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "current_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRegenerateAdapterRederivesBaseRewrites",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls",
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "current_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls",
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "current_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure",
+      "file": "requirements_test.go",
+      "source_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "portable": [
+        "TestPortableRequirementsProjection",
+        "TestPortableSelectedAdapterIdentities",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual production comparator/projection; unchanged public qualified-host wrapper remains native",
+      "path": "tools/gomad3/deterministicio/requirements_test.go",
+      "current_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRequirementsProjectsKnownInventoryDomainsConservatively",
+      "file": "requirements_test.go",
+      "source_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "portable": [
+        "TestPortableRequirementsProjection",
+        "TestPortableSelectedAdapterIdentities",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual production comparator/projection; unchanged public qualified-host wrapper remains native",
+      "path": "tools/gomad3/deterministicio/requirements_test.go",
+      "current_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRequirementsRejectsUnselectedAdapterIdentity",
+      "file": "requirements_test.go",
+      "source_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "portable": [
+        "TestPortableRequirementsProjection",
+        "TestPortableSelectedAdapterIdentities",
+        "TestPortableProfilePublicGuardsRemainFirst"
+      ],
+      "reason": "actual production comparator/projection; unchanged public qualified-host wrapper remains native",
+      "path": "tools/gomad3/deterministicio/requirements_test.go",
+      "current_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteAdapterSourceRejectsDrift",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableRetainedRewriteAdapterSourceRejectsDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "current_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCKeepalivePreservesDialerWithoutHostControl"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "current_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCKeepaliveRejectsSourceIdentityDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "current_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsChangedAnchor"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "current_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "current_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+      "file": "grpc_adapter_test.go",
+      "source_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "portable": [
+        "TestPortableRetainedRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "current_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "current_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteModerncMemoryRejectsSourceIdentityDrift",
+      "file": "memory_adapter_test.go",
+      "source_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "portable": [
+        "TestPortableRetainedRewriteModerncMemoryRejectsSourceIdentityDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "current_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteXNetSocketDeniesRawSocketOptions",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableRetainedRewriteXNetSocketDeniesRawSocketOptions"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "current_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewriteXNetSocketRejectsSourceIdentityDrift",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableRetainedRewriteXNetSocketRejectsSourceIdentityDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "current_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewrittenModuleConsumers",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableRewrittenModuleConsumers",
+        "TestPortableMetricsConsumer"
+      ],
+      "reason": "real stock original consumers and private selection/source listings; public profile/capability/runtime wrapper remains native",
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "current_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewrittenModuleInventoriesMatchPinnedModules",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterSourcePreservation",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual immutable prepared inventories, exact pins, comments and identity/inventory negatives; original cache bootstrap unavailable",
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "current_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewrittenModulePreparedPackageSourceSetIdentity",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterPreparedSourcePins",
+        "TestPortableServerGraphPreparedSourceIdentities",
+        "TestPortableRewrittenModuleConsumers"
+      ],
+      "reason": "actual preparation and both-platform source listings, root dependency context when selected; public profile/capability/native wrapper unclaimed",
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "current_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterSourcePreservation",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual immutable prepared inventories, exact pins, comments and identity/inventory negatives; original cache bootstrap unavailable",
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "current_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewrittenModulesRejectChangedIdentity",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterSourcePreservation",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual immutable prepared inventories, exact pins, comments and identity/inventory negatives; original cache bootstrap unavailable",
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "current_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestRewrittenModulesRejectUnrewrittenInventoryDrift",
+      "file": "adapter_rewrite_test.go",
+      "source_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "portable": [
+        "TestPortableAdapterSourcePreservation",
+        "TestPortableAdapterPreparedSourcePins"
+      ],
+      "reason": "actual immutable prepared inventories, exact pins, comments and identity/inventory negatives; original cache bootstrap unavailable",
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "current_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestSockaddrBoundaryConsumer",
+      "file": "sockaddr_boundary_test.go",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "portable": [
+        "TestPortableRetainedSockaddrBoundaryConsumer"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "current_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestSockaddrBoundaryPreservesOriginalComments",
+      "file": "sockaddr_boundary_test.go",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "portable": [
+        "TestPortableRetainedSockaddrBoundaryPreservesOriginalComments"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "current_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestSockaddrBoundaryRewritesRejectDrift",
+      "file": "sockaddr_boundary_test.go",
+      "source_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "portable": [
+        "TestPortableRetainedSockaddrBoundaryRewritesRejectDrift"
+      ],
+      "reason": "original bootstrap requires absent patched driver; admitted retained assertion overlay executes same assertions, not original/native credit",
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "current_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestToolchainLeavesFD5ForProcessesWithoutIOProfile",
+      "file": "bootstrap_toolchain_test.go",
+      "source_sha256": "14b016f2568e25b0431b35107bad2f021d460e5e117ebae61e6bf62e96e56d0e",
+      "portable": [],
+      "reason": "actual patched runtime FD5 process assertion only; native owners fn149.2/fn128.4 (aggregates fn149.4/fn128.7)",
+      "path": "tools/gomad3/deterministicio/bootstrap_toolchain_test.go",
+      "current_sha256": "14b016f2568e25b0431b35107bad2f021d460e5e117ebae61e6bf62e96e56d0e",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestVerifyRegisteredAdapterChecksEveryPin",
+      "file": "adapter_regenerate_test.go",
+      "source_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "portable": [
+        "TestPortableAdapterRegenerationSourceEdits",
+        "TestPortableAdapterRegenerationRefusals",
+        "TestPortableLibcRegeneration"
+      ],
+      "reason": "original pinnedReleaseGo/cache bootstrap unavailable; actual pinned stock source rewrite/verification and exact refusal controls",
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "current_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    },
+    {
+      "name": "TestXNetPreparedPackageSourceSetIdentity",
+      "file": "xnet_adapter_test.go",
+      "source_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "portable": [
+        "TestPortableAdapterPreparedSourcePins",
+        "TestPortableServerGraphPreparedSourceIdentities",
+        "TestPortableRewrittenModuleConsumers"
+      ],
+      "reason": "actual preparation and both-platform source listings, root dependency context when selected; public profile/capability/native wrapper unclaimed",
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "current_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "predecessor_proof": "../../task-2/source-acceptance-20261008/assertion-mapping.md",
+      "current_R4_execution_credit": false,
+      "native_owners": [
+        "fn149.2/fn149.4",
+        "fn128.4/fn128.7"
+      ]
+    }
+  ],
+  "pinimpact_all_original_top_levels": [
+    "TestAdaptedPackDuplicateSumIsInvalidated",
+    "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure",
+    "TestAdapterModuleSumRecords",
+    "TestCommittedBumpKeepsTheStrandedPackInvalidated",
+    "TestExplicitPackRootOverridesEnvironmentAndRetainsReports",
+    "TestFixtureBumpMatchesBuildRejections",
+    "TestGoResolverReportsUnavailableModulesAsInfrastructureFailures",
+    "TestGoResolverSelectsTheModuleGraphOutsideTheModule",
+    "TestIndirectOnlyBump",
+    "TestInvalidInputAndResolutionFailures",
+    "TestKnownPackActivationExclusionWinsOverMissingSum",
+    "TestMissingCandidateModuleSumIsUnknown",
+    "TestMissingExplicitPackRootSelectsNoPacks",
+    "TestMissingPackActivationSumIsUnknown",
+    "TestMissingPackRuleSumIsUnknown",
+    "TestPackActivationGraphUnknownRetainsReason",
+    "TestPackActivationSumControls",
+    "TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport",
+    "TestPackOnlyDuplicateSumRemainsSelected",
+    "TestPackRootLoadErrorsArePathFree",
+    "TestPackRuleExclusionWinsOverUnknownActivation",
+    "TestPackRuleSumControls",
+    "TestPortableFixturePinDecisions",
+    "TestRemovedModules",
+    "TestReplacedModules",
+    "TestSameVersionWithChangedSum",
+    "TestUnchangedModuleInvalidatesNothing",
+    "TestUnknownPinsCountAsInvalidated"
+  ],
+  "pinimpact_excluded_qualified_wrappers": [
+    "TestFixtureBumpMatchesBuildRejections",
+    "TestSameVersionWithChangedSum",
+    "TestReplacedModules"
+  ],
+  "pinimpact_exact_ordinary_complement": true,
+  "pinimpact_source_counterparts": [
+    "TestPortableFixturePinDecisions",
+    "TestAdapterRegistryPortablePinDecisions",
+    "TestPortableAdapterConfigurationRefusals"
+  ],
+  "native_qualification_unverified": true
+}

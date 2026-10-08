@@ -1,0 +1,142 @@
+{
+  "same_command_scope": true,
+  "baseline_count": 86,
+  "owned_resolved": [
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:51:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:56:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:61:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:66:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:77:14: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:85:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:97:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:114:15: Error return value of `fmt.Fprintln` is not checked (errcheck)"
+  ],
+  "remaining_count": 78,
+  "exact_other_diagnostics_and_full_blocks_unchanged": true,
+  "other_source_bindings": [
+    {
+      "path": "tools/gomad3/cmd/gomadtool/boundary.go",
+      "sha256": "a83b4ff7b2c4fea0d45f0a772f115bedf6234b32b99f80683e2eff0476777b15"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+      "sha256": "05fda6be7d114465ff93c0a120a6655cbf0fe54d381d703e65d12970de090d48"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "sha256": "c4383d94e0b1e67cb0dffd3051bccdacb795e94a8cc3b3b7bd4b26b1b9d0cc1d"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/protocol.go",
+      "sha256": "4e9bfd0121b3d057f1902bf12026952bd2bf791dac050d9580ef24da73d8e26e"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/qualification_manifest.go",
+      "sha256": "fe49214ec095124df9f29e422212817bea074e92016fb9fd902a2287b9435ff4"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/soak.go",
+      "sha256": "1235e24d9602f2a2b38b97dc311f91e911653c5ba01e9b057201d544c292618d"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/upgrade.go",
+      "sha256": "3788db5501c162625613a1011bdd653214e1f82b1eaacbb9af91978f732743a4"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/version.go",
+      "sha256": "baa5596b36197f6c8cd14e76e1699d71b8089055dc8261459040446c4c509878"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile.go",
+      "sha256": "d068900a3b76bc91e5b94f0d67e00e67e225c50c0f3d23cbf92ce992ef0c5f21"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/schema.go",
+      "sha256": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed"
+    }
+  ],
+  "remaining": [
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/boundary.go:55:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:24:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:41:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:58:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:63:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:68:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:78:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:84:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:88:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:92:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:113:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:118:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:127:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:149:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:154:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:158:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:171:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:179:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:199:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:204:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:212:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:219:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:251:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:270:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:275:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:280:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:305:14: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:329:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:335:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:416:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/compatibility_pack.go:421:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/diagnostic.go:21:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/diagnostic.go:26:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/diagnostic.go:31:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/diagnostic.go:36:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/diagnostic.go:50:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:32:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:73:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:80:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:86:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:91:14: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:95:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:100:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:114:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:125:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:131:15: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:136:13: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:138:14: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:141:14: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:175:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:192:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:207:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:235:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:240:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:319:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:347:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:352:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:356:17: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:359:17: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:367:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:393:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:400:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/main.go:410:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/protocol.go:20:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/qualification_manifest.go:22:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/qualification_manifest.go:26:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/soak.go:37:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/soak.go:47:16: Error return value of `fmt.Fprintf` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/soak.go:55:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/soak.go:62:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/upgrade.go:29:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/upgrade.go:41:16: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/upgrade.go:64:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/version.go:20:15: Error return value of `fmt.Fprintln` is not checked (errcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/deterministicio/profile.go:211:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/compatibilitypack/schema.go:275:10: ST1005: error strings should not be capitalized (staticcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/compatibilitypack/schema.go:316:10: ST1005: error strings should not be capitalized (staticcheck)",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/compatibilitypack/schema.go:319:10: ST1005: error strings should not be capitalized (staticcheck)"
+  ]
+}

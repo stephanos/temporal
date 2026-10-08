@@ -1,0 +1,73 @@
+{
+  "base_commit": "73a37433b526ae9d6165ffaf1400460f9a6b36d8",
+  "baseline_source_sha256": "1ea646fc66ac63aa0d2dde38e434f8b5529c28ac9040b55b7a04c56c4ebc0f3f",
+  "final_source_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10",
+  "unchanged_original_paths": 1027,
+  "changed": [
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+      "sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33"
+    }
+  ],
+  "added": [
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_diagnostics_test.go",
+      "sha256": "46612c4cb2819f0607b41f565ca73d6c28aadfb4335adf03fa9f71edea07352e"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_resolved_test.go",
+      "sha256": "ac488eed3bbf77db7bf3b5a0f251c4c2d765bc46620b23ececdfd443c15c1ea1"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/variant_selectors_test.go",
+      "sha256": "bb3e36083ccecb5e3e28d9cded14f6016ad0f0258d0ea13326d9db4ea6d161fa"
+    }
+  ],
+  "historical": [
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json",
+      "sha256": "406aef2d9c91955e1e0e63eace8133481e5115796d83374536b27a7159509b85",
+      "exact_origin_bytes": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/reports/modernc-libc-xsys-v041.md",
+      "sha256": "a83095bc7ffb68d1c79b6eb17260c08171003827d80e47789fa0e9be4cbf666e",
+      "exact_origin_bytes": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v041.json",
+      "sha256": "1fbbf22377644ba3aec9f1bf2612b207d23e9a4f6a91747d93a373808fbc40f4",
+      "exact_origin_bytes": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/testdata/v041/go.mod",
+      "sha256": "fede118011c2f4975aa514f01da3afce5d39bf730bfd6f512b419075b705dc17",
+      "exact_origin_bytes": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/testdata/v041/go.sum",
+      "sha256": "26ffc8384dc377da24be175a04fe821ccc977dc18c01a49cf64742216f5ebdc7",
+      "exact_origin_bytes": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/testdata/v041/libc_test.go",
+      "sha256": "b22bc85f378d93ada9af6e900761706f23110db40c81f1ec78a1c1e3b60d59a6",
+      "exact_origin_bytes": true
+    }
+  ],
+  "users": [
+    {
+      "path": ".turbo/plans/gomad3-glossary-update.md",
+      "sha256": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188",
+      "status": "?? .turbo/plans/gomad3-glossary-update.md"
+    },
+    {
+      "path": ".turbo/technical-debt.md",
+      "sha256": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287",
+      "status": "?? .turbo/technical-debt.md"
+    }
+  ],
+  "production_reconstructed_exactly": true,
+  "checked_stderr_sites": 8,
+  "existing_stdout_and_all_other_production_bytes_unchanged": true
+}

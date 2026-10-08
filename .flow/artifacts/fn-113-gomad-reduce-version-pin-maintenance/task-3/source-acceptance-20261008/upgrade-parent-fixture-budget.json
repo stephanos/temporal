@@ -1,0 +1,87 @@
+{
+  "original_source": {
+    "path": "tools/gomad3/upgrade/upgrade_test.go",
+    "sha256": "062641bb09c77ee8c401e3337d62ab7ab1ec44ecec87802e33fb11a81917799a"
+  },
+  "dynamic_peak_measurement_available": false,
+  "dynamic_peak_limitation": "The original and instrumented test fixtures were removed by their unchanged checked cleanup; the admitted instrumentation measured prior-file metadata/hash, not entire-tree peak bytes. No further test was run to obtain a missing measurement.",
+  "source_derived_literal_sizes": [
+    {
+      "path": "toolchain/runtime/go1.26.4.patch",
+      "bytes": 107
+    },
+    {
+      "path": "toolchain/runtime/overlay/src/os/gomad.go",
+      "bytes": 11
+    },
+    {
+      "path": "deterministicio/boundary/manifest.json",
+      "bytes": 274
+    },
+    {
+      "path": "expected-intercepts-go1.26.4.txt",
+      "bytes": 41
+    },
+    {
+      "path": "toolchain/version/version.json",
+      "bytes": 542
+    },
+    {
+      "path": "evidence prior dossier (layout varies by subcase)",
+      "bytes": 29
+    }
+  ],
+  "source_derived_literal_total_bytes": 1004,
+  "archive": {
+    "path": ".toolchain/downloads/go1.26.4.src.tar.gz",
+    "files_in_tar": 1,
+    "source_bytes": 16,
+    "uncompressed_tar_bytes": 2048,
+    "compressed_bytes_not_observed": true
+  },
+  "source_derived_file_bound": {
+    "initial_fixture_files": 6,
+    "prior_file": 1,
+    "maximum_additional_staged_replacement": 1,
+    "maximum_live_regular_files": 8,
+    "conservative_data_budget_bytes": 65536,
+    "note": "Conservative source-derived budget, not an observed dynamic maximum. The permission case creates no replacement when CreateTemp returns EACCES; the rename-refusal case can briefly hold one JSON dossier replacement."
+  },
+  "executables": [
+    {
+      "path": "/bin/sh",
+      "arguments": [
+        "-c",
+        "printf failed-output; exit 23"
+      ],
+      "cwd": "synthetic fixture root",
+      "fixture_executable": false,
+      "output_destination": "hostexec pipes, bounded memory",
+      "note": "absolute external shell; printf is its builtin; no Go command, generator or fixture executable is launched by this exact parent"
+    }
+  ],
+  "source_owners": [
+    {
+      "path": "tools/gomad3/upgrade/upgrade.go",
+      "sha256": "7f2b03366658d68d41d7d3097eb93d5b9899c8184db77ea452dce05d10d8a290"
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/replace.go",
+      "sha256": "82fe7abbff885dc563ff1cfdff27da6bd4992d0808332053d78ea4e6a53c82ad"
+    },
+    {
+      "path": "tools/gomad3/internal/hostexec/command_unix.go",
+      "sha256": "d45c444c47f75089de9ec3f9369a85b4c8d2c60d21f191d3bef4733aa0726a45"
+    }
+  ],
+  "tmpfs_mount": "TARGET   SOURCE FSTYPE OPTIONS\n/dev/shm shm    tmpfs  rw,nosuid,nodev,noexec,relatime,size=65536k\n",
+  "tmpfs_capacity": "Filesystem     1B-blocks  Used Available Use% Mounted on\nshm             67108864     0  67108864   0% /dev/shm\n",
+  "tmpfs_available_bytes": 67108864,
+  "tmpfs_noexec": true,
+  "required_workspace_locations": {
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc"
+  },
+  "acceptance_relocation_admitted": false
+}

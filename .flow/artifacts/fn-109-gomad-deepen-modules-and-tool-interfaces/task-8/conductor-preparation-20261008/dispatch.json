@@ -1,0 +1,16 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.8",
+  "scope": "Read-only inspection-owner source acceptance preparation; not implementation or review",
+  "source_anchor": "273ec2af11e787ece635ebf9d953bb0f41e40699",
+  "worker": "/root/prep_fn1098_source",
+  "requested_research_model": "gpt-6-astra at high, per AGENTS.md",
+  "requested_model_is_not_actual_model_evidence": true,
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "judge": {"success": true, "available": false, "preset": "tier", "reason": "no_key", "spawn_model": null, "implementer": "gpt-6-astra"},
+  "state_file": "scout-state.json",
+  "allowed_writes": "Only preparation findings under this artifact directory",
+  "go_build_lint_generator_execution": "forbidden; fn-113.3 retains sole lane",
+  "task_state": "Todo unchanged, dependent on fn-109.7",
+  "native_qualification": "fn-149/fn-128 deferred and unverified",
+  "publication_authority": "None"
+}

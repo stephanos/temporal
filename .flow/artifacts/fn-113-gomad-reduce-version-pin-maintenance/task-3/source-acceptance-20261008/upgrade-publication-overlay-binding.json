@@ -1,0 +1,23 @@
+{
+  "diagnostic_only": true,
+  "original_file": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/upgrade/upgrade_test.go",
+  "original_sha256": "062641bb09c77ee8c401e3337d62ab7ab1ec44ecec87802e33fb11a81917799a",
+  "original_body_sha256": "1413bd614ac202ea4c8bdfe2f8133079c92101cd4de20328db208b20a0e41724",
+  "original_body_reconstructed_exactly": true,
+  "inserted_observations": [
+    "observeFn1133Publication(t, \"after prior creation\", output)",
+    "observeFn1133Publication(t, \"after chmod\", output)",
+    "observeFn1133Publication(t, \"immediately before Run\", kept)",
+    "observeFn1133Publication(t, \"immediately after Run\", kept)",
+    "observeFn1133Publication(t, \"before read assertion\", kept)"
+  ],
+  "all_original_assertions_fixture_calls_and_cleanup_unchanged": true,
+  "actual_file": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-acceptance-20261008/upgrade-publication-instrumented_test.go",
+  "executing_sha256": "991d2a83eac5df1290a510a5ecd6ce352f2326c3a2c15170f3f834ea44623773",
+  "overlay": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-acceptance-20261008/upgrade-publication-diagnostic-overlay.json",
+  "overlay_sha256": "a5cbffebbe6f8af08da86721922e46e5eac1ab029611f6dd22e238d966e23404",
+  "effective_source_tree_sha256": "546008ff6ddcf747b4d82cbb037ebf88bb3c7a1e1761d540ab4a881f37b5c88d",
+  "instrumenter_sha256": "00dc72d8e821d1157261740c6e1b926fad509343e406cfe281bdb068c84918dd",
+  "original_overlay_and_effective_source_unchanged": true,
+  "receipt": "upgrade-publication-instrumented-diagnostic-receipt.json"
+}

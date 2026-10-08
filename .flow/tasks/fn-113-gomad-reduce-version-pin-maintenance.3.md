@@ -103,6 +103,77 @@ Retain unchanged-source RED, final GREEN, frozen source/tool/config bindings and
 
 A fresh independent source-progress review checks all six writes, status precedence, byte preservation, real error execution, completed refresh publication and evidence scope. The conductor owns lifecycle and a separate source checkpoint commit. No formal SHIP or task completion follows from this correction.
 
+### Current full R4 diagnostic admission (2026-10-08)
+
+Predecessors fn-113.1 and fn-113.2 now have retained source acceptance. Finish
+this task's full retained R4 source requirements, not another bounded stdout
+checkpoint. The earlier exclusion of unrelated stderr applies to that historical
+six-write correction; admit only these eight currently unchecked refresh-command
+stderr sites under the existing R4 owner:
+
+`tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go` at the unchanged
+candidate's lines 51, 56, 61, 66, 77, 85, 97 and 114: usage, absolute-root failure,
+authoring-root failure, working-directory-table failure, Go resolution failure,
+live impact failure, saved-impact read/merge failure and authoring.Refresh failure.
+
+Check those write results using the existing diagnostic-handling convention.
+Preserve each primary status (input 2 or infrastructure 3, including existing
+classification helpers), healthy format strings/arguments/bytes, write order and
+earlier error precedence. Leave flag parsing, callback selection, live evaluation
+of every mapped module, saved-report validation/merge, approval, request/report
+publication, other-platform handling and variant selection unchanged. A failed
+error diagnostic does not replace its existing primary status. Keep all six
+already-checked stdout boundaries intact.
+
+Use additive public-run characterization controls with real EBADF writers,
+healthy byte/status pairs and actual refusal prerequisites for all eight sites.
+Retain unchanged-source characterization and the actual eight owned lint RED
+findings. Since the primary behavior is intentionally preserved, a matching
+baseline is not behavioral RED; missing-symbol or setup failures are not such
+evidence either. Rebind final source, tool, log and scoped-lint attribution after
+the correction; retain every unrelated finding without suppression.
+
+The existing private compatibilityPackReviewer test seam may execute actual
+target.ReviewCapabilities closure discovery with stock Go/runtime.GOROOT on
+private local-proxy modules. Bind genuine ZIPs/checksums, per-module candidate
+versions/source evidence and approval digests. This exercises actual source
+owners through the controlled callback, not the production qualified reviewer
+wrapper or a native pack workload. Preserve production host/profile validation.
+
+This admission changes no public API, production pin, dependency, generator,
+schema, native guard, fault seam, selected v041 bytes or approval. Source review
+and all other retained acceptance remain required. Native fn-149/fn-128 stay
+deferred and unverified; no PR, push or CI authority follows.
+
+### Current source review candidate (2026-10-08)
+
+The [terminal worker handover](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-acceptance-20261008/handover.md)
+and [conductor audit](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/conductor-source-acceptance-20261008/integrated-candidate-audit.md)
+bind the current 1,031-path source digest `4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10`.
+Only the eight admitted production diagnostic checks and three additive test
+files change. Exact healthy behavior, all six v041 origin files, current v047
+coverage, generated outputs and every unaffected original source path remain
+preserved. Actual mapped modules still select both variants; no retirement is
+claimed. The controlled private callback executes genuine stock module/closure
+discovery, not the production qualified wrapper or native workloads.
+
+The [named assertion map](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-acceptance-20261008/assertion-mapping.md)
+and exact filesystem-separated packet bind 910 unique parent-inclusive passing
+test identities, one unchanged native-profile skip and zero unresolved selected
+source failures. The original broad run and serialized mixed command remain RED;
+their cleanup/publication causes are unknown. Only the exact unchanged dossier
+publication parent executes on narrowly admitted private tmpfs, with build/tool
+caches and executables left on the workspace. No assertion is omitted, weakened
+or replaced with diagnostic-only instrumentation. This is not a broad or
+single-environment pass or an environmental/source repair claim.
+
+Check-only validation, both supported SOURCE list/vet sets, full architecture,
+scoped vet/errortype and mandatory fixes-disabled fast lint pass. Unfiltered
+lint remains RED with 78 exact OTHER blocks; all eight owned findings disappear
+without suppression. Current native wrappers, discovery, workloads, replay and
+full test-host remain deferred/unverified under fn-149/fn-128. Independent review
+and Flow completion remain conductor-owned; no Done follows from this candidate.
+
 ## Acceptance
 
 

@@ -1,0 +1,309 @@
+{
+  "source_tree_sha256": "4d67c77fcaa52379bebfc0a61658a34a3b57ffcfcd77f2a5964815eb5fb8ea10",
+  "assertions": [
+    {
+      "name": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+      "receipt": "final-serialized-affected-receipt.json",
+      "executed_test_identities": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval/absolute",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval/missing_module",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval/unmapped",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "name": "TestRunCompatibilityPackRefreshContinuesAfterActualDiscoveryFailure",
+      "receipt": "final-serialized-affected-receipt.json",
+      "executed_test_identities": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshContinuesAfterActualDiscoveryFailure",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "name": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus",
+      "receipt": "final-serialized-affected-receipt.json",
+      "executed_test_identities": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/usage",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/authoring_root",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_table",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_requests",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_Go",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/live_impact",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/saved_impact",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/authoring_refresh",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/absolute_root",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+          "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "name": "TestRefreshReportsOtherPlatformRequestsAndLeavesThemUntouched",
+      "receipt": "final-serialized-affected-receipt.json",
+      "executed_test_identities": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+          "test": "TestRefreshReportsOtherPlatformRequestsAndLeavesThemUntouched",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "name": "TestRefreshNeverTreatsAnApprovalOfOlderEvidenceAsCurrent",
+      "receipt": "final-serialized-affected-receipt.json",
+      "executed_test_identities": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+          "test": "TestRefreshNeverTreatsAnApprovalOfOlderEvidenceAsCurrent",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "name": "TestSelectedLibcVariantsResolveTheirMappedModuleVersions",
+      "receipt": "final-serialized-affected-receipt.json",
+      "executed_test_identities": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+          "test": "TestSelectedLibcVariantsResolveTheirMappedModuleVersions/modernc-libc-xsys-v041",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+          "test": "TestSelectedLibcVariantsResolveTheirMappedModuleVersions/modernc-libc-xsys-v047",
+          "outcome": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+          "test": "TestSelectedLibcVariantsResolveTheirMappedModuleVersions",
+          "outcome": "pass"
+        }
+      ]
+    }
+  ],
+  "actual_input_outputs": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/usage",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:113: healthy status 2 diagnostic \"usage: gomadtool compatibility-pack refresh --root=DIR [--compatibility-root=DIR] [--baseline-ref=REV] [--go=GO] [--impact-report=FILE]\\n\""
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/usage",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:107: diagnostic write executed and returned EBADF"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/authoring_root",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:113: healthy status 2 diagnostic \"--compatibility-root \\\"relative\\\" must be an absolute, clean path\\n\""
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/authoring_root",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:107: diagnostic write executed and returned EBADF"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_table",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:113: healthy status 2 diagnostic \"compatibility-pack working-directory table working-directories.json is not a bounded regular file\\n\""
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_table",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:107: diagnostic write executed and returned EBADF"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_requests",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:113: healthy status 3 diagnostic \"read compatibility-pack requests: open /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus806620812/001/requests: no such file or directory\\n\""
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_requests",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:107: diagnostic write executed and returned EBADF"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_Go",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:113: healthy status 3 diagnostic \"compatibility-pack refresh requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: exec: \\\"/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus1496500375/001/missing-go\\\": stat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus1496500375/001/missing-go: no such file or directory\\n\""
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/missing_Go",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:107: diagnostic write executed and returned EBADF"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/live_impact",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:63: proxy example.test/refreshdependency@v1.0.0 zip h1:VuVom6RFbKrVLst1oUNXb3pThC7OdIPjCRblI2Bda8Q="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/live_impact",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:63: proxy example.test/refreshdependency@v1.1.0 zip h1:xycrtZzZjmcqADRl2EnMEDd2SsDKsE9ES09Vx8uzRzs="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/live_impact",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:63: proxy example.test/refreshdependency@v1.2.0 zip h1:jrP4HSSRn7rVTJptnFzxy2coT8j5kqQDKO2+oFsXvsc="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/live_impact",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:63: proxy example.test/refreshdependency@v1.3.0 zip h1:lNyrN2ohlWa7CUJ/OhU21WZI0XpRD1URH+bAtw5QcCU="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/live_impact",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:113: healthy status 2 diagnostic \"read module file: open /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus266453098/002/missing/go.mod: no such file or directory\\n\""
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/live_impact",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:107: diagnostic write executed and returned EBADF"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/saved_impact",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:113: healthy status 2 diagnostic \"invalid pin-impact report\\n\""
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/saved_impact",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:107: diagnostic write executed and returned EBADF"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/authoring_refresh",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:113: healthy status 3 diagnostic \"read compatibility-pack requests: open /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus315007256/001/requests: no such file or directory\\n\""
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/authoring_refresh",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:107: diagnostic write executed and returned EBADF"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus/absolute_root",
+      "output": "compatibility_pack_refresh_diagnostics_test.go:141: healthy status 2 diagnostic \"getwd: no such file or directory\\n\"; failed diagnostic executed actual EBADF"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+      "output": "compatibility_pack_refresh_resolved_test.go:197: proxy example.test/refreshdependency@v1.0.0 zip h1:VuVom6RFbKrVLst1oUNXb3pThC7OdIPjCRblI2Bda8Q="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+      "output": "compatibility_pack_refresh_resolved_test.go:197: proxy example.test/refreshdependency@v1.1.0 zip h1:xycrtZzZjmcqADRl2EnMEDd2SsDKsE9ES09Vx8uzRzs="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+      "output": "compatibility_pack_refresh_resolved_test.go:197: proxy example.test/refreshdependency@v1.2.0 zip h1:jrP4HSSRn7rVTJptnFzxy2coT8j5kqQDKO2+oFsXvsc="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+      "output": "compatibility_pack_refresh_resolved_test.go:197: proxy example.test/refreshdependency@v1.3.0 zip h1:lNyrN2ohlWa7CUJ/OhU21WZI0XpRD1URH+bAtw5QcCU="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+      "output": "compatibility_pack_refresh_resolved_test.go:237: stock Go go1.27.1 command /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go root /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64 reviewed pack-a in /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartial2685779955/001/pack-a; actual candidate example.test/refreshdependency@v1.1.0 sum h1:xycrtZzZjmcqADRl2EnMEDd2SsDKsE9ES09Vx8uzRzs= source sha256:bf5633c940d14f0e6f5c1c6d6e1fffc939711ffe6f27e366754d4ecc053d02fd fresh approval sha256:50da8e2351a17238e3c5284f973c16b212510b532dd10fabe37aab922b9467e5"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval",
+      "output": "compatibility_pack_refresh_resolved_test.go:237: stock Go go1.27.1 command /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go root /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64 reviewed pack-b in /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartial2685779955/001/pack-b; actual candidate example.test/refreshdependency@v1.2.0 sum h1:jrP4HSSRn7rVTJptnFzxy2coT8j5kqQDKO2+oFsXvsc= source sha256:0e3b16d769a5a98fca18378c31a4092c5f9d0e70d9e4dca2bd535bd2afc439e8 fresh approval sha256:a5970e16eeb60c8d850f3bb2aa717d41676a800c1cf04829dcbe0e28ff595b76"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshContinuesAfterActualDiscoveryFailure",
+      "output": "compatibility_pack_refresh_resolved_test.go:279: proxy example.test/refreshdependency@v1.0.0 zip h1:VuVom6RFbKrVLst1oUNXb3pThC7OdIPjCRblI2Bda8Q="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshContinuesAfterActualDiscoveryFailure",
+      "output": "compatibility_pack_refresh_resolved_test.go:279: proxy example.test/refreshdependency@v1.1.0 zip h1:xycrtZzZjmcqADRl2EnMEDd2SsDKsE9ES09Vx8uzRzs="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshContinuesAfterActualDiscoveryFailure",
+      "output": "compatibility_pack_refresh_resolved_test.go:279: proxy example.test/refreshdependency@v1.2.0 zip h1:jrP4HSSRn7rVTJptnFzxy2coT8j5kqQDKO2+oFsXvsc="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "test": "TestRunCompatibilityPackRefreshContinuesAfterActualDiscoveryFailure",
+      "output": "compatibility_pack_refresh_resolved_test.go:279: proxy example.test/refreshdependency@v1.3.0 zip h1:lNyrN2ohlWa7CUJ/OhU21WZI0XpRD1URH+bAtw5QcCU="
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestSelectedLibcVariantsResolveTheirMappedModuleVersions/modernc-libc-xsys-v041",
+      "output": "variant_selectors_test.go:68: mapped modernc-libc-xsys-v041 in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/compatibilitypack/testdata/v041 resolves golang.org/x/sys@v0.41.0 h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=; variant remains selected, native closure qualification is separate"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+      "test": "TestSelectedLibcVariantsResolveTheirMappedModuleVersions/modernc-libc-xsys-v047",
+      "output": "variant_selectors_test.go:68: mapped modernc-libc-xsys-v047 in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/qualification/corpus resolves golang.org/x/sys@v0.47.0 h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=; variant remains selected, native closure qualification is separate"
+    }
+  ],
+  "private_callback_stock_closure_not_production_qualified_wrapper": true
+}

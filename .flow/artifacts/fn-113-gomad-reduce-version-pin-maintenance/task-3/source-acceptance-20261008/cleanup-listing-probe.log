@@ -1,0 +1,49 @@
+probe parent /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140 source /Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/github.com/!masterminds/sprig/v3@v3.2.3 uid 1000
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":0,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-00: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":1,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-01: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":2,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-02: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":3,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-03: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":4,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-04: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":5,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-05: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":6,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-06: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":7,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-07: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":8,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-08: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":9,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-09: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":10,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-10: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":11,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-11: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":12,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-12: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":13,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-13: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":14,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-14: no such file or directory"}
+listing darwin/arm64 exited 0 and waited; 1078 bytes
+listing linux/amd64 exited 0 and waited; 1078 bytes
+{"copied_files":64,"iteration":15,"remaining":[],"remove_error":"\u003cnil\u003e","walk_error":"lstat /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1133-cleanup-listing-probe-3370632140/case-15: no such file or directory"}
