@@ -201,7 +201,7 @@ The checkpoint retains .1/.2 dependencies, complete current-source R4 reconcilia
 stage: impl-review - skipped(policy: required native and broader product gates remain open; bounded source-progress review recorded separately)
 stage: plan-sync - skipped(policy: planSync disabled; no accepted task completion)
 
-## Done summary
+## Historical Done summary (before retained source acceptance)
 # fn-113 task 3: pack refresh and stale variant retirement
 
 Source bytes and the qualified Darwin toolchain key are bound in `source-binding.json`; pre-edit bytes and hashes are in `pre-edit-source.json`. No source commit, stage, or Flow lifecycle mutation was made by this worker.
@@ -246,7 +246,7 @@ Scoped unfiltered lint improves from 138 to 132 findings. Exactly six owned stdo
 The source-progress evidence, exact regression logs, scoped diagnostic comparison and compact named portable result receipts are under .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/. The earlier status-exhaustiveness, v041 restoration and authoring-import source checkpoints retain their own evidence. Historical v041 pack/request/report/fixture bytes and approvals remain unchanged; source policy restoration supplies no current native discovery or workload qualification.
 
 Task1/task2 acceptance dependencies, original R4 reconciliation, fresh native Darwin discovery and review-digest comparison, actual workload execution/replay, full/default/functional/affected-consumer and formal gates remain open wherever unproved. The stock-Go Linux ARM controls supply source evidence only. Native Linux qualification remains deferred and unverified under fn128. No formal SHIP, task completion, automatic approval or goal completion follows from this checkpoint.
-## Evidence
+## Historical Evidence (before retained source acceptance)
 - Commits:
 - Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade (focused-bound-final.log; exit0), go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade (vet-final.log; exit0), make -C tools/gomad3 validate compatibility-pack-qualification (8 Darwin requests; exit0), real CLI refresh in root and corpus mappings; approve one via generate --approve-review; rerun reports only other; Linux request unchanged; unmapped CLI exits2, selector audit:16Go modules, no remaining v041 selectors; retired pack/request/report/fixture and migrated same coverage to v047, codex implementation review: SHIP,R4met,16path bindings including6deletions and patch digest verified, gofmt and git diff --check clean; scopedlint17pre-existing findings none newrefresh files; nativeLinux unavailable, finalgates task4
 - PRs:
@@ -254,3 +254,37 @@ Task1/task2 acceptance dependencies, original R4 reconciliation, fresh native Da
 ## Current acceptance blocker (2026-10-05)
 
 Task 3's seven authoring import findings are repaired and its scoped lint, ordinary authoring, selected CLI, architecture and generator validation checks pass. Task-1/task-2 acceptance dependencies, complete R4 current-source reconciliation, required native Darwin validate/compatibility-pack qualification and formal review remain open. Developmental linux/arm64 evidence cannot satisfy those native gates. Missing transferred Linux qualification is not a blocker; fn-128.4/.7 own it.
+
+## Done summary
+Retained R4 source acceptance is complete at candidate `46a42ec94bcb5ed40efd9f72f1fe51d1b01755a4`.
+Eight checked stderr sites preserve primary statuses and all unaffected source
+bytes. Real mapped-module discovery, partial approval, stale-approval refusal,
+continuation and both selected variants are verified. No variant is retired.
+
+The [current handover](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/conductor-source-acceptance-20261008/final-handover.md)
+and [source assertion map](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-acceptance-20261008/assertion-mapping.md)
+bind 910 unique parent-inclusive passing identities, one unchanged native skip,
+mandatory source gates and exact preservation. The broad/mixed commands and
+unfiltered lint remain RED as recorded; the exact original publication parent
+uses narrowly admitted private tmpfs, with unchanged assertions. Both earlier
+portable failure causes remain unknown. All eight owned lint findings disappear;
+78 OTHER blocks remain exact. No native or whole-broad-command pass is claimed.
+
+Three fresh read-only `codex:gpt-6.1-sol:high` draws returned SHIP with R4 met,
+no findings and no unaddressed requirements on the nonempty base-to-candidate
+range. The [actual receipt](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/conductor-source-acceptance-20261008/review-receipt.json)
+binds their sessions and finalizer-derived verdict. Reviewer runtime reruns
+were blocked before execution; retained source/log evidence supports acceptance.
+
+Native Darwin fn149 and Linux fn128 remain deferred/unverified. Actual checkout
+prerequisites and unrelated user files remain untouched; no PR/push/CI occurs.
+
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - ran [2026-10-08T19:50:56.284893Z..2026-10-08T19:54:13.974862Z] (three fresh same-GPT-family draws; SHIP, R4 met)
+stage: memory-capture - skipped(policy: clean first-pass SHIP)
+stage: plan-sync - skipped(config: planSync.enabled=false)
+Tracker sync: n/a (bridge inactive).
+## Evidence
+- Commits: 2b84decef8e15eb5d5901562c93bdce89a6bae44, 273ec2af11e787ece635ebf9d953bb0f41e40699, 46a42ec94bcb5ed40efd9f72f1fe51d1b01755a4
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 -json ., go -C tools/gomad3 test -tags test_dep -count=1 -json -run="^(TestAdapterRegistryPortablePinDecisions|TestPortableAdapterConfigurationRefusals)$" ./deterministicio, go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool ./upgrade ./toolchain/version ./internal/compatibilitypack/..., go -C tools/gomad3 test -tags test_dep -count=1 -json -skip="^(TestFixtureBumpMatchesBuildRejections|TestSameVersionWithChangedSum|TestReplacedModules)$" ./upgrade/pinimpact, make -C tools/gomad3 validate, go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version, go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version, make lint-code-fast GOLANGCI_LINT_BASE_REV=73a37433b526ae9d6165ffaf1400460f9a6b36d8 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep, test -z "$(gofmt -l tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_resolved_test.go tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_diagnostics_test.go tools/gomad3/internal/compatibilitypack/authoring/variant_selectors_test.go)" && git diff --check, GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go -C tools/gomad3 list -deps -test -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version, GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go -C tools/gomad3 list -deps -test -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version, TMPDIR=/dev/shm/gomad-fn1133-publication-3fW3VO go -C tools/gomad3 test -tags test_dep -count=1 -json -p=1 -run="^TestRunReportsPublicationFailureAndKeepsPriorDossier$" ./upgrade
+- PRs:

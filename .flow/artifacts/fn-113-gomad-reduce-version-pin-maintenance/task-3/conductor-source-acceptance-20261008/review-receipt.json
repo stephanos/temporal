@@ -1,0 +1,51 @@
+{
+  "base": "73a37433b526ae9d6165ffaf1400460f9a6b36d8",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a11d11-9fd7-7131-9dec-510ad75f61d4",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a11d11-9fd7-7ca0-a1e9-326fec2f8dba",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a11d11-9fda-7082-ab92-a81a44264803",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "73a37433b526ae9d6165ffaf1400460f9a6b36d8",
+    "headSha": "46a42ec94bcb5ed40efd9f72f1fe51d1b01755a4",
+    "items": [],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-925c87fbfa635bd16f01d2b8eb3061cfbd9df4fddaf0f6f6657faa858b38c4a0"
+  },
+  "id": "fn-113-gomad-reduce-version-pin-maintenance.3",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "No findings.\n\n```json\n{\"classification_counts\": {\"introduced\": 0, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "e2421b149fbe4fe693a8c42ebb9dcc60",
+  "rid": "e2421b149fbe4fe693a8c42ebb9dcc60",
+  "session_id": "01a11d11-9fd7-7131-9dec-510ad75f61d4",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-08T19:54:13.974862Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
