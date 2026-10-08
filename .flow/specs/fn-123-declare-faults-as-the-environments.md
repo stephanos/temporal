@@ -115,14 +115,14 @@ umpire faults model/ir/activity.json
 - **One derived assumption per fault.** `TaskQueueProductUnderStorageLoss` and `LossyMatchingQueue` both bind `storageLoss`. Both derive the same assumption, named after the fault, so the refinement between them still matches one assumption id.
 - **No Testpilot runtime change.** No Query lowered today takes a crash or a storage loss, so no new FaultKind is needed. A server-restart control for the matching crash is the first one a Query would need.
 - **Order.** fn-112, fn-114, fn-120 and fn-122 are closed, so their gates are met. fn-120.4's explorer was removed, so R7 covers trace output alone. fn-123 starts after the DSL batch (fn-133, fn-134, fn-135, fn-136, fn-137, fn-139) and fn-140 close, and is written against the names they leave. The batch forbids any regeneration before its own and may leave the tree red between tasks, so no fn-123 task can run inside it. fn-139.7 moves every queue and `LostStartAnswer` rule into `when` blocks, fn-139.5 moves `LostStartAnswer` onto the shared `Outcome`, fn-133.3 lower-cases the fault instruction and renames `loseAdmissionResponse`, and fn-133.6 types `perform`. fn-140 replaces `.expect` with `.live`, requires a reason on every non-satisfied expectation, and turns `lostStartAnswer.committed` into a witness with new Definition IDs. R12's exact Definition IDs and Case bytes are those fn-140 leaves.
-- **fn-141.** fn-141 keeps the IR schema and `model/ir` byte-identical at every step and moves the lifter's marker checks (the `fault` actor test) out of `model/irgen`. fn-123 changes the schema and that test. Neither blocks the other from starting, so flowctl records no edge between them. Both are deferred, and the owner orders them when they are revived. If fn-141 lands first, fn-123 adds its fields to fn-141's exporter. If fn-123 lands first, fn-141's exporter carries them.
+- **fn-141.** The owner approved fn-140, then fn-123, then the schema chain fn-145 through fn-148, with fn-141 last. fn-123 adds fault fields to the current lifter; fn-141 later carries the settled schema and fault metadata through its exporter. Flow records fn-123 as a prerequisite of fn-145 and fn-141, and fn-148 as a prerequisite of fn-141.
 - **fn-131.** fn-131 (Quint IR metadata) may turn the `Action` kind into one `oneof`. Whichever lands second places the `Fault` record to match.
 
 | Phase handoff | Completion gate | Next work |
 | --- | --- | --- |
 | DSL batch | fn-133, fn-134, fn-135, fn-136, fn-137, fn-139 closed after the batch regeneration | fn-123.1 may start |
 | Witness Queries | fn-140 closed | fn-123.1 may start; R12's baseline is fixed |
-| IR generator | fn-141 order decided by the owner | the lifter or exporter task that emits fault fields |
+| Fault declarations | fn-123 closed | fn-145 starts the schema chain; fn-141 follows fn-148 |
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -189,7 +189,6 @@ Task fn-123-declare-faults-as-the-environments.3 validates the core approach (Go
 
 Planning on 2026-10-06 ran without the owner and took the defaults below. Each one changes what a task builds, so the owner confirms or overrides it before the task starts.
 
-- **Order against fn-141.** Default: no flowctl edge; the owner orders the two specs on revival (Edge Cases, fn-141). fn-123.1 asks before it starts if neither has started.
 - **Plain-Scala crash row.** Default: the `crashes(…)` binding gives the Scala rule book the derived row too, so munit tests and Scala exploration still see a crash (fn-123.2). The alternative is an IR-only crash, which changes every Scala test that steps a crash.
 - **The `fault` spelling.** Default: the Model's `fault` actor keeps its object and action IDs, and the declaration attaches a kind to each action (fn-123.1). The spec's phrase "the framework's `fault` party" is read as the IR string `"fault"`, not a framework object. fn-133.3's lower-case `fault(…)` instruction must not collide with it.
 - **Budget table.** Default: the four budget rules are checked over every catalog state, and end states do not suppress rows (Part C).

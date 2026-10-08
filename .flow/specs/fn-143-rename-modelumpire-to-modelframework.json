@@ -1,7 +1,9 @@
 {
   "branch_name": "fn-143-rename-modelumpire-to-modelframework",
   "created_at": "2026-10-06T22:04:14.815437Z",
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-142-split-modeltemporalshared-into"
+  ],
   "id": "fn-143-rename-modelumpire-to-modelframework",
   "next_task": 1,
   "plan_review_status": "unknown",
@@ -20,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T23:13:52.096701Z"
+  "updated_at": "2026-10-08T03:44:12.443226Z"
 }

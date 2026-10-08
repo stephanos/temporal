@@ -20,7 +20,7 @@
 <!-- scope: business -->
 <!-- Goal & Context: 30% [user], 40% [paraphrase], 30% [inferred] -->
 
-**Deferred** by the owner on 2026-10-06. Its tasks were planned the same day against the tree before the DSL batch, without line numbers. When revived, it starts after the DSL batch (fn-133 to fn-137 and fn-139) and fn-140 close. They rewrite the same framework and lifter files, so the counts below are recounted at the start.
+**Ready.** The owner approved executing this spec last, after the activity batch, fn-142/fn-143 preparation, fn-140, fn-123 and the schema chain fn-145 through fn-148. Its tasks were planned on 2026-10-06 against the earlier tree, so each task re-reads its files and recounts against that settled schema baseline before changing it. The byte-identity and expressiveness contracts below apply to that baseline.
 
 A Model author and a framework maintainer both pay for the IR generator's size. `model/irgen` is 8,242 source lines against 2,958 for the framework it reads (`model/umpire`). Every new DSL word costs a tree matcher, a lowering, a refusal and two fixtures in the lifter. The owner wants that code reduced, accepts reasonable DSL changes to get there, and sets two limits. The DSL must lose no expressiveness. The Umpire IR must stay clean, so that the Quint export and later exports such as TLA+ keep working from it.
 

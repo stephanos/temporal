@@ -13,7 +13,9 @@
     "fn-136-phase-roles-on-lifecycle-enums",
     "fn-137-capabilities-read-phase-roles",
     "fn-139-actor-grouped-rules-per-rpc-actions",
-    "fn-140-one-sentence-witness-queries-with"
+    "fn-140-one-sentence-witness-queries-with",
+    "fn-123-declare-faults-as-the-environments",
+    "fn-148-consolidate-testpilot-evidence-and"
   ],
   "id": "fn-141-shrink-the-ir-generator-one-description",
   "impl_review_rounds": {},
@@ -36,5 +38,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T17:44:13.395728Z"
+  "updated_at": "2026-10-08T03:44:11.915084Z"
 }

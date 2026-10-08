@@ -7,7 +7,6 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-128-close-the-activitys-precision-gaps",
     "fn-136-phase-roles-on-lifecycle-enums"
   ],
   "id": "fn-129-activity-coverage",
@@ -31,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T17:44:12.876639Z"
+  "updated_at": "2026-10-08T03:52:29.610699Z"
 }
