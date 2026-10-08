@@ -8578,6 +8578,7 @@ type Command struct {
 	//	*Command_Release
 	//	*Command_AttemptFailure
 	//	*Command_AttemptCanceled
+	//	*Command_AttemptWithheld
 	Instruction isCommand_Instruction `protobuf_oneof:"instruction"`
 	// The exhaustive kinds of evidence, by id, this command's read is the closing read of: the read
 	// after which their sources report nothing more.
@@ -8775,6 +8776,15 @@ func (x *Command) GetAttemptCanceled() *Empty {
 	return nil
 }
 
+func (x *Command) GetAttemptWithheld() *Empty {
+	if x != nil {
+		if x, ok := x.Instruction.(*Command_AttemptWithheld); ok {
+			return x.AttemptWithheld
+		}
+	}
+	return nil
+}
+
 func (x *Command) GetCloses() []string {
 	if x != nil {
 		return x.Closes
@@ -8842,6 +8852,12 @@ type Command_AttemptCanceled struct {
 	AttemptCanceled *Empty `protobuf:"bytes,19,opt,name=attempt_canceled,json=attemptCanceled,proto3,oneof"`
 }
 
+type Command_AttemptWithheld struct {
+	// Withholds an activity attempt's answer until its armed server deadline ends it.
+	// Used only in an activity script's on-path item naming one bounded timer, never a performance.
+	AttemptWithheld *Empty `protobuf:"bytes,20,opt,name=attempt_withheld,json=attemptWithheld,proto3,oneof"`
+}
+
 func (*Command_Rpc) isCommand_Instruction() {}
 
 func (*Command_Poll) isCommand_Instruction() {}
@@ -8867,6 +8883,8 @@ func (*Command_Release) isCommand_Instruction() {}
 func (*Command_AttemptFailure) isCommand_Instruction() {}
 
 func (*Command_AttemptCanceled) isCommand_Instruction() {}
+
+func (*Command_AttemptWithheld) isCommand_Instruction() {}
 
 type After struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -11212,7 +11230,7 @@ const file_temporal_server_api_umpire_v1_ir_proto_rawDesc = "" +
 	"\vPerformance\x12C\n" +
 	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12>\n" +
 	"\x04step\x18\x02 \x01(\v2*.temporal.server.api.umpire.v1.ActionClassR\x04step\x12@\n" +
-	"\acommand\x18\x03 \x01(\v2&.temporal.server.api.umpire.v1.CommandR\acommand\"\xa7\b\n" +
+	"\acommand\x18\x03 \x01(\v2&.temporal.server.api.umpire.v1.CommandR\acommand\"\xfa\b\n" +
 	"\aCommand\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12C\n" +
 	"\bposition\x18\x02 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12:\n" +
@@ -11236,7 +11254,8 @@ const file_temporal_server_api_umpire_v1_ir_proto_rawDesc = "" +
 	"\x04hold\x18\x0f \x01(\tH\x00R\x04hold\x12\x1a\n" +
 	"\arelease\x18\x10 \x01(\tH\x00R\arelease\x12X\n" +
 	"\x0fattempt_failure\x18\x11 \x01(\v2-.temporal.server.api.umpire.v1.AttemptFailureH\x00R\x0eattemptFailure\x12Q\n" +
-	"\x10attempt_canceled\x18\x13 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\x0fattemptCanceled\x12\x16\n" +
+	"\x10attempt_canceled\x18\x13 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\x0fattemptCanceled\x12Q\n" +
+	"\x10attempt_withheld\x18\x14 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\x0fattemptWithheld\x12\x16\n" +
 	"\x06closes\x18\x12 \x03(\tR\x06closesB\r\n" +
 	"\vinstruction\"#\n" +
 	"\x05After\x12\x1a\n" +
@@ -11741,51 +11760,52 @@ var file_temporal_server_api_umpire_v1_ir_proto_depIdxs = []int32{
 	120, // 221: temporal.server.api.umpire.v1.Command.nexus_completion:type_name -> temporal.server.api.umpire.v1.NexusCompletion
 	116, // 222: temporal.server.api.umpire.v1.Command.attempt_failure:type_name -> temporal.server.api.umpire.v1.AttemptFailure
 	28,  // 223: temporal.server.api.umpire.v1.Command.attempt_canceled:type_name -> temporal.server.api.umpire.v1.Empty
-	111, // 224: temporal.server.api.umpire.v1.Rpc.assign:type_name -> temporal.server.api.umpire.v1.Assignment
-	112, // 225: temporal.server.api.umpire.v1.Rpc.reads:type_name -> temporal.server.api.umpire.v1.ResponseRead
-	121, // 226: temporal.server.api.umpire.v1.Assignment.value:type_name -> temporal.server.api.umpire.v1.Operand
-	16,  // 227: temporal.server.api.umpire.v1.ResponseRead.cardinality:type_name -> temporal.server.api.umpire.v1.ResponseRead.Cardinality
-	113, // 228: temporal.server.api.umpire.v1.ResponseRead.targets:type_name -> temporal.server.api.umpire.v1.Target
-	111, // 229: temporal.server.api.umpire.v1.Poll.assign:type_name -> temporal.server.api.umpire.v1.Assignment
-	121, // 230: temporal.server.api.umpire.v1.Poll.until:type_name -> temporal.server.api.umpire.v1.Operand
-	121, // 231: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.Operand
-	128, // 232: temporal.server.api.umpire.v1.AttemptFailure.failure:type_name -> temporal.server.api.umpire.v1.Proto
-	17,  // 233: temporal.server.api.umpire.v1.Fault.kind:type_name -> temporal.server.api.umpire.v1.Fault.Kind
-	128, // 234: temporal.server.api.umpire.v1.WorkflowCommand.command:type_name -> temporal.server.api.umpire.v1.Proto
-	128, // 235: temporal.server.api.umpire.v1.NexusReply.reply:type_name -> temporal.server.api.umpire.v1.Proto
-	128, // 236: temporal.server.api.umpire.v1.NexusCompletion.result:type_name -> temporal.server.api.umpire.v1.Proto
-	20,  // 237: temporal.server.api.umpire.v1.Operand.position:type_name -> temporal.server.api.umpire.v1.Position
-	130, // 238: temporal.server.api.umpire.v1.Operand.literal:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	28,  // 239: temporal.server.api.umpire.v1.Operand.run:type_name -> temporal.server.api.umpire.v1.Empty
-	28,  // 240: temporal.server.api.umpire.v1.Operand.projected:type_name -> temporal.server.api.umpire.v1.Empty
-	122, // 241: temporal.server.api.umpire.v1.Operand.path:type_name -> temporal.server.api.umpire.v1.PathOf
-	123, // 242: temporal.server.api.umpire.v1.Operand.present:type_name -> temporal.server.api.umpire.v1.Present
-	124, // 243: temporal.server.api.umpire.v1.Operand.equal:type_name -> temporal.server.api.umpire.v1.Equal
-	125, // 244: temporal.server.api.umpire.v1.Operand.all:type_name -> temporal.server.api.umpire.v1.All
-	126, // 245: temporal.server.api.umpire.v1.Operand.greater:type_name -> temporal.server.api.umpire.v1.Greater
-	127, // 246: temporal.server.api.umpire.v1.Operand.not:type_name -> temporal.server.api.umpire.v1.Not
-	121, // 247: temporal.server.api.umpire.v1.PathOf.of:type_name -> temporal.server.api.umpire.v1.Operand
-	121, // 248: temporal.server.api.umpire.v1.Present.of:type_name -> temporal.server.api.umpire.v1.Operand
-	121, // 249: temporal.server.api.umpire.v1.Equal.left:type_name -> temporal.server.api.umpire.v1.Operand
-	121, // 250: temporal.server.api.umpire.v1.Equal.right:type_name -> temporal.server.api.umpire.v1.Operand
-	121, // 251: temporal.server.api.umpire.v1.All.operands:type_name -> temporal.server.api.umpire.v1.Operand
-	121, // 252: temporal.server.api.umpire.v1.Greater.left:type_name -> temporal.server.api.umpire.v1.Operand
-	121, // 253: temporal.server.api.umpire.v1.Greater.right:type_name -> temporal.server.api.umpire.v1.Operand
-	121, // 254: temporal.server.api.umpire.v1.Not.of:type_name -> temporal.server.api.umpire.v1.Operand
-	20,  // 255: temporal.server.api.umpire.v1.Proto.position:type_name -> temporal.server.api.umpire.v1.Position
-	129, // 256: temporal.server.api.umpire.v1.Proto.fields:type_name -> temporal.server.api.umpire.v1.ProtoField
-	130, // 257: temporal.server.api.umpire.v1.ProtoField.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	128, // 258: temporal.server.api.umpire.v1.ProtoValue.message:type_name -> temporal.server.api.umpire.v1.Proto
-	131, // 259: temporal.server.api.umpire.v1.ProtoValue.mapping:type_name -> temporal.server.api.umpire.v1.ProtoMap
-	105, // 260: temporal.server.api.umpire.v1.ProtoValue.named:type_name -> temporal.server.api.umpire.v1.Name
-	132, // 261: temporal.server.api.umpire.v1.ProtoMap.entries:type_name -> temporal.server.api.umpire.v1.ProtoEntry
-	130, // 262: temporal.server.api.umpire.v1.ProtoEntry.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	18,  // 263: temporal.server.api.umpire.v1.RejectionCode.rejection:type_name -> temporal.server.api.umpire.v1.RejectionCode.Rejection
-	264, // [264:264] is the sub-list for method output_type
-	264, // [264:264] is the sub-list for method input_type
-	264, // [264:264] is the sub-list for extension type_name
-	264, // [264:264] is the sub-list for extension extendee
-	0,   // [0:264] is the sub-list for field type_name
+	28,  // 224: temporal.server.api.umpire.v1.Command.attempt_withheld:type_name -> temporal.server.api.umpire.v1.Empty
+	111, // 225: temporal.server.api.umpire.v1.Rpc.assign:type_name -> temporal.server.api.umpire.v1.Assignment
+	112, // 226: temporal.server.api.umpire.v1.Rpc.reads:type_name -> temporal.server.api.umpire.v1.ResponseRead
+	121, // 227: temporal.server.api.umpire.v1.Assignment.value:type_name -> temporal.server.api.umpire.v1.Operand
+	16,  // 228: temporal.server.api.umpire.v1.ResponseRead.cardinality:type_name -> temporal.server.api.umpire.v1.ResponseRead.Cardinality
+	113, // 229: temporal.server.api.umpire.v1.ResponseRead.targets:type_name -> temporal.server.api.umpire.v1.Target
+	111, // 230: temporal.server.api.umpire.v1.Poll.assign:type_name -> temporal.server.api.umpire.v1.Assignment
+	121, // 231: temporal.server.api.umpire.v1.Poll.until:type_name -> temporal.server.api.umpire.v1.Operand
+	121, // 232: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.Operand
+	128, // 233: temporal.server.api.umpire.v1.AttemptFailure.failure:type_name -> temporal.server.api.umpire.v1.Proto
+	17,  // 234: temporal.server.api.umpire.v1.Fault.kind:type_name -> temporal.server.api.umpire.v1.Fault.Kind
+	128, // 235: temporal.server.api.umpire.v1.WorkflowCommand.command:type_name -> temporal.server.api.umpire.v1.Proto
+	128, // 236: temporal.server.api.umpire.v1.NexusReply.reply:type_name -> temporal.server.api.umpire.v1.Proto
+	128, // 237: temporal.server.api.umpire.v1.NexusCompletion.result:type_name -> temporal.server.api.umpire.v1.Proto
+	20,  // 238: temporal.server.api.umpire.v1.Operand.position:type_name -> temporal.server.api.umpire.v1.Position
+	130, // 239: temporal.server.api.umpire.v1.Operand.literal:type_name -> temporal.server.api.umpire.v1.ProtoValue
+	28,  // 240: temporal.server.api.umpire.v1.Operand.run:type_name -> temporal.server.api.umpire.v1.Empty
+	28,  // 241: temporal.server.api.umpire.v1.Operand.projected:type_name -> temporal.server.api.umpire.v1.Empty
+	122, // 242: temporal.server.api.umpire.v1.Operand.path:type_name -> temporal.server.api.umpire.v1.PathOf
+	123, // 243: temporal.server.api.umpire.v1.Operand.present:type_name -> temporal.server.api.umpire.v1.Present
+	124, // 244: temporal.server.api.umpire.v1.Operand.equal:type_name -> temporal.server.api.umpire.v1.Equal
+	125, // 245: temporal.server.api.umpire.v1.Operand.all:type_name -> temporal.server.api.umpire.v1.All
+	126, // 246: temporal.server.api.umpire.v1.Operand.greater:type_name -> temporal.server.api.umpire.v1.Greater
+	127, // 247: temporal.server.api.umpire.v1.Operand.not:type_name -> temporal.server.api.umpire.v1.Not
+	121, // 248: temporal.server.api.umpire.v1.PathOf.of:type_name -> temporal.server.api.umpire.v1.Operand
+	121, // 249: temporal.server.api.umpire.v1.Present.of:type_name -> temporal.server.api.umpire.v1.Operand
+	121, // 250: temporal.server.api.umpire.v1.Equal.left:type_name -> temporal.server.api.umpire.v1.Operand
+	121, // 251: temporal.server.api.umpire.v1.Equal.right:type_name -> temporal.server.api.umpire.v1.Operand
+	121, // 252: temporal.server.api.umpire.v1.All.operands:type_name -> temporal.server.api.umpire.v1.Operand
+	121, // 253: temporal.server.api.umpire.v1.Greater.left:type_name -> temporal.server.api.umpire.v1.Operand
+	121, // 254: temporal.server.api.umpire.v1.Greater.right:type_name -> temporal.server.api.umpire.v1.Operand
+	121, // 255: temporal.server.api.umpire.v1.Not.of:type_name -> temporal.server.api.umpire.v1.Operand
+	20,  // 256: temporal.server.api.umpire.v1.Proto.position:type_name -> temporal.server.api.umpire.v1.Position
+	129, // 257: temporal.server.api.umpire.v1.Proto.fields:type_name -> temporal.server.api.umpire.v1.ProtoField
+	130, // 258: temporal.server.api.umpire.v1.ProtoField.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
+	128, // 259: temporal.server.api.umpire.v1.ProtoValue.message:type_name -> temporal.server.api.umpire.v1.Proto
+	131, // 260: temporal.server.api.umpire.v1.ProtoValue.mapping:type_name -> temporal.server.api.umpire.v1.ProtoMap
+	105, // 261: temporal.server.api.umpire.v1.ProtoValue.named:type_name -> temporal.server.api.umpire.v1.Name
+	132, // 262: temporal.server.api.umpire.v1.ProtoMap.entries:type_name -> temporal.server.api.umpire.v1.ProtoEntry
+	130, // 263: temporal.server.api.umpire.v1.ProtoEntry.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
+	18,  // 264: temporal.server.api.umpire.v1.RejectionCode.rejection:type_name -> temporal.server.api.umpire.v1.RejectionCode.Rejection
+	265, // [265:265] is the sub-list for method output_type
+	265, // [265:265] is the sub-list for method input_type
+	265, // [265:265] is the sub-list for extension type_name
+	265, // [265:265] is the sub-list for extension extendee
+	0,   // [0:265] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_ir_proto_init() }
@@ -11880,6 +11900,7 @@ func file_temporal_server_api_umpire_v1_ir_proto_init() {
 		(*Command_Release)(nil),
 		(*Command_AttemptFailure)(nil),
 		(*Command_AttemptCanceled)(nil),
+		(*Command_AttemptWithheld)(nil),
 	}
 	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[94].OneofWrappers = []any{
 		(*Target_Observe)(nil),

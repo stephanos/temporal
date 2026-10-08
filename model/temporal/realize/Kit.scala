@@ -381,6 +381,10 @@ def attemptFailure(failure: TypedProto[?]): Instruction = WorkerInstruction.Atte
 // Answers the attempt of an activity as canceled. Core form: `WorkerInstruction.AttemptCanceled`.
 def attemptCanceled: Instruction = WorkerInstruction.AttemptCanceled
 
+// Withholds an activity attempt's answer until its deadline. Declare only under
+// `onPath(deadline.startToClose)`, which names a positively bounded server timer.
+def attemptWithheld: Instruction = WorkerInstruction.AttemptWithheld
+
 // A workflow command, as the message the SDK would emit. Core form:
 // `WorkerInstruction.WorkflowCommand`.
 def workflowCommand(message: TypedProto[?]): Instruction =

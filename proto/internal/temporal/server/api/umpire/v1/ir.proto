@@ -1132,6 +1132,9 @@ message Command {
     AttemptFailure attempt_failure = 17;
     // Answers the attempt an activity script's command runs in as canceled.
     Empty attempt_canceled = 19;
+    // Withholds an activity attempt's answer until its armed server deadline ends it.
+    // Used only in an activity script's on-path item naming one bounded timer, never a performance.
+    Empty attempt_withheld = 20;
   }
   // The exhaustive kinds of evidence, by id, this command's read is the closing read of: the read
   // after which their sources report nothing more.

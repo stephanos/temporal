@@ -22,6 +22,7 @@ import (
 	sdkworker "go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
@@ -293,6 +294,34 @@ func TestSDKWorkflowRoutesItsActivityAttemptsToTheActivityScript(t *testing.T) {
 		require.Equal(t, "INSTRUCTION_OUTCOME_STATUS_TIMED_OUT", result.GetEnumValue().GetName())
 		requireAttempt(t, attemptOutcome(t, session, 0), testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_WITHHELD, 1)
 	})
+}
+
+func TestActivityScriptCompletesAfterAWithheldAttemptDeadline(t *testing.T) {
+	prepared := preparedActivityFixture(t, standaloneActivity, func(program *testpilotspb.Program) {
+		script := program.Entrypoints[1]
+		script.Instructions = append([]*testpilotspb.InstructionNode{{InstructionId: "withhold-attempt", Instruction: withholdAttempt, Limits: facadetest.Bounds()}}, script.GetInstructions()...)
+	}, func(profile *testpilot.ProfileSpec) {
+		profile.Opcodes = append(profile.Opcodes, testpilot.ActivityAttemptWithholding)
+	})
+	host, definition := runtimeTestDriver(t, prepared)
+	serverClosure(host)
+	session, _, request := activityTestSession(t, host, definition, prepared, "run", activityBinding("activity-id"), "activity-run", delivery.TriggerSucceeded)
+	t.Cleanup(func() { require.NoError(t, session.Close(context.Background())) })
+	worker := activityWorker(host, definition)
+	deadline, cancel := context.WithTimeout(t.Context(), 50*time.Millisecond)
+	defer cancel()
+	result, err := worker.activateActivity(deadline, activityAttempt(request, "activity-run", 1, "delivery-1"), runScript(host))
+	require.Nil(t, result)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	require.ErrorIs(t, deadline.Err(), context.DeadlineExceeded)
+	first := attemptOutcome(t, session, 0)
+	protorequire.ProtoEqual(t, answered("activity-run", 1, "delivery-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_WITHHELD), first)
+
+	result, err = worker.activateActivity(t.Context(), activityAttempt(request, "activity-run", 2, "delivery-2"), runScript(host))
+	require.NoError(t, err)
+	require.Equal(t, "done", result.(*testpilotspb.Value).GetTextValue())
+	second := attemptOutcome(t, session, 1)
+	protorequire.ProtoEqual(t, answered("activity-run", 2, "delivery-2", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED), second)
 }
 
 // The workflow replays over the history of a scheduled activity: over the partial history up to

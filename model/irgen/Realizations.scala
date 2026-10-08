@@ -1364,9 +1364,29 @@ private[irgen] trait Realizations:
         val message = typeArguments(t).headOption.getOrElse(
           fail(t, "deadlines names the message its fields are of")
         )
-        val id = action(follow(arg(0)).term)
+        val presetTerm = follow(arg(0)).term
+        val preset = classOf(presetTerm)
+        val id = preset.action
         val decl = actions(id)
         val tokens = inputTokens.getOrElse(id, Vector.empty)
+        def isTimeout(param: ir.Param): Boolean = param.getType.ref match
+          case ir.TypeRef.Ref.Named(n) => n.endsWith(".Timeout")
+          case _                       => false
+        val defaults = decl.inputs.map(firstInput(_, decl.name, t))
+        if preset.inputs.isEmpty && decl.inputs.exists(p => !isTimeout(p)) then
+          fail(
+            t,
+            s"deadlines for ${decl.name} requires an explicit Class preset for non-Timeout inputs"
+          )
+        val retained = if preset.inputs.isEmpty then defaults else preset.inputs
+        if retained.size != decl.inputs.size then
+          fail(t, s"deadlines preset of ${decl.name} must supply every input")
+        for (param, i) <- decl.inputs.zipWithIndex if isTimeout(param) do
+          if retained(i) != defaults(i) then
+            fail(
+              t,
+              s"deadlines preset of ${decl.name} must leave Timeout input ${param.name} at its default"
+            )
         val fields = itemsOf(arg(args.length - 1)).map { f =>
           val r = reduce(f)
           val input = fieldOfDeclaration(r, "input").map(i => follow(i).term).get
@@ -1404,11 +1424,11 @@ private[irgen] trait Realizations:
         declaration(arg(2), proto)
         val classes = (0 until (1 << fields.size)).map { mask =>
           val set = fields.zipWithIndex.collect { case (f, i) if (mask & (1 << i)) != 0 => f }
-          val values = decl.inputs.zipWithIndex.map { (param, i) =>
+          val values = decl.inputs.indices.map { i =>
             set.find(_._1 == i) match
               case Some((_, n, expires, _)) =>
                 ir.Value(ir.Value.Kind.Enum(ir.EnumValue(n, expires, Nil)))
-              case None => firstInput(param, decl.name, t)
+              case None => retained(i)
           }
           val base = unset match
             case Some((_, command)) if !set.exists(f => unsetIndex.contains(f._1)) => command
@@ -1416,9 +1436,12 @@ private[irgen] trait Realizations:
           val command = set.foldLeft(commandValue(base, commandD)) { case (c, (_, _, _, path)) =>
             deadlineSet(c, path, proto.written, t)
           }
-          (ir.ActionClass(id, values), command)
+          (ir.ActionClass(id, values.toList), command)
         }
-        deadlineClasses(id) = classes.map(_._1).toVector
+        val previous = deadlineClasses.getOrElse(id, Vector.empty)
+        if classes.exists((c, _) => previous.contains(c)) then
+          fail(t, s"deadlines for ${decl.name} binds a class twice")
+        deadlineClasses(id) = previous ++ classes.map(_._1)
         val performance = irMessage(irField(d, "performs", t), t)
         PMessage(
           Map(

@@ -67,11 +67,25 @@ private val startActivity = rpc(calls, METHOD_START_ACTIVITY_EXECUTION) {
   field(_.getActivityType.name) := Operand.named(activityType)
   field(_.getTaskQueue.name) := taskQueueName
   field(_.requestId) := run
+  field(_.getRetryPolicy.maximumAttempts) := Operand.integer(0)
 }
 // The start of a class that sets no start-to-close deadline. The server refuses a start that sets
 // neither a start-to-close nor a schedule-to-close deadline, so it carries a start-to-close
 // deadline no Case lives to see.
 private val startUnreached = startActivity.withFields {
+  field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
+}
+
+private val startOne = startActivity.withFields {
+  field(_.getRetryPolicy.maximumAttempts) := Operand.integer(1)
+}
+private val startOneUnreached = startOne.withFields {
+  field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
+}
+private val startTwo = startActivity.withFields {
+  field(_.getRetryPolicy.maximumAttempts) := Operand.integer(MaxAttempts.bound)
+}
+private val startTwoUnreached = startTwo.withFields {
   field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
 }
 
@@ -99,6 +113,7 @@ private val completeAttempt = finish("done")
 private val failAttempt = failed(retryable = true)
 private val failActivity = failed(retryable = false)
 private val cancelAttempt = attemptCanceled
+private val withholdAttempt = attemptWithheld
 
 // The activity's attempts: each delivery to the worker is an attempt start, answered in order.
 private val attempts = script(
@@ -112,6 +127,14 @@ private val attempts = script(
     worker.respondFailed(Failure.fatal) -> failActivity,
     worker.respondCanceled -> cancelAttempt
   )
+)
+
+private val timeoutAttempts = script(
+  "timeout-attempts",
+  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+)(
+  onPath(deadline.startToClose)(withholdAttempt),
+  perform(worker.respondCompleted -> completeAttempt)
 )
 
 // The kind of the unpause's answer, which confirms that the activity was scheduled again.
@@ -138,10 +161,30 @@ object Standalone extends Realizes(ActivitySystem):
         // Every class of the start, each setting the deadlines it expires; a schedule-to-close
         // deadline no start sets, so a class that expires one is unrealizable.
         deadlines[StartActivityExecutionRequest](
-          client.start,
+          client.start(maxAttempts := MaxAttempts.unlimited),
           startActivity,
           duration(deadlineSeconds),
           unset = Some(startToClose -> startUnreached)
+        )(
+          startDelay.sets(_.getStartDelay),
+          scheduleToStart.sets(_.getScheduleToStartTimeout),
+          startToClose.sets(_.getStartToCloseTimeout)
+        ),
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.one),
+          startOne,
+          duration(deadlineSeconds),
+          unset = Some(startToClose -> startOneUnreached)
+        )(
+          startDelay.sets(_.getStartDelay),
+          scheduleToStart.sets(_.getScheduleToStartTimeout),
+          startToClose.sets(_.getStartToCloseTimeout)
+        ),
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.two),
+          startTwo,
+          duration(deadlineSeconds),
+          unset = Some(startToClose -> startTwoUnreached)
         )(
           startDelay.sets(_.getStartDelay),
           scheduleToStart.sets(_.getScheduleToStartTimeout),
@@ -161,9 +204,15 @@ object Standalone extends Realizes(ActivitySystem):
         onPath(worker.respondFailed(Failure.fatal))(
           described.await(system.Fact.statusFailed)
         ),
+        onPath(client.start(maxAttempts := MaxAttempts.two))(
+          described.await(system.Fact.statusFailed)
+        ),
         onPath(worker.respondCanceled)(described.await(system.Fact.statusCanceled)),
         onPath(client.terminate)(described.await(system.Fact.statusTerminated)),
-        onPath(deadline.scheduleToStart, deadline.startToClose)(
+        onPath(
+          deadline.scheduleToStart,
+          client.start(startToClose := Timeout.expires, maxAttempts := MaxAttempts.one)
+        )(
           described.await(everyValue(system.Fact.statusTimedOut))
         )
       )
@@ -201,6 +250,45 @@ object Standalone extends Realizes(ActivitySystem):
         )
       )
   object controls extends Controls(unstartedDispatch)
+
+// Uses the unchanged System rows, but only the timeout path's second-delivery evidence. The first
+// attempt withholds its answer until its armed deadline; the second completes.
+object RetryAfterTimeout extends Realizes(TimeoutRetry):
+  object controller
+      extends Controller(
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.two),
+          startTwo,
+          duration(deadlineSeconds),
+          unset = Some(startToClose -> startTwoUnreached)
+        )(
+          startDelay.sets(_.getStartDelay),
+          scheduleToStart.sets(_.getScheduleToStartTimeout),
+          startToClose.sets(_.getStartToCloseTimeout)
+        ),
+        onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted))
+      )
+  object workers extends Workers(timeoutAttempts)
+  object evidence
+      extends Evidences(
+        answered(system.Fact.statusScheduled, startActivity),
+        delivered(
+          system.Fact.statusStarted,
+          timeoutAttempts,
+          attempt = 1,
+          after = startActivity,
+          Taking(worker.poll, 1)
+        ),
+        delivered(
+          system.Fact.attemptCount,
+          timeoutAttempts,
+          attempt = 2,
+          after = startActivity,
+          Taking(deadline.startToClose, 1),
+          Taking(worker.poll, 2)
+        ),
+        described(system.Fact.statusCompleted)
+      )
 
 // ### The held race
 // A controller starts one activity on a queue no worker polls, holds its dispatch between

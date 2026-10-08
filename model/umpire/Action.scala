@@ -122,6 +122,14 @@ final class Action[I <: Tuple] private[umpire] (val decl: ActionDecl):
       w: InputAt[I, 4, 3]
   ): Class = Class(decl, List(x, y, z, w))
 
+  def apply(
+      x: InputAt[I, 5, 0],
+      y: InputAt[I, 5, 1],
+      z: InputAt[I, 5, 2],
+      w: InputAt[I, 5, 3],
+      v: InputAt[I, 5, 4]
+  ): Class = Class(decl, List(x, y, z, w, v))
+
   override def toString: String = decl.name
 
 extension [A](a: Action[A *: EmptyTuple])
@@ -145,6 +153,11 @@ type InputAt[I <: Tuple, Size <: Int, N <: Int] = (I, Size, N) match
   case ((a, b, c, d), 4, 1)    => b
   case ((a, b, c, d), 4, 2)    => c
   case ((a, b, c, d), 4, 3)    => d
+  case ((a, b, c, d, e), 5, 0) => a
+  case ((a, b, c, d, e), 5, 1) => b
+  case ((a, b, c, d, e), 5, 2) => c
+  case ((a, b, c, d, e), 5, 3) => d
+  case ((a, b, c, d, e), 5, 4) => e
   case _                       => OtherInputs
 
 // What a positional call takes where the action has another number of inputs: no value.

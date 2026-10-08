@@ -25,7 +25,7 @@ Current source after fn-132.2: `model/temporal/features/activity/standalone/Stan
 
 - **R1 Dispatch is a field, not a phase.** `system.State` gains `dispatch: Dispatch` (`now`, `startDelay`, `backoff`), replacing the `backingOff` phase. `client.start` gains a `startDelay: Timeout` input, with a `timers.startDelay` timer that makes the attempt dispatchable. Pause and unpause keep `dispatch`. Schedule-to-start is armed only while dispatchable and waiting. The refinement map to the Product follows (scheduled while waiting, whatever `dispatch` holds).
 - **R2 Rejections are rows.** `Outcome` gains `failedPrecondition` and `invalidArgument`. Every pair the server answers with one of them is a rule with that outcome, citing the server code, in both the Product and the System. The seven `silent-rejection` acceptances in `model/ir/activity-standalone*.lint.json` are removed. `closedIsRejectedUniformly` keeps NotFound for closed activities. A repeated `RequestCancel` in `cancelRequested` answers `failedPrecondition`.
-- **R3 Retry policy.** A `maxAttempts` start input over a small finite domain (e.g. `one`, `two`, `unlimited`) and a `states.retriesRemaining`. A retryable failure, or a retryable timeout (start-to-close today; heartbeat with the coverage spec), retries while attempts remain and fails otherwise, as the Go model's `retriesRemaining` and `NonRetryableTimeouts` say. The attempt bound stays finite.
+- **R3 Retry policy.** A `maxAttempts` start input over a small finite domain (e.g. `one`, `two`, `unlimited`) and a `states.retriesRemaining`. A retryable failure, or a retryable timeout (start-to-close today; heartbeat with the coverage spec), retries while attempts remain and settles otherwise: Failed for exhausted failure, TimedOut for exhausted or cancellation-requested timeout. The attempt bound stays finite, derived from the largest finite policy limit. A pending pause retains Suspended and backoff on retry. The independent Model's cancellation-requested retryable-failure -> Canceled disagreement with the Go comparator's Failed requires a separate owner decision.
 - **R4 Stutter facts checked.** `ActivitySystem`'s `refinement` declares `visible`, so a fact recorded on a step the Product reads as a stutter is checked. Any refinement rejection this surfaces is decided and recorded.
 - **R5 Adopted from the Go model:**
   - Cancel > Reset > Pause precedence as a checked Property (e.g. `cancelIsNotUndone`; reset arrives with the coverage spec).
@@ -39,6 +39,8 @@ Current source after fn-132.2: `model/temporal/features/activity/standalone/Stan
 - Runs after fn-126 closes (its R5 freeze), using its final layout, IDs and names.
 - No reset, heartbeat or respond-by-ID: those belong to "Activity coverage".
 - Not the Nexus Models.
+
+R3 scope clarification, approved 2026-10-08 under delegated recommendations: a mechanically derived timeout-retry machine and separate realization preserve the existing failure-retry evidence's all-or-none occurrence contract. Realize the requested timeout-then-completion path through the existing Testpilot ActivityAttemptWithholding opcode12, with only its typed Scala/Umpire Command/admission/lifter/lowering bridge and focused armed/bounded/owner/ordering/runtime tests. No new Testpilot runtime or opcode, generic path-evidence mechanism, Deadline capability or dependency. R6 records this additive Command arm, the extra derived machine/realization and measured artifacts; production generation/live/full gates stay at the shared batch boundary.
 
 ## Verification
 

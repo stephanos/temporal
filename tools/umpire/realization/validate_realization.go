@@ -563,6 +563,9 @@ func (a *realizing) items(mm *umpirespb.Machine, s *umpirespb.Script) {
 		case item.GetCommand() != nil && len(item.GetPerforms()) > 0:
 			a.report(pos, "script %s has an item that is both a command and the place steps are performed", s.GetId())
 		case item.GetCommand() != nil && mm != nil:
+			if item.GetCommand().GetAttemptWithheld() != nil {
+				a.withholding(s, item)
+			}
 			for _, c := range item.GetWhen() {
 				a.d.ActionClass(a.owner+": script "+s.GetId(), mm, c, pos)
 			}
@@ -577,7 +580,27 @@ func (a *realizing) items(mm *umpirespb.Machine, s *umpirespb.Script) {
 // performs checks the class a performance binds, and that no other performance of the realization
 // binds it.
 func (a *realizing) performs(mm *umpirespb.Machine, s *umpirespb.Script, p *umpirespb.Performance) {
+	if p.GetCommand().GetAttemptWithheld() != nil {
+		a.report(p.GetPosition(), "command %s withholds an attempt under a performance: withholding is onPath of its server timer, not an action it performs", p.GetCommand().GetId())
+	}
 	a.performing(mm, "script "+s.GetId(), p.GetStep(), p.GetPosition(), fmt.Sprintf("%s of script %s", p.GetCommand().GetId(), s.GetId()))
+}
+
+// Withholding runs only for a path that takes its one armed, bounded server timer. It does not
+// perform the timeout: the server does. The activity's context supplies the execution deadline.
+func (a *realizing) withholding(s *umpirespb.Script, item *umpirespb.Item) {
+	at := item.GetPosition()
+	if len(item.GetWhen()) != 1 {
+		a.report(at, "command %s withholds an attempt without exactly one armed bounded server timer", item.GetCommand().GetId())
+		return
+	}
+	key := a.d.ClassKey(item.GetWhen()[0])
+	for _, step := range a.r.GetServerSteps() {
+		if a.d.ClassKey(step.GetStep()) == key && step.GetKind() == umpirespb.CAUSE_KIND_TIMER && step.GetDeadlineMs() > 0 {
+			return
+		}
+	}
+	a.report(at, "command %s withholds an attempt without an armed bounded server timer in script %s", item.GetCommand().GetId(), s.GetId())
 }
 
 // performing records what performs one class of the machine, a command or the activation of a script,
@@ -722,6 +745,10 @@ func (a *realizing) command(s *umpirespb.Script, c commandOf, all map[string]*um
 	case *umpirespb.Command_AttemptCanceled:
 		if s.GetActivity() == nil {
 			a.report(c.at, "command %s cancels an attempt, and script %s is no activity's", c.name, s.GetId())
+		}
+	case *umpirespb.Command_AttemptWithheld:
+		if s.GetActivity() == nil {
+			a.report(c.at, "command %s withholds an attempt, and script %s is no activity's", c.name, s.GetId())
 		}
 	default:
 		a.report(c.at, "command %s names no instruction", c.name)

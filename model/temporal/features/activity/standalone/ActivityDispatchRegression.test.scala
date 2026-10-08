@@ -1,7 +1,7 @@
 package umpire
 
 import temporal.features.activity.{deadline, timers, Failure, Timeout}
-import temporal.features.activity.standalone.{client, system, worker}
+import temporal.features.activity.standalone.{client, system, worker, MaxAttempts}
 import temporal.features.activity.standalone.system.ActivitySystem
 import umpire.outcomes.Outcome
 
@@ -39,9 +39,16 @@ class ActivityDispatchRegression extends munit.FunSuite:
       .find(_.decl == client.start.decl)
       .get
       .function
-      .asInstanceOf[(system.State, Timeout, Timeout, Timeout, Timeout) => List[
+      .asInstanceOf[(system.State, Timeout, Timeout, Timeout, Timeout, MaxAttempts) => List[
         Step[system.State, Outcome, system.Fact]
-      ]](ActivitySystem.init, Timeout.expires, Timeout.expires, Timeout.unset, Timeout.expires)
+      ]](
+        ActivitySystem.init,
+        Timeout.expires,
+        Timeout.expires,
+        Timeout.unset,
+        Timeout.expires,
+        MaxAttempts.unlimited
+      )
       .head
       .state // scalafix:ok DisableSyntax.asInstanceOf
 
@@ -105,7 +112,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
   }
 
   test("every waiting dispatch maps to the Product's scheduled state") {
-    assertEquals(summon[Finite[system.State]].values.size, 792)
+    assertEquals(summon[Finite[system.State]].values.size, 2376)
     for dispatch <- system.Dispatch.values do
       val waiting = ActivitySystem.init.copy(phase = system.Phase.scheduled, dispatch = dispatch)
       assertEquals(

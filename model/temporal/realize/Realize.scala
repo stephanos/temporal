@@ -70,6 +70,9 @@ enum WorkerInstruction extends Instruction:
   // Answers the attempt of an activity as canceled.
   case AttemptCanceled
 
+  // Offers no answer; the attempt's armed start-to-close deadline ends it.
+  case AttemptWithheld
+
   // A deliberate outage of the worker that polls a task-queue role.
   case Fault(role: String | Role, kind: FaultKind)
 

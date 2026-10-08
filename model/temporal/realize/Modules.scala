@@ -9,7 +9,7 @@ import io.grpc.MethodDescriptor
 import scala.annotation.unused
 import scalapb.{GeneratedEnum, GeneratedMessage}
 import io.temporal.api.history.v1.HistoryEvent
-import umpire.{Action, Input, Machine}
+import umpire.{Action, Class, Input, Machine}
 import umpire.realize.*
 
 // The fields every call on `role` assigns, each a request field by its protobuf name and the
@@ -117,11 +117,13 @@ extension (input: Input[?])
 // fields are declared, keeping the call's name, as `withFields` does. A class that leaves the input
 // `unset` names unset is performed from that entry's command instead, since the server refuses the
 // call without it. A class that expires an input the declaration leaves out is unrealizable: no
-// binding performs it, and the coverage report shows it. `M` is the message of `call` the fields
+// binding performs it, and the coverage report shows it. An action with non-Timeout inputs must
+// supply a Class preset: those inputs keep its values, while its Timeout inputs must be at their
+// defaults. Several presets extend the action's catalog without repeating a class. `M` is the message of `call` the fields
 // are of: its request, or the protobuf a worker command carries.
 object deadlines:
   def apply[M](
-      @unused action: Action[?],
+      @unused action: Action[?] | Class,
       @unused call: Command | Instruction,
       @unused value: TypedProto[com.google.protobuf.duration.Duration],
       @unused unset: Option[(Input[?], Command | Instruction)] = None

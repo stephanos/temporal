@@ -515,7 +515,7 @@ func (a *adapter) activation(s *umpirespb.Script) (func() *testpilotspb.Entrypoi
 func (a *adapter) command(s *umpirespb.Script, c *umpirespb.Command) (built, error) {
 	// The commands of an activity's script are the answers to its attempts, and Testpilot admits no
 	// other instruction there.
-	if s.GetActivity() != nil && c.GetFinish() == nil && c.GetAttemptFailure() == nil && c.GetAttemptCanceled() == nil {
+	if s.GetActivity() != nil && c.GetFinish() == nil && c.GetAttemptFailure() == nil && c.GetAttemptCanceled() == nil && c.GetAttemptWithheld() == nil {
 		return built{}, errorAt(c.GetPosition(), "command %s of activity script %s is no answer to an attempt: an attempt ends with a result or a failure",
 			c.GetId(), s.GetId())
 	}
@@ -663,6 +663,9 @@ func (a *adapter) instruction(s *umpirespb.Script, c *umpirespb.Command) (*testp
 	case *umpirespb.Command_AttemptCanceled:
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{
 			ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}}, nil
+	case *umpirespb.Command_AttemptWithheld:
+		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{
+			ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{}}}, nil
 	case *umpirespb.Command_AttemptFailure:
 		return a.attemptFailure(c, in.AttemptFailure)
 	default:

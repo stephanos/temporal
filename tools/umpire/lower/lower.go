@@ -375,6 +375,11 @@ func (l *lowering) attemptClasses(s *umpirespb.Script) (started, answered map[st
 		started[l.adapter.classKey(class)] = true
 	}
 	for _, item := range s.GetItems() {
+		if item.GetCommand().GetAttemptWithheld() != nil {
+			for _, timer := range item.GetWhen() {
+				answered[l.adapter.classKey(timer)] = true
+			}
+		}
 		for _, performance := range item.GetPerforms() {
 			answered[l.adapter.classKey(performance.GetStep())] = true
 		}

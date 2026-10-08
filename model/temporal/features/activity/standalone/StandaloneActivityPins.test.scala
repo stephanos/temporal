@@ -74,6 +74,16 @@ class StandaloneActivityPins extends munit.FunSuite:
             three,
             four
           )
+      case List(one, two, three, four, five) =>
+        binding.function
+          .asInstanceOf[(S, Any, Any, Any, Any, Any) => List[Step[S, O, F]]](
+            state,
+            one,
+            two,
+            three,
+            four,
+            five
+          )
       case other => fail(s"the pinned activity action has ${other.size} inputs")
     // scalafix:on DisableSyntax.asInstanceOf
 
@@ -125,7 +135,9 @@ class StandaloneActivityPins extends munit.FunSuite:
         worker.respondFailed.decl,
         Some(List(Failure.retryable)),
         _.phase == started,
-        s => accepted(s.copy(phase = scheduled), Fact.statusScheduled)
+        s =>
+          accepted(s.copy(phase = scheduled), Fact.statusScheduled) ++
+            accepted(s.copy(phase = failed), Fact.statusFailed)
       ),
       ExpectedRule(
         worker.respondFailed.decl,
@@ -289,11 +301,11 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.retryable)),
-        _.phase == started,
+        s => s.phase == started && retriesRemain(s),
         s =>
           acceptedBecause(
             s.copy(phase = scheduled, dispatch = Dispatch.backoff),
-            "a retryable failure backs off; the client reads scheduled again",
+            "a retryable attempt backs off; the client reads scheduled again",
             Fact.statusScheduled,
             Fact.attemptCount
           )
@@ -307,13 +319,19 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.retryable)),
-        _.phase == pauseRequested,
+        s => s.phase == pauseRequested && retriesRemain(s),
         s =>
           accepted(
             s.copy(phase = paused, dispatch = Dispatch.backoff),
             Fact.statusPaused,
             Fact.attemptCount
           )
+      ),
+      ExpectedRule(
+        worker.respondFailed.decl,
+        Some(List(Failure.retryable)),
+        s => (s.phase == started || s.phase == pauseRequested) && !retriesRemain(s),
+        s => accepted(s.copy(phase = failed), Fact.statusFailed)
       ),
       ExpectedRule(
         worker.respondCanceled.decl,
@@ -444,8 +462,33 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         deadline.startToClose.decl,
         None,
-        s => heldSystem(s.phase) && s.startToClose == Timeout.expires,
+        s =>
+          heldSystem(s.phase) && s.startToClose == Timeout.expires &&
+            (s.phase == cancelRequested || !retriesRemain(s)),
         s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut(TimeoutType.startToClose))
+      ),
+      ExpectedRule(
+        deadline.startToClose.decl,
+        None,
+        s => s.phase == started && s.startToClose == Timeout.expires && retriesRemain(s),
+        s =>
+          acceptedBecause(
+            s.copy(phase = scheduled, dispatch = Dispatch.backoff),
+            "a retryable attempt backs off; the client reads scheduled again",
+            Fact.statusScheduled,
+            Fact.attemptCount
+          )
+      ),
+      ExpectedRule(
+        deadline.startToClose.decl,
+        None,
+        s => s.phase == pauseRequested && s.startToClose == Timeout.expires && retriesRemain(s),
+        s =>
+          accepted(
+            s.copy(phase = paused, dispatch = Dispatch.backoff),
+            Fact.statusPaused,
+            Fact.attemptCount
+          )
       )
     ) ++ startRules
 
@@ -455,9 +498,10 @@ class StandaloneActivityPins extends munit.FunSuite:
       scheduleStart <- Timeout.values.toList
       startClose <- Timeout.values.toList
       delay <- Timeout.values.toList
+      policy <- temporal.features.activity.standalone.MaxAttempts.values.toList
     yield ExpectedRule[system.State, system.Fact](
       client.start.decl,
-      Some(List(scheduleClose, scheduleStart, startClose, delay)),
+      Some(List(scheduleClose, scheduleStart, startClose, delay, policy)),
       _.phase == system.Phase.unstarted,
       _ =>
         accepted(
@@ -467,11 +511,17 @@ class StandaloneActivityPins extends munit.FunSuite:
             attempts = UpTo(0),
             scheduleToClose = scheduleClose,
             scheduleToStart = scheduleStart,
-            startToClose = startClose
+            startToClose = startClose,
+            maxAttempts = policy
           ),
           system.Fact.statusScheduled
         )
     )
+
+  private def retriesRemain(s: system.State): Boolean = s.maxAttempts match
+    case temporal.features.activity.standalone.MaxAttempts.unlimited => true
+    case temporal.features.activity.standalone.MaxAttempts.one       => s.attempts < 1
+    case temporal.features.activity.standalone.MaxAttempts.two       => s.attempts < 2
 
   private def liveSystem(p: system.Phase): Boolean =
     import system.Phase.*
@@ -491,7 +541,7 @@ class StandaloneActivityPins extends munit.FunSuite:
 
   test("the standalone signature declares one action for every RPC") {
     assertEquals(client.start.decl.creates, Some(activity))
-    assertEquals(client.start.decl.domains.size, 4)
+    assertEquals(client.start.decl.domains.size, 5)
 
     val controls = List(client.pause, client.unpause, client.requestCancel, client.terminate)
     for control <- controls do

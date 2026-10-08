@@ -58,6 +58,12 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     val complete = effect { phase = completed }
     val fail = effect { phase = failed }
     val retry = effect { phase = scheduled }
+    val retryScheduled = choice
+    val retryExhausted = choice
+    def retryOrFail(s: State) = choose(
+      retryScheduled -> retry(s),
+      retryExhausted -> fail(s)
+    )
     val cancel = effect { phase = canceled }
     val pause = effect { phase = Phase.paused }
     // started also reads a held attempt whose pause is pending (System.refinement.toProduct).
@@ -118,7 +124,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       }
 
       on(respondFailed(Failure.retryable)) {
-        when(started) ~> effects.retry
+        when(started) ~> effects.retryOrFail
         when(cancelRequested) ~> effects.cancel
       }
       on(respondCanceled) {

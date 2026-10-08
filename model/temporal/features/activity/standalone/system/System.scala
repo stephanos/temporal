@@ -37,14 +37,15 @@ enum Phase derives Finite:
 enum Dispatch derives Finite:
   case now, startDelay, backoff
 
-// 11 phases, 3 dispatch values, 3 attempt counts and 3 deadline flags: 792 states.
+// 11 phases, 3 dispatch values, 3 attempt counts, 3 deadline flags and 3 retry policies: 2376 states.
 final case class State(
     phase: Phase,
     dispatch: Dispatch,
-    attempts: UpTo[2],
+    attempts: UpTo[MaxAttempts.Bound],
     scheduleToClose: Timeout,
     scheduleToStart: Timeout,
-    startToClose: Timeout
+    startToClose: Timeout,
+    maxAttempts: MaxAttempts
 ) derives Finite
 
 // What the System machine records; `attemptCount` is named after its observation.
@@ -70,7 +71,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     attempts = UpTo(0),
     scheduleToClose = Timeout.unset,
     scheduleToStart = Timeout.unset,
-    startToClose = Timeout.unset
+    startToClose = Timeout.unset,
+    maxAttempts = MaxAttempts.unlimited
   )
 
   // A timeout is confirmed by the one status observation, whichever deadline fired.
@@ -82,9 +84,15 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
   // The System's status sets and its attempt count's bound.
   object states:
     // Bounds the attempt count, as the type of `State.attempts` does.
-    val attemptBound = 2
+    val attemptBound = MaxAttempts.bound
 
-    def saturatingSucc(a: UpTo[2]): UpTo[2] = UpTo((a + 1).min(attemptBound))
+    def saturatingSucc(a: UpTo[MaxAttempts.Bound]): UpTo[MaxAttempts.Bound] =
+      UpTo((a + 1).min(attemptBound))
+
+    def retriesRemaining(s: State): Boolean = s.maxAttempts match
+      case MaxAttempts.unlimited => true
+      case MaxAttempts.one       => s.attempts < 1
+      case MaxAttempts.two       => s.attempts < attemptBound
 
   // The System refines the product: what each of its states reads as there.
   object refinement extends Refinement(ActivityProduct):
@@ -115,7 +123,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         scheduleToClose: Timeout,
         scheduleToStart: Timeout,
         startToClose: Timeout,
-        startDelay: Timeout
+        startDelay: Timeout,
+        maxAttempts: MaxAttempts
     ) =
       enter(
         system.State(
@@ -124,7 +133,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
           attempts = UpTo(0),
           scheduleToClose = scheduleToClose,
           scheduleToStart = scheduleToStart,
-          startToClose = startToClose
+          startToClose = startToClose,
+          maxAttempts = maxAttempts
         ),
         statusScheduled
       )
@@ -148,7 +158,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         statusScheduled,
         Fact.attemptCount
       )
-        .because("a retryable failure backs off; the client reads scheduled again")
+        .because("a retryable attempt backs off; the client reads scheduled again")
 
     // A pause requested during the attempt takes effect on its delayed retry (model.go:130-137).
     def backOffPaused(s: State) =
@@ -236,9 +246,10 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       }
 
       on(respondFailed(Failure.retryable)) {
-        when(started) ~> effects.backOff
+        when(started).where(states.retriesRemaining) ~> effects.backOff
         when(cancelRequested) ~> effects.cancel
-        when(pauseRequested) ~> effects.backOffPaused
+        when(pauseRequested).where(states.retriesRemaining) ~> effects.backOffPaused
+        when(started, pauseRequested).where(s => !states.retriesRemaining(s)) ~> effects.fail
       }
       on(respondCanceled) {
         when(cancelRequested) ~> effects.cancel
@@ -288,8 +299,17 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         ))
       }
       on(startToClose) {
+        when(started).where(s =>
+          s.startToClose == Timeout.expires && states.retriesRemaining(s)
+        ) ~> effects.backOff
+        when(pauseRequested).where(s =>
+          s.startToClose == Timeout.expires && states.retriesRemaining(s)
+        ) ~> effects.backOffPaused
         when[Held]
-          .where(_.startToClose == Timeout.expires) ~> (effects.timeOut(
+          .where(s =>
+            s.startToClose == Timeout.expires &&
+              (s.phase == cancelRequested || !states.retriesRemaining(s))
+          ) ~> (effects.timeOut(
           _,
           TimeoutType.startToClose
         ))
@@ -329,7 +349,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         attempts = UpTo(states.attemptBound),
         scheduleToClose = Timeout.unset,
         scheduleToStart = Timeout.unset,
-        startToClose = Timeout.unset
+        startToClose = Timeout.unset,
+        maxAttempts = MaxAttempts.unlimited
       )
 
     // The attempt count saturates at `states.attemptBound`, so the claim is bounded by it: a completion on
@@ -338,6 +359,11 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       property when worker.respondCompleted holds { s =>
         s.state == completedOnRetry && s.records(Fact.statusCompleted)
       }
+
+    val retryExhausts = property when worker.respondFailed(Failure.retryable) holds { s =>
+      s.state == completedOnRetry.copy(phase = Phase.failed, maxAttempts = MaxAttempts.two) &&
+      s.records(Fact.statusFailed)
+    }
 
     val cancelRequestedWhileStarted =
       property when client.requestCancel holds { s =>
@@ -366,8 +392,11 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     }
 
     val startToCloseFires = property when deadline.startToClose holds { s =>
-      s.state.phase == Phase.timedOut &&
-      s.records(Fact.statusTimedOut(TimeoutType.startToClose))
+      (s.state.phase == Phase.timedOut &&
+        s.records(Fact.statusTimedOut(TimeoutType.startToClose))) ||
+      (s.state.dispatch == Dispatch.backoff && s.records(Fact.attemptCount) &&
+        ((s.state.phase == Phase.scheduled && s.records(Fact.statusScheduled)) ||
+          (s.state.phase == Phase.paused && s.records(Fact.statusPaused))))
     }
 
   // What the System machine is, as its capability Properties read it, which a find through its
@@ -401,10 +430,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     capabilities.bound(three)
 
     val any = scenario.free
-    val delayedAttemptsAreNotDispatched =
-      query verify properties.dispatchRequiresReady in any limits eight
-    val scheduleToStartWaitsForDispatch =
-      query verify properties.scheduleToStartRequiresDispatch in any limits eight
 
     val cancelRequestedThenCanceled = scenario.actions(
       client.start(),
@@ -436,6 +461,14 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       worker.poll,
       worker.respondCompleted
     )
+    val exhausted = scenario.actions(
+      client.start(maxAttempts := MaxAttempts.two),
+      worker.poll,
+      worker.respondFailed(Failure.retryable),
+      timers.backoff,
+      worker.poll,
+      worker.respondFailed(Failure.retryable)
+    )
     val terminatedWhileScheduled = scenario.actions(
       client.start(),
       process.stop,
@@ -454,10 +487,15 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       deadline.scheduleToStart
     )
     val startToCloseExpires = scenario.actions(
-      client.start(startToClose := expires),
+      client.start(startToClose := expires, maxAttempts := MaxAttempts.one),
       worker.poll,
       deadline.startToClose
     )
+
+    val delayedAttemptsAreNotDispatched =
+      query verify properties.dispatchRequiresReady in any limits eight
+    val scheduleToStartWaitsForDispatch =
+      query verify properties.scheduleToStartRequiresDispatch in any limits eight
 
     // One Query per side effect that settles the activity, apart from the Properties they find.
     val completion =
@@ -469,6 +507,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     val retry =
       (query find properties.retryCompletes in retriedThenCompleted limits six)
         .expect(inconclusive(Reason.explanationsDisagree))
+    val retryExhaustion =
+      query find properties.retryExhausts in exhausted limits six
     val cancel =
       query find properties.canceledByWorker in cancelRequestedThenCanceled limits four
     // The worker stops before the start, so no attempt is in flight when the client terminates.
@@ -490,6 +530,29 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     val cancelRequest =
       query find properties.cancelRequestedWhileStarted in cancelRequestedThenCanceled limits
         four
+
+// The same System state and rules, with a realization whose second delivery confirms a timeout,
+// not a failed answer. One kind confirms all the occurrences it names, so the failure-retry kind
+// cannot evidence a path on which no failed answer occurs.
+object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    val completesAfterTimeout = property when worker.respondCompleted holds { s =>
+      s.state == ActivitySystem.properties.completedOnRetry.copy(
+        startToClose = Timeout.expires,
+        maxAttempts = MaxAttempts.two
+      ) && s.records(Fact.statusCompleted)
+    }
+  object queries:
+    val timedOutThenCompleted = scenario.actions(
+      client.start(startToClose := expires, maxAttempts := MaxAttempts.two),
+      worker.poll,
+      deadline.startToClose,
+      timers.backoff,
+      worker.poll,
+      worker.respondCompleted
+    )
+    val retryAfterTimeout =
+      query find properties.completesAfterTimeout in timedOutThenCompleted limits six
 
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 

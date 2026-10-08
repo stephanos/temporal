@@ -233,8 +233,10 @@ private[umpire] def effectOf[S, O, F](
     case 2 => (s, i) => f.asInstanceOf[(S, Any, Any) => R](s, i(0), i(1))
     case 3 => (s, i) => f.asInstanceOf[(S, Any, Any, Any) => R](s, i(0), i(1), i(2))
     case 4 => (s, i) => f.asInstanceOf[(S, Any, Any, Any, Any) => R](s, i(0), i(1), i(2), i(3))
+    case 5 =>
+      (s, i) => f.asInstanceOf[(S, Any, Any, Any, Any, Any) => R](s, i(0), i(1), i(2), i(3), i(4))
     case n =>
-      throw IllegalArgumentException(s"a step function supports at most four inputs, got $n")
+      throw IllegalArgumentException(s"a step function supports at most five inputs, got $n")
   // scalafix:on DisableSyntax.asInstanceOf
 
 // The step function an action's binding lowers to, of the action's arity: its own, or for rules the
@@ -254,8 +256,9 @@ private[umpire] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O, F
         case 2 => (s: S, a: Any, b: Any) => run(s, List(a, b))
         case 3 => (s: S, a: Any, b: Any, c: Any) => run(s, List(a, b, c))
         case 4 => (s: S, a: Any, b: Any, c: Any, d: Any) => run(s, List(a, b, c, d))
+        case 5 => (s: S, a: Any, b: Any, c: Any, d: Any, e: Any) => run(s, List(a, b, c, d, e))
         case n =>
-          throw IllegalArgumentException(s"a step function supports at most four inputs, got $n")
+          throw IllegalArgumentException(s"a step function supports at most five inputs, got $n")
 
 // Every class of an action: each assignment of its inputs, in catalog order.
 private[umpire] def classesOf(decl: ActionDecl): List[List[Any]] =
