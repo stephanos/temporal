@@ -39,17 +39,25 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-Blocked:
-D27 implementation is merged at `bfb2bdb8ef136d3eb38cbd539735661d5d7c9af5`, reachable from the current `gomad` HEAD. The README contract names host-clock reporting escapes and the declined collector-stamp overwrite; the static inventory and fixtures pin Darwin `gettimeofday` and `cputicks`. No prohibited collector or assembly source was changed. Independent correctness review returned SHIP for the implementation, not native qualification.
+# fn-105.32 retained source acceptance
 
-Fresh development verification: `GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -count=1 -tags test_dep ./toolchain -run TestHostClockInventoryPinsPlatformSpecificEscapes` exits 0. Earlier implementation commands, review, and source evidence remain in `/tmp/flow-next-fn105-32/summary.md` and `/tmp/flow-next-fn105-32/evidence.json`.
+R27 source acceptance is complete without product changes. Three fresh-context Codex reviews returned actual SHIP, with zero findings and no unaddressed R-IDs, for source checkpoint 9081652cfd384d965391bede67a5b7d69f8056f3. Review included the complete clock inventory, original implementation range, current host-clock Contract and declined stamp-policy evidence.
 
-R27 remains incomplete: `make -C tools/gomad3 test-toolchain` must pass on native darwin/arm64 and linux/amd64. This host reports Linux aarch64 (linux/arm64), which the qualification contract does not support; the available local Docker builder is also arm64, and there are no usable GitHub Actions credentials. Cross-compiled or emulated checks cannot satisfy native qualification. Resume with a qualified host or CI; do not widen platform policy or mark this task done from synthetic inventory fixtures.
+The complete inventory and 2,819-byte Contract passage remain exact original implementation bytes. Current classification, six-count escape fixture, exposure/reader consequences and declined LastGC/PauseEnd overwrite are preserved. Two original policy receipts now have durable, lossless repository containers with their 3,660 original bytes verified; their historical skipped-review status supplies no new review credit.
+
+The independent conductor rerun passed six selected portable tests with zero failures or skips. Generated validation and source/policy verification passed. Exact reuse verifies 87 runtime/inventory/generator/archive inputs and 1,223 referenced closure paths, while excluding five changed documents from historical reuse. Both supported materialized source sets retain 48 clock rows and activation guard checks. No native patched-runtime pass follows from this static source evidence.
+
+Configured changed-source lint including errortype vet passes; the whole clock-inventory file has no lint findings and is gofmt clean. The unfiltered toolchain lint remains red on 16 unrelated findings, with no package/global waiver. The conductor verifier initially assumed a nonexistent bundle manifest; that failed artifact check is preserved, and the corrected actual-receipt-schema verification passes with no product changes.
+
+Native Darwin clock/runtime/full qualification remains unverified under fn-149. Linux native qualification and CI remain deferred under fn-128. No collector or assembly edits, overwrite-policy revival, host spoofing, PR, push or CI action occurred.
+
+stage: impl-review - ran (three actual SHIP draws; selected gpt-6.1-sol high, same GPT family; actual execution model metadata not independently verified)
+stage: plan-sync - skipped(config: disabled)
+Tracker sync: n/a (bridge inactive)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9081652cfd384d965391bede67a5b7d69f8056f3
+- Tests: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run ^(TestHostClockInventoryPinsPlatformSpecificEscapes|TestValidateAcceptsCurrentCheckedInputs|TestValidateRejectsPatchOutsideDescriptorAllowlist|TestValidateClassifiesProhibitedRuntimeAreas|TestValidateRejectsUnlistedAndBinaryOverlayEntries|TestBuildRejectsUnsupportedHostBeforePreparingInputs)$ ./toolchain, make -C tools/gomad3 validate, node .flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/conductor-verify.mjs, timeout 600 make lint-code GOLANGCI_LINT_BASE_REV=70bb38e5ddec2d271c12f0e8c2489855f08eb0ef GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 LINT_CODE_TARGETS=./toolchain ALL_TEST_TAGS=test_dep, gofmt clock_inventory_test.go: no output; raw argv in task-owned-format.json, flowctl codex impl-review-fanout + finalize rid56ffa00e4de645ac99b2c81c2de8f995: three actual SHIP draws; R27 source met; native unverified
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Contract/inventory/remedies, collector/assembly policy and native Darwin test-toolchain proof. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

@@ -1,0 +1,14 @@
+{
+  "commits": [
+    "9081652cfd384d965391bede67a5b7d69f8056f3"
+  ],
+  "tests": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run ^(TestHostClockInventoryPinsPlatformSpecificEscapes|TestValidateAcceptsCurrentCheckedInputs|TestValidateRejectsPatchOutsideDescriptorAllowlist|TestValidateClassifiesProhibitedRuntimeAreas|TestValidateRejectsUnlistedAndBinaryOverlayEntries|TestBuildRejectsUnsupportedHostBeforePreparingInputs)$ ./toolchain",
+    "make -C tools/gomad3 validate",
+    "node .flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-32/source-acceptance-20261008/conductor-verify.mjs",
+    "timeout 600 make lint-code GOLANGCI_LINT_BASE_REV=70bb38e5ddec2d271c12f0e8c2489855f08eb0ef GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 LINT_CODE_TARGETS=./toolchain ALL_TEST_TAGS=test_dep",
+    "gofmt clock_inventory_test.go: no output; raw argv in task-owned-format.json",
+    "flowctl codex impl-review-fanout + finalize rid56ffa00e4de645ac99b2c81c2de8f995: three actual SHIP draws; R27 source met; native unverified"
+  ],
+  "prs": []
+}
