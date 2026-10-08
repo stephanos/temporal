@@ -22,4 +22,3 @@ Keep the exact messages, ordering, conditions, panic mechanism and zero-mutation
 The pre-reset live states, blocker reasons and dependency lists are retained in [before-reset.json](before-reset.json). Original task bodies are immutable at `bc548110b9321df59d757d0e0e5c0fea464c002b`. The resumption restores each original task's historical summary/evidence after the CLI reset and adds the authoritative current-work note through `flowctl task set-spec`; historical blocked/source-progress narration does not change current `todo` status.
 
 No reset establishes completed acceptance. Retain portable coverage, original-base lint, generated validation, both-source-set static checks, byte equivalence, applicable non-native measurements, predecessor/source-review requirements and native-owner links. Complete each task only through `flowctl done` with verified evidence and review. The two unrelated `.turbo` documents remain excluded from commits.
-
