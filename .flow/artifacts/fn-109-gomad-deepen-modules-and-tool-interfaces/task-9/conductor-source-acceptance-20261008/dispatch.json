@@ -1,0 +1,18 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.9",
+  "base": "40847065726219b850827abc1e002e3a12edce33",
+  "branch": "gomad",
+  "scheduling": "wave(task-id run)",
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "role": "worker",
+  "requested_model": "gpt-6.1-sol",
+  "requested_effort": "high",
+  "actual_model": null,
+  "judge": {"success":true,"available":false,"preset":"tier","reason":"no_key","tier_line":"Tier: session (jev-unavailable(no_key))","spawn_model":null,"implementer":"gpt-6.1-sol"},
+  "review": "codex:gpt-6.1-sol:high, conductor deferred; not dispatched",
+  "lane": "exclusive shared Go/build/test/lint/generator",
+  "dependencies": {"fn109.8":"done","fn109.40":"todo; reviewed integrated source progress, no completion waiver"},
+  "tracker_active": false,
+  "plan_sync": false,
+  "native": "fn149/fn128 deferred and unverified"
+}
