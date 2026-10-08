@@ -1,0 +1,1614 @@
+# Worker anchor bundle - fn-109-gomad-deepen-modules-and-tool-interfaces.6 (spec fn-109-gomad-deepen-modules-and-tool-interfaces)
+
+Each section is the verbatim output of the command it is labeled with, in fixed order, untruncated. The bundle is a floor, not a ceiling - memory keyword-search and every further read remain available.
+
+===== [1/11] task_show: `flowctl show fn-109-gomad-deepen-modules-and-tool-interfaces.6 --json` =====
+{
+  "success": true,
+  "assignee": "stephanos@users.noreply.github.com",
+  "claim_note": "",
+  "claimed_at": "2026-10-08T13:29:56.174331Z",
+  "created_at": "2026-10-01T01:09:58.149117Z",
+  "depends_on": [
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.5"
+  ],
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.6",
+  "priority": null,
+  "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md",
+  "status": "in_progress",
+  "title": "Move public executor injection behind private dependencies (fulfils fn-105.3 D3)",
+  "updated_at": "2026-10-08T13:29:56.174317Z",
+  "impl": null,
+  "review": null,
+  "sync": null,
+  "status_source": "flow-state"
+}
+
+===== [2/11] task_md: `flowctl cat fn-109-gomad-deepen-modules-and-tool-interfaces.6` =====
+---
+satisfies: [R5]
+---
+# fn-109-gomad-deepen-modules-and-tool-interfaces.6 Move public executor injection behind private dependencies (fulfils fn-105.3 D3)
+
+## Description
+
+
+Owner amendment (2026-10-07). This task's remaining native darwin/arm64 execution, native reports/packs/replay, native qualification measurements, soak and platform-specific qualification guidance transfer to [fn-149-gomad-deferred-darwin-qualification](../specs/fn-149-gomad-deferred-darwin-qualification.md), with exact owners in the [native transfer manifest](../artifacts/native-scope-transfer-2026-10-07.md). Native linux/amd64 qualification and Linux CI work remain deferred under fn-128. Missing transferred native evidence cannot block this task or its source admission. This supersedes older native-first, missing-Darwin and no-renewed-deferral clauses only for transferred obligations. Implementation, ordinary host-source coverage, lint, both-source-set static checks, generated-output validation, byte equivalence, fixed-identity/matched-first-baseline preservation, non-native measurements, source review, docs consistency, actual checkout prerequisites and predecessor source integration/review/retained acceptance remain required. Full native test-host execution belongs to the native owner; partial portable runs cannot stand in for it or excuse portable failures. All other criteria and historical evidence below retain their original meaning. No task completion, native pass, PR, push or CI action follows from this transfer.
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
+Stage 3, R5 (F5). Public `Executor` and `ReplayExecutor` take and return `runner/internal/execution` types that no consumer outside the Runner subtree can import. This task is the single implementation owner of fn-105.3 (D3, origin brief `.flow/tasks/fn-102-gomad-architecture-consolidate.4.md`): do the work here, then close fn-105.3 by reference to this task's evidence. Do not implement it twice.
+
+**External ordering:** start only after the fn-108 R6/R7 tasks are done and verified: `fn-108-gomad-reduce-code-size-without-removing.5` (shared assessment, R6) and `.6` (retention and artifact-input composition, R7) in `tools/gomad3/runner`. Re-anchor the line references below against the post-fn-108 source first. flowctl cannot record a cross-spec task edge, so check `flowctl tasks --spec fn-108-gomad-reduce-code-size-without-removing` before `flowctl start`. Public Go changes overlapping fn-108 follow its completed extraction.
+
+**Size:** M
+**Files:** `tools/gomad3/runner/{runner.go,replay_operation.go,minimize_operation.go,campaign_shard_execution.go,resume.go,portable_plan.go}`, the runner tests that inject executors, an external-consumer compile fixture, `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md`.
+**Touches:** [`.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/source-acceptance-20261008/**`] (current retained source-acceptance evidence only)
+
+### Approach
+- Inventory first, written to `go-interface-changes.md` before any edit: every consumer of the exported names, the exact removed/changed declarations, the replacement construction and each caller migration. Current inventory to re-verify: `Executor` (`runner.go:118-120`) and fields `CampaignSpec.Executor` (`:172`), `ShardSpec.Executor` (`campaign_shard_execution.go:29`), `MinimizeSpec.Executor` (`minimize_operation.go:35`); `ReplayExecutor` (`replay_operation.go:28`) and `ReplaySpec.Executor` (`:41`). Production code outside `runner/` never sets them: `cmd/gomad/internal/cli` and `qualification/workload/workload.go:31-32,115-118` inject whole operations as functions. Test users: `runner_test.go`, `replay_operation_test.go`, `portable_plan_test.go`, `minimize_operation_test.go`, `inspect_test.go` (all package `runner`). `tools/gomad3sim` and `tools/gomad3integration` do not import Runner.
+- Remove the two interfaces and four fields from the public surface. Thread a private dependencies value through internal entry points (the `toolchain.Build` / `buildWith` shape at `toolchain/build.go:63-82` is the house pattern). Same-package tests pass fakes through the private entry point. No package-level mutable hook.
+- Keep the usable seams public: `Preparer` (`runner.go:114`), `ArtifactReplayer` (`:122`), `CampaignSpec.Preparer`/`Replayer` and their shard/minimize counterparts.
+- Behaviour that keys on injection must survive: `Explore` rejects injection with a coordinator command (`runner.go:371-373`), resume requires a supervisor command without an executor (`:1202`), replay checks `replayProcessExecutor` (`replay_operation.go:229`), and `simulationCapabilityForJob(executor, job)` (`runner.go:1542`) depends on the executor kind.
+- Do not replace the removed surface with descriptor, bootstrap or `execution.Spec` types in any exported signature.
+- External-consumer fixture: a module outside the Runner subtree (a temp module with a `replace` to `tools/gomad3`, built by a test, or a fixture under conformance `testdata`) that constructs `CampaignSpec`, `ReplaySpec`, `MinimizeSpec`, a custom `Preparer` and an `ArtifactReplayer` and compiles.
+
+### Investigation targets
+**Required:**
+- `tools/gomad3/runner/runner.go:112-177,298-315,362-377,1194-1210,1450-1560`
+- `tools/gomad3/runner/replay_operation.go:28-125,225-235`
+- `tools/gomad3/runner/minimize_operation.go:28-70,250-265,370-390`
+- `tools/gomad3/runner/campaign_shard_execution.go:20-95,135-177`
+- `.flow/tasks/fn-102-gomad-architecture-consolidate.4.md`
+**Optional:**
+- `tools/gomad3/toolchain/build.go:59-82` (private dependencies pattern)
+
+### Quick commands
+```bash
+cd tools/gomad3
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./qualification/... ./cmd/gomad/...
+GOWORK=off go vet -tags test_dep ./runner/... ./qualification/... ./cmd/...
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases'
+cd ../.. && flowctl show fn-105-gomad-follow-ups-deferred-scope.3
+```
+
+### Constraints
+- No `git add`, commit, stash or worktree: the user owns commits. Record `"commits": []` in the `flowctl done` evidence and say so in the summary.
+- No new third-party dependency. `tools/gomad3/go.mod` requires only `golang.org/x/mod`, so testify is unavailable inside `tools/gomad3`: follow the existing `t.Fatalf` style with whole-value comparisons there. In the root module (`tools/gomad3sim`, `tools/gomad3integration`) use `require` with `Equal`/`EqualValues`.
+- Preserve existing comments with their owning code, CLI grammar/defaults, canonical bytes for fixed supplied identities, and error precedence/classification.
+- This host is `darwin/arm64`. `linux/amd64` gates cannot run here: list them as incomplete in the done summary, never claim them.
+- fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
+- Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
+- Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
+
+### Current source-acceptance admission (2026-10-08)
+
+The implementation already exists in the integrated current gomad branch. Verify it rather than implementing it twice. This admission limits worker writes to fresh task6 source-acceptance evidence. Preserve all product source, existing assertions, comments, fixtures, original snapshots and prior frozen proofs. If an actual preservation gap is found, report the exact original/current source and failing case to the conductor before any source edit; no behavior waiver or generic lint suppression is admitted.
+
+Bind the original pre-edit inventory, actual snapshots and 31-file final-source manifest to their original owner and current integrated source, identifying subsequent owners without treating old passes as current execution. The final inventory is two interfaces and five public executor fields; the older approach's four-field count is historical, not the final contract. Confirm six private entrypoints, preserved public Preparer/ArtifactReplayer seams, no private exported signatures or mutable global injection hook, coordinator/isolation rejection, resume supervision, replay executor kind, simulation capability, and minimize/default replay fake behavior. Execute the external-module compile fixture with meaningful positive coverage and retained negative controls; zero selected tests or setup errors are not passes. Retain meaningful portable fake failure, cancellation, watchdog, replay, minimization and planning cases, exact current tools/environment/input hashes, generators, error types, formatting and actual unfiltered scoped/fast lint outcomes. Report inherited lint separately from introduced findings; do not suppress it.
+
+Re-verify fn108.5/.6 Done before claim and retain current status evidence. Fn105.3 is currently Todo despite historical text claiming closure; it is closed only by reference after this task's current accepted proof, without a second implementation. The conductor owns Flow lifecycle, MILESTONES, Git, review, reference completion and final acceptance. Local verification commits follow the owner's current milestone-completion mandate; the older no-commit clause is superseded only for conductor-owned local checkpoints. No PR, push, history rewrite, native qualification or Linux CI is authorized.
+
+The actual host is Linux/aarch64 with stock Go1.27.1 and no patched runtime. Preserve unsupported-host and missing-driver failures as failures; do not spoof the host, bypass guards, weaken assertions or repeat unbounded broad native gates. Full native host/runtime execution remains with fn149/fn128. Partial portable passes do not establish a native or full-host pass. Rebind retained static both-source-set/runtime closure against fresh current source, recognizing only approved fn114 trace/controller migrations and narrowly recorded completed-source changes. Earlier whole-tree checkpoint verifiers are historical after Flow/MILESTONES changes; do not recast them as current proof. All unaffected preservation requirements remain exact.
+## Acceptance
+
+
+Owner amendment (2026-10-07). This task's remaining native darwin/arm64 execution, native reports/packs/replay, native qualification measurements, soak and platform-specific qualification guidance transfer to [fn-149-gomad-deferred-darwin-qualification](../specs/fn-149-gomad-deferred-darwin-qualification.md), with exact owners in the [native transfer manifest](../artifacts/native-scope-transfer-2026-10-07.md). Native linux/amd64 qualification and Linux CI work remain deferred under fn-128. Missing transferred native evidence cannot block this task or its source admission. This supersedes older native-first, missing-Darwin and no-renewed-deferral clauses only for transferred obligations. Implementation, ordinary host-source coverage, lint, both-source-set static checks, generated-output validation, byte equivalence, fixed-identity/matched-first-baseline preservation, non-native measurements, source review, docs consistency, actual checkout prerequisites and predecessor source integration/review/retained acceptance remain required. Full native test-host execution belongs to the native owner; partial portable runs cannot stand in for it or excuse portable failures. All other criteria and historical evidence below retain their original meaning. No task completion, native pass, PR, push or CI action follows from this transfer.
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
+- [x] `go-interface-changes.md` lists every removed or changed exported declaration, its consumers, the replacement and the migration, written before the edits and updated to match the result.
+- [x] No exported Runner signature or field mentions a `runner/internal/execution` type; `Executor`/`ReplayExecutor` injection exists only as private dependencies.
+- [x] `Preparer` and `ArtifactReplayer` seams remain public and usable; the external-consumer fixture compiles from outside the Runner subtree.
+- [x] Fake-executor failure, cancellation and watchdog tests pass through the private entry points with unchanged semantics; no global mutable test hook exists.
+- [x] Default supervisor/coordinator behaviour and the injection-versus-isolation rejections are unchanged.
+- [x] fn-105.3 is closed by reference to this task (one owner); its summary cites this task's evidence and does not claim separate work.
+## Done summary
+Removed the inaccessible public Executor/ReplayExecutor interfaces and all five public executor fields. Explore, portable planning, shards, resume, replay and minimization use private executionDependencies through six private entrypoints. Public Preparer and ArtifactReplayer remain usable; the external-consumer fixture compiles from a separate module. Resume keeps fake dependencies, default process checks and coordinator injection rejection retain behavior, and minimizer candidates/default replay share the same fake.
+
+The pre-edit inventory is updated at `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md`. Actual original byte snapshots, final-source.json (31 files), task-only.patch, and parent-source-verification.json bind the migration. Original comments and test assertions are preserved; canonical CampaignOptions characterization passes.
+
+Darwin evidence: pre-edit broad Quick pass; API negative-control assertion red; private failure/cancellation/watchdog/replay/minimize/plan tests pass; root architecture/public API/external compile and scoped vet pass. Final task-only lint has zero issues; unfiltered lint retains 627 historical findings. Root make lint-code-fast remains the previously recorded nested-module loading exit2.
+
+The frozen full host gate actually exited 2 after 179 seconds: 44 package results passed and Runner failed only TestCoordinatorTransportCoversEveryCampaignSpecField because its local-only map still named the removed Executor. The only post-gate source delta is coordinator_transport_test.go: the stale entry was removed and private injection rejection is checked. The exact failed selector and coordinator family pass; independent parent canonical and architecture/external checks pass. The original failed gate, immutable source manifest and log are retained. No repeated broad gate or original exit0 is claimed.
+
+Formal read-only review returned SHIP at 2026-10-03T13:23:49.288652Z, with zero introduced/preexisting findings and no unaddressed requirements. Writer and reviewer both used gpt-6-sol high in fresh contexts (same-family limitation). Post-review source verification has no mismatches. Fn-105-gomad-follow-ups-deferred-scope.3 is closed and verified done by reference to this implementation; d3-reference-summary.md/evidence retain that single ownership.
+
+Native linux/amd64 and full-spec R18/R19 qualification remain incomplete under task21. No staging, commit, stash, push or worktree was used; commits=[] by user instruction.
+
+stage: impl-review - ran (receipt dated 2026-10-03T13:23:49.288652Z; model: gpt-6-sol at high)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (bridge inactive).
+
+Evidence: handover.json, final-completion-evidence.json, parent-final-checks.json, parent-source-verification.json, post-review-verification.json, working-tree-review.json, full-host-start/result/source.json and retained logs in this directory.
+## Evidence
+- Commits:
+- Tests: tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./qualification/... ./cmd/gomad/... => exit 0; baseline-quick.log, tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep . -run 'TestRunnerExecutionInjectionIsPrivate' => exit 1; red-public-interface.log; expected red: two exported interfaces and five public executor fields, tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep . -run 'TestRunnerExecutionInjectionIsPrivate|TestRunnerRequestsCompileInExternalModule|TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases' => exit 0; external-architecture.log, tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep ./runner -run 'TestRunPreparesOnce|TestRunFirstFailure|TestRunCancellation|TestRunChoiceExplorationResume|TestRunSimulationExplorationResume|TestRunCampaignShard|TestMinimize|TestReplay|TestWatchdog|TestGuidedResume|TestRunEarlyCompletion|TestDiagnosticsPlanShard|TestCreateCampaignPlan' => exit 0; focused-runner.log, tools/gomad3: /Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go vet -tags test_dep . ./runner/... ./qualification/... ./cmd/... => exit 0; scoped-vet.log, tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep ./runner -run 'TestCoordinatorTransportCoversEveryCampaignSpecField|TestExploreRejectsPrivateExecutionForIsolatedCampaign|TestCoordinatorTransportRoundTripsEveryTransportedField' => exit 0; coordinator-delta.log, tools/gomad3: .bin/golangci-lint-v2.13.0 run --config ../../.github/.golangci.yml --build-tags test_dep --timeout 10m --new-from-patch ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/task-only.patch . ./runner/... ./qualification/... ./cmd/... => exit 0; task-only-lint-post-delta.log; 0 task-only issues; unfiltered lint still has inherited/retained findings, tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep ./runner -run TestCampaignOptionsCharacterization|TestCoordinatorTransport|TestExploreRejectsPrivateExecutionForIsolatedCampaign => exit 0; parent-final-check-1.log, tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep . -run TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestRunnerExecutionInjectionIsPrivate|TestRunnerRequestsCompileInExternalModule => exit 0; parent-final-check-2.log, Frozen Darwin test-host => actual exit 2, one stale coordinator test field map; full-host.log/full-host-result.json. Only test file changed afterward; exact failed selector and parent canonical/architecture/external checks pass. Full host not rerun., Parent verified 31 final-source hashes, actual byte preimages, original comments, task-only reverse apply, and git diff --check; no source changes after SHIP. post-review-verification.json., Native linux/amd64 and full-spec R18/R19 qualification remain incomplete under task21., Root make lint-code-fast known unchanged nested-module-loading exit2 retained; unfiltered scoped lint627 historical findings, task-only filtered lint0.
+- PRs:
+
+===== [3/11] spec_show: `flowctl show fn-109-gomad-deepen-modules-and-tool-interfaces --json` =====
+{
+  "success": true,
+  "branch_name": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-30T19:16:51.633420Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "impl_review_rounds": {
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.10": 0,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.11": 0,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.12": 0,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.13": 1,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.19": 0,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.2": 0,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.20": 0,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.28": 0,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.3": 0,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.4": 0,
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.5": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-05T19:54:10.750081Z",
+  "review_hash_epoch": {
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.10": 1,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.11": 2,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.12": 2,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.2": 1,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.20": 1,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.28": 2,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.3": 1,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.4": 1,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.5": 1,
+    "plan": 13,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.10": 0,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.11": 0,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.12": 0,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.13": 0,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.19": 1,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.2": 0,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.20": 0,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.28": 0,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.3": 0,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.4": 0,
+    "impl:fn-109-gomad-deepen-modules-and-tool-interfaces.5": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+  "status": "open",
+  "title": "Gomad deepen modules and tool interfaces",
+  "updated_at": "2026-10-08T13:21:32.999324Z",
+  "tasks": [
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.1",
+      "title": "Carry simulation bounds across the isolated coordinator and prove it through real isolated execution",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.2",
+      "title": "Give local and isolated campaigns one normalized options owner",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.1"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.3",
+      "title": "Give the seed controller one atomic completion transition",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.2"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.4",
+      "title": "Resolve CLI installation and private child modes through one application construction path",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.3"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.5",
+      "title": "Share plan and explore parsing directly and move semantic normalization to Runner",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.4"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.6",
+      "title": "Move public executor injection behind private dependencies (fulfils fn-105.3 D3)",
+      "status": "in_progress",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.5"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.7",
+      "title": "Introduce the complete preparation owner and migrate explore and portable planning",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.6"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.8",
+      "title": "Move analysis and compatibility review onto the preparation owner's inspection operation",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.7"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.9",
+      "title": "Give target Go commands one private host-command seam with bounded output",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.8",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.40"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.10",
+      "title": "Supply build, cache and adapter locations from one validated installation description",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.9"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.11",
+      "title": "Separate capability collection, pure evaluation and linked projection, with one source-inventory owner",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.10"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.12",
+      "title": "Separate detached Artifact references from owned opened handles",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.11"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.13",
+      "title": "Generate host and runtime simulation-time codecs from one versioned definition",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.12"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.14",
+      "title": "Hide generic model-wire slots behind typed network and volume commands",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.13"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.15",
+      "title": "Characterize simulation progress ordering and choose the lifecycle interface from two designs",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.14"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.16",
+      "title": "Implement the simulation progress lifecycle owner and remove caller-side accounting",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.15"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.17",
+      "title": "Select backend-specific network listener and connection implementations at creation",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.16"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.18",
+      "title": "Select backend-specific filesystem handle and mapping implementations at creation",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.17"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.19",
+      "title": "Enforce package coverage, host-effect and public-signature rules in the architecture checks (fulfils fn-105.4 D4)",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.18"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.20",
+      "title": "Reconcile architectural guidance with the delivered owners and interfaces (fulfils fn-105.5 D5)",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.19"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.21",
+      "title": "Run final qualification and retain the finding completion matrix",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.20",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.23",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.24",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.25",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.26",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.27",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.28",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.29",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.30",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.31",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.32",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.33",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.34",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.35",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.36",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.37",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.38",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.39",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.41",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.42",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.43",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.44",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.45",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.46",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.47",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.48",
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.49"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.22",
+      "title": "Repair the simulation-exploration target path so a real campaign completes",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.23",
+      "title": "Repair module-aware lint routing and supply the nested host gates",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.24",
+      "title": "Restore repository-relative lint exclusion matching",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.25",
+      "title": "Preserve lifecycle fault resolution while repairing exhaustive lint",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.26",
+      "title": "Restore Runner semantic ownership in CLI callers",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.27",
+      "title": "Correct current R18 preservation disclosures",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.28",
+      "title": "Preserve campaign policies while checking cleanup errors",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.29",
+      "title": "Preserve private artifact payload cleanup and error identity",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.30",
+      "title": "Preserve public artifact copy cleanup and handle lifetime",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.31",
+      "title": "Preserve artifact directory and shared-verifier cleanup",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.32",
+      "title": "Preserve concrete error callback provenance in architecture checks",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.33",
+      "title": "Preserve artifact reflection helper coverage and clone isolation",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.34",
+      "title": "Check CLI private-mode fixture reader cleanup",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.35",
+      "title": "Preserve corpus reader cleanup and publication failures",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.36",
+      "title": "Preserve Choice Exploration stopping predicates and round identities",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.37",
+      "title": "Preserve qualification report cleanup and publication paths",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.38",
+      "title": "Preserve target capability and cache digests while repairing lint",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.39",
+      "title": "Preserve target file lifetimes while checking cleanup failures",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.40",
+      "title": "Preserve adapter command errors through bounded execution",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.41",
+      "title": "Preserve canonical JSON validation while repairing exhaustive lint",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.42",
+      "title": "Preserve exact-pack decisions while repairing exhaustive lint",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.43",
+      "title": "Enforce the documented five-import compatibility-pack admission boundary",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.44",
+      "title": "Repair mechanical source-record conversion and import lint",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.45",
+      "title": "Preserve equivalent predicates and receivers while repairing mechanical lint",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.46",
+      "title": "Preserve maintainer-command success reporting and operation precedence",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.45"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.47",
+      "title": "Preserve source archive cleanup failures and tar normalization",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.46"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.48",
+      "title": "Preserve patch regeneration cleanup and publication",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.47"
+      ]
+    },
+    {
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.49",
+      "title": "Preserve adapter cache cleanup and stable publication",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-109-gomad-deepen-modules-and-tool-interfaces.48"
+      ]
+    }
+  ],
+  "ready": false,
+  "no_plan": false
+}
+
+===== [4/11] spec_md: `flowctl cat fn-109-gomad-deepen-modules-and-tool-interfaces` =====
+# Gomad deep modules and tool interfaces
+
+## Owner-approved preservation reconciliation (2026-10-07)
+
+The owner explicitly approved recognizing only the already-approved fn-114.11 Choice Trace v3/v2-refusal and fn-114.12 controller/select-poll and controller-v2-journal-refusal migrations within R18. Verify their actual owner contracts and refusal/identity controls; retain matched-first-baseline, fixed-identity and feature/default/error/API/CLI preservation for every unaffected behavior. This is no blanket preservation waiver and authorizes no decoder restoration, new migration, golden rewrite or default change. The selected v041 retirement is not waived; reconcile its restored source. The owner also approved fn-109.28's lint exception limited to its two exact existing pre-mutation invariant-panic sites, preserving their behavior and all other lint rules. See [the bounded decisions](../artifacts/source-unblocking-20261007/owner-decisions.md).
+
+
+## Bounded retained CLI identity decision (2026-10-08)
+
+The owner instructed the conductor to complete MILESTONES.md and follow its recommendations instead of asking when in doubt. The conductor therefore selects retaining the existing fail-closed shared CLI Runner digest rather than reverting its integrated validation. This is a new dated decision, not a retroactive claim that the original dirty task4 implementation had the same behavior.
+
+For task4/R6 and its R18 preservation consumer, recognize only the existing shared-installation reuse of digestRunner. The retained original application.identity hashes os.ReadFile bytes; the integrated application.install reuses the existing doctor digest, rejects non-regular or non-executable Runner files, and retains its staged open/stat/hash/close failures and wrapping. Keep this exact existing hardening, its current rejection assertions and normal executable SHA256 identity. Original and current analysis both depend on reading/hashing the executable; no new analysis dependency is inferred. The actual debca5eb56e7719c566eb4552a04279631982671, a3b9f80efab9356c0be2080779133337e2471ac0 and ca334546 source/merge owners and original/current inputs must be retained as evidence.
+
+This supersedes exact-original preservation only for that already-integrated validated-digest path. Preserve all other lazy discovery, installation precedence, private commands, command grammar/defaults, bytes, writer attempts/classification/status, comments and fixed supplied identities. Do not add a validator, change product code, recapture fixtures, relax another expectation or treat later-owner blame as a semantic waiver. The fn-114.11/.12 migrations retain their separate approved contracts. The only approved lint exception remains fn-109.28's two exact invariant-panic sites; no additional lint suppression follows. Native qualification and Linux CI remain deferred, with no PR, push or qualification pass.
+
+## Native qualification ownership amendment (2026-10-07)
+
+The owner approved deferring remaining native Darwin qualification to [fn-149](fn-149-gomad-deferred-darwin-qualification.md). The [native transfer manifest](../artifacts/native-scope-transfer-2026-10-07.md) maps every affected open task, requirement slice and exact command ledger. Linux qualification and Linux CI work remain deferred under fn-128; the owner explicitly instructed "no PR for Lnux CI; defer that work". Missing transferred native proof no longer blocks this spec or its mapped source tasks.
+
+This dated owner decision supersedes older missing-Darwin, no-renewed-deferral and native-first admission clauses only for transferred native execution, reports, packs/replay, qualification measurements, soak and platform-specific qualification guidance. The mapped task amendments are authoritative over their older criteria. Source integration, predecessor source review and retained source acceptance remain required, including fn-110.5's predecessor rule. Implementation, ordinary host-source coverage, lint, both-source-set static checks, generated-output validation, byte equivalence, fixed-identity/matched-first-baseline preservation, non-native measurements, documentation consistency and actual consumer checkout prerequisites stay source-owned. Native aggregate test-host execution transfers; embedded portable coverage and portable failures do not. Partial portable results cannot be labeled a full native gate pass.
+
+All other original criteria, dependency edges, completed tasks and historical evidence remain unchanged. This transfer completes no task and creates no qualification pass, soak bound, PR, push or CI run. Qualification stays unverified under its native owner until retained current-candidate proof exists. fn-128's Linux revival trigger remains unchanged; fn-149 additionally requires an explicit owner request and native darwin/arm64 execution. Neither revival grants publication or CI authority.
+
+
+## Linux ownership amendment (2026-10-04)
+
+The owner transferred all remaining native linux/amd64 execution and Linux-only deferred work to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) on 2026-10-04. Missing transferred Linux evidence does not block this spec or its retained tasks. Darwin, shared implementation, static coverage of both supported source sets, preservation, size, full-host, review and other independent requirements remain here. Historical reports and completed-task evidence remain unchanged and do not establish current-source qualification.
+
+Linux owners: [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). The [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md) maps each affected task and requirement to its owner. Native execution clauses below apply to Darwin within this spec; references to both platforms retain static/API behavior and historical scope, with outstanding Linux execution owned by fn-128. This explicit owner decision supersedes older no-renewed-deferral and unavailable-Linux completion rules only for the transferred obligations.
+
+
+**Plan date:** 2026-09-30
+
+## Goal & Context
+
+Make Gomad easier to extend and use by placing campaign intent, execution
+assessment, retention, target preparation, process progress and resource lifetime
+behind small, testable interfaces. Address every finding from the September 30
+architecture analysis while preserving shipped capabilities and replay contracts.
+
+The user asked to write a new Flow spec addressing all findings. This scope
+includes the eleven ranked findings and all five secondary design opportunities.
+The earlier suggestions to defer simulation and handle restructuring are now
+selected work. Comparing alternative interfaces is part of delivery; a design
+note or renewed deferral alone cannot fulfill an implementation requirement.
+
+The [architecture assessment](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/architecture-assessment.md) supplies source
+context, including a source-confirmed coordinator omission. This spec states
+its own contracts because the assessment can be revised and source locations
+will change during refactoring. Re-anchor findings before task breakdown and
+reuse verified work that lands after the assessment; already-correct code or
+documentation needs evidence, not a second implementation. No runtime
+reproduction or new qualification was performed while authoring the assessment.
+
+### Relationship to existing work
+
+- [fn-108](fn-108-gomad-reduce-code-size-without-removing.md) owns common
+  assessment and retention implementation, fulfilling R2/R3 here through its
+  R6/R7. Reuse or transfer fn-105 D1/D2 obligations once at task breakdown;
+  retain fn-108's separate code-size and preservation requirements.
+- [fn-105](fn-105-gomad-follow-ups-deferred-scope.md) D3/D4/D5 are revived by
+  this request and fulfilled through R5/R8/R9 here. Reuse or transfer their
+  existing tasks; do not create parallel implementation owners.
+- Public Go interface changes selected here remain outside fn-108. Complete
+  and verify its shared policy extraction before migrating overlapping public
+  interfaces, preserving its historical acceptance baseline.
+- [fn-107](fn-107-gomad-finish-downstream-cell.md) retains downstream service
+  integration and qualification ownership. Preparation changes must preserve
+  its external-module path and qualified configuration.
+- fn-128.2 owns the transferred Linux D12 fix; fn-105 D14 retains Darwin replay-divergence ownership. This spec
+  neither fixes those channels by assertion nor changes their qualification
+  dispositions. Affected final verification must identify failures attributable
+  to those owners and retain actual evidence.
+
+Authoring creates a spec only. Task breakdown must resolve ownership and real
+ordering before implementation; it does not start tasks or create commits.
+
+## Architecture & Data Models
+
+### Campaign intent and application construction
+
+Use one serializable campaign-options owner across local and isolated execution.
+Group target intent, search settings, resource limits, observation and retention
+by their invariants. Keep private dependencies, callbacks, resolved child
+commands and host construction outside serialized intent. Keep immutable replay
+records and campaign plans as separate versioned contracts.
+
+Local and isolated execution receive the same normalized semantic settings.
+The CLI retains flag-presence validation and presentation. Shared semantic
+normalization belongs to the operation owner. Plan and explore share parsing
+directly, and each invokes its own operation. Resolve installation, Runner
+identity and private modes through one application construction path.
+
+### Assessment and retention
+
+Use fn-108's private common assessment for World validation, common coverage
+and choice-feature projection, and outcome interpretation. Keep filesystem
+verification/capture, cancellation, counters and journal transitions in their
+current effectful owners. Preserve staged interpretation where different
+strategies require different error/effect order.
+
+Use one common retention decision and artifact-input composition owner.
+Assessment supplies detached validated evidence. Strategy transactions supply
+publication context and advance novelty/budget state only at the existing
+successful durable commit point. Seed ordinal publication, atomic exploration
+rounds and replay-verified corpus admission retain separate transactions.
+
+### Preparation and host commands
+
+Compose complete preparation above target and deterministic-I/O adapter
+implementation, respecting the existing directional dependencies. Offer complete
+target preparation and capability inspection as separate operations. Hide
+adapter selection, replacement workspaces, generated module/overlay inputs,
+metadata assembly and validation ordering from ordinary callers. Return complete
+validated target or inspection evidence; callers do not attach adapter identity
+after preparation.
+
+Preparation owns implementation-only workspace lifetime. Campaign and portable
+bundle owners retain their durable destinations and lifecycle journal updates.
+Existing build caches, provenance and exact compatibility policy remain
+implementation owners. Qualification repetitions still prepare independently.
+Closure inspection does not compile; linked inspection compiles without
+launching the target; guarded execution preserves its existing policy.
+
+A private Go-command adapter uses existing host process primitives for context,
+time bounds, process-group cleanup and bounded diagnostics. Structured listing
+requires complete bounded output and rejects overflow. Diagnostic capture may
+retain bounded head/tail with full hashes. Share command mechanics without
+merging their different output/error contracts.
+
+A validated installation description owns toolchain identity and location
+knowledge. Ordinary consumers use that value instead of re-deriving build,
+cache and adapter paths. Preserve stable replacement locations recorded in
+binary build information.
+
+### Simulation progress, protocols and handles
+
+Generate host and allocation-free runtime simulation-time projections from one
+versioned definition. Keep descriptor I/O, native timers and quiescence hooks
+in runtime. Preserve bytes, reserved fields, correlation and monotonicity.
+Completed bootstrap generation remains in place.
+
+Choose an operation-lifecycle interface for simulation progress after comparing
+at least two designs against current ordering guarantees. The selected module
+owns admission, forwarding, delivered-but-unconsumed work, abandonment and
+participant removal. Callers no longer sequence several accounting updates or
+maintain a parallel response-barrier state machine. Blocking transport,
+process lifetime and domain mutation retain their separate owners. Preserve
+concurrent blocking operations and avoid using host IPC arrival order as replay
+identity.
+
+Select backend-specific listener, connection, filesystem-handle and mapping
+implementations at creation. Each implementation owns its valid state shape,
+while callers use ordinary operations. Preserve standalone, in-process and
+process behavior, local-model lock ownership, stale-incarnation rejection,
+deadlines and mapping capabilities. Share domain models without duplicating
+semantics or introducing a generic backend registry.
+
+Typed domain commands own model-operation arguments and response interpretation.
+One translation owner maps each command to the existing compact envelope,
+hiding generic string/integer slot meanings. Wire framing and domain semantics
+retain their own owners. Accepted inputs and canonical bytes remain unchanged;
+stronger shape rejection requires a separately specified contract change.
+
+### Resource lifetime and pure transitions
+
+Separate detached Artifact references from owned opened handles. Opened handles
+own the pinned directory and private validated manifest; detached snapshots do
+not carry live resources or mutable aliases into the handle. Payload access
+continues to validate inventory, mode, size and hashes.
+
+Give the seed controller one completion transition that updates attempt and
+classified outcome together, with distinct-failure information explicit. Keep
+scheduling, failure policy and counters pure.
+
+Separate capability evidence collection, pure policy evaluation and linked
+projection internally behind the same usable review interface. Reuse existing
+compatibility-pack policy. Give adapter source-inventory hashing one neutral
+private owner consumed by target and adapter preparation. Preserve exact
+first-party simulation pins and allowed bridge directives.
+
+## API Contracts
+
+Preserve CLI commands, flags, argv boundaries, defaults, explicit-flag rejection,
+stdout/stderr routing, JSON schemas, classifications and exit statuses. The
+coordinator correction makes an already valid simulation-exploration request
+reach execution with its supplied bounds; it does not add a new mode.
+
+Keep artifact, record, choice, transcript, campaign-plan, journal, provenance,
+qualification and compact model-wire formats compatible. For fixed supplied
+identities, canonical projections and payload bytes match the prior behavior.
+Actual rebuilt Runner/toolchain identities legitimately change. Replay across
+changed tool or platform identities is not promised.
+
+This spec deliberately permits migration of unusable public executor injection
+into private dependencies and separation of Artifact reference/open-handle
+types. Inventory consumers and record the exact public Go changes, replacement
+construction and caller migrations before implementing them. Preserve usable
+preparation/replay substitution and all other supported public capabilities.
+Ordinary consumers can construct requests and invoke operations without naming
+nested internal execution types or building descriptor layouts. Add a public
+tool constructor only if the consumer inventory establishes a need; otherwise
+centralize private application construction.
+
+R8's actual-source checks also admit the corrective migrations inventoried in
+`go-interface-changes.md`: detached public Runner capacity and target pack-evidence
+graphs replace retained private identities, and public pack-directory intent
+replaces pinimpact's inaccessible loader callback while preserving its authoring
+override. Preserve complete reports, canonical bytes, nil/empty distinctions,
+field order and validation/load precedence.
+
+World terminal reporting reconciles a real purity conflict rather than exempting
+arbitrary callbacks. Add a detached Recorder.FinishTerminal(Terminal) boundary;
+retain FinishError(error) for original World sentinels and owned typed/classified
+errors without arbitrary method dispatch. The effectful process Session reporting
+seam preserves general Error-before-Is normalization and established validation,
+classification and cleanup ordering. Direct recorder custom/external-wrapper
+inputs migrate to caller-side projection or process reporting; their former
+callback-derived acceptance/messages are deliberately not preserved inside the
+pure model. Immutable internal sentinel identities/messages replace behavior
+dependent on rebinding exported sentinel variables. Preserve original default
+sentinels, typed cause relationships, all identified callers and known-error
+record/snapshot/digest bytes. This bounded intentional behavior/API migration is
+recorded before implementation in `task-19/world-terminal-design-decision.md`
+and the interface inventory; it permits no other World semantic or policy change.
+
+Return existing typed/classified failures at established seams. Preserve error
+precedence, including simultaneous evidence errors, watchdog/cancellation,
+cleanup failure and publication failure. A wrapper that only forwards another
+interface does not fulfill a depth requirement.
+
+## Edge Cases & Constraints
+
+- Preserve existing comments with their owning code. Simplification cannot
+  depend on comment removal, compressed formatting or lost regression coverage.
+- Preserve fresh execution processes, single-P assumptions, native timer
+  ownership, World purity, detached model state, separate evidence identities,
+  explicit capacities, controlled environments and exact compatibility pins.
+- Validate replay before activation and model mutation; require complete tape
+  consumption and preserve terminal state, output and outcome checks.
+- Keep seeded scheduling separate from host deadlines and output timing.
+  Preserve committed versus uncommitted model-operation outcomes during death,
+  cancellation, late responses and restart.
+- Preserve retained-success count/byte accounting, failure deduplication,
+  novelty order, interrupted-round archival, resume and corpus single-writer
+  publication. A failed transaction cannot claim uncommitted coverage.
+- Keep strict structured-output overflow distinct from diagnostic truncation.
+  Missing installation, invalid packs/sums, changed binary/source/cache inputs
+  and cleanup failures remain visible failures.
+- Keep writable mapping behavior and backend fidelity explicit. In-process
+  restart cannot claim fresh globals or hard cleanup supplied by process nodes.
+- Generated runtime code preserves allocation, stack, dependency and nosplit
+  constraints. Register changed schema/template/generated sources in existing
+  overlay and version inventories; validation must detect drift.
+- Cover both qualified platform source sets. A host effect in a pure module
+  must be caught even when imported from the standard library or a dependency.
+  Mixed effectful/pure packages need a targeted rule, not a blanket prohibition.
+- Follow the milestone constraints. Add no third-party dependencies, use no
+  worktrees, leave commits to the user and retain native/default behavior.
+- At ten times campaign work, keep policy state bounded by declared frontier,
+  parallelism, retention and evidence limits. Avoid total-selection-sized state
+  or extra complete-payload copies introduced solely by extraction.
+
+## Acceptance Criteria
+
+- **R1:** Local and isolated campaigns use one normalized options owner.
+  `MaxForcedDecisions`, `MaxExplorationResultBytes` and every
+  `SimulationDimensionLimits` field survive coordinator transport. Tests
+  exercise seed, choice and simulation strategies through actual isolated
+  execution with distinguishable nonzero limits. Errors: invalid/missing bounds,
+  incompatible strategy settings, malformed requests and unknown fields remain
+  rejected; local fake-executor tests alone do not fulfill transport coverage.
+  [paraphrase]
+- **R2:** Seed, choice and simulation completion use fn-108's shared private
+  computational assessment. Fixed-input projections and classifications match
+  the pre-extraction behavior. Errors: malformed/missing World evidence, wrong
+  seed, coverage/choice errors, watchdog, cancellation and simultaneous faults
+  preserve precedence and strategy-specific effects. Fulfilled through fn-108
+  R6 with linked evidence. [paraphrase]
+- **R3:** Shared retention and artifact composition hide novelty, capacities
+  and payload assembly while preserving seed, round and corpus transactions.
+  Errors: duplicate failures, incomplete transcripts, count/byte exhaustion,
+  publication failure, cancelled/interrupted commits and failed corpus replay
+  preserve bounded evidence and committed policy state. Fulfilled through
+  fn-108 R7 with linked evidence. [paraphrase]
+- **R4:** Explore, portable planning, analysis and compatibility review use one
+  complete preparation owner returning validated target/review evidence with
+  adapter identities attached. Workspace cleanup is owned explicitly. Tests
+  cover fresh/cache builds, external modules/local replacements, custom
+  preparers and independent qualification preparations. Errors: invalid sums,
+  replacement conflicts, unsupported closure, malformed linked records,
+  changed binaries and cleanup failures retain classifications. Closure
+  inspection does not compile or execute. [paraphrase]
+- **R5:** Public executor injection moves behind private dependencies, with all
+  repository consumers migrated and supported external use compiled from
+  outside the Runner subtree. Keep usable preparation/replay seams and fake
+  failure coverage through private adapters. Errors: inaccessible internal
+  types, global mutable test hooks and exposed descriptor mechanics fail
+  acceptance; execution failures retain existing semantics. Fulfills D3.
+  [paraphrase]
+- **R6:** CLI operation construction resolves installation/private modes once
+  and shares semantic normalization with Runner. Plan and explore share parsing
+  directly. Tests cover documented command grammar, explicit zero/irrelevant
+  flags, environment/tags/argv, text/JSON output and exit statuses. Errors:
+  malformed input and output-writer failures retain existing behavior; a
+  changed default or hidden plan-only argument route fails acceptance.
+  [paraphrase]
+- **R7:** Simulation-time layout and codecs have one generated definition with
+  host and runtime-safe consumers. Cross-consumer vectors preserve bytes and
+  exercise actual runtime consumption on native Darwin. Linux runtime consumption belongs to fn-128.1/.7. Errors: truncated
+  frames, wrong magic/kind, nonzero reserved bytes, generation mismatch and
+  time regression fail as before. Generated-output drift fails validation.
+  [paraphrase]
+- **R8:** Architecture checks discover every host package on both qualified
+  source sets and enforce targeted ownership, host-effect and public-signature
+  visibility rules. Negative fixtures demonstrate rejection of an ownerless
+  new root, forbidden effect/import edge and inaccessible public type. Valid
+  platform files and explicit overlay/fixture exclusions remain accepted.
+  Errors: silently uninspected packages and checks based only on filename
+  presence fail acceptance. Fulfills D4. [paraphrase]
+- **R9:** Current architectural guidance describes both supported platforms,
+  implemented choice replay/exploration and both backends, using existing
+  requirement IDs. Separate capability support, repeatability, exact replay
+  and expectation matching. Document current residual findings and intentional
+  Go interface changes. Errors: unmeasured support or performance claims,
+  obsolete delivery-state claims and failures described as qualification
+  success fail acceptance. Fulfills D5. [paraphrase]
+- **R10:** Target compilation, Go identity queries and listing use a coherent
+  private host-command seam with contextual lifetime and output limits. Tests
+  cover command cancellation/termination, long diagnostics and cache-lock
+  release. Errors: structured-output overflow, malformed listing, unsupported
+  capability, timeout and cleanup failure stay distinct; truncated structured
+  data cannot be accepted. [paraphrase]
+- **R11:** Compare at least two simulation-progress interfaces and implement
+  the chosen lifecycle owner, removing caller-owned multi-counter sequencing
+  and duplicate response-barrier bookkeeping. Tests cover forwarding,
+  acknowledged arrivals, delivered-but-unconsumed work, arrival at quiescence,
+  cancellation with late committed response, death and restart. Errors:
+  unknown acknowledgement, abandoned response and stale incarnation fail
+  before invalid progress or model mutation; concurrent blocking operations
+  remain possible. Design evidence alone leaves this requirement unmet.
+  [paraphrase]
+- **R12:** Network and filesystem factories select backend-specific handles
+  once, with private implementations owning valid local/process state.
+  Shared operation tests cover standalone and both simulation backends;
+  backend-specific tests retain hard-isolation and mapping distinctions.
+  Errors: duplicate bind, deadline, close/reset, partial I/O, capacity, stale
+  incarnation and replay divergence preserve behavior and validation-before-
+  mutation. Moving dispatch into another forwarding helper alone does not
+  fulfill this requirement. [paraphrase]
+- **R13:** Detached Artifact references and owned opened handles have distinct
+  types and lifetime contracts. Opened manifest state is private and snapshots
+  cannot mutate it. Tests cover published/detached references, open/close,
+  directory replacement and valid payload access. Errors: use after close,
+  unlisted payload, wrong mode/size/hash and symlink/path substitution remain
+  rejected; detached values never transfer live resource ownership. [paraphrase]
+- **R14:** Typed network and volume commands own argument/response semantics;
+  one translation owner hides generic model-wire field slots. Fixed vectors
+  retain existing bytes and supported operation results. Errors: partial I/O
+  with errors, invalid handles, capacities and unavailable backend operations
+  preserve domain information. Previously accepted wire shapes are not
+  silently rejected by this refactor. [paraphrase]
+- **R15:** A validated installation description supplies pinned identity and
+  all owned build/cache/adapter locations to consumers. Tests cover each
+  resolution source and retained stable replacement locations. Errors:
+  malformed manifests, missing/stale builds, invalid roots and identity
+  mismatches fail closed with existing repair guidance. Re-deriving the tree
+  in ordinary consumers or changing path-stamped identity fails acceptance.
+  [paraphrase]
+- **R16:** One pure seed-controller completion transition updates attempted,
+  active and classified counters with failure-policy stopping atomically.
+  Tests cover success, cancellation, watchdog, distinct/duplicate failure,
+  resume counters and every failure policy. Errors: completion without active
+  work is rejected as an invariant violation; partial counter updates and
+  changed ordinal scheduling fail acceptance. [paraphrase]
+- **R17:** Capability collection, pure evaluation and linked projection have
+  separate private ownership behind the existing review contract, reusing
+  compatibility policy. Adapter source-inventory hashing has one neutral
+  owner consumed by target and adapter preparation. Tests preserve canonical
+  ordered findings, live/eliminated blockers and inventories. Errors: source
+  drift, invalid overlays/replacements, unsafe bridge directives, capacity
+  exhaustion and malformed linked evidence remain fail-closed. [paraphrase]
+- **R18:** Every shipped capability, recorded format, ordinary CLI behavior and
+  qualified workload remains available. Preserve existing comments, fixed-
+  identity canonical bytes, native defaults, independent replay identities,
+  error precedence and transaction guarantees. Inventory and migrate only the
+  intentional Go interface changes described above. Errors: feature removal,
+  accidental public breakage, weakened assertions/expectations or a new generic
+  host-I/O grant fails acceptance. [inferred]
+- **R19:** Retain baseline revision/inputs, interface decisions, consumer
+  migrations, commands and platform-specific results. Focused tests, generator
+  validation, architecture checks, complete Gomad gates on native Darwin,
+  native/default integration, functional smoke and affected qualification
+  suites pass against unchanged dispositions. Exercise 10-job/100-job bounded
+  control cases without new selection-sized policy storage or full-payload
+  copies. Errors: unavailable required hosts, unexplained regressions or
+  unmeasured gains leave the corresponding acceptance incomplete; record
+  separately owned D12/D14 evidence without weakening a gate. [inferred]
+- **R20:** A completion matrix maps every F1-F11 and secondary S1-S5 opportunity
+  to its R-ID and implementation/verification evidence. Link shared fulfillment
+  from fn-108 and transferred/reused D1-D5 obligations exactly once. Errors:
+  duplicate task owners, unmapped findings or optional items closed only by
+  renewed deferral leave this spec incomplete. No additional runtime error
+  surface beyond R1-R19. [inferred]
+
+- **R21:** Compatibility-pack admission enforces the documented never-admit set
+  for subprocess, signal, account-database, plugin and cgo imports. Pack loading,
+  external loading, token revalidation and authoring reject allowed
+  `import:plugin` and `import:runtime/cgo` through the existing error seams;
+  denied request facts remain valid. This explicitly corrects those two formerly
+  accepted inputs under R18 and permits their two characterization expectations
+  and the owning admission comment to change. Errors: full pack structural validation
+  still precedes pack admission refusal; request fact-validation priority,
+  cross-pack error priority, rule/capability order and external wrappers
+  remain unchanged. Exact syscall/linkname grants, unknown-capability treatment,
+  fixed-input decisions and all unrelated source, errors, pins, generated bytes,
+  recorded evidence and qualification requirements remain preserved.
+
+## Boundaries
+
+- New features, dependency upgrades, platforms, multi-P execution, runtime
+  scheduler/GC redesign and native timer replacement are outside this spec.
+- World, network, persistence, fault and corpus semantics retain their existing
+  owners; a universal scheduler or generic strategy/plugin framework is excluded.
+- Artifact/schema migration, source translation, rewriting existing test
+  assertions and changing production Temporal behavior are excluded.
+- Downstream service integration, new clock policies, dynamic Linux clock audit,
+  trace-capacity extensions and unresolved runtime divergence stay with their
+  existing specs. Preserve their contracts during refactoring.
+- This request authors a spec. Task creation/start, implementation, commits,
+  pushes and deployment are separate operations.
+
+## Decision Context
+
+Task9's adapter-listing integration may advance from the reviewed integrated
+task40 mechanism and cleanup at `d2e0e035519f1385b9acf630a70152655b113f61`
+under MILESTONES item 3. Its source-only start exception supersedes its prior
+operational dependency waits, not task8/task40 edges or their completion.
+Fresh literal BASE source/process evidence and measured listing capacity precede
+the bounded integration; default command contracts, pins and projection remain
+preserved. Root claims with the recorded exception and commits independently
+reviewed source progress. Original native/full/formal and preservation gates
+remain open wherever unproved; Linux stays nonblocking under fn128.
+
+Task44 admits four inherited mechanical compatibility-pack lint repairs from
+reviewed integrated commit 13df4f16f90d49938ea123a29859da62ad2cab9f:
+three destination-typed source-record conversions and test import regrouping.
+There is no policy, error, assertion, comment, allocation, ordering, canonical
+framing, pin or generated-byte change, and no new R18 preservation exception.
+Task11 keeps R17, task42 keeps its exhaustive correction and task43 keeps R21;
+task21 directly consumes task44 under R18/R19. Serialize overlapping source/cache
+writers and preserve historical evidence. Admission has no blocked completion
+prerequisite. Original full/native/formal and first-baseline acceptance remains
+open wherever unproved; Linux execution stays nonblocking under fn128.
+
+Task43 restores the README's five-import pack admission contract after task42's
+literal BASE controls exposed accepted plugin/cgo grants. It is a separately
+admitted policy correction from integrated reviewed commit
+43d264e24cae659ed57b81b9028e14fccb5a1fa3. R21 is the sole exception to R18's
+preservation and the boundary against rewriting assertions for these two
+erroneous admission outcomes, their exact loader expectations and the owning
+comment. It adds rejected inputs to the existing pack/request error seams,
+without adding an error class or changing R20's runtime-error boundary.
+Task11 keeps R17 extraction ownership; task21 directly consumes task43.
+Historical task42 evidence stays immutable. No evaluator grant selector,
+adapter permission, canonical format, generated output, pin or CI disposition
+changes. Admission requires no completion of blocked task11/21/42. Serialize
+overlapping source/cache writers; original native/full/formal acceptance remains
+open and Linux execution remains nonblocking under fn128.
+
+The 2026-10-05 task37 amendment admits only diagnostic-fixture import ordering/grouping after its reviewed cleanup source. It explicitly preserves test bodies and historical evidence while removing the remaining package gci finding. Reuse this existing correction owner instead of adding another task; original completion gates and task21's dependency remain unchanged.
+
+A deep module removes caller knowledge about order, state and validation.
+Moving files or adding a constructor around the same obligations does not
+satisfy the goal. Use concrete private functions for pure computation and
+interfaces only for actual backend/host-test variation. Retain independent
+physical execution, logical policy and durable publication.
+
+Preparation composition must sit above target and adapter implementation to
+avoid a cycle. Capability extraction and source inventories remain exact and
+bounded. Stable adapter replacement paths enter binary build information, so
+path centralization must preserve locations and identities.
+
+Simulation progress and handle changes carry more risk than shared Runner
+policy. Compare alternatives and migrate one handle family at a time, with
+state-machine and process conformance evidence. Preserve concurrent blocking
+work and late-response accounting. Native/default and backend-specific tests
+remain necessary because detached model agreement cannot prove hard isolation.
+
+At task breakdown, schedule transport correction and characterization first.
+Reuse fn-108 for assessment/retention. Sequence options/private construction,
+preparation/commands/installations and capability ownership by their actual
+shared files and outputs. Public migrations overlapping fn-108 follow its
+completed extraction. Then migrate Artifact lifetime, generated/typed protocols,
+simulation progress and backend handles. Integrate architectural checks and
+current documentation with the changed owners, then run final qualification.
+Parallel tests that mutate shared toolchain/cache/qualification resources must
+be serialized or use independent resources without worktrees.
+
+Task 21's retained lint failure has a separate corrective implementation owner,
+task 23. It repairs root-versus-nested module routing and supplies reproducible
+ordinary host-lint gates under the existing R19 qualification obligation.
+Evidence, compiler-negative fixtures and runtime overlays retain their explicit
+owners; ordinary nested source cannot be silently exempted. The original
+criteria, lint rules and native qualification requirements remain unchanged.
+
+Task 23's source-progress checkpoint is ce80d2425cf34da103939b5aa23f90bde1c2092f.
+Actual lint remains red. Task 24 separately owns the demonstrated inherited
+configuration path-base defect: restore the existing repository-relative
+exclusion intent with behavioral positive/negative tests, without adding
+suppressions or changing enabled rules, pins or comparisons. Task 24's pre-edit
+parsed-regex controls and byte inspection refute the earlier escaping
+hypothesis; the working expressions remain unchanged.
+Its reviewed one-line gitroot repair and actual-tool controls establish source
+progress only. Root fast still fails on the controller lifecycle switch and
+ordinary Gomad on 419 inventoried findings; neither receives a suppression or
+acceptance waiver. Task 21 remains the final verification consumer and original
+R18/R19, formal review and both native gates stay open. Task 24's handover and
+independent review remain source-bound pre-commit snapshots.
+
+Task 25's independently reviewed source progress repairs root fast's exhaustive
+lifecycle finding with a two-branch distinction inside the unchanged outer
+lifecycle case. Literal before/after characterization preserves all 36
+state/operation cases, targets, incarnation, identity and outer controls; actual
+unfiltered package lint reproduces the original defect and passes after repair.
+Root fast now completes ordinary root and tagged integration lint/vet before its
+automatic nested scope fails on the exact retained 419 findings across 31 owners.
+Nested vet and later scopes remain unreached. Task 25 stays blocked on original
+qualification, not source correctness; task 21 depends on the correction. Its
+source-progress review is not formal SHIP and changes no original R18/R19,
+workload/default, reporting or native acceptance requirement. Future campaign
+repairs must preserve the characterized completion invariant panics unless a
+separate completion-error redesign is admitted.
+
+Task 26's independently reviewed source progress restores Runner semantic
+ownership in actual CLI callers at the original validation points. Typed error
+translation, enabled-zero/presence checks, first-error presentation and writer
+routing remain characterized. Current and saved base CLI pass the same 33
+behavioral tests; the meaningful ownership regression adds the 34th final test.
+Runner production and the eight existing public seams remain unchanged.
+Architecture and both external-consumer compilation checks pass. Actual affected
+CLI lint remains red on the same 54 findings with zero introduced/resolved;
+complete CLI and expanded portable-plan tests retain unsupported-host/missing
+patched-toolchain failures, and Darwin identity proof remains skipped.
+Task 26 stays blocked on qualification. Task 21 consumes this source correction;
+original task 5/predecessors, R6/R18/R19, full/native/formal and fixed-identity
+requirements remain unchanged and open. Its handover and review are immutable
+pre-commit source snapshots. Commit verified progress before another source task.
+
+Task 27 retains independently source-reviewed documentary progress for Choice
+Trace v2 refusal, controller-v2 journal refusal and retirement of the previously
+selected v041 fixture. Current derived guidance and rootfast wording reflect the
+source-bound migrations, repaired routing and red419 qualification. All 25 authored
+links, five fragments, 49 protected files and three protected sections pass fresh
+checks against the worker freeze and BASE. Historical reports, first-task
+baseline inputs and original API/acceptance/boundaries remain unchanged.
+Disclosure does not restore format/workload availability, prove fixed-identity
+equivalence or close original R18/R19/task21/full/native/formal qualification.
+Task 27 stays blocked on qualification; task 21 consumes the reviewed supplement.
+Root commits verified progress before the next writer.
+
+Task 28's independently reviewed campaign source correction checks thirteen
+cleanup returns and replaces two policy switches while preserving invariant
+panics, first-only cancellation, budget drain, original canonical/error vectors
+and cleanup lifetimes. Conditional root cleanup preserves nil-close error
+identity and joins a nonnil close error after the operation error. Actual
+unfiltered package lint changes from 17 to 2 unchanged invariant findings:
+15 mapped findings resolved, none introduced. Whole ordinary package, focused,
+boundary, errortype and generator checks pass on developmental linux/arm64;
+fresh independent review finds no actionable introduced defect.
+Task 28 stays blocked on qualification; task 21 consumes this owner's evidence.
+No real nonnil-root-close execution is demonstrated. The broader 419-finding
+receipt remains historical; package progress supplies no new whole-scope count.
+Original R16/R18/R19, task 3/predecessors, fixed-identity, full/native/formal
+requirements remain unchanged. Root commits verified progress before next writer.
+
+Task 29's independently reviewed private artifact payload repair checks seven
+copyPayload/writePayload cleanup returns without changing primary error identity
+when cleanup succeeds, output-before-input release or successful Sync/Close/
+metadata ordering. Ownership retires before explicit Close attempts; the old
+second input Close no longer risks successful publication. Ordinary package,
+focused real-file, boundary, errortype and generator checks pass on developmental
+linux/arm64. Actual unfiltered artifact lint falls from 28 to 21 residual findings,
+with exactly seven mapped repairs and no introduced diagnostics. No first-Close
+fault execution or new whole-Gomad count is supplied. Public CopyPayload, directory
+sync and shared verification retain separate owners. Task 29 stays blocked;
+task 21 consumes its source evidence. Original R13/R18/R19, task 12/predecessors,
+matched first-baseline fixed identities and complete/full/formal/both-native
+acceptance remain open. Root commits reviewed source progress before the next writer.
+
+Task 30's independently reviewed public CopyPayload repair checks six cleanup
+sites and five original test-handle cleanup sites. Payload descriptors close once,
+destination before source. Nil Close preserves exact primary errors, and a sole
+cleanup failure retains its raw error. Source validation, exclusive destination
+creation, pinned source/private manifest, modes and copy/hash/count/EOF/Sync
+retain their original operation body. Real-file controls pass against baseline
+and final source; nil-wrap and second-close mutants fail for their intended reasons.
+Ordinary package, focused, boundary, errortype and generator checks pass on
+developmental linux/arm64. Actual unfiltered artifact lint falls from 21 to 10,
+with eleven mapped repairs and no introduced diagnostics. Genuine first-Close
+and simultaneous cleanup-failure execution remain unproved. Directory sync,
+shared verification, reflection and publication/pool retain separate owners.
+Task 30 stays blocked; task 21 consumes its source evidence. Original R13/R18/R19,
+task 12/predecessors, matched first-baseline fixed identities and complete/full/
+formal/both-native qualification remain open. Root commits reviewed progress
+before the next source writer.
+
+Task 31's directory/verifier cleanup candidate checks three production and three
+test-handle cleanup returns at their original lifetimes. Directory operation/
+post-context precedence remains primary and the inner Close precedes the post
+check. Verifier cleanup releases file before root and clears metadata on a
+genuine cleanup failure. Original helper operations, assertions, transaction
+owners and public/private payload APIs retain their bytes. Developmental
+package, focused, boundaries, errortype and generator checks pass. Actual
+unfiltered artifact lint falls from 10 to four unchanged findings, with six
+repairs and none introduced. Fresh independent source review permits only a
+source-progress commit. Genuine first-Close and post-Sync cancellation timing
+proof remain unexecuted. Original R13/R18/R19, task 12/predecessors, task 21,
+matched first-baseline fixed identities and complete/full/formal/both-native
+qualification remain open. Root commits progress before another source writer.
+
+Task 32's independently reviewed error-provenance candidate preserves named-slice
+single-error Unwrap traversal, destination concrete conversion callbacks and fmt
+writer-error results. Six fresh allocation alias families retain shared existing
+storage; conversion-local array/struct copies isolate value cells while nested
+references retain their callback path. All 39 earlier fixture bodies remain an
+exact prefix of the final 67 stock-host fixtures and 134 supported-metadata
+observations. Whole architecture, focused, five actual boundaries, broader
+purity/edges/host-vet, gomadtool consumer, errortype, source-scoped static and generator checks
+pass on developmental linux/arm64. Actual unfiltered architecture lint retains
+four byte-identical inherited findings, with none introduced or resolved.
+The full staged diff-check retains one historical archived handover EOF blank;
+source and newly written root-document checks are separately clean.
+Fresh corrective review and root read-only audit permit SOURCE_PROGRESS_COMMIT_ONLY,
+with no actionable introduced defects. Historical failures and inconclusive
+probes remain disclosed; this is no universal copy, length/capacity or formatting
+completeness claim. Task 21 consumes the evidence. Original R8/R18/R19,
+task 19/fn-105 D4, predecessors, matched first-baseline identities and complete/
+full/formal/both-native/affected-consumer qualification remain open. Root commits
+reviewed progress before another source writer.
+
+Task 33's independently reviewed reflection-helper repair explicitly handles
+all 27 Kind values in both test helpers while preserving their existing branches,
+initialized values and every original assertion. Arrays recurse through indexed
+elements; invalid/unsupported shapes reject without skipping typed nils. Three
+controls characterize supported array/reference isolation, scalar and nil/empty
+preservation, and eight unchanged production-guard cases. The controls passed
+before helper changes; the meaningful RED is the actual exhaustive analyzer.
+Developmental artifact 49/49, focused 23/23, five actual boundaries, errortype,
+source/static and generator checks pass. Actual unfiltered artifact lint drops
+from four to two byte-identical invariant-panic/uppercase-World findings, with
+two resolved and none introduced. Helper Fatalf and deliberately shared-array
+rejection remain unexecuted, with source inspection supplying only bounded
+coverage. Production and 1,044 protected inputs remain unchanged. Source review
+permits only SOURCE_PROGRESS_COMMIT_ONLY. Task 21 consumes this evidence; original
+R13/R18/R19, task 12/predecessors, matched first-baseline identities and complete/
+full/formal/both-native/affected-consumer qualification stay required and open.
+Root commits reviewed progress before another source writer.
+
+Task 34's independently reviewed private-mode fixture cleanup restores stdin
+before checking its existing single pipe-reader Close, reports failure through
+nonfatal testing.T, and preserves every other fixture byte and assertion.
+Baseline and final private-mode 1/1, portable CLI 34/34, five actual boundaries,
+errortype and formatting pass on developmental linux/arm64. Actual unfiltered
+CLI lint falls from 54 to 53 byte-identical production findings, with exactly
+one fixture diagnostic resolved and none introduced. All 1,044 protected inputs
+remain unchanged; generator inputs are unaffected. Fresh source review permits
+SOURCE_PROGRESS_COMMIT_ONLY. Genuine Close and simultaneous primary/cleanup
+failure execution remain unproved. Task 21 consumes the evidence; original
+R6/R18/R19, task 4/task 5/predecessors, matched first-baseline identities and
+complete/full/formal/both-native/affected-consumer qualification remain required
+and open. Root commits reviewed source progress before another source writer.
+
+Task 35's independently reviewed corpus cleanup checks the two original production
+releases and four fixture releases at their existing lifetime boundaries. Nil
+Close preserves original results and concrete errors; a genuine cleanup failure
+returns zero result with the raw sole error or primary-first joined errors and
+prevents validation-dependent publication. Original operations, comments and fixture assertions stay intact outside the
+admitted signatures and cleanup wrappers; 1,043 protected inputs remain unchanged. Four real-file controls retain exact
+error order, publication state and a nonempty BASE canonical snapshot vector.
+Corpus package 24/24, focused 14/14, five actual boundaries, errortype and
+formatting pass on developmental linux/arm64. Actual unfiltered corpus lint
+falls from six findings to zero with none introduced. Fresh source review
+permits SOURCE_PROGRESS_COMMIT_ONLY. Genuine first-Close and simultaneous
+operation/cleanup failure execution remain unproved. Task 21 consumes the
+evidence; original R3/R13/R18/R19, shared fn108 assessment/retention,
+task12/relevant predecessors, matched first-baseline identities and complete/
+full/completion/formal/both-native/affected-consumer qualification remain
+required and open. Root commits reviewed source progress before another writer.
+Product/document diff checks pass; full staged diff-check retains only the raw
+Go-env log's empty-GOFLAGS EOF warning (exit 2). Its archived bytes stay intact.
+
+Task 36's reviewed Choice Exploration repair replaces only the failure-policy
+switch with its two stopping predicates. Original statements, comments and
+test bodies remain intact; 1,044 protected inputs match admission. Eight literal
+BASE state/segment vectors, twelve trailing-sibling error controls and four
+constructor cases preserve stopping, distinct-budget accounting, bounded
+children, validation and input immutability. Developmental package 16/16,
+focused 8/8, five actual boundaries, errortype and formatting pass; actual
+configured choice lint falls from one exhaustive finding to zero. Review permits
+source-progress commit only. Original R18/R19, round/search/replay, shared fn108,
+predecessors/task21, matched first-baseline identities and full/completion/formal/
+affected-consumer/both-native gates stay required/open. Product/document checks
+pass; full staged diff retains only the immutable empty-GOFLAGS archive EOF
+warning. Root commits before another source writer
+([choice-policy acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/acceptance-open.md)).
+
+Task 21's additive R18 accountability supplement binds the eight named campaign
+helper/type seams to task 5/R6 through an exact retained-patch, WIP and checkpoint
+source-block comparison. The WIP commit remains their first Git introduction;
+whole-file/checkpoint equivalence is not established. The interface inventory
+already lists the set, and task 26 repaired its actual CLI consumers. Task 20's
+nine-flag correction and the separately owned fn112/fn113/fn114 migrations are
+linked without repeating implementation or changing their contracts. Historical
+qualification, audit, baseline and measurement records remain immutable. This
+closes only the named inventory/ownership evidence gap. Choice Trace v2,
+controller-v2 journals, selected v041 availability, changed guidance defaults,
+matched first-baseline bytes and all original full/formal/affected-consumer/
+both-native requirements remain open
+([accountability supplement](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md)).
+
+Task 37's qualification-report cleanup checks the five retained staging Remove,
+early writer Close and deferred reader Close results at their original lifetime
+boundaries. Nil cleanup preserves primary error identity; genuine failures join
+primary first, reader failures clear the report, and published paths stay intact.
+All original production/test bodies and 1,045 protected inputs are preserved.
+Saved BASE and final real-file controls bind literal report/evidence bytes,
+private modes, validation and staging-name behavior. Developmental focused 8/8,
+package 23/23, consumers 60/60, five boundaries, purity/edges, errortype and
+formatting pass. Actual unfiltered package lint falls from six findings to the
+one unchanged diagnostics import-order finding; five errcheck findings resolve
+with none introduced. Real first-Close, multiple cleanup, Remove and post-rename
+directory faults remain unexecuted. Root commits independently reviewed source
+progress separately; original R18/R19/R20, task21/predecessor/shared-fn108,
+matched first-baseline identities and complete/full/completion/formal/
+affected-consumer/native-default/both-native acceptance remains required/open
+([qualification-cleanup acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/acceptance-open.md)).
+
+
+The remaining target lint has two explicit R18/R19 corrective owners, tasks 38
+and 39. Task 38 pins capability projections and prepared-cache digest bytes
+before repairing the five import aliases and three infallible hash writes.
+Task 39 checks nine target cleanup returns at existing lifetimes, with nil-cleanup
+primary identity preserved and newly surfaced failures disclosed. The adapter
+source-set helper retains fn-113's approval/pin/publication owner; task 39 owns
+only its cleanup correction. Root serializes source writers and commits reviewed
+task 38 source progress before admitting task 39, without waiting for full task
+38 acceptance. Task 21 consumes both owners' evidence. Its completion is not
+an admission prerequisite for either corrective task. All original preservation,
+full/default/affected/functional/formal/native Darwin and static both-source-set
+requirements remain in force; Linux execution remains under fn-128. Genuine
+cleanup-fault execution remains a separate proof obligation, not inferred from
+ordinary-file controls or lint. The [target correction plan](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/target-correction-plan-2026-10-05.md)
+retains the grounded source/tool bindings and execution order.
+
+The omitted adapter source-set command has one corrective mechanism owner, task40.
+Its opted-in bounded execution preserves the actual Start/Wait causes and legacy
+startup/cancellation precedence measured by the retained BASE process probe.
+Task9 keeps helper integration and completion ownership, including its original
+task8 dependency and the added mechanism dependency. A reviewed correction commit
+supplies source evidence without making a dependency-blocked task ready. Existing
+default command contracts, pins, grants and all original qualification remain
+unchanged. Task21 consumes both evidence sets through the existing delivery chain.
+Task40 completes its mechanism-owned contracts and verification independently;
+it requires no task9 integration or completion. Task9/fn113/task21 retain
+adapter integration, source-set/pin proof and aggregate R10 qualification.
+Every original requirement remains with its owner.
+The BASE probe supplies ordinary developmental-host observations; source-file
+selection, capacity, descendant, pin and native qualification remain separate.
+
+Task40's inherited-lint amendment admits checked deferred pipe cleanup and the
+existing process-death helper's timer/ticker polling. Nil-cleanup outcomes retain
+their original Result and error objects, explicit first closes and resource
+lifetimes. A genuine previously discarded deferred Close failure now surfaces
+as infrastructure failure, including for default callers. Only expected repeated
+writer-close errors are ignored. This is the sole intentional default-error
+correction; all other command contracts remain preserved. The actual analyzer
+findings supply the causal lint RED. Ordinary process controls prove normal
+behavior, not genuine OS-close faults, which remain unproved without a safe
+reproducer. Root may admit this bounded source correction from the integrated
+reviewed candidate while keeping native/full/formal completion requirements
+open. Task9/task21 aggregate ownership and every existing dependency remain
+unchanged. Linux execution remains nonblocking under fn128.
+
+Task38 additionally owns the two explicit compatibility import aliases in target/internal/capabilitypolicy/policy.go and policy_test.go. Admit only those import declarations from the integrated reviewed candidate; preserve all other bytes and historical receipts. Matched policy/canonical/digest controls, private-package architecture, unfiltered scoped lint and fresh source review precede a progress commit. Retain the real integrated lint gate's measured remaining findings and its unreached errortype stage; original full/native/formal acceptance stays open. Task11's semantic ownership and all dependencies remain unchanged.
+
+Task41 owns only the canonical JSON validator's exhaustive-switch correction and additive literal characterization. The first expressionless-switch recipe failed actual QF1002 lint. The revised scope keeps the tagged switch and its seven selectors/bodies, adding one grouped terminal case for all 20 previously omitted reflect.Kind members returning their existing nil result. Explicit members preserve future exhaustive coverage without a default, suppression or analyzer-dependent syntactic evasion. Preserve the single Kind evaluation, visited keys and encoder/error ordering; task21 consumes its evidence through a direct acceptance dependency. The existing slice alias key omits length and can skip a later longer alias's invalid UTF-8 suffix. Preserve and disclose that pre-existing behavior in this bounded lint correction; a semantic repair requires separate admission. Disclose the pinned encoder's pointer-to-interface self-cycle overflow and invalid UnsupportedValueError.Value observed during BASE fixture development; no universal cycle-safety claim is made. Check-only generator validation remains required because authoring serializes generated requests, packs and state through this codec. Original preservation, first-baseline, predecessor, full/default/functional/affected-consumer/formal/native Darwin and static both-source-set requirements remain in force; native Linux evidence remains under fn128. The abandoned Runner-fixture proposal supplies no source admission because its actual BASE controls fail under the unsupported-host guard before fixture execution.
+
+Task42 owns the single compatibilitypack FactKind exhaustive correction and additive matching-pack literal characterization under R18/R19; task11 retains sole R17 ownership. Admit source work from reviewed integrated commit 7750f4f57b84289545f6e4972cf8b6fe85c92eb3, with no completion dependency on blocked task11/21/38/41. Preserve the original tagged switch and its two grant branches; explicitly continue the inner candidate-rule loop for the two omitted non-granting fact kinds. Task21 directly consumes this evidence. Actual root BASE package lint has eight findings, of which this task owns one; preserve the seven inherited residuals and measure the real unfiltered/integrated delta. Preserve all grants, decisions, error bytes, source/profile/module/pack pins and generated output. Literal unchanged-source BASE matching-pack tests precede the source change; source progress does not complete original first-baseline, predecessor, preservation, full/default/functional/affected-consumer/formal/native-Darwin/static-both-source-set gates. Linux remains nonblocking under fn128.
+
+Maintainability (plan review): duplication - tasks 28-31, 35, 37, 39 and 40 repeat nil-cleanup/direct-sole-error/primary-first-join decisions; structure - hostexec.Run receives four deferred cleanup-error branches. Preserve the single-writer admission rule for overlapping correction owners.
+
+## Finding coverage
+
+Secondary IDs identify the five opportunities in the assessment's order.
+
+| Finding | Required result | Acceptance |
+| --- | --- | --- |
+| F1 | Campaign options and coordinator parity | R1 |
+| F2 | Completed-execution assessment | R2, shared with fn-108 R6 |
+| F3 | Retention and Artifact composition | R3, shared with fn-108 R7 |
+| F4 | Complete preparation | R4 |
+| F5 | Private execution injection and operation construction | R5, R6 |
+| F6 | Generated simulation-time protocol | R7 |
+| F7 | Architecture fitness checks | R8 |
+| F8 | Current contract guidance | R9 |
+| F9 | Coherent target command execution | R10 |
+| F10 | Simulation operation lifecycle | R11 |
+| F11 | Backend-specific handles | R12 |
+| S1 | Artifact reference and owned handle | R13 |
+| S2 | Typed model commands | R14 |
+| S3 | Validated installation description | R15 |
+| S4 | Atomic seed completion | R16 |
+| S5 | Internal capability and source-inventory ownership | R17 |
+
+R18-R20 apply across all findings. This coverage is contractual, not task status
+or implementation evidence.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Local and isolated campaigns use one normalized options owner. `MaxForcedDecisions`, `MaxExplorationResultBytes` and every `SimulationDimensionLimits` field survive coordinator transport. Tests exercise seed, choice and simulation strategies through actual isolated execution with distinguishable nonzero limits. Errors: invalid/missing bounds, incompatible strategy settings, malformed requests and unknown fields remain rejected; local fake-executor tests alone do not fulfill transport coverage. | fn-109-gomad-deepen-modules-and-tool-interfaces.1, fn-109-gomad-deepen-modules-and-tool-interfaces.2, fn-109-gomad-deepen-modules-and-tool-interfaces.22 | — |
+| R2 | Seed, choice and simulation completion use fn-108's shared private computational assessment. Fixed-input projections and classifications match the pre-extraction behavior. Errors: malformed/missing World evidence, wrong seed, coverage/choice errors, watchdog, cancellation and simultaneous faults preserve precedence and strategy-specific effects. Fulfilled through fn-108 R6 with linked evidence. | fn-109-gomad-deepen-modules-and-tool-interfaces.21 | — |
+| R3 | Shared retention and artifact composition hide novelty, capacities and payload assembly while preserving seed, round and corpus transactions. Errors: duplicate failures, incomplete transcripts, count/byte exhaustion, publication failure, cancelled/interrupted commits and failed corpus replay preserve bounded evidence and committed policy state. Fulfilled through fn-108 R7 with linked evidence. | fn-109-gomad-deepen-modules-and-tool-interfaces.21, fn-109-gomad-deepen-modules-and-tool-interfaces.35 | — |
+| R4 | Explore, portable planning, analysis and compatibility review use one complete preparation owner returning validated target/review evidence with adapter identities attached. Workspace cleanup is owned explicitly. Tests cover fresh/cache builds, external modules/local replacements, custom preparers and independent qualification preparations. Errors: invalid sums, replacement conflicts, unsupported closure, malformed linked records, changed binaries and cleanup failures retain classifications. Closure inspection does not compile or execute. | fn-109-gomad-deepen-modules-and-tool-interfaces.7, fn-109-gomad-deepen-modules-and-tool-interfaces.8 | — |
+| R5 | Public executor injection moves behind private dependencies, with all repository consumers migrated and supported external use compiled from outside the Runner subtree. Keep usable preparation/replay seams and fake failure coverage through private adapters. Errors: inaccessible internal types, global mutable test hooks and exposed descriptor mechanics fail acceptance; execution failures retain existing semantics. Fulfills D3. | fn-109-gomad-deepen-modules-and-tool-interfaces.6 | — |
+| R6 | CLI operation construction resolves installation/private modes once and shares semantic normalization with Runner. Plan and explore share parsing directly. Tests cover documented command grammar, explicit zero/irrelevant flags, environment/tags/argv, text/JSON output and exit statuses. Errors: malformed input and output-writer failures retain existing behavior; a changed default or hidden plan-only argument route fails acceptance. | fn-109-gomad-deepen-modules-and-tool-interfaces.26, fn-109-gomad-deepen-modules-and-tool-interfaces.34, fn-109-gomad-deepen-modules-and-tool-interfaces.4, fn-109-gomad-deepen-modules-and-tool-interfaces.5 | — |
+| R7 | Simulation-time layout and codecs have one generated definition with host and runtime-safe consumers. Cross-consumer vectors preserve bytes and exercise actual runtime consumption on native Darwin. Linux runtime consumption belongs to fn-128.1/.7. Errors: truncated frames, wrong magic/kind, nonzero reserved bytes, generation mismatch and time regression fail as before. Generated-output drift fails validation. | fn-109-gomad-deepen-modules-and-tool-interfaces.13 | — |
+| R8 | Architecture checks discover every host package on both qualified source sets and enforce targeted ownership, host-effect and public-signature visibility rules. Negative fixtures demonstrate rejection of an ownerless new root, forbidden effect/import edge and inaccessible public type. Valid platform files and explicit overlay/fixture exclusions remain accepted. Errors: silently uninspected packages and checks based only on filename presence fail acceptance. Fulfills D4. | fn-109-gomad-deepen-modules-and-tool-interfaces.19, fn-109-gomad-deepen-modules-and-tool-interfaces.32 | — |
+| R9 | Current architectural guidance describes both supported platforms, implemented choice replay/exploration and both backends, using existing requirement IDs. Separate capability support, repeatability, exact replay and expectation matching. Document current residual findings and intentional Go interface changes. Errors: unmeasured support or performance claims, obsolete delivery-state claims and failures described as qualification success fail acceptance. Fulfills D5. | fn-109-gomad-deepen-modules-and-tool-interfaces.20, fn-109-gomad-deepen-modules-and-tool-interfaces.27 | — |
+| R10 | Target compilation, Go identity queries and listing use a coherent private host-command seam with contextual lifetime and output limits. Tests cover command cancellation/termination, long diagnostics and cache-lock release. Errors: structured-output overflow, malformed listing, unsupported capability, timeout and cleanup failure stay distinct; truncated structured data cannot be accepted. | fn-109-gomad-deepen-modules-and-tool-interfaces.40, fn-109-gomad-deepen-modules-and-tool-interfaces.9 | — |
+| R11 | Compare at least two simulation-progress interfaces and implement the chosen lifecycle owner, removing caller-owned multi-counter sequencing and duplicate response-barrier bookkeeping. Tests cover forwarding, acknowledged arrivals, delivered-but-unconsumed work, arrival at quiescence, cancellation with late committed response, death and restart. Errors: unknown acknowledgement, abandoned response and stale incarnation fail before invalid progress or model mutation; concurrent blocking operations remain possible. Design evidence alone leaves this requirement unmet. | fn-109-gomad-deepen-modules-and-tool-interfaces.15, fn-109-gomad-deepen-modules-and-tool-interfaces.16 | — |
+| R12 | Network and filesystem factories select backend-specific handles once, with private implementations owning valid local/process state. Shared operation tests cover standalone and both simulation backends; backend-specific tests retain hard-isolation and mapping distinctions. Errors: duplicate bind, deadline, close/reset, partial I/O, capacity, stale incarnation and replay divergence preserve behavior and validation-before- mutation. Moving dispatch into another forwarding helper alone does not fulfill this requirement. | fn-109-gomad-deepen-modules-and-tool-interfaces.17, fn-109-gomad-deepen-modules-and-tool-interfaces.18 | — |
+| R13 | Detached Artifact references and owned opened handles have distinct types and lifetime contracts. Opened manifest state is private and snapshots cannot mutate it. Tests cover published/detached references, open/close, directory replacement and valid payload access. Errors: use after close, unlisted payload, wrong mode/size/hash and symlink/path substitution remain rejected; detached values never transfer live resource ownership. | fn-109-gomad-deepen-modules-and-tool-interfaces.12, fn-109-gomad-deepen-modules-and-tool-interfaces.29, fn-109-gomad-deepen-modules-and-tool-interfaces.30, fn-109-gomad-deepen-modules-and-tool-interfaces.31, fn-109-gomad-deepen-modules-and-tool-interfaces.33, fn-109-gomad-deepen-modules-and-tool-interfaces.35 | — |
+| R14 | Typed network and volume commands own argument/response semantics; one translation owner hides generic model-wire field slots. Fixed vectors retain existing bytes and supported operation results. Errors: partial I/O with errors, invalid handles, capacities and unavailable backend operations preserve domain information. Previously accepted wire shapes are not silently rejected by this refactor. | fn-109-gomad-deepen-modules-and-tool-interfaces.14 | — |
+| R15 | A validated installation description supplies pinned identity and all owned build/cache/adapter locations to consumers. Tests cover each resolution source and retained stable replacement locations. Errors: malformed manifests, missing/stale builds, invalid roots and identity mismatches fail closed with existing repair guidance. Re-deriving the tree in ordinary consumers or changing path-stamped identity fails acceptance. | fn-109-gomad-deepen-modules-and-tool-interfaces.10 | — |
+| R16 | One pure seed-controller completion transition updates attempted, active and classified counters with failure-policy stopping atomically. Tests cover success, cancellation, watchdog, distinct/duplicate failure, resume counters and every failure policy. Errors: completion without active work is rejected as an invariant violation; partial counter updates and changed ordinal scheduling fail acceptance. | fn-109-gomad-deepen-modules-and-tool-interfaces.28, fn-109-gomad-deepen-modules-and-tool-interfaces.3 | — |
+| R17 | Capability collection, pure evaluation and linked projection have separate private ownership behind the existing review contract, reusing compatibility policy. Adapter source-inventory hashing has one neutral owner consumed by target and adapter preparation. Tests preserve canonical ordered findings, live/eliminated blockers and inventories. Errors: source drift, invalid overlays/replacements, unsafe bridge directives, capacity exhaustion and malformed linked evidence remain fail-closed. | fn-109-gomad-deepen-modules-and-tool-interfaces.11 | — |
+| R18 | Every shipped capability, recorded format, ordinary CLI behavior and qualified workload remains available. Preserve existing comments, fixed- identity canonical bytes, native defaults, independent replay identities, error precedence and transaction guarantees. Inventory and migrate only the intentional Go interface changes described above. Errors: feature removal, accidental public breakage, weakened assertions/expectations or a new generic host-I/O grant fails acceptance. | fn-109-gomad-deepen-modules-and-tool-interfaces.21, fn-109-gomad-deepen-modules-and-tool-interfaces.22, fn-109-gomad-deepen-modules-and-tool-interfaces.27, fn-109-gomad-deepen-modules-and-tool-interfaces.28, fn-109-gomad-deepen-modules-and-tool-interfaces.29, fn-109-gomad-deepen-modules-and-tool-interfaces.30, fn-109-gomad-deepen-modules-and-tool-interfaces.31, fn-109-gomad-deepen-modules-and-tool-interfaces.32, fn-109-gomad-deepen-modules-and-tool-interfaces.33, fn-109-gomad-deepen-modules-and-tool-interfaces.34, fn-109-gomad-deepen-modules-and-tool-interfaces.35, fn-109-gomad-deepen-modules-and-tool-interfaces.36, fn-109-gomad-deepen-modules-and-tool-interfaces.37, fn-109-gomad-deepen-modules-and-tool-interfaces.38, fn-109-gomad-deepen-modules-and-tool-interfaces.39, fn-109-gomad-deepen-modules-and-tool-interfaces.40, fn-109-gomad-deepen-modules-and-tool-interfaces.41, fn-109-gomad-deepen-modules-and-tool-interfaces.42, fn-109-gomad-deepen-modules-and-tool-interfaces.43, fn-109-gomad-deepen-modules-and-tool-interfaces.44 | — |
+| R19 | Retain baseline revision/inputs, interface decisions, consumer migrations, commands and platform-specific results. Focused tests, generator validation, architecture checks, complete Gomad gates on native Darwin, native/default integration, functional smoke and affected qualification suites pass against unchanged dispositions. Exercise 10-job/100-job bounded control cases without new selection-sized policy storage or full-payload copies. Errors: unavailable required hosts, unexplained regressions or unmeasured gains leave the corresponding acceptance incomplete; record separately owned D12/D14 evidence without weakening a gate. | fn-109-gomad-deepen-modules-and-tool-interfaces.21, fn-109-gomad-deepen-modules-and-tool-interfaces.23, fn-109-gomad-deepen-modules-and-tool-interfaces.24, fn-109-gomad-deepen-modules-and-tool-interfaces.25, fn-109-gomad-deepen-modules-and-tool-interfaces.27, fn-109-gomad-deepen-modules-and-tool-interfaces.28, fn-109-gomad-deepen-modules-and-tool-interfaces.29, fn-109-gomad-deepen-modules-and-tool-interfaces.30, fn-109-gomad-deepen-modules-and-tool-interfaces.31, fn-109-gomad-deepen-modules-and-tool-interfaces.32, fn-109-gomad-deepen-modules-and-tool-interfaces.33, fn-109-gomad-deepen-modules-and-tool-interfaces.34, fn-109-gomad-deepen-modules-and-tool-interfaces.35, fn-109-gomad-deepen-modules-and-tool-interfaces.36, fn-109-gomad-deepen-modules-and-tool-interfaces.37, fn-109-gomad-deepen-modules-and-tool-interfaces.38, fn-109-gomad-deepen-modules-and-tool-interfaces.39, fn-109-gomad-deepen-modules-and-tool-interfaces.40, fn-109-gomad-deepen-modules-and-tool-interfaces.41, fn-109-gomad-deepen-modules-and-tool-interfaces.42, fn-109-gomad-deepen-modules-and-tool-interfaces.43, fn-109-gomad-deepen-modules-and-tool-interfaces.44 | — |
+| R20 | A completion matrix maps every F1-F11 and secondary S1-S5 opportunity to its R-ID and implementation/verification evidence. Link shared fulfillment from fn-108 and transferred/reused D1-D5 obligations exactly once. Errors: duplicate task owners, unmapped findings or optional items closed only by renewed deferral leave this spec incomplete. No additional runtime error surface beyond R1-R19. | fn-109-gomad-deepen-modules-and-tool-interfaces.21 | — |
+| R21 | Compatibility-pack admission enforces the documented never-admit set for subprocess, signal, account-database, plugin and cgo imports. Pack loading, external loading, token revalidation and authoring reject allowed `import:plugin` and `import:runtime/cgo` through the existing error seams; denied request facts remain valid. This explicitly corrects those two formerly accepted inputs under R18 and permits their two characterization expectations and the owning admission comment to change. Errors: full pack structural validation still precedes pack admission refusal; request fact-validation priority, cross-pack error priority, rule/capability order and external wrappers remain unchanged. Exact syscall/linkname grants, unknown-capability treatment, fixed-input decisions and all unrelated source, errors, pins, generated bytes, recorded evidence and qualification requirements remain preserved. | fn-109-gomad-deepen-modules-and-tool-interfaces.43 | — |
+
+===== [5/11] git_status: `git status --short --branch` =====
+## gomad...origin/gomad [ahead 27]
+ M .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.json
+ M .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md
+ M MILESTONES.md
+?? .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/conductor-source-acceptance-20261008/
+?? .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/source-acceptance-20261008/
+?? .turbo/plans/gomad3-glossary-update.md
+?? .turbo/technical-debt.md
+
+===== [6/11] git_log: `git log -5 --oneline` =====
+ec677836ac gomad: retain shared parsing review ledger
+83ddbf2bd7 gomad: complete shared parsing source acceptance
+15d4be1e3f gomad: restore shared parse error preservation and bind source acceptance
+adf32d4833 gomad: complete retained CLI construction acceptance
+5e5d8015c7 gomad: retain CLI construction source acceptance
+
+===== [7/11] git_branch: `git rev-parse --abbrev-ref HEAD` =====
+gomad
+
+===== [8/11] memory_enabled: `flowctl config get memory.enabled --json` =====
+{
+  "success": true,
+  "key": "memory.enabled",
+  "value": true
+}
+
+===== [9/11] glossary: `flowctl glossary list --json --match "<task title + description>"` =====
+(no glossary entry matches the task title or description - skipped)
+
+===== [10/11] memory_index: `flowctl memory list` =====
+bug/integration/
+  go-mod-download-inside-a-target-module-2026-09-28 — "go mod download inside a target module rewrites its go.sum and bypasses sum chec" (module: tools/gomad3/target)
+  shard-merge-and-prepared-target-cache-2026-09-29 — "Shard merge and prepared-target cache must bind source identity, not go.mod" (module: tools/gomad3/qualification/set)
+  profile-adapter-changes-leave-libc-2026-10-01 — "Profile adapter changes leave libc-bound compatibility packs stale" (module: tools/gomad3/internal/compatibilitypack)
+  engine-summary-fields-need-the-runner-2026-10-03 — "Engine summary fields need the runner projection and both CLI exploration lines" (module: tools/gomad3/runner/runner.go)
+
+bug/runtime-errors/
+  gobuild-cross-platform-matchfile-keeps-2026-09-28 — "go/build cross-platform MatchFile keeps host arch feature ToolTags" (module: tools/gomad3/qualification/set/manifestgen)
+
+===== [11/11] dependencies: ids, titles, statuses, done summaries =====
+- fn-109-gomad-deepen-modules-and-tool-interfaces.5 [done] - Share plan and explore parsing directly and move semantic normalization to Runner
+    Shared plan/explore parsing and Runner semantic normalization are accepted for the current source. The audit found and restored the exact original task5 reportExploreFailure helper lost during the merge. One additive regression pins combined diagnostic/reporter failures, all three literal write attempts and status3, including failed final printing. Existing assertions, comments and canonical fixtures are unchanged; no new semantic or lint exception was added.
+    
+    Root independently verified the144-file freeze, source identity26924caa804af58a9b3b68413fd735723d28f50d385abc260ca966dc8e0cf4eb, original10/9 pre/postimages, actual owners and145 characterization mappings. Fresh independent coverage is139 unique portable top-level passes with zero skips (CLI90,Runner9,architecture/installation17,qualification23). A base-source Go overlay independently reproduces both regression failures. Generator validation, configured CLI/Runner errortype and formatting pass. Fast lint remains66 findings; unfiltered CLI/Runner remains68 (51+17), with complete branch attribution and no global-green claim. The restoration genuinely removes two ignored-write findings without suppression.
+    
+    The first fn109670-input baseline,87 exact runtime inputs,72 decoded raw records, pinned source archive and both-source-set static inventories remain bound. Exactly1219 of1223 original closure inputs are unchanged; the restored cli.go and three already owned test changes do not reuse old passes. The canonical75 executed baseline rows and reconstructed76th row are distinguished. Historical fn112.9 consolidation mapping is not current-Done acceptance. Initial setup/helper failures and rounded narrative timestamps remain explicitly separate from actual test/Flow receipts. Both user documents remain byte-exact and excluded from commits.
+    
+    Fresh read-only correctness/contracts/integration reviews all returned SHIP with zero findings; merged receipt8e58060371194f8bac3b6eaefbf431b4 was finalized2026-10-08T13:21:32.992705Z against adf32d48330e6768309244b4fc61a5a81ce3e204..15d4be1e3fdbb3047d4aef57ed4198be84a6ea92. Eight lossless records retain the actual receipt, metadata, sidecars and full reports. Writer/reviewer are from the same GPT family. Two reviewers' fresh Go attempts were blocked before tests ran by the read-only sandbox; their audit checks and root's independent runtime receipts are retained distinctly. Final root audit confirms unchanged reviewed source and immutable worker evidence.
+    
+    Broader pre-restoration host/assertion/bootstrap failures remain historical, not current full-host/native passes. Native qualification and full patched-host obligations remain deferred to fn149/fn128; Linux CI remains deferred. Aggregate R18/R19 and whole-spec completion are not claimed. Only the approved fn114 trace/controller migrations, exact two fn109.28 panic exceptions and separately bounded prior validated-digest decision remain recognized. No PR, push or CI action occurred.
+    
+    stage: impl-review - ran (codex:gpt-6.1-sol:high; three fresh read-only axes; same-family)
+    stage: plan-sync - skipped(config: planSync.enabled != true)
+    Tracker sync: n/a (bridge inactive)
+

@@ -1,0 +1,71 @@
+{
+  "argv": [
+    "bash",
+    "-c",
+    "test -x tools/gomad3/.toolchain/bin/go"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "head": "ec677836aca3ad367100b84a2c7ed12be6b79423",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOCACHE": null
+  },
+  "removed_environment": [
+    "GOROOT",
+    "GOBIN",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T13:33:37.340Z",
+  "ended": "2026-10-08T13:33:37.754Z",
+  "monotonic_elapsed_nanos": "2712750",
+  "elapsed_seconds": 0.00271275,
+  "sources_before_sha256": "675293eb8aa08ffce2e6ac5a129aebc9f0901ca10a6f31b233bf1303393f8d15",
+  "sources_after_sha256": "675293eb8aa08ffce2e6ac5a129aebc9f0901ca10a6f31b233bf1303393f8d15",
+  "board_before": {
+    "AGENTS.md": "8d634df5cbbbffd7dbada06e32b4d20d879707273f8be07bdf253b387211e6f3",
+    "MILESTONES.md": "7705e27bb988a843311f2df3a67f499386be8a5624551a4d51340af7dd399a11",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md": "0e88a43fa1df3666bb8e340603e1a78adb19d64c9b1f3666323c04c2274d712b",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.json": "1a1839dc53380f27a280cadaac86aa36d00dfb25b20d3671aa85132096377222",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md": "5f2f3361cce1da8aecfe17068cec81f75058bfb5f81ac1a27ce4f424bc85a86c"
+  },
+  "board_after": {
+    "AGENTS.md": "8d634df5cbbbffd7dbada06e32b4d20d879707273f8be07bdf253b387211e6f3",
+    "MILESTONES.md": "7705e27bb988a843311f2df3a67f499386be8a5624551a4d51340af7dd399a11",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md": "0e88a43fa1df3666bb8e340603e1a78adb19d64c9b1f3666323c04c2274d712b",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.json": "1a1839dc53380f27a280cadaac86aa36d00dfb25b20d3671aa85132096377222",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md": "5f2f3361cce1da8aecfe17068cec81f75058bfb5f81ac1a27ce4f424bc85a86c"
+  },
+  "source_changes": [],
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "golangci_lint": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "tests": [],
+  "top_level_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "package_results": [],
+  "native": false
+}

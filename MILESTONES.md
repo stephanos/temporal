@@ -195,7 +195,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.3](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.3.md) | ✅ Done | Give the seed controller one atomic completion transition |
 | [fn-109.4](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.4.md) | ✅ Done | Resolve CLI installation and private child modes through one application construction path |
 | [fn-109.5](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md) | ✅ Done | Share plan and explore parsing directly and move semantic normalization to Runner |
-| [fn-109.6](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md) | ⬜ Todo | Move public executor injection behind private dependencies (D3). |
+| [fn-109.6](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md) | 🔄 In progress | Move public executor injection behind private dependencies (D3); current source acceptance. |
 | [fn-109.7](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.7.md) | ⬜ Todo | Introduce the complete preparation owner and migrate explore and portable planning |
 | [fn-109.8](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.8.md) | ⬜ Todo | Move analysis and compatibility review onto the preparation owner's inspection operation |
 | [fn-109.9](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md) | ⬜ Todo | Bounded adapter listing integrated; original acceptance gates remain open |

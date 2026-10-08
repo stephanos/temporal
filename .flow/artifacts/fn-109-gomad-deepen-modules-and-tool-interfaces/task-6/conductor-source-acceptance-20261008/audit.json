@@ -1,0 +1,61 @@
+{
+  "verified": true,
+  "timestamp": "2026-10-08T14:10:31.475Z",
+  "head": "ec677836aca3ad367100b84a2c7ed12be6b79423",
+  "source_identity_sha256": "675293eb8aa08ffce2e6ac5a129aebc9f0901ca10a6f31b233bf1303393f8d15",
+  "terminal_seal_sha256": "3107da19048ae1bcf935a8bf632b31168c5523a7d30c515e54f5adb1446bc0c8",
+  "sealed_files": 150,
+  "independently_recomputed_source_proof": true,
+  "original_test_mappings": 403,
+  "native_failures_retained": 45,
+  "exact_portable_top_level_tests": 81,
+  "exact_terminal_identity_multisets": true,
+  "root_gates": [
+    {
+      "label": "portable-private-operations",
+      "counts": {
+        "pass": 11,
+        "fail": 0,
+        "skip": 0
+      },
+      "exit": 0
+    },
+    {
+      "label": "portable-api-external",
+      "counts": {
+        "pass": 9,
+        "fail": 0,
+        "skip": 0
+      },
+      "exit": 0
+    },
+    {
+      "label": "portable-execution-controls",
+      "counts": {
+        "pass": 13,
+        "fail": 0,
+        "skip": 0
+      },
+      "exit": 0
+    },
+    {
+      "label": "portable-minimizer-plan",
+      "counts": {
+        "pass": 48,
+        "fail": 0,
+        "skip": 0
+      },
+      "exit": 0
+    }
+  ],
+  "scoped_lint_findings": 91,
+  "fast_lint_findings": 66,
+  "whole_source_format_pass": false,
+  "original_task6_source_format_pass": true,
+  "native_pass": false,
+  "full_host_pass": false,
+  "product_source_changes": [],
+  "approved_new_exceptions": [],
+  "review_verdict": null,
+  "board_scope": "Frozen in-progress claim; later lifecycle changes require narrow rebinding, not rewriting worker evidence."
+}

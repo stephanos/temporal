@@ -231,16 +231,12 @@ flag set before parsing instead of being prepended to argv.
 
 ## fn-109.6 private executor dependencies (fulfils fn-105.3 D3)
 
-**Historical inventory.** This entire duplicate block retains the pre-edit inventory committed
-at 9b5ae6b39 on 8364bd6a0 and its superseded local names, test carriers and fixture paths.
-Its original `go doc -all ./runner` comparison claimed exactly the seven removed lines/blocks
-below (`task-6/godoc-runner.diff`) and unchanged remaining exported declarations, including
-`Explore`, `Resume`, `RunCampaignShard`, `Replay` and `Minimize`, with no other public package
-change. Those claims describe the original migration, not current source evidence. The earlier
-R5 inventory and [current task 6 source evidence](task-6/source-acceptance-20261008/handover.md)
-bind the current `executionRunner`, `executionDependencies` and `campaignRequest` names and
-`tools/gomad3/internal/gomadtool/conformance/testdata/runner_external/consumer.go`, compiled by
-`TestRunnerRequestsCompileInExternalModule`.
+**Status: implemented.** The inventory below was committed before any edit (9b5ae6b39, on
+8364bd6a0) and is updated here to match the result. `go doc -all ./runner` before and after differ
+in exactly the seven removed lines/blocks listed below
+(`task-6/godoc-runner.diff`); every other exported declaration, including the `Explore`,
+`Resume`, `RunCampaignShard`, `Replay` and `Minimize` signatures with their result names, is
+unchanged. No other public package changed.
 
 ### Removed exported declarations
 

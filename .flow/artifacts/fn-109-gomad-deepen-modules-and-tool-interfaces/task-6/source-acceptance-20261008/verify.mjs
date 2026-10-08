@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import {readdirSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {read,sha,sources,board,out,write} from './capture.mjs';
+const dir='.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/source-acceptance-20261008';
+const json=p=>JSON.parse(read(p));
+const expected={'portable-private-operations':{exit:1,counts:{pass:11,fail:41,skip:0}},'portable-api-external':{exit:0,counts:{pass:9,fail:0,skip:0}},'portable-execution-controls':{exit:1,counts:{pass:13,fail:4,skip:0}},'portable-minimizer-plan':{exit:0,counts:{pass:48,fail:0,skip:0}}};
+export function checkSuite(label,r){
+ assert.equal(r.stdout_sha256,sha(read(dir+'/'+label+'.stdout')));assert.equal(r.stderr_sha256,sha(read(dir+'/'+label+'.stderr')));assert.equal(r.exit,expected[label].exit);assert.deepEqual(r.top_level_counts,expected[label].counts);assert(r.argv.includes('-tags')&&r.argv.includes('test_dep'));assert.equal(r.native,false);assert.equal(r.sources_before_sha256,r.sources_after_sha256);assert.deepEqual(r.source_changes,[]);
+ const events=read(dir+'/'+label+'.stdout').toString().split('\n').flatMap(l=>{try{return [JSON.parse(l)];}catch{return [];}}),actual=events.filter(e=>e.Test&&['pass','fail','skip'].includes(e.Action)).map(e=>({package:e.Package,test:e.Test,action:e.Action}));assert.deepEqual(r.tests,actual);assert(actual.length>0);assert.equal(r.tool_sha256.go,'1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64');assert.equal(r.environment.GOENV,'off');assert.equal(r.environment.GOWORK,'off');assert.equal(r.environment.GOTOOLCHAIN,'local');assert.equal(r.environment.GOEXPERIMENT,'nogreenteagc');assert.equal(r.environment.GOMAXPROCS,'2');
+}
+export function verify(){
+ const freeze=json(dir+'/freeze.json');for(const e of freeze.files){assert.equal(read(dir+'/'+e.name).length,e.bytes,e.name);assert.equal(sha(read(dir+'/'+e.name)),e.sha256,e.name);}
+ const p=json(dir+'/final-source-proof.json');assert.equal(p.review_verdict,null);assert.equal(p.native,false);assert.equal(p.full_host_pass,false);assert.equal(p.whole_spec_complete,false);assert.deepEqual(p.product_edits,[]);assert.equal(p.source_identity_sha256,sha(JSON.stringify(sources())));assert.deepEqual(p.board,board());assert(p.inventory.current_duplicate_section_gap.resolved&&p.inventory.current_duplicate_section_gap.all_other_bytes_exact);assert.equal(p.original.full_host_exit,2);assert.equal(p.original.full_host_seconds,179);assert.equal(p.owners.length,31);assert.equal(p.housekeeping_current_stat.length,13);for(const s of p.housekeeping_current_stat)assert.equal(s.error,'ENOENT');assert.equal(p.static_bindings.unchanged_closure,1219);
+ for(const label of Object.keys(expected))checkSuite(label,json(dir+'/'+label+'.json'));
+ const lint=json(dir+'/lint-attribution.json');assert.equal(lint.global_green,false);assert.deepEqual(lint.counts,{fast:66,scoped:91});assert.equal(lint.findings.length,157);for(const f of lint.findings){assert.equal(f.exception_applied,false);assert.equal(read(f.path).toString().split('\n')[f.line-1],f.exact_line);}
+ for(const label of ['configured-generators','configured-vet','configured-errortype','public-api-ast','task6-format-bound','final-diff-check'])assert.equal(json(dir+'/'+label+'.json').exit,0,label);
+ assert.equal(json(dir+'/configured-format.json').exit,1);assert.equal(json(dir+'/unfiltered-scoped-lint.json').exit,2);assert.equal(json(dir+'/configured-fast-lint.json').exit,2);
+ for(const [label,text] of [['external-negative-field','unknown field Executor'],['external-negative-internal','use of internal package']]){assert.equal(json(dir+'/'+label+'.json').exit,1);assert(read(dir+'/'+label+'.stderr').toString().includes(text));}
+ const api=JSON.parse(read(dir+'/public-api-ast.stdout'));assert(api.parsed_production_files>0);assert.equal(api.exported_executor_fields,0);assert.equal(api.exported_executor_interfaces,0);assert.equal(api.global_execution_hooks,0);assert.equal(Object.keys(api.private_entrypoints).length,6);
+ assert.equal(json(dir+'/final-task-status.stdout').status,'in_progress');assert.equal(json(dir+'/d3-status.stdout').status,'todo');
+ const controls=[],r=json(dir+'/portable-api-external.json');for(const [n,mutate] of [['falsified_log_identity',c=>c.stdout_sha256='0'.repeat(64)],['silent_zero_tests',c=>c.tests=[]],['false_native_claim',c=>c.native=true],['falsified_tool_identity',c=>c.tool_sha256.go='f'.repeat(64)],['falsified_exit',c=>c.exit=1]]){let caught=false;const copy=structuredClone(r);mutate(copy);try{checkSuite('portable-api-external',copy);}catch{caught=true;}assert(caught,n);controls.push({control:n,rejected:true,persisted_falsified_file:false});}
+ return {verified:true,freeze_sha256:sha(read(dir+'/freeze.json')),frozen_files:freeze.files.length,controls,portable_only:true,native_pass:false,full_host_pass:false,review_verdict:null};
+}
+if(process.argv[1]===fileURLToPath(import.meta.url)){const result=verify();if(process.argv.includes('--record'))write('verification-result.json',result);console.log(JSON.stringify(result));}

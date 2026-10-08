@@ -1,7 +1,8 @@
 {
-  "assignee": null,
+  "success": true,
+  "assignee": "stephanos@users.noreply.github.com",
   "claim_note": "",
-  "claimed_at": null,
+  "claimed_at": "2026-10-08T13:29:56.174331Z",
   "created_at": "2026-10-01T01:09:58.149117Z",
   "depends_on": [
     "fn-109-gomad-deepen-modules-and-tool-interfaces.5"
@@ -10,7 +11,11 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md",
-  "status": "todo",
+  "status": "in_progress",
   "title": "Move public executor injection behind private dependencies (fulfils fn-105.3 D3)",
-  "updated_at": "2026-10-08T13:36:38.921886Z"
+  "updated_at": "2026-10-08T13:29:56.174317Z",
+  "impl": null,
+  "review": null,
+  "sync": null,
+  "status_source": "flow-state"
 }

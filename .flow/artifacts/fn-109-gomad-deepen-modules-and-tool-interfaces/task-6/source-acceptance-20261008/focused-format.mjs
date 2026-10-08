@@ -1,0 +1,6 @@
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {read,stock,write,git,sha} from './capture.mjs';
+const d='.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/source-acceptance-20261008',paths=JSON.parse(read(d+'/final-source-proof.json')).owners.map(e=>e.path).filter(p=>p.endsWith('.go')),argv=[stock+'/gofmt','-l',...paths],r=spawnSync(argv[0],argv.slice(1),{encoding:'utf8',timeout:600000});assert.equal(r.status,0);assert.equal(r.stdout,'');
+const overlay='tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go',before=read(overlay),fmt=spawnSync(stock+'/gofmt',['-d',overlay],{encoding:'utf8'});assert.equal(fmt.status,1);assert(fmt.stdout.startsWith('diff '+overlay+'.orig '+overlay));assert.equal(fmt.stderr,'');
+write('focused-format-check.json',{argv,exit:r.status,stdout:r.stdout,stderr:r.stderr,files:paths.length,mutating:false,inherited_whole_format_failure:{path:overlay,current_sha256:sha(before),head_sha256:sha(git(['show','HEAD:'+overlay])),outside_original_task6_edit_set:!paths.includes(overlay),gofmt_diff_exit:fmt.status,gofmt_exact_diff:fmt.stdout,blame:git(['log','-1','--format=%H%n%B','--',overlay]).toString()}});console.log('Exact '+paths.length+' original task6 Go paths format clean; full tracked-source check remains red solely on inherited runtime overlay.');

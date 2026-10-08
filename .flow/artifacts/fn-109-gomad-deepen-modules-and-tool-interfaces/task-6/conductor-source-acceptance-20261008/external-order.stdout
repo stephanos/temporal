@@ -1,0 +1,84 @@
+{
+  "success": true,
+  "tasks": [
+    {
+      "id": "fn-108-gomad-reduce-code-size-without-removing.1",
+      "spec": "fn-108-gomad-reduce-code-size-without-removing",
+      "title": "Record baseline revision, size accounting and gate dispositions",
+      "status": "done",
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-108-gomad-reduce-code-size-without-removing.2",
+      "spec": "fn-108-gomad-reduce-code-size-without-removing",
+      "title": "Remove unused internal helpers, decimal/decoder, minimizer serialization and duplicate canonical validation",
+      "status": "done",
+      "priority": null,
+      "depends_on": [
+        "fn-108-gomad-reduce-code-size-without-removing.1"
+      ]
+    },
+    {
+      "id": "fn-108-gomad-reduce-code-size-without-removing.3",
+      "spec": "fn-108-gomad-reduce-code-size-without-removing",
+      "title": "Prepare the modernc memory adapter through the rewritten-module owner",
+      "status": "done",
+      "priority": null,
+      "depends_on": [
+        "fn-108-gomad-reduce-code-size-without-removing.2"
+      ]
+    },
+    {
+      "id": "fn-108-gomad-reduce-code-size-without-removing.4",
+      "spec": "fn-108-gomad-reduce-code-size-without-removing",
+      "title": "Publish upgrade dossiers through hostfs.Replace",
+      "status": "done",
+      "priority": null,
+      "depends_on": [
+        "fn-108-gomad-reduce-code-size-without-removing.1"
+      ]
+    },
+    {
+      "id": "fn-108-gomad-reduce-code-size-without-removing.5",
+      "spec": "fn-108-gomad-reduce-code-size-without-removing",
+      "title": "Shared completed-execution assessment owner in Runner (fulfils fn-105.1 D1)",
+      "status": "done",
+      "priority": null,
+      "depends_on": [
+        "fn-108-gomad-reduce-code-size-without-removing.2",
+        "fn-108-gomad-reduce-code-size-without-removing.3",
+        "fn-108-gomad-reduce-code-size-without-removing.4"
+      ]
+    },
+    {
+      "id": "fn-108-gomad-reduce-code-size-without-removing.6",
+      "spec": "fn-108-gomad-reduce-code-size-without-removing",
+      "title": "Shared retention policy and artifact-input composition (fulfils fn-105.2 D2)",
+      "status": "done",
+      "priority": null,
+      "depends_on": [
+        "fn-108-gomad-reduce-code-size-without-removing.5"
+      ]
+    },
+    {
+      "id": "fn-108-gomad-reduce-code-size-without-removing.7",
+      "spec": "fn-108-gomad-reduce-code-size-without-removing",
+      "title": "Equivalence, size comparison and final gate evidence",
+      "status": "done",
+      "priority": null,
+      "depends_on": [
+        "fn-108-gomad-reduce-code-size-without-removing.6"
+      ]
+    },
+    {
+      "id": "fn-108-gomad-reduce-code-size-without-removing.8",
+      "spec": "fn-108-gomad-reduce-code-size-without-removing",
+      "title": "Record owner waiver of the linux/amd64 gates",
+      "status": "done",
+      "priority": null,
+      "depends_on": []
+    }
+  ],
+  "count": 8
+}

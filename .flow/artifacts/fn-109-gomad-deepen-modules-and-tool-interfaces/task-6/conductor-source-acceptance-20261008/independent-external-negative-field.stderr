@@ -1,0 +1,2 @@
+# example.com/gomad-executor-negative-field
+./consumer.go:5:35: unknown field Executor in struct literal of type runner.CampaignSpec

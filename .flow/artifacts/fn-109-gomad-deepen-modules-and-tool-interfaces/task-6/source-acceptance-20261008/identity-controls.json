@@ -1,0 +1,71 @@
+{
+  "verified": true,
+  "original_verification": {
+    "verified": true,
+    "freeze_sha256": "b95dfd1049681c707b6e164d755da37250167cdc32a0c6d71a1abae1c8027f45",
+    "frozen_files": 139,
+    "controls": [
+      {
+        "control": "falsified_log_identity",
+        "rejected": true,
+        "persisted_falsified_file": false
+      },
+      {
+        "control": "silent_zero_tests",
+        "rejected": true,
+        "persisted_falsified_file": false
+      },
+      {
+        "control": "false_native_claim",
+        "rejected": true,
+        "persisted_falsified_file": false
+      },
+      {
+        "control": "falsified_tool_identity",
+        "rejected": true,
+        "persisted_falsified_file": false
+      },
+      {
+        "control": "falsified_exit",
+        "rejected": true,
+        "persisted_falsified_file": false
+      }
+    ],
+    "portable_only": true,
+    "native_pass": false,
+    "full_host_pass": false,
+    "review_verdict": null
+  },
+  "current_source_identity_sha256": "675293eb8aa08ffce2e6ac5a129aebc9f0901ca10a6f31b233bf1303393f8d15",
+  "all_16_actual_commands_and_sources_match_frozen_evidence": true,
+  "additional_controls": [
+    {
+      "control": "falsified_source_identity",
+      "rejected": true,
+      "persisted_falsified_file": false
+    },
+    {
+      "control": "falsified_selector",
+      "rejected": true,
+      "persisted_falsified_file": false
+    },
+    {
+      "control": "false_full_host_claim",
+      "rejected": true,
+      "persisted_falsified_file": false
+    },
+    {
+      "control": "false_current_review",
+      "rejected": true,
+      "persisted_falsified_file": false
+    },
+    {
+      "control": "false_whole_spec_complete",
+      "rejected": true,
+      "persisted_falsified_file": false
+    }
+  ],
+  "native_pass": false,
+  "full_host_pass": false,
+  "review_verdict": null
+}

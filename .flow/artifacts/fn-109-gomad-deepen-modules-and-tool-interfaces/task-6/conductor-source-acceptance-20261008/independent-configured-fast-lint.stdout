@@ -1,0 +1,493 @@
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-14/capture-vectors.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/compare-test-bodies.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/inspect-linter.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/internal/canonicaljson/canonical.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/record/identity.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/record/record.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/record/record_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/record/types.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/record/uint64_string.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/record/validation.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/record/world_terminal_identity_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/choice.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/codec.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/doc.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/errors.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/preservation_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/queue.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/recording.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/replay.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/snapshot.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/types.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-baseline/world/world.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/parent-verified-preimages/retention_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/parent-verified-preimages/runner_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/matched-mount-original-config.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/bound-baseline-measurement/descriptor_dup_linux.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/bound-baseline-measurement/r19_artifact_payload_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/bound-baseline-measurement/r19_logical_policy_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/bound-baseline-measurement/r19_measurement_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/bound-baseline-measurement/r19_transport_guard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/descriptor_dup_linux.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/r19_artifact_payload_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/r19_logical_policy_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/r19_measurement_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/r19_transport_guard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/old-cli.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/post-host-controller-preimage.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/preimages/tools/gomad3/runner/campaign_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/preimages/tools/gomad3/runner/internal/campaign/controller.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/preimages/tools/gomad3/runner/internal/campaign/controller_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/preimages/tools/gomad3/runner/runner.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-final/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-final/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-final/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-origin-stage/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-origin-stage/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-origin-stage/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-pre/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-pre/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-pre/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-test-first/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-test-first/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-test-first/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-valid-test-first/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-valid-test-first/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/allocation-repair-valid-test-first/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/baseline/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/baseline/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/conversion-stage/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/conversion-stage/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/conversion-stage/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/map-repair-final/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/map-repair-final/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/map-repair-final/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/map-repair-pre/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/map-repair-pre/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/map-repair-pre/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/map-repair-test-first/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/map-repair-test-first/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/map-repair-test-first/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-baseline/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-baseline/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-baseline/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-candidate/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-candidate/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-candidate/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-final/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-final/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-final/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-test-first/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-test-first/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/repair-test-first/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/test-first/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/test-first/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/test-first/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/unwrap-stage/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/unwrap-stage/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/unwrap-stage/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/writer-stage/effects.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/writer-stage/error_provenance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/writer-stage/standard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/base-qualification.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/base-qualification_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/base-vector-test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/controls-qualification_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/baseline-overlay/empty.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/analyze.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/campaign_shards_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/cli.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/compare_support.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/doctor.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/doctor_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/exploration_divergence_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/explore_output.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/guidance_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/inspect_target_sharing_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/qualify.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/qualify_set.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/quote.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/quote_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/recover.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/resume.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/working_directory.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/preimage/tools/gomad3/cmd/gomad/internal/cli/working_directory_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/cmd/gomad/e2e_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/cmd/gomad/internal/cli/cli.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/runner/campaign_options.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/runner/campaign_plan.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/runner/resume.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/runner/runner.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/runner/seeds.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/before/tools/gomad3/runner/seeds_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/conductor-source-acceptance-20261008/writer-negative-cli.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/review-fix-before/tools/gomad3/cmd/gomad/internal/cli/cli.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/review-fix-before/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/review-fix-before/tools/gomad3/runner/campaign_options.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/review-fix-before/tools/gomad3/runner/campaign_options_cli_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/writer-regression-overlay.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/architecture_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign_merge.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign_options.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign_options_characterization_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign_options_cli_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign_plan.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign_shard.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign_shard_execution.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign_shard_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/campaign_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/choice_exploration_campaign.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/choice_exploration_divergence_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/choice_exploration_divergence_unix_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/clock_tick_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/completion.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/completion_characterization_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/completion_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/coordinator.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/coordinator_process_other.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/coordinator_process_unix.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/coordinator_process_unix_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/coordinator_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/coordinator_transport_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/coverage.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/coverage_replay_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/coverage_watchdog_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/deterministicio.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/diagnostic_identity_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/diagnostics.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/diagnostics_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/environment_integration_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/errors.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/errors_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/evidence.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/exploration_round.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/exploration_round_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/guidance.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/guidance_identity_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/guided_selection_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/inspect.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/inspect_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/minimize_operation.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/minimize_operation_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/portable_plan.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/portable_plan_mounts.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/portable_plan_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/private.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/recovery.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/replay_io_integration_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/replay_operation.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/replay_operation_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/resume.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/retention.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/retention_characterization_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/retention_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/runner.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/runner_mode_unix_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/runner_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/seed_completion_characterization_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/seeds.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/seeds_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/simulation_exploration_campaign.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/simulation_exploration_plan_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/preimages/tools/gomad3/runner/watchdog_replay_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence-fixture/main.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/architecture_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/internal/preparation/preparation_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/deterministicio.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/portable_plan.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/preparation_equivalence_legacy_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/runner.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/empty-preparation.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/fixture/analysis/main.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/fixture/invalid-sum/main.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/fixture/unsupported/main.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/preimages/tools/gomad3/architecture_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/preimages/tools/gomad3/cmd/gomad/internal/cli/analyze.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/preimages/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/preimages/tools/gomad3/cmd/gomadtool/compatibility_pack.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/preimages/tools/gomad3/internal/preparation/preparation.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/preimages/tools/gomad3/internal/preparation/preparation_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/preimages/tools/gomad3/qualification/analysis/analysis.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/preimages/tools/gomad3/qualification/analysis/prepared_review.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/preimages/tools/gomad3/qualification/analysis/prepared_review_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-command-gap-2026-10-05/base-process-probe/probe.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/cached-subpackages.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/source-selection-final.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/source-selection.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/preimage/tools/gomad3/target/capability.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/preimage/tools/gomad3/target/internal/capabilityreview/list.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/preimage/tools/gomad3/target/internal/capabilityreview/list_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/preimage/tools/gomad3/target/target.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/preimage/tools/gomad3/target/target_test.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/review-round-1/target_test.go
+retained evidence: .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/compact_checkpoint_test.go
+retained evidence: .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/cache.go
+retained evidence: .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source_acceptance_test.go
+retained evidence: .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/alignment-experiment/token-compare.go
+retained evidence: .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/fixture/main.go
+retained evidence: .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/compact_checkpoint_test.go
+retained evidence: .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-fixture/internal/compatibilitypack/packs_generated_test.go
+retained evidence: .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/measure.go
+retained evidence: .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/measurement-main.go
+Gomad qualification fixture: tools/gomad3/cmd/gomad/testdata/seedfree/main.go
+Gomad qualification fixture: tools/gomad3/internal/gomadtool/conformance/testdata/clock_tick_deadline/main.go
+Gomad qualification fixture: tools/gomad3/internal/gomadtool/conformance/testdata/clock_tick_due/main.go
+Gomad qualification fixture: tools/gomad3/internal/gomadtool/conformance/testdata/draw_check/main.go
+Gomad qualification fixture: tools/gomad3/internal/gomadtool/conformance/testdata/locked_syscall/main.go
+Gomad qualification fixture: tools/gomad3/internal/gomadtool/conformance/testdata/runner_external/consumer.go
+Gomad qualification fixture: tools/gomad3/internal/gomadtool/conformance/testdata/runq_user_choice/main.go
+Gomad qualification fixture: tools/gomad3/internal/gomadtool/conformance/testdata/runtime_owned/main.go
+Gomad qualification fixture: tools/gomad3/testdata/runnerconsumer/consumer.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/crypto/rand/gomad.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_commands.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_commands_export_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_commands_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume_host.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands_export_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_network.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/syscall/gomad_env_unix.go
+runtime overlay: tools/gomad3/toolchain/runtime/overlay/src/syscall/gomad_unix.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/source-acceptance-20261008/api_ast.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/source-acceptance-20261008/negative-field/consumer.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/source-acceptance-20261008/negative-internal/consumer.go
+Lint module .: 2 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mLinting code...[0m
+0 issues.
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+Lint module tools/gomad3: 55 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mLinting code...[0m
+tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("artifact manifest cannot copy a %s field", source.Kind()))
+		^
+tools/gomad3/cmd/gomad/internal/cli/application.go:88:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/application.go:185:14: ST1005: error strings should not be capitalized (staticcheck)
+		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:369:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:374:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:442:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:477:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:486:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:494:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:42:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, adapterRegenerateUsage)
+		            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:46:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "--approve and --approve-review must name the same digest")
+		            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:53:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "--stage-only requires an approval digest")
+		            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:59:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:64:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:77:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "adapter regeneration requires the pinned go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err)
+		           ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:82:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, adapterRegenerateUsage)
+			            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:86:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:92:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, adapterRegenerateUsage)
+		            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:93:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "regenerable adapters: %s\n", strings.Join(adapterregen.Regenerable(), ", "))
+		           ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:100:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/adapter_regenerate.go:111:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:24:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]")
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:41:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]")
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:219:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:270:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:275:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:280:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:305:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "no compatibility-pack request names %s\n", platform)
+		           ^
+tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:51:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, compatibilityPackRefreshUsage)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:56:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:61:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:66:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:77:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "compatibility-pack refresh requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err)
+		           ^
+tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:85:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:97:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, readErr)
+			            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:114:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:40:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, pinImpactUsage)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:45:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, pinImpactUsage)
+			            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:56:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:63:15: Error return value of `fmt.Fprintf` is not checked (errcheck)
+			fmt.Fprintf(stderr, "locate the repository root module: %v; pass --module\n", err)
+			           ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:69:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:74:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:92:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:102:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "gomad3 pin impact requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err)
+		           ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:107:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:112:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:121:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:129:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:134:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:144:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:156:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:165:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:171:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/pin_impact.go:186:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/soak.go:37:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool soak --manifest=FILE --gomad=FILE --work=DIR --ledger=DIR --output=DIR [flags]")
+		            ^
+tools/gomad3/cmd/gomadtool/soak.go:47:16: Error return value of `fmt.Fprintf` is not checked (errcheck)
+				fmt.Fprintf(stderr, "invalid --seed %q\n", value)
+				           ^
+tools/gomad3/cmd/gomadtool/soak.go:55:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/soak.go:62:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/internal/gomadtool/architecture/initialization.go:123:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(digest, "%x  %s\n", sha256.Sum256(data), entry.Name())
+		           ^
+tools/gomad3/internal/gomadtool/architecture/standard.go:392:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(digest, "%x  %s\n", sha256.Sum256(data), entry.Name())
+		           ^
+tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go:15:21: Error return value of `syscall.Close` is not checked (errcheck)
+	defer syscall.Close(descriptors[0])
+	                   ^
+tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go:16:21: Error return value of `syscall.Close` is not checked (errcheck)
+	defer syscall.Close(descriptors[1])
+	                   ^
+tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World seed does not match target seed")
+		            ^
+tools/gomad3/upgrade/adapterregen/transaction.go:89:20: Error return value of `lock.Release` is not checked (errcheck)
+	defer lock.Release()
+	                  ^
+tools/gomad3/upgrade/adapterregen/transaction.go:219:20: Error return value of `lock.Release` is not checked (errcheck)
+	defer lock.Release()
+	                  ^
+tools/gomad3/world/recording.go:95:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World error terminal kind is required")
+		                    ^
+66 issues:
+* errcheck: 62
+* forbidigo: 1
+* staticcheck: 3
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'

@@ -1,0 +1,3 @@
+# example.com/gomad-executor-negative-internal
+package example.com/gomad-executor-negative-internal
+	consumer.go:3:8: use of internal package go.temporal.io/server/tools/gomad3/runner/internal/execution not allowed
