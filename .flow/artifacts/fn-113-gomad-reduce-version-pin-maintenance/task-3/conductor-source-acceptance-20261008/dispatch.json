@@ -9,6 +9,8 @@
   "requested_implementer": "gpt-6.1-sol at high, per AGENTS.md",
   "requested_model_is_not_actual_model_evidence": true,
   "scheduling": "single fresh task worker, sole serialized Go/build/lint/generator lane",
+  "worker": "/root/complete_fn1133_source",
+  "go_lane_owner": "/root/complete_fn1133_source",
   "review_owner": "conductor",
   "review_backend": "codex:gpt-6.1-sol:high",
   "review_phase0_executed": false,
