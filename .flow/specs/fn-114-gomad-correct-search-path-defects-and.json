@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-114-gomad-correct-search-path-defects-and",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-08T08:01:10.962802Z",
   "created_at": "2026-10-02T03:35:25.691196Z",
   "default_impl": null,
   "default_review": null,
@@ -1018,6 +1018,42 @@
       "task": "fn-114-gomad-correct-search-path-defects-and.14",
       "timestamp": "2026-10-08T07:48:53.784117Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "5bdd7cb92b2783d6ee610fcdfbb9d458312186f741995ffdf29fdcf2f46d628e",
+      "backend": "codex",
+      "base_sha": "1b0bc277589d141aca8b534b03135ab3e57fc050",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fd59a054172e7e63eb75af67d35bad05373f73fa",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 970639,
+      "output_sha256": "90c9d532b9aa78fc80c06b922bdb8dd9a4b487d486c1d81f168f5376e361fde9",
+      "reservation_id": "267a51047db94afc8276d5ca9eb5e6ba",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T08:01:10.940880Z",
+      "tool_calls": 36,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1038,11 +1074,12 @@
     "impl:fn-114-gomad-correct-search-path-defects-and.8": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.9": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.1": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.10": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.11": 0,
@@ -1075,5 +1112,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T07:48:53.802396Z"
+  "updated_at": "2026-10-08T08:01:10.967772Z"
 }
