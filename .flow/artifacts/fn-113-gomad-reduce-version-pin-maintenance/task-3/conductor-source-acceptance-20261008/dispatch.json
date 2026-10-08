@@ -1,0 +1,23 @@
+{
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.3",
+  "base_commit": "73a37433b526ae9d6165ffaf1400460f9a6b36d8",
+  "branch": "gomad",
+  "predecessors": "fn-113.1 and fn-113.2 verified Done; R3 source candidate 8f292989 received three fresh SHIP draws",
+  "scope": "Full retained R4 source acceptance, not another bounded checkpoint",
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "judge": {"success": true, "available": false, "preset": "tier", "reason": "no_key", "spawn_model": null, "implementer": "gpt-6.1-sol"},
+  "requested_implementer": "gpt-6.1-sol at high, per AGENTS.md",
+  "requested_model_is_not_actual_model_evidence": true,
+  "scheduling": "single fresh task worker, sole serialized Go/build/lint/generator lane",
+  "review_owner": "conductor",
+  "review_backend": "codex:gpt-6.1-sol:high",
+  "review_phase0_executed": false,
+  "review_requires_committed_nonempty_candidate_range": true,
+  "completion_owner": "conductor",
+  "worker_may_commit_or_mutate_flow": false,
+  "return_condition": "Full assigned source scope terminal with compact handover/evidence, or a concrete requirement needing root scope decision; no deadline-sized checkpoint",
+  "handover": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-acceptance-20261008/handover.md",
+  "evidence": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-acceptance-20261008/evidence.json",
+  "native_qualification": "fn-149/fn-128 deferred and unverified",
+  "publication_authority": "No PR, push or CI action"
+}
