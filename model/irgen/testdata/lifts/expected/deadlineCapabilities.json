@@ -1,0 +1,5509 @@
+{
+  "source": "model: fixture.deadlinecapabilities.DeadlineTimers$.capabilities, fixture.deadlinecapabilities.SimpleDeadlines$.capabilities",
+  "types": [ {
+    "name": "fixture.deadlinecapabilities.Answer",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 28
+    },
+    "enum": {
+      "cases": [ {
+        "name": "ok"
+      } ]
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.DeadlineState",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 12
+    },
+    "record": {
+      "fields": [ {
+        "name": "phase",
+        "type": {
+          "named": "fixture.deadlinecapabilities.Phase"
+        }
+      }, {
+        "name": "armed",
+        "type": {
+          "bool": { }
+        }
+      }, {
+        "name": "dispatchNow",
+        "type": {
+          "bool": { }
+        }
+      }, {
+        "name": "eligible",
+        "type": {
+          "bool": { }
+        }
+      }, {
+        "name": "pause",
+        "type": {
+          "bool": { }
+        }
+      }, {
+        "name": "cancel",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Fact",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 24
+    },
+    "enum": {
+      "cases": [ {
+        "name": "timeout",
+        "fields": [ {
+          "name": "kind",
+          "type": {
+            "named": "fixture.deadlinecapabilities.TimeoutType"
+          }
+        } ]
+      }, {
+        "name": "unrelated"
+      } ]
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Mode",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 33
+    },
+    "enum": {
+      "cases": [ {
+        "name": "ordinaryHeld"
+      }, {
+        "name": "pauseHeld"
+      }, {
+        "name": "cancelHeld"
+      }, {
+        "name": "exhaustedHeld"
+      }, {
+        "name": "pauseCancelHeld"
+      }, {
+        "name": "exhaustedCancelHeld"
+      }, {
+        "name": "exhaustedPauseHeld"
+      }, {
+        "name": "unarmedWaiting"
+      }, {
+        "name": "backoffWaiting"
+      }, {
+        "name": "unarmedHeld"
+      }, {
+        "name": "otherRole"
+      } ]
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Phase",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 6
+    },
+    "enum": {
+      "cases": [ {
+        "name": "waiting"
+      }, {
+        "name": "held"
+      }, {
+        "name": "suspended"
+      }, {
+        "name": "timedOut"
+      } ]
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.SimplePhase",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 156
+    },
+    "enum": {
+      "cases": [ {
+        "name": "waiting"
+      }, {
+        "name": "timedOut"
+      } ]
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.TimeoutType",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 21
+    },
+    "enum": {
+      "cases": [ {
+        "name": "schedule"
+      }, {
+        "name": "start"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "deadlineTimers.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 128
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.deadlinecapabilities.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 128
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 128
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "case": {
+              "type": "fixture.deadlinecapabilities.Fact",
+              "case": "timeout",
+              "fields": [ {
+                "wildcard": { }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 128
+            },
+            "literal": {
+              "text": "timeout"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Fact",
+                "case": "unrelated"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 128
+            },
+            "literal": {
+              "text": "unrelated"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "deadlineTimers.property.deadlineTimers.schedule.deadlineTimesOut",
+    "position": {
+      "file": "model/temporal/capabilities/Deadline.scala",
+      "line": 74
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 75
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 75
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 75
+              },
+              "binary": {
+                "op": "OP_OR",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 75
+                  },
+                  "binary": {
+                    "op": "OP_OR",
+                    "left": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 46
+                      },
+                      "literal": {
+                        "bool": false
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 75
+                      },
+                      "unary": {
+                        "op": "OP_NOT",
+                        "operand": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 137
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 75
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 46
+                      },
+                      "literal": {
+                        "bool": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 76
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 76
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 76
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 76
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 126
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.Phase",
+                          "case": "timedOut"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 77
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 140
+                  },
+                  "construct": {
+                    "type": "fixture.deadlinecapabilities.Fact",
+                    "case": "timeout",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 140
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.TimeoutType",
+                          "case": "schedule"
+                        }
+                      }
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 77
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 77
+                      },
+                      "var": "after"
+                    },
+                    "field": "facts"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "deadlineTimers.property.deadlineTimers.schedule.firesInWindow",
+    "position": {
+      "file": "model/temporal/capabilities/Deadline.scala",
+      "line": 58
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 59
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 59
+          },
+          "call": {
+            "function": "fixture.deadlinecapabilities.Steps$.dispatchArmed",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 59
+              },
+              "var": "before"
+            } ]
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 59
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 126
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 59
+                  },
+                  "var": "before"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 126
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.Phase",
+                      "case": "waiting"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "deadlineTimers.property.deadlineTimers.start.deadlinePauses",
+    "position": {
+      "file": "model/temporal/capabilities/Deadline.scala",
+      "line": 112
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 113
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 113
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 113
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 113
+                  },
+                  "binary": {
+                    "op": "OP_AND",
+                    "left": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 113
+                      },
+                      "binary": {
+                        "op": "OP_AND",
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 148
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 113
+                          },
+                          "unary": {
+                            "op": "OP_NOT",
+                            "operand": {
+                              "position": {
+                                "file": "model/temporal/capabilities/Deadline.scala",
+                                "line": 113
+                              },
+                              "call": {
+                                "function": "fixture.deadlinecapabilities.Steps$.pendingCancel",
+                                "args": [ {
+                                  "position": {
+                                    "file": "model/temporal/capabilities/Deadline.scala",
+                                    "line": 113
+                                  },
+                                  "var": "before"
+                                } ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 113
+                      },
+                      "call": {
+                        "function": "fixture.deadlinecapabilities.Steps$.remaining",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 113
+                          },
+                          "var": "before"
+                        } ]
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 113
+                  },
+                  "call": {
+                    "function": "fixture.deadlinecapabilities.Steps$.pendingPause",
+                    "args": [ {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 113
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 114
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 114
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 114
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 114
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 126
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.Phase",
+                          "case": "suspended"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": { },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 115
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 115
+                      },
+                      "binary": {
+                        "op": "OP_CONTAINS",
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 53
+                          },
+                          "construct": {
+                            "type": "fixture.deadlinecapabilities.Fact",
+                            "case": "timeout",
+                            "args": [ {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                "line": 53
+                              },
+                              "literal": {
+                                "enum": {
+                                  "type": "fixture.deadlinecapabilities.TimeoutType",
+                                  "case": "schedule"
+                                }
+                              }
+                            } ]
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 115
+                          },
+                          "field": {
+                            "base": {
+                              "position": {
+                                "file": "model/temporal/capabilities/Deadline.scala",
+                                "line": 115
+                              },
+                              "var": "after"
+                            },
+                            "field": "facts"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 115
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 115
+                      },
+                      "binary": {
+                        "op": "OP_CONTAINS",
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 53
+                          },
+                          "construct": {
+                            "type": "fixture.deadlinecapabilities.Fact",
+                            "case": "timeout",
+                            "args": [ {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                "line": 53
+                              },
+                              "literal": {
+                                "enum": {
+                                  "type": "fixture.deadlinecapabilities.TimeoutType",
+                                  "case": "start"
+                                }
+                              }
+                            } ]
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 115
+                          },
+                          "field": {
+                            "base": {
+                              "position": {
+                                "file": "model/temporal/capabilities/Deadline.scala",
+                                "line": 115
+                              },
+                              "var": "after"
+                            },
+                            "field": "facts"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "deadlineTimers.property.deadlineTimers.start.deadlineReturnsToWaiting",
+    "position": {
+      "file": "model/temporal/capabilities/Deadline.scala",
+      "line": 93
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 94
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 94
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 94
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 94
+                  },
+                  "binary": {
+                    "op": "OP_AND",
+                    "left": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 94
+                      },
+                      "binary": {
+                        "op": "OP_AND",
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 148
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 94
+                          },
+                          "unary": {
+                            "op": "OP_NOT",
+                            "operand": {
+                              "position": {
+                                "file": "model/temporal/capabilities/Deadline.scala",
+                                "line": 94
+                              },
+                              "call": {
+                                "function": "fixture.deadlinecapabilities.Steps$.pendingCancel",
+                                "args": [ {
+                                  "position": {
+                                    "file": "model/temporal/capabilities/Deadline.scala",
+                                    "line": 94
+                                  },
+                                  "var": "before"
+                                } ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 94
+                      },
+                      "call": {
+                        "function": "fixture.deadlinecapabilities.Steps$.remaining",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 94
+                          },
+                          "var": "before"
+                        } ]
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 94
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 94
+                      },
+                      "call": {
+                        "function": "fixture.deadlinecapabilities.Steps$.pendingPause",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 94
+                          },
+                          "var": "before"
+                        } ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 95
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 95
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 95
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 95
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 126
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.Phase",
+                          "case": "waiting"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": { },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 96
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 96
+                      },
+                      "binary": {
+                        "op": "OP_CONTAINS",
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 53
+                          },
+                          "construct": {
+                            "type": "fixture.deadlinecapabilities.Fact",
+                            "case": "timeout",
+                            "args": [ {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                "line": 53
+                              },
+                              "literal": {
+                                "enum": {
+                                  "type": "fixture.deadlinecapabilities.TimeoutType",
+                                  "case": "schedule"
+                                }
+                              }
+                            } ]
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 96
+                          },
+                          "field": {
+                            "base": {
+                              "position": {
+                                "file": "model/temporal/capabilities/Deadline.scala",
+                                "line": 96
+                              },
+                              "var": "after"
+                            },
+                            "field": "facts"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 96
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 96
+                      },
+                      "binary": {
+                        "op": "OP_CONTAINS",
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 53
+                          },
+                          "construct": {
+                            "type": "fixture.deadlinecapabilities.Fact",
+                            "case": "timeout",
+                            "args": [ {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                "line": 53
+                              },
+                              "literal": {
+                                "enum": {
+                                  "type": "fixture.deadlinecapabilities.TimeoutType",
+                                  "case": "start"
+                                }
+                              }
+                            } ]
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 96
+                          },
+                          "field": {
+                            "base": {
+                              "position": {
+                                "file": "model/temporal/capabilities/Deadline.scala",
+                                "line": 96
+                              },
+                              "var": "after"
+                            },
+                            "field": "facts"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "deadlineTimers.property.deadlineTimers.start.deadlineTimesOut",
+    "position": {
+      "file": "model/temporal/capabilities/Deadline.scala",
+      "line": 74
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 75
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 75
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 75
+              },
+              "binary": {
+                "op": "OP_OR",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 75
+                  },
+                  "binary": {
+                    "op": "OP_OR",
+                    "left": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 75
+                      },
+                      "call": {
+                        "function": "fixture.deadlinecapabilities.Steps$.pendingCancel",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 75
+                          },
+                          "var": "before"
+                        } ]
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 75
+                      },
+                      "unary": {
+                        "op": "OP_NOT",
+                        "operand": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 148
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 75
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 75
+                      },
+                      "call": {
+                        "function": "fixture.deadlinecapabilities.Steps$.remaining",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 75
+                          },
+                          "var": "before"
+                        } ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 76
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 76
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 76
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 76
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 126
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.Phase",
+                          "case": "timedOut"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 77
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 146
+                  },
+                  "construct": {
+                    "type": "fixture.deadlinecapabilities.Fact",
+                    "case": "timeout",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 146
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.TimeoutType",
+                          "case": "start"
+                        }
+                      }
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 77
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 77
+                      },
+                      "var": "after"
+                    },
+                    "field": "facts"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "deadlineTimers.property.deadlineTimers.start.firesInWindow",
+    "position": {
+      "file": "model/temporal/capabilities/Deadline.scala",
+      "line": 58
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 59
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 59
+          },
+          "call": {
+            "function": "fixture.deadlinecapabilities.Steps$.armed",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 59
+              },
+              "var": "before"
+            } ]
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 59
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 126
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 59
+                  },
+                  "var": "before"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 126
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.Phase",
+                      "case": "held"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.SimpleDeadlines$.armed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 165
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.SimplePhase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 165
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 165
+          },
+          "var": "s"
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 165
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.deadlinecapabilities.SimplePhase",
+              "case": "waiting"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.SimpleDeadlines$.expire",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 167
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.SimplePhase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 168
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 168
+          },
+          "call": {
+            "function": "fixture.deadlinecapabilities.SimpleDeadlines$.armed",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 168
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 168
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 168
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 31
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 168
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.SimplePhase",
+                      "case": "waiting"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 168
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 168
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 168
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.SimpleDeadlines$.remaining",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 166
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.SimplePhase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 166
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 166
+          },
+          "var": "s"
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 166
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.deadlinecapabilities.SimplePhase",
+              "case": "waiting"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Steps$.armed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 57
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 57
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 57
+          },
+          "var": "s"
+        },
+        "field": "armed"
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Steps$.dispatchArmed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 56
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 56
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 56
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 56
+              },
+              "var": "s"
+            },
+            "field": "armed"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 56
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 56
+              },
+              "var": "s"
+            },
+            "field": "dispatchNow"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Steps$.keep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 75
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 76
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 76
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 31
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.deadlinecapabilities.Answer",
+                  "case": "ok"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 76
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 76
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 76
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.Fact",
+                      "case": "unrelated"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 76
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Steps$.pendingCancel",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 60
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 60
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 60
+          },
+          "var": "s"
+        },
+        "field": "cancel"
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Steps$.pendingPause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 59
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 59
+          },
+          "var": "s"
+        },
+        "field": "pause"
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Steps$.prepare",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 78
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    }, {
+      "name": "mode",
+      "type": {
+        "named": "fixture.deadlinecapabilities.Mode"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 79
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 79
+          },
+          "var": "mode"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "ordinaryHeld"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 81
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 81
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 82
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 82
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 83
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "held"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 84
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "dispatchNow",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 85
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "eligible",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 86
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "pause",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 87
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      }, {
+                        "name": "cancel",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 88
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 89
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 81
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "pauseHeld"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 92
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 92
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 93
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 93
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 93
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "held"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 93
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "eligible",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 93
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "pause",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 93
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "cancel",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 93
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 93
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 92
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "cancelHeld"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 96
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 96
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 97
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 97
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 97
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "held"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 97
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "eligible",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 97
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "pause",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 97
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      }, {
+                        "name": "cancel",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 97
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 97
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 96
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "exhaustedHeld"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 100
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 100
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 101
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 101
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 101
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "held"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 101
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "eligible",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 101
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      }, {
+                        "name": "pause",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 101
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      }, {
+                        "name": "cancel",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 101
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 101
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 100
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "pauseCancelHeld"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 104
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 104
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 105
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 105
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 105
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "held"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 105
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "eligible",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 105
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "pause",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 105
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "cancel",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 105
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 105
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 104
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "exhaustedCancelHeld"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 108
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 108
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 109
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 109
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 109
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "held"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 109
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "eligible",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 109
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      }, {
+                        "name": "pause",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 109
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      }, {
+                        "name": "cancel",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 109
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 109
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 108
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "exhaustedPauseHeld"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 112
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 112
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 113
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 113
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 113
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "held"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 113
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "eligible",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 113
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      }, {
+                        "name": "pause",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 113
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "cancel",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 113
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 113
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 112
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "unarmedWaiting"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 115
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 115
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 115
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 115
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 115
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "waiting"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 115
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 115
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 115
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "backoffWaiting"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 117
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 117
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 117
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 117
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 117
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "waiting"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 117
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }, {
+                        "name": "dispatchNow",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 117
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 117
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 117
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "unarmedHeld"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 118
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 118
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 118
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 118
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 118
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "held"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 118
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 118
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 118
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Mode",
+                "case": "otherRole"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 119
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                  "line": 119
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 31
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.deadlinecapabilities.Answer",
+                        "case": "ok"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 119
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 119
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 119
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.Phase",
+                              "case": "suspended"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "armed",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 119
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 119
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                      "line": 119
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Steps$.remaining",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 58
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 58
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 58
+          },
+          "var": "s"
+        },
+        "field": "eligible"
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Steps$.schedule",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 62
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    }, {
+      "name": "tick",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 63
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 63
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 63
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 63
+                  },
+                  "var": "tick"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 63
+                  },
+                  "call": {
+                    "function": "fixture.deadlinecapabilities.Steps$.dispatchArmed",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 63
+                      },
+                      "var": "s"
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 63
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 63
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 63
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 63
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.Phase",
+                      "case": "waiting"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 64
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 64
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 31
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 64
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 64
+                      },
+                      "var": "s"
+                    },
+                    "updates": [ {
+                      "name": "phase",
+                      "value": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                          "line": 64
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.deadlinecapabilities.Phase",
+                            "case": "timedOut"
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 64
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 64
+                      },
+                      "construct": {
+                        "type": "fixture.deadlinecapabilities.Fact",
+                        "case": "timeout",
+                        "args": [ {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 64
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.deadlinecapabilities.TimeoutType",
+                              "case": "schedule"
+                            }
+                          }
+                        } ]
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 64
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 65
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.deadlinecapabilities.Steps$.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 67
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.deadlinecapabilities.DeadlineState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 68
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 68
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 68
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 68
+                  },
+                  "var": "s"
+                },
+                "field": "armed"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 68
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 68
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 68
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 68
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.Phase",
+                      "case": "held"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 69
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 69
+              },
+              "binary": {
+                "op": "OP_OR",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 69
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 69
+                      },
+                      "var": "s"
+                    },
+                    "field": "cancel"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 69
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 69
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 69
+                          },
+                          "var": "s"
+                        },
+                        "field": "eligible"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 70
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 70
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 31
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.Answer",
+                          "case": "ok"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 70
+                      },
+                      "copy": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 70
+                          },
+                          "var": "s"
+                        },
+                        "updates": [ {
+                          "name": "phase",
+                          "value": {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                              "line": 70
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.deadlinecapabilities.Phase",
+                                "case": "timedOut"
+                              }
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 70
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 70
+                          },
+                          "construct": {
+                            "type": "fixture.deadlinecapabilities.Fact",
+                            "case": "timeout",
+                            "args": [ {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                "line": 70
+                              },
+                              "literal": {
+                                "enum": {
+                                  "type": "fixture.deadlinecapabilities.TimeoutType",
+                                  "case": "start"
+                                }
+                              }
+                            } ]
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 70
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 72
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 72
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 31
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.Answer",
+                          "case": "ok"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 72
+                      },
+                      "copy": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 72
+                          },
+                          "var": "s"
+                        },
+                        "updates": [ {
+                          "name": "phase",
+                          "value": {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                              "line": 72
+                            },
+                            "if": {
+                              "condition": {
+                                "position": {
+                                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                  "line": 72
+                                },
+                                "field": {
+                                  "base": {
+                                    "position": {
+                                      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                      "line": 72
+                                    },
+                                    "var": "s"
+                                  },
+                                  "field": "pause"
+                                }
+                              },
+                              "then": {
+                                "position": {
+                                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                  "line": 72
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "fixture.deadlinecapabilities.Phase",
+                                    "case": "suspended"
+                                  }
+                                }
+                              },
+                              "else": {
+                                "position": {
+                                  "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                  "line": 72
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "fixture.deadlinecapabilities.Phase",
+                                    "case": "waiting"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }, {
+                          "name": "eligible",
+                          "value": {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                              "line": 72
+                            },
+                            "literal": {
+                              "bool": false
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 72
+                      },
+                      "list": { }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 72
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 73
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "simpleDeadlines.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 164
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.deadlinecapabilities.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 164
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 164
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "case": {
+              "type": "fixture.deadlinecapabilities.Fact",
+              "case": "timeout",
+              "fields": [ {
+                "wildcard": { }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 164
+            },
+            "literal": {
+              "text": "timeout"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.deadlinecapabilities.Fact",
+                "case": "unrelated"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+              "line": 164
+            },
+            "literal": {
+              "text": "unrelated"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "simpleDeadlines.property.simpleDeadlines.retry.deadlineReturnsToWaiting",
+    "position": {
+      "file": "model/temporal/capabilities/Deadline.scala",
+      "line": 93
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.deadlinecapabilities.SimplePhase"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 94
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 94
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 94
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 94
+                  },
+                  "binary": {
+                    "op": "OP_AND",
+                    "left": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 94
+                      },
+                      "binary": {
+                        "op": "OP_AND",
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 176
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 94
+                          },
+                          "unary": {
+                            "op": "OP_NOT",
+                            "operand": {
+                              "position": {
+                                "file": "model/temporal/capabilities/Deadline.scala",
+                                "line": 46
+                              },
+                              "literal": {
+                                "bool": false
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 94
+                      },
+                      "call": {
+                        "function": "fixture.deadlinecapabilities.SimpleDeadlines$.remaining",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 94
+                          },
+                          "var": "before"
+                        } ]
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 94
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 46
+                      },
+                      "literal": {
+                        "bool": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 95
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 95
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 95
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 95
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 162
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 162
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.SimplePhase",
+                          "case": "waiting"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": { },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 96
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 96
+                      },
+                      "binary": {
+                        "op": "OP_CONTAINS",
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 53
+                          },
+                          "construct": {
+                            "type": "fixture.deadlinecapabilities.Fact",
+                            "case": "timeout",
+                            "args": [ {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                "line": 53
+                              },
+                              "literal": {
+                                "enum": {
+                                  "type": "fixture.deadlinecapabilities.TimeoutType",
+                                  "case": "schedule"
+                                }
+                              }
+                            } ]
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 96
+                          },
+                          "field": {
+                            "base": {
+                              "position": {
+                                "file": "model/temporal/capabilities/Deadline.scala",
+                                "line": 96
+                              },
+                              "var": "after"
+                            },
+                            "field": "facts"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 96
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 96
+                      },
+                      "binary": {
+                        "op": "OP_CONTAINS",
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 53
+                          },
+                          "construct": {
+                            "type": "fixture.deadlinecapabilities.Fact",
+                            "case": "timeout",
+                            "args": [ {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                                "line": 53
+                              },
+                              "literal": {
+                                "enum": {
+                                  "type": "fixture.deadlinecapabilities.TimeoutType",
+                                  "case": "start"
+                                }
+                              }
+                            } ]
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 96
+                          },
+                          "field": {
+                            "base": {
+                              "position": {
+                                "file": "model/temporal/capabilities/Deadline.scala",
+                                "line": 96
+                              },
+                              "var": "after"
+                            },
+                            "field": "facts"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "simpleDeadlines.property.simpleDeadlines.retry.deadlineTimesOut",
+    "position": {
+      "file": "model/temporal/capabilities/Deadline.scala",
+      "line": 74
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.deadlinecapabilities.SimplePhase"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 75
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 75
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 75
+              },
+              "binary": {
+                "op": "OP_OR",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 75
+                  },
+                  "binary": {
+                    "op": "OP_OR",
+                    "left": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 46
+                      },
+                      "literal": {
+                        "bool": false
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 75
+                      },
+                      "unary": {
+                        "op": "OP_NOT",
+                        "operand": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                            "line": 176
+                          },
+                          "literal": {
+                            "bool": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 75
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 75
+                      },
+                      "call": {
+                        "function": "fixture.deadlinecapabilities.SimpleDeadlines$.remaining",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/capabilities/Deadline.scala",
+                            "line": 75
+                          },
+                          "var": "before"
+                        } ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 76
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 76
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 76
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 76
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 162
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 162
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.SimplePhase",
+                          "case": "timedOut"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 77
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 174
+                  },
+                  "construct": {
+                    "type": "fixture.deadlinecapabilities.Fact",
+                    "case": "timeout",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                        "line": 174
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.deadlinecapabilities.TimeoutType",
+                          "case": "start"
+                        }
+                      }
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/capabilities/Deadline.scala",
+                    "line": 77
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/capabilities/Deadline.scala",
+                        "line": 77
+                      },
+                      "var": "after"
+                    },
+                    "field": "facts"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "simpleDeadlines.property.simpleDeadlines.retry.firesInWindow",
+    "position": {
+      "file": "model/temporal/capabilities/Deadline.scala",
+      "line": 58
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.deadlinecapabilities.SimplePhase"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 59
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 59
+          },
+          "call": {
+            "function": "fixture.deadlinecapabilities.SimpleDeadlines$.armed",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 59
+              },
+              "var": "before"
+            } ]
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/capabilities/Deadline.scala",
+            "line": 59
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/capabilities/Deadline.scala",
+                "line": 59
+              },
+              "var": "before"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 162
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 162
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.SimplePhase",
+                      "case": "waiting"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.deadlinecapabilities.observer.keep",
+    "name": "keep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 48
+    },
+    "actor": "observer"
+  }, {
+    "id": "fixture.deadlinecapabilities.scheduleExpired",
+    "name": "scheduleExpired",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 40
+    },
+    "actor": "system",
+    "timer": true,
+    "inputs": [ {
+      "name": "tick",
+      "type": {
+        "bool": { }
+      }
+    } ]
+  }, {
+    "id": "fixture.deadlinecapabilities.startExpired",
+    "name": "startExpired",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 41
+    },
+    "actor": "system",
+    "timer": true
+  }, {
+    "id": "fixture.deadlinecapabilities.worker.prepare",
+    "name": "prepare",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 51
+    },
+    "actor": "worker",
+    "inputs": [ {
+      "name": "mode",
+      "type": {
+        "named": "fixture.deadlinecapabilities.Mode"
+      }
+    } ]
+  } ],
+  "machines": [ {
+    "family": "fixture.deadlinecapabilities",
+    "name": "deadlineTimers",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 124
+    },
+    "stateType": "fixture.deadlinecapabilities.DeadlineState",
+    "outcomeType": "fixture.deadlinecapabilities.Answer",
+    "factType": "fixture.deadlinecapabilities.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 127
+      },
+      "construct": {
+        "type": "fixture.deadlinecapabilities.DeadlineState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.deadlinecapabilities.Phase",
+              "case": "waiting"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 124
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.deadlinecapabilities.DeadlineState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 126
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 126
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 126
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 126
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.Phase",
+                      "case": "timedOut"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.deadlinecapabilities.scheduleExpired",
+      "function": "fixture.deadlinecapabilities.Steps$.schedule",
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 131
+      }
+    }, {
+      "action": "fixture.deadlinecapabilities.startExpired",
+      "function": "fixture.deadlinecapabilities.Steps$.start",
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 132
+      }
+    }, {
+      "action": "fixture.deadlinecapabilities.observer.keep",
+      "function": "fixture.deadlinecapabilities.Steps$.keep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 133
+      }
+    }, {
+      "action": "fixture.deadlinecapabilities.worker.prepare",
+      "function": "fixture.deadlinecapabilities.Steps$.prepare",
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 134
+      }
+    } ],
+    "evidence": "deadlineTimers.evidence"
+  }, {
+    "family": "fixture.deadlinecapabilities",
+    "name": "simpleDeadlines",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 160
+    },
+    "stateType": "fixture.deadlinecapabilities.SimplePhase",
+    "outcomeType": "fixture.deadlinecapabilities.Answer",
+    "factType": "fixture.deadlinecapabilities.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 163
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.deadlinecapabilities.SimplePhase",
+          "case": "waiting"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 160
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.deadlinecapabilities.SimplePhase"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 162
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 162
+              },
+              "var": "s"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                "line": 162
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+                    "line": 162
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.deadlinecapabilities.SimplePhase",
+                      "case": "timedOut"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.deadlinecapabilities.startExpired",
+      "function": "fixture.deadlinecapabilities.SimpleDeadlines$.expire",
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 169
+      }
+    } ],
+    "evidence": "simpleDeadlines.evidence"
+  } ],
+  "properties": [ {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.schedule.deadlineTimesOut",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 137
+    },
+    "whenClass": {
+      "action": "fixture.deadlinecapabilities.scheduleExpired",
+      "inputs": [ {
+        "bool": true
+      } ]
+    },
+    "holds": "deadlineTimers.property.deadlineTimers.schedule.deadlineTimesOut",
+    "transition": true,
+    "origin": {
+      "name": "temporal.capabilities.Deadline.deadlineTimesOut",
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 62
+      }
+    }
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.schedule.firesInWindow",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 137
+    },
+    "whenClass": {
+      "action": "fixture.deadlinecapabilities.scheduleExpired",
+      "inputs": [ {
+        "bool": true
+      } ]
+    },
+    "holds": "deadlineTimers.property.deadlineTimers.schedule.firesInWindow",
+    "transition": true,
+    "origin": {
+      "name": "temporal.capabilities.Deadline.firesInWindow",
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 48
+      }
+    }
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.start.deadlinePauses",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "whenClass": {
+      "action": "fixture.deadlinecapabilities.startExpired"
+    },
+    "holds": "deadlineTimers.property.deadlineTimers.start.deadlinePauses",
+    "transition": true,
+    "origin": {
+      "name": "temporal.capabilities.Deadline.deadlinePauses",
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 99
+      }
+    }
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.start.deadlineReturnsToWaiting",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "whenClass": {
+      "action": "fixture.deadlinecapabilities.startExpired"
+    },
+    "holds": "deadlineTimers.property.deadlineTimers.start.deadlineReturnsToWaiting",
+    "transition": true,
+    "origin": {
+      "name": "temporal.capabilities.Deadline.deadlineReturnsToWaiting",
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 80
+      }
+    }
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.start.deadlineTimesOut",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "whenClass": {
+      "action": "fixture.deadlinecapabilities.startExpired"
+    },
+    "holds": "deadlineTimers.property.deadlineTimers.start.deadlineTimesOut",
+    "transition": true,
+    "origin": {
+      "name": "temporal.capabilities.Deadline.deadlineTimesOut",
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 62
+      }
+    }
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.start.firesInWindow",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "whenClass": {
+      "action": "fixture.deadlinecapabilities.startExpired"
+    },
+    "holds": "deadlineTimers.property.deadlineTimers.start.firesInWindow",
+    "transition": true,
+    "origin": {
+      "name": "temporal.capabilities.Deadline.firesInWindow",
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 48
+      }
+    }
+  }, {
+    "machine": "simpleDeadlines",
+    "name": "simpleDeadlines.retry.deadlineReturnsToWaiting",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 171
+    },
+    "whenClass": {
+      "action": "fixture.deadlinecapabilities.startExpired"
+    },
+    "holds": "simpleDeadlines.property.simpleDeadlines.retry.deadlineReturnsToWaiting",
+    "transition": true,
+    "origin": {
+      "name": "temporal.capabilities.Deadline.deadlineReturnsToWaiting",
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 80
+      }
+    }
+  }, {
+    "machine": "simpleDeadlines",
+    "name": "simpleDeadlines.retry.deadlineTimesOut",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 171
+    },
+    "whenClass": {
+      "action": "fixture.deadlinecapabilities.startExpired"
+    },
+    "holds": "simpleDeadlines.property.simpleDeadlines.retry.deadlineTimesOut",
+    "transition": true,
+    "origin": {
+      "name": "temporal.capabilities.Deadline.deadlineTimesOut",
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 62
+      }
+    }
+  }, {
+    "machine": "simpleDeadlines",
+    "name": "simpleDeadlines.retry.firesInWindow",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 171
+    },
+    "whenClass": {
+      "action": "fixture.deadlinecapabilities.startExpired"
+    },
+    "holds": "simpleDeadlines.property.simpleDeadlines.retry.firesInWindow",
+    "transition": true,
+    "origin": {
+      "name": "temporal.capabilities.Deadline.firesInWindow",
+      "position": {
+        "file": "model/temporal/capabilities/Deadline.scala",
+        "line": 48
+      }
+    }
+  } ],
+  "scenarios": [ {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.schedule.deadlineTimesOut",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 137
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 127
+      },
+      "construct": {
+        "type": "fixture.deadlinecapabilities.DeadlineState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.deadlinecapabilities.Phase",
+              "case": "waiting"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.schedule.firesInWindow",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 137
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 127
+      },
+      "construct": {
+        "type": "fixture.deadlinecapabilities.DeadlineState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.deadlinecapabilities.Phase",
+              "case": "waiting"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.start.deadlinePauses",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 127
+      },
+      "construct": {
+        "type": "fixture.deadlinecapabilities.DeadlineState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.deadlinecapabilities.Phase",
+              "case": "waiting"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.start.deadlineReturnsToWaiting",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 127
+      },
+      "construct": {
+        "type": "fixture.deadlinecapabilities.DeadlineState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.deadlinecapabilities.Phase",
+              "case": "waiting"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.start.deadlineTimesOut",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 127
+      },
+      "construct": {
+        "type": "fixture.deadlinecapabilities.DeadlineState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.deadlinecapabilities.Phase",
+              "case": "waiting"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "deadlineTimers",
+    "name": "deadlineTimers.start.firesInWindow",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 127
+      },
+      "construct": {
+        "type": "fixture.deadlinecapabilities.DeadlineState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.deadlinecapabilities.Phase",
+              "case": "waiting"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": true
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+            "line": 127
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "simpleDeadlines",
+    "name": "simpleDeadlines.retry.deadlineReturnsToWaiting",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 171
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 163
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.deadlinecapabilities.SimplePhase",
+          "case": "waiting"
+        }
+      }
+    },
+    "free": true
+  }, {
+    "machine": "simpleDeadlines",
+    "name": "simpleDeadlines.retry.deadlineTimesOut",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 171
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 163
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.deadlinecapabilities.SimplePhase",
+          "case": "waiting"
+        }
+      }
+    },
+    "free": true
+  }, {
+    "machine": "simpleDeadlines",
+    "name": "simpleDeadlines.retry.firesInWindow",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 171
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+        "line": 163
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.deadlinecapabilities.SimplePhase",
+          "case": "waiting"
+        }
+      }
+    },
+    "free": true
+  } ],
+  "queries": [ {
+    "name": "deadlineTimers.schedule.deadlineTimesOut",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 137
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.schedule.deadlineTimesOut"
+    },
+    "scenario": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.schedule.deadlineTimesOut"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 100000
+    },
+    "total": "5760"
+  }, {
+    "name": "deadlineTimers.schedule.firesInWindow",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 137
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.schedule.firesInWindow"
+    },
+    "scenario": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.schedule.firesInWindow"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 100000
+    },
+    "total": "3840"
+  }, {
+    "name": "deadlineTimers.start.deadlinePauses",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.start.deadlinePauses"
+    },
+    "scenario": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.start.deadlinePauses"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 100000
+    },
+    "total": "5760"
+  }, {
+    "name": "deadlineTimers.start.deadlineReturnsToWaiting",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.start.deadlineReturnsToWaiting"
+    },
+    "scenario": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.start.deadlineReturnsToWaiting"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 100000
+    },
+    "total": "5760"
+  }, {
+    "name": "deadlineTimers.start.deadlineTimesOut",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.start.deadlineTimesOut"
+    },
+    "scenario": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.start.deadlineTimesOut"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 100000
+    },
+    "total": "5760"
+  }, {
+    "name": "deadlineTimers.start.firesInWindow",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 143
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.start.firesInWindow"
+    },
+    "scenario": {
+      "machine": "deadlineTimers",
+      "name": "deadlineTimers.start.firesInWindow"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 100000
+    },
+    "total": "3840"
+  }, {
+    "name": "simpleDeadlines.retry.deadlineReturnsToWaiting",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 171
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "simpleDeadlines",
+      "name": "simpleDeadlines.retry.deadlineReturnsToWaiting"
+    },
+    "scenario": {
+      "machine": "simpleDeadlines",
+      "name": "simpleDeadlines.retry.deadlineReturnsToWaiting"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 100000
+    },
+    "total": "6"
+  }, {
+    "name": "simpleDeadlines.retry.deadlineTimesOut",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 171
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "simpleDeadlines",
+      "name": "simpleDeadlines.retry.deadlineTimesOut"
+    },
+    "scenario": {
+      "machine": "simpleDeadlines",
+      "name": "simpleDeadlines.retry.deadlineTimesOut"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 100000
+    },
+    "total": "6"
+  }, {
+    "name": "simpleDeadlines.retry.firesInWindow",
+    "position": {
+      "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
+      "line": 171
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "simpleDeadlines",
+      "name": "simpleDeadlines.retry.firesInWindow"
+    },
+    "scenario": {
+      "machine": "simpleDeadlines",
+      "name": "simpleDeadlines.retry.firesInWindow"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 100000
+    },
+    "total": "6"
+  } ]
+}

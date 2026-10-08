@@ -48,8 +48,8 @@ def onPath(classes: (ClassRef | Action[?])*)(command: Command | Instruction): It
 def everyCase(command: Command | Instruction): Item = Item(command = Some(commanded(command)))
 
 // A command with options, named after the `val` that declares it: the commands it runs `after`, a
-// deadline in `timeoutMs`, whether it runs `regardless` of what became of them, and the exhaustive
-// kinds of evidence its read `closes`. IR: Command.
+// timeout bound in `timeoutMs`, whether it runs `regardless` of what became of them, and the
+// exhaustive kinds of evidence its read `closes`. IR: Command.
 def command(
     instruction: Instruction,
     after: Option[After] = None,

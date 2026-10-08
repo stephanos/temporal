@@ -352,7 +352,7 @@ final class Case[S, O, F] private[umpire] (
     private[umpire] val guard: S => Boolean
 ):
   // This case where `condition` also holds of the state, beyond its phases:
-  // `when(open).where(_.deadline == Timeout.expires)`. Core form: `g(s) && condition(s)`.
+  // `when(open).where(_.timer == Timeout.expires)`. Core form: `g(s) && condition(s)`.
   def where(condition: S => Boolean): Case[S, O, F] =
     Case(s"$heading.where", s => guard(s) && condition(s))
 
@@ -465,7 +465,7 @@ object Phased extends Inherited.Unphased:
 // no state enables, `disabled(courier.strike)`. A block fires a whole action, `on(buyer.change)`,
 // one class of it, `on(buyer.change(Change.hold))`, whose effects then read the state alone, or
 // several of them alike, `on(clerk.ship, clerk.cancel)`; an effect that takes arguments beyond the
-// state binds them in place, `effects.timeOut(_, Deadline.close)`. The blocks of the actions one
+// state binds them in place, `effects.timeOut(_, Expiry.close)`. The blocks of the actions one
 // object declares may be grouped in `from(clerk) { import clerk.*; on(ship) { ... } }`. Where no
 // case holds, the action is disabled: there is no catch-all. The cases of one action class hold in
 // no common state, whichever blocks they sit in: each is checked against the earlier ones as it is

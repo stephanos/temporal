@@ -139,6 +139,8 @@ class Fixtures extends munit.FunSuite:
       "fixture.capabilitysections.Task$.queries"),
     "retryCapabilities" -> Seq("WaitingFailures", "ControlledFailures")
       .map(o => s"fixture.retrycapabilities.$o$$.capabilities"),
+    "deadlineCapabilities" -> Seq("DeadlineTimers", "SimpleDeadlines")
+      .map(o => s"fixture.deadlinecapabilities.$o$$.capabilities"),
     // fn-135.2: `is { }` vals and their def twins (lifts/Blocks.scala).
     "blocks" -> Seq("Blocked", "Defined").flatMap(o =>
       Seq(s"fixture.blocks.$o$$.capabilities", s"fixture.blocks.$o$$.queries")
@@ -2370,6 +2372,194 @@ class Fixtures extends munit.FunSuite:
       )
       assert(error.contains(machine), error)
       assert(error.contains(field), error)
+
+  test("Deadline instances retain their selected timer, own role, armed predicate and typed fact"):
+    val model =
+      new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("deadlineCapabilities"))
+    val properties = model.path("properties").elements().asScala.toSeq
+    val common = Set("firesInWindow", "deadlineTimesOut")
+    val retries = common + "deadlineReturnsToWaiting"
+    val names = (for p <- common yield s"deadlineTimers.schedule.$p") ++
+      (for p <- retries + "deadlinePauses" yield s"deadlineTimers.start.$p") ++
+      (for p <- retries yield s"simpleDeadlines.retry.$p")
+    assertEquals(properties.map(_.path("name").asText()).toSet, names)
+    val functions = model
+      .path("functions")
+      .elements()
+      .asScala
+      .toSeq
+      .map(f => f.path("name").asText() -> f)
+      .toMap
+    for p <- properties do
+      val name = p.path("name").asText()
+      assert(p.path("transition").asBoolean())
+      assert(p.has("whenClass"))
+      assertEquals(
+        p.path("origin").path("name").asText(),
+        s"temporal.capabilities.Deadline.${name.split('.').last}"
+      )
+      assertEquals(
+        p.path("position").path("file").asText(),
+        "model/irgen/testdata/lifts/DeadlineCapabilities.scala"
+      )
+      assertEquals(
+        p.path("origin").path("position").path("file").asText(),
+        "model/temporal/capabilities/Deadline.scala"
+      )
+    for (instance, predicate, phase, kind) <- Seq(
+        ("schedule", "dispatchArmed", "waiting", "schedule"),
+        ("start", "armed", "held", "start")
+      )
+    do
+      def body(property: String) = functions(
+        properties
+          .find(
+            _.path("name").asText() == s"deadlineTimers.$instance.$property"
+          )
+          .get
+          .path("holds")
+          .asText()
+      )
+      val window = body("firesInWindow")
+      assert(window.findValuesAsText("function").asScala.exists(_.endsWith(s"Steps$$.$predicate")))
+      assert(window.findValuesAsText("case").asScala.contains(phase), window.toString)
+      val terminalBody = body("deadlineTimesOut")
+      if instance == "schedule" then
+        val classification = terminalBody.findValues("literal").asScala.filter(_.has("bool"))
+        assertEquals(classification.count(_.path("bool").asBoolean()), 0)
+        val declaration = properties
+          .find(
+            _.path("name").asText() ==
+              "deadlineTimers.schedule.deadlineTimesOut"
+          )
+          .get
+          .path("position")
+        val defaults = terminalBody
+          .findParents("literal")
+          .asScala
+          .filter(e => e.path("literal").has("bool") && e.path("position") == declaration)
+        assertEquals(defaults.size, 1)
+        assertEquals(defaults.head.path("literal").path("bool").asBoolean(), false)
+      val terminal = terminalBody.findValuesAsText("case").asScala
+      assert(terminal.contains(kind), terminal.toString)
+      assert(!terminal.contains(if kind == "start" then "schedule" else "start"), terminal.toString)
+      val selector = properties
+        .find(
+          _.path("name").asText() ==
+            s"deadlineTimers.$instance.firesInWindow"
+        )
+        .get
+        .path("whenClass")
+      assert(
+        selector
+          .path("action")
+          .asText()
+          .endsWith(if instance == "schedule" then "scheduleExpired" else "startExpired")
+      )
+      if instance == "schedule" then
+        assert(selector.path("inputs").path(0).path("bool").asBoolean())
+    for property <- Seq("deadlineReturnsToWaiting", "deadlinePauses") do
+      val p = properties.find(_.path("name").asText() == s"deadlineTimers.start.$property").get
+      val facts = functions(p.path("holds").asText()).findValuesAsText("case").asScala
+      assert(facts.contains("schedule") && facts.contains("start"), facts.toString)
+    val scenarios = model.path("scenarios").elements().asScala.toSeq
+    assertEquals(scenarios.map(_.path("name").asText()).toSet, names)
+    assert(scenarios.forall(s => s.path("free").asBoolean() && !s.has("actions")))
+    val queries = model.path("queries").elements().asScala.toSeq
+    assertEquals(queries.map(_.path("name").asText()).toSet, names)
+    for q <- queries do
+      val name = q.path("name").asText()
+      assertEquals(q.path("form").asText(), "FORM_VERIFY")
+      val steps =
+        if name.startsWith("deadlineTimers.") && name.endsWith("firesInWindow") then 2 else 3
+      assertEquals(q.path("limits").path("steps").asInt(), steps)
+      val combinations = if name.startsWith("deadlineTimers.") then 128L * 15L else 2L
+      assertEquals(q.path("total").asText().toLong, combinations * steps)
+
+  test("Deadline refuses missing roles, invalid timer bindings and malformed typed fact families"):
+    for root <- Seq("NativeTerminalRoles", "CompleteSubtypeBinding", "CompleteIntersectionBinding")
+    do
+      val terminalOut = lifted(s"deadline-positive-$root")
+      val terminal = lift(
+        liftsJars,
+        modelClasspath.toString,
+        terminalOut.toString,
+        s"fixture.deadlinecapabilityrejects.$root$$.capabilities"
+      )
+      assertEquals(terminal.exit, 0, terminal.diagnostics)
+      val terminalModel =
+        new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(terminalOut))
+      val machine = root.head.toLower.toString + root.tail
+      assertEquals(
+        terminalModel.path("properties").elements().asScala.map(_.path("name").asText()).toSet,
+        Set(s"$machine.deadline.firesInWindow", s"$machine.deadline.deadlineTimesOut")
+      )
+    val cases = Seq(
+      "PositiveFamily" -> "negated records",
+      "DoubledFamily" -> "negated records",
+      "IncompleteSubtypeBinding" -> "timeoutFacts",
+      "IncompleteIntersectionBinding" -> "timeoutFacts",
+      "WrongTypedFamily" -> "timeoutFacts",
+      "NoPhase" -> "no phase",
+      "NoCovered" -> "Held",
+      "NoTimedOut" -> "TimedOut",
+      "NoWaiting" -> "Waiting",
+      "NoSuspended" -> "Suspended",
+      "ForeignTimer" -> "timer",
+      "UnboundTimer" -> "timer",
+      "NonTimer" -> "timer",
+      "RetryNoEligibility" -> "retriesRemaining",
+      "EligibilityNonretry" -> "retriesRemaining",
+      "ControlNonretry" -> "pendingCancel",
+      "UnnamedArmed" -> "armed",
+      "UnnamedPause" -> "pendingPause",
+      "MalformedEligibility" -> "retriesRemaining",
+      "ComputedClassification" -> "retryable",
+      "EmptyFamily" -> "timeoutFacts",
+      "IncompleteFamily" -> "timeoutFacts",
+      "DuplicateFamily" -> "timeoutFacts",
+      "MixedFamily" -> "timeoutFacts",
+      "WrongFamily" -> "timeoutFacts",
+      "MalformedFamily" -> "timeoutFacts",
+      "NonconstantTimeout" -> "timeout",
+      "DuplicateTimeout" -> "timeout",
+      "AmbiguousWaiver" -> "ambiguous",
+      "AmbiguousClaim" -> "ambiguous"
+    )
+    val source =
+      Files.readAllLines(testdata.resolve("lifts/DeadlineCapabilityRejects.scala")).asScala
+    for (root, field) <- cases do
+      val out = lifted(s"deadline-refused-$root")
+      val section = if root == "AmbiguousClaim" then "queries" else "capabilities"
+      val result = lift(
+        liftsJars,
+        modelClasspath.toString,
+        out.toString,
+        s"fixture.deadlinecapabilityrejects.$root$$.$section"
+      )
+      assertNotEquals(result.exit, 0, result.diagnostics)
+      assert(!Files.exists(out))
+      val errors = refused(result)
+      assertEquals(errors.size, 1, result.diagnostics)
+      val error = errors.head
+      assert(
+        error.matches(
+          "lift: model/irgen/testdata/lifts/DeadlineCapabilityRejects.scala:[0-9]+: .*"
+        ),
+        error
+      )
+      assert(error.contains(root.head.toLower.toString + root.tail), error)
+      assert(error.contains(field), error)
+      if root == "DuplicateTimeout" then
+        val start = source.indexWhere(_.startsWith("object DuplicateTimeout"))
+        val first = source.indexWhere(_.contains("val first:"), start) + 1
+        val second = source.indexWhere(_.contains("val second:"), start) + 1
+        assert(error.contains("first") && error.contains("second"), error)
+        assert(
+          error.contains(s"DeadlineCapabilityRejects.scala:$first") &&
+            error.contains(s"DeadlineCapabilityRejects.scala:$second"),
+          error
+        )
 
   test("every rejected declaration is refused at its line, and no IR is written"):
     expect("rejects.txt", rejections())
