@@ -1,0 +1,13 @@
+# Retained source command bundle
+
+The parent [raw-manifest.json](../raw-manifest.json) binds 72 original files by SHA256 and byte length, including failed calibration observations. Seventy-one are literal copies. The whitespace-bearing extraction-calibration stdout is retained losslessly in `extraction-calibration.stdout.json`; decode its `value` as UTF-8 to recover the exact original bytes. Its manifest entry binds both encoded storage and original-byte hashes. This README is new explanatory metadata and is outside that original-byte manifest.
+
+Each command's `.json` records exact argv, timestamps, exit, environment, tool hashes and zero product-source changes. Its `.stdout` and `.stderr` retain the observed bytes. `review-*.review.md` and `review-*.json` retain the three independent SHIP draws; `review-receipt.json` is the mechanical task-mode merged receipt. Full CLI event streams remain in the original `.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/` directory and are not duplicated here.
+
+`source_acceptance_test.go`, `capture.mjs`, `cache.go`, `bindings.mjs` and `source-overlay.json` preserve the original proof mechanism. The source overlay adds two temporary Go test files to `tools/gomad3/toolchain`. One points to the retained `gfield-compact-20261005/compact_checkpoint_test.go`; the other points to `.flow/tmp/fn1102-source/source_acceptance_test.go`. The original checkout prefix is `/Users/stephan/Workspace/skunkworks/gomad/temporal`.
+
+For an exact replay in this checkout, restore the original ignored helper and overlay paths from these copies with `apply_patch`, then run the argv in the selected original receipt. Use the recorded stock Go1.27.1, `login:false`, explicit `go -C tools/gomad3`, and `-tags test_dep`. Cache only the descriptor-pinned official archive through the existing source API. Do not invoke a native toolchain build.
+
+For another checkout prefix, create a new ignored overlay JSON with both virtual test-file keys and replacement paths rooted in that checkout. Create an ignored helper copy with its sole absolute preservation-receipt path changed to that checkout. These are reconstruction inputs, so record their new hashes and argv; do not relabel this original receipt. Keep every assertion and historical source revision unchanged. The retained compact fixture and pinned archive tests already resolve module inputs through their existing source-materialization helpers.
+
+Canonical measurements and hashes are in `bindings.json`, `canonical-current-size.stdout` and the original retained compact fixture. The U1/U3 blobs are reproducible outputs and are deliberately not duplicated. None of these records qualifies a patched runtime or native supported platform.

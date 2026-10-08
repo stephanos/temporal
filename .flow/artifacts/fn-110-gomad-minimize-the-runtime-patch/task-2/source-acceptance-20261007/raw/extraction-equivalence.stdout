@@ -1,0 +1,5 @@
+=== RUN   TestSourceAcceptanceSchedulerExtraction
+    source_acceptance_checkpoint_test.go:90: three extraction bodies/comments preserved against verified pre-extraction 5df49456e6 source; exact return adaptation, admitted field rename, timer-presence result and sizeof assertion
+--- PASS: TestSourceAcceptanceSchedulerExtraction (5.46s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain	5.460s

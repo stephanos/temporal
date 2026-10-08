@@ -1,0 +1,7 @@
+=== RUN   TestGFieldCompactCanonicalAlignment
+    gfield_compact_checkpoint_test.go:37: canonical U1 bytes=24117 lines=692
+    gfield_compact_checkpoint_test.go:37: canonical U3 bytes=33294 lines=1026
+    gfield_compact_checkpoint_test.go:53: otherwise unchanged g fields with avoidable alignment edits=0: []
+--- PASS: TestGFieldCompactCanonicalAlignment (121.58s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain	121.584s

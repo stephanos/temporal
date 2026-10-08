@@ -5,6 +5,8 @@ satisfies: [R2, R6]
 
 ## Description
 
+Current source review context (2026-10-07). Read [the current source-acceptance handover](../artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/handover.md) and its evidence before review. Use the actual private-g-field candidate base 1b0bc277589d141aca8b534b03135ab3e57fc050 for the bounded diff, but inspect all three retained scheduler implementations, their upstream activation/arrival/transport/timer-wake hooks and the registered locked-syscall regression against verified pre-extraction source 5df49456e649d4d3d2c6d8ba6518a2a05ca41e26. The fresh materialized extraction/preservation checks and original extraction commit supply that earlier implementation context; an empty evidence-only diff or compact-diff-only review is insufficient. Apply the parent spec's exact 642-byte waiver and October 7 native transfer without waiving any retained source obligation. This is review context, not an acceptance or scope change.
+
 Source-work resumption (2026-10-07). The owner requested unblocking and completing the source tasks on the current gomad branch. This task returns to todo for its retained source work, with all dependency/admission and acceptance requirements preserved except the expressly scoped owner decisions in [source-unblocking-20261007/owner-decisions.md](../artifacts/source-unblocking-20261007/owner-decisions.md). Historical Done summary and Evidence below retain their original provenance; current lifecycle status comes from flowctl. Native qualification remains deferred under fn-128/fn-149 and is not revived by this resumption.
 
 
@@ -112,78 +114,27 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-Blocked:
-Implementation and local structural verification are complete, but the task's required native qualification cannot run in this environment. The host is linux/arm64; Gomad qualifies darwin/arm64 and linux/amd64, and the available Docker builder is also linux/arm64. Emulated or cross-compiled execution is not accepted as native Linux evidence. GitHub Actions cannot be triggered because this checkout has no usable GitHub credentials.
+SOURCE_ACCEPTANCE_COMPLETE. Native qualification remains deferred and unverified under fn-128 and fn-149.
 
-Outstanding gates: native toolchain build on darwin/arm64 and linux/amd64; runtime, upstream, live-capability, and process-simulation tests; the full baseline/candidate fixture comparison and exact replay on qualified hosts.
+The retained three scheduler implementations, comments and upstream integration seams have current pinned-source preservation proof. Both supported source-set inventories and negative controls pass; archive collision checks cover 79 overlay paths, and exact regeneration/equivalence covers all 20 patched files. The three locked-syscall regression modes remain registered; their native execution belongs to the deferred owners. Product source and generated outputs were unchanged by this acceptance run.
 
-Blocked:
-The scheduler extraction source candidate is integrated and its retained
-structural/developmental checks remain evidence for their stated source scope.
-Required native qualification remains unavailable on this linux/arm64 development
-host. Gomad qualifies darwin/arm64 and linux/amd64; emulated, cross-compiled or
-stock-host execution does not qualify either platform. No authorized source-bound
-CI run is available for the current dirty combined candidate.
+Canonical U1 remains 24,117 bytes/692 lines; U3 remains 33,294 bytes/1,026 lines against the original 32,652-byte U3 baseline. The owner's exact 642-byte waiver satisfies this size clause without claiming a reduction or waiving future growth.
 
-Fresh source measurements also contradict the original extraction-size acceptance:
-the original task1 -U3 is 32,652 bytes, while the current combined final -U3 is
-38,362 bytes, 5,710 bytes larger. Canonical -U1 at 29,015 bytes demonstrates
-context reduction only; it cannot close R8's separate extraction reduction.
-The evidence is retained under task-5/source-size-verification.md and independently
-checked in task-5/conductor-source-size-verification.md. Keep the original
-comparator and preserve all integrated behavior and comments.
+Ordinary stock toolchain coverage records 50 PASS and five built-runtime skips; the exact portable conformance selection records 25 PASS. Task-owned configured source lint and errortype pass against the original task-1 source base. Broader fast lint remains red with 81 findings outside those packages; original-base full lint's 265 findings remain fn-109-owned. No full test-host, aggregate lint or native pass is claimed.
 
-All three approved scheduler bodies are already fully extracted. Task 2 requires
-the remaining upstream integration hooks and scheduler machinery to stay; no
-additional scoped extraction has been identified. Reconciliation must remain
-with this extraction-size owner and the owners of introduced runtime inputs,
-especially fn-112.5's diagnostic fields/alignment. Do not remove those capabilities,
-embed goroutine state, move protected machinery or widen scope to manufacture
-size acceptance. Task5 owns final verification, not a source fix for this gap.
+All three fresh Codex review draws return SHIP and the mechanically finalized task-mode receipt is retained. Project writer/reviewer selectors are gpt-6.1-sol/high, the same GPT family; actual executing-model metadata is not inferred. Root independently reran four focused controls and verified 5,089 unchanged non-Flow files, 87 exact inputs, 19 command receipts and all 72 retained raw files/review hashes. The evidence serialization defect was repaired as metadata only. Historical task receipts remain available at the pre-reset/source-resumption checkpoints.
 
-Outstanding gates: native toolchain builds on darwin/arm64 and linux/amd64;
-runtime, upstream, live-capability and process-simulation checks; full baseline/
-candidate fixture comparisons and exact replay; and the original extraction-size
-acceptance, which is presently unmet rather than merely unmeasured.
+Evidence: source-acceptance-20261007/handover.md, evidence.json, raw-manifest.json and conductor-checks.json under this task's artifact directory.
 
-Blocked:
-Native Linux execution stays transferred to fn-128 and does not block this source task. Current-source Darwin build/runtime/upstream/live-capability/process-simulation, baseline/candidate fixture comparisons, full/affected and formal review gates remain incomplete. R8 is independently unmet. Canonical U3 now measures 34,148 bytes after fn-112.5 private host-draw field compaction, against the unchanged original task-1 U3 baseline of 32,652 bytes, a 1,496-byte increase. U1 measures 24,894 bytes and its representation savings do not satisfy R8. Source preservation, pinned regeneration/checksum/rejection and both-source-set inventory receipts are in the fn-112.5 host-draw-field-compact-20261005 checkpoint. Historical larger candidate measurements retain their original source scope.
-
-Blocked:
-Private-g-field compaction is verified source progress. Canonical U1 measures
-24,117 bytes / 692 lines; U3 measures 33,294 bytes / 1,026 lines. This removes
-777 U1 bytes and 854 U3 bytes from 1b0bc27758. The original U3 baseline remains
-32,652 bytes, leaving R8 unmet by 642 bytes. Seven otherwise unchanged g fields
-no longer carry alignment-only edits. The five private field names and 30 sites
-preserve complete alpha-gofmt source equivalence, field layout and 20/79 allowlists.
-
-The frozen original pinned-regeneration, checksum/rejection, U1/U3 zero-fuzz
-equivalence, both-source-set inventories and negative checks pass. Independent
-identity calculation preserves all owner contracts and exactly seven derived
-fixture pointers. These checks do not qualify runtime behavior on a native host.
-Runtime debug field names and build-derived identities necessarily change.
-
-Current-source native Darwin build/runtime/upstream/live-capability/process-
-simulation, baseline/candidate behavioral fixture comparisons, full/affected and
-formal qualification remain unproved. The developmental host is Linux/arm64.
-The narrowed pure-host selection passes, but three diagnostic controls cannot
-reach runtime assertions without the patched driver and the native identity
-test skips. Existing full-host failures and 317 full-lint findings remain open;
-changed-line lint is a separate source scope. No unchanged unsupported-host
-full-gate timeout is retried or relabeled as passing evidence.
-
-A fixed-source audit found no further authorized alignment correction or remaining
-approved scheduler body extraction that closes R8. Further relocation needs a
-separate bounded admission preserving protected scheduler/GC machinery and the
-original comparator. Native Linux execution remains transferred to fn-128,
-nonblocking here and explicitly unverified. Retain all original acceptance and
-historical evidence. Evidence is in task-2/gfield-compact-20261005; source-only
-review does not constitute formal SHIP or completed native acceptance.
+stage: impl-review - SHIP (three fresh task-mode draws; retained extraction and compact candidate reviewed)
+stage: plan-sync - skipped(config: disabled)
+stage: quality - retained source gates and conductor verification pass within stated scope
+Tracker sync: n/a (bridge inactive)
+No PR, push or CI action.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ad90b462e0f947b88f0190c0b4d0f60940ff5aec, a936b597b4c62fa50f11a6c16c91111cd52b1ec3
+- Tests: timeout 600 env GOFLAGS=-tags=test_dep make -C tools/gomad3 generate validate, timeout 600 env COMPACT_PHASE=source COMPACT_CAPTURE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/fn1102-source /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/fn1102-source/source-overlay.json -tags test_dep -count=1 -run ^TestGFieldCompactCanonicalAlignment$ -v ./toolchain, timeout 600 node .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/identity-audit/derive.mjs --expected-source=02e1d03f625594a203d7b4d8f276076f8be646b5f86b1b4fea609aa49116b7ee, timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -run ^(TestResolve.*|TestRuntimeCampaign.*|TestRequireStockCompatibilitySelectsPinnedToolchain|TestValidate.*|TestBenchmarkMedianNS|TestRepeatabilityMismatchRetainsDivergentEvidence|TestTimerCallbackAssociationRejectsUnidentifiedHandoff|TestStableHandoffsRequireOneAlternativeSetAndConsistentLeaders|TestRun(Upstream|Builder|LiveCapability|Accepts|Rejects|Reports|Interception).*|TestExecWrapper.*|TestRuntimeOwnedRejectsPreviousController)$ -v ./internal/gomadtool/conformance, timeout 600 node .flow/tmp/fn1102-source/bindings.mjs, timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/go-overlay.json -tags test_dep -count=1 -run ^(TestGFieldCompactSourceInventories|TestRegenerateMatchesCheckedPatchForPinnedArchive|TestPinnedContextRepresentationsMaterializeIdenticalSource|TestPinnedArchiveFollowsDescriptorAndRejectsChecksumMismatch|TestDrawInventoryRejectsUnclassifiedReference|TestSeededDrawInventoryRejectsUnclassifiedReference|TestHostClockInventoryPins|TestGoroutineCreationInventoryRejectsUnclassifiedSite)$ -v ./toolchain, timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -v ./toolchain, timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/fn1102-source/source-overlay.json -tags test_dep -count=1 -run ^(TestSourceAcceptanceMaterializedPreservation|TestSourceAcceptanceSchedulerExtraction|TestHostClockInventoryPinsPlatformSpecificEscapes|TestGoroutineCreationInventoryRejectsSeededSite)$ -v ./toolchain, timeout 600 make lint-code GOLANGCI_LINT_BASE_REV=38957053f1ce342a8797af1803f5f8f6bb53fcad GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 LINT_CODE_TARGETS=./internal/gomadtool/conformance ./choice/internal/wire ./target/internal/livecap ALL_TEST_TAGS=test_dep
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Representation/overlay implementation, byte equivalence, pinned checks, preservation, review, Darwin gates and unmet R8 size reduction. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

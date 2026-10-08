@@ -1,0 +1,76 @@
+=== RUN   TestRunUpstreamExecutesTypedGatesInOrder
+--- PASS: TestRunUpstreamExecutesTypedGatesInOrder (0.01s)
+=== RUN   TestRunBuilderExecutesTypedPackageGate
+--- PASS: TestRunBuilderExecutesTypedPackageGate (0.00s)
+=== RUN   TestRunLiveCapabilityExecutesPinnedSemanticFixtures
+--- PASS: TestRunLiveCapabilityExecutesPinnedSemanticFixtures (0.00s)
+=== RUN   TestRunAcceptsExecutableSymlink
+--- PASS: TestRunAcceptsExecutableSymlink (0.00s)
+=== RUN   TestRunUpstreamStopsAtFailedGateWithBoundedEvidence
+--- PASS: TestRunUpstreamStopsAtFailedGateWithBoundedEvidence (0.00s)
+=== RUN   TestRunRejectsUnknownModeAndMissingToolchain
+=== RUN   TestRunRejectsUnknownModeAndMissingToolchain/mode
+=== RUN   TestRunRejectsUnknownModeAndMissingToolchain/toolchain
+--- PASS: TestRunRejectsUnknownModeAndMissingToolchain (0.00s)
+    --- PASS: TestRunRejectsUnknownModeAndMissingToolchain/mode (0.00s)
+    --- PASS: TestRunRejectsUnknownModeAndMissingToolchain/toolchain (0.00s)
+=== RUN   TestRunReportsInfrastructureError
+--- PASS: TestRunReportsInfrastructureError (0.00s)
+=== RUN   TestRunInterceptionExecutesManifestDrivenCompilerCases
+--- PASS: TestRunInterceptionExecutesManifestDrivenCompilerCases (0.01s)
+=== RUN   TestRunInterceptionRejectsMissingCompiler
+--- PASS: TestRunInterceptionRejectsMissingCompiler (0.00s)
+=== RUN   TestExecWrapperIsStrictPOSIX
+--- PASS: TestExecWrapperIsStrictPOSIX (0.00s)
+=== RUN   TestExecWrapperRequiresSeedAndCommand
+=== RUN   TestExecWrapperRequiresSeedAndCommand/seed
+=== RUN   TestExecWrapperRequiresSeedAndCommand/command
+--- PASS: TestExecWrapperRequiresSeedAndCommand (0.01s)
+    --- PASS: TestExecWrapperRequiresSeedAndCommand/seed (0.00s)
+    --- PASS: TestExecWrapperRequiresSeedAndCommand/command (0.00s)
+=== RUN   TestExecWrapperTransfersSeedAndArguments
+--- PASS: TestExecWrapperTransfersSeedAndArguments (0.00s)
+=== RUN   TestExecWrapperPreservesTargetExitAndSignal
+--- PASS: TestExecWrapperPreservesTargetExitAndSignal (0.01s)
+=== RUN   TestResolveReturnsOrderedTiersAndSpecificSuccessMessage
+=== RUN   TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test
+=== RUN   TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-builder
+=== RUN   TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-runtime
+=== RUN   TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-upstream
+=== RUN   TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-interception
+=== RUN   TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-live-capability
+--- PASS: TestResolveReturnsOrderedTiersAndSpecificSuccessMessage (0.00s)
+    --- PASS: TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test (0.00s)
+    --- PASS: TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-builder (0.00s)
+    --- PASS: TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-runtime (0.00s)
+    --- PASS: TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-upstream (0.00s)
+    --- PASS: TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-interception (0.00s)
+    --- PASS: TestResolveReturnsOrderedTiersAndSpecificSuccessMessage/test-live-capability (0.00s)
+=== RUN   TestResolveRejectsUnknownMode
+--- PASS: TestResolveRejectsUnknownMode (0.00s)
+=== RUN   TestRuntimeOwnedRejectsPreviousController
+--- PASS: TestRuntimeOwnedRejectsPreviousController (0.00s)
+=== RUN   TestRuntimeCampaignCollectorProfile
+--- PASS: TestRuntimeCampaignCollectorProfile (0.00s)
+=== RUN   TestRuntimeCampaignSimulationTimeVectors
+=== RUN   TestRuntimeCampaignSimulationTimeVectors/selected
+=== RUN   TestRuntimeCampaignSimulationTimeVectors/empty_selection
+--- PASS: TestRuntimeCampaignSimulationTimeVectors (0.00s)
+    --- PASS: TestRuntimeCampaignSimulationTimeVectors/selected (0.00s)
+    --- PASS: TestRuntimeCampaignSimulationTimeVectors/empty_selection (0.00s)
+=== RUN   TestRequireStockCompatibilitySelectsPinnedToolchain
+--- PASS: TestRequireStockCompatibilitySelectsPinnedToolchain (0.00s)
+=== RUN   TestValidateRandomContract
+--- PASS: TestValidateRandomContract (0.00s)
+=== RUN   TestValidateClockRaceOutput
+--- PASS: TestValidateClockRaceOutput (0.00s)
+=== RUN   TestBenchmarkMedianNS
+--- PASS: TestBenchmarkMedianNS (0.00s)
+=== RUN   TestRepeatabilityMismatchRetainsDivergentEvidence
+--- PASS: TestRepeatabilityMismatchRetainsDivergentEvidence (0.00s)
+=== RUN   TestTimerCallbackAssociationRejectsUnidentifiedHandoff
+--- PASS: TestTimerCallbackAssociationRejectsUnidentifiedHandoff (0.00s)
+=== RUN   TestStableHandoffsRequireOneAlternativeSetAndConsistentLeaders
+--- PASS: TestStableHandoffsRequireOneAlternativeSetAndConsistentLeaders (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.054s

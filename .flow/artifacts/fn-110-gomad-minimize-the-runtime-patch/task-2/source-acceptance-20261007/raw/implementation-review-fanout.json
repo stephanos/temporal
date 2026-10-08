@@ -1,0 +1,46 @@
+{
+  "argv": [
+    "timeout",
+    "600",
+    "/home/agent/.codex/scripts/flowctl",
+    "codex",
+    "impl-review-fanout",
+    "fn-110-gomad-minimize-the-runtime-patch.2",
+    "--base",
+    "1b0bc277589d141aca8b534b03135ab3e57fc050",
+    "--receipt",
+    "/tmp/impl-review-receipt-657da2bc4466-fn-110-gomad-minimize-the-runtime-patch.2.json",
+    "--spec",
+    "codex:gpt-6.1-sol:high",
+    "--sandbox",
+    "read-only",
+    "--json"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T05:48:50.853Z",
+  "ended": "2026-10-08T05:54:23.932Z",
+  "elapsed_seconds": 333.079,
+  "source_count": 5089,
+  "sources_before_sha256": "22fd0dd1e0f86ba1ee31eb1315c7cc2a6daa3fbc93fe95bd1579d97bfc7811d7",
+  "sources_after_sha256": "22fd0dd1e0f86ba1ee31eb1315c7cc2a6daa3fbc93fe95bd1579d97bfc7811d7",
+  "source_changes": [],
+  "stdout_sha256": "e8a33fea3ef6a836e737113ce9ba6df4a3a6b1d9ad851254d41b7afcca123fa0",
+  "stderr_sha256": "e59c7548e214fea2a2baf0888b4842df4be8c01061924484c517fbf92ff1c31b",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  }
+}

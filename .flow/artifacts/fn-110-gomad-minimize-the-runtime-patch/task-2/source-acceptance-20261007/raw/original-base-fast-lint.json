@@ -1,0 +1,39 @@
+{
+  "argv": [
+    "timeout",
+    "600",
+    "make",
+    "lint-code-fast",
+    "GOLANGCI_LINT_BASE_REV=38957053f1ce342a8797af1803f5f8f6bb53fcad",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "exit": 2,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T05:36:15.976Z",
+  "ended": "2026-10-08T05:45:57.357Z",
+  "elapsed_seconds": 581.381,
+  "source_count": 5089,
+  "sources_before_sha256": "22fd0dd1e0f86ba1ee31eb1315c7cc2a6daa3fbc93fe95bd1579d97bfc7811d7",
+  "sources_after_sha256": "22fd0dd1e0f86ba1ee31eb1315c7cc2a6daa3fbc93fe95bd1579d97bfc7811d7",
+  "source_changes": [],
+  "stdout_sha256": "582880469267b07a07fcd691ae1de156dfc37a1a392288f05eab8d7d5bdfa13e",
+  "stderr_sha256": "9930e8f7d22302211555f0769f77b4a351b702a8cdd95f4845d674b7141062fb",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  }
+}

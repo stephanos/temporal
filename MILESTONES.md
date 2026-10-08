@@ -247,7 +247,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-110.1](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.1.md) | ✅ Done | Record the patch, overlay, and qualification baseline |
-| [fn-110.2](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.md) | 🚧 In progress | Move the three scheduler implementations into the runtime overlay |
+| [fn-110.2](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.md) | ✅ Done | Move the three scheduler implementations into the runtime overlay |
 | [fn-110.3](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.3.md) | ⬜ Todo | Relocate crypto initialization and syscall declarations to overlays |
 | [fn-110.4](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md) | ⬜ Todo | Emit the canonical one-context-line patch and pin regeneration to the descriptor |
 | [fn-110.5](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.5.md) | ⬜ Todo | Qualify the final candidate and publish measurements and guidance |

@@ -1,0 +1,12 @@
+=== RUN   TestHostClockInventoryPinsPlatformSpecificEscapes
+--- PASS: TestHostClockInventoryPinsPlatformSpecificEscapes (0.00s)
+=== RUN   TestGoroutineCreationInventoryRejectsSeededSite
+--- PASS: TestGoroutineCreationInventoryRejectsSeededSite (0.00s)
+=== RUN   TestSourceAcceptanceMaterializedPreservation
+    source_acceptance_checkpoint_test.go:31: real archive collision check: 79 overlay paths; exact retained materialized preservation: 20 patched files + runtime overlay
+--- PASS: TestSourceAcceptanceMaterializedPreservation (3.64s)
+=== RUN   TestSourceAcceptanceSchedulerExtraction
+    source_acceptance_checkpoint_test.go:90: three extraction bodies/comments preserved against verified pre-extraction 5df49456e6 source; exact return adaptation, admitted field rename, timer-presence result and sizeof assertion
+--- PASS: TestSourceAcceptanceSchedulerExtraction (6.87s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain	10.520s

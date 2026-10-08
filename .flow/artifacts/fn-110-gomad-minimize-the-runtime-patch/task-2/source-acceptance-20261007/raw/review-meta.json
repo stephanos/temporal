@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-110-gomad-minimize-the-runtime-patch.2",
+  "standalone": false,
+  "base_branch": "1b0bc277589d141aca8b534b03135ab3e57fc050",
+  "reviewed_base_sha": "1b0bc277589d141aca8b534b03135ab3e57fc050",
+  "reviewed_head_sha": "1deced3efa4e7000163cb269e70e35f0c6b7dbd7",
+  "artifact_sha256": "ccea47750fb0e1225b2b213c567dd4f2c2ccbb6a98ec435cce33bb16c1e54101",
+  "reservation_id": "8f25e17e6ab642cc88066d2399adf5da",
+  "rid": "8f25e17e6ab642cc88066d2399adf5da",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a11a0e-b64d-7822-bece-a3acc608648b",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-08T05:48:51.914267Z",
+      "finished_at": "2026-10-08T05:54:23.693734Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a11a0e-b64c-7101-a41d-bea96476dfb5",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-08T05:48:51.914693Z",
+      "finished_at": "2026-10-08T05:52:20.215469Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a11a0e-b669-7e02-96e1-1a6735de40da",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-08T05:48:51.915024Z",
+      "finished_at": "2026-10-08T05:53:22.420949Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-657da2bc4466-fn-110-gomad-minimize-the-runtime-patch.2.json",
+  "created_at": "2026-10-08T05:54:23.717798Z"
+}

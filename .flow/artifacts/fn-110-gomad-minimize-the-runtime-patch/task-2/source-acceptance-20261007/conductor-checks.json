@@ -1,0 +1,34 @@
+{
+  "task": "fn-110-gomad-minimize-the-runtime-patch.2",
+  "scope": "retained source acceptance; native qualifications explicitly deferred",
+  "stock_go": "go1.27.1 linux/arm64 developmental",
+  "focused_source_controls": {
+    "chunk_id": "db741d",
+    "wall_time_seconds": 2.031739418,
+    "exit_code": 0,
+    "original_token_count": 235,
+    "output": "=== RUN   TestHostClockInventoryPinsPlatformSpecificEscapes\n--- PASS: TestHostClockInventoryPinsPlatformSpecificEscapes (0.00s)\n=== RUN   TestGoroutineCreationInventoryRejectsSeededSite\n--- PASS: TestGoroutineCreationInventoryRejectsSeededSite (0.00s)\n=== RUN   TestSourceAcceptanceMaterializedPreservation\n    source_acceptance_checkpoint_test.go:31: real archive collision check: 79 overlay paths; exact retained materialized preservation: 20 patched files + runtime overlay\n--- PASS: TestSourceAcceptanceMaterializedPreservation (2.49s)\n=== RUN   TestSourceAcceptanceSchedulerExtraction\n    source_acceptance_checkpoint_test.go:90: three extraction bodies/comments preserved against verified pre-extraction 5df49456e6 source; exact return adaptation, admitted field rename, timer-presence result and sizeof assertion\n--- PASS: TestSourceAcceptanceSchedulerExtraction (4.65s)\nPASS\nok  \tgo.temporal.io/server/tools/gomad3/toolchain\t7.148s\n"
+  },
+  "source_closure": {
+    "chunk_id": "e790f0",
+    "wall_time_seconds": 1.6684278350000001,
+    "exit_code": 0,
+    "original_token_count": 51,
+    "output": "{\"tracked_nonflow_files\":5089,\"source_sha256\":\"22fd0dd1e0f86ba1ee31eb1315c7cc2a6daa3fbc93fe95bd1579d97bfc7811d7\",\"scoped_inputs\":87,\"exact_archive\":true,\"verified_command_receipts\":19,\"source_edits\":0}\n"
+  },
+  "retained_evidence_and_review": {
+    "chunk_id": "983828",
+    "wall_time_seconds": 0.068437916,
+    "exit_code": 0,
+    "original_token_count": 44,
+    "output": "{\"valid_evidence\":true,\"retained_raw_files\":72,\"retained_bytes\":521317,\"observations\":19,\"mechanical_review\":\"SHIP\",\"three_independent_draws\":true,\"all_handles_terminal\":true}\n"
+  },
+  "receipt_schema_observation": "Initial conductor assertion used absent receipt.task; corrected to actual receipt.id and reran the complete hash validator without candidate edits.",
+  "native_owners": {
+    "fn128": "7 blocked tasks; no Linux CI/PR/push",
+    "fn149": "4 blocked tasks; no Darwin qualification"
+  },
+  "plan_sync": "skipped(config: disabled)",
+  "tracker_sync": "n/a (bridge inactive)",
+  "raw_retention_encoding": "71 literal copies plus one lossless UTF-8 JSON-string container; original 72 byte hashes and totals verified unchanged"
+}

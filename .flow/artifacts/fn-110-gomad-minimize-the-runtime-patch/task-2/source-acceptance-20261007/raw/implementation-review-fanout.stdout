@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "type": "impl_review_fanout",
+  "phase": "dispatch",
+  "id": "fn-110-gomad-minimize-the-runtime-patch.2",
+  "rid": "8f25e17e6ab642cc88066d2399adf5da",
+  "reservation_id": "8f25e17e6ab642cc88066d2399adf5da",
+  "standalone": false,
+  "dir": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "session_id": "01a11a0e-b64d-7822-bece-a3acc608648b",
+      "model": "gpt-6.1-sol",
+      "review_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "session_id": "01a11a0e-b64c-7101-a41d-bea96476dfb5",
+      "model": "gpt-6.1-sol",
+      "review_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "session_id": "01a11a0e-b669-7e02-96e1-1a6735de40da",
+      "model": "gpt-6.1-sol",
+      "review_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/review-fanout/8f25e17e6ab642cc88066d2399adf5da/integration.out.txt"
+    }
+  ],
+  "failed_draws": 0,
+  "merged": false,
+  "next": "merge the surviving draws' findings, then run: flowctl codex impl-review-fanout-finalize --rid 8f25e17e6ab642cc88066d2399adf5da --merge-plan <merge-plan.json>"
+}

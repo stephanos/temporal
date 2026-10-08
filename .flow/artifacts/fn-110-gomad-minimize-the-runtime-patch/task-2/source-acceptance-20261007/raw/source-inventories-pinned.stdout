@@ -1,0 +1,15 @@
+=== RUN   TestDrawInventoryRejectsUnclassifiedReference
+--- PASS: TestDrawInventoryRejectsUnclassifiedReference (0.00s)
+=== RUN   TestSeededDrawInventoryRejectsUnclassifiedReference
+--- PASS: TestSeededDrawInventoryRejectsUnclassifiedReference (0.00s)
+=== RUN   TestGFieldCompactSourceInventories
+    gfield_compact_checkpoint_test.go:108: platforms=[darwin/arm64 linux/amd64] draw rows=273 seeded rows=86 clock rows=48 goroutine rows=10
+--- PASS: TestGFieldCompactSourceInventories (8.61s)
+=== RUN   TestRegenerateMatchesCheckedPatchForPinnedArchive
+--- PASS: TestRegenerateMatchesCheckedPatchForPinnedArchive (75.83s)
+=== RUN   TestPinnedArchiveFollowsDescriptorAndRejectsChecksumMismatch
+--- PASS: TestPinnedArchiveFollowsDescriptorAndRejectsChecksumMismatch (0.00s)
+=== RUN   TestPinnedContextRepresentationsMaterializeIdenticalSource
+--- PASS: TestPinnedContextRepresentationsMaterializeIdenticalSource (96.51s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain	180.951s

@@ -1,0 +1,28 @@
+import {readFileSync,readdirSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+const root='/Users/stephan/Workspace/skunkworks/gomad/temporal';
+const old='a936b597b4';
+const prefix='tools/gomad3/';
+const sha=data=>createHash('sha256').update(data).digest('hex');
+const git=args=>{const result=spawnSync('git',args,{cwd:root,maxBuffer:32<<20}); assert.equal(result.status,0); return result.stdout;};
+const descriptor=JSON.parse(readFileSync(root+'/'+prefix+'toolchain/version/version.json'));
+const paths=[...descriptor.overlay_allowlist.map(p=>prefix+'toolchain/runtime/overlay/'+p),prefix+'toolchain/runtime/go1.27.1.patch',prefix+'toolchain/version/version.json',...['draw_inventory_test.go','clock_inventory_test.go','goroutine_inventory_test.go'].map(p=>prefix+'toolchain/'+p),...['choice/internal/wire/wire_generated.go','target/internal/livecap/protocol_generated.go','runner/testdata/diagnostic-identity-choices.json'].map(p=>prefix+p)];
+const bindings=Object.fromEntries(paths.sort().map(p=>{const before=git(['show',old+':'+p]), after=readFileSync(root+'/'+p); assert(before.equals(after),'retained source changed: '+p); return [p,sha(after)];}));
+const canonical={};
+for(const n of [1,3]) { const data=readFileSync(root+'/.flow/tmp/fn1102-source/source-U'+n+'.patch'); canonical['U'+n]={bytes:data.length,lines:data.toString().split('\n').length-1,sha256:sha(data)}; }
+assert.equal(canonical.U1.sha256,bindings[prefix+'toolchain/runtime/go1.27.1.patch']);
+assert.equal(canonical.U3.bytes,33294);
+const receiptPath=root+'/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/preservation.json';
+const receipt=JSON.parse(readFileSync(receiptPath));
+assert.equal(receipt.files.length,21); assert(receipt.files.every(f=>f.equal));
+const overlayReceipt=receipt.files.find(f=>f.path.startsWith('tools/'));
+const normalized=spawnSync('/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt',[],{input:readFileSync(root+'/'+overlayReceipt.path)});
+assert.equal(normalized.status,0); assert.equal(sha(normalized.stdout),overlayReceipt.alpha_gofmt_sha256);
+assert(receipt.files.filter(f=>!f.path.startsWith('tools/')).every(f=>f.alpha_gofmt_sha256===f.final_sha256));
+const identity=JSON.parse(readFileSync(root+'/.flow/tmp/fn1102-source/independent-identity.stdout'));
+assert(identity.current_golden_matches_candidate && identity.native_guard_and_whole_byte_assertion_unchanged && identity.differences.length===7);
+const output={current_head:git(['rev-parse','HEAD']).toString().trim(),retained_checkpoint:git(['rev-parse',old]).toString().trim(),archive_sha256:sha(readFileSync(root+'/'+prefix+'.toolchain/downloads/'+descriptor.archive.name)),descriptor_sha256:sha(readFileSync(root+'/'+prefix+'toolchain/version/version.json')),patch_allowlist_count:descriptor.patch_allowlist.length,overlay_allowlist_count:descriptor.overlay_allowlist.length,scoped_bindings:bindings,canonical,original_u3_comparator_bytes:32652,owner_waived_excess_bytes:642,preservation_receipt_sha256:sha(readFileSync(receiptPath)),materialized_preservation_files:21,identity_report_sha256:sha(readFileSync(root+'/.flow/tmp/fn1102-source/independent-identity.stdout')),fixture_sha256:bindings[prefix+'runner/testdata/diagnostic-identity-choices.json'],native_qualification:'unverified; fn128/linux amd64 and fn149/darwin arm64 deferred',product_edits:[]};
+writeFileSync(root+'/.flow/tmp/fn1102-source/bindings.json',JSON.stringify(output,null,2)+'\n');
+console.log(JSON.stringify({bindings:Object.keys(bindings).length,allowlists:[output.patch_allowlist_count,output.overlay_allowlist_count],canonical,archive_sha256:output.archive_sha256,preservation_files:21,identity_pointers:identity.differences.length}));

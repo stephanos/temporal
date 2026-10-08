@@ -1,0 +1,273 @@
+=== RUN   TestBuildRejectsUnsupportedHostBeforePreparingInputs
+--- PASS: TestBuildRejectsUnsupportedHostBeforePreparingInputs (0.00s)
+=== RUN   TestBuildPublishesAndReusesImmutableToolchain
+--- PASS: TestBuildPublishesAndReusesImmutableToolchain (0.03s)
+=== RUN   TestBuildSerializesConcurrentSameKey
+--- PASS: TestBuildSerializesConcurrentSameKey (0.05s)
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-lock
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-extract
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-patch
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-overlay
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-compile
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-build-publish
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-stamp-publish
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-launcher-publish
+--- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState (0.04s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-lock (0.00s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-extract (0.00s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-patch (0.00s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-overlay (0.00s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-compile (0.00s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-build-publish (0.01s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-stamp-publish (0.01s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-launcher-publish (0.01s)
+=== RUN   TestBuildRejectsOverlayCollisionBeforePatching
+--- PASS: TestBuildRejectsOverlayCollisionBeforePatching (0.00s)
+=== RUN   TestBuildRejectsUnguardedFailureInjection
+--- PASS: TestBuildRejectsUnguardedFailureInjection (0.00s)
+=== RUN   TestDeriveHashesBuildSources
+--- PASS: TestDeriveHashesBuildSources (0.00s)
+=== RUN   TestComputeChangesForEveryContractedInput
+=== RUN   TestComputeChangesForEveryContractedInput/Go_version
+=== RUN   TestComputeChangesForEveryContractedInput/archive_digest
+=== RUN   TestComputeChangesForEveryContractedInput/patch_digest
+=== RUN   TestComputeChangesForEveryContractedInput/overlay_digest
+=== RUN   TestComputeChangesForEveryContractedInput/host_OS
+=== RUN   TestComputeChangesForEveryContractedInput/bootstrap_version
+=== RUN   TestComputeChangesForEveryContractedInput/recipe_version
+=== RUN   TestComputeChangesForEveryContractedInput/build_path
+=== RUN   TestComputeChangesForEveryContractedInput/host_architecture
+=== RUN   TestComputeChangesForEveryContractedInput/bash_path
+=== RUN   TestComputeChangesForEveryContractedInput/bash_version
+--- PASS: TestComputeChangesForEveryContractedInput (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/Go_version (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/archive_digest (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/patch_digest (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/overlay_digest (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/host_OS (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/bootstrap_version (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/recipe_version (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/build_path (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/host_architecture (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/bash_path (0.00s)
+    --- PASS: TestComputeChangesForEveryContractedInput/bash_version (0.00s)
+=== RUN   TestTreeDigestBindsPathsAndContents
+--- PASS: TestTreeDigestBindsPathsAndContents (0.00s)
+=== RUN   TestTreeDigestRejectsNonRegularEntry
+--- PASS: TestTreeDigestRejectsNonRegularEntry (0.00s)
+=== RUN   TestPatchedRuntimeHostClockReferencesAreReviewed
+    clock_inventory_test.go:114: the patched toolchain is not built; make test-toolchain builds it first
+--- SKIP: TestPatchedRuntimeHostClockReferencesAreReviewed (0.00s)
+=== RUN   TestPatchedRuntimeClockEntryPointsCheckActivationFirst
+    clock_inventory_test.go:155: the patched toolchain is not built; make test-toolchain builds it first
+--- SKIP: TestPatchedRuntimeClockEntryPointsCheckActivationFirst (0.00s)
+=== RUN   TestHostClockInventoryPinsPlatformSpecificEscapes
+--- PASS: TestHostClockInventoryPinsPlatformSpecificEscapes (0.00s)
+=== RUN   TestPatchedRuntimeDrawReferencesAreReviewed
+    draw_inventory_test.go:219: the patched toolchain is not built; make test-toolchain builds it first
+--- SKIP: TestPatchedRuntimeDrawReferencesAreReviewed (0.00s)
+=== RUN   TestDrawInventoryRejectsUnclassifiedReference
+--- PASS: TestDrawInventoryRejectsUnclassifiedReference (0.00s)
+=== RUN   TestPatchedRuntimeSeededDrawReferencesAreReviewed
+    draw_inventory_test.go:596: the patched toolchain is not built; make test-toolchain builds it first
+--- SKIP: TestPatchedRuntimeSeededDrawReferencesAreReviewed (0.00s)
+=== RUN   TestSeededDrawInventoryRejectsUnclassifiedReference
+--- PASS: TestSeededDrawInventoryRejectsUnclassifiedReference (0.00s)
+=== RUN   TestPatchedRuntimeGoroutineCreationsAreReviewed
+    goroutine_inventory_test.go:61: the patched toolchain is not built; make test-toolchain builds it first
+--- SKIP: TestPatchedRuntimeGoroutineCreationsAreReviewed (0.00s)
+=== RUN   TestGoroutineCreationInventoryRejectsSeededSite
+--- PASS: TestGoroutineCreationInventoryRejectsSeededSite (0.00s)
+=== RUN   TestResolvePrefersExplicitThenEnvironment
+--- PASS: TestResolvePrefersExplicitThenEnvironment (0.00s)
+=== RUN   TestResolveReadsAdjacentBundleManifest
+--- PASS: TestResolveReadsAdjacentBundleManifest (0.00s)
+=== RUN   TestResolveUsesExistingAdjacentCheckoutFallback
+--- PASS: TestResolveUsesExistingAdjacentCheckoutFallback (0.00s)
+=== RUN   TestResolveRejectsRelativeOverridesAndMalformedManifest
+--- PASS: TestResolveRejectsRelativeOverridesAndMalformedManifest (0.00s)
+=== RUN   TestEveryResolutionSourceYieldsAValidatedDescription
+=== RUN   TestEveryResolutionSourceYieldsAValidatedDescription/explicit
+=== RUN   TestEveryResolutionSourceYieldsAValidatedDescription/environment
+=== RUN   TestEveryResolutionSourceYieldsAValidatedDescription/manifest
+=== RUN   TestEveryResolutionSourceYieldsAValidatedDescription/executable-relative
+--- PASS: TestEveryResolutionSourceYieldsAValidatedDescription (0.00s)
+    --- PASS: TestEveryResolutionSourceYieldsAValidatedDescription/explicit (0.00s)
+    --- PASS: TestEveryResolutionSourceYieldsAValidatedDescription/environment (0.00s)
+    --- PASS: TestEveryResolutionSourceYieldsAValidatedDescription/manifest (0.00s)
+    --- PASS: TestEveryResolutionSourceYieldsAValidatedDescription/executable-relative (0.00s)
+=== RUN   TestResolveRejectsMalformedManifestsAndInvalidRoots
+=== RUN   TestResolveRejectsMalformedManifestsAndInvalidRoots/unknown_schema
+=== RUN   TestResolveRejectsMalformedManifestsAndInvalidRoots/empty_root
+=== RUN   TestResolveRejectsMalformedManifestsAndInvalidRoots/backslash_root
+=== RUN   TestResolveRejectsMalformedManifestsAndInvalidRoots/unknown_field
+=== RUN   TestResolveRejectsMalformedManifestsAndInvalidRoots/trailing_data
+=== RUN   TestResolveRejectsMalformedManifestsAndInvalidRoots/filesystem_root
+--- PASS: TestResolveRejectsMalformedManifestsAndInvalidRoots (0.00s)
+    --- PASS: TestResolveRejectsMalformedManifestsAndInvalidRoots/unknown_schema (0.00s)
+    --- PASS: TestResolveRejectsMalformedManifestsAndInvalidRoots/empty_root (0.00s)
+    --- PASS: TestResolveRejectsMalformedManifestsAndInvalidRoots/backslash_root (0.00s)
+    --- PASS: TestResolveRejectsMalformedManifestsAndInvalidRoots/unknown_field (0.00s)
+    --- PASS: TestResolveRejectsMalformedManifestsAndInvalidRoots/trailing_data (0.00s)
+    --- PASS: TestResolveRejectsMalformedManifestsAndInvalidRoots/filesystem_root (0.00s)
+=== RUN   TestPatchCleanupRegenerate
+=== RUN   TestPatchCleanupRegenerate/healthy
+=== RUN   TestPatchCleanupRegenerate/cancel
+=== RUN   TestPatchCleanupRegenerate/missing-temporary
+    patch_cleanup_test.go:102: confirmed filesystem obstruction: remove /home/agent/.cache/codex-build/tmp/TestPatchCleanupRegeneratemissing-temporary1231068630/004/.gomad3-patch-790246414: no such file or directory
+    patch_cleanup_test.go:137: observed cleanup syscall failure: remove /home/agent/.cache/codex-build/tmp/TestPatchCleanupRegeneratemissing-temporary1231068630/004/.gomad3-patch-790246414: no such file or directory
+=== RUN   TestPatchCleanupRegenerate/nonempty-temporary
+    patch_cleanup_test.go:102: confirmed filesystem obstruction: remove /home/agent/.cache/codex-build/tmp/TestPatchCleanupRegeneratenonempty-temporary1083619372/004/.gomad3-patch-3225067995: directory not empty
+    patch_cleanup_test.go:137: observed cleanup syscall failure: remove /home/agent/.cache/codex-build/tmp/TestPatchCleanupRegeneratenonempty-temporary1083619372/004/.gomad3-patch-3225067995: directory not empty
+=== RUN   TestPatchCleanupRegenerate/work-after-cancel
+    patch_cleanup_test.go:102: confirmed filesystem obstruction: openfdat /home/agent/.cache/codex-build/tmp/TestPatchCleanupRegeneratework-after-cancel2819328645/005/work/regenerate-patch-371095096/blocked: permission denied
+    patch_cleanup_test.go:137: observed cleanup syscall failure: openfdat /home/agent/.cache/codex-build/tmp/TestPatchCleanupRegeneratework-after-cancel2819328645/005/work/regenerate-patch-371095096/blocked: permission denied
+=== RUN   TestPatchCleanupRegenerate/work-after-publication
+    patch_cleanup_test.go:102: confirmed filesystem obstruction: openfdat /home/agent/.cache/codex-build/tmp/TestPatchCleanupRegeneratework-after-publication2398358288/005/work/regenerate-patch-26401338/blocked: permission denied
+    patch_cleanup_test.go:137: observed cleanup syscall failure: openfdat /home/agent/.cache/codex-build/tmp/TestPatchCleanupRegeneratework-after-publication2398358288/005/work/regenerate-patch-26401338/blocked: permission denied
+--- PASS: TestPatchCleanupRegenerate (0.68s)
+    --- PASS: TestPatchCleanupRegenerate/healthy (0.05s)
+    --- PASS: TestPatchCleanupRegenerate/cancel (0.12s)
+    --- PASS: TestPatchCleanupRegenerate/missing-temporary (0.31s)
+    --- PASS: TestPatchCleanupRegenerate/nonempty-temporary (0.06s)
+    --- PASS: TestPatchCleanupRegenerate/work-after-cancel (0.07s)
+    --- PASS: TestPatchCleanupRegenerate/work-after-publication (0.07s)
+=== RUN   TestValidateAcceptsCurrentCheckedInputs
+--- PASS: TestValidateAcceptsCurrentCheckedInputs (0.04s)
+=== RUN   TestValidateRejectsPatchOutsideDescriptorAllowlist
+--- PASS: TestValidateRejectsPatchOutsideDescriptorAllowlist (0.00s)
+=== RUN   TestValidateRejectsMalformedAndNewFilePatches
+=== RUN   TestValidateRejectsMalformedAndNewFilePatches/malformed
+=== RUN   TestValidateRejectsMalformedAndNewFilePatches/new-file
+--- PASS: TestValidateRejectsMalformedAndNewFilePatches (0.00s)
+    --- PASS: TestValidateRejectsMalformedAndNewFilePatches/malformed (0.00s)
+    --- PASS: TestValidateRejectsMalformedAndNewFilePatches/new-file (0.00s)
+=== RUN   TestValidateRejectsUnlistedAndBinaryOverlayEntries
+=== RUN   TestValidateRejectsUnlistedAndBinaryOverlayEntries/unlisted
+=== RUN   TestValidateRejectsUnlistedAndBinaryOverlayEntries/binary
+--- PASS: TestValidateRejectsUnlistedAndBinaryOverlayEntries (0.01s)
+    --- PASS: TestValidateRejectsUnlistedAndBinaryOverlayEntries/unlisted (0.00s)
+    --- PASS: TestValidateRejectsUnlistedAndBinaryOverlayEntries/binary (0.00s)
+=== RUN   TestValidateClassifiesProhibitedRuntimeAreas
+=== RUN   TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-chan.go
+=== RUN   TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-netpoll_epoll.go
+=== RUN   TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-malloc.go
+=== RUN   TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-tagptr_64bit.go
+=== RUN   TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-nested-gomad.go
+--- PASS: TestValidateClassifiesProhibitedRuntimeAreas (0.01s)
+    --- PASS: TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-chan.go (0.00s)
+    --- PASS: TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-netpoll_epoll.go (0.00s)
+    --- PASS: TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-malloc.go (0.00s)
+    --- PASS: TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-tagptr_64bit.go (0.00s)
+    --- PASS: TestValidateClassifiesProhibitedRuntimeAreas/src-runtime-nested-gomad.go (0.00s)
+=== RUN   TestMaterializeAppliesExactPatch
+--- PASS: TestMaterializeAppliesExactPatch (0.01s)
+=== RUN   TestMaterializeRejectsNonapplyingPatchWithoutMutation
+--- PASS: TestMaterializeRejectsNonapplyingPatchWithoutMutation (0.01s)
+=== RUN   TestMaterializeRejectsFuzzDependentPatch
+--- PASS: TestMaterializeRejectsFuzzDependentPatch (0.00s)
+=== RUN   TestRegeneratePublishesDeterministicExactPatch
+--- PASS: TestRegeneratePublishesDeterministicExactPatch (0.06s)
+=== RUN   TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput
+=== RUN   TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/wrong-version
+=== RUN   TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/added-file
+=== RUN   TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/deleted-file
+=== RUN   TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/unlisted-change
+=== RUN   TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/special-entry
+--- PASS: TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput (0.01s)
+    --- PASS: TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/wrong-version (0.00s)
+    --- PASS: TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/added-file (0.00s)
+    --- PASS: TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/deleted-file (0.00s)
+    --- PASS: TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/unlisted-change (0.00s)
+    --- PASS: TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput/special-entry (0.00s)
+=== RUN   TestRegenerateRejectsCandidateWithNoChanges
+--- PASS: TestRegenerateRejectsCandidateWithNoChanges (0.00s)
+=== RUN   TestRegenerateEmitsOneContextLine
+=== RUN   TestRegenerateEmitsOneContextLine/canonical
+=== RUN   TestRegenerateEmitsOneContextLine/three
+--- PASS: TestRegenerateEmitsOneContextLine (0.05s)
+    --- PASS: TestRegenerateEmitsOneContextLine/canonical (0.03s)
+    --- PASS: TestRegenerateEmitsOneContextLine/three (0.03s)
+=== RUN   TestRegenerateMatchesCheckedPatchForPinnedArchive
+--- PASS: TestRegenerateMatchesCheckedPatchForPinnedArchive (127.60s)
+=== RUN   TestPinnedArchiveFollowsDescriptorAndRejectsChecksumMismatch
+--- PASS: TestPinnedArchiveFollowsDescriptorAndRejectsChecksumMismatch (0.00s)
+=== RUN   TestPinnedContextRepresentationsMaterializeIdenticalSource
+--- PASS: TestPinnedContextRepresentationsMaterializeIdenticalSource (72.04s)
+=== RUN   TestSourceCleanupPublicationRetriesAndCache
+=== RUN   TestSourceCleanupPublicationRetriesAndCache/one
+=== RUN   TestSourceCleanupPublicationRetriesAndCache/explicit
+=== RUN   TestSourceCleanupPublicationRetriesAndCache/default
+=== RUN   TestSourceCleanupPublicationRetriesAndCache/later-success
+=== RUN   TestSourceCleanupPublicationRetriesAndCache/healthy
+--- PASS: TestSourceCleanupPublicationRetriesAndCache (0.06s)
+    --- PASS: TestSourceCleanupPublicationRetriesAndCache/one (0.04s)
+    --- PASS: TestSourceCleanupPublicationRetriesAndCache/explicit (0.01s)
+    --- PASS: TestSourceCleanupPublicationRetriesAndCache/default (0.01s)
+    --- PASS: TestSourceCleanupPublicationRetriesAndCache/later-success (0.01s)
+    --- PASS: TestSourceCleanupPublicationRetriesAndCache/healthy (0.00s)
+=== RUN   TestSourceCleanupClosesTemporaryBeforeFormattingPrimary
+--- PASS: TestSourceCleanupClosesTemporaryBeforeFormattingPrimary (0.00s)
+=== RUN   TestSourceCleanupPrimaryErrors
+=== RUN   TestSourceCleanupPrimaryErrors/http/failed-close=false
+=== RUN   TestSourceCleanupPrimaryErrors/http/failed-close=true
+=== RUN   TestSourceCleanupPrimaryErrors/read/failed-close=false
+=== RUN   TestSourceCleanupPrimaryErrors/read/failed-close=true
+=== RUN   TestSourceCleanupPrimaryErrors/checksum/failed-close=false
+=== RUN   TestSourceCleanupPrimaryErrors/checksum/failed-close=true
+=== RUN   TestSourceCleanupPrimaryErrors/cancel/failed-close=false
+=== RUN   TestSourceCleanupPrimaryErrors/cancel/failed-close=true
+--- PASS: TestSourceCleanupPrimaryErrors (0.00s)
+    --- PASS: TestSourceCleanupPrimaryErrors/http/failed-close=false (0.00s)
+    --- PASS: TestSourceCleanupPrimaryErrors/http/failed-close=true (0.00s)
+    --- PASS: TestSourceCleanupPrimaryErrors/read/failed-close=false (0.00s)
+    --- PASS: TestSourceCleanupPrimaryErrors/read/failed-close=true (0.00s)
+    --- PASS: TestSourceCleanupPrimaryErrors/checksum/failed-close=false (0.00s)
+    --- PASS: TestSourceCleanupPrimaryErrors/checksum/failed-close=true (0.00s)
+    --- PASS: TestSourceCleanupPrimaryErrors/cancel/failed-close=false (0.00s)
+    --- PASS: TestSourceCleanupPrimaryErrors/cancel/failed-close=true (0.00s)
+=== RUN   TestSourceCleanupRemoveFailure
+=== RUN   TestSourceCleanupRemoveFailure/failed-close=false
+=== RUN   TestSourceCleanupRemoveFailure/failed-close=true
+--- PASS: TestSourceCleanupRemoveFailure (0.00s)
+    --- PASS: TestSourceCleanupRemoveFailure/failed-close=false (0.00s)
+    --- PASS: TestSourceCleanupRemoveFailure/failed-close=true (0.00s)
+=== RUN   TestSourceCleanupCancellationBetweenAttempts
+--- PASS: TestSourceCleanupCancellationBetweenAttempts (0.00s)
+=== RUN   TestSourceCleanupLegacyTarNormalization
+=== RUN   TestSourceCleanupLegacyTarNormalization/regular
+=== RUN   TestSourceCleanupLegacyTarNormalization/directory
+--- PASS: TestSourceCleanupLegacyTarNormalization (0.00s)
+    --- PASS: TestSourceCleanupLegacyTarNormalization/regular (0.00s)
+    --- PASS: TestSourceCleanupLegacyTarNormalization/directory (0.00s)
+=== RUN   TestSourceCleanupCorruptDeflateReadAndClose
+--- PASS: TestSourceCleanupCorruptDeflateReadAndClose (0.00s)
+=== RUN   TestSourceCleanupCacheAndExtractionErrors
+=== RUN   TestSourceCleanupCacheAndExtractionErrors/missing
+=== RUN   TestSourceCleanupCacheAndExtractionErrors/gzip
+--- PASS: TestSourceCleanupCacheAndExtractionErrors (0.00s)
+    --- PASS: TestSourceCleanupCacheAndExtractionErrors/missing (0.00s)
+    --- PASS: TestSourceCleanupCacheAndExtractionErrors/gzip (0.00s)
+=== RUN   TestEnsureDownloadsAndReusesVerifiedArchive
+--- PASS: TestEnsureDownloadsAndReusesVerifiedArchive (0.01s)
+=== RUN   TestEnsureReplacesCorruptCacheOnlyAfterVerifiedDownload
+--- PASS: TestEnsureReplacesCorruptCacheOnlyAfterVerifiedDownload (0.01s)
+=== RUN   TestEnsureChecksumFailureDoesNotPublishPartialArchive
+--- PASS: TestEnsureChecksumFailureDoesNotPublishPartialArchive (0.00s)
+=== RUN   TestExtractMaterializesRegularGoTree
+--- PASS: TestExtractMaterializesRegularGoTree (0.00s)
+=== RUN   TestExtractRejectsUnsafeOrUnsupportedEntries
+=== RUN   TestExtractRejectsUnsafeOrUnsupportedEntries/traversal
+=== RUN   TestExtractRejectsUnsafeOrUnsupportedEntries/absolute
+=== RUN   TestExtractRejectsUnsafeOrUnsupportedEntries/wrong-root
+=== RUN   TestExtractRejectsUnsafeOrUnsupportedEntries/symlink
+--- PASS: TestExtractRejectsUnsafeOrUnsupportedEntries (0.00s)
+    --- PASS: TestExtractRejectsUnsafeOrUnsupportedEntries/traversal (0.00s)
+    --- PASS: TestExtractRejectsUnsafeOrUnsupportedEntries/absolute (0.00s)
+    --- PASS: TestExtractRejectsUnsafeOrUnsupportedEntries/wrong-root (0.00s)
+    --- PASS: TestExtractRejectsUnsafeOrUnsupportedEntries/symlink (0.00s)
+=== RUN   TestExtractRejectsDuplicatePathsAndNonemptyDestination
+--- PASS: TestExtractRejectsDuplicatePathsAndNonemptyDestination (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain	200.776s
