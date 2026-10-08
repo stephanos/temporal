@@ -78,7 +78,6 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 		"closedIsRejectedUniformly": {"Closable"},
 		"pausedIsNotDispatched":     {"Pausable", "Pollable"},
 		"terminateSettles":          {"Terminable"},
-		"cancelIsRequested":         {"Cancelable"},
 	}
 	// Each capabilities section brings its companions' Properties; the two-capability Property
 	// needs both declared kinds. The Scala test holds this list to the companions' definitions.

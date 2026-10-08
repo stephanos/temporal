@@ -25,12 +25,11 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   )
 
   val companions =
-    Seq(Closable, Terminable, Cancelable, Pausable, Pollable, Describable, Retries, Deadline)
+    Seq(Closable, Terminable, Pausable, Pollable, Describable, Retries, Deadline)
   val properties = Seq(
     Brought("Closable.terminalStatesAreFinal", Set(Closable)),
     Brought("Closable.closedIsRejectedUniformly", Set(Closable)),
     Brought("Terminable.terminateSettles", Set(Terminable)),
-    Brought("Cancelable.cancelIsRequested", Set(Cancelable)),
     Brought("Pausable.pausedIsNotDispatched", Set(Pausable, Pollable)),
     Brought("Retries.failureReturnsToWaiting", Set(Retries)),
     Brought("Retries.failureEndsFailed", Set(Retries)),

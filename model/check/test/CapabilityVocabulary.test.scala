@@ -12,7 +12,6 @@ class CapabilityVocabularySuite extends munit.FunSuite:
       "Closable",
       "Terminable",
       "Pausable",
-      "Cancelable",
       "Pollable",
       "Describable",
       "Retries",

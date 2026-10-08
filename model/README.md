@@ -1149,7 +1149,6 @@ case classes and companion Properties are in `model/temporal/capabilities`:
 | --- | --- | --- |
 | `Closable` | `rejected`; owns the `Closed` role | `terminalStatesAreFinal`, `closedIsRejectedUniformly` |
 | `Terminable` | `terminate`, `settled`, `reach`, `expect` | `terminateSettles` |
-| `Cancelable` | `requestCancel`, `requested`, `reach`, `expect` | `cancelIsRequested` |
 | `Pausable` with `Pollable` | `pause`, `unpause`; owns `Suspended`; `dispatch`; owns `Held` | `pausedIsNotDispatched`, brought by the pair |
 | `Describable` | `statusTable`, the realization's fact-to-status table | none; generated finds use the table for their awaits |
 | `Retries` | exact `failure` class, `retryable`, `attemptCount`, `maximumAttempts`, `retriesRemaining`, optional `pendingPause` and `pendingCancel` | `failureReturnsToWaiting`, `failureEndsFailed`, `attemptCountIsWithinPolicy`; `failurePauses` and `failureCancels` when their control is bound |
@@ -1215,10 +1214,6 @@ object capabilities extends Capabilities:
     terminate = client.terminate, settled = Fact.statusTerminated,
     reach = Seq(client.start(), process.stop), expect = inconclusive(explanationsDisagree)
   )
-  val cancelable: Capability = Cancelable(
-    requestCancel = client.requestCancel, requested = Fact.statusCancelRequested,
-    reach = Seq(client.start(), process.stop), expect = inconclusive(explanationsDisagree)
-  )
   val describable: Capability = Describable(statusTable = activityStatus)
 
 object queries:
@@ -1259,15 +1254,17 @@ Binding each object in its `queries` section gives `activityProduct.terminalStat
 `activityProduct.pausedIsNotDispatched`, because the product declares both Pausable and Pollable;
 nobody lists the pair. Each is a transition Property, verified over the product's free Scenario
 under `three`, and the System reads them through its refinement. The second gives
-`activitySystem.terminateSettles` and `activitySystem.cancelIsRequested`, each a same-step
-Property asked by a `find` that starts the activity, stops the worker and then takes the control; a
-find has a realization, so they lower to the Cases `activity-standalone-activitySystem.terminateSettles` and
-`activity-standalone-activitySystem.cancelIsRequested`, whose awaited status comes from the `Describable`
-table. The same-step Properties sit on the System because a find lowers only through a realization,
-which is the System's. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
+`activitySystem.terminateSettles`, a same-step Property asked by a `find` that starts the activity,
+stops the worker and then takes the control; a find has a realization, so it lowers to the Case
+`activity-standalone-activitySystem.terminateSettles`, whose awaited status comes from the
+`Describable` table. The same-step Property sits on the System because a find lowers only through a
+realization, which is the System's. The activity's `activitySystem.cancelIsRequested` is its own,
+written on `ByIDCancellation` over the held cancellation's complete service path, and the Nexus
+operation writes its `nexusSystem.cancelIsRequested` in its own `properties` and `queries`, so no
+capability brings a cancel request. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
 activity's own files any more; the admission designs and both composition families declare the same
 three capabilities on their record, and the Nexus operation (`features/nexus/standalone`) declares
-Closable, Terminable, Cancelable and Describable.
+Closable, Terminable and Describable.
 
 **How a Property is brought.** Each capability Property is its companion's def (or the def an
 `overriding(property -> def, because = …)` names) folded with the model and the fields or owned roles

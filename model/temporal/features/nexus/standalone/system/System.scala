@@ -131,8 +131,19 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     }
 
   // What the operation promises of its own: its reading of closed rejection, which its capabilities
-  // put in place of the shared Property.
+  // put in place of the shared Property, and its recorded cancel request.
   object properties:
+    // Cancellation requests are recorded while the operation is in flight. A cancel request records
+    // the request and leaves the operation live. Its find starts from the start, for the same reason
+    // as Terminable.terminateSettles.
+    // This does not promise cancellation, which only the work's answer settles, or a second request's
+    // answer (Nexus answers ErrCancellationAlreadyRequested).
+    // See chasm/lib/nexusoperation/operation.go.
+    val cancelIsRequested =
+      property("nexusSystem.cancelIsRequested") when client.requestCancel holds (
+        _.records(Fact.statusCancelRequested)
+      )
+
     // A closed operation keeps its state, and answers a control alreadyCompleted, or OK where it
     // repeats a request the operation took, a recorded cancel or the terminate that closed it: the
     // operation's own reading of closedIsRejectedUniformly.
@@ -146,7 +157,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       )
 
   // What the operation is, as the Properties in model/temporal/capabilities read it: it closes, a client
-  // terminates it and requests its cancel, and DescribeNexusOperationExecution reports its status.
+  // terminates it, and DescribeNexusOperationExecution reports its status.
   // It receives the Properties without listing them, each named `nexusSystem.<property>`. It reads the
   // realization, which reads this machine, so it waits in a section, which initializes on its first
   // use.
@@ -155,7 +166,8 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
   // answers NotFound (operation.go ErrOperationAlreadyCompleted). Each same-step Property's find starts
   // the operation, which no handler answers, so it stays running, then takes the control. A Run
   // explains an unobserved control of a closed operation too, which records nothing, so a Run of a
-  // terminate or cancel find leaves the claim inconclusive: its explanations disagree.
+  // terminate or cancel find leaves the claim inconclusive: its explanations disagree. The cancel
+  // find is the operation's own, cancelIsRequested in queries.
   object capabilities extends Capabilities:
     val closable: Capability = Closable(
       rejected = Outcome.rejected(Rejection.failedPrecondition)
@@ -163,12 +175,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     val terminable: Capability = Terminable(
       terminate = client.terminate,
       settled = Fact.nexusOperationTerminated,
-      reach = Seq(client.start),
-      expect = inconclusive(Reason.explanationsDisagree)
-    )
-    val cancelable: Capability = Cancelable(
-      requestCancel = client.requestCancel,
-      requested = Fact.statusCancelRequested,
       reach = Seq(client.start),
       expect = inconclusive(Reason.explanationsDisagree)
     )
@@ -186,5 +192,14 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       handler.reply(Reply.async),
       handler.complete(Resolution.succeeded)
     )
+    // The operation started, which no handler answers, then the cancel request.
+    val cancelRequest = scenario.actions(client.start, client.requestCancel)
+
     val terminalHolds =
       query verify product.NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three
+    val cancelIsRequested =
+      (query(
+        "nexusSystem.cancelIsRequested"
+      ) find properties.cancelIsRequested in cancelRequest limits three)
+        .total(28)
+        .expect(inconclusive(Reason.explanationsDisagree))
