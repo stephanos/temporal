@@ -299,15 +299,16 @@ func TestUnsupportedDeclarationsAreListedAndNeverCounted(t *testing.T) {
 	require.Equal(t, []string{
 		"query detailedPair bothPut: the member back of detailedPair is disk, which names monitors, and whether a member's " +
 			"monitors watch a composition is undefined",
-		"query disk durableStays: disk.durableStays is a transition Property about some steps only, and a transition " +
-			"Property is about every step",
 		"query disk putStoresThroughDisk: a find through a refinement is not supported: only a verify reads a Property " +
 			"through one",
 	}, unsupported)
 	for _, x := range r.Checks() {
 		require.NotEqual(t, Unsupported, x.Kind)
 	}
-	require.Len(t, r.Checks(), len(r.Receipts)-3)
+	require.Len(t, r.Checks(), len(r.Receipts)-2)
+	durable := receiptOf(t, r, "query disk durableStays")
+	require.Equal(t, Verified, durable.Kind, durable.Explanation)
+	require.True(t, durable.Exercised)
 
 	for kind, isCheck := range map[ReceiptKind]bool{
 		Verified: true, Found: true, NotFound: true, Counterexample: true, RefinementRejected: true, Incomplete: true,

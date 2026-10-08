@@ -33,6 +33,46 @@ func phaseOf(key string) string {
 
 func always(string, umpire.Result) (bool, error) { return true, nil }
 
+func TestSelectedKeyTransitionsSkipBeforeReadingAndKeepRefusals(t *testing.T) {
+	for _, selected := range []bool{false, true} {
+		name := "never selected"
+		if selected {
+			name = "left selected"
+		}
+		t.Run(name, func(t *testing.T) {
+			tb := forkedTable()
+			p := umpire.KeyTransitionProperty(tb, "leftStarts",
+				func(before string, step umpire.Result) (bool, error) {
+					if step.Outcome != "l" {
+						return false, errors.New("unselected transition was read")
+					}
+					return before == "s0" && step.State == "s1", nil
+				}, umpire.KeyTransitionSelection{When: func(a string) bool { return selected && a == "left" }, Label: "left"})
+			s := umpire.KeyFreeScenario(tb, "any", "s0")
+			q := umpire.KeyVerify("selected", p, s, four)
+			a, err := q.Answer()
+			require.NoError(t, err)
+			require.Equal(t, umpire.VerifiedWithinLimits, a.Outcome)
+			require.Equal(t, selected, a.Exercised)
+			_, err = umpire.KeyFind("find", p, s, four).Answer()
+			require.ErrorContains(t, err, "a find realizes a same-step claim")
+			_, err = p.Lower()
+			require.ErrorContains(t, err, "a transition claim is searched and verified, never realized")
+		})
+	}
+}
+
+func TestSelectedKeyTransitionRefinementKeepsSelectorLabel(t *testing.T) {
+	product, detail := abstractTable(true), doorTable("concrete")
+	ref, err := umpire.RefineTables(detail, product, umpire.RefinementSpec{MapState: abstractKeyOf})
+	require.NoError(t, err)
+	p := umpire.KeyTransitionProperty(product, "selected", always,
+		umpire.KeyTransitionSelection{When: func(string) bool { return false }, Label: "missing"})
+	q := umpire.KeyVerifyRefined("q", p, umpire.KeyFreeScenario(detail, "any", "closed-false"), ref, four)
+	_, err = q.Answer()
+	require.ErrorContains(t, err, "the Property names the action 'missing' of 'abstract'")
+}
+
 // countOpeningKeys counts the door's openings, up to two: its states are "0", "1" and "2".
 func countOpeningKeys(at umpire.Evaluation) *umpire.Monitor {
 	return umpire.KeyMonitor("openedTwice", "0",

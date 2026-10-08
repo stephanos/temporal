@@ -621,7 +621,7 @@ func (w *watched) monitor() *Monitor {
 }
 
 // reads is a Property as its function reads steps over its table's keys: what the checker's
-// declaration and a reader of recorded steps both use. about is the classes a same-step Property is
+// declaration and a reader of recorded steps both use. about is the classes a Property is
 // about, nil for every class; across is set for a transition Property, and same for any other.
 type reads struct {
 	about  func(action string) bool
@@ -633,11 +633,8 @@ type reads struct {
 // propertyReads binds a Property's function over the keys of the table it is declared on.
 func (b *binding) propertyReads(s *subject, p *umpirespb.Property) (*reads, error) {
 	owner, at := p.GetMachine()+"."+p.GetName(), p.GetPosition()
-	if p.GetTransition() && p.GetWhen() != nil {
-		return nil, &unsupportedError{owner + " is a transition Property about some steps only, and a transition Property is about every step"}
-	}
 	if p.GetTransition() {
-		return &reads{across: func(before string, res interp.Result) (bool, error) {
+		r := &reads{across: func(before string, res interp.Result) (bool, error) {
 			source, err := s.state(before)
 			if err != nil {
 				return false, err
@@ -647,7 +644,9 @@ func (b *binding) propertyReads(s *subject, p *umpirespb.Property) (*reads, erro
 				return false, err
 			}
 			return b.decide(p.GetHolds(), []interp.Value{source, step}, at, owner, "for the step into", res.State)
-		}}, nil
+		}}
+		r.about, r.label = b.when(p)
+		return r, nil
 	}
 	r := &reads{same: func(res interp.Result) (bool, error) {
 		step, err := s.step(res)
@@ -676,7 +675,8 @@ func (b *binding) property(p *umpirespb.Property) (*PropertyDecl, error) {
 	}
 	var decl *PropertyDecl
 	if r.across != nil {
-		decl = umpire.KeyTransitionProperty(s.table, p.GetName(), r.across)
+		decl = umpire.KeyTransitionProperty(s.table, p.GetName(), r.across,
+			umpire.KeyTransitionSelection{When: r.about, Label: r.label})
 	} else {
 		decl = umpire.KeyProperty(s.table, p.GetName(), r.about, r.label, r.same)
 	}
@@ -684,7 +684,7 @@ func (b *binding) property(p *umpirespb.Property) (*PropertyDecl, error) {
 	return decl, nil
 }
 
-// when is the steps a same-step Property is about, and how a diagnostic names them. It reads the class
+// when is the steps a Property is about, and how a diagnostic names them. It reads the class
 // keys of the table the Property is declared on, so a composition's Property is about composed
 // classes: admission has checked that it names some (validator.selectors).
 func (b *binding) when(p *umpirespb.Property) (func(action string) bool, string) {

@@ -27,11 +27,22 @@ func KeyProperty(t *Table, name string, when func(action string) bool, whenLabel
 	return &PropertyDecl{Name: name, Machine: t.model, when: when, whenLabel: whenLabel, keyHolds: holds}
 }
 
+// KeyTransitionSelection restricts a transition Property's action classes and names that selection.
+type KeyTransitionSelection struct {
+	When  func(action string) bool
+	Label string
+}
+
 // KeyTransitionProperty declares a transition Property over a table's keys: holds reads the key of
-// the state before a step and the step after it.
-func KeyTransitionProperty(t *Table, name string, holds func(before string, step Result) (bool, error)) *PropertyDecl {
+// the state before a step and the step after it. An optional selection restricts its action classes.
+func KeyTransitionProperty(t *Table, name string, holds func(before string, step Result) (bool, error),
+	selection ...KeyTransitionSelection) *PropertyDecl {
 	t.model.names.declare("property", name)
-	return &PropertyDecl{Name: name, Machine: t.model, keyHolds2: holds}
+	p := &PropertyDecl{Name: name, Machine: t.model, keyHolds2: holds}
+	if len(selection) > 0 {
+		p.when, p.whenLabel = selection[0].When, selection[0].Label
+	}
+	return p
 }
 
 // KeyScenario declares a Scenario pinned to these action class keys, in order, from a start key.
@@ -119,7 +130,7 @@ type UnknownReach struct {
 // observeKeys advances a key-level Property's monitor over one step.
 func (s *searcher) observeKeys(n node, row Row, res Result) (monitor, error) {
 	p, mon := s.q.Property, n.mon
-	if !p.isTransition() && !p.triggers(row.Action) {
+	if !p.triggers(row.Action) {
 		return mon, nil
 	}
 	held, err := s.holdsOnKeys(n.state, res)

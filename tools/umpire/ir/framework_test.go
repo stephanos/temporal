@@ -34,6 +34,7 @@ var temporalTerms = map[string]bool{
 	"matching": true,
 	"frontend": true, "frontends": true,
 	"closable": true, "terminable": true, "pausable": true, "cancelable": true, "pollable": true, "describable": true,
+	"retries": true,
 }
 
 // temporalPairs are the terms spelled as two words, by their first word and the words that may
@@ -191,6 +192,7 @@ func TestTemporalTermsAreFound(t *testing.T) {
 		"a cancelable entity":   {path, "Cancelable(", []string{path + ":1"}},
 		"a pollable entity":     {path, "Pollable(", []string{path + ":1"}},
 		"a describable entity":  {path, "Describable(", []string{path + ":1"}},
+		"a retries capability":  {path, "Retries(", []string{path + ":1"}},
 		"a camelCase field":     {path, "val caseWorker = 1", []string{path + ":1"}},
 		"a camelCase pair":      {path, "s.taskQueue", []string{path + ":1"}},
 		"a leading word":        {path, "workflowService.start()", []string{path + ":1"}},
