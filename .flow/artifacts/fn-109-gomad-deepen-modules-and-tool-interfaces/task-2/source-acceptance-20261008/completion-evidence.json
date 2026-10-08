@@ -1,0 +1,225 @@
+{
+  "commits": [
+    "e9fefbe42ff9bb6c80c9e2487c32305bbe3fd0b3"
+  ],
+  "tests": [
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestCampaignOptionsCharacterization|TestCampaignRequestNormalizesTheRequest|TestCoordinatorConfigNormalizesDecodedOptions|TestCoordinatorConfigCarriesTheNormalizedOptions)$\" \"./runner\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-portable-options.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner|TestCoordinatorRejectsMalformedRequests|TestExploreRejectsPrivateExecutionForIsolatedCampaign|TestDecodeCoordinatorMessages.*|TestValidateConfigRecordsOnlyTheForwardClockTick|TestCampaignShard.*|TestPendingJobsRetainsGlobalOrdinalsForShard)$\" \"./runner\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-portable-transport-controls.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \".\" \"-run\" \"^(TestPackageArchitecture|TestExactModuleEdges)$\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-architecture.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestCampaignSemanticValidation.*|TestResolveExplore.*|TestResolveChoiceTrace.*|TestPlan.*|TestCharacterize.*|TestPublicCommand.*|TestExploreErrorReports.*|TestQualifyGrammar.*|TestRunResumeForwardsCampaignAndClassifiesResult|TestResumeGuidanceModePreservesExplicitFalseAndTrue)$\" \"./cmd/gomad/internal/cli\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-current-cli-consumers.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestPreflightResumeReturnsValidatedLifecycleAndPlan|TestPreflightResumeRejectsUnrecoverableLifecycle|TestRecoverAndResumeShareExclusiveLock|TestValidateBatchPlanRejectsChangedArtifactCapacity|TestBatchJournalRecordsCanonicalResumePlan|TestChoiceProfileMatchesResumePlanExactly|TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes|TestResumeExplorationJournalWrittenBeforeTheStartOrdinal|TestResumeExplorationJournalRequiresItsStartOrdinal|TestSeedCampaignPlanRejectsChoiceStartOrdinal)$\" \"./runner/internal/campaign\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-portable-plan-resume.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestParseSingleBaseSeedSharesRunnerStrategyRule|TestCampaignOptionErrorsPreserveKindThroughWrapping|TestCampaignOptionNormalizationAndValidation)$\" \"./runner\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-portable-options-helpers.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestParseMappingsNormalizesSourcesAndTargets|TestParseMappingsRejectsUnsafeOrOverlappingMappings|TestParseMappingsRejectsNonDirectoryAndSymlinkRoots|TestCaptureEnforcesLimitsBeforePublishingEntry)$\" \"./deterministicio/readonlymount\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-matched-mount-current.json]",
+    "\"make\" \"-C\" \"tools/gomad3\" \"validate\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-validate.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"vet\" \"-tags\" \"test_dep\" \"-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"-style-check=false\" \"./runner\" \"./cmd/gomad/internal/cli\" \"./runner/internal/campaign\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-configured-errortype.json]",
+    "\"node\" \".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-verify.mjs\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-audit.json]",
+    "\"node\" \".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/root-verification.mjs\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-audit-final.json]",
+    "\"node\" \".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/root-verification.mjs\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-post-commit-audit.json]",
+    "\"node\" \".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/root-verification.mjs\" [exit 0; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-post-review-audit.json]"
+  ],
+  "prs": [],
+  "scope": "R1 retained source acceptance; native and aggregate lint not complete",
+  "review": {
+    "verdict": "SHIP",
+    "backend": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "rid": "b41051b6c5fb4a168557dcbc31300d58",
+    "lossless_record": "source-review.json"
+  },
+  "native_qualification": false,
+  "frozen_worker_evidence_sha256": "945db05cad9f2aacaa28211de84721efdae586533d39e32fc0ae7894fcbe192d",
+  "root_receipts": [
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-portable-options.json",
+      "sha256": "431e9504026ce366b11c40f5fb4d4f47dbd18ce081e93e31f8fbd3d092bde16e",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestCampaignOptionsCharacterization|TestCampaignRequestNormalizesTheRequest|TestCoordinatorConfigNormalizesDecodedOptions|TestCoordinatorConfigCarriesTheNormalizedOptions)$",
+        "./runner"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-portable-transport-controls.json",
+      "sha256": "971f89ffebf74eeb36a3948bbb54858ba3c18ba7464a13e7e1bee5bbcc38c713",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner|TestCoordinatorRejectsMalformedRequests|TestExploreRejectsPrivateExecutionForIsolatedCampaign|TestDecodeCoordinatorMessages.*|TestValidateConfigRecordsOnlyTheForwardClockTick|TestCampaignShard.*|TestPendingJobsRetainsGlobalOrdinalsForShard)$",
+        "./runner"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-architecture.json",
+      "sha256": "14d7ab198f021df754e08116cebab5d3e3c701eab24f29d0cb874f08f9c3920b",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestExactModuleEdges)$"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-current-cli-consumers.json",
+      "sha256": "787d33f472bf47ecdac9525840c55609955a5030a59e38280ace97aa1c48ea86",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestCampaignSemanticValidation.*|TestResolveExplore.*|TestResolveChoiceTrace.*|TestPlan.*|TestCharacterize.*|TestPublicCommand.*|TestExploreErrorReports.*|TestQualifyGrammar.*|TestRunResumeForwardsCampaignAndClassifiesResult|TestResumeGuidanceModePreservesExplicitFalseAndTrue)$",
+        "./cmd/gomad/internal/cli"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-portable-plan-resume.json",
+      "sha256": "0c33becbae3a7502a37a272e2b419e6010bf18f08ba544d49f230f2e784c8652",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestPreflightResumeReturnsValidatedLifecycleAndPlan|TestPreflightResumeRejectsUnrecoverableLifecycle|TestRecoverAndResumeShareExclusiveLock|TestValidateBatchPlanRejectsChangedArtifactCapacity|TestBatchJournalRecordsCanonicalResumePlan|TestChoiceProfileMatchesResumePlanExactly|TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes|TestResumeExplorationJournalWrittenBeforeTheStartOrdinal|TestResumeExplorationJournalRequiresItsStartOrdinal|TestSeedCampaignPlanRejectsChoiceStartOrdinal)$",
+        "./runner/internal/campaign"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-portable-options-helpers.json",
+      "sha256": "e02ff5ff162bd20ca316bd3f86a51683cd480007ed0ca727ca79d3ab2ac93409",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestParseSingleBaseSeedSharesRunnerStrategyRule|TestCampaignOptionErrorsPreserveKindThroughWrapping|TestCampaignOptionNormalizationAndValidation)$",
+        "./runner"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-matched-mount-current.json",
+      "sha256": "847ed901bf87daf09b60271f3eb0b7409f35537caa09de283eb5f4ac7e497422",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestParseMappingsNormalizesSourcesAndTargets|TestParseMappingsRejectsUnsafeOrOverlappingMappings|TestParseMappingsRejectsNonDirectoryAndSymlinkRoots|TestCaptureEnforcesLimitsBeforePublishingEntry)$",
+        "./deterministicio/readonlymount"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-validate.json",
+      "sha256": "982d7647c453d29904ad477a210d1a82e4c09b1f62bf710cfeece9b87fb61354",
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-configured-errortype.json",
+      "sha256": "3104bc41db9e525afd0b9ed3276dbc0fde821ca1f52e80231e80d6668117d1f8",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-style-check=false",
+        "./runner",
+        "./cmd/gomad/internal/cli",
+        "./runner/internal/campaign"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-audit.json",
+      "sha256": "cc7246e409390a97507d8f87ba1f350405f59e4dde20f5293af0aabc698b608a",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-verify.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-audit-final.json",
+      "sha256": "f3c38ef31a5272e065b316a210a2de00d0b6472983fe6a2c7ebaa176734f1aad",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/root-verification.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-post-commit-audit.json",
+      "sha256": "46847f2459e2dac1427fcc3b8ea8f78865e0f19c125cb597f75cbb3d61f0e3ef",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/root-verification.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-post-review-audit.json",
+      "sha256": "2694b97b6d3de3f80b5d006e771256a488bc0113e92966073ba4efa3823d8966",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/root-verification.mjs"
+      ],
+      "exit": 0
+    }
+  ]
+}
