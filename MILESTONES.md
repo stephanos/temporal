@@ -78,8 +78,10 @@ Approved source gates: fn-138 implementation starts after fn-128.5 is done; fn-1
 starts after fn-138.3 is done. Flow cannot express these cross-spec task edges, so the conductor
 enforces them without spec-close dependencies inside the batch. fn-128.6 and fn-129.5 share the
 regeneration, review and live-run evidence; no activity spec closes before that boundary.
-The fn-142 then fn-143 preparation may run alongside this batch in isolated worktrees, with clean
-integrations and separate regeneration baselines. Re-anchor later task paths after those moves.
+The fn-142 then fn-143 preparation may run alongside this batch in isolated worktrees. The fn-142
+join dry-run found a milestones-file conflict; preserve its isolated work and serially rerun the
+move after this batch closes, with a separate regeneration baseline. Re-anchor later task paths
+after those moves; fn-143 still waits for fn-142 to close.
 
 ### fn-128: Close the activity's precision gaps
 
@@ -90,7 +92,7 @@ Tasks run in order.
 | fn-128.1 | ✅ done | Dispatch as a field replacing the `backingOff` phase; start delay; unpause-after-backoff and schedule-to-start-in-backoff fixed |
 | fn-128.2 | ✅ done | Explicit rejection rows and repeated RequestCancel refusal; owned lint subjects removed; focused tests pass; artifacts/full gates remain batch-deferred |
 | fn-128.3 | ✅ done | 2026-10-08: finite retry policy and retryable start-to-close timeout; exhaustion/timeout-retry Queries and bounded withholding bridge; focused source/lowering/runtime checks pass; artifacts/full gates/review/live remain batch-deferred |
-| fn-128.4 | ⬜ todo | Stutter facts checked: `visible` on `ActivitySystem`'s refinement |
+| fn-128.4 | 🔄 in progress | Stutter facts checked: `visible` on `ActivitySystem`'s refinement |
 | fn-128.5 | ⬜ todo | `cancelIsNotUndone` Property; attempt count in every Case; time-window `because` |
 | fn-128.6 | ⬜ todo | Evidence map, live Cases run once (the batch's live run); close |
 
@@ -171,7 +173,7 @@ paths and positions.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-142.1 | ⬜ todo | Move, regenerate, prove the diff is the shared.→foundations/actors ID mapping, docs |
+| fn-142.1 | 🔄 in progress | Isolated move and equivalence checks passed; preserve worktree and serially rerun from the closed activity batch after the join dry-run found a milestones-file conflict; integrated review/gates pending |
 
 ### fn-143: Rename `model/umpire` to `model/framework`
 
@@ -294,6 +296,19 @@ half of the realization lifter's lines net of what it adds.
 | fn-141.12 | ⬜ todo | Properties, Scenarios, Queries and progress exported; the lifter's fold deleted; comprehension fixture |
 | fn-141.13 | ⬜ todo | Capability expansions exported, in the shape the current framework leaves |
 | fn-141.14 | ⬜ todo | Dead lifter code, rules of record, docs, backends check, size report; close |
+
+## Captured, not yet scheduled
+
+### fn-149: Safety and liveness groups for object properties
+
+[Spec](.flow/specs/fn-149-safety-and-liveness-groups-for-object.md) captured with six acceptance
+criteria; no tasks yet and not marked ready. Split authored claims into `properties.safety` and
+`properties.liveness`, enforce declaration kinds, and carry the distinction into existing diagnostics
+and reports. Liveness retains explicit bounds and assumptions. Migrate Models, shared laws and docs
+while preserving behavior and check results.
+
+Coordinate with fn-140's property/Query authoring changes and fn-141's declaration lifting changes.
+Scheduling remains open; the approved delivery order above is unchanged.
 
 ## Deferred
 
