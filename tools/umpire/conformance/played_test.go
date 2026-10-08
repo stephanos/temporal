@@ -9,6 +9,8 @@ package conformance
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,6 +23,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/umpire/ir"
@@ -40,8 +43,9 @@ import (
 type activityDriver struct {
 	identity testpilot.DriverIdentity
 	// statuses is the status each poll of the controller reads, by its instruction.
-	statuses map[string]enumspb.ActivityExecutionStatus
-	final    string
+	statuses      map[string]enumspb.ActivityExecutionStatus
+	final         string
+	publicAttempt int32
 	// recorded is closed once the Run has recorded every attempt.
 	recorded <-chan struct{}
 }
@@ -98,6 +102,11 @@ func succeeded(response proto.Message) effect {
 }
 
 func (s *activitySession) InvokeRPC(_ context.Context, _ testpilot.Coordinate, _ string, method protoreflect.MethodDescriptor, _ proto.Message) (testpilot.EffectHandle, error) {
+	if method.Name() == "DescribeActivityExecution" {
+		return succeeded(&workflowservice.DescribeActivityExecutionResponse{Info: &activitypb.ActivityExecutionInfo{
+			ActivityId: s.runID, Status: s.driver.statuses[s.driver.final], Attempt: s.driver.publicAttempt,
+		}}), nil
+	}
 	return succeeded(dynamicpb.NewMessage(method.Output())), nil
 }
 
@@ -107,7 +116,8 @@ func (s *activitySession) PollRPC(ctx context.Context, at testpilot.Coordinate, 
 	if !scripted || method.Name() != "DescribeActivityExecution" {
 		return nil, errUnscripted
 	}
-	response := &workflowservice.DescribeActivityExecutionResponse{Info: &activitypb.ActivityExecutionInfo{ActivityId: s.runID, Status: status}}
+	response := &workflowservice.DescribeActivityExecutionResponse{Info: &activitypb.ActivityExecutionInfo{ActivityId: s.runID, Status: status,
+		Attempt: s.driver.publicAttempt}}
 	if accepted, err := accepts(ctx, response); err != nil || !accepted {
 		return nil, fmt.Errorf("the status played never ends the poll %s: %w", at.InstructionID, err)
 	}
@@ -263,6 +273,20 @@ func playedKinds(t testing.TB, source *testpilotspb.Case, run *testpilotspb.Run,
 //     the claim, which is about the schedule-to-start deadline, is never read.
 func TestALoweredActivityCaseRunsLiveAndReplaysAlike(t *testing.T) {
 	m := activityModel(t)
+	if root := os.Getenv("UMPIRE_ACTIVITY_IR_DIR"); root != "" {
+		var err error
+		m, err = ir.Load(filepath.Join(root, "activity-standalone.json"))
+		require.NoError(t, err)
+		m = proto.CloneOf(m)
+		queries := m.GetQueries()
+		m.Queries = nil
+		for _, query := range queries {
+			if query.GetForm() == umpirespb.Query_FORM_FIND {
+				m.Queries = append(m.Queries, query)
+			}
+		}
+		t.Logf("current-source replay proof checks %d find Queries; original IR admitted all %d Query declarations", len(m.GetQueries()), len(queries))
+	}
 	const (
 		paused     = enumspb.ACTIVITY_EXECUTION_STATUS_PAUSED
 		completed  = enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED
@@ -285,36 +309,76 @@ func TestALoweredActivityCaseRunsLiveAndReplaysAlike(t *testing.T) {
 		}
 	}
 	for query, test := range map[string]struct {
-		statuses map[string]enumspb.ActivityExecutionStatus
-		final    string
-		attempts int
-		kinds    []string
-		property assessed
+		statuses      map[string]enumspb.ActivityExecutionStatus
+		final         string
+		attempts      int
+		publicAttempt int32
+		kinds         []string
+		property      assessed
 	}{
-		"completion": {map[string]enumspb.ActivityExecutionStatus{"await-completed": completed}, "await-completed", 1,
+		"completion": {map[string]enumspb.ActivityExecutionStatus{"await-completed": completed}, "await-completed", 1, 1,
 			[]string{"statusScheduled", "statusStarted", "statusCompleted"}, satisfied("completes")},
-		"nonRetryableFailure": {map[string]enumspb.ActivityExecutionStatus{"await-failed": failed}, "await-failed", 1,
+		"nonRetryableFailure": {map[string]enumspb.ActivityExecutionStatus{"await-failed": failed}, "await-failed", 1, 1,
 			[]string{"statusScheduled", "statusStarted", "statusFailed"}, satisfied("nonRetryableFails")},
-		"retry": {map[string]enumspb.ActivityExecutionStatus{"await-completed": completed}, "await-completed", 2,
+		"retry": {map[string]enumspb.ActivityExecutionStatus{"await-completed": completed}, "await-completed", 2, 2,
 			[]string{"statusScheduled", "statusStarted", "attemptCount", "statusCompleted"}, open("retry", "retryCompletes", whyDisagreement)},
-		"pauseResume": {map[string]enumspb.ActivityExecutionStatus{"await-paused": paused, "await-completed": completed}, "await-completed", 1,
+		"pauseResume": {map[string]enumspb.ActivityExecutionStatus{"await-paused": paused, "await-completed": completed}, "await-completed", 1, 1,
 			[]string{"statusScheduled", "statusPaused", "statusScheduledAgain", "statusStarted", "statusCompleted"}, satisfied("completes")},
-		"terminate": {map[string]enumspb.ActivityExecutionStatus{"await-terminated": terminated}, "await-terminated", 0,
+		"terminate": {map[string]enumspb.ActivityExecutionStatus{"await-terminated": terminated}, "await-terminated", 0, 1,
 			[]string{"statusScheduled", "statusTerminated"}, open("terminate", "terminated", whyDisagreement)},
-		"scheduleToStartTimeout": {map[string]enumspb.ActivityExecutionStatus{"await-timed-out": expired}, "await-timed-out", 0,
+		"scheduleToStartTimeout": {map[string]enumspb.ActivityExecutionStatus{"await-timed-out": expired}, "await-timed-out", 0, 1,
 			[]string{"statusScheduled", "statusTimedOut"}, open("scheduleToStartTimeout", "scheduleToStartFires", whyNeverRead)},
 	} {
 		t.Run(query, func(t *testing.T) {
 			b := loweredActivity(t, m, query)
+			var rawID string
+			for _, observation := range b.source.GetProgram().GetObservations() {
+				if observation.GetType().GetSingular().GetMessage().GetProtobufType() == "temporal.api.activity.v1.ActivityExecutionInfo" {
+					require.Empty(t, rawID, "one raw activity observation is declared")
+					rawID = observation.GetObservationId()
+				}
+			}
+			if os.Getenv("UMPIRE_ACTIVITY_IR_DIR") != "" {
+				require.NotEmpty(t, rawID, "the current-source realization declares the raw attempt-count read")
+			}
 			recorded := make(chan struct{})
 			watched, err := b.plain.WithAssessment(&watching{AssessmentFactory: b.factory, attempts: test.attempts, recorded: recorded})
 			require.NoError(t, err)
 			run, verdict, live, err := watched.Run(t.Context(), &activityDriver{identity: b.plain.Identity(), statuses: test.statuses, final: test.final,
-				recorded: recorded})
+				publicAttempt: test.publicAttempt, recorded: recorded})
 			require.NoError(t, err)
 			require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, run.GetDisposition(), "%v", run.GetDiagnostics())
 			require.Empty(t, run.GetDiagnostics())
 			require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+			if rawID != "" {
+				var raw []*testpilotspb.RunEvent
+				var finalSequence int64
+				var delivered int
+				for _, event := range run.GetEvents() {
+					if event.GetOutcome().GetActivityAttempt() != nil {
+						delivered++
+					}
+					if event.GetKind() == testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED && event.GetCoordinates().GetInstructionId() == test.final {
+						finalSequence = event.GetSequence()
+					}
+					for _, observation := range event.GetObservations() {
+						if observation.GetObservationId() != rawID {
+							continue
+						}
+						raw = append(raw, event)
+						info := &activitypb.ActivityExecutionInfo{}
+						require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(info))
+						protorequire.ProtoEqual(t, &activitypb.ActivityExecutionInfo{ActivityId: run.GetRunId(), Status: test.statuses[test.final],
+							Attempt: test.publicAttempt}, info)
+					}
+				}
+				require.Equal(t, test.attempts, delivered)
+				require.Len(t, raw, 1)
+				require.Equal(t, "read-attempt-count", raw[0].GetCoordinates().GetInstructionId())
+				require.Equal(t, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, raw[0].GetKind())
+				require.Positive(t, finalSequence)
+				require.Greater(t, raw[0].GetSequence(), finalSequence)
+			}
 
 			support, kinds := playedKinds(t, b.source, run, activityEvidence)
 			require.Equal(t, test.kinds, kinds)

@@ -27,6 +27,9 @@ class StandaloneActivityPins extends munit.FunSuite:
       run: S => List[ExpectedStep[S, F]]
   )
 
+  private val nominalTimeWindow =
+    "The configured time window is nominal, not proof that a real timer fired; the rule's guards select its applicability. Scheduling deadlines start after start delay; schedule-to-start also waits through retry backoff (chasm/lib/activity/model/model.go:300-310,312-335,355-376)."
+
   private def accepted[S, F](state: S, facts: F*): List[ExpectedStep[S, F]] =
     List(ExpectedStep("accepted", state, facts.toList))
 
@@ -452,13 +455,13 @@ class StandaloneActivityPins extends munit.FunSuite:
         timers.startDelay.decl,
         None,
         s => liveSystem(s.phase) && s.dispatch == Dispatch.startDelay,
-        s => accepted(s.copy(dispatch = Dispatch.now))
+        s => acceptedBecause(s.copy(dispatch = Dispatch.now), nominalTimeWindow)
       ),
       ExpectedRule(
         timers.backoff.decl,
         None,
         s => liveSystem(s.phase) && s.dispatch == Dispatch.backoff,
-        s => accepted(s.copy(dispatch = Dispatch.now))
+        s => acceptedBecause(s.copy(dispatch = Dispatch.now), nominalTimeWindow)
       ),
       ExpectedRule(
         deadline.scheduleToClose.decl,
@@ -467,7 +470,12 @@ class StandaloneActivityPins extends munit.FunSuite:
           liveSystem(
             s.phase
           ) && s.scheduleToClose == Timeout.expires && s.dispatch != Dispatch.startDelay,
-        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut(TimeoutType.scheduleToClose))
+        s =>
+          acceptedBecause(
+            s.copy(phase = timedOut),
+            nominalTimeWindow,
+            Fact.statusTimedOut(TimeoutType.scheduleToClose)
+          )
       ),
       ExpectedRule(
         deadline.scheduleToStart.decl,
@@ -476,7 +484,12 @@ class StandaloneActivityPins extends munit.FunSuite:
           waitingSystem(
             s.phase
           ) && s.scheduleToStart == Timeout.expires && s.dispatch == Dispatch.now,
-        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut(TimeoutType.scheduleToStart))
+        s =>
+          acceptedBecause(
+            s.copy(phase = timedOut),
+            nominalTimeWindow,
+            Fact.statusTimedOut(TimeoutType.scheduleToStart)
+          )
       ),
       ExpectedRule(
         deadline.startToClose.decl,
@@ -484,7 +497,12 @@ class StandaloneActivityPins extends munit.FunSuite:
         s =>
           heldSystem(s.phase) && s.startToClose == Timeout.expires &&
             (s.phase == cancelRequested || !retriesRemain(s)),
-        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut(TimeoutType.startToClose))
+        s =>
+          acceptedBecause(
+            s.copy(phase = timedOut),
+            nominalTimeWindow,
+            Fact.statusTimedOut(TimeoutType.startToClose)
+          )
       ),
       ExpectedRule(
         deadline.startToClose.decl,
@@ -493,7 +511,7 @@ class StandaloneActivityPins extends munit.FunSuite:
         s =>
           acceptedBecause(
             s.copy(phase = scheduled, dispatch = Dispatch.backoff),
-            "a retryable attempt backs off; the client reads scheduled again",
+            nominalTimeWindow,
             Fact.statusScheduled,
             Fact.attemptCount
           )
@@ -503,8 +521,9 @@ class StandaloneActivityPins extends munit.FunSuite:
         None,
         s => s.phase == pauseRequested && s.startToClose == Timeout.expires && retriesRemain(s),
         s =>
-          accepted(
+          acceptedBecause(
             s.copy(phase = paused, dispatch = Dispatch.backoff),
+            nominalTimeWindow,
             Fact.statusPaused,
             Fact.attemptCount
           )

@@ -23,7 +23,11 @@ package system
 import umpire.*
 import umpire.realize.{Fact as RealizationFact, *}
 import temporal.realize.*
-import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
+import io.temporal.api.workflowservice.v1.{
+  DescribeActivityExecutionResponse,
+  StartActivityExecutionRequest
+}
+import io.temporal.api.activity.v1.ActivityExecutionInfo
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
 import temporal.server.api.testpilot.v1.{DeliveryAdmissionDecision, InstructionOutcome}
@@ -54,6 +58,14 @@ private val described = DescribedStatus(
 
 // The status table the machine's Describable capability names.
 val activityStatus = described.table
+
+// Raw API data: Describe counts scheduling, while the independent Model counts delivery. Even
+// zero-delivery Cases can report public attempt 1. This is no correlated count-equality claim.
+private val publicAttemptCount = Observed[ActivityExecutionInfo](attemptCount.name)
+private val readAttemptCount = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION) {
+  read(Field[DescribeActivityExecutionResponse, ActivityExecutionInfo](_.getInfo), Cardinality.one)
+    .into(publicAttemptCount)
+}
 
 // ### The controller
 
@@ -155,7 +167,8 @@ private val scheduledAgain = "statusScheduledAgain"
 // delivers it, a retry waits out the backoff timer at the server's first retry interval, after which
 // the retried attempt is dispatched (chasm/lib/activity/attempt.go:72-82, statemachine.go:393-420),
 // and a timeout class fires at the deadline its start sets.
-object Standalone extends Realizes(ActivitySystem):
+object Standalone
+    extends Realizes(ActivitySystem, observations = Vector(correlated, publicAttemptCount)):
   // The one order every functional Query's path makes its calls in. A pause is read back only of an
   // activity no worker has taken: a running worker may be delivered the first attempt, and answer
   // it, before the pause lands, and a held attempt's pause is a request whose release schedules
@@ -218,7 +231,8 @@ object Standalone extends Realizes(ActivitySystem):
           client.start(startToClose := Timeout.expires, maxAttempts := MaxAttempts.one)
         )(
           described.await(everyValue(system.Fact.statusTimedOut))
-        )
+        ),
+        everyCase(readAttemptCount)
       )
   object workers extends Workers(attempts)
   object evidence
@@ -257,7 +271,8 @@ object Standalone extends Realizes(ActivitySystem):
 
 // Uses the unchanged System rows, but only the timeout path's second-delivery evidence. The first
 // attempt withholds its answer until its armed deadline; the second completes or exhausts retries.
-object RetryAfterTimeout extends Realizes(TimeoutRetry):
+object RetryAfterTimeout
+    extends Realizes(TimeoutRetry, observations = Vector(correlated, publicAttemptCount)):
   object controller
       extends Controller(
         deadlines[StartActivityExecutionRequest](
@@ -271,7 +286,8 @@ object RetryAfterTimeout extends Realizes(TimeoutRetry):
           startToClose.sets(_.getStartToCloseTimeout)
         ),
         onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted)),
-        onPath(worker.respondFailed(Failure.retryable))(described.await(system.Fact.statusFailed))
+        onPath(worker.respondFailed(Failure.retryable))(described.await(system.Fact.statusFailed)),
+        everyCase(readAttemptCount)
       )
   object workers extends Workers(timeoutAttempts)
   object evidence
@@ -357,14 +373,16 @@ private def committed(
 // The stale dispatch of one paused activity, held, then delivered to admission. The machine starts
 // scheduled, so every Case carries the start; its one deadline, a start-to-close no Case lives to
 // see, competes with no delivery.
-object HeldDelivery extends Realizes(HeldDispatch):
+object HeldDelivery
+    extends Realizes(HeldDispatch, observations = Vector(correlated, publicAttemptCount)):
   object controller
       extends Controller(
         everyCase(startUnreached),
         perform(history.dispatch -> holdDispatch),
         perform(client.pause -> pauseActivity),
         onPath(client.pause)(pauseDescribed.await(AdmissionFact.statusPaused)),
-        perform(worker.poll -> releaseDispatch)
+        perform(worker.poll -> releaseDispatch),
+        everyCase(readAttemptCount)
       )
   object evidence
       extends Evidences(
@@ -385,12 +403,14 @@ private val loseAdmissionResponse =
   aliasOf(releaseDispatch)(fault(taskQueue, FaultKind.admissionResponseLoss))
 
 // One lost admission answer, with its durable decision observed before the response is replaced.
-object LostAdmissionResponse extends Realizes(LostStartAnswer):
+object LostAdmissionResponse
+    extends Realizes(LostStartAnswer, observations = Vector(correlated, publicAttemptCount)):
   object controller
       extends Controller(
         everyCase(startUnreached),
         perform(history.dispatch -> holdDispatch),
-        perform(shared.taskqueue.fault.ackLoss -> loseAdmissionResponse)
+        perform(shared.taskqueue.fault.ackLoss -> loseAdmissionResponse),
+        everyCase(readAttemptCount)
       )
   object evidence
       extends Evidences(
