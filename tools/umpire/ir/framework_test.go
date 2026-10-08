@@ -34,7 +34,7 @@ var temporalTerms = map[string]bool{
 	"matching": true,
 	"frontend": true, "frontends": true,
 	"closable": true, "terminable": true, "pausable": true, "cancelable": true, "pollable": true, "describable": true,
-	"retries": true,
+	"retries": true, "deadline": true,
 }
 
 // temporalPairs are the terms spelled as two words, by their first word and the words that may

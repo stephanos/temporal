@@ -8,7 +8,16 @@ import scala.jdk.CollectionConverters.*
 // lifter's fixtures, which lift capability Properties, are not its sources.
 class CapabilityVocabularySuite extends munit.FunSuite:
   private val kinds =
-    Seq("Closable", "Terminable", "Pausable", "Cancelable", "Pollable", "Describable", "Retries")
+    Seq(
+      "Closable",
+      "Terminable",
+      "Pausable",
+      "Cancelable",
+      "Pollable",
+      "Describable",
+      "Retries",
+      "Deadline"
+    )
 
   private def scala(directory: Path, recursive: Boolean): Vector[Path] =
     val stream = if recursive then Files.walk(directory) else Files.list(directory)

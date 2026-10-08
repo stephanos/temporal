@@ -2,6 +2,7 @@ package umpire.irgen
 
 import scala.collection.mutable
 import io.temporal.server.api.umpire.v1 as ir
+import io.temporal.server.api.umpire.v1.Expr.Kind as E
 import org.json4s.JsonAST.*
 
 // The waivers the `capabilities` sections of one IR file state, which the model gate writes into
@@ -64,17 +65,79 @@ private[irgen] trait Capabilities:
     d.companion.companionClass.primaryConstructor.paramSymss.flatten.flatMap { p =>
       p.tree match
         case v: ValDef if isNamed(v.tpt.tpe, "scala.reflect.TypeTest") =>
-          v.tpt.tpe.dealias.typeArgs.lastOption.map(_.dealias.typeSymbol.fullName)
+          v.tpt.tpe.dealias.typeArgs.lastOption.map(t => declaredType(d, t).typeSymbol.fullName)
         case _ => None
     }.toSet
 
-  private def constantBoolean(t: Term, seen: Set[Symbol] = Set.empty): Boolean = plain(t) match
-    case Literal(BooleanConstant(_))                                    => true
+  private def declaredType(d: Declared, t: TypeRepr): TypeRepr =
+    val name = t.dealias.typeSymbol.name.stripPrefix("_$")
+    d.types.getOrElse(name, t).dealias
+
+  private def booleanValue(t: Term, seen: Set[Symbol] = Set.empty): Option[Boolean] = plain(t) match
+    case Literal(BooleanConstant(value))                                         => Some(value)
+    case other if !seen(other.symbol) && other.symbol.name.contains("$default$") =>
+      defs
+        .get(other.symbol)
+        .collect { case DefDef(_, _, _, Some(body)) => body }
+        .flatMap(booleanValue(_, seen + other.symbol))
     case r: Ref if !seen(r.symbol) && !r.symbol.flags.is(Flags.Mutable) =>
       defs.get(r.symbol) match
-        case Some(ValDef(_, _, Some(value))) => constantBoolean(value, seen + r.symbol)
-        case _                               => false
-    case _ => false
+        case Some(ValDef(_, _, Some(value))) => booleanValue(value, seen + r.symbol)
+        case _                               => None
+    case _ => None
+
+  final private case class FactFamily(
+      field: String,
+      valueField: String,
+      values: List[Term],
+      value: ir.Value
+  )
+
+  private def factFamilies(machine: String, d: Declared): List[FactFamily] =
+    d.fieldTypes.toList.flatMap { (field, tpe) =>
+      val t = tpe.dealias
+      if !isList(t.typeSymbol) || t.typeArgs.size != 1 then Nil
+      else
+        d.fieldTypes.toList.collect {
+          case (valueField, valueType)
+              if valueType.dealias =:= t.typeArgs.head.dealias &&
+                declaredType(d, valueType) <:< Symbol.requiredClass("scala.Product").typeRef =>
+            def refused(detail: String): Nothing =
+              fail(d.fields(field), s"$field of ${d.kind} on $machine $detail")
+            def constant(value: Term, boundField: String): ir.Value =
+              try literalValue(value)
+              catch
+                case _: LiftError =>
+                  fail(value, s"$boundField of ${d.kind} on $machine binds a constant typed fact")
+            val selected = constant(d.fields(valueField), valueField)
+            val machineFact = machineNamed(machine)
+              .map(_.factType)
+              .getOrElse(refused("requires a machine's finite fact catalog"))
+            if !selected.kind.isEnum || selected.getEnum.`type` != machineFact then
+              fail(
+                d.fields(valueField),
+                s"$valueField of ${d.kind} on $machine binds a typed machine fact"
+              )
+            val literal = arguments(resolve(d.fields(field)))
+            val items = literal match
+              case Apply(fn, List(items))
+                  if fn.symbol.name == "apply" && isList(literal.tpe.dealias.typeSymbol) =>
+                varargs(plain(items)).map(plain)
+              case _ => refused("lists its finite fact family as literal Seq(...) or List(...)")
+            val values = items.map(constant(_, field))
+            val catalog = valuesOf(named(machineFact), d.at)
+              .filter(v => v.getEnum.`case` == selected.getEnum.`case`)
+            if values.isEmpty || values.distinct.size != values.size || !values.contains(
+                selected
+              ) ||
+              values.toSet != catalog.toSet
+            then
+              refused(
+                "binds the nonempty complete distinct typed fact family containing its selected fact"
+              )
+            FactFamily(field, valueField, items, selected)
+        }
+    }
 
   // A capability Property waiver: `except(property, because)` or `overriding(property -> def, …)`.
   final private case class Waived(kind: String, property: Term, by: Option[Term], because: Term)
@@ -238,6 +301,20 @@ private[irgen] trait Capabilities:
           s"${where(twice(1)._1)}: a machine declares each capability once, with one binding"
       )
     val ds = declared.map(_._2)
+    val families = ds.map(d => d -> factFamilies(machine, d)).toMap
+    for
+      ((_, field, _), twice) <- declared
+        .flatMap { (v, d) =>
+          families(d).map(f => (d.companion, f.valueField, f.value) -> (v, d))
+        }
+        .groupMap(_._1)(_._2) if twice.size > 1
+    do
+      fail(
+        twice(1)._1,
+        s"$machine declares ${twice(1)._2.kind} with the same typed $field twice: " +
+          s"${twice(0)._1.name} at ${where(twice(0)._1)} and " +
+          s"${twice(1)._1.name} at ${where(twice(1)._1)}"
+      )
     val at = declared.map((v, d) => d.key -> v).toMap
     val brought = broughtBy(machine, ds)
     for (v, d) <- declared do
@@ -252,7 +329,7 @@ private[irgen] trait Capabilities:
         .flatMap(p => fieldParameters(p.property).drop(1).map(_.name))
         .filter(d.fields.contains)
         .toSet
-      val roles = brought.filter(_.bringing.head == d).flatMap(p => readRoles(p.property)).toSet
+      val roles = brought.filter(_.bringing.head == d).flatMap(p => readRoles(p.property, d)).toSet
       checked(machine, d, used, env, projection, roles)
 
     val excepted = mutable.Set.empty[String]
@@ -352,14 +429,14 @@ private[irgen] trait Capabilities:
       .map(_.typeSymbol.fullName)
       .toSet
 
-  private def readRoles(p: DefDef): Set[String] =
+  private def readRoles(p: DefDef, d: Declared): Set[String] =
     val read = mutable.Set.empty[String]
     val visitor = new TreeTraverser:
       override def traverseTree(tree: Tree)(owner: Symbol): Unit =
         tree match
           case TypeApply(fn, List(role))
               if fn.symbol.name == "roleCases" && fn.symbol.maybeOwner.fullName == "umpire.Phasing" =>
-            read += role.tpe.dealias.typeSymbol.fullName
+            read += declaredType(d, role.tpe).typeSymbol.fullName
           case _ => ()
         super.traverseTree(tree)(owner)
     visitor.traverseTree(p)(p.symbol.maybeOwner)
@@ -379,7 +456,7 @@ private[irgen] trait Capabilities:
             f.symbol.flags.is(Flags.HasDefault) || optionalFunction(machine, d, f.name).nonEmpty
         )
       fields = fieldParameters(p).drop(1).map(_.name)
-      roles = readRoles(p)
+      roles = readRoles(p, d)
       if {
         val written = s"${d.kind}.${p.name}"
         if !fields.exists(d.fields.contains) && (roles & ownedRoles(d.companion, d.at)).isEmpty then
@@ -651,14 +728,42 @@ private[irgen] trait Capabilities:
               s"${value.show}: declare it as `def $field(...)` and pass that"
           )
         val tpe = d.fieldTypes.get(field)
-        if d.instanced && tpe.exists(isNamed(_, "scala.Boolean")) && !constantBoolean(a) then
+        if d.instanced && tpe.exists(isNamed(_, "scala.Boolean")) && booleanValue(a).isEmpty then
           fail(
             a,
             s"$field of ${d.kind} on $machine is a constant Boolean classification, not ${a.show}"
           )
-        if tpe.exists(actionType) then boundAction(machine, a, s"$field of ${d.kind}", env)
+        if tpe.exists(actionType) then
+          boundAction(machine, a, s"$field of ${d.kind}", env)
+          if field == "timer" && !actions(classOf(a).action).timer then
+            fail(
+              a,
+              s"timer of ${d.kind} on $machine binds a timer action, not ${actions(classOf(a).action).name}"
+            )
+          if field == "timer" then
+            val selected = classOf(a)
+            val inputs = actions(selected.action).inputs
+            if inputs.size != selected.inputs.size || inputs.zip(selected.inputs).exists {
+                (param, value) => !valuesOf(param.getType, a).contains(value)
+              }
+            then
+              fail(
+                a,
+                s"timer of ${d.kind} on $machine selects one finite value of every timer input"
+              )
         if tpe.exists(isNamed(_, "java.lang.String")) then textOf(fold(a, env), a): Unit
     if d.instanced then checkFields()
+    if d.fieldTypes.get("retriesRemaining").exists(optionalFunctionType) then
+      val retryable = booleanValue(d.fields("retryable")).getOrElse(false)
+      if retryable != optionalFunction(machine, d, "retriesRemaining").nonEmpty then
+        fail(
+          d.at,
+          s"retriesRemaining of ${d.kind} on $machine is supplied exactly when retryable is true"
+        )
+      for
+        field <- List("pendingPause", "pendingCancel")
+        if !retryable && optionalFunction(machine, d, field).nonEmpty
+      do fail(d.at, s"$field of ${d.kind} on $machine is supplied only when retryable is true")
     val roles = if d.instanced then constructorRoles(d) ++ read else ownedRoles(d.companion, d.at)
     if roles.nonEmpty then
       val phaseProjection = projection.getOrElse(
@@ -669,7 +774,12 @@ private[irgen] trait Capabilities:
       )
       val phase = lambda(phaseProjection).get._2.tpe
       for role <- roles.toSeq.sorted do
-        roleSet(phase, Symbol.requiredClass(role).typeRef, phaseProjection, Some(machine)): Unit
+        roleSet(
+          phase,
+          Symbol.requiredClass(role).typeRef,
+          if d.instanced then d.at else phaseProjection,
+          Some(machine)
+        ): Unit
     if !d.instanced then checkFields()
     if used.exists(field => d.fieldTypes.get(field).exists(actionType)) then
       for (field, a) <- d.fields if d.fieldTypes.get(field).exists(pathType) do
@@ -792,6 +902,8 @@ private[irgen] trait Capabilities:
       )
     )
     val absent = mutable.Map.empty[Symbol, Term]
+    val defaultPositions = mutable.Map.empty[ir.Position, ir.Position]
+    val boundFamilies = bringing.flatMap(d => factFamilies(machine, d))
     val bound = params.tail.flatMap { p =>
       val own = bringing.head
       val holders = if own.instanced && own.fields.contains(p.name) then Seq(own)
@@ -821,8 +933,24 @@ private[irgen] trait Capabilities:
                     s"${p.name} of $propertyName on $machine defaults to a named false predicate"
                   )
               None
-        case Seq(d) => Some(p -> d.fields(p.name))
-        case Seq()  =>
+        case Seq(_) if boundFamilies.exists(_.field == p.name) => None
+        case Seq(d)                                            =>
+          val value = d.fields(p.name)
+          val binding =
+            if d.instanced && d.fieldTypes.get(p.name).exists(isNamed(_, "scala.Boolean")) &&
+              value.symbol.name.contains("$default$")
+            then
+              val body = defs
+                .get(value.symbol)
+                .collect { case DefDef(_, _, _, Some(body)) => body }
+                .getOrElse(fail(d.at, s"${p.name} of ${d.kind} on $machine has no lifted default"))
+              defaultPositions(pos(body)) = pos(d.at)
+              body
+            else value
+          Some(
+            p -> binding
+          )
+        case Seq() =>
           fail(
             at,
             s"$propertyName takes ${p.name}, which no capability that brings it binds: " +
@@ -843,10 +971,52 @@ private[irgen] trait Capabilities:
       bringing.flatMap(_.types.get(tp.name)).headOption.map(tp.symbol -> _)
     }.toMap
     val bindings = (modelParam -> model) :: bound.map((p, a) => p -> a)
+    val families = boundFamilies.flatMap { family =>
+      params.find(_.name == family.field).map(_.symbol -> family.values)
+    }.toMap
     val normalized = new TreeMap:
       override def transformTerm(term: Term)(owner: Symbol): Term = term match
         case Apply(Select(value: Ref, "apply"), _) if absent.contains(value.symbol) =>
           absent(value.symbol)
+        case typed @ TypeApply(fn, List(role))
+            if fn.symbol.name == "roleCases" && fn.symbol.maybeOwner.fullName == "umpire.Phasing" =>
+          val actual = declaredType(bringing.head, role.tpe)
+          if actual =:= role.tpe.dealias then super.transformTerm(typed)(owner)
+          else TypeApply.copy(typed)(transformTerm(fn)(owner), List(Inferred(actual)))
+        case Apply(Select(value: Ref, "forall"), List(predicate))
+            if families.contains(value.symbol) =>
+          val (formal, body) = lambda(predicate).getOrElse(
+            fail(at, s"$propertyName quantifies its fact family with a predicate")
+          )
+          if formal.size != 1 then fail(at, s"$propertyName quantifies one fact at a time")
+          val fact = formal.head.symbol
+          def recordsFact(t: Term): Boolean = call(plain(t)) match
+            case Some(("records", clauses))
+                if t.symbol.fullName == "umpire.Syntax$package$.records" =>
+              clauses match
+                case List(List(after: Ref), List(ref: Ref), List(_)) =>
+                  after.symbol.flags.is(
+                    Flags.Param
+                  ) && after.symbol.name == "after" && ref.symbol == fact
+                case _ => false
+            case _ => false
+          val negatedRecords = plain(body) match
+            case Select(read, "unary_!")             => recordsFact(read)
+            case Apply(Select(read, "unary_!"), Nil) => recordsFact(read)
+            case _                                   => false
+          if !negatedRecords then
+            fail(
+              at,
+              s"$propertyName on $machine quantifies its supplied fact family only through negated records"
+            )
+          val terms = families(value.symbol).map { literal =>
+            val substituted = new TreeMap:
+              override def transformTerm(t: Term)(owner: Symbol): Term = t match
+                case ref: Ref if ref.symbol == fact => literal
+                case other                          => super.transformTerm(other)(owner)
+            transformTerm(substituted.transformTerm(body)(owner))(owner)
+          }
+          terms.reduceLeft((left, right) => Apply(Select.unique(left, "&&"), List(right)))
         case other => super.transformTerm(other)(owner)
     val expanded = DefDef.copy(statement)(
       statement.name,
@@ -862,6 +1032,20 @@ private[irgen] trait Capabilities:
           s"$propertyName states no Property of $machine but $other: a capability Property returns its Property"
         )
     val property = properties((machine, name))
+    if defaultPositions.nonEmpty then
+      def anchorDefaults(e: ir.Expr): ir.Expr =
+        val nested = e.kind match
+          case E.Binary(b) =>
+            e.withBinary(
+              b.withLeft(anchorDefaults(b.getLeft)).withRight(anchorDefaults(b.getRight))
+            )
+          case E.Unary(u) => e.withUnary(u.withOperand(anchorDefaults(u.getOperand)))
+          case _          => e
+        if e.kind.isLiteral && e.getLiteral.kind.isBool then
+          defaultPositions.get(e.getPosition).fold(nested)(nested.withPosition)
+        else nested
+      val function = functions(property.holds)
+      functions(property.holds) = function.withBody(anchorDefaults(function.getBody))
     val start = declaredStart(machine, name, at)
     val scenario = (if property.transition then None else property.when.whenClass) match
       case None         => ir.Scenario(machine, name, Some(pos(at)), Some(start), free = true)
