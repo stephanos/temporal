@@ -1,41 +1,117 @@
 package temporal.capabilities
 // Every shared capability Property has two machines with their own state types.
 
-import umpire.{Capabilities, CapabilityKind, CapabilityOf, Machine, Property}
+import umpire.{
+  Capabilities,
+  CapabilityKind,
+  CapabilityOf,
+  DeadlineFixture,
+  Machine,
+  Property,
+  RetryFixture
+}
 import umpire.outcomes.{Outcome, Rejection}
 import temporal.features.activity.standalone.{product, system}
 import temporal.features.nexus.standalone.system.NexusSystem
+import temporal.features.nexus.workflow.system.NexusSystem as WorkflowNexusSystem
 
 class CapabilityPropertiesTest extends munit.FunSuite:
   final case class Brought(name: String, by: Set[CapabilityKind])
-  final case class Declared(machine: String, state: String, capabilities: Set[String])
+  final case class Declared(
+      machine: String,
+      state: String,
+      capabilities: Set[String],
+      applicable: Set[String] = Set.empty
+  )
 
-  val companions = Seq(Closable, Terminable, Cancelable, Pausable, Pollable, Describable)
+  val companions =
+    Seq(Closable, Terminable, Cancelable, Pausable, Pollable, Describable, Retries, Deadline)
   val properties = Seq(
     Brought("Closable.terminalStatesAreFinal", Set(Closable)),
     Brought("Closable.closedIsRejectedUniformly", Set(Closable)),
     Brought("Terminable.terminateSettles", Set(Terminable)),
     Brought("Cancelable.cancelIsRequested", Set(Cancelable)),
-    Brought("Pausable.pausedIsNotDispatched", Set(Pausable, Pollable))
+    Brought("Pausable.pausedIsNotDispatched", Set(Pausable, Pollable)),
+    Brought("Retries.failureReturnsToWaiting", Set(Retries)),
+    Brought("Retries.failureEndsFailed", Set(Retries)),
+    Brought("Retries.failurePauses", Set(Retries)),
+    Brought("Retries.failureCancels", Set(Retries)),
+    Brought("Retries.attemptCountIsWithinPolicy", Set(Retries)),
+    Brought("Deadline.firesInWindow", Set(Deadline)),
+    Brought("Deadline.deadlineTimesOut", Set(Deadline)),
+    Brought("Deadline.deadlineReturnsToWaiting", Set(Deadline)),
+    Brought("Deadline.deadlinePauses", Set(Deadline))
   )
 
   def declaring[S, O, F](m: Machine[S, O, F], section: Capabilities[S, O, F]): Declared =
-    val kinds = section.getClass.getMethods
+    val bindings = section.getClass.getMethods
       .filter(method => classOf[CapabilityOf[?, ?, ?]].isAssignableFrom(method.getReturnType))
-      .map(_.invoke(section).getClass.getSimpleName)
-      .toSet
-    Declared(m.name, m.init.getClass.getName, kinds)
+      .map(_.invoke(section))
+    val applicable = bindings.flatMap {
+      case binding: Product =>
+        val fields = binding.productElementNames.zip(binding.productIterator).toMap
+        binding.productPrefix match
+          case "Retries" =>
+            Seq("failureReturnsToWaiting", "failureEndsFailed", "attemptCountIsWithinPolicy")
+              .concat(Option.when(fields("pendingPause") != None)("failurePauses"))
+              .concat(Option.when(fields("pendingCancel") != None)("failureCancels"))
+              .map("Retries." + _)
+          case "Deadline" =>
+            Seq("firesInWindow", "deadlineTimesOut")
+              .concat(Option.when(fields("retryable") == true)("deadlineReturnsToWaiting"))
+              .concat(Option.when(fields("pendingPause") != None)("deadlinePauses"))
+              .map("Deadline." + _)
+          case _ => Seq.empty
+      case _ => Seq.empty
+    }.toSet
+    Declared(
+      m.name,
+      m.init.getClass.getName,
+      bindings.map(_.getClass.getSimpleName).toSet,
+      applicable
+    )
 
   val declared = Seq(
     declaring(product.ActivityProduct, product.ActivityProduct.capabilities),
     declaring(system.ActivityRecord, system.ActivityRecord.capabilities),
     declaring(system.TrustingActivityRecord, system.TrustingActivityRecord.capabilities),
     declaring(system.ActivitySystem, system.ActivitySystem.capabilities),
-    declaring(NexusSystem, NexusSystem.capabilities)
+    declaring(NexusSystem, NexusSystem.capabilities),
+    declaring(WorkflowNexusSystem, WorkflowNexusSystem.capabilities)
   )
 
+  val conditionalFixtures = Seq(
+    Declared(
+      "retryFixture",
+      classOf[RetryFixture.Snapshot].getName,
+      Set("Retries"),
+      Set("Retries.failurePauses", "Retries.failureCancels", "Retries.attemptCountIsWithinPolicy")
+    ),
+    Declared(
+      "deadlineFixture",
+      classOf[DeadlineFixture.Snapshot].getName,
+      Set("Deadline"),
+      Set("Deadline.deadlineReturnsToWaiting", "Deadline.deadlinePauses")
+    )
+  )
+
+  test("Activity and workflow Nexus both declare Retries and Deadline") {
+    for machine <- declared.filter(d =>
+        Set("activitySystem", "nexusSystem").contains(d.machine) &&
+          Set(classOf[system.State].getName, WorkflowNexusSystem.init.getClass.getName)
+            .contains(d.state)
+      )
+    do assert(Set("Retries", "Deadline").subsetOf(machine.capabilities), s"$machine")
+  }
+
   def instantiating(p: Brought, machines: Seq[Declared]): Seq[String] =
-    machines.filter(d => p.by.map(_.name).subsetOf(d.capabilities)).map(_.state).distinct
+    machines
+      .filter(d =>
+        p.by.map(_.name).subsetOf(d.capabilities) &&
+          (!(p.by == Set(Retries) || p.by == Set(Deadline)) || d.applicable.contains(p.name))
+      )
+      .map(_.state)
+      .distinct
 
   def underInstantiated(claims: Seq[Brought], machines: Seq[Declared]): Seq[String] =
     claims.flatMap { p =>
@@ -57,7 +133,32 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   }
 
   test("every capability Property has two declared machines with their own state types") {
-    assertEquals(underInstantiated(properties, declared), Seq.empty)
+    assertEquals(underInstantiated(properties, declared ++ conditionalFixtures), Seq.empty)
+    val finitePolicy = properties.find(_.name == "Retries.attemptCountIsWithinPolicy").get
+    val finitePolicySites = declared.filterNot(_.state == WorkflowNexusSystem.init.getClass.getName)
+    assertEquals(
+      instantiating(finitePolicy, finitePolicySites ++ conditionalFixtures),
+      Seq(classOf[system.State].getName, classOf[RetryFixture.Snapshot].getName)
+    )
+  }
+
+  test("workflow Nexus brings only retry and deadline branches its bindings supply") {
+    val nexus = declared.find(_.state == WorkflowNexusSystem.init.getClass.getName).get
+    assertEquals(
+      nexus.applicable,
+      Set(
+        "Retries.failureReturnsToWaiting",
+        "Retries.failureEndsFailed",
+        "Retries.attemptCountIsWithinPolicy",
+        "Deadline.firesInWindow",
+        "Deadline.deadlineTimesOut"
+      )
+    )
+    val activity = declared.find(_.state == classOf[system.State].getName).get
+    assertEquals(
+      activity.applicable,
+      properties.filter(p => p.by == Set(Retries) || p.by == Set(Deadline)).map(_.name).toSet
+    )
   }
 
   test("every Closable site binds only its rejection, including all four derived owners") {

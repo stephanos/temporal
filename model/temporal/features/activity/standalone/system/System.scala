@@ -94,6 +94,28 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       case MaxAttempts.one       => s.attempts < 1
       case MaxAttempts.two       => s.attempts < attemptBound
 
+    def attemptCount(s: State): Int = s.attempts
+
+    def maximumAttempts(s: State): Option[UpTo[MaxAttempts.Bound]] = s.maxAttempts match
+      case MaxAttempts.unlimited => None
+      case MaxAttempts.one       => Some(UpTo(1))
+      case MaxAttempts.two       => Some(UpTo(MaxAttempts.bound))
+
+    def pendingPause(s: State): Boolean = s.phase == pauseRequested
+    def pendingCancel(s: State): Boolean = s.phase == cancelRequested
+
+    def scheduleToCloseArmed(s: State): Boolean =
+      s.scheduleToClose == Timeout.expires && s.dispatch != Dispatch.startDelay
+    def scheduleToStartArmed(s: State): Boolean =
+      s.scheduleToStart == Timeout.expires && s.dispatch == Dispatch.now
+    def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires
+
+    val timeoutFacts = Seq(
+      Fact.statusTimedOut(TimeoutType.scheduleToClose),
+      Fact.statusTimedOut(TimeoutType.scheduleToStart),
+      Fact.statusTimedOut(TimeoutType.startToClose)
+    )
+
     def afterRetry(s: State, phase: Phase) = s.copy(phase = phase, dispatch = Dispatch.backoff)
 
     val nominalTimeWindow =
@@ -453,13 +475,64 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       expect = inconclusive(Reason.explanationsDisagree)
     )
     val describable: Capability = Describable(statusTable = activityStatus)
+    val retryableFailure: Capability = Retries[State, Phase, MaxAttempts.Bound](
+      failure = worker.respondFailed(Failure.retryable),
+      retryable = true,
+      attemptCount = states.attemptCount,
+      maximumAttempts = states.maximumAttempts,
+      retriesRemaining = states.retriesRemaining,
+      pendingPause = Some(states.pendingPause),
+      pendingCancel = Some(states.pendingCancel)
+    )
+    val fatalFailure: Capability = Retries[State, Phase, MaxAttempts.Bound](
+      failure = worker.respondFailed(Failure.fatal),
+      retryable = false,
+      attemptCount = states.attemptCount,
+      maximumAttempts = states.maximumAttempts,
+      retriesRemaining = states.retriesRemaining,
+      pendingPause = Some(states.pendingPause),
+      pendingCancel = Some(states.pendingCancel)
+    )
+    val scheduleToCloseDeadline: Capability = Deadline[State, Phase, Live, Fact](
+      timer = deadline.scheduleToClose,
+      armed = states.scheduleToCloseArmed,
+      timeout = Fact.statusTimedOut(TimeoutType.scheduleToClose),
+      timeoutFacts = states.timeoutFacts
+    )
+    val scheduleToStartDeadline: Capability = Deadline[State, Phase, Waiting, Fact](
+      timer = deadline.scheduleToStart,
+      armed = states.scheduleToStartArmed,
+      timeout = Fact.statusTimedOut(TimeoutType.scheduleToStart),
+      timeoutFacts = states.timeoutFacts
+    )
+    val startToCloseDeadline: Capability = Deadline[State, Phase, Held, Fact](
+      timer = deadline.startToClose,
+      armed = states.startToCloseArmed,
+      timeout = Fact.statusTimedOut(TimeoutType.startToClose),
+      timeoutFacts = states.timeoutFacts,
+      retryable = true,
+      retriesRemaining = Some(states.retriesRemaining),
+      pendingPause = Some(states.pendingPause),
+      pendingCancel = Some(states.pendingCancel)
+    )
 
   // The paths, then one functional Query per side effect that settles the activity, and the Queries
   // that carry the other promises into the lifted Model. Each path starts before the activity exists;
   // a start that sets no deadline is `start()`, each input at `unset`. A path one Query takes is
   // written in it.
   object queries:
-    capabilities.bound(three)
+    capabilities.bound(
+      three,
+      Retries.failureReturnsToWaiting[State, Phase] -> eight,
+      Retries.failureEndsFailed[State, Phase] -> eight,
+      Retries.failurePauses[State, Phase] -> eight,
+      Retries.failureCancels[State, Phase] -> eight,
+      Retries.attemptCountIsWithinPolicy[State, MaxAttempts.Bound] -> eight,
+      Deadline.firesInWindow[State, Phase, Live] -> eight,
+      Deadline.deadlineTimesOut[State, Phase] -> eight,
+      Deadline.deadlineReturnsToWaiting[State, Phase] -> eight,
+      Deadline.deadlinePauses[State, Phase] -> eight
+    )
 
     val any = scenario.free
 

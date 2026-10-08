@@ -12,6 +12,7 @@ import scala.annotation.unused
 import umpire.*
 import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.{Alternative, Exploration, Reason, Variation}
+import temporal.capabilities.*
 import temporal.realize.{inconclusive, satisfied}
 import temporal.shared.Bounds.{four, three}
 import temporal.shared.worker.{worker, Phase as WorkerPhase, State as WorkerState}
@@ -97,6 +98,20 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
   // The System's phase sets and its attempt count's arithmetic.
   object states:
     def validAttempts(a: Int) = 0 <= a && a <= attemptBound
+
+    def attemptCount(s: State): Int = s.attempts
+    def maximumAttempts(@unused s: State): Option[UpTo[2]] = None: Option[UpTo[2]]
+    def retriesRemaining(@unused s: State): Boolean = true
+
+    def scheduleToCloseArmed(s: State): Boolean = s.scheduleToClose == Timeout.expires
+    def scheduleToStartArmed(s: State): Boolean = s.scheduleToStart == Timeout.expires
+    def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires
+
+    val timeoutFacts = Seq(
+      Fact.nexusOperationTimedOut(TimeoutType.scheduleToClose),
+      Fact.nexusOperationTimedOut(TimeoutType.scheduleToStart),
+      Fact.nexusOperationTimedOut(TimeoutType.startToClose)
+    )
 
     // A retry past the bound stays at it, rather than wrapping as `Fin` arithmetic would.
     def saturatingSucc(a: Int) =
@@ -248,7 +263,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       ))
     }
     on(deadline.startToClose) {
-      where(s => s.phase == started && s.startToClose == Timeout.expires) ~> (effects.timeOut(
+      when[Held].where(_.startToClose == Timeout.expires) ~> (effects.timeOut(
         _,
         TimeoutType.startToClose
       ))
@@ -314,11 +329,54 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       s.records(Fact.nexusOperationTimedOut(TimeoutType.startToClose))
     }
 
+  object capabilities extends Capabilities:
+    val retryableHandlerError: Capability = Retries[State, Phase, 2](
+      failure = handler.reply(Reply.handlerError(true)),
+      retryable = true,
+      attemptCount = states.attemptCount,
+      maximumAttempts = states.maximumAttempts,
+      retriesRemaining = states.retriesRemaining
+    )
+    val fatalHandlerError: Capability = Retries[State, Phase, 2](
+      failure = handler.reply(Reply.handlerError(false)),
+      retryable = false,
+      attemptCount = states.attemptCount,
+      maximumAttempts = states.maximumAttempts,
+      retriesRemaining = states.retriesRemaining
+    )
+    val networkFailure: Capability = Retries[State, Phase, 2](
+      failure = network.fault,
+      retryable = true,
+      attemptCount = states.attemptCount,
+      maximumAttempts = states.maximumAttempts,
+      retriesRemaining = states.retriesRemaining
+    )
+    val scheduleToCloseDeadline: Capability = Deadline[State, Phase, Live, Fact](
+      timer = deadline.scheduleToClose,
+      armed = states.scheduleToCloseArmed,
+      timeout = Fact.nexusOperationTimedOut(TimeoutType.scheduleToClose),
+      timeoutFacts = states.timeoutFacts
+    )
+    val scheduleToStartDeadline: Capability = Deadline[State, Phase, Waiting, Fact](
+      timer = deadline.scheduleToStart,
+      armed = states.scheduleToStartArmed,
+      timeout = Fact.nexusOperationTimedOut(TimeoutType.scheduleToStart),
+      timeoutFacts = states.timeoutFacts
+    )
+    val startToCloseDeadline: Capability = Deadline[State, Phase, Held, Fact](
+      timer = deadline.startToClose,
+      armed = states.startToCloseArmed,
+      timeout = Fact.nexusOperationTimedOut(TimeoutType.startToClose),
+      timeoutFacts = states.timeoutFacts
+    )
+
   // The paths the Queries run, then the Queries. Each path is one upstream functional test's shape,
   // from before the operation exists: the schedule command, then the side effects that settle the
   // operation. A schedule that sets no deadline is `schedule()`, each input at `unset`. A path one
   // Query takes is written in it.
   object queries:
+    capabilities.bound(control)
+
     val asyncThenSucceeded = scenario
       .actions(
         caller.schedule(),

@@ -364,7 +364,7 @@ instructions `WorkerInstruction.{AttemptFailure, AttemptCanceled, AttemptWithhel
 NexusReply, NexusCompletion}` with `FaultKind`, the history read `WorkflowHistory.event`, the
 dynamic-configuration `RequiredSetting`, and the API behavior hints `ApiBehavior` and `ServerStep`
 with `WaitBound`, `Visible`, `CauseKind`, `AttemptNumbering` and `InstructionLimit`. `TestFrameworkNamesNoTemporal` in `tools/umpire/ir`
-fails when a file under `model/umpire` names a Temporal term, the six capability kinds among them; a
+fails when a file under `model/umpire` names a Temporal term, the eight capability kinds among them; a
 mention stays only under an allowance that states its reason, and none has one today. The
 tooling downstream of the DSL is Temporal's driver tooling by design: the IR generator matches the kit's
 vocabulary by fully qualified name and writes it into the IR's realization messages, whose names are
@@ -1143,6 +1143,24 @@ case classes and companion Properties are in `model/temporal/capabilities`:
 | `Cancelable` | `requestCancel`, `requested`, `reach`, `expect` | `cancelIsRequested` |
 | `Pausable` with `Pollable` | `pause`, `unpause`; owns `Suspended`; `dispatch`; owns `Held` | `pausedIsNotDispatched`, brought by the pair |
 | `Describable` | `statusTable`, the realization's fact-to-status table | none; generated finds use the table for their awaits |
+| `Retries` | exact `failure` class, `retryable`, `attemptCount`, `maximumAttempts`, `retriesRemaining`, optional `pendingPause` and `pendingCancel` | `failureReturnsToWaiting`, `failureEndsFailed`, `attemptCountIsWithinPolicy`; `failurePauses` and `failureCancels` when their control is bound |
+| `Deadline` | `timer`, covered role type, `armed`, typed `timeout` and complete `timeoutFacts`; optional retry eligibility and controls | `firesInWindow`, `deadlineTimesOut`; `deadlineReturnsToWaiting` when retryable and `deadlinePauses` when pause is bound |
+
+Retries reads eligibility and pending controls before the failure. Fatal failure lands in Failed.
+A retryable failure with pending cancellation lands in Canceled, even at exhaustion. Otherwise,
+exhaustion lands in Failed, an eligible pending pause in Suspended and an ordinary retry in Waiting.
+`maximumAttempts` returns `Some(UpTo[N](maximum))` for a finite policy or `None` for unlimited.
+`N` bounds the policy value catalog, independently of the attempt counter's representation.
+ActivitySystem binds one and two as finite policies. NexusSystem uses unlimited policy and keeps
+retrying at its saturating represented count of two; that count is no finite policy maximum.
+
+Deadline reads its armed predicate and covered role before every selected firing. A nonretryable
+deadline, exhausted retry or pending cancellation lands in TimedOut and records the bound timeout
+fact. An eligible retry lands in Waiting or, with pending pause, Suspended, and records no member
+of the terminal timeout fact family. Cancellation therefore settles a deadline differently from
+a retryable worker failure. Activity schedule-to-close covers Live after start delay,
+schedule-to-start covers Waiting only when dispatch is now, and start-to-close covers Held and can
+retry. The three Nexus workflow deadlines cover Live, Waiting and Held and always settle TimedOut.
 
 Closable binds only its rejection outcome. It reads the declaring object's `Phased` projection,
 or its derivation source, through `Phasing.phase` and witnessed `Phasing.roleCases[Closed]`.
@@ -1161,8 +1179,8 @@ repeat its projection.
 **The worked example.** The standalone activity declares its capabilities in two declarations, the
 `capabilities` objects of its `ActivityProduct` in
 `model/temporal/features/activity/standalone/product/Product.scala` and its `ActivitySystem` in
-`system/System.scala`, each the declaration of the machine it sits in. The IR file names that
-machine as a root (`ActivityProduct`):
+`system/System.scala`, each the declaration of the machine it sits in. The IR file explicitly names
+each capability section as a root (`ActivityProduct.capabilities` and `ActivitySystem.capabilities`):
 
 ```scala
 import temporal.capabilities.*
@@ -1198,6 +1216,31 @@ object queries:
   capabilities.bound(three)
 ```
 
+The System also declares repeated Retries and Deadline instances. For example, Activity's
+retryable failure binds the named state reads without adding a failure rule:
+
+```scala
+val retryableFailure: Capability = Retries[State, Phase, MaxAttempts.Bound](
+  failure = worker.respondFailed(Failure.retryable),
+  retryable = true,
+  attemptCount = states.attemptCount,
+  maximumAttempts = states.maximumAttempts,
+  retriesRemaining = states.retriesRemaining,
+  pendingPause = Some(states.pendingPause),
+  pendingCancel = Some(states.pendingCancel)
+)
+```
+
+Each new instance generates `<machine>.<val>.<property>`, such as
+`activitySystem.retryableFailure.failureReturnsToWaiting` and
+`nexusSystem.scheduleToStartDeadline.firesInWindow`, with the companion definition as its origin.
+These are free verify Queries with nothing to realize. Their presence supplies Model checks,
+not new live Case evidence. Activity uses its existing `eight` and Nexus its existing `control`,
+both with steps 8, actions 8 and search 262144. Companion-Property bound overrides reach every
+repeated instance while retaining the older capability default and existing Query bounds.
+Nexus binds retryable and fatal handler errors separately from the retryable network fault, and
+declares no pause or cancel branch or Pollable capability.
+
 Several designs can share an `abstract class AdmissionCapabilities extends Capabilities` that
 declares the same bindings and waivers. Each design's `object capabilities` extends it; its
 `queries` section bounds the generated Queries.
@@ -1221,10 +1264,11 @@ Closable, Terminable, Cancelable and Describable.
 `overriding(property -> def, because = …)` names) folded with the model and the fields or owned roles
 of the capabilities that bring it, bound by parameter name. Every field that takes a
 function names a def of the lifted sources, or a member's def read with `through` on a composition,
-never a lambda. A Property of one action class (`when`) is
+never a lambda. A same-step Property of one action class (`when`) is
 asked by a `find` from the start through the capability's path to a live state (its field that lists
 action classes, Terminable's `reach`) and that class, expecting of a server the Run its
-`RunExpectation` field names; any other is verified over the free Scenario from the start under
+`RunExpectation` field names; transition Properties, including selected Retries and Deadline
+Properties, and every other Property are verified over the free Scenario from the start under
 `limits`. The Query's total is computed as [below](#counting-a-querys-total). A field of an action
 class names an action the machine must bind. A capability is a case class extending `CapabilityOf`
 whose companion extends `CapabilityKind`; the IR generator refuses any other. A Query of the
@@ -1259,8 +1303,10 @@ but are not lint findings.
    `temporal.capabilities.*`, written `object capabilities extends Capabilities` with one
    `val name: Capability = Kind(…)` per capability. A waiver is a statement of its body,
    `except(Kind.property, because = …)` or `overriding(Kind.property -> ownDef, because = …)`.
-2. Bind it in the machine's `queries` section with `capabilities.bound(limits)`. The folder's
-   `irFile` continues to name the machine or composition root.
+2. Bind it in the machine's `queries` section with `capabilities.bound(limits)` and explicitly
+   include its capability section in the folder's `irFile` roots. A machine root or bound statement
+   alone does not expand capabilities. `exports.nexusWorkflow` roots `NexusSystem.capabilities`
+   after its existing roots, preserving their order.
    Pass `Kind.property -> otherLimits` after the default limits when one generated Query needs a
    different bound.
 3. Run `make umpire-gen-model`: it writes the generated Properties, Queries and Cases. A Property
@@ -1268,8 +1314,11 @@ but are not lint findings.
    keep it for this entity, use `except` or `overriding` with the reason; otherwise fix the Model.
 
 `Properties.test.scala` keeps the shared vocabulary honest: every companion Property must be
-brought to at least two machines with distinct state types. Derived machines do not create another
-state type, and a one-off claim stays in its feature's own `properties` section. The capability
+brought to at least two machines with distinct state types. Its inventory checks the conditional
+Properties each binding supplies. Activity and Nexus exercise their applicable claims; distinct
+test fixtures exercise optional branches Nexus does not declare, including wrong-landing checks.
+Derived machines do not create another state type, and a one-off claim stays in its feature's own
+`properties` section. The capability
 surface has no separate registry and no sugar today.
 
 ### Counting a Query's total

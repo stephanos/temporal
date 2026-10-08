@@ -122,7 +122,8 @@ object exports:
     temporal.shared.worker.Polling,
     NexusSystem.queries,
     NexusCaller.queries,
-    AsyncNexus
+    AsyncNexus,
+    NexusSystem.capabilities
   )
 
   // The forged completion a caller must refuse, and the realization that offers it.
