@@ -84,7 +84,7 @@ func TestARecordOfAnAttemptReachesARunWithTheAttemptsAnswer(t *testing.T) {
 
 func evidenceOf(t *testing.T, m *umpirespb.Model, kind string) *umpirespb.Evidence {
 	t.Helper()
-	for _, e := range m.GetRealizations()[0].GetEvidence() {
+	for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
 		if e.GetId() == activityEvidence+kind {
 			return e
 		}
@@ -103,7 +103,7 @@ func TestARecordIsLateByTheAttemptItIsDeclaredOf(t *testing.T) {
 	second := evidenceOf(t, m, "attemptCount")
 	require.Equal(t, int64(2), second.GetRunEvent().GetAttempt().GetNumber())
 	second.Confirms = second.GetConfirms()[:1]
-	r := m.GetRealizations()[0]
+	r := realizationNamed(t, m, "standalone")
 	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "startedAgain", Position: second.GetPosition(), Records: "statusStarted",
 		Source: "temporal.features.activity.standalone.system.source.again", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
 		Confirms: []*umpirespb.Taking{{Step: evidenceOf(t, m, "statusStarted").GetConfirms()[0].GetStep(), Occurrence: 2}},
@@ -131,7 +131,7 @@ func TestARecordIsEarlyByTheAttemptItIsDeclaredOf(t *testing.T) {
 	failure := second.GetConfirms()[0]
 	second.Confirms = second.GetConfirms()[1:]
 	second.GetRunEvent().GetAttempt().Number = 1
-	r := m.GetRealizations()[0]
+	r := realizationNamed(t, m, "standalone")
 	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "failed", Position: second.GetPosition(), Records: second.GetRecords(),
 		Source: "temporal.features.activity.standalone.system.source.failed", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
 		Confirms: []*umpirespb.Taking{failure},
@@ -197,7 +197,7 @@ func TestADiagnosticDeclaredTheRecordOfNoAttemptHasNoProducer(t *testing.T) {
 // says why. A Query whose Case runs one of them is not in the way of it.
 func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) {
 	m := loaded(t, "activity-standalone")
-	r := m.GetRealizations()[0]
+	r := realizationNamed(t, m, "standalone")
 	// A class is performed by one script, so the second activity takes over the failure that is
 	// retried, and is activated by no class of its own.
 	first := scriptNamed(t, r, "attempts")
@@ -285,7 +285,7 @@ func TestARecordOfAnAttemptThePathNeverStartsIsAnError(t *testing.T) {
 // kind runs after the instruction of an earlier one.
 func TestTheControllersInstructionsRecordEvidenceInThePathsOrder(t *testing.T) {
 	controller := func(m *umpirespb.Model) *umpirespb.Script {
-		return scriptNamed(t, m.GetRealizations()[0], "controller")
+		return scriptNamed(t, realizationNamed(t, m, "standalone"), "controller")
 	}
 	item := func(s *umpirespb.Script, command string) int {
 		for i, it := range s.GetItems() {

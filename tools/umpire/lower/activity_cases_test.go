@@ -483,6 +483,8 @@ func TestAnAttemptIsUnansweredWhereThePathStartsMoreThanItAnswers(t *testing.T) 
 // steps it confirms.
 func TestTheInventoryOfAnActivityCaseDoesNotCloseOverAChangedDeclaration(t *testing.T) {
 	const started = activityEvidence + "statusStarted"
+	p, err := NewProducer(loaded(t, "activity-standalone"))
+	require.NoError(t, err)
 	kind := func(r *umpirespb.Realization, id string) *umpirespb.Evidence {
 		for _, e := range r.GetEvidence() {
 			if e.GetId() == id {
@@ -519,9 +521,6 @@ func TestTheInventoryOfAnActivityCaseDoesNotCloseOverAChangedDeclaration(t *test
 		}, "evidence " + started + " confirms 2 steps, and the Case's rule for it confirms 1"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m := loaded(t, "activity-standalone")
-			p, err := NewProducer(m)
-			require.NoError(t, err)
 			a, _, err := p.ask("completion")
 			require.NoError(t, err)
 			l, problems := p.check(a, activityIdentity("completion"))
@@ -530,7 +529,14 @@ func TestTheInventoryOfAnActivityCaseDoesNotCloseOverAChangedDeclaration(t *test
 			require.NoError(t, err)
 			_, err = l.inventory(produced)
 			require.NoError(t, err)
-			test.change(kind(l.a.r, started))
+			// The producer is shared, so the changed declaration is restored for the next change.
+			changed := kind(l.a.r, started)
+			declared := proto.CloneOf(changed)
+			t.Cleanup(func() {
+				proto.Reset(changed)
+				proto.Merge(changed, declared)
+			})
+			test.change(changed)
 			_, err = l.inventory(produced)
 			require.ErrorContains(t, err, test.want)
 			requireDeclaredIn(t, err.Error(), activityRealizationAt)

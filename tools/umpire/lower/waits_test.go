@@ -8,6 +8,7 @@ package lower
 import (
 	"cmp"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"testing"
@@ -144,16 +145,24 @@ func declaredAt(t *testing.T, m *umpirespb.Model) map[string]*umpirespb.Position
 	t.Helper()
 	out := map[string]*umpirespb.Position{}
 	for _, r := range m.GetRealizations() {
-		for _, v := range r.GetBehavior().GetVisibility() {
-			out[v.GetId()] = v.GetPosition()
-		}
-		for _, c := range r.GetBehavior().GetCauses() {
-			out[c.GetId()] = c.GetPosition()
-		}
-		for _, s := range r.GetServerSteps() {
-			action := s.GetStep().GetAction()
-			out["deadline."+action[strings.LastIndex(action, ".")+1:]] = s.GetPosition()
-		}
+		maps.Copy(out, declaredBy(r))
+	}
+	return out
+}
+
+// declaredBy is where one realization declares each hint, and each timer step's deadline: several
+// realizations each declare their own timer steps.
+func declaredBy(r *umpirespb.Realization) map[string]*umpirespb.Position {
+	out := map[string]*umpirespb.Position{}
+	for _, v := range r.GetBehavior().GetVisibility() {
+		out[v.GetId()] = v.GetPosition()
+	}
+	for _, c := range r.GetBehavior().GetCauses() {
+		out[c.GetId()] = c.GetPosition()
+	}
+	for _, s := range r.GetServerSteps() {
+		action := s.GetStep().GetAction()
+		out["deadline."+action[strings.LastIndex(action, ".")+1:]] = s.GetPosition()
 	}
 	return out
 }
@@ -190,11 +199,14 @@ func preparedAsIs(t *testing.T, c *testpilotspb.Case) {
 // and Testpilot prepares every Case unchanged.
 func TestReadsWaitAsTheApiBehaviorDerives(t *testing.T) {
 	for model, queries := range derivedWaits {
-		m := derivedModel(t, model)
-		at := declaredAt(t, m)
+		p, err := NewProducer(derivedModel(t, model))
+		require.NoError(t, err)
 		for query, want := range queries {
 			t.Run(model+"/"+query, func(t *testing.T) {
-				l, err := lowerDerived(t, m, query)
+				a, _, err := p.ask(query)
+				require.NoError(t, err)
+				at := declaredBy(a.r)
+				l, err := p.Lower(query, cp.IdentityFor("temporal.case", "derived", query))
 				require.NoError(t, err)
 				require.Equal(t, Lowered, l.Standing)
 				require.Equal(t, want, waitsOf(l.Case))

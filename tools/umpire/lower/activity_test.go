@@ -496,7 +496,7 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 		"statusTerminated": "ACTIVITY_EXECUTION_STATUS_TERMINATED",
 		"statusTimedOut":   "ACTIVITY_EXECUTION_STATUS_TIMED_OUT",
 	}
-	r := m.GetRealizations()[0]
+	r := realizationNamed(t, m, "standalone")
 	records := map[string]string{}
 	for _, e := range r.GetEvidence() {
 		records[e.GetId()] = e.GetRecords()
@@ -750,7 +750,7 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 // follows leaves the second attempt start to the first attempt's kind, which names the first alone.
 func TestAClassTakenAgainThatNoKindNamesIsAnError(t *testing.T) {
 	m := loaded(t, "activity-standalone")
-	for _, e := range m.GetRealizations()[0].GetEvidence() {
+	for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
 		if e.GetId() == "temporal.features.activity.standalone.system.evidence.attemptCount" {
 			e.Confirms = e.GetConfirms()[:1]
 		}
