@@ -37,7 +37,7 @@ enum Phase derives Finite:
 enum Dispatch derives Finite:
   case now, startDelay, backoff
 
-// 11 phases, 3 dispatch values, 3 attempt counts, 3 deadline flags and 3 retry policies: 2376 states.
+// 11 phases, 3 dispatch values, 3 attempt counts, 4 deadline flags and 3 retry policies: 4752 states.
 final case class State(
     phase: Phase,
     dispatch: Dispatch,
@@ -45,6 +45,7 @@ final case class State(
     scheduleToClose: Timeout,
     scheduleToStart: Timeout,
     startToClose: Timeout,
+    heartbeat: Timeout,
     maxAttempts: MaxAttempts
 ) derives Finite
 
@@ -54,6 +55,7 @@ enum Fact derives Finite:
   case statusCompleted, statusFailed, statusCanceled, statusTerminated
   case statusTimedOut(timeoutType: TimeoutType)
   case attemptCount
+  case heartbeatReceived, heartbeatTimedOut
 
 // The System machine and its worker, as the standalone activity composition holds them.
 final case class StandaloneActivityState(activity: State, worker: WorkerState)
@@ -72,6 +74,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     scheduleToClose = Timeout.unset,
     scheduleToStart = Timeout.unset,
     startToClose = Timeout.unset,
+    heartbeat = Timeout.unset,
     maxAttempts = MaxAttempts.unlimited
   )
 
@@ -109,11 +112,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     def scheduleToStartArmed(s: State): Boolean =
       s.scheduleToStart == Timeout.expires && s.dispatch == Dispatch.now
     def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires
+    def heartbeatArmed(s: State): Boolean = s.heartbeat == Timeout.expires
 
     val timeoutFacts = Seq(
       Fact.statusTimedOut(TimeoutType.scheduleToClose),
       Fact.statusTimedOut(TimeoutType.scheduleToStart),
-      Fact.statusTimedOut(TimeoutType.startToClose)
+      Fact.statusTimedOut(TimeoutType.startToClose),
+      Fact.statusTimedOut(TimeoutType.heartbeat)
     )
 
     def afterRetry(s: State, phase: Phase) = s.copy(phase = phase, dispatch = Dispatch.backoff)
@@ -141,7 +146,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     def visible(f: Fact) = f match
       case Fact.statusScheduled | Fact.statusStarted | Fact.statusPaused |
           Fact.statusCancelRequested | Fact.statusCompleted | Fact.statusFailed |
-          Fact.statusCanceled | Fact.statusTerminated | Fact.statusTimedOut(_) =>
+          Fact.statusCanceled | Fact.statusTerminated | Fact.statusTimedOut(_) |
+          Fact.heartbeatReceived | Fact.heartbeatTimedOut =>
         true
       case Fact.attemptCount => false
 
@@ -157,6 +163,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         scheduleToClose: Timeout,
         scheduleToStart: Timeout,
         startToClose: Timeout,
+        heartbeat: Timeout,
         startDelay: Timeout,
         maxAttempts: MaxAttempts
     ) =
@@ -168,6 +175,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
           scheduleToClose = scheduleToClose,
           scheduleToStart = scheduleToStart,
           startToClose = startToClose,
+          heartbeat = heartbeat,
           maxAttempts = maxAttempts
         ),
         statusScheduled
@@ -182,6 +190,16 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       )
 
     def complete(s: State) = enter(s.copy(phase = completed), statusCompleted)
+    def heartbeat(s: State) = enter(s, heartbeatReceived)
+    def heartbeatBackOff(s: State) =
+      enter(states.afterRetry(s, scheduled), statusScheduled, Fact.attemptCount, heartbeatTimedOut)
+        .because(states.nominalTimeWindow)
+    def heartbeatBackOffPaused(s: State) =
+      enter(states.afterRetry(s, paused), statusPaused, Fact.attemptCount, heartbeatTimedOut)
+        .because(states.nominalTimeWindow)
+    def heartbeatTimeOut(s: State) =
+      enter(s.copy(phase = timedOut), statusTimedOut(TimeoutType.heartbeat), heartbeatTimedOut)
+        .because(states.nominalTimeWindow)
 
     def fail(s: State) = enter(s.copy(phase = failed), statusFailed)
 
@@ -277,6 +295,11 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       on(poll) {
         when(scheduled).where(_.dispatch == Dispatch.now) ~> effects.startAttempt
       }
+      on(heartbeat) {
+        when[Held] ~> effects.heartbeat
+        when(unstarted, scheduled, paused) ~> rejects(Rejection.notFound)
+        when[Closed] ~> rejects(Rejection.notFound)
+      }
 
       // A worker's answer settles the attempt it holds. A retryable failure backs a started attempt
       // off, settles a cancel-requested one as canceled and lands a pause-requested one in paused
@@ -358,6 +381,17 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
           TimeoutType.startToClose
         ))
       }
+      on(heartbeat) {
+        when(started).where(s => s.heartbeat == Timeout.expires && states.retriesRemaining(s)) ~>
+          effects.heartbeatBackOff
+        when(pauseRequested).where(s =>
+          s.heartbeat == Timeout.expires && states.retriesRemaining(s)
+        ) ~> effects.heartbeatBackOffPaused
+        when[Held].where(s =>
+          s.heartbeat == Timeout.expires &&
+            (s.phase == cancelRequested || !states.retriesRemaining(s))
+        ) ~> effects.heartbeatTimeOut
+      }
     }
 
   // What the System promises of its own: the settlement claims. The cross-entity claim of the
@@ -399,6 +433,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         scheduleToClose = Timeout.unset,
         scheduleToStart = Timeout.unset,
         startToClose = Timeout.unset,
+        heartbeat = Timeout.unset,
         maxAttempts = MaxAttempts.unlimited
       )
 
@@ -515,6 +550,16 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       pendingPause = Some(states.pendingPause),
       pendingCancel = Some(states.pendingCancel)
     )
+    val heartbeatDeadline: Capability = Deadline[State, Phase, Held, Fact](
+      timer = deadline.heartbeat,
+      armed = states.heartbeatArmed,
+      timeout = Fact.statusTimedOut(TimeoutType.heartbeat),
+      timeoutFacts = states.timeoutFacts,
+      retryable = true,
+      retriesRemaining = Some(states.retriesRemaining),
+      pendingPause = Some(states.pendingPause),
+      pendingCancel = Some(states.pendingCancel)
+    )
 
   // The paths, then one functional Query per side effect that settles the activity, and the Queries
   // that carry the other promises into the lifted Model. Each path starts before the activity exists;
@@ -529,9 +574,9 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       Retries.failureCancels[State, Phase] -> eight,
       Retries.attemptCountIsWithinPolicy[State, MaxAttempts.Bound] -> eight,
       Deadline.firesInWindow[State, Phase, Live] -> eight,
-      Deadline.deadlineTimesOut[State, Phase] -> eight,
-      Deadline.deadlineReturnsToWaiting[State, Phase] -> eight,
-      Deadline.deadlinePauses[State, Phase] -> eight
+      (Deadline.deadlineTimesOut[State, Phase]: AnyRef) -> eight,
+      (Deadline.deadlineReturnsToWaiting[State, Phase]: AnyRef) -> eight,
+      (Deadline.deadlinePauses[State, Phase]: AnyRef) -> eight
     )
 
     val any = scenario.free
@@ -681,6 +726,64 @@ object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
     val retryExhaustion =
       (query find properties.failsAfterTimeout in timedOutThenFailed limits six)
         .expect(inconclusive(Reason.explanationsDisagree))
+
+object HeartbeatCompletion extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    val heartbeatCompletes = property when worker.respondCompleted holds { s =>
+      s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
+    }
+  object queries:
+    val heartbeatCompleted = scenario.actions(
+      client.start(heartbeat := expires),
+      worker.poll,
+      worker.heartbeat,
+      worker.respondCompleted
+    )
+    val heartbeatThenCompletes =
+      (query find properties.heartbeatCompletes in heartbeatCompleted limits four)
+        .total(19008)
+        .expect(satisfied)
+
+object HeartbeatRetry extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    val heartbeatRetryCompletes = property when worker.respondCompleted holds { s =>
+      s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
+    }
+  object queries:
+    val heartbeatRetried = scenario.actions(
+      client.start(heartbeat := expires, maxAttempts := MaxAttempts.two),
+      worker.poll,
+      worker.heartbeat,
+      deadline.heartbeat,
+      timers.backoff,
+      worker.poll,
+      worker.respondCompleted
+    )
+    val heartbeatTimeoutRetriesThenCompletes =
+      (query find properties.heartbeatRetryCompletes in heartbeatRetried limits eight)
+        .total(33264)
+        .expect(satisfied)
+
+object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    val heartbeatExhausts = property.when(deadline.heartbeat) holds (after =>
+      after.records(Fact.heartbeatTimedOut) &&
+        (ActivitySystem.states.retriesRemaining(after.state) ||
+          (after.state.phase == Phase.timedOut && after.records(
+            Fact.statusTimedOut(TimeoutType.heartbeat)
+          )))
+    )
+  object queries:
+    val heartbeatExhausted = scenario.actions(
+      client.start(heartbeat := expires, maxAttempts := MaxAttempts.one),
+      worker.poll,
+      worker.heartbeat,
+      deadline.heartbeat
+    )
+    val heartbeatTimeoutExhausts =
+      (query find properties.heartbeatExhausts in heartbeatExhausted limits four)
+        .total(19008)
+        .expect(satisfied)
 
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 

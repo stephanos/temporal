@@ -10,6 +10,7 @@
 package temporal.realize
 
 import io.grpc.MethodDescriptor
+import io.temporal.api.common.v1.Payloads
 import scalapb.GeneratedMessage
 import umpire.ClassRef
 import umpire.realize.{
@@ -70,8 +71,11 @@ enum WorkerInstruction extends Instruction:
   // Answers the attempt of an activity as canceled.
   case AttemptCanceled
 
-  // Offers no answer; the attempt's armed start-to-close deadline ends it.
-  case AttemptWithheld
+  // Records details through the worker SDK; Describe supplies the server receipt separately.
+  case AttemptHeartbeat(details: TypedProto[Payloads])
+
+  // Offers no answer; the attempt's declared server deadline ends it.
+  case AttemptWithheld(mode: WithholdingMode = WithholdingMode.context)
 
   // A deliberate outage of the worker that polls a task-queue role.
   case Fault(role: String | Role, kind: FaultKind)
@@ -116,9 +120,18 @@ enum Visible:
   case eventually(bound: WaitBound)
 
 // A kind of asynchronous cause: something a read waits for that no command of its script does.
+enum WithholdingMode:
+  case context, sdkPending
+
+enum TimeoutBasis:
+  case unspecified, scheduleToClose, startToClose, heartbeat
+
 enum CauseKind:
   // An activity script's answer: RespondActivityTaskCompleted, Failed or Canceled.
   case activityAnswer
+
+  // An SDK heartbeat, whose invocation is distinct from its persisted server receipt.
+  case activityHeartbeat
 
   // A workflow script's commands: RespondWorkflowTaskCompleted.
   case workflowTask
@@ -165,8 +178,12 @@ final case class ApiBehavior(
 // A step class no command performs, and the kind of cause it is: an activity's `poll` is a
 // delivery, a timeout class a timer. A timer carries the deadline, in milliseconds, its request set
 // from the same kit value; the wait for it is that deadline plus the timer's bound.
-final case class ServerStep(step: ClassRef, kind: CauseKind, deadlineMs: Long = 0)
-    extends SystemStep
+final case class ServerStep(
+    step: ClassRef,
+    kind: CauseKind,
+    deadlineMs: Long = 0,
+    timeoutBasis: TimeoutBasis = TimeoutBasis.unspecified
+) extends SystemStep
 
 extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](write: MethodDescriptor[Req, Rsp])
   // That the effect of the call `write` is visible to `read` `when`.

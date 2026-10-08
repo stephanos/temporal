@@ -11,6 +11,7 @@ import (
 var causeKinds = map[umpirespb.CauseKind]string{
 	umpirespb.CAUSE_KIND_ACTIVITY_ANSWER: "activity answer", umpirespb.CAUSE_KIND_WORKFLOW_TASK: "workflow task",
 	umpirespb.CAUSE_KIND_HANDLER_REPLY: "handler reply", umpirespb.CAUSE_KIND_DELIVERY: "delivery", umpirespb.CAUSE_KIND_TIMER: "timer",
+	umpirespb.CAUSE_KIND_ACTIVITY_HEARTBEAT: "activity heartbeat",
 }
 
 // ACause is a kind of cause with its article, as a diagnostic names it: "a delivery", "an activity answer".
@@ -129,6 +130,11 @@ func (a *realizing) serverStepKind(mm *umpirespb.Machine, s *umpirespb.ServerSte
 		declared[step] = true
 	}
 	kind := s.GetKind()
+	if _, known := umpirespb.TimeoutBasis_name[int32(s.GetTimeoutBasis())]; !known {
+		a.report(at, "%s has no known timeout basis", step)
+	} else if kind != umpirespb.CAUSE_KIND_TIMER && s.GetTimeoutBasis() != umpirespb.TIMEOUT_BASIS_UNSPECIFIED {
+		a.report(at, "%s names a timeout basis, and only a timer's step has one", step)
+	}
 	switch _, bounds := bounded[kind]; {
 	case !interp.Known(umpirespb.CauseKind_name, int32(kind)):
 		a.report(at, "%s is of no known kind", step)

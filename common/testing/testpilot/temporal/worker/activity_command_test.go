@@ -298,6 +298,8 @@ func TestSDKWorkflowRoutesItsActivityAttemptsToTheActivityScript(t *testing.T) {
 
 func TestActivityScriptCompletesAfterAWithheldAttemptDeadline(t *testing.T) {
 	prepared := preparedActivityFixture(t, standaloneActivity, func(program *testpilotspb.Program) {
+		start := program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc()
+		start.RequestAssignments = append(start.RequestAssignments, durationAssignment("start_to_close_timeout", 1))
 		script := program.Entrypoints[1]
 		script.Instructions = append([]*testpilotspb.InstructionNode{{InstructionId: "withhold-attempt", Instruction: withholdAttempt, Limits: facadetest.Bounds()}}, script.GetInstructions()...)
 	}, func(profile *testpilot.ProfileSpec) {

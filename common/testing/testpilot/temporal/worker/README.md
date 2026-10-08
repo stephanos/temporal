@@ -58,7 +58,8 @@ then rejects workflow types outside that allowlist before reservation admission.
 
 An activity entrypoint (`ActivityActivation`) runs as a standalone activity, the one a controller's
 `StartActivityExecution` starts, or as the activity a workflow entrypoint's schedule command
-schedules. Its script is the activity's attempts in order, one instruction per attempt. A `Finish` completes its attempt with its result, whatever value that is, and the
+schedules. Its script is a linear sequence of attempt groups. Each group has zero or one
+`ActivityHeartbeat` prefix and exactly one terminal disposition. A `Finish` completes its attempt with its result, whatever value that is, and the
 activity closes when the server accepts that completion. An `ActivityAttemptFailure` fails its attempt with the application failure it
 carries, which the server retries unless the failure says otherwise. An
 `ActivityAttemptCancellation` answers its attempt as canceled, which a worker may do only for a
@@ -66,10 +67,16 @@ cancellation the server asked for: the attempt heartbeats until the server answe
 the requested cancellation, and then hands the SDK a canceled error. The SDK tells Temporal an
 attempt is canceled only for a delivery the server asked to cancel and reports any other canceled
 error as a failure, so the worker never offers a cancellation the SDK would not send. An
-`ActivityAttemptWithholding` offers nothing: the attempt waits for its context to end, and when its
+`ActivityHeartbeat` invokes SDK `RecordHeartbeat` with each carried Payload as a raw converter value,
+preserving its bytes and metadata. The attempt record's `heartbeat_invoked` reports invocation only;
+the SDK returns no receipt, and a separate declared Describe read must establish server receipt.
+`ActivityAttemptWithholding` in `CONTEXT` mode offers nothing: the attempt waits for its context to end, and when its
 deadline, the start-to-close or schedule-to-close timeout the server applies, ends it, the SDK sends
-nothing and the server times the attempt out; any other end of the context is a refusal. Preparation reserves one
-activation per instruction, so every attempt is its own activation under its own reservation, and
+nothing and the server times the attempt out; any other end of the context is a refusal. Its start
+must carry a positive start-to-close or schedule-to-close timeout. `SDK_PENDING` mode requires a
+standalone start with a positive heartbeat timeout and returns the exact SDK `ErrResultPending`.
+The SDK sends no answer RPC, while the reservation settles immediately with `PENDING`.
+Preparation reserves one activation per group, so every attempt is its own activation under its own reservation, and
 the script's values carry across the attempts as a Nexus handler's do across its deliveries, so a
 later attempt's guard reads what an earlier one admitted.
 
@@ -94,7 +101,7 @@ belongs to it. The SDK attempt is the server's number, never the coordinate's at
 carrying instruction's. The delivery identity is the SHA-256 digest of the task token, a bounded
 opaque name of the first delivery of the attempt. The attempt numbered `first + N - 1`, as the
 entrypoint's `attempt_numbering` declares, is the activation of the Nth reservation and performs the
-Nth instruction, whatever order the attempts reach the worker in, and an attempt interprets nothing
+Nth group, whatever order the attempts reach the worker in, and an attempt interprets nothing
 until every earlier attempt has settled.
 
 Each declared attempt's reservation settles with an outcome whose `activity_attempt` says what the
@@ -117,6 +124,7 @@ exactly one of these states, and settles at most once:
 | offered-failed-non-retryable | the same, with a failure the server does not retry | succeeded, `OFFERED_FAILED_NON_RETRYABLE`, run, SDK attempt, delivery |
 | offered-canceled | its `ActivityAttemptCancellation` ran: the server answered the attempt's heartbeat with the requested cancellation, and the worker offered the canceled answer | succeeded, `OFFERED_CANCELED`, run, SDK attempt, delivery |
 | withheld | its `ActivityAttemptWithholding` ran and the attempt's deadline ended it unanswered | succeeded, `WITHHELD`, run, SDK attempt, delivery |
+| pending | its `ActivityAttemptWithholding` returned SDK `ErrResultPending` immediately | succeeded, `PENDING`, run, SDK attempt, delivery |
 | refused | the worker performed nothing declared and offered its own non-retryable failure | SDK failure `umpire_worker` with the cause, `REFUSED`, run, SDK attempt, delivery; then the Run is incomplete |
 | released-not-needed | the server reported the activity closed before any attempt was delivered for it | canceled, `NOT_NEEDED`, the run only, caused by the last recorded attempt |
 | never-seen | the Run released the reservation while nothing was delivered for it and the server had said nothing | canceled with no attempt fact, which fails the Run unrecorded |
@@ -129,6 +137,7 @@ The allowed transitions, and what brings each about:
 | admitted | offered-completed, offered-failed-retryable, offered-failed-non-retryable | the attempt's instruction ran, after every earlier attempt of the activity settled |
 | admitted | offered-canceled | the attempt's instruction ran, after every earlier attempt of the activity settled, and the server answered a heartbeat of the attempt with the requested cancellation |
 | admitted | withheld | the attempt's instruction ran, after every earlier attempt of the activity settled, and the attempt's deadline ended its context |
+| admitted | pending | the admitted group returned SDK `ErrResultPending`, after every earlier attempt settled |
 | admitted | refused | the instruction is disabled, the Run canceled the reservation, the delivery's context ended, a cancellation to answer was never requested before it did, or the SDK or the Driver failed |
 | reserved | released-not-needed | the server answered the worker's long poll for the activity's outcome, or the workflow that scheduled the activity closed, and the reservation is after the last attempt admitted |
 | reserved | never-seen | the Run canceled the reservation |
@@ -166,14 +175,14 @@ The worker refuses with a non-retryable application failure of type `umpire_work
 the reason. Canceling a reservation cancels the attempt's own context and sends Temporal no
 cancellation request, so the worker offers a failure, never a cancellation, and the Run says the
 same. `Validate` rejects, with no I/O, an activity reservation carried by
-anything but `StartActivityExecution`, a start that carries anything beside the one activity it
-starts, and a start that does not name the worker's namespace and the entrypoint's task queue by
-their binding identities. Only an `ActivityAttemptCancellation` makes an attempt heartbeat, and it
-waits only for the server's request: every 100 ms it records a heartbeat, and the worker's SDK
-options cap the heartbeat throttle at that period whatever heartbeat timeout the activity has, so
-the request is seen about that soon. No instruction makes an attempt give no answer, so an attempt
-the server times out is not realized, and an activity a
-workflow schedules is not realized: its task names no activity run and is refused.
+anything but its standalone activity start or its scheduling workflow's start, and a start that does
+not name the worker's namespace and task queue by their binding identities. A declared heartbeat
+prefix invokes the SDK once; cancellation separately heartbeats every 100 ms until the server asks
+for cancellation. The worker caps the SDK heartbeat throttle at that period. Context withholding
+requires a positive start-to-close or schedule-to-close request timeout; SDK-pending withholding
+requires a standalone start with a positive heartbeat timeout, including on the actual SDK delivery.
+The pending answer settles the local reservation immediately without offering a completion,
+failure, or cancellation to the server.
 
 Controller code reserves worker activations before dispatch and creates a `Carrier` from the
 prepared carrier plan, `CreateCarrier` for a workflow start and `CreateActivityCarrier` for an

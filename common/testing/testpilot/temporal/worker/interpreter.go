@@ -9,6 +9,7 @@ import (
 
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commonpb "go.temporal.io/api/common/v1"
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -231,11 +232,11 @@ func (s *Session) awaitEarlierAttempts(ctx context.Context, delivered delivery.A
 
 // executeActivity interprets an activity entrypoint for one admitted attempt. The script declares
 // the activity's attempts in order and the attempt's reservation is the one of its number, so the
-// attempt performs the instruction at its reservation's ordinal and no other, under the attempt's
+// attempt performs the group at its reservation's ordinal and no other, under the attempt's
 // context, whose cancellation fails the evaluation. A Finish completes the attempt with its result,
 // whatever that value is, an ActivityAttemptFailure fails it with the failure it carries, an
 // ActivityAttemptCancellation answers it as canceled once the server has asked for that, and an
-// ActivityAttemptWithholding answers nothing until the attempt's deadline ends it. An attempt
+// ActivityAttemptWithholding either waits for its deadline or returns the SDK pending sentinel. An attempt
 // whose instruction is disabled has nothing declared for it and is a failed activation.
 func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
@@ -258,56 +259,93 @@ func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activa
 		}
 		script.state = state
 	}
-	index := entry.plan.Order()[delivered.Reservation().Ordinal]
-	instruction := entry.plan.Instructions()[index]
-	input, enabled, err := script.state.Evaluate(ctx, index)
-	if err != nil {
-		return nil, err
-	}
-	if !enabled {
-		return nil, errAttemptDisabled
-	}
-	switch instruction.Opcode() {
-	case testpilot.Finish:
-		// The server may never accept the completion and issue the next attempt, whose guard reads
-		// this instruction's outcome.
-		if err := script.state.Admit(ctx, index, terminalOutcome()); err != nil {
-			return nil, err
-		}
-		return proto.CloneOf(input), nil
-	case testpilot.ActivityAttemptFailure:
-		if err := script.state.Admit(ctx, index, terminalOutcome()); err != nil {
-			return nil, err
-		}
-		failure := instruction.Source().GetInstruction().GetActivityAttemptFailure().GetFailure()
-		return nil, &declaredFailure{
-			failure:      temporal.GetDefaultFailureConverter().FailureToError(failure),
-			nonRetryable: failure.GetApplicationFailureInfo().GetNonRetryable(),
-		}
-	case testpilot.ActivityAttemptCancellation:
-		if err := s.host.awaitCancellationRequest(ctx); err != nil {
-			return nil, err
-		}
-		// The request ended the attempt's context, and the server may still refuse the answer and
-		// issue the next attempt, whose guard reads this instruction's outcome.
-		if err := script.state.Admit(context.WithoutCancel(ctx), index, terminalOutcome()); err != nil {
-			return nil, err
-		}
-		return nil, errDeclaredCancellation
-	case testpilot.ActivityAttemptWithholding:
-		<-ctx.Done()
-		// Only the attempt's deadline ends it as declared; the Run canceling it ends it unasked.
-		if !errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return nil, ctx.Err()
-		}
-		// The server may still issue the next attempt, whose guard reads this instruction's outcome.
-		if err := script.state.Admit(context.WithoutCancel(ctx), index, terminalOutcome()); err != nil {
-			return nil, err
-		}
-		return nil, errDeclaredWithholding
-	default:
+	groups := entry.plan.ActivityAttempts()
+	ordinal := delivered.Reservation().Ordinal
+	if ordinal < 0 || ordinal >= int64(len(groups)) {
 		return nil, ErrInvalid
 	}
+	group := groups[ordinal]
+	instructions := entry.plan.Instructions()
+	terminal := instructions[group[len(group)-1]].Source().GetInstruction().GetActivityAttemptWithholding()
+	if terminal != nil && terminal.GetMode() == testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING {
+		info := activity.GetInfo(ctx)
+		if info.ActivityRunID == "" || info.HeartbeatTimeout <= 0 {
+			return nil, ErrInvalid
+		}
+	}
+	for _, index := range group {
+		instruction := instructions[index]
+		input, enabled, err := script.state.Evaluate(ctx, index)
+		if err != nil {
+			return nil, err
+		}
+		if !enabled {
+			return nil, errAttemptDisabled
+		}
+		switch instruction.Opcode() {
+		case testpilot.ActivityHeartbeat:
+			routed, ok := ctx.Value(activityRouteKey{}).(routedActivity)
+			if !ok || routed.answer == nil {
+				return nil, ErrInvalid
+			}
+			details := instruction.Source().GetInstruction().GetActivityHeartbeat().GetDetails()
+			values := make([]interface{}, 0, len(details.GetPayloads()))
+			for _, payload := range details.GetPayloads() {
+				values = append(values, converter.NewRawValue(proto.CloneOf(payload)))
+			}
+			activity.RecordHeartbeat(ctx, values...)
+			routed.answer.heartbeatInvoked = true
+			if err := script.state.Admit(ctx, index, terminalOutcome()); err != nil {
+				return nil, err
+			}
+		case testpilot.Finish:
+			// The server may never accept the completion and issue the next attempt, whose guard reads
+			// this instruction's outcome.
+			if err := script.state.Admit(ctx, index, terminalOutcome()); err != nil {
+				return nil, err
+			}
+			return proto.CloneOf(input), nil
+		case testpilot.ActivityAttemptFailure:
+			if err := script.state.Admit(ctx, index, terminalOutcome()); err != nil {
+				return nil, err
+			}
+			failure := instruction.Source().GetInstruction().GetActivityAttemptFailure().GetFailure()
+			return nil, &declaredFailure{
+				failure:      temporal.GetDefaultFailureConverter().FailureToError(failure),
+				nonRetryable: failure.GetApplicationFailureInfo().GetNonRetryable(),
+			}
+		case testpilot.ActivityAttemptCancellation:
+			if err := s.host.awaitCancellationRequest(ctx); err != nil {
+				return nil, err
+			}
+			// The request ended the attempt's context, and the server may still refuse the answer and
+			// issue the next attempt, whose guard reads this instruction's outcome.
+			if err := script.state.Admit(context.WithoutCancel(ctx), index, terminalOutcome()); err != nil {
+				return nil, err
+			}
+			return nil, errDeclaredCancellation
+		case testpilot.ActivityAttemptWithholding:
+			if instruction.Source().GetInstruction().GetActivityAttemptWithholding().GetMode() == testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING {
+				if err := script.state.Admit(ctx, index, terminalOutcome()); err != nil {
+					return nil, err
+				}
+				return nil, activity.ErrResultPending
+			}
+			<-ctx.Done()
+			// Only the attempt's deadline ends it as declared; the Run canceling it ends it unasked.
+			if !errors.Is(ctx.Err(), context.DeadlineExceeded) {
+				return nil, ctx.Err()
+			}
+			// The server may still issue the next attempt, whose guard reads this instruction's outcome.
+			if err := script.state.Admit(context.WithoutCancel(ctx), index, terminalOutcome()); err != nil {
+				return nil, err
+			}
+			return nil, errDeclaredWithholding
+		default:
+			return nil, ErrInvalid
+		}
+	}
+	return nil, ErrInvalid
 }
 
 // terminalOutcome is the outcome of a Finish or a NexusHandlerReply that ended its activation. Its result is

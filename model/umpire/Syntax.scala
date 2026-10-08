@@ -395,6 +395,11 @@ final class Case[S, O, F] private[umpire] (
       firing: Firing[S, O, F, (A, B, C, D, E)]
   ): Unit = firing.bind(this, effectOf(firing.decl, effect))
 
+  @targetName("readsSix")
+  infix def ~>[A, B, C, D, E, G](effect: (S, A, B, C, D, E, G) => List[Step[S, O, F]])(using
+      firing: Firing[S, O, F, (A, B, C, D, E, G)]
+  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
+
 // The action, or the one class of it, an `on` block fires, and where its cases go, given to the
 // block's cases. Core form: none of its own; it is the `action` of `action ~> stepFunction`, whose
 // arms the block's cases are.

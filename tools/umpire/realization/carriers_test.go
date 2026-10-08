@@ -99,6 +99,20 @@ func TestCarriersOfTheStandaloneActivity(t *testing.T) {
 	require.NotContains(t, c, "scheduleToStart()")
 }
 
+func TestCarriersOfActivityHeartbeatUseTheTokenMethod(t *testing.T) {
+	r := &umpirespb.Realization{Name: "heartbeat", Scripts: []*umpirespb.Script{{Id: "attempts",
+		Activation: &umpirespb.Script_Activity{Activity: &umpirespb.ActivityActivation{}},
+		Items: []*umpirespb.Item{{Performs: []*umpirespb.Performance{{
+			Step:    &umpirespb.ActionClass{Action: "worker.heartbeat"},
+			Command: &umpirespb.Command{Instruction: &umpirespb.Command_AttemptHeartbeat{AttemptHeartbeat: &umpirespb.AttemptHeartbeat{}}},
+		}}}},
+	}}}
+	mappings, err := realization.Carriers(r, protoregistry.GlobalFiles)
+	require.NoError(t, err)
+	require.Len(t, mappings, 1)
+	require.Equal(t, []realization.Carrier{{Kind: "activity-heartbeat", Method: "/temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat", Message: "temporal.api.workflowservice.v1.RecordActivityTaskHeartbeatRequest"}}, mappings[0].Carriers)
+}
+
 // A workflow command carries the attributes it sets, and a handler's answer its message; a derived
 // realization's added binding carries only in that realization.
 func TestCarriersOfTheNexusCaller(t *testing.T) {

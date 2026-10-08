@@ -838,6 +838,8 @@ enum CauseKind {
   CAUSE_KIND_DELIVERY = 4;
   // A server timer at a deadline the realization set.
   CAUSE_KIND_TIMER = 5;
+  // An SDK activity heartbeat invocation, whose receipt must be read separately.
+  CAUSE_KIND_ACTIVITY_HEARTBEAT = 6;
 }
 
 // A step class no command performs, and the kind of cause it is.
@@ -848,6 +850,15 @@ message ServerStep {
   // For a timer: the deadline the realization set for this class, written from the same kit value
   // its request carries. A wait for it is this deadline plus the timer's CauseBound, the slack.
   int64 deadline_ms = 4;
+  // The typed request field whose timeout supplies this timer, retained by lifting deadlines.
+  TimeoutBasis timeout_basis = 5;
+}
+
+enum TimeoutBasis {
+  TIMEOUT_BASIS_UNSPECIFIED = 0;
+  TIMEOUT_BASIS_SCHEDULE_TO_CLOSE = 1;
+  TIMEOUT_BASIS_START_TO_CLOSE = 2;
+  TIMEOUT_BASIS_HEARTBEAT = 3;
 }
 
 // A symbolic participant commands and activations address. Its bindings name the environment
@@ -1134,11 +1145,21 @@ message Command {
     Empty attempt_canceled = 19;
     // Withholds an activity attempt's answer until its armed server deadline ends it.
     // Used only in an activity script's on-path item naming one bounded timer, never a performance.
-    Empty attempt_withheld = 20;
+    AttemptWithheld attempt_withheld = 20;
+    AttemptHeartbeat attempt_heartbeat = 21;
   }
   // The exhaustive kinds of evidence, by id, this command's read is the closing read of: the read
   // after which their sources report nothing more.
   repeated string closes = 18;
+}
+
+message AttemptHeartbeat { Proto details = 1; }
+
+message AttemptWithheld { WithholdingMode mode = 1; }
+
+enum WithholdingMode {
+  WITHHOLDING_MODE_CONTEXT = 0;
+  WITHHOLDING_MODE_SDK_PENDING = 1;
 }
 
 message After {
@@ -1319,7 +1340,13 @@ message ProtoValue {
     // A role, by id, where a field names the role a run resolves.
     string role_id = 8;
     Name named = 9;
+    // An ordered list of typed protobuf messages, never a scalar or map value.
+    ProtoMessages messages = 10;
   }
+}
+
+message ProtoMessages {
+  repeated Proto values = 1;
 }
 
 message ProtoMap {

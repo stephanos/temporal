@@ -115,6 +115,8 @@ const (
 	// The worker offered nothing, as the attempt's instruction declared, until the attempt's deadline
 	// ended it, so the server timed the attempt out.
 	ACTIVITY_ATTEMPT_RESPONSE_WITHHELD ActivityAttemptResponse = 7
+	// Local execution returned the exact SDK pending sentinel and sent no answer RPC.
+	ACTIVITY_ATTEMPT_RESPONSE_PENDING ActivityAttemptResponse = 8
 )
 
 // Enum value maps for ActivityAttemptResponse.
@@ -128,6 +130,7 @@ var (
 		5: "ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED",
 		6: "ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED",
 		7: "ACTIVITY_ATTEMPT_RESPONSE_WITHHELD",
+		8: "ACTIVITY_ATTEMPT_RESPONSE_PENDING",
 	}
 	ActivityAttemptResponse_value = map[string]int32{
 		"ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED":                  0,
@@ -138,6 +141,7 @@ var (
 		"ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED":                   5,
 		"ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED":             6,
 		"ACTIVITY_ATTEMPT_RESPONSE_WITHHELD":                     7,
+		"ACTIVITY_ATTEMPT_RESPONSE_PENDING":                      8,
 	}
 )
 
@@ -167,6 +171,8 @@ func (x ActivityAttemptResponse) String() string {
 		// Deprecated: Use ActivityAttemptResponse.Descriptor instead.
 	case ACTIVITY_ATTEMPT_RESPONSE_WITHHELD:
 		return "Withheld"
+	case ACTIVITY_ATTEMPT_RESPONSE_PENDING:
+		return "Pending"
 	default:
 		return strconv.Itoa(int(x))
 	}
@@ -1184,10 +1190,13 @@ type ActivityAttempt struct {
 	SdkAttempt int32 `protobuf:"varint,2,opt,name=sdk_attempt,json=sdkAttempt,proto3" json:"sdk_attempt,omitempty"`
 	// The delivery of the attempt the worker ran, a digest of its task token. Unset when no attempt
 	// was delivered.
-	DeliveryId    string                  `protobuf:"bytes,3,opt,name=delivery_id,json=deliveryId,proto3" json:"delivery_id,omitempty"`
-	Response      ActivityAttemptResponse `protobuf:"varint,4,opt,name=response,proto3,enum=temporal.server.api.testpilot.v1.ActivityAttemptResponse" json:"response,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	DeliveryId string                  `protobuf:"bytes,3,opt,name=delivery_id,json=deliveryId,proto3" json:"delivery_id,omitempty"`
+	Response   ActivityAttemptResponse `protobuf:"varint,4,opt,name=response,proto3,enum=temporal.server.api.testpilot.v1.ActivityAttemptResponse" json:"response,omitempty"`
+	// The SDK heartbeat was invoked by the declared prefix of this attempt group. This supplies
+	// no evidence that the server received it; a separate declared read must establish receipt.
+	HeartbeatInvoked bool `protobuf:"varint,5,opt,name=heartbeat_invoked,json=heartbeatInvoked,proto3" json:"heartbeat_invoked,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ActivityAttempt) Reset() {
@@ -1246,6 +1255,13 @@ func (x *ActivityAttempt) GetResponse() ActivityAttemptResponse {
 		return x.Response
 	}
 	return ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED
+}
+
+func (x *ActivityAttempt) GetHeartbeatInvoked() bool {
+	if x != nil {
+		return x.HeartbeatInvoked
+	}
+	return false
 }
 
 // FaultInjected is the recorded fact that a Driver realized one requested outage.
@@ -1646,14 +1662,15 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\vdelivery_id\x18\x03 \x01(\tR\n" +
 	"deliveryId\x12W\n" +
 	"\bdecision\x18\x04 \x01(\x0e2;.temporal.server.api.testpilot.v1.DeliveryAdmissionDecisionR\bdecision\x12\x18\n" +
-	"\aattempt\x18\x05 \x01(\x05R\aattempt\"\xd2\x01\n" +
+	"\aattempt\x18\x05 \x01(\x05R\aattempt\"\xff\x01\n" +
 	"\x0fActivityAttempt\x12&\n" +
 	"\x0factivity_run_id\x18\x01 \x01(\tR\ractivityRunId\x12\x1f\n" +
 	"\vsdk_attempt\x18\x02 \x01(\x05R\n" +
 	"sdkAttempt\x12\x1f\n" +
 	"\vdelivery_id\x18\x03 \x01(\tR\n" +
 	"deliveryId\x12U\n" +
-	"\bresponse\x18\x04 \x01(\x0e29.temporal.server.api.testpilot.v1.ActivityAttemptResponseR\bresponse\"i\n" +
+	"\bresponse\x18\x04 \x01(\x0e29.temporal.server.api.testpilot.v1.ActivityAttemptResponseR\bresponse\x12+\n" +
+	"\x11heartbeat_invoked\x18\x05 \x01(\bR\x10heartbeatInvoked\"i\n" +
 	"\rFaultInjected\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
 	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\x80\x01\n" +
@@ -1679,7 +1696,7 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\x19DeliveryAdmissionDecision\x12+\n" +
 	"'DELIVERY_ADMISSION_DECISION_UNSPECIFIED\x10\x00\x12(\n" +
 	"$DELIVERY_ADMISSION_DECISION_ADMITTED\x10\x01\x12(\n" +
-	"$DELIVERY_ADMISSION_DECISION_REJECTED\x10\x02*\x92\x03\n" +
+	"$DELIVERY_ADMISSION_DECISION_REJECTED\x10\x02*\xb9\x03\n" +
 	"\x17ActivityAttemptResponse\x12)\n" +
 	"%ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED\x10\x00\x12/\n" +
 	"+ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED\x10\x01\x126\n" +
@@ -1688,7 +1705,8 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"!ACTIVITY_ATTEMPT_RESPONSE_REFUSED\x10\x04\x12(\n" +
 	"$ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED\x10\x05\x12.\n" +
 	"*ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED\x10\x06\x12&\n" +
-	"\"ACTIVITY_ATTEMPT_RESPONSE_WITHHELD\x10\a*\x98\x01\n" +
+	"\"ACTIVITY_ATTEMPT_RESPONSE_WITHHELD\x10\a\x12%\n" +
+	"!ACTIVITY_ATTEMPT_RESPONSE_PENDING\x10\b*\x98\x01\n" +
 	"\x0eRunDisposition\x12\x1f\n" +
 	"\x1bRUN_DISPOSITION_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19RUN_DISPOSITION_COMPLETED\x10\x01\x12&\n" +

@@ -381,9 +381,17 @@ def attemptFailure(failure: TypedProto[?]): Instruction = WorkerInstruction.Atte
 // Answers the attempt of an activity as canceled. Core form: `WorkerInstruction.AttemptCanceled`.
 def attemptCanceled: Instruction = WorkerInstruction.AttemptCanceled
 
-// Withholds an activity attempt's answer until its deadline. Declare only under
-// `onPath(deadline.startToClose)`, which names a positively bounded server timer.
-def attemptWithheld: Instruction = WorkerInstruction.AttemptWithheld
+// Withholds an activity attempt's answer until its context ends. Its onPath requires a positively
+// bounded start-to-close or schedule-to-close server timer.
+def attemptWithheld: Instruction = WorkerInstruction.AttemptWithheld()
+
+// Returns the SDK's pending sentinel without answering the attempt; its onPath requires a
+// positively bounded heartbeat server timer.
+def attemptPending: Instruction = WorkerInstruction.AttemptWithheld(WithholdingMode.sdkPending)
+
+// Invokes the SDK heartbeat; its persisted receipt is evidence read from Describe.
+def attemptHeartbeat(details: TypedProto[io.temporal.api.common.v1.Payloads]): Instruction =
+  WorkerInstruction.AttemptHeartbeat(details)
 
 // A workflow command, as the message the SDK would emit. Core form:
 // `WorkerInstruction.WorkflowCommand`.

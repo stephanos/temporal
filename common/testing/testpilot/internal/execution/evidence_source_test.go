@@ -371,6 +371,32 @@ func TestRunLiftsEvidenceFromTheRecordOfEachActivityAttempt(t *testing.T) {
 	require.Len(t, liftedEvidence(t, s.recorder.run), 2, "only a reservation's record is its kind of Run Event")
 }
 
+func TestRunLiftsHeartbeatInvocationFromItsGroupedPendingAttempt(t *testing.T) {
+	declaration := attemptRecord("attemptDelivered", "attempts")
+	declaration.Fields = append(declaration.Fields, &testpilotspb.EvidenceFieldDeclaration{FieldId: "heartbeatInvoked", Path: "activity_attempt.heartbeat_invoked"})
+	source, catalog, policy := attemptFixture(t, 1, declaration)
+	policy.Opcodes = append(policy.Opcodes, contract.ActivityHeartbeat, contract.ActivityAttemptWithholding)
+	entry := source.Program.Entrypoints[1]
+	entry.Instructions[0].Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{Mode: testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING}}}
+	entry.Instructions = append([]*testpilotspb.InstructionNode{heartbeatNode("heartbeat")}, entry.Instructions...)
+	prepared, err := Prepare(source, catalog, policy)
+	require.NoError(t, err)
+	first := attempted(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, 1, "delivery-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING)
+	first.ActivityAttempt.HeartbeatInvoked = true
+	s, err := runAttempts(t, prepared, first, attempted(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, 2, "delivery-2", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED))
+	require.NoError(t, err)
+	require.Empty(t, diagnosticCodes(s.recorder.run))
+	sources, lifted := attemptRecords(t, s.recorder.run)
+	require.Equal(t, []string{firstAttempt, secondAttempt}, sources)
+	invocation := func(value bool) *testpilotspb.NamedValue {
+		return &testpilotspb.NamedValue{FieldId: "heartbeatInvoked", Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}}
+	}
+	protorequire.ProtoSliceEqual(t, []*testpilotspb.CorrelatedEvidence{
+		sourced("attempts", 0, "attemptDelivered", "activity-run", append(attemptFields("1", "delivery-1"), invocation(true))...),
+		sourced("attempts", 1, "attemptDelivered", "activity-run", append(attemptFields("2", "delivery-2"), invocation(false))...),
+	}, lifted)
+}
+
 func compare(operator testpilotspb.ComparisonOperator, left *testpilotspb.Expression, right *testpilotspb.Value) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
 		Operator: operator, Left: left, Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: right}},

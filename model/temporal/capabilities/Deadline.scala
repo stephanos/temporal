@@ -55,7 +55,7 @@ object Deadline extends CapabilityKind:
       phaseType: ClassTag[P],
       coveredType: ClassTag[R]
   ): Property[S] =
-    m.property.when(timer) holdsAcross ((before, after) =>
+    m.property.when(timer) holdsAcross ((before, _) =>
       armed(before) && phasing.roleCases[R](m.name).contains(phasing.phase(before))
     )
 

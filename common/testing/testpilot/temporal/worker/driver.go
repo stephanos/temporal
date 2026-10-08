@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -18,6 +19,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 const getHistoryMethod = "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
@@ -241,6 +243,9 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, limi
 		return programDefinition{}, ErrInvalid
 	}
 	roles := preparedRolesByID(preparedRoles)
+	if err := validateActivityWithholding(plans); err != nil {
+		return programDefinition{}, err
+	}
 	definition := programDefinition{snapshot: snapshot, limits: limits, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queues: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{}), queueActivities: make(map[string]map[string]struct{})}
 	if err := h.validateSymbolicRoles(roles, requireWorker); err != nil {
 		return programDefinition{}, err
@@ -277,6 +282,112 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, limi
 		return programDefinition{}, ErrInvalid
 	}
 	return definition, nil
+}
+
+func validateActivityWithholding(plans []testpilot.EntrypointPlan) error {
+	entries := make(map[string]testpilot.EntrypointPlan, len(plans))
+	for _, plan := range plans {
+		entries[plan.ID()] = plan
+	}
+	for _, carrier := range plans {
+		for _, instruction := range carrier.Instructions() {
+			invoke := instruction.Source().GetInstruction().GetInvokeRpc()
+			for _, reservation := range instruction.Reservations() {
+				entry := entries[reservation.EntrypointID]
+				if entry.Kind() != testpilot.ActivityEntrypoint {
+					continue
+				}
+				for _, disposition := range entry.Instructions() {
+					withholding := disposition.Source().GetInstruction().GetActivityAttemptWithholding()
+					if withholding == nil {
+						continue
+					}
+					if invoke.GetMethod() == delivery.StartActivityPath {
+						assignments := invoke.GetRequestAssignments()
+						if withholding.GetMode() == testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING {
+							if !positiveRequestDuration(assignments, "heartbeat_timeout") {
+								return ErrInvalid
+							}
+						} else if !positiveRequestDuration(assignments, "start_to_close_timeout") && !positiveRequestDuration(assignments, "schedule_to_close_timeout") {
+							return ErrInvalid
+						}
+						continue
+					}
+					if invoke.GetMethod() != primitive.StartWorkflowPath || withholding.GetMode() != testpilotspb.ACTIVITY_WITHHOLDING_MODE_CONTEXT {
+						return ErrInvalid
+					}
+					armed := false
+					binding := entry.Activation().GetActivity()
+					for _, workflowReservation := range instruction.Reservations() {
+						if workflowReservation.Kind != testpilot.WorkflowEntrypoint {
+							continue
+						}
+						workflowPlan := entries[workflowReservation.EntrypointID]
+						for _, command := range workflowPlan.Instructions() {
+							schedule := scheduleActivity(command.Source().GetInstruction())
+							if schedule == nil || schedule.GetActivityType().GetName() != binding.GetActivityType() {
+								continue
+							}
+							queue := schedule.GetTaskQueue().GetName()
+							if queue == "" {
+								queue = workflowPlan.Activation().GetWorkflow().GetTaskQueueRoleId()
+							}
+							if queue == binding.GetTaskQueueRoleId() {
+								if !positiveDuration(schedule.GetStartToCloseTimeout()) && !positiveDuration(schedule.GetScheduleToCloseTimeout()) {
+									return ErrInvalid
+								}
+								armed = true
+							}
+						}
+					}
+					if !armed {
+						return ErrInvalid
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func positiveDuration(duration *durationpb.Duration) bool {
+	return duration != nil && duration.CheckValid() == nil && duration.AsDuration() > 0
+}
+
+func positiveRequestDuration(assignments []*testpilotspb.RequestAssignment, field string) bool {
+	duration := &durationpb.Duration{}
+	for _, assignment := range assignments {
+		path := assignment.GetTarget()
+		if path != field && !strings.HasPrefix(path, field+".") {
+			continue
+		}
+		literal := assignment.GetValue().GetLiteral()
+		if literal == nil {
+			return false
+		}
+		if path == field {
+			if literal.GetMessageValue().UnmarshalTo(duration) != nil {
+				return false
+			}
+			continue
+		}
+		value, err := strconv.ParseInt(literal.GetSignedIntegerValue(), 10, 64)
+		if err != nil {
+			return false
+		}
+		switch path {
+		case field + ".seconds":
+			duration.Seconds = value
+		case field + ".nanos":
+			if value < 0 || value > 999999999 {
+				return false
+			}
+			duration.Nanos = int32(value)
+		default:
+			return false
+		}
+	}
+	return positiveDuration(duration)
 }
 
 func (h *Driver) boundEntry(plan testpilot.EntrypointPlan, roles map[string]testpilot.PreparedRole) (entryDefinition, bool, error) {

@@ -575,9 +575,16 @@ uncompleted loss are not successful faults. Scala supplies the budget, allowed u
 recorded evidence and expected assessment. Removing durable evidence does not turn a missing
 response into a rejected admission.
 
-An activity's script answers its attempts: its commands end an attempt with a result, fail it with a
-failure, or answer it as canceled, and the commands a path places in it are the activity's attempts
-in path order. The
+An activity's script declares linear attempt groups: zero or one heartbeat prefix followed by
+exactly one result, failure, cancellation, context-withheld, or SDK-pending disposition. The groups
+a path places in it are the activity's attempts in path order; legacy terminal-only commands remain
+one group each. Heartbeat is a write, not an answer. SDK-pending is a local disposition and sends
+no Respond RPC. Its record is published after the prefix and before the selected server timer,
+without claiming a future delivery or timeout. Context withholding requires a start-to-close or
+schedule-to-close request-field basis; pending heartbeat withholding requires a heartbeat basis.
+An invocation record cannot prove server receipt: requested Describe details and count must do so,
+and only an actual HEARTBEAT failure together with the next SDK delivery and completion identifies
+a successful heartbeat-timeout retry. The
 delivery of an attempt is the script's activation, so a step of a class the script starts with is
 performed by no command.
 

@@ -219,6 +219,8 @@ func (l *lowering) callOf(s *umpirespb.Script, c *umpirespb.Command) call {
 		return call{access: writes, cause: kind, what: "is " + realization.ACause(kind)}
 	case *umpirespb.Command_NexusCompletion:
 		return call{access: writes, what: "completes a Nexus operation through its callback"}
+	case *umpirespb.Command_AttemptHeartbeat:
+		return call{access: writes, cause: umpirespb.CAUSE_KIND_ACTIVITY_HEARTBEAT, what: "is an activity heartbeat"}
 	default:
 		return call{}
 	}

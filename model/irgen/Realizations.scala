@@ -363,6 +363,19 @@ private[irgen] trait Realizations:
       case "enumValue" => put("enum_name", PString(generatedEnumName(argument(0))))
       case "message"   =>
         put("message", valueOf(irField(d, "message", t), argument(0)))
+      case "messages" =>
+        val messages = irMessage(irField(d, "messages", t), t)
+        val values = irField(messages, "values", t)
+        put(
+          "messages",
+          PMessage(
+            Map(
+              values -> PRepeated(
+                itemsOf(argument(0)).map(valueOf(values, _)).toVector
+              )
+            )
+          )
+        )
       case "mapping" =>
         val map = irMessage(irField(d, "mapping", t), t)
         val entry = irMessage(irField(map, "entries", t), t)
@@ -1346,6 +1359,7 @@ private[irgen] trait Realizations:
 
   // The classes each action's `deadlines` declaration of the realization being emitted binds.
   private val deadlineClasses = mutable.Map.empty[String, Vector[ir.ActionClass]]
+  private val deadlineBases = mutable.Map.empty[(String, Int), ir.TimeoutBasis]
 
   // `deadlines[M](action, call, value, unset)(input.sets(_.field), …)`: the `perform` item of every
   // class of the action the declared inputs make, in the order a binary count over the declared
@@ -1418,6 +1432,20 @@ private[irgen] trait Realizations:
               performed(follow(Bound(pair, u.env)).term).map((i, c) => (i, Bound(c, u.env)))
             )
         }
+        for (index, _, _, path) <- fields do
+          val basis = path.split('.').last match
+            case "schedule_to_close_timeout" => ir.TimeoutBasis.TIMEOUT_BASIS_SCHEDULE_TO_CLOSE
+            case "start_to_close_timeout"    => ir.TimeoutBasis.TIMEOUT_BASIS_START_TO_CLOSE
+            case "heartbeat_timeout"         => ir.TimeoutBasis.TIMEOUT_BASIS_HEARTBEAT
+            case _                           => ir.TimeoutBasis.TIMEOUT_BASIS_UNSPECIFIED
+          deadlineBases.get(id -> index).foreach { previous =>
+            if previous != basis then
+              fail(
+                t,
+                s"deadlines for ${decl.name} binds input ${decl.inputs(index).name} to different timeout bases"
+              )
+          }
+          deadlineBases(id -> index) = basis
         val unsetIndex = unset.map((i, _) => tokens.indexOf(Some(resolveSymbol(i))))
         val commandD = irMessage(irField(irMessage(irField(d, "performs", t), t), "command", t), t)
         val proto = Message(ir.Proto.scalaDescriptor)
@@ -1651,6 +1679,7 @@ private[irgen] trait Realizations:
         factsNamed.clear()
         commandOrigins.clear()
         deadlineClasses.clear()
+        deadlineBases.clear()
         // A realization is where its val declares it, though a kit function may write its record.
         val emitted =
           emit(ir.Realization, Bound(d.rhs.get, familyScope(sym, Bound(d.rhs.get, Map.empty))))
@@ -1869,6 +1898,7 @@ private[irgen] trait Realizations:
         factsNamed.clear()
         commandOrigins.clear()
         deadlineClasses.clear()
+        deadlineBases.clear()
         val emitted = emit(ir.Realization, Bound(call, familyScope(sym, Bound(call, Map.empty))))
         ownFacts(emitted)
         val stated = d.sections
@@ -1952,17 +1982,24 @@ private[irgen] trait Realizations:
       step <- p.step.toSeq
       (value, i) <- step.inputs.zipWithIndex
       if value.kind.`enum`.exists(e => e.`type`.endsWith(".Timeout") && e.`case` == "expires")
-    yield actions(step.action).inputs(i).name).toSet
+    yield actions(step.action).inputs(i).name -> deadlineBases.getOrElse(
+      step.action -> i,
+      ir.TimeoutBasis.TIMEOUT_BASIS_UNSPECIFIED
+    )).groupMap(_._1)(_._2)
     val deadlines = timers
-      .filter(a => expired(actions(a).name))
-      .map(a =>
+      .filter(a => expired.contains(actions(a).name))
+      .map { a =>
+        val bases = expired(actions(a).name).distinct
+        if bases.size != 1 then
+          fail(at, s"timer ${actions(a).name} has different selected timeout bases")
         ir.ServerStep(
           position,
           Some(ir.ActionClass(a)),
           ir.CauseKind.CAUSE_KIND_TIMER,
-          ms("deadlineMs")
+          ms("deadlineMs"),
+          bases.head
         )
-      )
+      }
     val derived = deliveries ++ backoff ++ deadlines
     def same(x: ir.ServerStep, y: ir.ServerStep) =
       x.withPosition(ir.Position()) == y.withPosition(ir.Position())

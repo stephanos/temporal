@@ -130,6 +130,15 @@ final class Action[I <: Tuple] private[umpire] (val decl: ActionDecl):
       v: InputAt[I, 5, 4]
   ): Class = Class(decl, List(x, y, z, w, v))
 
+  def apply(
+      x: InputAt[I, 6, 0],
+      y: InputAt[I, 6, 1],
+      z: InputAt[I, 6, 2],
+      w: InputAt[I, 6, 3],
+      v: InputAt[I, 6, 4],
+      u: InputAt[I, 6, 5]
+  ): Class = Class(decl, List(x, y, z, w, v, u))
+
   override def toString: String = decl.name
 
 extension [A](a: Action[A *: EmptyTuple])
@@ -143,22 +152,28 @@ extension [A](a: Action[A *: EmptyTuple])
 // them: what its positional call takes there. For an action with another number of inputs it is
 // `OtherInputs`, which no value has, so that call does not compile.
 type InputAt[I <: Tuple, Size <: Int, N <: Int] = (I, Size, N) match
-  case (a *: EmptyTuple, 1, 0) => a
-  case ((a, b), 2, 0)          => a
-  case ((a, b), 2, 1)          => b
-  case ((a, b, c), 3, 0)       => a
-  case ((a, b, c), 3, 1)       => b
-  case ((a, b, c), 3, 2)       => c
-  case ((a, b, c, d), 4, 0)    => a
-  case ((a, b, c, d), 4, 1)    => b
-  case ((a, b, c, d), 4, 2)    => c
-  case ((a, b, c, d), 4, 3)    => d
-  case ((a, b, c, d, e), 5, 0) => a
-  case ((a, b, c, d, e), 5, 1) => b
-  case ((a, b, c, d, e), 5, 2) => c
-  case ((a, b, c, d, e), 5, 3) => d
-  case ((a, b, c, d, e), 5, 4) => e
-  case _                       => OtherInputs
+  case (a *: EmptyTuple, 1, 0)    => a
+  case ((a, b), 2, 0)             => a
+  case ((a, b), 2, 1)             => b
+  case ((a, b, c), 3, 0)          => a
+  case ((a, b, c), 3, 1)          => b
+  case ((a, b, c), 3, 2)          => c
+  case ((a, b, c, d), 4, 0)       => a
+  case ((a, b, c, d), 4, 1)       => b
+  case ((a, b, c, d), 4, 2)       => c
+  case ((a, b, c, d), 4, 3)       => d
+  case ((a, b, c, d, e), 5, 0)    => a
+  case ((a, b, c, d, e), 5, 1)    => b
+  case ((a, b, c, d, e), 5, 2)    => c
+  case ((a, b, c, d, e), 5, 3)    => d
+  case ((a, b, c, d, e), 5, 4)    => e
+  case ((a, b, c, d, e, f), 6, 0) => a
+  case ((a, b, c, d, e, f), 6, 1) => b
+  case ((a, b, c, d, e, f), 6, 2) => c
+  case ((a, b, c, d, e, f), 6, 3) => d
+  case ((a, b, c, d, e, f), 6, 4) => e
+  case ((a, b, c, d, e, f), 6, 5) => f
+  case _                          => OtherInputs
 
 // What a positional call takes where the action has another number of inputs: no value.
 sealed trait OtherInputs

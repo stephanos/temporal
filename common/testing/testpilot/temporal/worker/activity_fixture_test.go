@@ -92,7 +92,7 @@ func startActivityNode() *testpilotspb.InstructionNode {
 }
 
 func authorizeActivities(profile *testpilot.ProfileSpec) {
-	profile.Opcodes = append(profile.Opcodes, testpilot.ActivityAttemptFailure, testpilot.ActivityAttemptCancellation)
+	profile.Opcodes = append(profile.Opcodes, testpilot.ActivityAttemptFailure, testpilot.ActivityAttemptCancellation, testpilot.ActivityHeartbeat)
 	profile.Roles[0].Methods = append(profile.Roles[0].Methods, delivery.StartActivityPath)
 	profile.Roles[0].ReservationCarriers = append(profile.Roles[0].ReservationCarriers, testpilot.ReservationCarrierPolicy{Method: delivery.StartActivityPath, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilot.ActivityEntrypoint, MaximumCount: 8}}})
 }

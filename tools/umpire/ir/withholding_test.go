@@ -17,6 +17,18 @@ func TestWithholdingRequiresOneActivityScriptServerTimer(t *testing.T) {
 		want   string
 	}{
 		{"armed timer", func(*umpirespb.Realization, *umpirespb.Script, *umpirespb.Item) {}, ""},
+		{"missing timeout basis", func(r *umpirespb.Realization, _ *umpirespb.Script, _ *umpirespb.Item) {
+			r.ServerSteps[len(r.ServerSteps)-1].TimeoutBasis = umpirespb.TIMEOUT_BASIS_UNSPECIFIED
+		}, "timeout basis"},
+		{"heartbeat-only context basis", func(r *umpirespb.Realization, _ *umpirespb.Script, _ *umpirespb.Item) {
+			r.ServerSteps[len(r.ServerSteps)-1].TimeoutBasis = umpirespb.TIMEOUT_BASIS_HEARTBEAT
+		}, "timeout basis"},
+		{"unknown timeout basis", func(r *umpirespb.Realization, _ *umpirespb.Script, _ *umpirespb.Item) {
+			r.ServerSteps[len(r.ServerSteps)-1].TimeoutBasis = umpirespb.TimeoutBasis(99)
+		}, "timeout basis"},
+		{"unknown withholding mode", func(_ *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
+			item.GetCommand().GetAttemptWithheld().Mode = umpirespb.WithholdingMode(99)
+		}, "withholding mode"},
 		{"unconditional", func(_ *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
 			item.When = nil
 		}, "without exactly one armed bounded server timer"},
@@ -57,7 +69,12 @@ func TestWithholdingRequiresOneActivityScriptServerTimer(t *testing.T) {
 			r := m.GetRealizations()[index]
 			script := admScript(t, r, "attempts")
 			item := &umpirespb.Item{Position: script.GetPosition(), When: []*umpirespb.ActionClass{{Action: "temporal.features.activity.deadline.startToClose"}},
-				Command: &umpirespb.Command{Id: "withhold-attempt", Position: script.GetPosition(), Instruction: &umpirespb.Command_AttemptWithheld{AttemptWithheld: &umpirespb.Empty{}}}}
+				Command: &umpirespb.Command{Id: "withhold-attempt", Position: script.GetPosition(), Instruction: &umpirespb.Command_AttemptWithheld{AttemptWithheld: &umpirespb.AttemptWithheld{}}}}
+			for _, step := range r.GetServerSteps() {
+				if step.GetStep().GetAction() == item.When[0].GetAction() {
+					step.TimeoutBasis = umpirespb.TIMEOUT_BASIS_START_TO_CLOSE
+				}
+			}
 			script.Items = append(script.Items, item)
 			test.change(r, script, item)
 			err = Validate(m)

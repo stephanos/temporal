@@ -19,7 +19,7 @@ enum Failure derives Finite:
 
 // Which deadline fired.
 enum TimeoutType derives Finite:
-  case scheduleToClose, scheduleToStart, startToClose
+  case scheduleToClose, scheduleToStart, startToClose, heartbeat
 
 // ### Signature
 
@@ -32,6 +32,7 @@ val failure = input[Failure]
 // binds them to its activity, as standalone/Standalone.scala does.
 object worker:
   val poll = action(process)
+  val heartbeat = action("recordHeartbeat", process)
   val respondCompleted = action(process)
   val respondFailed = action(process)
     .input(failure)
@@ -45,8 +46,9 @@ object timers:
   val startDelay = timer
   val backoff = timer
 
-// The System's three deadlines, each armed by the start's input of its name.
+// The System's deadlines, each armed by the start's input of its name.
 object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer
   val startToClose = timer
+  val heartbeat = timer

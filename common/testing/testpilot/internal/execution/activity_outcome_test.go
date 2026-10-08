@@ -42,6 +42,7 @@ func TestReservationOutcomesAreJudgedByOneClosedTable(t *testing.T) {
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED:                      {failed, reservationRecordedThenFailed},
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED:                   {canceled, reservationRecorded},
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_WITHHELD:                     {succeeded, reservationRecorded},
+		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING:                      {succeeded, reservationRecorded},
 	} {
 		for _, unused := range []bool{false, true} {
 			allowed[combination{kind: activity, status: verdict.status, response: response, attempt: true, unused: unused}] = verdict.verdict
@@ -83,10 +84,10 @@ func TestReservationOutcomesAreJudgedByOneClosedTable(t *testing.T) {
 	}
 	require.Equal(t, len(kinds)*len(statuses)*2*(1+len(responses)), judged)
 	require.Len(t, statuses, 7)
-	require.Len(t, responses, 9)
+	require.Len(t, responses, 10)
 	// The table holds nothing the list above does not: one row per allowed combination, whatever
 	// the entrypoint performs.
-	require.Len(t, reservationOutcomes, 11)
+	require.Len(t, reservationOutcomes, 12)
 	require.Equal(t, reservationRejected, judgeReservation(activity, numbering, false, 1, "activity-run", nil))
 }
 
@@ -126,6 +127,7 @@ func TestReservationOutcomeRequiresTheIdentitiesOfItsResponse(t *testing.T) {
 		"one with no run":                         {notNeeded(func(a *testpilotspb.ActivityAttempt) { a.ActivityRunId = "" }), "activity-run", reservationRejected},
 		"one that names an SDK attempt":           {notNeeded(func(a *testpilotspb.ActivityAttempt) { a.SdkAttempt = 2 }), "activity-run", reservationRejected},
 		"one that names a delivery":               {notNeeded(func(a *testpilotspb.ActivityAttempt) { a.DeliveryId = "delivery-2" }), "activity-run", reservationRejected},
+		"one that claims a heartbeat invocation":  {notNeeded(func(a *testpilotspb.ActivityAttempt) { a.HeartbeatInvoked = true }), "activity-run", reservationRejected},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, test.want, judgeReservation(contract.ActivityEntrypoint, temporal, false, 1, test.priorRun, test.outcome))

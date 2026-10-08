@@ -64,7 +64,8 @@ correlated satisfied Contract; the binding fingerprints and Driver identities di
 declares, the methods it invokes, a reservation carrier for each `StartWorkflowExecution` an ordinary
 controller invokes whose shapes admit one activation of each workflow and Nexus-handler entrypoint the
 Program declares, a reservation carrier for each `StartActivityExecution` it invokes whose shape admits
-one activation per instruction of the Program's activity entrypoints (preparation derives the
+one activation per terminal disposition of the Program's activity entrypoints (a heartbeat prefix
+and its disposition share one attempt; preparation derives the
 reservations from those shapes), the capabilities its
 opcodes require, and the environment values of the bindings it references
 (`testpilot.EnvironmentBindingIDs`) through the roles that name them. It never widens beyond what the

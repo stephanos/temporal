@@ -83,7 +83,7 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*P
 	}
 	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]contract.ReservationCarrierPlan{}, roles: map[string]contract.PreparedRole{}}
 	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]contract.RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]contract.ReservationCarrierPolicy{}, opcodes: map[contract.Opcode]bool{}, commandTypes: map[enumspb.CommandType]bool{}, bindingsRequired: true, environment: map[string]string{}, bindings: map[string]string{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]contract.Coordinate{}, graphIndex: map[string]*graph{}}
-	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, func() error { return checkRequiredSettings(source.Program, policy.Configuration) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.deriveReservations, a.bindReservations, a.bindReservationCarriers} {
+	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, func() error { return checkRequiredSettings(source.Program, policy.Configuration) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindActivityAttempts, a.bindDataflow, a.deriveReservations, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
 		}

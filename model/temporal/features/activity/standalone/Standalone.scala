@@ -3,7 +3,7 @@
 // what DescribeActivityExecution reports, the System how the server gets there. No history
 // event is written, so every evidence line names an observation: a status read through
 // DescribeActivityExecution or a result read through PollActivityExecution. Reset is deferred, like
-// cancellation in the Nexus client Model, and the heartbeat timeout is not modeled.
+// cancellation in the Nexus client Model.
 //
 // Update this Model independently of the implementation. When conformance fails, ask a human
 // rather than fitting the Model to the code.
@@ -52,6 +52,7 @@ val activity = Entity(key = "activityId")
 val scheduleToClose = input[Timeout]
 val scheduleToStart = input[Timeout]
 val startToClose = input[Timeout]
+val heartbeat = input[Timeout]
 val startDelay = input[Timeout]
 val maxAttempts = input[MaxAttempts]
 
@@ -64,6 +65,7 @@ object client extends Client:
     .input(scheduleToClose)
     .input(scheduleToStart)
     .input(startToClose)
+    .input(heartbeat)
     .input(startDelay)
     .input(maxAttempts)
     .creates(activity)
@@ -79,6 +81,7 @@ object client extends Client:
 // are the kind's.
 object worker:
   val poll = temporal.features.activity.worker.poll.on(activity)
+  val heartbeat = temporal.features.activity.worker.heartbeat.on(activity)
   val respondCompleted = temporal.features.activity.worker.respondCompleted.on(activity)
   val respondFailed = temporal.features.activity.worker.respondFailed.on(activity)
   val respondCanceled = temporal.features.activity.worker.respondCanceled.on(activity)
@@ -86,6 +89,7 @@ object worker:
 // A retry shows the client only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.
 val attemptCount = Observation(on = activity, read = "attempt")
+val heartbeatDetails = Observation(on = activity, read = "heartbeatDetails")
 
 // The bounds of the levels' Queries and the history record's, beside three and four (shared.Bounds).
 val five = Limits(steps = 5, actions = 5, search = 65536)
@@ -104,9 +108,15 @@ object exports:
     ActivitySystem.capabilities,
     ActivitySystem.queries,
     system.TimeoutRetry.queries,
+    system.HeartbeatRetry.queries,
+    system.HeartbeatCompletion.queries,
+    system.HeartbeatExhaustion.queries,
     StandaloneActivity.queries,
     system.Standalone,
-    system.RetryAfterTimeout
+    system.RetryAfterTimeout,
+    system.HeartbeatThenCompletion,
+    system.RetryAfterHeartbeat,
+    system.ExhaustAfterHeartbeat
   )
 
   // Its history record, the admission designs, and the shared task queue's providers it composes.

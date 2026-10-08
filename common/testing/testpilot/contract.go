@@ -52,6 +52,7 @@ const (
 	ActivityAttemptFailure      = contract.ActivityAttemptFailure
 	ActivityAttemptCancellation = contract.ActivityAttemptCancellation
 	ActivityAttemptWithholding  = contract.ActivityAttemptWithholding
+	ActivityHeartbeat           = contract.ActivityHeartbeat
 	MaxOpcode                   = contract.MaxOpcode
 )
 

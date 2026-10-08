@@ -28,10 +28,21 @@ import io.temporal.api.workflowservice.v1.{
   StartActivityExecutionRequest
 }
 import io.temporal.api.activity.v1.ActivityExecutionInfo
+import io.temporal.api.common.v1.Payloads
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
-import temporal.server.api.testpilot.v1.{DeliveryAdmissionDecision, InstructionOutcome}
+import io.temporal.api.enums.v1.TimeoutType.TIMEOUT_TYPE_HEARTBEAT
+import temporal.server.api.testpilot.v1.{
+  ActivityAttempt,
+  ActivityAttemptResponse,
+  DeliveryAdmissionDecision,
+  InstructionOutcome
+}
 import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
+import temporal.server.api.testpilot.v1.ActivityAttemptResponse.{
+  ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
+  ACTIVITY_ATTEMPT_RESPONSE_PENDING
+}
 
 // Every call of the controller is made on the WorkflowService, in the run's namespace, of the
 // activity the run started under its own id.
@@ -66,6 +77,168 @@ private val readAttemptCount = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION) {
   read(Field[DescribeActivityExecutionResponse, ActivityExecutionInfo](_.getInfo), Cardinality.one)
     .into(publicAttemptCount)
 }
+
+private val rawHeartbeatDetails = Observed[Payloads](heartbeatDetails.name)
+private val readHeartbeatDetails = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION) {
+  field(_.includeHeartbeatDetails) := Operand.flag(true)
+  read(
+    Field[DescribeActivityExecutionResponse, Payloads](_.getInfo.getHeartbeatDetails),
+    Cardinality.one
+  )
+    .into(rawHeartbeatDetails)
+}
+
+private val heartbeatReceipt = Evidence.read(
+  id = evidenceId(system.Fact.heartbeatReceived),
+  records = system.Fact.heartbeatReceived,
+  source = sourceId(system.Fact.heartbeatReceived),
+  from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
+  operation = Field[ActivityExecutionInfo, String](_.activityId),
+  commitment = Commitment.reported,
+  fields = Vector(EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId)))
+)
+private val receivedHeartbeat = Condition.all(
+  Condition.greater(Field[ActivityExecutionInfo, Long](_.totalHeartbeatCount), Operand.number(0)),
+  Condition.present(Field[ActivityExecutionInfo, Option[Payloads]](_.heartbeatDetails))
+)
+private val awaitHeartbeatReceipt = await(heartbeatReceipt, calls)(receivedHeartbeat) {
+  field(_.includeHeartbeatDetails) := Operand.flag(true)
+}
+
+private val heartbeatFailure = Condition.equal(
+  Field[ActivityExecutionInfo, io.temporal.api.enums.v1.TimeoutType](
+    _.getLastFailure.getTimeoutFailureInfo.timeoutType
+  ),
+  Operand.enumValue(TIMEOUT_TYPE_HEARTBEAT)
+)
+private val heartbeatCompleted = Evidence.read(
+  id = evidenceId("heartbeatCompleted"),
+  records = system.Fact.statusCompleted,
+  source = sourceId("heartbeatCompleted"),
+  from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
+  operation = Field[ActivityExecutionInfo, String](_.activityId),
+  commitment = Commitment.reported,
+  fields = Vector(
+    EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId))
+  )
+)
+private val awaitHeartbeatRetryCompletion = await(heartbeatCompleted, calls)(
+  Condition.all(
+    Condition.equal(
+      Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
+      Operand.enumValue(ACTIVITY_EXECUTION_STATUS_COMPLETED)
+    ),
+    heartbeatFailure
+  )
+) {
+  field(_.includeLastFailure) := Operand.flag(true)
+}
+private val heartbeatExpired = Evidence.read(
+  id = evidenceId("heartbeatExpired"),
+  records = system.Fact.heartbeatTimedOut,
+  source = sourceId("heartbeatExpired"),
+  from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
+  operation = Field[ActivityExecutionInfo, String](_.activityId),
+  commitment = Commitment.reported,
+  fields = Vector(
+    EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId))
+  ),
+  confirms = Vector(Taking(deadline.heartbeat, 1))
+)
+private val awaitHeartbeatExpiration = await(heartbeatExpired, calls)(
+  Condition.all(
+    Condition.equal(
+      Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
+      Operand.enumValue(ACTIVITY_EXECUTION_STATUS_TIMED_OUT)
+    ),
+    heartbeatFailure
+  )
+) {
+  field(_.includeLastFailure) := Operand.flag(true)
+}
+private val readHeartbeatAttemptCount = readAttemptCount.withFields {
+  field(_.includeLastFailure) := Operand.flag(true)
+}
+
+private def heartbeatDelivered(attempts: Script, response: ActivityAttemptResponse) =
+  Evidence.runEvent(
+    id = evidenceId(system.Fact.statusStarted),
+    records = system.Fact.statusStarted,
+    source = runRecord,
+    from = Recorded.runEvent[InstructionOutcome](
+      EventKind.diagnostic,
+      controllerScript,
+      startActivity,
+      key = Operand.runKey(),
+      guard = Some(
+        Condition.all(
+          Condition.present(Field[InstructionOutcome, Option[ActivityAttempt]](_.activityAttempt)),
+          Condition.not(
+            Condition.equal(
+              Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
+              Operand.text("")
+            )
+          ),
+          Condition.equal(
+            Field[InstructionOutcome, ActivityAttemptResponse](_.getActivityAttempt.response),
+            Operand.enumValue(response)
+          ),
+          Condition.equal(
+            Field[InstructionOutcome, Boolean](_.getActivityAttempt.heartbeatInvoked),
+            Operand.flag(true)
+          )
+        )
+      ),
+      attempt = Some(AttemptOf(attempts, 1))
+    ),
+    commitment = Commitment.reported,
+    fields = Vector(
+      attemptField(Field(_.getActivityAttempt.sdkAttempt)),
+      deliveryField(Field(_.getActivityAttempt.deliveryId)),
+      activityRunField(Field(_.getActivityAttempt.activityRunId)),
+      EvidenceField.typed(
+        "heartbeatInvoked",
+        Field[InstructionOutcome, Boolean](_.getActivityAttempt.heartbeatInvoked)
+      )
+    ),
+    confirms = Vector(Taking(worker.poll, 1))
+  )
+
+private def heartbeatRetryDelivered(
+    attempts: Script,
+    id: String,
+    records: RealizationFact,
+    confirms: Taking*
+) = Evidence.runEvent(
+  id = id,
+  records = records,
+  source = runRecord,
+  from = Recorded.runEvent[InstructionOutcome](
+    EventKind.diagnostic,
+    controllerScript,
+    startActivity,
+    key = Operand.runKey(),
+    guard = Some(
+      Condition.all(
+        Condition.present(Field[InstructionOutcome, Option[ActivityAttempt]](_.activityAttempt)),
+        Condition.not(
+          Condition.equal(
+            Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
+            Operand.text("")
+          )
+        )
+      )
+    ),
+    attempt = Some(AttemptOf(attempts, 2))
+  ),
+  commitment = Commitment.reported,
+  fields = Vector(
+    attemptField(Field(_.getActivityAttempt.sdkAttempt)),
+    deliveryField(Field(_.getActivityAttempt.deliveryId)),
+    activityRunField(Field(_.getActivityAttempt.activityRunId))
+  ),
+  confirms = Vector(confirms*)
+)
 
 // ### The controller
 
@@ -156,6 +329,20 @@ private val timeoutAttempts = script(
   )
 )
 
+private val heartbeatPayloads = Proto[Payloads](
+  ProtoField.typed(Field(_.payloads), ProtoValue.messages(jsonPayload("heartbeat")))
+)
+private val heartbeatAttempt = attemptHeartbeat(heartbeatPayloads)
+private val pendingHeartbeatAttempt = attemptPending
+private val heartbeatAttempts = script(
+  "heartbeat-attempts",
+  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+)(
+  perform(worker.heartbeat -> heartbeatAttempt),
+  onPath(deadline.heartbeat)(pendingHeartbeatAttempt),
+  perform(worker.respondCompleted -> completeAttempt)
+)
+
 // The kind of the unpause's answer, which confirms that the activity was scheduled again.
 private val scheduledAgain = "statusScheduledAgain"
 
@@ -188,7 +375,8 @@ object Standalone
         )(
           startDelay.sets(_.getStartDelay),
           scheduleToStart.sets(_.getScheduleToStartTimeout),
-          startToClose.sets(_.getStartToCloseTimeout)
+          startToClose.sets(_.getStartToCloseTimeout),
+          heartbeat.sets(_.getHeartbeatTimeout)
         ),
         deadlines[StartActivityExecutionRequest](
           client.start(maxAttempts := MaxAttempts.one),
@@ -198,7 +386,8 @@ object Standalone
         )(
           startDelay.sets(_.getStartDelay),
           scheduleToStart.sets(_.getScheduleToStartTimeout),
-          startToClose.sets(_.getStartToCloseTimeout)
+          startToClose.sets(_.getStartToCloseTimeout),
+          heartbeat.sets(_.getHeartbeatTimeout)
         ),
         deadlines[StartActivityExecutionRequest](
           client.start(maxAttempts := MaxAttempts.two),
@@ -208,7 +397,8 @@ object Standalone
         )(
           startDelay.sets(_.getStartDelay),
           scheduleToStart.sets(_.getScheduleToStartTimeout),
-          startToClose.sets(_.getStartToCloseTimeout)
+          startToClose.sets(_.getStartToCloseTimeout),
+          heartbeat.sets(_.getHeartbeatTimeout)
         ),
         onPath(client.pause)(holdDispatchBeforePause),
         onPath(deadline.scheduleToStart)(holdDispatchBeforeTimeout),
@@ -283,7 +473,8 @@ object RetryAfterTimeout
         )(
           startDelay.sets(_.getStartDelay),
           scheduleToStart.sets(_.getScheduleToStartTimeout),
-          startToClose.sets(_.getStartToCloseTimeout)
+          startToClose.sets(_.getStartToCloseTimeout),
+          heartbeat.sets(_.getHeartbeatTimeout)
         ),
         onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted)),
         onPath(worker.respondFailed(Failure.retryable))(described.await(system.Fact.statusFailed)),
@@ -310,6 +501,118 @@ object RetryAfterTimeout
         ),
         described(system.Fact.statusCompleted),
         described(system.Fact.statusFailed)
+      )
+
+object HeartbeatThenCompletion
+    extends Realizes(
+      HeartbeatCompletion,
+      observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails)
+    ):
+  object controller
+      extends Controller(
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.unlimited),
+          startUnlimited,
+          duration(deadlineSeconds),
+          unset = Some(startToClose -> startUnreached)
+        )(
+          startDelay.sets(_.getStartDelay),
+          scheduleToStart.sets(_.getScheduleToStartTimeout),
+          startToClose.sets(_.getStartToCloseTimeout),
+          heartbeat.sets(_.getHeartbeatTimeout)
+        ),
+        onPath(worker.heartbeat)(awaitHeartbeatReceipt),
+        onPath(worker.heartbeat)(readHeartbeatDetails),
+        onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted)),
+        everyCase(readAttemptCount)
+      )
+  object workers extends Workers(heartbeatAttempts)
+  object evidence
+      extends Evidences(
+        answered(system.Fact.statusScheduled, startActivity),
+        heartbeatDelivered(heartbeatAttempts, ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED),
+        heartbeatReceipt,
+        described(system.Fact.statusCompleted),
+        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity)
+      )
+
+object RetryAfterHeartbeat
+    extends Realizes(
+      HeartbeatRetry,
+      observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails)
+    ):
+  object controller
+      extends Controller(
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.two),
+          startTwo,
+          duration(deadlineSeconds),
+          unset = Some(startToClose -> startTwoUnreached)
+        )(
+          startDelay.sets(_.getStartDelay),
+          scheduleToStart.sets(_.getScheduleToStartTimeout),
+          startToClose.sets(_.getStartToCloseTimeout),
+          heartbeat.sets(_.getHeartbeatTimeout)
+        ),
+        onPath(worker.heartbeat)(awaitHeartbeatReceipt),
+        onPath(worker.heartbeat)(readHeartbeatDetails),
+        onPath(worker.respondCompleted)(awaitHeartbeatRetryCompletion),
+        everyCase(readHeartbeatAttemptCount)
+      )
+  object workers extends Workers(heartbeatAttempts)
+  object evidence
+      extends Evidences(
+        answered(system.Fact.statusScheduled, startActivity),
+        heartbeatDelivered(heartbeatAttempts, ACTIVITY_ATTEMPT_RESPONSE_PENDING),
+        heartbeatReceipt,
+        heartbeatRetryDelivered(
+          heartbeatAttempts,
+          evidenceId(system.Fact.heartbeatTimedOut),
+          system.Fact.attemptCount,
+          Taking(deadline.heartbeat, 1),
+          Taking(worker.poll, 2)
+        ),
+        heartbeatCompleted,
+        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
+        heartbeatRetryDelivered(
+          heartbeatAttempts,
+          evidenceId("heartbeatTimedOutKind"),
+          system.Fact.heartbeatTimedOut
+        )
+      )
+
+object ExhaustAfterHeartbeat
+    extends Realizes(
+      HeartbeatExhaustion,
+      observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails)
+    ):
+  object controller
+      extends Controller(
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.one),
+          startOne,
+          duration(deadlineSeconds),
+          unset = Some(startToClose -> startOneUnreached)
+        )(
+          startDelay.sets(_.getStartDelay),
+          scheduleToStart.sets(_.getScheduleToStartTimeout),
+          startToClose.sets(_.getStartToCloseTimeout),
+          heartbeat.sets(_.getHeartbeatTimeout)
+        ),
+        onPath(worker.heartbeat)(awaitHeartbeatReceipt),
+        onPath(worker.heartbeat)(readHeartbeatDetails),
+        onPath(deadline.heartbeat)(awaitHeartbeatExpiration),
+        everyCase(readHeartbeatAttemptCount)
+      )
+  object workers extends Workers(heartbeatAttempts)
+  object evidence
+      extends Evidences(
+        answered(system.Fact.statusScheduled, startActivity),
+        heartbeatDelivered(heartbeatAttempts, ACTIVITY_ATTEMPT_RESPONSE_PENDING),
+        heartbeatReceipt,
+        heartbeatExpired,
+        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
+        described(everyValue(system.Fact.statusTimedOut))
       )
 
 // ### The held race

@@ -39,12 +39,15 @@ class ActivityDispatchRegression extends munit.FunSuite:
       .find(_.decl == client.start.decl)
       .get
       .function
-      .asInstanceOf[(system.State, Timeout, Timeout, Timeout, Timeout, MaxAttempts) => List[
-        Step[system.State, Outcome, system.Fact]
-      ]](
+      .asInstanceOf[
+        (system.State, Timeout, Timeout, Timeout, Timeout, Timeout, MaxAttempts) => List[
+          Step[system.State, Outcome, system.Fact]
+        ]
+      ](
         ActivitySystem.init,
         Timeout.expires,
         Timeout.expires,
+        Timeout.unset,
         Timeout.unset,
         Timeout.expires,
         MaxAttempts.unlimited
@@ -112,7 +115,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
   }
 
   test("every waiting dispatch maps to the Product's scheduled state") {
-    assertEquals(summon[Finite[system.State]].values.size, 2376)
+    assertEquals(summon[Finite[system.State]].values.size, 4752)
     for dispatch <- system.Dispatch.values do
       val waiting = ActivitySystem.init.copy(phase = system.Phase.scheduled, dispatch = dispatch)
       assertEquals(

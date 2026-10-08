@@ -131,6 +131,8 @@ func carrierOf(s *umpirespb.Script, c *umpirespb.Command, files *protoregistry.F
 		return &Carrier{Kind: "activity-answer", Message: respondFailed}, nil
 	case s.GetActivity() != nil && c.GetAttemptCanceled() != nil:
 		return &Carrier{Kind: "activity-answer", Message: respondCanceled}, nil
+	case s.GetActivity() != nil && c.GetAttemptHeartbeat() != nil:
+		return &Carrier{Kind: "activity-heartbeat", Method: "/temporal.api.workflowservice.v1.WorkflowService/RecordActivityTaskHeartbeat", Message: "temporal.api.workflowservice.v1.RecordActivityTaskHeartbeatRequest"}, nil
 	default:
 		return nil, nil
 	}

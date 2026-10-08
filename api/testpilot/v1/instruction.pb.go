@@ -12,10 +12,10 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
-	v11 "go.temporal.io/api/command/v1"
-	v13 "go.temporal.io/api/common/v1"
+	v12 "go.temporal.io/api/command/v1"
+	v11 "go.temporal.io/api/common/v1"
 	v1 "go.temporal.io/api/failure/v1"
-	v12 "go.temporal.io/api/nexus/v1"
+	v13 "go.temporal.io/api/nexus/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -87,6 +87,62 @@ func (x ReadCardinality) Number() protoreflect.EnumNumber {
 // Deprecated: Use ReadCardinality.Descriptor instead.
 func (ReadCardinality) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{0}
+}
+
+// The default retains SDK context-deadline withholding. Pending ends local execution with the
+// SDK's pending sentinel and offers no answer RPC; the server attempt remains unsettled.
+type ActivityWithholdingMode int32
+
+const (
+	ACTIVITY_WITHHOLDING_MODE_CONTEXT     ActivityWithholdingMode = 0
+	ACTIVITY_WITHHOLDING_MODE_SDK_PENDING ActivityWithholdingMode = 1
+)
+
+// Enum value maps for ActivityWithholdingMode.
+var (
+	ActivityWithholdingMode_name = map[int32]string{
+		0: "ACTIVITY_WITHHOLDING_MODE_CONTEXT",
+		1: "ACTIVITY_WITHHOLDING_MODE_SDK_PENDING",
+	}
+	ActivityWithholdingMode_value = map[string]int32{
+		"ACTIVITY_WITHHOLDING_MODE_CONTEXT":     0,
+		"ACTIVITY_WITHHOLDING_MODE_SDK_PENDING": 1,
+	}
+)
+
+func (x ActivityWithholdingMode) Enum() *ActivityWithholdingMode {
+	p := new(ActivityWithholdingMode)
+	*p = x
+	return p
+}
+
+func (x ActivityWithholdingMode) String() string {
+	switch x {
+	case ACTIVITY_WITHHOLDING_MODE_CONTEXT:
+		return "Context"
+	case ACTIVITY_WITHHOLDING_MODE_SDK_PENDING:
+		return "SdkPending"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (ActivityWithholdingMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[1].Descriptor()
+}
+
+func (ActivityWithholdingMode) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[1]
+}
+
+func (x ActivityWithholdingMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ActivityWithholdingMode.Descriptor instead.
+func (ActivityWithholdingMode) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{1}
 }
 
 // FaultKind names the deliberate outages and delivery controls a Driver can realize. The worker
@@ -162,11 +218,11 @@ func (x FaultKind) String() string {
 }
 
 func (FaultKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[1].Descriptor()
+	return file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[2].Descriptor()
 }
 
 func (FaultKind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[1]
+	return &file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[2]
 }
 
 func (x FaultKind) Number() protoreflect.EnumNumber {
@@ -175,7 +231,7 @@ func (x FaultKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use FaultKind.Descriptor instead.
 func (FaultKind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{1}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{2}
 }
 
 // InstructionOutcomeStatus classifies one instruction attempt. A protocol failure is a non-OK RPC
@@ -244,11 +300,11 @@ func (x InstructionOutcomeStatus) String() string {
 }
 
 func (InstructionOutcomeStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[2].Descriptor()
+	return file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[3].Descriptor()
 }
 
 func (InstructionOutcomeStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[2]
+	return &file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[3]
 }
 
 func (x InstructionOutcomeStatus) Number() protoreflect.EnumNumber {
@@ -257,7 +313,7 @@ func (x InstructionOutcomeStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use InstructionOutcomeStatus.Descriptor instead.
 func (InstructionOutcomeStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{3}
 }
 
 // InstructionNode is one node of an entrypoint's instruction graph: the instruction and when it runs.
@@ -487,6 +543,7 @@ type Instruction struct {
 	//	*Instruction_ActivityAttemptFailure
 	//	*Instruction_ActivityAttemptCancellation
 	//	*Instruction_ActivityAttemptWithholding
+	//	*Instruction_ActivityHeartbeat
 	Instruction   isInstruction_Instruction `protobuf_oneof:"instruction"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -637,6 +694,15 @@ func (x *Instruction) GetActivityAttemptWithholding() *ActivityAttemptWithholdin
 	return nil
 }
 
+func (x *Instruction) GetActivityHeartbeat() *ActivityHeartbeat {
+	if x != nil {
+		if x, ok := x.Instruction.(*Instruction_ActivityHeartbeat); ok {
+			return x.ActivityHeartbeat
+		}
+	}
+	return nil
+}
+
 type isInstruction_Instruction interface {
 	isInstruction_Instruction()
 }
@@ -689,6 +755,10 @@ type Instruction_ActivityAttemptWithholding struct {
 	ActivityAttemptWithholding *ActivityAttemptWithholding `protobuf:"bytes,12,opt,name=activity_attempt_withholding,json=activityAttemptWithholding,proto3,oneof"`
 }
 
+type Instruction_ActivityHeartbeat struct {
+	ActivityHeartbeat *ActivityHeartbeat `protobuf:"bytes,13,opt,name=activity_heartbeat,json=activityHeartbeat,proto3,oneof"`
+}
+
 func (*Instruction_InvokeRpc) isInstruction_Instruction() {}
 
 func (*Instruction_AwaitSlot) isInstruction_Instruction() {}
@@ -712,6 +782,8 @@ func (*Instruction_ActivityAttemptFailure) isInstruction_Instruction() {}
 func (*Instruction_ActivityAttemptCancellation) isInstruction_Instruction() {}
 
 func (*Instruction_ActivityAttemptWithholding) isInstruction_Instruction() {}
+
+func (*Instruction_ActivityHeartbeat) isInstruction_Instruction() {}
 
 // InvokeRpc calls one authorized unary gRPC method on an endpoint role. It builds the request from
 // assignments and reads declared values out of a successful response.
@@ -1237,7 +1309,8 @@ func (*ActivityAttemptCancellation) Descriptor() ([]byte, []int) {
 // server retries a timed-out attempt unless the retry policy is exhausted, so it is followed by the
 // entrypoint's next instruction or ends the activity.
 type ActivityAttemptWithholding struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Mode          ActivityWithholdingMode `protobuf:"varint,1,opt,name=mode,proto3,enum=temporal.server.api.testpilot.v1.ActivityWithholdingMode" json:"mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1272,6 +1345,59 @@ func (*ActivityAttemptWithholding) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{13}
 }
 
+func (x *ActivityAttemptWithholding) GetMode() ActivityWithholdingMode {
+	if x != nil {
+		return x.Mode
+	}
+	return ACTIVITY_WITHHOLDING_MODE_CONTEXT
+}
+
+// Invokes the SDK heartbeat for the currently delivered attempt. Its void return proves only
+// invocation, never server receipt. An activity group has at most one prefix and one disposition.
+type ActivityHeartbeat struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Details       *v11.Payloads          `protobuf:"bytes,1,opt,name=details,proto3" json:"details,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ActivityHeartbeat) Reset() {
+	*x = ActivityHeartbeat{}
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActivityHeartbeat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActivityHeartbeat) ProtoMessage() {}
+
+func (x *ActivityHeartbeat) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActivityHeartbeat.ProtoReflect.Descriptor instead.
+func (*ActivityHeartbeat) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ActivityHeartbeat) GetDetails() *v11.Payloads {
+	if x != nil {
+		return x.Details
+	}
+	return nil
+}
+
 // InjectFault asks the Driver for one deliberate outage or delivery control. role_id must name a
 // ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.
 type InjectFault struct {
@@ -1284,7 +1410,7 @@ type InjectFault struct {
 
 func (x *InjectFault) Reset() {
 	*x = InjectFault{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1296,7 +1422,7 @@ func (x *InjectFault) String() string {
 func (*InjectFault) ProtoMessage() {}
 
 func (x *InjectFault) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1309,7 +1435,7 @@ func (x *InjectFault) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InjectFault.ProtoReflect.Descriptor instead.
 func (*InjectFault) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{14}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *InjectFault) GetRoleId() string {
@@ -1336,14 +1462,14 @@ func (x *InjectFault) GetKind() FaultKind {
 // leave absent is the instruction's own timeout.
 type WorkflowCommand struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Command       *v11.Command           `protobuf:"bytes,1,opt,name=command,proto3" json:"command,omitempty"`
+	Command       *v12.Command           `protobuf:"bytes,1,opt,name=command,proto3" json:"command,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WorkflowCommand) Reset() {
 	*x = WorkflowCommand{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1355,7 +1481,7 @@ func (x *WorkflowCommand) String() string {
 func (*WorkflowCommand) ProtoMessage() {}
 
 func (x *WorkflowCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1368,10 +1494,10 @@ func (x *WorkflowCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowCommand.ProtoReflect.Descriptor instead.
 func (*WorkflowCommand) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{15}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *WorkflowCommand) GetCommand() *v11.Command {
+func (x *WorkflowCommand) GetCommand() *v12.Command {
 	if x != nil {
 		return x.Command
 	}
@@ -1398,7 +1524,7 @@ type NexusHandlerReply struct {
 
 func (x *NexusHandlerReply) Reset() {
 	*x = NexusHandlerReply{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1410,7 +1536,7 @@ func (x *NexusHandlerReply) String() string {
 func (*NexusHandlerReply) ProtoMessage() {}
 
 func (x *NexusHandlerReply) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1423,7 +1549,7 @@ func (x *NexusHandlerReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NexusHandlerReply.ProtoReflect.Descriptor instead.
 func (*NexusHandlerReply) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{16}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *NexusHandlerReply) GetReply() isNexusHandlerReply_Reply {
@@ -1433,7 +1559,7 @@ func (x *NexusHandlerReply) GetReply() isNexusHandlerReply_Reply {
 	return nil
 }
 
-func (x *NexusHandlerReply) GetResponse() *v12.StartOperationResponse {
+func (x *NexusHandlerReply) GetResponse() *v13.StartOperationResponse {
 	if x != nil {
 		if x, ok := x.Reply.(*NexusHandlerReply_Response); ok {
 			return x.Response
@@ -1442,7 +1568,7 @@ func (x *NexusHandlerReply) GetResponse() *v12.StartOperationResponse {
 	return nil
 }
 
-func (x *NexusHandlerReply) GetError() *v12.HandlerError {
+func (x *NexusHandlerReply) GetError() *v13.HandlerError {
 	if x != nil {
 		if x, ok := x.Reply.(*NexusHandlerReply_Error); ok {
 			return x.Error
@@ -1463,11 +1589,11 @@ type isNexusHandlerReply_Reply interface {
 }
 
 type NexusHandlerReply_Response struct {
-	Response *v12.StartOperationResponse `protobuf:"bytes,1,opt,name=response,proto3,oneof"`
+	Response *v13.StartOperationResponse `protobuf:"bytes,1,opt,name=response,proto3,oneof"`
 }
 
 type NexusHandlerReply_Error struct {
-	Error *v12.HandlerError `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
+	Error *v13.HandlerError `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
 }
 
 func (*NexusHandlerReply_Response) isNexusHandlerReply_Reply() {}
@@ -1491,7 +1617,7 @@ type NexusOperationCompletion struct {
 
 func (x *NexusOperationCompletion) Reset() {
 	*x = NexusOperationCompletion{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1503,7 +1629,7 @@ func (x *NexusOperationCompletion) String() string {
 func (*NexusOperationCompletion) ProtoMessage() {}
 
 func (x *NexusOperationCompletion) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1516,7 +1642,7 @@ func (x *NexusOperationCompletion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NexusOperationCompletion.ProtoReflect.Descriptor instead.
 func (*NexusOperationCompletion) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{17}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *NexusOperationCompletion) GetHandleSlotId() string {
@@ -1533,7 +1659,7 @@ func (x *NexusOperationCompletion) GetResult() isNexusOperationCompletion_Result
 	return nil
 }
 
-func (x *NexusOperationCompletion) GetPayload() *v13.Payload {
+func (x *NexusOperationCompletion) GetPayload() *v11.Payload {
 	if x != nil {
 		if x, ok := x.Result.(*NexusOperationCompletion_Payload); ok {
 			return x.Payload
@@ -1556,7 +1682,7 @@ type isNexusOperationCompletion_Result interface {
 }
 
 type NexusOperationCompletion_Payload struct {
-	Payload *v13.Payload `protobuf:"bytes,2,opt,name=payload,proto3,oneof"`
+	Payload *v11.Payload `protobuf:"bytes,2,opt,name=payload,proto3,oneof"`
 }
 
 type NexusOperationCompletion_Failure struct {
@@ -1593,7 +1719,7 @@ type ReadEvidence struct {
 
 func (x *ReadEvidence) Reset() {
 	*x = ReadEvidence{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[18]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1605,7 +1731,7 @@ func (x *ReadEvidence) String() string {
 func (*ReadEvidence) ProtoMessage() {}
 
 func (x *ReadEvidence) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[18]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1618,7 +1744,7 @@ func (x *ReadEvidence) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadEvidence.ProtoReflect.Descriptor instead.
 func (*ReadEvidence) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{18}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ReadEvidence) GetEvidenceId() string {
@@ -1682,7 +1808,7 @@ type InstructionLimits struct {
 
 func (x *InstructionLimits) Reset() {
 	*x = InstructionLimits{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[19]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1694,7 +1820,7 @@ func (x *InstructionLimits) String() string {
 func (*InstructionLimits) ProtoMessage() {}
 
 func (x *InstructionLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[19]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1707,7 +1833,7 @@ func (x *InstructionLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionLimits.ProtoReflect.Descriptor instead.
 func (*InstructionLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{19}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *InstructionLimits) GetTimeout() isInstructionLimits_Timeout {
@@ -1783,7 +1909,8 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x06source\x18\x02 \x01(\v20.temporal.server.api.testpilot.v1.SourceLocationR\x06source\x120\n" +
 	"\x14at_most_milliseconds\x18\x03 \x01(\x03R\x12atMostMilliseconds\"c\n" +
 	"\x05After\x12Z\n" +
-	"\finstructions\x18\x01 \x03(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\finstructions\"\xcc\t\n" +
+	"\finstructions\x18\x01 \x03(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\finstructions\"\xb2\n" +
+	"\n" +
 	"\vInstruction\x12L\n" +
 	"\n" +
 	"invoke_rpc\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.InvokeRpcH\x00R\tinvokeRpc\x12L\n" +
@@ -1799,7 +1926,8 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x18activity_attempt_failure\x18\n" +
 	" \x01(\v28.temporal.server.api.testpilot.v1.ActivityAttemptFailureH\x00R\x16activityAttemptFailure\x12\x83\x01\n" +
 	"\x1dactivity_attempt_cancellation\x18\v \x01(\v2=.temporal.server.api.testpilot.v1.ActivityAttemptCancellationH\x00R\x1bactivityAttemptCancellation\x12\x80\x01\n" +
-	"\x1cactivity_attempt_withholding\x18\f \x01(\v2<.temporal.server.api.testpilot.v1.ActivityAttemptWithholdingH\x00R\x1aactivityAttemptWithholdingB\r\n" +
+	"\x1cactivity_attempt_withholding\x18\f \x01(\v2<.temporal.server.api.testpilot.v1.ActivityAttemptWithholdingH\x00R\x1aactivityAttemptWithholding\x12d\n" +
+	"\x12activity_heartbeat\x18\r \x01(\v23.temporal.server.api.testpilot.v1.ActivityHeartbeatH\x00R\x11activityHeartbeatB\r\n" +
 	"\vinstruction\"\x8a\x02\n" +
 	"\tInvokeRpc\x12(\n" +
 	"\x10endpoint_role_id\x18\x01 \x01(\tR\x0eendpointRoleId\x12\x16\n" +
@@ -1827,8 +1955,11 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x06result\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x06result\"T\n" +
 	"\x16ActivityAttemptFailure\x12:\n" +
 	"\afailure\x18\x01 \x01(\v2 .temporal.api.failure.v1.FailureR\afailure\"\x1d\n" +
-	"\x1bActivityAttemptCancellation\"\x1c\n" +
-	"\x1aActivityAttemptWithholding\"g\n" +
+	"\x1bActivityAttemptCancellation\"k\n" +
+	"\x1aActivityAttemptWithholding\x12M\n" +
+	"\x04mode\x18\x01 \x01(\x0e29.temporal.server.api.testpilot.v1.ActivityWithholdingModeR\x04mode\"O\n" +
+	"\x11ActivityHeartbeat\x12:\n" +
+	"\adetails\x18\x01 \x01(\v2 .temporal.api.common.v1.PayloadsR\adetails\"g\n" +
 	"\vInjectFault\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
 	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"M\n" +
@@ -1861,7 +1992,10 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x0fReadCardinality\x12 \n" +
 	"\x1cREAD_CARDINALITY_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14READ_CARDINALITY_ONE\x10\x01\x12\x1e\n" +
-	"\x1aREAD_CARDINALITY_EMIT_EACH\x10\x02*\xc8\x01\n" +
+	"\x1aREAD_CARDINALITY_EMIT_EACH\x10\x02*k\n" +
+	"\x17ActivityWithholdingMode\x12%\n" +
+	"!ACTIVITY_WITHHOLDING_MODE_CONTEXT\x10\x00\x12)\n" +
+	"%ACTIVITY_WITHHOLDING_MODE_SDK_PENDING\x10\x01*\xc8\x01\n" +
 	"\tFaultKind\x12\x1a\n" +
 	"\x16FAULT_KIND_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16FAULT_KIND_WORKER_STOP\x10\x01\x12\x1c\n" +
@@ -1889,84 +2023,90 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP() []byt
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_temporal_server_api_testpilot_v1_instruction_proto_goTypes = []any{
 	(ReadCardinality)(0),                 // 0: temporal.server.api.testpilot.v1.ReadCardinality
-	(FaultKind)(0),                       // 1: temporal.server.api.testpilot.v1.FaultKind
-	(InstructionOutcomeStatus)(0),        // 2: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
-	(*InstructionNode)(nil),              // 3: temporal.server.api.testpilot.v1.InstructionNode
-	(*WaitHint)(nil),                     // 4: temporal.server.api.testpilot.v1.WaitHint
-	(*After)(nil),                        // 5: temporal.server.api.testpilot.v1.After
-	(*Instruction)(nil),                  // 6: temporal.server.api.testpilot.v1.Instruction
-	(*InvokeRpc)(nil),                    // 7: temporal.server.api.testpilot.v1.InvokeRpc
-	(*RequestAssignment)(nil),            // 8: temporal.server.api.testpilot.v1.RequestAssignment
-	(*ResponseRead)(nil),                 // 9: temporal.server.api.testpilot.v1.ResponseRead
-	(*ReadTarget)(nil),                   // 10: temporal.server.api.testpilot.v1.ReadTarget
-	(*AwaitSlot)(nil),                    // 11: temporal.server.api.testpilot.v1.AwaitSlot
-	(*AwaitInstruction)(nil),             // 12: temporal.server.api.testpilot.v1.AwaitInstruction
-	(*Finish)(nil),                       // 13: temporal.server.api.testpilot.v1.Finish
-	(*ActivityAttemptFailure)(nil),       // 14: temporal.server.api.testpilot.v1.ActivityAttemptFailure
-	(*ActivityAttemptCancellation)(nil),  // 15: temporal.server.api.testpilot.v1.ActivityAttemptCancellation
-	(*ActivityAttemptWithholding)(nil),   // 16: temporal.server.api.testpilot.v1.ActivityAttemptWithholding
-	(*InjectFault)(nil),                  // 17: temporal.server.api.testpilot.v1.InjectFault
-	(*WorkflowCommand)(nil),              // 18: temporal.server.api.testpilot.v1.WorkflowCommand
-	(*NexusHandlerReply)(nil),            // 19: temporal.server.api.testpilot.v1.NexusHandlerReply
-	(*NexusOperationCompletion)(nil),     // 20: temporal.server.api.testpilot.v1.NexusOperationCompletion
-	(*ReadEvidence)(nil),                 // 21: temporal.server.api.testpilot.v1.ReadEvidence
-	(*InstructionLimits)(nil),            // 22: temporal.server.api.testpilot.v1.InstructionLimits
-	(*Expression)(nil),                   // 23: temporal.server.api.testpilot.v1.Expression
-	(*SourceLocation)(nil),               // 24: temporal.server.api.testpilot.v1.SourceLocation
-	(*InstructionReference)(nil),         // 25: temporal.server.api.testpilot.v1.InstructionReference
-	(*CorrelatedEvidenceProjection)(nil), // 26: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
-	(*v1.Failure)(nil),                   // 27: temporal.api.failure.v1.Failure
-	(*v11.Command)(nil),                  // 28: temporal.api.command.v1.Command
-	(*v12.StartOperationResponse)(nil),   // 29: temporal.api.nexus.v1.StartOperationResponse
-	(*v12.HandlerError)(nil),             // 30: temporal.api.nexus.v1.HandlerError
-	(*v13.Payload)(nil),                  // 31: temporal.api.common.v1.Payload
+	(ActivityWithholdingMode)(0),         // 1: temporal.server.api.testpilot.v1.ActivityWithholdingMode
+	(FaultKind)(0),                       // 2: temporal.server.api.testpilot.v1.FaultKind
+	(InstructionOutcomeStatus)(0),        // 3: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	(*InstructionNode)(nil),              // 4: temporal.server.api.testpilot.v1.InstructionNode
+	(*WaitHint)(nil),                     // 5: temporal.server.api.testpilot.v1.WaitHint
+	(*After)(nil),                        // 6: temporal.server.api.testpilot.v1.After
+	(*Instruction)(nil),                  // 7: temporal.server.api.testpilot.v1.Instruction
+	(*InvokeRpc)(nil),                    // 8: temporal.server.api.testpilot.v1.InvokeRpc
+	(*RequestAssignment)(nil),            // 9: temporal.server.api.testpilot.v1.RequestAssignment
+	(*ResponseRead)(nil),                 // 10: temporal.server.api.testpilot.v1.ResponseRead
+	(*ReadTarget)(nil),                   // 11: temporal.server.api.testpilot.v1.ReadTarget
+	(*AwaitSlot)(nil),                    // 12: temporal.server.api.testpilot.v1.AwaitSlot
+	(*AwaitInstruction)(nil),             // 13: temporal.server.api.testpilot.v1.AwaitInstruction
+	(*Finish)(nil),                       // 14: temporal.server.api.testpilot.v1.Finish
+	(*ActivityAttemptFailure)(nil),       // 15: temporal.server.api.testpilot.v1.ActivityAttemptFailure
+	(*ActivityAttemptCancellation)(nil),  // 16: temporal.server.api.testpilot.v1.ActivityAttemptCancellation
+	(*ActivityAttemptWithholding)(nil),   // 17: temporal.server.api.testpilot.v1.ActivityAttemptWithholding
+	(*ActivityHeartbeat)(nil),            // 18: temporal.server.api.testpilot.v1.ActivityHeartbeat
+	(*InjectFault)(nil),                  // 19: temporal.server.api.testpilot.v1.InjectFault
+	(*WorkflowCommand)(nil),              // 20: temporal.server.api.testpilot.v1.WorkflowCommand
+	(*NexusHandlerReply)(nil),            // 21: temporal.server.api.testpilot.v1.NexusHandlerReply
+	(*NexusOperationCompletion)(nil),     // 22: temporal.server.api.testpilot.v1.NexusOperationCompletion
+	(*ReadEvidence)(nil),                 // 23: temporal.server.api.testpilot.v1.ReadEvidence
+	(*InstructionLimits)(nil),            // 24: temporal.server.api.testpilot.v1.InstructionLimits
+	(*Expression)(nil),                   // 25: temporal.server.api.testpilot.v1.Expression
+	(*SourceLocation)(nil),               // 26: temporal.server.api.testpilot.v1.SourceLocation
+	(*InstructionReference)(nil),         // 27: temporal.server.api.testpilot.v1.InstructionReference
+	(*CorrelatedEvidenceProjection)(nil), // 28: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
+	(*v1.Failure)(nil),                   // 29: temporal.api.failure.v1.Failure
+	(*v11.Payloads)(nil),                 // 30: temporal.api.common.v1.Payloads
+	(*v12.Command)(nil),                  // 31: temporal.api.command.v1.Command
+	(*v13.StartOperationResponse)(nil),   // 32: temporal.api.nexus.v1.StartOperationResponse
+	(*v13.HandlerError)(nil),             // 33: temporal.api.nexus.v1.HandlerError
+	(*v11.Payload)(nil),                  // 34: temporal.api.common.v1.Payload
 }
 var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
-	6,  // 0: temporal.server.api.testpilot.v1.InstructionNode.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
-	5,  // 1: temporal.server.api.testpilot.v1.InstructionNode.after:type_name -> temporal.server.api.testpilot.v1.After
-	23, // 2: temporal.server.api.testpilot.v1.InstructionNode.guard:type_name -> temporal.server.api.testpilot.v1.Expression
-	22, // 3: temporal.server.api.testpilot.v1.InstructionNode.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
-	4,  // 4: temporal.server.api.testpilot.v1.InstructionNode.wait_hints:type_name -> temporal.server.api.testpilot.v1.WaitHint
-	24, // 5: temporal.server.api.testpilot.v1.WaitHint.source:type_name -> temporal.server.api.testpilot.v1.SourceLocation
-	25, // 6: temporal.server.api.testpilot.v1.After.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	7,  // 7: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRpc
-	11, // 8: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
-	12, // 9: temporal.server.api.testpilot.v1.Instruction.await_instruction:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
-	13, // 10: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
-	17, // 11: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
-	18, // 12: temporal.server.api.testpilot.v1.Instruction.workflow_command:type_name -> temporal.server.api.testpilot.v1.WorkflowCommand
-	19, // 13: temporal.server.api.testpilot.v1.Instruction.nexus_handler_reply:type_name -> temporal.server.api.testpilot.v1.NexusHandlerReply
-	20, // 14: temporal.server.api.testpilot.v1.Instruction.nexus_operation_completion:type_name -> temporal.server.api.testpilot.v1.NexusOperationCompletion
-	21, // 15: temporal.server.api.testpilot.v1.Instruction.read_evidence:type_name -> temporal.server.api.testpilot.v1.ReadEvidence
-	14, // 16: temporal.server.api.testpilot.v1.Instruction.activity_attempt_failure:type_name -> temporal.server.api.testpilot.v1.ActivityAttemptFailure
-	15, // 17: temporal.server.api.testpilot.v1.Instruction.activity_attempt_cancellation:type_name -> temporal.server.api.testpilot.v1.ActivityAttemptCancellation
-	16, // 18: temporal.server.api.testpilot.v1.Instruction.activity_attempt_withholding:type_name -> temporal.server.api.testpilot.v1.ActivityAttemptWithholding
-	8,  // 19: temporal.server.api.testpilot.v1.InvokeRpc.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
-	9,  // 20: temporal.server.api.testpilot.v1.InvokeRpc.response_reads:type_name -> temporal.server.api.testpilot.v1.ResponseRead
-	23, // 21: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.Expression
-	0,  // 22: temporal.server.api.testpilot.v1.ResponseRead.cardinality:type_name -> temporal.server.api.testpilot.v1.ReadCardinality
-	10, // 23: temporal.server.api.testpilot.v1.ResponseRead.targets:type_name -> temporal.server.api.testpilot.v1.ReadTarget
-	26, // 24: temporal.server.api.testpilot.v1.ReadTarget.correlated_evidence:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
-	25, // 25: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	23, // 26: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.Expression
-	27, // 27: temporal.server.api.testpilot.v1.ActivityAttemptFailure.failure:type_name -> temporal.api.failure.v1.Failure
-	1,  // 28: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	28, // 29: temporal.server.api.testpilot.v1.WorkflowCommand.command:type_name -> temporal.api.command.v1.Command
-	29, // 30: temporal.server.api.testpilot.v1.NexusHandlerReply.response:type_name -> temporal.api.nexus.v1.StartOperationResponse
-	30, // 31: temporal.server.api.testpilot.v1.NexusHandlerReply.error:type_name -> temporal.api.nexus.v1.HandlerError
-	31, // 32: temporal.server.api.testpilot.v1.NexusOperationCompletion.payload:type_name -> temporal.api.common.v1.Payload
-	27, // 33: temporal.server.api.testpilot.v1.NexusOperationCompletion.failure:type_name -> temporal.api.failure.v1.Failure
-	8,  // 34: temporal.server.api.testpilot.v1.ReadEvidence.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
-	23, // 35: temporal.server.api.testpilot.v1.ReadEvidence.until:type_name -> temporal.server.api.testpilot.v1.Expression
-	36, // [36:36] is the sub-list for method output_type
-	36, // [36:36] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	7,  // 0: temporal.server.api.testpilot.v1.InstructionNode.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
+	6,  // 1: temporal.server.api.testpilot.v1.InstructionNode.after:type_name -> temporal.server.api.testpilot.v1.After
+	25, // 2: temporal.server.api.testpilot.v1.InstructionNode.guard:type_name -> temporal.server.api.testpilot.v1.Expression
+	24, // 3: temporal.server.api.testpilot.v1.InstructionNode.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
+	5,  // 4: temporal.server.api.testpilot.v1.InstructionNode.wait_hints:type_name -> temporal.server.api.testpilot.v1.WaitHint
+	26, // 5: temporal.server.api.testpilot.v1.WaitHint.source:type_name -> temporal.server.api.testpilot.v1.SourceLocation
+	27, // 6: temporal.server.api.testpilot.v1.After.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	8,  // 7: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRpc
+	12, // 8: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
+	13, // 9: temporal.server.api.testpilot.v1.Instruction.await_instruction:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
+	14, // 10: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
+	19, // 11: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
+	20, // 12: temporal.server.api.testpilot.v1.Instruction.workflow_command:type_name -> temporal.server.api.testpilot.v1.WorkflowCommand
+	21, // 13: temporal.server.api.testpilot.v1.Instruction.nexus_handler_reply:type_name -> temporal.server.api.testpilot.v1.NexusHandlerReply
+	22, // 14: temporal.server.api.testpilot.v1.Instruction.nexus_operation_completion:type_name -> temporal.server.api.testpilot.v1.NexusOperationCompletion
+	23, // 15: temporal.server.api.testpilot.v1.Instruction.read_evidence:type_name -> temporal.server.api.testpilot.v1.ReadEvidence
+	15, // 16: temporal.server.api.testpilot.v1.Instruction.activity_attempt_failure:type_name -> temporal.server.api.testpilot.v1.ActivityAttemptFailure
+	16, // 17: temporal.server.api.testpilot.v1.Instruction.activity_attempt_cancellation:type_name -> temporal.server.api.testpilot.v1.ActivityAttemptCancellation
+	17, // 18: temporal.server.api.testpilot.v1.Instruction.activity_attempt_withholding:type_name -> temporal.server.api.testpilot.v1.ActivityAttemptWithholding
+	18, // 19: temporal.server.api.testpilot.v1.Instruction.activity_heartbeat:type_name -> temporal.server.api.testpilot.v1.ActivityHeartbeat
+	9,  // 20: temporal.server.api.testpilot.v1.InvokeRpc.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
+	10, // 21: temporal.server.api.testpilot.v1.InvokeRpc.response_reads:type_name -> temporal.server.api.testpilot.v1.ResponseRead
+	25, // 22: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.Expression
+	0,  // 23: temporal.server.api.testpilot.v1.ResponseRead.cardinality:type_name -> temporal.server.api.testpilot.v1.ReadCardinality
+	11, // 24: temporal.server.api.testpilot.v1.ResponseRead.targets:type_name -> temporal.server.api.testpilot.v1.ReadTarget
+	28, // 25: temporal.server.api.testpilot.v1.ReadTarget.correlated_evidence:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
+	27, // 26: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	25, // 27: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.Expression
+	29, // 28: temporal.server.api.testpilot.v1.ActivityAttemptFailure.failure:type_name -> temporal.api.failure.v1.Failure
+	1,  // 29: temporal.server.api.testpilot.v1.ActivityAttemptWithholding.mode:type_name -> temporal.server.api.testpilot.v1.ActivityWithholdingMode
+	30, // 30: temporal.server.api.testpilot.v1.ActivityHeartbeat.details:type_name -> temporal.api.common.v1.Payloads
+	2,  // 31: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	31, // 32: temporal.server.api.testpilot.v1.WorkflowCommand.command:type_name -> temporal.api.command.v1.Command
+	32, // 33: temporal.server.api.testpilot.v1.NexusHandlerReply.response:type_name -> temporal.api.nexus.v1.StartOperationResponse
+	33, // 34: temporal.server.api.testpilot.v1.NexusHandlerReply.error:type_name -> temporal.api.nexus.v1.HandlerError
+	34, // 35: temporal.server.api.testpilot.v1.NexusOperationCompletion.payload:type_name -> temporal.api.common.v1.Payload
+	29, // 36: temporal.server.api.testpilot.v1.NexusOperationCompletion.failure:type_name -> temporal.api.failure.v1.Failure
+	9,  // 37: temporal.server.api.testpilot.v1.ReadEvidence.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
+	25, // 38: temporal.server.api.testpilot.v1.ReadEvidence.until:type_name -> temporal.server.api.testpilot.v1.Expression
+	39, // [39:39] is the sub-list for method output_type
+	39, // [39:39] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_instruction_proto_init() }
@@ -1990,21 +2130,22 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 		(*Instruction_ActivityAttemptFailure)(nil),
 		(*Instruction_ActivityAttemptCancellation)(nil),
 		(*Instruction_ActivityAttemptWithholding)(nil),
+		(*Instruction_ActivityHeartbeat)(nil),
 	}
 	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[7].OneofWrappers = []any{
 		(*ReadTarget_SlotId)(nil),
 		(*ReadTarget_ObservationId)(nil),
 		(*ReadTarget_CorrelatedEvidence)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17].OneofWrappers = []any{
 		(*NexusHandlerReply_Response)(nil),
 		(*NexusHandlerReply_Error)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[18].OneofWrappers = []any{
 		(*NexusOperationCompletion_Payload)(nil),
 		(*NexusOperationCompletion_Failure)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[19].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[20].OneofWrappers = []any{
 		(*InstructionLimits_TimeoutMilliseconds)(nil),
 		(*InstructionLimits_MaxAttempts)(nil),
 	}
@@ -2013,8 +2154,8 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   20,
+			NumEnums:      4,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

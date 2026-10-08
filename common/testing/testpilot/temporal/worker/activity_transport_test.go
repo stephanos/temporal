@@ -16,12 +16,14 @@ import (
 	failurepb "go.temporal.io/api/failure/v1"
 	namespacepb "go.temporal.io/api/namespace/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
+	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"google.golang.org/grpc"
@@ -191,7 +193,9 @@ func transportSession(t *testing.T, shape func(*testpilotspb.Program)) (*fronten
 	require.NoError(t, err)
 	t.Cleanup(sdk.Close)
 
-	prepared := preparedActivityFixture(t, shape)
+	prepared := preparedActivityFixture(t, shape, func(profile *testpilot.ProfileSpec) {
+		profile.Opcodes = append(profile.Opcodes, testpilot.ActivityAttemptWithholding)
+	})
 	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
 	host, err := New(Options{
@@ -255,6 +259,104 @@ func TestTransportTemporalIsToldWhatEachDeclaredAttemptDoes(t *testing.T) {
 	requireAnswer(t, completion, server.answer(t))
 	require.Empty(t, server.canceled)
 	require.NoError(t, session.Close(t.Context()))
+}
+
+func TestTransportActivityHeartbeatRunsInItsAttempt(t *testing.T) {
+	details := &commonpb.Payloads{Payloads: []*commonpb.Payload{
+		{Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte{1, 2, 3}},
+		{Metadata: map[string][]byte{"encoding": []byte("json/plain")}, Data: []byte(`"heartbeat"`)},
+	}}
+	for _, pending := range []bool{false, true} {
+		t.Run(map[bool]string{false: "complete", true: "pending then retry"}[pending], func(t *testing.T) {
+			server, session, task := transportSession(t, func(program *testpilotspb.Program) {
+				standaloneActivity(program)
+				program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = append(
+					program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments,
+					durationAssignment("heartbeat_timeout", 1),
+				)
+				heartbeat := &testpilotspb.InstructionNode{InstructionId: "heartbeat", Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityHeartbeat{ActivityHeartbeat: &testpilotspb.ActivityHeartbeat{Details: proto.CloneOf(details)}}}}
+				finish := program.Entrypoints[1].Instructions[0]
+				program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{heartbeat, finish}
+				if pending {
+					withheld := &testpilotspb.InstructionNode{InstructionId: "pending", Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{Mode: testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING}}}}
+					program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{heartbeat, withheld, finish}
+				}
+			})
+			firstTask := task("token-1", 1)
+			firstTask.HeartbeatTimeout = durationpb.New(time.Second)
+			server.tasks <- firstTask
+			bounded, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+			defer cancel()
+			select {
+			case <-bounded.Done():
+				require.FailNow(t, "the worker sent no declared heartbeat")
+			case heartbeat := <-server.heartbeats:
+				require.Equal(t, []byte("token-1"), heartbeat.GetTaskToken())
+				require.True(t, proto.Equal(details, heartbeat.GetDetails()), heartbeat)
+			}
+			require.NoError(t, session.reservations["reservation-1"].Drain(bounded))
+			first, err := settledAttempt(t, session, "reservation-1")
+			require.NoError(t, err)
+			response := testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED
+			if pending {
+				response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING
+				require.Empty(t, server.completed)
+				require.Empty(t, server.failed)
+				require.Empty(t, server.canceled)
+				replay := delivery.ActivityDelivery{Header: firstTask.Header, Namespace: "namespace", ActivityID: "activity-id", ActivityType: "activity-type", TaskQueue: "task-queue", ActivityRunID: "activity-run", Attempt: 1, DeliveryID: tokenDigest("token-1")}
+				result, replayErr := activityWorker(session.host, session.definition).activateActivity(bounded, replay, func(context.Context) (interface{}, error) {
+					t.Fatal("a duplicate pending delivery executed the activity again")
+					return nil, nil
+				})
+				require.Nil(t, result)
+				require.Same(t, activity.ErrResultPending, replayErr)
+				server.tasks <- task("token-2", 2)
+				requireAnswer(t, sent{Response: "completed", Token: "token-2", Result: textResult("done")}, server.answer(t))
+				second, err := settledAttempt(t, session, "reservation-2")
+				require.NoError(t, err)
+				requireOutcome(t, answered("activity-run", 2, tokenDigest("token-2"), completed), second)
+			} else {
+				requireAnswer(t, sent{Response: "completed", Token: "token-1", Result: textResult("done")}, server.answer(t))
+				server.tasks <- firstTask
+				requireAnswer(t, sent{Response: "completed", Token: "token-1", Result: textResult("done")}, server.answer(t))
+			}
+			want := answered("activity-run", 1, tokenDigest("token-1"), response)
+			want.ActivityAttempt.HeartbeatInvoked = true
+			requireOutcome(t, want, first)
+			require.NoError(t, session.Close(bounded))
+			require.Empty(t, server.heartbeats)
+			require.Empty(t, server.completed)
+			require.Empty(t, server.failed)
+			require.Empty(t, server.canceled)
+		})
+	}
+}
+
+func TestTransportUnarmedPendingIsRefusedBeforeHeartbeat(t *testing.T) {
+	server, session, task := transportSession(t, func(program *testpilotspb.Program) {
+		standaloneActivity(program)
+		start := program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc()
+		start.RequestAssignments = append(start.RequestAssignments, durationAssignment("heartbeat_timeout", 1))
+		program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{
+			{InstructionId: "heartbeat", Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityHeartbeat{ActivityHeartbeat: &testpilotspb.ActivityHeartbeat{Details: &commonpb.Payloads{}}}}},
+			{InstructionId: "pending", Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{Mode: testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING}}}},
+		}
+	})
+	// The request declared a positive heartbeat timeout; the actual delivery did not carry it.
+	server.tasks <- task("unarmed-token", 1)
+	answer := server.answer(t)
+	require.Equal(t, "failed", answer.Response)
+	require.Equal(t, "unarmed-token", answer.Token)
+	require.Equal(t, activationErrorType, answer.Failure.GetApplicationFailureInfo().GetType())
+	bounded, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	defer cancel()
+	require.NoError(t, session.reservations["reservation-1"].Drain(bounded))
+	outcome, err := settledAttempt(t, session, "reservation-1")
+	require.NoError(t, err)
+	require.Equal(t, testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED, outcome.Outcome.GetActivityAttempt().GetResponse())
+	require.False(t, outcome.Outcome.GetActivityAttempt().GetHeartbeatInvoked())
+	require.Empty(t, server.heartbeats)
+	require.NoError(t, session.Close(bounded))
 }
 
 // The worker offers a non-retryable declared failure and then asks the server, by the activity's

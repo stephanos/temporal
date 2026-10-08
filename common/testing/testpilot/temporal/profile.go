@@ -241,10 +241,18 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 			if err := implementsNumbering(entrypoint.GetEntrypointId(), activity.GetAttemptNumbering()); err != nil {
 				return nil, err
 			}
+			var attempts int64
+			for _, instruction := range entrypoint.GetInstructions() {
+				switch testpilot.InstructionOpcode(instruction.GetInstruction()) {
+				case testpilot.Finish, testpilot.ActivityAttemptFailure, testpilot.ActivityAttemptCancellation, testpilot.ActivityAttemptWithholding:
+					attempts++
+				default:
+				}
+			}
 			if scheduled[scheduledActivity{activityType: activity.GetActivityType(), queueRole: activity.GetTaskQueueRoleId()}] {
-				usage.scheduledAttempts += int64(len(entrypoint.GetInstructions()))
+				usage.scheduledAttempts += attempts
 			} else {
-				usage.reservable[kind] += int64(len(entrypoint.GetInstructions()))
+				usage.reservable[kind] += attempts
 			}
 		default:
 		}

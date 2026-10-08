@@ -111,8 +111,29 @@ func init() {
 		},
 		contract.ActivityAttemptWithholding: {
 			arm: "activity_attempt_withholding", context: contract.ActivityEntrypoint,
-			// A withheld answer carries nothing to bind.
-			bind: func(*admission, *graph, int, *node) error { return nil },
+			bind: func(_ *admission, g *graph, _ int, n *node) error {
+				switch n.source.Instruction.GetActivityAttemptWithholding().GetMode() {
+				case testpilotspb.ACTIVITY_WITHHOLDING_MODE_CONTEXT, testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING:
+					return nil
+				default:
+					return ir.Invalid(ir.Unsupported, nodePath(g, n), "unknown activity withholding mode")
+				}
+			},
+		},
+		contract.ActivityHeartbeat: {
+			arm: "activity_heartbeat", context: contract.ActivityEntrypoint,
+			bind: func(a *admission, g *graph, _ int, n *node) error {
+				details := n.source.Instruction.GetActivityHeartbeat().GetDetails()
+				if int64(proto.Size(details)) > a.prepared.limits.GetMaxRequestBytes() {
+					return ir.Invalid(ir.Unsupported, nodePath(g, n), "activity heartbeat details exceed the request byte ceiling")
+				}
+				for _, payload := range details.GetPayloads() {
+					if payload == nil {
+						return ir.Invalid(ir.Malformed, nodePath(g, n), "activity heartbeat details contain a missing payload")
+					}
+				}
+				return nil
+			},
 		},
 	}
 }

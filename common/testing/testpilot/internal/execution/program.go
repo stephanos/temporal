@@ -134,14 +134,15 @@ func (p *PreparedProgram) ReservationCarrier(entrypointID, instructionID string)
 }
 
 type graph struct {
-	runtimeWork int64
-	id          string
-	context     contract.EntrypointKind
-	cleanup     bool
-	activation  *testpilotspb.Entrypoint
-	nodes       []*node
-	index       map[string]int
-	order       []int
+	runtimeWork      int64
+	id               string
+	context          contract.EntrypointKind
+	cleanup          bool
+	activation       *testpilotspb.Entrypoint
+	nodes            []*node
+	index            map[string]int
+	order            []int
+	activityAttempts [][]int
 }
 type node struct {
 	source                   *testpilotspb.InstructionNode
@@ -312,6 +313,16 @@ func (p EntrypointPlan) Activation() *testpilotspb.Entrypoint {
 	return proto.CloneOf(p.graph.activation)
 }
 func (p EntrypointPlan) Order() []int { return slices.Clone(p.graph.order) }
+
+// ActivityAttempts returns the linear instruction groups of an activity script, copied so callers
+// cannot change the prepared plan. Each group has zero or one heartbeat and one terminal disposition.
+func (p EntrypointPlan) ActivityAttempts() [][]int {
+	result := slices.Clone(p.graph.activityAttempts)
+	for i := range result {
+		result[i] = slices.Clone(result[i])
+	}
+	return result
+}
 func (p EntrypointPlan) Instructions() []InstructionPlan {
 	result := make([]InstructionPlan, len(p.graph.nodes))
 	for i, n := range p.graph.nodes {

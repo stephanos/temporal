@@ -603,6 +603,13 @@ func (a *realizing) withholding(s *umpirespb.Script, item *umpirespb.Item) {
 	}
 	for _, step := range a.r.GetServerSteps() {
 		if a.d.ClassKey(step.GetStep()) == key && step.GetKind() == umpirespb.CAUSE_KIND_TIMER && step.GetDeadlineMs() > 0 {
+			mode, basis := item.GetCommand().GetAttemptWithheld().GetMode(), step.GetTimeoutBasis()
+			valid := mode == umpirespb.WITHHOLDING_MODE_CONTEXT && (basis == umpirespb.TIMEOUT_BASIS_START_TO_CLOSE || basis == umpirespb.TIMEOUT_BASIS_SCHEDULE_TO_CLOSE) ||
+				mode == umpirespb.WITHHOLDING_MODE_SDK_PENDING && basis == umpirespb.TIMEOUT_BASIS_HEARTBEAT
+			if !valid {
+				a.report(at, "command %s has no compatible timeout basis for its withholding mode", item.GetCommand().GetId())
+				return
+			}
 			a.withheldTimers[scoped] = item.GetCommand().GetId()
 			return
 		}
@@ -757,6 +764,17 @@ func (a *realizing) command(s *umpirespb.Script, c commandOf, all map[string]*um
 		if s.GetActivity() == nil {
 			a.report(c.at, "command %s withholds an attempt, and script %s is no activity's", c.name, s.GetId())
 		}
+		if _, known := umpirespb.WithholdingMode_name[int32(in.AttemptWithheld.GetMode())]; !known {
+			a.report(c.at, "command %s has no known withholding mode", c.name)
+		}
+	case *umpirespb.Command_AttemptHeartbeat:
+		if s.GetActivity() == nil {
+			a.report(c.at, "command %s heartbeats an attempt, and script %s is no activity's", c.name, s.GetId())
+		}
+		if in.AttemptHeartbeat.GetDetails().GetMessage() != "temporal.api.common.v1.Payloads" {
+			a.report(c.at, "command %s heartbeat details are not temporal.api.common.v1.Payloads", c.name)
+		}
+		a.message(c, in.AttemptHeartbeat.GetDetails())
 	default:
 		a.report(c.at, "command %s names no instruction", c.name)
 	}
@@ -971,6 +989,17 @@ func (a *realizing) protoValue(c commandOf, field string, value *umpirespb.Proto
 		*umpirespb.ProtoValue_EnumName, *umpirespb.ProtoValue_Utf8, *umpirespb.ProtoValue_Named:
 	case *umpirespb.ProtoValue_Message:
 		a.message(c, k.Message)
+	case *umpirespb.ProtoValue_Messages:
+		if k.Messages == nil {
+			a.report(c.at, "command %s: %s has no message list", c.name, field)
+		}
+		for i, value := range k.Messages.GetValues() {
+			if value == nil {
+				a.report(c.at, "command %s: %s has no message at position %d", c.name, field, i+1)
+				continue
+			}
+			a.message(c, value)
+		}
 	case *umpirespb.ProtoValue_Mapping:
 		keys := map[string]bool{}
 		for _, e := range k.Mapping.GetEntries() {

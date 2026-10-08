@@ -132,6 +132,11 @@ declarations and the causal run order above:
   Each reservation's outcome is judged by it, and preparation refuses an activity entrypoint that
   declares none, or a first number below 1. A Driver may refuse a numbering it cannot route: the
   Temporal Driver routes only attempts numbered from 1 in one run.
+- **Activity groups.** An activity script admits a linear sequence of groups, each with at most
+  one heartbeat prefix and exactly one Finish, failure, cancellation or withholding disposition.
+  The immutable `EntrypointPlan.ActivityAttempts()` exposes their instruction indexes. Reservation
+  counts follow groups, while node and edge ceilings still charge every instruction. A local
+  heartbeat marker proves SDK invocation only; a `PENDING` outcome proves no server acceptance.
 - **Instruction limits.** An instruction's timeout and attempts are each its own `limits`, else the
   Program's declared `instruction_defaults`, else the Profile's `InstructionDefaults`; an
   instruction none of them covers is refused at preparation. A Temporal Case declares its defaults,

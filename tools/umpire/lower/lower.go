@@ -381,7 +381,9 @@ func (l *lowering) attemptClasses(s *umpirespb.Script) (started, answered map[st
 			}
 		}
 		for _, performance := range item.GetPerforms() {
-			answered[l.adapter.classKey(performance.GetStep())] = true
+			if performance.GetCommand().GetAttemptHeartbeat() == nil {
+				answered[l.adapter.classKey(performance.GetStep())] = true
+			}
 		}
 	}
 	return started, answered
@@ -586,7 +588,43 @@ func (l *lowering) late() []Unsupported {
 		_, answered := l.attemptClasses(s)
 		for at, key := range l.keys {
 			if answered[key] {
-				answers[s.GetId()] = append(answers[s.GetId()], at)
+				publishedAt := at
+				for _, item := range s.GetItems() {
+					withheld := item.GetCommand().GetAttemptWithheld()
+					pending := withheld != nil && withheld.GetMode() == umpirespb.WITHHOLDING_MODE_SDK_PENDING && l.adapter.classKey(item.GetWhen()[0]) == key
+					finish := slices.ContainsFunc(item.GetPerforms(), func(p *umpirespb.Performance) bool {
+						return p.GetCommand().GetFinish() != nil && l.adapter.classKey(p.GetStep()) == key
+					})
+					if !pending && !finish {
+						continue
+					}
+					startAt := at
+					for before := at - 1; before >= 0; before-- {
+						if slices.ContainsFunc(s.GetActivity().GetStarts(), func(start *umpirespb.ActionClass) bool { return l.adapter.classKey(start) == l.keys[before] }) {
+							startAt = before
+							break
+						}
+					}
+					if pending {
+						publishedAt = startAt
+					}
+					// The local group settles before the SDK's later accepted answer or server timer.
+					for _, prefix := range s.GetItems() {
+						for _, performance := range prefix.GetPerforms() {
+							if performance.GetCommand().GetAttemptHeartbeat() == nil {
+								continue
+							}
+							prefixKey := l.adapter.classKey(performance.GetStep())
+							for after := startAt + 1; after < at; after++ {
+								if l.keys[after] == prefixKey {
+									publishedAt = after
+									break
+								}
+							}
+						}
+					}
+				}
+				answers[s.GetId()] = append(answers[s.GetId()], publishedAt)
 			}
 		}
 	}
