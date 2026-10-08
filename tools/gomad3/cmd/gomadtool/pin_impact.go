@@ -37,12 +37,16 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 	jsonOutput := flags.Bool("json", false, "write the canonical JSON report to stdout")
 	output := flags.String("output", "", "also write the canonical JSON report to this file")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *baselineModule != "" && *baselineRef != "" || *format != "human" && *format != "json" {
-		fmt.Fprintln(stderr, pinImpactUsage)
+		if _, writeErr := fmt.Fprintln(stderr, pinImpactUsage); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if *baselinePath != "" || *candidatePath != "" {
 		if *baselineModule != "" || *baselineRef != "" || *moduleDirectory != "" || *baselinePath == "" || *candidatePath == "" {
-			fmt.Fprintln(stderr, pinImpactUsage)
+			if _, writeErr := fmt.Fprintln(stderr, pinImpactUsage); writeErr != nil {
+				return 2
+			}
 			return 2
 		}
 		return runFilePinImpact(*root, *candidatePath, *baselinePath, *format == "json" || *jsonOutput, *output, stdout, stderr)
@@ -53,25 +57,33 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 	ctx := context.Background()
 	absoluteRoot, err := filepath.Abs(*root)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	candidateDirectory := *moduleDirectory
 	if candidateDirectory == "" {
 		candidateDirectory, err = gitOutput(ctx, absoluteRoot, "rev-parse", "--show-toplevel")
 		if err != nil {
-			fmt.Fprintf(stderr, "locate the repository root module: %v; pass --module\n", err)
+			if _, writeErr := fmt.Fprintf(stderr, "locate the repository root module: %v; pass --module\n", err); writeErr != nil {
+				return 2
+			}
 			return 2
 		}
 	}
 	candidateDirectory, err = filepath.Abs(candidateDirectory)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	candidate, err := readModuleFiles(candidateDirectory)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	var baseline pinimpact.ModuleFiles
@@ -89,7 +101,9 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 		baseline, err = gitModuleFiles(ctx, candidateDirectory, revision)
 	}
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if *goCommand == "" {
@@ -99,17 +113,23 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 	// relative to the working directory.
 	*goCommand, err = exec.LookPath(*goCommand)
 	if err != nil {
-		fmt.Fprintf(stderr, "gomad3 pin impact requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err)
+		if _, writeErr := fmt.Fprintf(stderr, "gomad3 pin impact requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	absoluteGo, err := filepath.Abs(*goCommand)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	resolver, err := pinimpact.NewGoResolver(absoluteGo, os.Environ())
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	report, err := pinimpact.Evaluate(ctx, pinimpact.Spec{Root: absoluteRoot, Baseline: baseline, Candidate: candidate, Resolver: resolver})
@@ -118,7 +138,12 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 		err = requireUnchangedModule(candidateDirectory, candidate)
 	}
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			if pinimpact.IsInputError(err) {
+				return 2
+			}
+			return 3
+		}
 		if pinimpact.IsInputError(err) {
 			return 2
 		}
@@ -126,12 +151,16 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 	}
 	encoded, err := pinimpact.Encode(report)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	if *output != "" {
 		if err := hostfs.Replace(*output, encoded, 0o644); err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 3
+			}
 			return 3
 		}
 	}
@@ -141,7 +170,9 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 		err = pinimpact.Render(stdout, report)
 	}
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	if report.Invalidated {
@@ -153,7 +184,13 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 func runFilePinImpact(root, candidatePath, baselinePath string, jsonOutput bool, output string, stdout, stderr io.Writer) int {
 	report, err := upgrade.ReadPinImpact(root, candidatePath, baselinePath)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			var input *upgrade.InvalidPinImpactInput
+			if errors.As(err, &input) {
+				return 2
+			}
+			return 3
+		}
 		var input *upgrade.InvalidPinImpactInput
 		if errors.As(err, &input) {
 			return 2
@@ -162,13 +199,17 @@ func runFilePinImpact(root, candidatePath, baselinePath string, jsonOutput bool,
 	}
 	encoded, err := report.CanonicalJSON()
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	encoded = append(encoded, '\n')
 	if output != "" {
 		if err := hostfs.Replace(output, encoded, 0o644); err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 3
+			}
 			return 3
 		}
 	}
@@ -183,7 +224,9 @@ func runFilePinImpact(root, candidatePath, baselinePath string, jsonOutput bool,
 		}
 	}
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	if report.Invalidated() {

@@ -1,0 +1,74 @@
+{
+  "base_commit": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+  },
+  "commands": [
+    {
+      "name": "counterfactual-report-adapter",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-report-adapter-jLX4fM/overlay.json' -run '^TestPortableFixturePinDecisions$' ./upgrade/pinimpact",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.493,
+      "log": "counterfactual-report-adapter.log",
+      "log_sha256": "8f96e6ff258cb2d0e8fb0db64c4cbe946dd832e22b28a46b01f31a1d9481a33e",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 1
+    },
+    {
+      "name": "counterfactual-registry-version",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-version-Z8oukr/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.691,
+      "log": "counterfactual-registry-version.log",
+      "log_sha256": "04090e4f1b51acb4e1c710da7586ce2e2b4eac599dfe7a857bdd6e6dcb68f13a",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 1
+    },
+    {
+      "name": "counterfactual-registry-replacement",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-replacement-2xiGjn/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.69,
+      "log": "counterfactual-registry-replacement.log",
+      "log_sha256": "589d55f439d76113a9d4ffc268fd68ecabfb3fad7493c1fb2c264dcdb9308c3b",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 1
+    },
+    {
+      "name": "counterfactual-registry-sum",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-sum-WpLB1J/overlay.json' -run '^(TestAdapterRegistryPortablePinDecisions|TestAdapterModuleSumRecords)$' ./deterministicio",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.686,
+      "log": "counterfactual-registry-sum.log",
+      "log_sha256": "8543346f1062dcdd074924898a272477bd06df2c97178e0c84c4297cb13a7afa",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 1
+    },
+    {
+      "name": "counterfactual-pack-replacement",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-pack-replacement-uzc4Az/overlay.json' -run '^TestPortableFixturePinDecisions$' ./upgrade/pinimpact",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.485,
+      "log": "counterfactual-pack-replacement.log",
+      "log_sha256": "7c43dd8be050533493f8703ad4654c0efd447ef6e07ee74dc57c4c444fd9177f",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 1
+    }
+  ]
+}

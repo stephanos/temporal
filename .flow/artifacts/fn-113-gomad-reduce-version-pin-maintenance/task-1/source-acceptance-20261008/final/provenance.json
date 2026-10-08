@@ -1,0 +1,1788 @@
+{
+  "recorded_utc": "2026-10-08T16:43:05.322Z",
+  "base_commit": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+  "head": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+  "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+  "immutable_tracked_source_count": 1009,
+  "immutable_tracked_source_aggregate_sha256": "4ef99848e80b96ceaf9dab74d227c164c99735b6e8b93abd59cdb7adbf5b63b1",
+  "changed_source_sha256": {
+    "tools/gomad3/cmd/gomadtool/pin_impact.go": "34b24cf563763e7467e2196257f7a0291224ba693ec90119b7ca759ec53708e7",
+    "tools/gomad3/upgrade/pinimpact/portable_fixtures_test.go": "353a5e6a49d313ba0fc6eafa2227f5bff09f8ac257143434bbd370c8f9103a3b",
+    "tools/gomad3/deterministicio/adapter_pin_decisions_test.go": "5bf60b2f658a4c99bcd5f863b73de1c78336f059c232b50efaf076a32c6a11ba",
+    "tools/gomad3/cmd/gomadtool/pin_impact_diagnostics_test.go": "a6b7e84432f75206ba7827f697c28101a9ad0f7b7e4c8fbc4e994aad8dceb7ed"
+  },
+  "diagnostic_format_calls_unchanged": 18,
+  "diagnostic_cases": [
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/both_baseline_flags",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/file_malformed_candidate",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/file_publication",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/file_stdout",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/help",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/malformed_candidate",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/missing_baseline",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/missing_candidate",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/missing_go_command",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/mixed_file_arguments",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/module_publication",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/module_stdout",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/partial_file_arguments",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/positional_argument",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/unknown_flag",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/unknown_format",
+    "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/unreachable_proxy"
+  ],
+  "resolved_byte_pairs": [
+    {
+      "test": "TestPackActivationSumControls/exact",
+      "canonical": "f03c74d112fd20a986eb7d462e4d4c42b04ce08412f90482914e4eae5161f475",
+      "human": "6d66d940ce73458badc02d58d6142e23d48f459abc446f75929817b0611f6063"
+    },
+    {
+      "test": "TestPackActivationSumControls/repaired_candidate",
+      "canonical": "2e3e128dc89239d45371bbc4409994c847267ead315a8b72fe68f407d4a127b4",
+      "human": "79c7179616f7d37e6bcb430fda6010aff6acd83f36326c90f1bb7ea9492ec78a"
+    },
+    {
+      "test": "TestPackActivationSumControls/absent",
+      "canonical": "373ab845a32f61d66faf3904c63bc908d6c062ff149ff66af0c7d6db0fed970d",
+      "human": "79c7179616f7d37e6bcb430fda6010aff6acd83f36326c90f1bb7ea9492ec78a"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=false",
+      "canonical": "c5629829c0aa7e6061230f2310e2a41180eadaafff2c1d33684616b379cba2fd",
+      "human": "7c9167c931575623930cb4a43b5d53e576247f33e4e83cb5822cabafe600e452"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=true",
+      "canonical": "9df5aa4f7644fc09e01f19d60036de709ba7859ff5e6ae9e4b819225dc2c720e",
+      "human": "79c7179616f7d37e6bcb430fda6010aff6acd83f36326c90f1bb7ea9492ec78a"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=false",
+      "canonical": "0c38d84ff8151a98b25fcacd5ba2ed6921b2948d324edbca0db43f3c486e7891",
+      "human": "0fb340084c7689a8f61f409ecede7c2b4d07d9cab75db5c339b5dcea7a7a97b8"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=true",
+      "canonical": "8b1daceb4a25b941f71f4b541a2e8a1010873772e377e19d3027abb6c7219710",
+      "human": "ba9987ff405e6230bd9bf41ef30476fa4c2b9460bb43249ca8d3e5b939e14b10"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=false",
+      "canonical": "9bd2ece96fe1cc0f67d5ab9844ba0273f43edca1b8941fe0f7991b7bf3c170e1",
+      "human": "09fc0c66611ea3d27d56aa64186f64016d8ff1982f8148dafa8faadc6a5ca372"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=true",
+      "canonical": "7fcaa6b1e2c0ad4e3e02e19035c75985abb3400314d67fe623f27f81db4c6f19",
+      "human": "1613247d0f163d6ce6e3f7322d8722e67cc76b0ccc1497a348f541a38aa8a11a"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=false",
+      "canonical": "b1a04cd36df1e93464b3225c4a0cdca99037e1bea4a5d3acc053281370225348",
+      "human": "1f040b2620b9904aceecbbda79f43acbee0eb83e0aff3d65c96c67eb5f823323"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=true",
+      "canonical": "d3fb741f85cc0b7bfe36c9750e3f8a8ab7d44e859a1dddb6b172574e1dc0f210",
+      "human": "e383499f4fd9633c1ed6c5cfdff39ebf43ec9b2eb18e4d6802a27acaa4b24caa"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=false",
+      "canonical": "c277eda1a8df24e78b0346e98ffb9c20b7f192261bdbe32c575b9979e0925ee3",
+      "human": "6d8e7956d0989d0a4b44263ef9e3a55f21cefffa9c443255eb202f51e1b49f87"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=true",
+      "canonical": "57571784a3549c293f43b75956e75af6d11e9a813c2aaed43579a82c03c0b328",
+      "human": "79c7179616f7d37e6bcb430fda6010aff6acd83f36326c90f1bb7ea9492ec78a"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=false",
+      "canonical": "1b381880e9d104d63f0d2ab48dddac435da1404cc9e8047c1b0a74c2f14391e1",
+      "human": "3db955b6adb7809b1d7f42b4baf47fb8c05f47916a9e72a4b4fb40e0780e029e"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=true",
+      "canonical": "4f6d6d5eac016f551b841328eb2c159c1b713e54c0f30c62c85070fef3d1cb57",
+      "human": "f47eb12a414e024e5dc7cd9357ed52b1053b026d406c83d6a5a40fe98625b7a6"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=false",
+      "canonical": "8db67c8813152ffad38c54a8c9544a48be63048aa01ae118d16f9b35aa27f703",
+      "human": "d3095506241bd797ab667ab0a8b379b819282b171ca9c1823fe717a45ad430f4"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=true",
+      "canonical": "c70ae3b290915ebd00903665b521d78c45d171e33dbc532fcd987138255bee9f",
+      "human": "27fc082c07d3eaf7ccb246333543ef4ab6f17adf421c64919e56f85242bf0535"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=false",
+      "canonical": "aa5041309bbd7d9bf369aff44c13df59ef80405f3435700f5e4bbfb6ecdf658a",
+      "human": "1ee4941abccd2f4b8c2d878cc61d52185b3f5a13f67b83ed2cbbec76687b05df"
+    },
+    {
+      "test": "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=true",
+      "canonical": "5a48de3beb7923674d9a994affa2dde58b71833e1e048436bad8d9d631aaabaa",
+      "human": "3edb6e8160b7184c1cfb78b4028a7f777a9e21bc3b6eb0915c8f912f2b59ead2"
+    },
+    {
+      "test": "TestPackRuleSumControls/exact/all=false",
+      "canonical": "8d86b858df512d10e273028ad629a48f928ddeadf069bfa901b8e369df0cece7",
+      "human": "8bd7b658bca3f3a65c4abde8fad93b925a8169dc6540797d43d4b788e396a863"
+    },
+    {
+      "test": "TestPackRuleSumControls/exact/all=true",
+      "canonical": "5f085230336907946ed853b7a855d835388ab678c20bfa317c575e630081690d",
+      "human": "cbf5b708e75a0d4c8d634e8edf0e0352bc650dc20c9f5755e50e680f3e97b7a4"
+    },
+    {
+      "test": "TestPackRuleSumControls/repaired_candidate/all=false",
+      "canonical": "e875167bad59ff575c4ac797ddb4a9fffde2b25266edd95f6505f94531ad88a2",
+      "human": "c0d20d038bddb0b830d84443b12ccd4982229309e8e9c7ad957714908f26733c"
+    },
+    {
+      "test": "TestPackRuleSumControls/repaired_candidate/all=true",
+      "canonical": "98ac0234b272111eca16af635b10e61602338a335615bf15086fbc308b5d531f",
+      "human": "1da913250b9bc19aae82d80b4f0b0cab5c3bf3c83273da18d4f8a2f885ad67fc"
+    },
+    {
+      "test": "TestPackRuleSumControls/baseline_rule_absent/all=false",
+      "canonical": "9aa3c31f7df0a9c6a128d58669e5f58e5561e76ca732b3cc1971956d12917ea9",
+      "human": "c0d20d038bddb0b830d84443b12ccd4982229309e8e9c7ad957714908f26733c"
+    },
+    {
+      "test": "TestPackRuleSumControls/baseline_rule_absent/all=true",
+      "canonical": "d2cfa7ff73e7c6ffa5f44e78456a0f97759f1de84722a84b4b7de6ded955a14a",
+      "human": "1da913250b9bc19aae82d80b4f0b0cab5c3bf3c83273da18d4f8a2f885ad67fc"
+    },
+    {
+      "test": "TestPackRuleSumControls/baseline_rule_bumped/all=false",
+      "canonical": "be6c78accbbd4a7974394d18ed83d226d476566a4a20784016e80662b8811a63",
+      "human": "c0d20d038bddb0b830d84443b12ccd4982229309e8e9c7ad957714908f26733c"
+    },
+    {
+      "test": "TestPackRuleSumControls/baseline_rule_bumped/all=true",
+      "canonical": "beb33d8025043251f6b11d5aecd5903acfe130164d67a62da34277f93a574ddd",
+      "human": "1da913250b9bc19aae82d80b4f0b0cab5c3bf3c83273da18d4f8a2f885ad67fc"
+    },
+    {
+      "test": "TestPackRuleSumControls/rule_absent/all=false",
+      "canonical": "96800131228acdbaee182697a5586b0c20b5c1633f4eddbc448b4da43e29b2c0",
+      "human": "ef808eccdcf874a912e520cfe647352ee6f790ab9d05cbb3251b3f36c34e64ad"
+    },
+    {
+      "test": "TestPackRuleSumControls/rule_absent/all=true",
+      "canonical": "f6ff49c81585229e45c354d7ae8a3c795c447f76738836d5ad0998bd03da1bd5",
+      "human": "e9622dc601da0cf106686e00e55afb12e8543521b92dde545828e5c7bd291911"
+    },
+    {
+      "test": "TestPackRuleSumControls/rule_version/all=false",
+      "canonical": "8c0acbbd6f349fcecc1177bf0834d5a031f565661986d6f42cc1460a6a0c2eb0",
+      "human": "f47b9696f128675117a72a4c84bcf42dea93399fcd38b0da016ef697a6aa0aa6"
+    },
+    {
+      "test": "TestPackRuleSumControls/rule_version/all=true",
+      "canonical": "d213cee9c35539c7a563dae91d191edb4940631314df55c4dc0cda2dbc46846b",
+      "human": "7f3fdff7e59a7cb1062da79993dcf3c60f489aea8aa328424db05f34cce009c7"
+    },
+    {
+      "test": "TestPackRuleSumControls/rule_sum/all=false",
+      "canonical": "3cc791bd6ac532b994b8e00bfe22e838ca92d863eeb35576a2de690b3cee742a",
+      "human": "6a5461e487510760471847f5156063098fac93adfb6ed2e1ee8351cbfa080417"
+    },
+    {
+      "test": "TestPackRuleSumControls/rule_sum/all=true",
+      "canonical": "76aad260a361e4a15670f553d94ae37830e67ec21bb85f5771738164bad08a9c",
+      "human": "db2fee4256451f3a320599d6d2526a3f295818b8be8a54e994bdd99e1b0ec126"
+    },
+    {
+      "test": "TestPackRuleSumControls/rule_replacement/all=false",
+      "canonical": "18de6da9bfed5e199132ce77d429ee07929c571d652ad820ec71861743d01113",
+      "human": "c9c981b498d36a4a657e160fcd29cd820507678e7551b14d71569d3555a324a4"
+    },
+    {
+      "test": "TestPackRuleSumControls/rule_replacement/all=true",
+      "canonical": "002c622bb5cc513dc884f2fc4f9b3ad54fae44def0483b118d80217ac5e6a418",
+      "human": "f016da9c53aa422ace167ee570bf784f9cea2876c97610de0683a8cee6678545"
+    },
+    {
+      "test": "TestPackRuleSumControls/activation_absent/all=false",
+      "canonical": "c117c41632c0daf64044ecce4c256da82dc7ef1215243ff6b7da72f50cea5fe1",
+      "human": "9a20b6f2b6f799d9efdcde6471be957a9949b46b1b36dbea37e00c79389cd372"
+    },
+    {
+      "test": "TestPackRuleSumControls/activation_absent/all=true",
+      "canonical": "46c615883424539609704bffa95a8f9452e6cccda9a7cca87e05d9b6efeb5017",
+      "human": "ca7a6da67bce64eed30c584b6fd1335a28e8d738e407ec749f54414a101c6c4f"
+    },
+    {
+      "test": "TestPackRuleSumControls/activation_version/all=false",
+      "canonical": "67aae8be1ede8d6ca58c37fc8ae667e307d629ff7c29069085993374b87ddb91",
+      "human": "c455a3e5049b0cc59b0026d158ee0347ce1adeedfea0853cf0a3d3a1a0c81d2f"
+    },
+    {
+      "test": "TestPackRuleSumControls/activation_version/all=true",
+      "canonical": "c27323b68349b97e25831db526462df61ba7db1a62ee4496260d5d1aa64ddecb",
+      "human": "4bd37f0e1650ed15ff4dde745a258063caf55f9db30b818781bfb2988d54612d"
+    },
+    {
+      "test": "TestPackRuleSumControls/activation_sum/all=false",
+      "canonical": "f7760b89e810dec97592f1b615b4d8c94599ba7cfdfbedff471a2ce6915e2bc6",
+      "human": "eddbf32b493c9824861ce30151dd29ba518b48824e96a3d1eaacf3534d89f9cf"
+    },
+    {
+      "test": "TestPackRuleSumControls/activation_sum/all=true",
+      "canonical": "9af407fa3676140e649af9c5730202d10dea71016ed5bf88b84e88a4258e564a",
+      "human": "1882c3cb4aca0e9d284c3cc036f54f696b57be14939f417d7c313249ac3b4d3b"
+    },
+    {
+      "test": "TestPackRuleSumControls/activation_replacement/all=false",
+      "canonical": "f4a689e44b29c35aa4d7a33c6397c2e1354bb1cde7def9019d2a9cfcc87f058a",
+      "human": "606251e35ac06e918d086878aada80ae0c38f15e42a856b9ae89a5a57b2a98ec"
+    },
+    {
+      "test": "TestPackRuleSumControls/activation_replacement/all=true",
+      "canonical": "6609b25af63df68701551e0382eac30915c0060039732f2944931a0bca32a69a",
+      "human": "6a73b66376dc40e176e1fa37e706ca1fc339e52009690f207b9bb751cc032e48"
+    }
+  ],
+  "tests": {
+    "portable-pinimpact": [
+      "TestMissingPackActivationSumIsUnknown/both_missing",
+      "TestMissingPackActivationSumIsUnknown/candidate_missing",
+      "TestMissingPackActivationSumIsUnknown/baseline_bumped",
+      "TestMissingPackActivationSumIsUnknown",
+      "TestPackActivationSumControls/exact",
+      "TestPackActivationSumControls/repaired_candidate",
+      "TestPackActivationSumControls/absent",
+      "TestPackActivationSumControls",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=false",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=true",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=false",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=true",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=false",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=true",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=false",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=true",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=false",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=true",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=false",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=true",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=false",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=true",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=false",
+      "TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=true",
+      "TestKnownPackActivationExclusionWinsOverMissingSum",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=exact",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=missing",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=absent",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=version",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=sum",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=replacement",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=exact",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=missing",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=absent",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=version",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=sum",
+      "TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=replacement",
+      "TestPackRuleExclusionWinsOverUnknownActivation",
+      "TestPackActivationGraphUnknownRetainsReason",
+      "TestPackRootLoadErrorsArePathFree/explicit",
+      "TestPackRootLoadErrorsArePathFree/environment",
+      "TestPackRootLoadErrorsArePathFree",
+      "TestMissingExplicitPackRootSelectsNoPacks",
+      "TestExplicitPackRootOverridesEnvironmentAndRetainsReports",
+      "TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport",
+      "TestAdapterModuleSumRecords/exact",
+      "TestAdapterModuleSumRecords/go.mod_is_separate",
+      "TestAdapterModuleSumRecords/identical_duplicate",
+      "TestAdapterModuleSumRecords/changed_duplicate",
+      "TestAdapterModuleSumRecords/missing_zip_sum",
+      "TestAdapterModuleSumRecords",
+      "TestPackOnlyDuplicateSumRemainsSelected",
+      "TestAdaptedPackDuplicateSumIsInvalidated/duplicate=false",
+      "TestAdaptedPackDuplicateSumIsInvalidated/duplicate=true",
+      "TestAdaptedPackDuplicateSumIsInvalidated",
+      "TestUnchangedModuleInvalidatesNothing",
+      "TestCommittedBumpKeepsTheStrandedPackInvalidated",
+      "TestMissingCandidateModuleSumIsUnknown",
+      "TestRemovedModules",
+      "TestIndirectOnlyBump",
+      "TestUnknownPinsCountAsInvalidated",
+      "TestInvalidInputAndResolutionFailures",
+      "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/pinned_module_download",
+      "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/no_failure",
+      "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unsupported_host",
+      "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unrelated_missing_file",
+      "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unrelated_operation",
+      "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/another_toolchain",
+      "TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure",
+      "TestPortableFixturePinDecisions/version_bump",
+      "TestPortableFixturePinDecisions/changed_sum",
+      "TestPortableFixturePinDecisions/replacement",
+      "TestPortableFixturePinDecisions",
+      "TestGoResolverSelectsTheModuleGraphOutsideTheModule",
+      "TestGoResolverReportsUnavailableModulesAsInfrastructureFailures",
+      "TestMissingPackRuleSumIsUnknown/baseline=exact/all=false",
+      "TestMissingPackRuleSumIsUnknown/baseline=exact/all=true",
+      "TestMissingPackRuleSumIsUnknown/baseline=missing/all=false",
+      "TestMissingPackRuleSumIsUnknown/baseline=missing/all=true",
+      "TestMissingPackRuleSumIsUnknown/baseline=absent/all=false",
+      "TestMissingPackRuleSumIsUnknown/baseline=absent/all=true",
+      "TestMissingPackRuleSumIsUnknown/baseline=bumped/all=false",
+      "TestMissingPackRuleSumIsUnknown/baseline=bumped/all=true",
+      "TestMissingPackRuleSumIsUnknown",
+      "TestPackRuleSumControls/exact/all=false",
+      "TestPackRuleSumControls/exact/all=true",
+      "TestPackRuleSumControls/exact",
+      "TestPackRuleSumControls/repaired_candidate/all=false",
+      "TestPackRuleSumControls/repaired_candidate/all=true",
+      "TestPackRuleSumControls/repaired_candidate",
+      "TestPackRuleSumControls/baseline_rule_absent/all=false",
+      "TestPackRuleSumControls/baseline_rule_absent/all=true",
+      "TestPackRuleSumControls/baseline_rule_absent",
+      "TestPackRuleSumControls/baseline_rule_bumped/all=false",
+      "TestPackRuleSumControls/baseline_rule_bumped/all=true",
+      "TestPackRuleSumControls/baseline_rule_bumped",
+      "TestPackRuleSumControls/rule_absent/all=false",
+      "TestPackRuleSumControls/rule_absent/all=true",
+      "TestPackRuleSumControls/rule_absent",
+      "TestPackRuleSumControls/rule_version/all=false",
+      "TestPackRuleSumControls/rule_version/all=true",
+      "TestPackRuleSumControls/rule_version",
+      "TestPackRuleSumControls/rule_sum/all=false",
+      "TestPackRuleSumControls/rule_sum/all=true",
+      "TestPackRuleSumControls/rule_sum",
+      "TestPackRuleSumControls/rule_replacement/all=false",
+      "TestPackRuleSumControls/rule_replacement/all=true",
+      "TestPackRuleSumControls/rule_replacement",
+      "TestPackRuleSumControls/activation_absent/all=false",
+      "TestPackRuleSumControls/activation_absent/all=true",
+      "TestPackRuleSumControls/activation_absent",
+      "TestPackRuleSumControls/activation_version/all=false",
+      "TestPackRuleSumControls/activation_version/all=true",
+      "TestPackRuleSumControls/activation_version",
+      "TestPackRuleSumControls/activation_sum/all=false",
+      "TestPackRuleSumControls/activation_sum/all=true",
+      "TestPackRuleSumControls/activation_sum",
+      "TestPackRuleSumControls/activation_replacement/all=false",
+      "TestPackRuleSumControls/activation_replacement/all=true",
+      "TestPackRuleSumControls/activation_replacement",
+      "TestPackRuleSumControls"
+    ],
+    "portable-registry": [
+      "TestAdapterRegistryPortablePinDecisions/exact",
+      "TestAdapterRegistryPortablePinDecisions/version_bump",
+      "TestAdapterRegistryPortablePinDecisions/changed_sum",
+      "TestAdapterRegistryPortablePinDecisions/replacement",
+      "TestAdapterRegistryPortablePinDecisions",
+      "TestAdapterModuleSumRecords/exact",
+      "TestAdapterModuleSumRecords/go.mod_is_separate",
+      "TestAdapterModuleSumRecords/identical_duplicate",
+      "TestAdapterModuleSumRecords/changed_duplicate",
+      "TestAdapterModuleSumRecords/missing_zip_sum",
+      "TestAdapterModuleSumRecords"
+    ],
+    "cli-and-upgrade-and-packs": [
+      "TestSelectionProjectsExactActivationAndAllowanceEvidence/modernc-libc-xsys-v047",
+      "TestDiscoverProjectsCompleteCurrentEvidenceAndClearsApproval",
+      "TestDiscoverAddsNewlyObservedFactsAsDenied",
+      "TestRunAdapterRegenerateInputStatuses/usage",
+      "TestRunAdapterRegenerateInputStatuses/unknown_module",
+      "TestRunAdapterRegenerateInputStatuses/verify_usage",
+      "TestSelectionProjectsExactActivationAndAllowanceEvidence/modernc-libc-xsys-v041",
+      "TestSelectionProjectsExactActivationAndAllowanceEvidence",
+      "TestSelectionEvaluatesClosedRemediationCategories/model",
+      "TestRunAdapterRegenerateInputStatuses/recover_nothing",
+      "TestSelectionEvaluatesClosedRemediationCategories/adapter",
+      "TestRunAdapterRegenerateInputStatuses/conflicting_approval_aliases",
+      "TestRunAdapterRegenerateInputStatuses/stage_requires_approval",
+      "TestRunAdapterRegenerateInputStatuses",
+      "TestSelectionEvaluatesClosedRemediationCategories/exact_pack",
+      "TestSelectionEvaluatesClosedRemediationCategories/remove",
+      "TestSelectionEvaluatesClosedRemediationCategories/unsupported",
+      "TestSelectionEvaluatesClosedRemediationCategories",
+      "TestExternalPacksLoadNextToEmbeddedPacks",
+      "TestRunCompatibilityPackRefreshOutputFailure/invalid_input",
+      "TestRunCompatibilityPackRefreshOutputFailure/missing_go",
+      "TestExternalPacksFailClosed/relative_directory",
+      "TestRunCompatibilityPackRefreshOutputFailure",
+      "TestExternalPacksFailClosed/missing_directory",
+      "TestGenerateStandaloneConsumerPackage",
+      "TestExternalPacksFailClosed/collision_with_embedded_pack",
+      "TestRunRenderingFailurePreservesGateEvidence/qualified/write1",
+      "TestExternalPacksFailClosed/file_name_does_not_match_ID",
+      "TestExternalPacksFailClosed/non-pack_entry",
+      "TestRunRenderingFailurePreservesGateEvidence/qualified/write2",
+      "TestRunRenderingFailurePreservesGateEvidence/qualified",
+      "TestGenerateRequiresExactApprovalAndCheckDetectsDrift",
+      "TestExternalPacksFailClosed/admits_an_unadmittable_capability",
+      "TestExternalPacksFailClosed",
+      "TestLoadPackDirectoryReadsOnlyThatDirectory",
+      "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:os/exec",
+      "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:os/signal",
+      "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:os/user",
+      "TestRunRenderingFailurePreservesGateEvidence/gate/write1",
+      "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:plugin",
+      "TestRunRenderingFailurePreservesGateEvidence/gate/write2",
+      "TestRunRenderingFailurePreservesGateEvidence/gate",
+      "TestRegenerateUsesOnlyRecordedExactApprovals",
+      "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults/import:runtime/cgo",
+      "TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/approval",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/availability",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/directive",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/foreign_source",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/go_source",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/justification",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/module_sum",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/module_version",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/owner",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/platform",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/positive",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/request_identity",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/review_time",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/source_set",
+      "TestGeneratedCompatibilityPackMutations/golang-x-sys-v047-darwin-arm64/workload",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/adapter_identity",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/approval",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/availability",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/directive",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/foreign_source",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/go_source",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/justification",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/module_sum",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/module_version",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/original_source_inventory",
+      "TestRegenerateRejectsStaleRecordedApprovalWithoutPublication",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/owner",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/platform",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/positive",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/prepared_source_set",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/replacement_source_inventory",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/request_identity",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/review_time",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/source_set",
+      "TestRunRenderingFailurePreservesGateEvidence/host/write1",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v041/workload",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/adapter_identity",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/approval",
+      "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:os/exec",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/availability",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/directive",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/foreign_source",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/go_source",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/justification",
+      "TestRunRenderingFailurePreservesGateEvidence/host/write2",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/module_sum",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/module_version",
+      "TestRunRenderingFailurePreservesGateEvidence/host",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/original_source_inventory",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/owner",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/platform",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/positive",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/prepared_source_set",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/replacement_source_inventory",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/request_identity",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/review_time",
+      "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:os/signal",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/source_set",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047/workload",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/adapter_identity",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/approval",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/availability",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/go_source",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/justification",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/module_sum",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/module_version",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/original_source_inventory",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/owner",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/platform",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/positive",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/prepared_source_set",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/replacement_source_inventory",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/request_identity",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/review_time",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/source_set",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-isatty-v021/workload",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/adapter_identity",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/approval",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/availability",
+      "TestRunRenderingFailurePreservesGateEvidence/publication/write1",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/directive",
+      "TestRunRenderingFailurePreservesGateEvidence/publication/write2",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/foreign_source",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/go_source",
+      "TestRunRenderingFailurePreservesGateEvidence/publication",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/justification",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/module_sum",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/module_version",
+      "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:os/user",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/original_source_inventory",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/owner",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/platform",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/positive",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/prepared_source_set",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/replacement_source_inventory",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/request_identity",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/review_time",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/source_set",
+      "TestGeneratedCompatibilityPackMutations/modernc-libc-xsys-v047-linux-amd64/workload",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/approval",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/availability",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/directive",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/foreign_source",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/go_source",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/justification",
+      "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:plugin",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/module_sum",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/module_version",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/owner",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/platform",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/positive",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/request_identity",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/review_time",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/source_set",
+      "TestGeneratedCompatibilityPackMutations/reflect2-go126/workload",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/approval",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/availability",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/foreign_source",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/go_source",
+      "TestRunRenderingFailurePreservesGateEvidence/corpus/write1",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/justification",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/module_sum",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/module_version",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/owner",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/platform",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/positive",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/request_identity",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/review_time",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/source_set",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-darwin-arm64/workload",
+      "TestRunRenderingFailurePreservesGateEvidence/corpus/write2",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/approval",
+      "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication/import:runtime/cgo",
+      "TestGenerateAdmissionRejectsFiveHostImportsBeforePublication",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/arbitrary_local_replacement",
+      "TestRunRenderingFailurePreservesGateEvidence/corpus",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/availability",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/directive",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/foreign_source",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/go_source",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/justification",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/module_sum",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/module_version",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/owner",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/platform",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/positive",
+      "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:os/exec",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/request_identity",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/review_time",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/source_set",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-compute-linux-amd64/workload",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/approval",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/availability",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/go_source",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/justification",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/module_sum",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/module_version",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/owner",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/platform",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/positive",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/request_identity",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/review_time",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/source_set",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-darwin-arm64/workload",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/approval",
+      "TestRunRenderingFailurePreservesGateEvidence/baseline/write1",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/availability",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/directive",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/foreign_source",
+      "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:os/signal",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/go_source",
+      "TestRunRenderingFailurePreservesGateEvidence/baseline/write2",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/justification",
+      "TestRunRenderingFailurePreservesGateEvidence/baseline",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/module_sum",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/module_version",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/owner",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/platform",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/positive",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/request_identity",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_0_writes",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/review_time",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/source_set",
+      "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:os/user",
+      "TestGeneratedCompatibilityPackMutations/temporal-functional-tests-linux-amd64/workload",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/approval",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/availability",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/directive",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/foreign_source",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/go_source",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/justification",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/module_sum",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/module_version",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/owner",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/platform",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/positive",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/request_identity",
+      "TestRunRenderingFailurePreservesGateEvidence/boundary/write1",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/review_time",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/source_set",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xsys-darwin-arm64/workload",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/approval",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/arbitrary_local_replacement",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/availability",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/foreign_source",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/go_source",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/justification",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/module_sum",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/module_version",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/owner",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/pack_digest",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/platform",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/positive",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/request_identity",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/review_time",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/source_set",
+      "TestGeneratedCompatibilityPackMutations/temporal-leaf-xxhash-darwin-arm64/workload",
+      "TestGeneratedCompatibilityPackMutations",
+      "TestEvaluateMatchingPackDecisions/capability",
+      "TestEvaluateMatchingPackDecisions/linkname",
+      "TestEvaluateMatchingPackDecisions/malformed-linkname",
+      "TestEvaluateMatchingPackDecisions/no-reviewed-source",
+      "TestEvaluateMatchingPackDecisions/unknown-kind",
+      "TestEvaluateMatchingPackDecisions/empty-kind",
+      "TestEvaluateMatchingPackDecisions/capability-drift",
+      "TestEvaluateMatchingPackDecisions/linkname-source-drift",
+      "TestEvaluateMatchingPackDecisions/linkname-hash-drift",
+      "TestEvaluateMatchingPackDecisions/linkname-directive-drift",
+      "TestEvaluateMatchingPackDecisions/linkname-order-drift",
+      "TestEvaluateMatchingPackDecisions/linkname-nil-directives",
+      "TestEvaluateMatchingPackDecisions/linkname-empty-directives",
+      "TestRunRenderingFailurePreservesGateEvidence/boundary/write2",
+      "TestRunRenderingFailurePreservesGateEvidence/boundary",
+      "TestRunRenderingFailurePreservesGateEvidence",
+      "TestEvaluateMatchingPackDecisions/package-path-drift",
+      "TestEvaluateMatchingPackDecisions/module-path-drift",
+      "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:plugin",
+      "TestEvaluateMatchingPackDecisions/module-version-drift",
+      "TestEvaluateMatchingPackDecisions/module-sum-drift",
+      "TestEvaluateMatchingPackDecisions/replacement-drift",
+      "TestEvaluateMatchingPackDecisions/local-replacement",
+      "TestEvaluateMatchingPackDecisions/missing-module",
+      "TestEvaluateMatchingPackDecisions/linkname-missing-module",
+      "TestEvaluateMatchingPackDecisions/source-set-drift",
+      "TestEvaluateMatchingPackDecisions/source-name-drift",
+      "TestEvaluateMatchingPackDecisions/source-hash-drift",
+      "TestEvaluateMatchingPackDecisions/source-nil-inventory",
+      "TestEvaluateMatchingPackDecisions/source-empty-inventory",
+      "TestEvaluateMatchingPackDecisions/source-extra-inventory",
+      "TestEvaluateMatchingPackDecisions/foreign-source-drift",
+      "TestEvaluateMatchingPackDecisions/nil-empty-foreign-equivalence",
+      "TestEvaluateMatchingPackDecisions",
+      "TestEvaluateHostImportDecisions/import:os/exec",
+      "TestEvaluateHostImportDecisions/import:os/signal",
+      "TestEvaluateHostImportDecisions/import:os/user",
+      "TestEvaluateHostImportDecisions/import:plugin",
+      "TestEvaluateHostImportDecisions/import:runtime/cgo",
+      "TestEvaluateHostImportDecisions",
+      "TestEvaluateNilAndEmptySelections/nil/capability",
+      "TestEvaluateNilAndEmptySelections/nil/linkname",
+      "TestEvaluateNilAndEmptySelections/nil/malformed_linkname",
+      "TestEvaluateNilAndEmptySelections/nil/no_reviewed_go_source",
+      "TestEvaluateNilAndEmptySelections/nil/future-kind",
+      "TestEvaluateNilAndEmptySelections/nil/#00",
+      "TestEvaluateNilAndEmptySelections/nil",
+      "TestEvaluateNilAndEmptySelections/empty/capability",
+      "TestOverlayArchiveCleanupFailure/read_and_close_fail",
+      "TestEvaluateNilAndEmptySelections/empty/linkname",
+      "TestEvaluateNilAndEmptySelections/empty/malformed_linkname",
+      "TestEvaluateNilAndEmptySelections/empty/no_reviewed_go_source",
+      "TestEvaluateNilAndEmptySelections/empty/future-kind",
+      "TestEvaluateNilAndEmptySelections/empty/#00",
+      "TestEvaluateNilAndEmptySelections/empty",
+      "TestEvaluateNilAndEmptySelections",
+      "TestEvaluateTraversesRulesAndPacks/later-matching-rule",
+      "TestEvaluateTraversesRulesAndPacks/later-matching-pack",
+      "TestEvaluateTraversesRulesAndPacks/later-granting-pack",
+      "TestEvaluateTraversesRulesAndPacks/first-grant-precedence",
+      "TestEvaluateTraversesRulesAndPacks",
+      "TestEvaluatePreservesInputsAndDetachedCopies",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/admits_os/signal",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/trailing_data",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/legacy_schema",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/unknown_field",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/admits_os/user",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/local_replacement",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/missing_sum",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/duplicate_capability",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/source-set_mismatch",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy/admits_os/exec",
+      "TestDecodePackV2RejectsWeakOrNonCanonicalPolicy",
+      "TestSelectValidatedPackRequiresCompleteSourceInventory",
+      "TestSelectValidatedPackRequiresApprovedPlatform",
+      "TestSelectValidatedPackRequiresApplicableRule",
+      "TestVerifyValidatedPackIdentitiesRejectsUnavailableOrModifiedPacks",
+      "TestSelectBindsExactPackIdentityAndCapabilities/modernc-libc-xsys-v047",
+      "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant/import:runtime/cgo",
+      "TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant",
+      "TestQualifyRejectsCurrentReviewDrift",
+      "TestSelectBindsExactPackIdentityAndCapabilities/modernc-libc-xsys-v041",
+      "TestSelectBindsExactPackIdentityAndCapabilities",
+      "TestOverlayArchiveCleanupFailure/tar_ends_before_stored_deflate_error",
+      "TestOverlayArchiveCleanupFailure",
+      "TestSelectRequiresExactLinknameSourceIdentity",
+      "TestOverlayArchiveNilCleanupPreservesReadError",
+      "TestLegacyRegularOverlayArchive/go/src/os/gomad.go",
+      "TestVerifyIdentitiesRejectsUnknownOrModifiedPacks",
+      "TestPackAdmissionRejectsFiveHostImports/import:os/exec",
+      "TestPackAdmissionRejectsFiveHostImports/import:os/signal",
+      "TestPackAdmissionRejectsFiveHostImports/import:os/user",
+      "TestPackAdmissionRejectsFiveHostImports/import:plugin",
+      "TestPackAdmissionRejectsFiveHostImports/import:runtime/cgo",
+      "TestPackAdmissionRejectsFiveHostImports",
+      "TestPackAdmissionPreservesStructuralAndRulePriority/later-invalid-inventory",
+      "TestPackAdmissionPreservesStructuralAndRulePriority/later-prohibited-rule",
+      "TestPackAdmissionPreservesStructuralAndRulePriority/first-prohibited-rule",
+      "TestPackAdmissionPreservesStructuralAndRulePriority/capability-order",
+      "TestPackAdmissionPreservesStructuralAndRulePriority/existing-ban-before-new-ban",
+      "TestPackAdmissionPreservesStructuralAndRulePriority/unsorted-capabilities",
+      "TestPackAdmissionPreservesStructuralAndRulePriority",
+      "TestPackAdmissionRevalidatesUnselectedTokens/import:os/exec",
+      "TestPackAdmissionRevalidatesUnselectedTokens/import:os/signal",
+      "TestPackAdmissionRevalidatesUnselectedTokens/import:os/user",
+      "TestPackAdmissionRevalidatesUnselectedTokens/import:plugin",
+      "TestPackAdmissionRevalidatesUnselectedTokens/import:runtime/cgo",
+      "TestPackAdmissionRevalidatesUnselectedTokens",
+      "TestPackAdmissionPreservesEarlierPackErrors/digest",
+      "TestPackAdmissionPreservesEarlierPackErrors/duplicate",
+      "TestPackAdmissionPreservesEarlierPackErrors",
+      "TestPackAdmissionPreservesOtherCapabilities/import:syscall",
+      "TestPackAdmissionPreservesOtherCapabilities/import:future/capability",
+      "TestLegacyRegularOverlayArchive/go/src/runtime/proc.go",
+      "TestPackAdmissionPreservesOtherCapabilities/import:plugin/subpackage",
+      "TestPackAdmissionPreservesOtherCapabilities/foreign:cgo:native.c",
+      "TestPackAdmissionPreservesOtherCapabilities",
+      "TestGovernanceReviewTimePreservesGrammarAndPrecedence",
+      "TestGovernanceFullPackPreservesCanonicalBytesAndTimestampSpelling",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_1_writes",
+      "TestGovernanceValidationRetainsCompleteErrorPrecedence/owner",
+      "TestGovernanceValidationRetainsCompleteErrorPrecedence/justification",
+      "TestGovernanceValidationRetainsCompleteErrorPrecedence/time",
+      "TestGovernanceValidationRetainsCompleteErrorPrecedence/workloads",
+      "TestGovernanceValidationRetainsCompleteErrorPrecedence/platforms",
+      "TestGovernanceValidationRetainsCompleteErrorPrecedence/approval",
+      "TestGovernanceValidationRetainsCompleteErrorPrecedence",
+      "TestStaleProfileBindingsAreReported/stale_activation",
+      "TestStaleProfileBindingsAreReported/stale_rule_module",
+      "TestStaleProfileBindingsAreReported/other_profile",
+      "TestStaleProfileBindingsAreReported/repeated_keys",
+      "TestStaleProfileBindingsAreReported/other_platform",
+      "TestStaleProfileBindingsAreReported/current_bindings",
+      "TestStaleProfileBindingsAreReported",
+      "TestLegacyRegularOverlayArchive/go/src/os/gomad.go/",
+      "TestLegacyRegularOverlayArchive",
+      "TestRunPublishesCheckedUpgradeEvidence",
+      "TestRefreshDiscoversEachRequestInItsModuleAndStopsAtApproval",
+      "TestRunDoesNotQualifyUnapprovedBoundaryChanges",
+      "TestRunDoesNotQualifyBoundaryApprovalForAnotherDiff",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_2_writes",
+      "TestRunPublishesUnqualifiedEvidenceWhenCorpusIsMissing",
+      "TestRunPublishesUnqualifiedEvidenceForUnsupportedHost",
+      "TestRunPublishesFailedGateEvidence",
+      "TestPublishWritesFixedDossierBytes",
+      "TestRefreshKeepsAnApprovedRequestAndReportsOnlyTheOther",
+      "TestRunReplacesExistingDossierAfterFailedGate",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset",
+      "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_created",
+      "TestRunReportsPublicationFailureAndKeepsPriorDossier/parent_is_a_file",
+      "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_renamed",
+      "TestRunReportsPublicationFailureAndKeepsPriorDossier",
+      "TestRunRejectsOverlayCollisionBeforeGates",
+      "TestCompareBoundariesRetainsNewManifestAndEntryFields",
+      "TestLoadCorpusRejectsUncheckedOrUnqualifiedJSON",
+      "TestLoadCorpusRejectsQualifiedDownstreamSet",
+      "TestRunKeepsPriorDossierWhenWriteFails",
+      "TestRefreshNeverTreatsAnApprovalOfOlderEvidenceAsCurrent",
+      "TestRefreshReportsOtherPlatformRequestsAndLeavesThemUntouched",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs",
+      "TestRefreshRejectsAnUnmappedRequestAsInvalidInput",
+      "TestRefreshReportsAReviewFailureAndContinues",
+      "TestCheckedInWorkingDirectoriesMapEveryRequest",
+      "TestRefreshSelectsAHostRequestBoundToAnotherProfile",
+      "TestCheckWorkingDirectoriesRequiresTheTableAndAModulePerEntry",
+      "TestApprovalSHA256BindsCompleteReviewedRequest/fact_disposition",
+      "TestApprovalSHA256BindsCompleteReviewedRequest/owner",
+      "TestApprovalSHA256BindsCompleteReviewedRequest/review_time",
+      "TestApprovalSHA256BindsCompleteReviewedRequest/justification",
+      "TestApprovalSHA256BindsCompleteReviewedRequest/workload",
+      "TestApprovalSHA256BindsCompleteReviewedRequest/platform",
+      "TestApprovalSHA256BindsCompleteReviewedRequest/source",
+      "TestApprovalSHA256BindsCompleteReviewedRequest",
+      "TestDecodeDraftRequestAcceptsSelectorsWithoutDiscoveredEvidence",
+      "TestValidateRequestRejectsOperationalPathsAndCollectionOverflow",
+      "TestValidateRequestRejectsUnadmittableCapabilities/import:os/exec",
+      "TestValidateRequestRejectsUnadmittableCapabilities/import:os/signal",
+      "TestValidateRequestRejectsUnadmittableCapabilities/import:os/user",
+      "TestValidateRequestRejectsUnadmittableCapabilities",
+      "TestRequestAdmissionRejectsFiveAllowedHostImports/import:os/exec",
+      "TestRequestAdmissionRejectsFiveAllowedHostImports/import:os/signal",
+      "TestRequestAdmissionRejectsFiveAllowedHostImports/import:os/user",
+      "TestRequestAdmissionRejectsFiveAllowedHostImports/import:plugin",
+      "TestRequestAdmissionRejectsFiveAllowedHostImports/import:runtime/cgo",
+      "TestRequestAdmissionRejectsFiveAllowedHostImports",
+      "TestRequestAdmissionPreservesFactValidationPriority/admission-before-inventory",
+      "TestRequestAdmissionPreservesFactValidationPriority/malformed-before-admission",
+      "TestRequestAdmissionPreservesFactValidationPriority/disposition-before-admission",
+      "TestRequestAdmissionPreservesFactValidationPriority/earlier-fact-before-admission",
+      "TestRequestAdmissionPreservesFactValidationPriority/admission-before-later-fact",
+      "TestRequestAdmissionPreservesFactValidationPriority",
+      "TestRenderReviewIncludesGovernanceEvidenceAndSecurityLabels",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/current_output",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unselected_output",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/not_evaluable_output",
+      "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes",
+      "TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable",
+      "TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/module_report",
+      "TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/file_report",
+      "TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas",
+      "TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree",
+      "TestSavedReportCannotSuppressAnotherMappedModule",
+      "TestCompatibilityPackPathsHonorAnExternalRoot",
+      "TestCompatibilityPathBaseKeepsDefaultPathsRootRelative",
+      "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/equal",
+      "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/different",
+      "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/json",
+      "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/truncated",
+      "TestDiagnosticDiffStatusesAndNoPartialInvalidResult/recording",
+      "TestDiagnosticDiffStatusesAndNoPartialInvalidResult",
+      "TestRunBuildKey",
+      "TestRunBuildKeyRejectsIncompleteInput",
+      "TestRunCompatibilityPackCheckReportsOperationalFailure",
+      "TestRunCompatibilityPackGenerateWithoutApprovalRegeneratesRecordedRequests",
+      "TestRunRejectsRemovedTestMode",
+      "TestRunPatchValidateChecksCurrentModule",
+      "TestRunScriptValidateChecksCurrentModule",
+      "TestRunPatchCommandsRejectIncompleteInput",
+      "TestRunToolchainBuildRejectsIncompleteInput",
+      "TestRunTestRejectsIncompleteInput",
+      "TestBootstrapGofmtResolvesInstalledTool",
+      "TestRunCheckedRunWritesCompatibilityResult",
+      "TestRunCheckedRunDistinguishesExit124FromTimeout",
+      "TestRunMaintainerOutputPatchPublication/patch-materialize",
+      "TestRunMaintainerOutputPatchPublication/patch-regenerate",
+      "TestRunMaintainerOutputPatchPublication",
+      "TestRunMaintainerOutputTerminalReports/patch-validate",
+      "TestRunMaintainerOutputTerminalReports/script-validate",
+      "TestRunMaintainerOutputTerminalReports/build-key",
+      "TestRunMaintainerOutputTerminalReports",
+      "TestRunMaintainerOutputBoundaryDiscovery/literal_control",
+      "TestRunMaintainerOutputBoundaryDiscovery",
+      "TestRunMaintainerOutputAuthoring/review",
+      "TestRunMaintainerOutputAuthoring/generate-all",
+      "TestRunMaintainerOutputAuthoring/generate-approved",
+      "TestRunMaintainerOutputAuthoring/check",
+      "TestRunMaintainerOutputAuthoring",
+      "TestRunMaintainerOutputPrimaryFailures/build-key/invalid",
+      "TestRunMaintainerOutputPrimaryFailures/patch-validate/invalid",
+      "TestRunMaintainerOutputPrimaryFailures/patch-validate/operation",
+      "TestRunMaintainerOutputPrimaryFailures/script-validate/invalid",
+      "TestRunMaintainerOutputPrimaryFailures/script-validate/operation",
+      "TestRunMaintainerOutputPrimaryFailures/patch-materialize/invalid",
+      "TestRunMaintainerOutputPrimaryFailures/patch-regenerate/invalid",
+      "TestRunMaintainerOutputPrimaryFailures/test/invalid",
+      "TestRunMaintainerOutputPrimaryFailures/toolchain-build/invalid",
+      "TestRunMaintainerOutputPrimaryFailures/boundary-generate/invalid",
+      "TestRunMaintainerOutputPrimaryFailures/boundary-generate/operation",
+      "TestRunMaintainerOutputPrimaryFailures/compatibility-pack/invalid",
+      "TestRunMaintainerOutputPrimaryFailures/upgrade-dossier/invalid",
+      "TestRunMaintainerOutputPrimaryFailures",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/unknown_flag",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/help",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/positional_argument",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/unknown_format",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/both_baseline_flags",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/partial_file_arguments",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/mixed_file_arguments",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/missing_candidate",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/missing_baseline",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/malformed_candidate",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/missing_go_command",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/unreachable_proxy",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/module_publication",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/module_stdout",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/file_malformed_candidate",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/file_publication",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus/file_stdout",
+      "TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus",
+      "TestRunPinImpactMissingPackSumIsUnknown",
+      "TestRunPinImpactMissingPackRuleSumIsUnknown/json=false",
+      "TestRunPinImpactMissingPackRuleSumIsUnknown/json=true",
+      "TestRunPinImpactMissingPackRuleSumIsUnknown",
+      "TestRunPinImpactReportsInvalidatedPinsWithoutTouchingTheModule",
+      "TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins",
+      "TestRunPinImpactReportsADependencyRequiringNewerGoAsUnknownPins",
+      "TestRunPinImpactReadsTheBaselineFromGit",
+      "TestRunPinImpactStatuses/both_baselines",
+      "TestRunPinImpactStatuses/malformed_module",
+      "TestRunPinImpactStatuses/missing_module",
+      "TestRunPinImpactStatuses/unreachable_proxy",
+      "TestRunPinImpactStatuses",
+      "TestRunPinImpactFileFlagsKeepTheV1Report",
+      "TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_directories",
+      "TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_manifest",
+      "TestSoakRejectsInvalidInvocationsAsInvalidInput/positional_argument",
+      "TestSoakRejectsInvalidInvocationsAsInvalidInput/invalid_seed",
+      "TestSoakRejectsInvalidInvocationsAsInvalidInput",
+      "TestGitFileDistinguishesAnIntroducedFileFromAnInvalidRevision"
+    ],
+    "architecture": [
+      "TestPackageArchitecture",
+      "TestPublicPackagesDoNotExportTypeAliases",
+      "TestPureModulesHaveNoHostEffects",
+      "TestExactModuleEdges"
+    ]
+  },
+  "lint": {
+    "baseline_findings": 118,
+    "final_findings": 100,
+    "removed_task_owned_findings": [
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 40,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 45,
+        "column": 16,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 56,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 63,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 69,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 74,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 92,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 102,
+        "column": 14,
+        "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 107,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 112,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 121,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 129,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 134,
+        "column": 16,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 144,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 156,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 165,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 171,
+        "column": 16,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      },
+      {
+        "file": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+        "line": 186,
+        "column": 15,
+        "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+      }
+    ],
+    "new_findings": [],
+    "inherited_findings_by_unchanged_file": {
+      "tools/gomad3/cmd/gomadtool/adapter_regenerate.go": {
+        "source_sha256": "14b5a0c3ff691bf97f0eb3eb5193866ed2b29e61cc574720496b5f1f8445d25c",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 42,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 46,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 53,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 59,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 64,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 77,
+            "column": 14,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 82,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 86,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 92,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 93,
+            "column": 14,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 100,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+            "line": 111,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/boundary.go": {
+        "source_sha256": "a83b4ff7b2c4fea0d45f0a772f115bedf6234b32b99f80683e2eff0476777b15",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/boundary.go",
+            "line": 55,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/compatibility_pack.go": {
+        "source_sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 24,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 41,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 58,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 63,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 68,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 78,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 84,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 88,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 92,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 113,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 118,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 127,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 149,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 154,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 158,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 171,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 179,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 199,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 204,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 212,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 219,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 251,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 270,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 275,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 280,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 305,
+            "column": 14,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 329,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 335,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 416,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+            "line": 421,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go": {
+        "source_sha256": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "line": 51,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "line": 56,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "line": 61,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "line": 66,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "line": 77,
+            "column": 14,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "line": 85,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "line": 97,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+            "line": 114,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/diagnostic.go": {
+        "source_sha256": "05fda6be7d114465ff93c0a120a6655cbf0fe54d381d703e65d12970de090d48",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+            "line": 21,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+            "line": 26,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+            "line": 31,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+            "line": 36,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+            "line": 50,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/main.go": {
+        "source_sha256": "c4383d94e0b1e67cb0dffd3051bccdacb795e94a8cc3b3b7bd4b26b1b9d0cc1d",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 32,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 73,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 80,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 86,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 91,
+            "column": 14,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 95,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 100,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 114,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 125,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 131,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 136,
+            "column": 13,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 138,
+            "column": 14,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 141,
+            "column": 14,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 175,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 192,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 207,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 235,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 240,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 319,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 347,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 352,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 356,
+            "column": 17,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 359,
+            "column": 17,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 367,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 393,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 400,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/main.go",
+            "line": 410,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/protocol.go": {
+        "source_sha256": "4e9bfd0121b3d057f1902bf12026952bd2bf791dac050d9580ef24da73d8e26e",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/protocol.go",
+            "line": 20,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/qualification_manifest.go": {
+        "source_sha256": "fe49214ec095124df9f29e422212817bea074e92016fb9fd902a2287b9435ff4",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/qualification_manifest.go",
+            "line": 22,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/qualification_manifest.go",
+            "line": 26,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/soak.go": {
+        "source_sha256": "1235e24d9602f2a2b38b97dc311f91e911653c5ba01e9b057201d544c292618d",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/soak.go",
+            "line": 37,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/soak.go",
+            "line": 47,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintf` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/soak.go",
+            "line": 55,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/soak.go",
+            "line": 62,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/upgrade.go": {
+        "source_sha256": "3788db5501c162625613a1011bdd653214e1f82b1eaacbb9af91978f732743a4",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/upgrade.go",
+            "line": 29,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/upgrade.go",
+            "line": 41,
+            "column": 16,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/cmd/gomadtool/upgrade.go",
+            "line": 64,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/cmd/gomadtool/version.go": {
+        "source_sha256": "baa5596b36197f6c8cd14e76e1699d71b8089055dc8261459040446c4c509878",
+        "findings": [
+          {
+            "file": "tools/gomad3/cmd/gomadtool/version.go",
+            "line": 20,
+            "column": 15,
+            "diagnostic": "Error return value of `fmt.Fprintln` is not checked (errcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/deterministicio/profile.go": {
+        "source_sha256": "cc4661f1a5f06acd3c07105b95eb72c1916a66cc55109d5a09b9fb066e4f03c6",
+        "findings": [
+          {
+            "file": "tools/gomad3/deterministicio/profile.go",
+            "line": 211,
+            "column": 3,
+            "diagnostic": "use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)"
+          }
+        ]
+      },
+      "tools/gomad3/internal/compatibilitypack/schema.go": {
+        "source_sha256": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed",
+        "findings": [
+          {
+            "file": "tools/gomad3/internal/compatibilitypack/schema.go",
+            "line": 275,
+            "column": 10,
+            "diagnostic": "ST1005: error strings should not be capitalized (staticcheck)"
+          },
+          {
+            "file": "tools/gomad3/internal/compatibilitypack/schema.go",
+            "line": 316,
+            "column": 10,
+            "diagnostic": "ST1005: error strings should not be capitalized (staticcheck)"
+          },
+          {
+            "file": "tools/gomad3/internal/compatibilitypack/schema.go",
+            "line": 319,
+            "column": 10,
+            "diagnostic": "ST1005: error strings should not be capitalized (staticcheck)"
+          }
+        ]
+      },
+      "tools/gomad3/upgrade/adapterregen/transaction.go": {
+        "source_sha256": "1b710dec9c0bb7e8517d919682e853b97ff0bf76dfa9d70d3fc39a3cd6825986",
+        "findings": [
+          {
+            "file": "tools/gomad3/upgrade/adapterregen/transaction.go",
+            "line": 89,
+            "column": 20,
+            "diagnostic": "Error return value of `lock.Release` is not checked (errcheck)"
+          },
+          {
+            "file": "tools/gomad3/upgrade/adapterregen/transaction.go",
+            "line": 219,
+            "column": 20,
+            "diagnostic": "Error return value of `lock.Release` is not checked (errcheck)"
+          }
+        ]
+      }
+    }
+  },
+  "tool_hashes": {
+    "go": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    "golangci-lint": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    "errortype": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  },
+  "user_files_unchanged": {
+    ".turbo/plans/gomad3-glossary-update.md": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188",
+    ".turbo/technical-debt.md": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+  },
+  "inventory_inputs_still_match": true,
+  "original_native_test_file_sha256": "f83535808d2996da0b88b04699e2e60327df7673c189ff7cf5e293ee9fd568c6",
+  "no_patched_driver": true,
+  "gate_classify": {
+    "command": "/home/agent/.codex/scripts/flowctl gate classify --base 2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+    "exit_code": 1,
+    "stdout": "FULL: unmatched: .turbo/plans/gomad3-glossary-update.md\n"
+  },
+  "review": "host-deferred; not dispatched by worker",
+  "all_worker_commands_terminal": true
+}

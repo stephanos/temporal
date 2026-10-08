@@ -1,0 +1,136 @@
+{
+  "commits": [],
+  "base_commit": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+  "tests": [
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason|TestPackRootLoadErrorsArePathFree|TestMissingExplicitPackRootSelectsNoPacks|TestExplicitPackRootOverridesEnvironmentAndRetainsReports|TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport|TestAdapterModuleSumRecords|TestPackOnlyDuplicateSumRemainsSelected|TestAdaptedPackDuplicateSumIsInvalidated|TestUnchangedModuleInvalidatesNothing|TestCommittedBumpKeepsTheStrandedPackInvalidated|TestMissingCandidateModuleSumIsUnknown|TestRemovedModules|TestIndirectOnlyBump|TestUnknownPinsCountAsInvalidated|TestInvalidInputAndResolutionFailures|TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure|TestGoResolverSelectsTheModuleGraphOutsideTheModule|TestGoResolverReportsUnavailableModulesAsInfrastructureFailures|TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestPortableFixturePinDecisions)$' ./upgrade/pinimpact [exit=0; portable-pinimpact]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestAdapterRegistryPortablePinDecisions|TestAdapterModuleSumRecords)$' ./deterministicio [exit=0; portable-registry]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool ./upgrade ./internal/compatibilitypack/... [exit=0; cli-and-upgrade-and-packs]",
+    "make -C tools/gomad3 validate [exit=0; validate]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$' . [exit=0; architecture]",
+    "go -C tools/gomad3 vet -tags test_dep ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; vet]",
+    "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; errortype]",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=1; lint-base]",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=1; lint-final]",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=2c183e6e1d7da96094f08e241e9333e5f27cabb5 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep [exit=0; lint-fast]",
+    "test -z \"$(gofmt -l tools/gomad3/deterministicio/adapter_pin_decisions_test.go tools/gomad3/upgrade/pinimpact/portable_fixtures_test.go tools/gomad3/cmd/gomadtool/pin_impact_diagnostics_test.go tools/gomad3/cmd/gomadtool/pin_impact.go)\" [exit=0; format]",
+    "git diff --check [exit=0; diff-check]",
+    "go -C tools/gomad3 list -tags test_dep -json ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; static-darwin-arm64]",
+    "go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; vet-darwin-arm64]",
+    "go -C tools/gomad3 list -tags test_dep -json ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; static-linux-amd64]",
+    "go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; vet-linux-amd64]",
+    "go -C tools/gomad3 list -tags test_dep -json ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; static-linux-arm64]",
+    "go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; vet-linux-arm64]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-report-adapter-jLX4fM/overlay.json' -run '^TestPortableFixturePinDecisions$' ./upgrade/pinimpact [exit=1; counterfactual-report-adapter]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-version-Z8oukr/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio [exit=1; counterfactual-registry-version]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-replacement-2xiGjn/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio [exit=1; counterfactual-registry-replacement]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-sum-WpLB1J/overlay.json' -run '^(TestAdapterRegistryPortablePinDecisions|TestAdapterModuleSumRecords)$' ./deterministicio [exit=1; counterfactual-registry-sum]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-pack-replacement-uzc4Az/overlay.json' -run '^TestPortableFixturePinDecisions$' ./upgrade/pinimpact [exit=1; counterfactual-pack-replacement]",
+    "cd '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-base-lint-k0ebNZ/worktree/tools/gomad3' && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=1; lint-base-clean-worktree]"
+  ],
+  "prs": [],
+  "status": "in_progress",
+  "review_mode": "host-deferred",
+  "summary": "handover.md",
+  "provenance": "final/provenance.json",
+  "command_indexes": [
+    "final/gates-commands.json",
+    "final/static-commands.json",
+    "final/controls-commands.json",
+    "final/baseline-lint-commands.json"
+  ],
+  "baseline": {
+    "status": "red (inherited native host/driver failures)",
+    "commands": [
+      {
+        "command": "make -C tools/gomad3 validate",
+        "exit_code": 0,
+        "log": "baseline-validate.log"
+      },
+      {
+        "command": "go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+        "exit_code": 1,
+        "log": "baseline-parent-quick.log"
+      },
+      {
+        "command": "go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool ./upgrade/...",
+        "exit_code": 1,
+        "log": "baseline-task-quick.log"
+      }
+    ]
+  },
+  "native": "unverified; exact original comparisons and full native aggregate transfer only under task owner amendments to fn128/fn149",
+  "historical_evidence": "preserved; earlier receipts do not qualify current native execution",
+  "lane": "released only when worker handover is returned; no live commands",
+  "uncommitted_source": "conductor owns staging and commits",
+  "static_source_bindings": "final/static-source-bindings.json",
+  "tooling_corrections": {
+    "lint_overlay_baseline": {
+      "status": "inconclusive as baseline source observation",
+      "receipt": "final/gates-commands.json:lint-base",
+      "observed_findings": 100,
+      "reason": "GOFLAGS overlay did not recover the eighteen original unchecked-write findings; no baseline credit",
+      "resolved_by": "final/baseline-lint-source.json (exact detached base worktree, fresh private lint cache; exit1,118findings; removed after terminal)"
+    },
+    "initial_finalization": {
+      "status": "authoring metadata assertion failure only",
+      "diagnostic": "unexpected lint count; corrected baseline evidence, not production"
+    },
+    "initial_counterfactual_setup": {
+      "status": "authoring setup error only",
+      "diagnostic": "nonunique report-adapter mutation locator; narrowed locator before actual counterfactual execution"
+    }
+  },
+  "characterization": {
+    "before": {
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run ^TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus$ ./cmd/gomadtool",
+      "exit_code": 0,
+      "log": "diagnostics-characterization-input-preservation-before.log",
+      "cases": 17
+    },
+    "after": {
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run ^(TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus|TestAdapterRegistryPortablePinDecisions|TestAdapterModuleSumRecords|TestPortableFixturePinDecisions)$ ./cmd/gomadtool ./deterministicio ./upgrade/pinimpact",
+      "exit_code": 0,
+      "log": "diagnostics-focused-after.log"
+    },
+    "behavioral_red_claim": false,
+    "actual_red": "18 task-owned errcheck findings in pre-fix lint-base.log and exact2c clean-worktree baseline",
+    "authoring_expectation_failures": [
+      "initial-test-expectation-failure.jsonl",
+      "diagnostics-characterization-initial-expectation-failure.log"
+    ]
+  },
+  "checksum_coverage_gap": {
+    "before_addition": {
+      "exit_code": 0,
+      "log": "uncovered-registry-sum-mutation.log",
+      "receipt": "initial-controls-commands.json"
+    },
+    "after_addition": {
+      "exit_code": 1,
+      "log": "final/counterfactual-registry-sum.log",
+      "receipt": "final/controls-commands.json"
+    },
+    "meaning": "same changed-single-zip-checksum mutation originally uncovered, now rejected by actual checker test; source behavior itself was already correct"
+  },
+  "baseline_execution_source_annotation": "final/baseline-execution-source-annotation.json",
+  "observed_test_skips": {
+    "cli-and-upgrade-and-packs": [
+      {
+        "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+        "test": "TestHostPacksBindCurrentProfile",
+        "reason": "profile_binding_test.go:50: no deterministic profile for linux/arm64",
+        "log": "final/cli-and-upgrade-and-packs.log"
+      }
+    ],
+    "portable-pinimpact": [],
+    "portable-registry": [],
+    "architecture": [],
+    "meaning": "576 CLI+upgrade+packs pass records plus one explicit native-profile skip; not zero-skips or full native proof. Portable pinimpact121, registry11 and architecture4 pass records have no skips."
+  },
+  "prior_fix_check": {
+    "local_history": "git log pin_impact.go: ca3345469a, a3b9f80efa, d617a8a1cd, 32a26e6c22; no newer existing checked-write fix found",
+    "memory": "pin-impact stderr bug-track search returned no hits",
+    "remote": "gh pr list / gh issue list both401Badcredentials; unchecked, no publication",
+    "bisect": "skipped: no known-good behavioral endpoint; source lint is exact RED; behavioral2/3 characterization intentionally green before/after"
+  }
+}

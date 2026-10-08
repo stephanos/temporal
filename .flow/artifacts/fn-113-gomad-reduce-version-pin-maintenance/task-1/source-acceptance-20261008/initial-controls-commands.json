@@ -1,0 +1,62 @@
+{
+  "base_commit": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+  },
+  "commands": [
+    {
+      "name": "counterfactual-report-adapter",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-report-adapter-P7L2rO/overlay.json' -run '^TestPortableFixturePinDecisions$' ./upgrade/pinimpact",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.603,
+      "log": "counterfactual-report-adapter.log",
+      "log_sha256": "89cc75c395b9284df09d1a59d6e1f57bc9e64f033bd84d4ca4b3ea6eae756ad1",
+      "source_tree_sha256": "9a7f05099101f702e6fc547af62d40f176eba9b7b7b344a9d6ab9938616e8e92",
+      "expected_exit": 1
+    },
+    {
+      "name": "counterfactual-registry-version",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-version-ZanjTh/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.693,
+      "log": "counterfactual-registry-version.log",
+      "log_sha256": "7ceb345b26ff4c9c3cc10231f520a36b6a4d5e054bb43a7ce5055b5818d80522",
+      "source_tree_sha256": "9a7f05099101f702e6fc547af62d40f176eba9b7b7b344a9d6ab9938616e8e92",
+      "expected_exit": 1
+    },
+    {
+      "name": "counterfactual-registry-replacement",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-replacement-c2Olpq/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.809,
+      "log": "counterfactual-registry-replacement.log",
+      "log_sha256": "e2ab5685b021608225b101652e405c7b3ad611ec271a8e5f8a5524706016ef0b",
+      "source_tree_sha256": "9a7f05099101f702e6fc547af62d40f176eba9b7b7b344a9d6ab9938616e8e92",
+      "expected_exit": 1
+    },
+    {
+      "name": "counterfactual-registry-sum",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-sum-jQhavT/overlay.json' -run '^TestAdapterModuleSumRecords$' ./deterministicio",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.818,
+      "log": "counterfactual-registry-sum.log",
+      "log_sha256": "9e26f942a07c8ced28b2c627ca6f62c83dc3119e019445f1898efaf12b77bf83",
+      "source_tree_sha256": "9a7f05099101f702e6fc547af62d40f176eba9b7b7b344a9d6ab9938616e8e92",
+      "expected_exit": 1
+    }
+  ]
+}

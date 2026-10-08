@@ -79,6 +79,20 @@ Retain actual RED through public Evaluate/Encode/Render and the real CLI offline
 
 Repair only evaluation ordering and existing reason propagation if the premise reproduces. Add no dependency, platform rewrite, schema, policy, pin, generated-input or native-guard change. Run focused and portable package controls with test_dep, scoped lint/errortype/vet, check-only validation, relevant architecture checks and make lint-code-fast with fixes disabled. Retain compact source-bound receipts and a fresh same-family source-progress review; commit verified progress separately. This does not complete original native comparator, Darwin/full or formal acceptance. Linux remains deferred under fn128. Preserve original Acceptance, historical Done summary and Evidence.
 
+## Current source-acceptance diagnostic handling (2026-10-08)
+
+The current unfiltered lint comparison retains eighteen unchecked diagnostic writes in this task's `cmd/gomadtool/pin_impact.go`. They are source-owned findings, not transferred native requirements. The conductor read their exact diagnostics and the pre-production `TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus` characterization: all seventeen named cases pass with healthy diagnostics and real EBADF writers. Initial diagnostic-expectation mistakes remain test-authoring failures, not behavioral RED.
+
+Admit only explicit error handling for these eighteen `fmt.Fprintln`/`fmt.Fprintf` stderr writes and additive characterization in `pin_impact_diagnostics_test.go`. Preserve primary invalid-input status2 and infrastructure/stdout-error status3 even if secondary diagnostics fail. Preserve existing format strings, arguments, write order, flag parsing/help output, both module/file report modes, input validation and error precedence, report/publication bytes, module immutability, comments, production platform guards and generated identities. The two typed-input classification branches may repeat their existing classification only inside a failed-write return path to preserve that precedence. No wrapper/deferred reconciliation, suppression, ignored write error, new public surface or unrelated production change is admitted.
+
+Use the actual eighteen-site lint failure as RED and before/after status/output characterization; no observable-behavior regression is claimed for branches whose required result is unchanged. Rebind affected package/CLI checks, unfiltered scoped lint, mandatory fast lint, formatting, vet/errortype and generated/static identities after the repair. Other findings retain exact source ownership and remain failures, not a blanket waiver. Native fn149/fn128 deferrals, predecessor acceptance, current source review and conductor-owned completion remain unchanged.
+
+## Current retained source review (2026-10-08)
+
+The integrated R1/R2 source candidate and command evidence are in the [worker handover](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008/handover.md), [final provenance](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008/final/provenance.json), and [conductor review admission](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/conductor-source-acceptance-20261008/review-admission.md). Review all retained R1/R2 requirements, not only the incremental diagnostic/test diff. The current inventory and manual steps supersede stale count observations without changing the original baseline's bytes. Native failures/skips and unrelated lint findings retain their exact owners; none is a source-pass or blanket waiver. Lifecycle remains in progress until the independent verdict and all owned source acceptance are verified.
+
+The first committed-range review (`450f2b7227b34fafaa6bfdc48461d8eb`) saw `2c183e6e..2c183e6e`, not this uncommitted candidate. Its actual SHIP responses explicitly approve only that empty range and leave R1/R2 partial. It supplies no source acceptance. Retain the receipt and review the non-empty source progress commit against base `2c183e6e` before completion.
+
 ## Acceptance
 
 

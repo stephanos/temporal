@@ -1,0 +1,19 @@
+# fn-113.1 source-review admission
+
+Base: `2c183e6e1d7da96094f08e241e9333e5f27cabb5`. Task remains in progress; no completion or review verdict is asserted.
+
+Root verified the worker's [final provenance](../source-acceptance-20261008/final/provenance.json) against the current checkout: source digest `0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1`, 1,013 source files including the four admitted changes, 24 raw command-log hashes, exact tool hashes, current inventory inputs, unchanged historical baseline, and unchanged user files. The only tracked production difference is the admitted eighteen checked diagnostic writes; the three added test files are covered by the same source digest. Original native tests, module files, runtime inputs and generated files remain unchanged. The root's milestone edit links the inventory and manual steps; it changes no Go inputs.
+
+Raw JSON events confirm 121 portable pinimpact, 11 actual-registry, 576 CLI/upgrade/pack and four architecture passing test/subtest records. Portable checks have no skips or failures. CLI/upgrade/pack has the explicitly native `TestHostPacksBindCurrentProfile` skip. Five counterfactuals fail at their intended report, registry version/replacement/checksum and pack-replacement assertions, not compilation. Validation, vet/errortype, both-supported-source-set static list/vet, mandatory fast lint and format checks pass for this frozen source. This admits retained source review, not a full native aggregate pass.
+
+The exact-base worktree lint log has 118 findings; the candidate log has 100. Root parsed both logs and verified identical external file/line/column/diagnostic identities, with only the eighteen `pin_impact.go` findings removed. Global lint remains red. Each remaining site and unchanged source hash is retained in provenance: regeneration findings remain for fn-113.2, refresh/pack-authoring findings for fn-113.3, and other CLI/schema/profile findings for the existing fn-109 source-lint/correction owners or fn-112.10's soak source. None receives a lint waiver or an automatic Done here. Scope owners must resolve their findings before their own source acceptance. The inconclusive overlay baseline is retained and supplies no baseline credit.
+
+The task and spec's 2026-10-07 owner amendments transfer native preparation/execution and full native aggregate requirements to fn-149/fn-128. The unchanged original Quick failures remain failures under those owners. Additive portable controls establish the retained source decisions, not native execution. All independent R1/R2 source requirements and preservation are in review scope, including already-integrated implementation; historical receipts are not current native proof.
+
+Formal review is conductor-owned, fresh and read-only, using the Flow-Next Codex backend at the AGENTS reviewer preference `gpt-6.1-sol` / `high` (same GPT family as the writer). The backend supplies the verdict. No PR, push, CI run or native qualification is authorized.
+
+## Empty committed-range observation
+
+The first invocation, reservation `450f2b7227b34fafaa6bfdc48461d8eb`, reviewed committed base/head `2c183e6e..2c183e6e`. All three actual reviewer responses returned SHIP only for that empty range and explicitly excluded the uncommitted changes. Their coverage tables mark R1/R2 partial. The finalizer recorded that backend verdict without refund/reset/force. This is not acceptance of the source candidate. Preserve the draw responses in `.flow/review-fanout/450f2b7227b34fafaa6bfdc48461d8eb/` and the normal finalized receipt/history.
+
+Commit the verified source progress with task status still in progress, then review the actual non-empty base-to-candidate commit range. The missing candidate review is the retained acceptance requirement allowing a progress checkpoint under MILESTONES verification rule 5; no Done follows from the empty-range response.

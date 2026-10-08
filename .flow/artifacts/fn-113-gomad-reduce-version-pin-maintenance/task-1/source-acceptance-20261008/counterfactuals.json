@@ -1,0 +1,107 @@
+[
+  {
+    "overlayPath": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-report-adapter-SNj2QK/overlay.json",
+    "source": "tools/gomad3/upgrade/pinimpact/pinimpact.go",
+    "source_sha256": "1074264ad34cf64d31b018872fbc5f5af5a25d3e763d4e1faa5c40dc8baba7b5",
+    "mutated_sha256": "71f45ba8e857a57686c0c9fd4f77309b95cb4a0b3c61dcfe1b315c399bd8f4b4",
+    "from": "pin.Status, pin.Reason = StatusInvalidated, match.reason\n\t\t}\n\t\tevaluation.record(pin)\n\t}\n}\n\n// evaluatePacks",
+    "to": "pin.Status, pin.Reason = StatusUnaffected, match.reason\n\t\t}\n\t\tevaluation.record(pin)\n\t}\n}\n\n// evaluatePacks",
+    "name": "report-adapter",
+    "receipt": {
+      "name": "counterfactual-report-adapter",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-report-adapter-SNj2QK/overlay.json' -run '^TestPortableFixturePinDecisions$' ./upgrade/pinimpact",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 2.302,
+      "log": "counterfactual-report-adapter.log",
+      "log_sha256": "d4a95066024e2ce452852a59384f408073a0801dde4ec81ba542f36e073b0317",
+      "source_tree_sha256": "41ea6e65c3ea24b919d385d6d5bb34093c5c68b7241c956ff7087274c9fc39a4",
+      "expected_exit": 1
+    }
+  },
+  {
+    "overlayPath": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-version-Ytt2Fl/overlay.json",
+    "source": "tools/gomad3/deterministicio/adapter_registry.go",
+    "source_sha256": "bb99674446c997ad48fad63050ea8ce275f1de860b3e6f7c5a70e5faddce6d25",
+    "mutated_sha256": "895a500ae95fafbc4521b3e3d38d96002bc7fb90e7300402d9cd7bf3dd79ef7f",
+    "from": "if version != definition.identity.Version {",
+    "to": "if false && version != definition.identity.Version {",
+    "name": "registry-version",
+    "receipt": {
+      "name": "counterfactual-registry-version",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-version-Ytt2Fl/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 1.334,
+      "log": "counterfactual-registry-version.log",
+      "log_sha256": "9b136df0b65a3302ae6fce11e4ddafe04931888b3d893e9d84db3e83db7eafea",
+      "source_tree_sha256": "41ea6e65c3ea24b919d385d6d5bb34093c5c68b7241c956ff7087274c9fc39a4",
+      "expected_exit": 1
+    }
+  },
+  {
+    "overlayPath": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-replacement-V2EqJD/overlay.json",
+    "source": "tools/gomad3/deterministicio/adapter_registry.go",
+    "source_sha256": "bb99674446c997ad48fad63050ea8ce275f1de860b3e6f7c5a70e5faddce6d25",
+    "mutated_sha256": "7e4f05892d8f2ec36bb361dbcf58dfb6a64dc7338a7ea3d53a393a16f6cc2836",
+    "from": "if replacement.Old.Path == module {",
+    "to": "if false && replacement.Old.Path == module {",
+    "name": "registry-replacement",
+    "receipt": {
+      "name": "counterfactual-registry-replacement",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-replacement-V2EqJD/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 1.33,
+      "log": "counterfactual-registry-replacement.log",
+      "log_sha256": "8e25d13646dd8fd9ac3ca8b4dd236e2bb1a9a71544843816501727da0a7a93fd",
+      "source_tree_sha256": "41ea6e65c3ea24b919d385d6d5bb34093c5c68b7241c956ff7087274c9fc39a4",
+      "expected_exit": 1
+    }
+  },
+  {
+    "overlayPath": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-sum-YdRFpk/overlay.json",
+    "source": "tools/gomad3/deterministicio/adapter_registry.go",
+    "source_sha256": "bb99674446c997ad48fad63050ea8ce275f1de860b3e6f7c5a70e5faddce6d25",
+    "mutated_sha256": "4b399e30d85daef37e9488df8da94d5e07cb06a4e2502e0a4814c77133e0f02e",
+    "from": "if found || fields[2] != identity.Sum {",
+    "to": "if found {",
+    "name": "registry-sum",
+    "receipt": {
+      "name": "counterfactual-registry-sum",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-sum-YdRFpk/overlay.json' -run '^(TestAdapterRegistryPortablePinDecisions|TestAdapterModuleSumRecords)$' ./deterministicio",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 1.06,
+      "log": "counterfactual-registry-sum.log",
+      "log_sha256": "16c0cb1170fa69bf35b6e755628ae434cb2e11525cf01fdb22c47d7d452ed7b7",
+      "source_tree_sha256": "41ea6e65c3ea24b919d385d6d5bb34093c5c68b7241c956ff7087274c9fc39a4",
+      "expected_exit": 1
+    }
+  },
+  {
+    "overlayPath": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-pack-replacement-dep0iV/overlay.json",
+    "source": "tools/gomad3/internal/compatibilitypack/v2_selection.go",
+    "source_sha256": "7c80bfa7cce53d14967b8aff784461e855e70c066af32607fb6ca03a3da65f59",
+    "mutated_sha256": "ba4343c35c44029e7f0feb80ce73f54898d9d70065dc4ec886f1cf898637ca3b",
+    "from": "return !actual.Replaced && !actual.LocalReplacement && actual.Adapter == nil",
+    "to": "return !actual.LocalReplacement && actual.Adapter == nil",
+    "name": "pack-replacement",
+    "receipt": {
+      "name": "counterfactual-pack-replacement",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-pack-replacement-dep0iV/overlay.json' -run '^TestPortableFixturePinDecisions$' ./upgrade/pinimpact",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 1,
+      "log": "counterfactual-pack-replacement.log",
+      "log_sha256": "9dfd3680ccacdd4c0416d7d581f12698f2989d14d5bc524ec72ee412c382cbd5",
+      "source_tree_sha256": "41ea6e65c3ea24b919d385d6d5bb34093c5c68b7241c956ff7087274c9fc39a4",
+      "expected_exit": 1
+    }
+  }
+]

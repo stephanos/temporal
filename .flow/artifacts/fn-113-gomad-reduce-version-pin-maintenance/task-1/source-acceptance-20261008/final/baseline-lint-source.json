@@ -1,0 +1,18 @@
+{
+  "base_commit": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+  "worktree": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-base-lint-k0ebNZ/worktree",
+  "production_source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+  "lint_cache": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-base-lint-k0ebNZ/lint-cache",
+  "receipt": {
+    "name": "lint-base-clean-worktree",
+    "command": "cd '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-base-lint-k0ebNZ/worktree/tools/gomad3' && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+    "exit_code": 1,
+    "signal": null,
+    "error": null,
+    "elapsed_seconds": 6.165,
+    "log": "lint-base-clean-worktree.log",
+    "log_sha256": "440efae6548bb995514c2786042250344344ddb79eb8674b8d81026176e82fc3",
+    "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+    "expected_exit": 1
+  }
+}

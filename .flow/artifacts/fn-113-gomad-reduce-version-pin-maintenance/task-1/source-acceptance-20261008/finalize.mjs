@@ -1,0 +1,66 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+
+const dir='.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008';
+const read=p=>fs.readFileSync(p);
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const git=(...args)=>{const r=spawnSync('git',args,{encoding:'utf8'});if(r.status!==0)throw Error(r.stderr);return r.stdout.trimEnd();};
+const assert=(condition,message)=>{if(!condition)throw Error(message);};
+const base=read('.flow/tmp/base_commit').toString().trim();
+const added=['tools/gomad3/upgrade/pinimpact/portable_fixtures_test.go','tools/gomad3/deterministicio/adapter_pin_decisions_test.go','tools/gomad3/cmd/gomadtool/pin_impact_diagnostics_test.go'];
+const production='tools/gomad3/cmd/gomadtool/pin_impact.go';
+const sourcePaths=[...new Set([...git('ls-files','tools/gomad3','go.mod','go.sum','tools/gomad3integration/go.mod','tools/gomad3integration/go.sum').split('\n'),...added])].sort();
+const sourceDigest=sha(sourcePaths.map(p=>p+'\0'+sha(read(p))).join('\n'));
+const changed=git('diff','--name-only',base,'--','tools/gomad3','go.mod','go.sum','tools/gomad3integration/go.mod','tools/gomad3integration/go.sum').split('\n');
+assert(JSON.stringify(changed)===JSON.stringify([production]),'unexpected tracked source changes');
+const immutable=sourcePaths.filter(p=>p!==production&&!added.includes(p));
+for(const p of immutable){const original=spawnSync('git',['show',base+':'+p]);assert(original.status===0&&sha(read(p))===sha(original.stdout),'changed immutable source: '+p);}
+const calls=s=>s.split('\n').filter(l=>l.includes('fmt.Fprint')&&l.includes('stderr')).map(l=>{const c=l.slice(l.indexOf('fmt.Fprint'));return (c.includes('; writeErr')?c.slice(0,c.lastIndexOf('; writeErr')):c).trim();});
+const beforeCalls=calls(git('show',base+':'+production)),afterCalls=calls(read(production).toString());
+assert(beforeCalls.length===18&&JSON.stringify(beforeCalls)===JSON.stringify(afterCalls),'diagnostic format/call ordering changed');
+const jsonStream=p=>{const s=read(p).toString(),values=[];let start=-1,depth=0,string=false,escaped=false;for(let i=0;i<s.length;i++){const c=s[i];if(string){if(escaped)escaped=false;else if(c==='\\')escaped=true;else if(c==='"')string=false;continue;}if(c==='"')string=true;else if(c==='{'){if(depth===0)start=i;depth++;}else if(c==='}'&&--depth===0)values.push(JSON.parse(s.slice(start,i+1)));}return values;};
+const sourceSets=Object.fromEntries(['darwin-arm64','linux-amd64','linux-arm64'].map(platform=>[platform,jsonStream(dir+'/final/static-'+platform+'.log').map(pkg=>({import_path:pkg.ImportPath,files:Object.fromEntries([...pkg.GoFiles??[],...pkg.TestGoFiles??[],...pkg.XTestGoFiles??[]].map(f=>[path.relative(process.cwd(),path.join(pkg.Dir,f)),sha(read(path.join(pkg.Dir,f)))]))}))]));
+const records={};
+for(const mode of ['gates','static','controls','baseline-lint']){
+  records[mode]=JSON.parse(read(dir+'/final/'+mode+'-commands.json'));
+  for(const receipt of records[mode].commands){assert(receipt.source_tree_sha256===sourceDigest,'unbound source '+receipt.name);assert(receipt.log_sha256===sha(read(dir+'/final/'+receipt.log)),'log changed '+receipt.name);}
+}
+const events=p=>read(p).toString().trim().split('\n').flatMap(l=>{try{return [JSON.parse(l)];}catch{return [];}});
+const tests=p=>events(p).filter(e=>e.Action==='pass'&&e.Test).map(e=>e.Test);
+const hashes=p=>events(p).flatMap(e=>{const m=e.Output?.match(/resolved canonical=([a-f0-9]{64}) human=([a-f0-9]{64})/);return m?[{test:e.Test,canonical:m[1],human:m[2]}]:[];});
+const oldHashes=hashes(dir+'/portable-pinimpact.log'),newHashes=hashes(dir+'/final/portable-pinimpact.log');
+assert(oldHashes.length===43&&JSON.stringify(oldHashes)===JSON.stringify(newHashes),'resolved report bytes changed');
+const diagPrefix='TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus';
+const diagnosticIDs=p=>tests(p).filter(t=>t.startsWith(diagPrefix)).sort();
+const beforeIDs=diagnosticIDs(dir+'/diagnostics-characterization-input-preservation-before.log');
+const afterIDs=diagnosticIDs(dir+'/final/cli-and-upgrade-and-packs.log');
+assert(beforeIDs.length===18&&JSON.stringify(beforeIDs)===JSON.stringify(afterIDs),'diagnostic characterization mismatch');
+const baselineSource=JSON.parse(read(dir+'/final/baseline-lint-source.json'));
+assert(baselineSource.production_source_sha256===sha(Buffer.from(spawnSync('git',['show',base+':'+production]).stdout)),'wrong baseline production identity');
+const findings=(p,root=process.cwd())=>read(p).toString().split('\n').flatMap(l=>{const m=l.match(/^(.+\.go):(\d+):(\d+): (.*)$/);return m?[{file:path.relative(root,m[1]),line:Number(m[2]),column:Number(m[3]),diagnostic:m[4]}]:[];});
+const baseFindings=findings(dir+'/final/lint-base-clean-worktree.log',baselineSource.worktree),finalFindings=findings(dir+'/final/lint-final.log');
+assert(baseFindings.length===118&&finalFindings.length===100,'unexpected lint count');
+assert(JSON.stringify(baseFindings.filter(f=>f.file!==production))===JSON.stringify(finalFindings),'new or altered external lint finding');
+const byFile={};for(const f of finalFindings)(byFile[f.file]??=[]).push(f);
+const inventory=JSON.parse(read(dir+'/current-inventory.json'));
+for(const [p,h]of Object.entries(inventory.source_sha256))assert(sha(read(p))===h,'inventory input changed: '+p);
+assert(sha(read(inventory.historical_first_baseline.path))===inventory.historical_first_baseline.sha256,'historical baseline changed');
+const userFiles={'.turbo/plans/gomad3-glossary-update.md':'97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188','.turbo/technical-debt.md':'c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287'};
+for(const [p,h]of Object.entries(userFiles))assert(sha(read(p))===h,'user file changed '+p);
+const tools={'go':'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go','golangci-lint':'/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0','errortype':'/tmp/fn109-lint-tools.ZdNe1t50/errortype'};
+const toolHashes=Object.fromEntries(Object.entries(tools).map(([name,p])=>[name,{path:p,sha256:sha(read(p))}]));
+const proof={recorded_utc:new Date().toISOString(),base_commit:base,head:git('rev-parse','HEAD'),source_tree_sha256:sourceDigest,immutable_tracked_source_count:immutable.length,immutable_tracked_source_aggregate_sha256:sha(immutable.map(p=>p+'\0'+sha(read(p))).join('\n')),changed_source_sha256:Object.fromEntries([production,...added].map(p=>[p,sha(read(p))])),diagnostic_format_calls_unchanged:18,diagnostic_cases:afterIDs.filter(t=>t.includes('/')),resolved_byte_pairs:newHashes,tests:Object.fromEntries(['portable-pinimpact','portable-registry','cli-and-upgrade-and-packs','architecture'].map(name=>[name,tests(dir+'/final/'+name+'.log')])),lint:{baseline_findings:118,final_findings:100,removed_task_owned_findings:baseFindings.filter(f=>f.file===production),new_findings:[],inherited_findings_by_unchanged_file:Object.fromEntries(Object.entries(byFile).map(([p,findings])=>[p,{source_sha256:sha(read(p)),findings}]))},tool_hashes:toolHashes,user_files_unchanged:userFiles,inventory_inputs_still_match:true,original_native_test_file_sha256:sha(read('tools/gomad3/upgrade/pinimpact/pinimpact_test.go')),no_patched_driver:!fs.existsSync('tools/gomad3/.toolchain/bin/go'),gate_classify:{command:'/home/agent/.codex/scripts/flowctl gate classify --base '+base,exit_code:1,stdout:'FULL: unmatched: .turbo/plans/gomad3-glossary-update.md\n'},review:'host-deferred; not dispatched by worker',all_worker_commands_terminal:true};
+fs.writeFileSync(dir+'/final/provenance.json',JSON.stringify(proof,null,2)+'\n');
+fs.writeFileSync(dir+'/final/static-source-bindings.json',JSON.stringify({source_tree_sha256:sourceDigest,source_sets:sourceSets,execution:'stock go list/vet only; no native preparation or test execution'},null,2)+'\n');
+const testsEvidence=Object.values(records).flatMap(record=>record.commands.map(c=>c.command+' [exit='+c.exit_code+'; '+c.name+']'));
+const evidence={commits:git('rev-list','--reverse',base+'..HEAD').split('\n').filter(Boolean),base_commit:base,tests:testsEvidence,prs:[],status:'in_progress',review_mode:'host-deferred',summary:'handover.md',provenance:'final/provenance.json',command_indexes:['final/gates-commands.json','final/static-commands.json','final/controls-commands.json'],baseline:{status:'red (inherited native host/driver failures)',commands:[{command:'make -C tools/gomad3 validate',exit_code:0,log:'baseline-validate.log'},{command:'go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...',exit_code:1,log:'baseline-parent-quick.log'},{command:'go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool ./upgrade/...',exit_code:1,log:'baseline-task-quick.log'}]},native:'unverified; exact original comparisons and full native aggregate transfer only under task owner amendments to fn128/fn149',historical_evidence:'preserved; earlier receipts do not qualify current native execution',lane:'released only when worker handover is returned; no live commands',uncommitted_source:'conductor owns staging and commits'};
+evidence.command_indexes.push('final/baseline-lint-commands.json');
+evidence.static_source_bindings='final/static-source-bindings.json';
+evidence.tooling_corrections={lint_overlay_baseline:{status:'inconclusive as baseline source observation',receipt:'final/gates-commands.json:lint-base',observed_findings:100,reason:'GOFLAGS overlay did not recover the eighteen original unchecked-write findings; no baseline credit',resolved_by:'final/baseline-lint-source.json (exact detached base worktree, fresh private lint cache; exit1,118findings; removed after terminal)'},initial_finalization:{status:'authoring metadata assertion failure only',diagnostic:'unexpected lint count; corrected baseline evidence, not production'},initial_counterfactual_setup:{status:'authoring setup error only',diagnostic:'nonunique report-adapter mutation locator; narrowed locator before actual counterfactual execution'}};
+evidence.characterization={before:{command:'go -C tools/gomad3 test -tags test_dep -count=1 -json -run ^TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus$ ./cmd/gomadtool',exit_code:0,log:'diagnostics-characterization-input-preservation-before.log',cases:17},after:{command:'go -C tools/gomad3 test -tags test_dep -count=1 -json -run ^(TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus|TestAdapterRegistryPortablePinDecisions|TestAdapterModuleSumRecords|TestPortableFixturePinDecisions)$ ./cmd/gomadtool ./deterministicio ./upgrade/pinimpact',exit_code:0,log:'diagnostics-focused-after.log'},behavioral_red_claim:false,actual_red:'18 task-owned errcheck findings in pre-fix lint-base.log and exact2c clean-worktree baseline',authoring_expectation_failures:['initial-test-expectation-failure.jsonl','diagnostics-characterization-initial-expectation-failure.log']};
+evidence.checksum_coverage_gap={before_addition:{exit_code:0,log:'uncovered-registry-sum-mutation.log',receipt:'initial-controls-commands.json'},after_addition:{exit_code:1,log:'final/counterfactual-registry-sum.log',receipt:'final/controls-commands.json'},meaning:'same changed-single-zip-checksum mutation originally uncovered, now rejected by actual checker test; source behavior itself was already correct'};
+evidence.prior_fix_check={local_history:'git log pin_impact.go: ca3345469a, a3b9f80efa, d617a8a1cd, 32a26e6c22; no newer existing checked-write fix found',memory:'pin-impact stderr bug-track search returned no hits',remote:'gh pr list / gh issue list both401Badcredentials; unchecked, no publication',bisect:'skipped: no known-good behavioral endpoint; source lint is exact RED; behavioral2/3 characterization intentionally green before/after'};
+fs.writeFileSync(dir+'/evidence.json',JSON.stringify(evidence,null,2)+'\n');
+console.log(JSON.stringify({source_tree_sha256:sourceDigest,immutable_source_files:immutable.length,resolved_byte_pairs:newHashes.length,diagnostic_cases:afterIDs.length-1,test_counts:Object.fromEntries(Object.entries(proof.tests).map(([k,v])=>[k,v.length])),lint:{base:baseFindings.length,final:finalFindings.length,new:0},tools:toolHashes}));

@@ -1,0 +1,12 @@
+# fn-113.4 read-only preparation
+
+Conductor handover from `/root/prep_fn1134_source`, inspected at `2c183e6e1d7da96094f08e241e9333e5f27cabb5`. The scout made no edits or gate executions; all processes are terminal. Task4 remains Todo behind tasks1/2/3. This is preparation, not acceptance or a review verdict.
+
+- R5 drift: README.md:1157–1162 and CLI.md:611 describe saved impact reports incompletely. Current `compatibility_pack_refresh.go:84–103,200–229` evaluates every mapped directory, then validates and merges the saved report. Saved reports supplement live discovery and cannot suppress another mapped module (`compatibility_pack_refresh_test.go:464`). Carry the qualification into the generated guide through `descriptor.go`, not a direct generated-file edit.
+- Retained task4 measurements distinguish Sprig's seven observed commands from normalized baseline7→5, x/sys's eight commands plus one justification edit from normalized5→5, and a two-request7→5 projection that was not an executed complete walk. Keep these historical; do not claim current savings or substitute the earlier harness estimates.
+- All twelve retained artifact hashes match `task-4/source-binding.json`, but fifteen of seventeen source states differ. The old SHIP and native receipts are historical, not current-source qualification. Rebind current docs/grammar; obtain fresh current walkthrough, generation/static coverage and review after predecessor acceptance.
+- Keep task1 inventory/manual-step remeasurement with its active worker. For task4, count every actual portable walkthrough invocation/edit/retry against the accepted matched baseline, separating source authoring from deferred native consumer/pack qualification.
+- After a template change run its generator and validate; cover `./toolchain/version`, affected command/upgrade/authoring behavior, current both-source-set architecture checks, lint and all seven document links/command inventories. Preserve the old documentation audit output; its script overwrites that output, hard-codes a historical delta and omits three task documents.
+- Serialize any later fn-110.5 `renderUpgradeGuide` change and regenerate the integrated template. Native execution stays deferred under fn149/fn128; no native gate, PR, push or CI authority follows.
+
+The independent research digest is retained for the next dependency admission. It does not change task statuses or original acceptance criteria.

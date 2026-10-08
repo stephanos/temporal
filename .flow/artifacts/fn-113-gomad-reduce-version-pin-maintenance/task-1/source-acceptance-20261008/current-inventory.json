@@ -1,0 +1,130 @@
+{
+  "schema": "gomad3.pin-maintenance-baseline/v1",
+  "head": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+  "recorded_utc": "2026-10-08T16:24:37.040Z",
+  "measurement_command": "node .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008/measure.mjs",
+  "counts": {
+    "runtime_patch": {
+      "lines": 692,
+      "bytes": 24117,
+      "files": 20
+    },
+    "runtime_overlay": {
+      "files": 79,
+      "lines": 20763
+    },
+    "dependency_adapters": {
+      "modules": 15,
+      "sha256_anchor_literals": 135
+    },
+    "compatibility_packs": {
+      "packs": 12,
+      "rules": 54,
+      "unique_module_version_pins": 19
+    },
+    "interception_fingerprints": {
+      "intercepts": 131,
+      "declarations_including_platform_overrides": 132
+    },
+    "clock_inventory": {
+      "references": 48,
+      "by_platform": {
+        "darwin/arm64": 23,
+        "linux/amd64": 25
+      },
+      "identifier_occurrences": 87
+    }
+  },
+  "report_classes": [
+    {
+      "class": "adapter",
+      "invalidated": 0,
+      "not_selected": 6,
+      "stale": 0,
+      "total": 15,
+      "unaffected": 9,
+      "unknown": 0
+    },
+    {
+      "class": "pack-rule",
+      "invalidated": 5,
+      "not_selected": 1,
+      "stale": 0,
+      "total": 54,
+      "unaffected": 48,
+      "unknown": 0
+    },
+    {
+      "class": "interception-fingerprint",
+      "invalidated": 0,
+      "not_selected": 0,
+      "stale": 0,
+      "total": 132,
+      "unaffected": 132,
+      "unknown": 0
+    },
+    {
+      "class": "clock-reference",
+      "invalidated": 0,
+      "not_selected": 0,
+      "stale": 0,
+      "total": 48,
+      "unaffected": 48,
+      "unknown": 0
+    }
+  ],
+  "inventory_report_sha256": "a7058075a3db0a1c783e4d212782555fecfc8366a33c7d59d9d9afb3849f8c9c",
+  "inventory_command": [
+    "timeout",
+    "600",
+    "go",
+    "-C",
+    "tools/gomad3",
+    "run",
+    "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-inventory-5zjSLD/inventory.go",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+  ],
+  "inventory_command_exit": 0,
+  "inventory_command_elapsed_seconds": 0.43,
+  "inventory_program_sha256": "2809291a90dbe741c5530e31e94206e4e2e057349201ff4d4db134de0bb905ca",
+  "resolution": "Descriptor-only inventory uses direct go.mod requirements and immutable go.sum; it does not claim selected module-graph resolution or native build preparation.",
+  "historical_first_baseline": {
+    "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/baseline.json",
+    "sha256": "19bc83d7546c9fc240675befe12231ae04e92d28991952f30fbb9d982942e408",
+    "head": "d635e23f00d926a43b942f25a9d05bd0ccb72025"
+  },
+  "overlay_tree_sha256": "c2bc3dc64338d71bfd77ee96b174b18652c64ec82285f3bcd157c224ca0601a7",
+  "source_sha256": {
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "4b13066eeacc5e9d33a5ada7d3924ff346786ccaf578b9856e1be5f41a94c6f9",
+    "tools/gomad3/toolchain/version/version.json": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+    "tools/gomad3/deterministicio/boundary/manifest.json": "ed31376341a80158276b89925f7f7289a86a8276198ee1427e42ffd738127e75",
+    "tools/gomad3/toolchain/clock_inventory_test.go": "bbb5a791bcd1303286cbad1c6ac8f7f6f1e922041b93f30f6010ab78ef05cd76",
+    "tools/gomad3/internal/compatibilitypack/packs/golang-x-sys-v047-darwin-arm64.json": "ca263b36199b7159742f513e709d1d354171346c43d00d00410737a8f8221c99",
+    "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json": "406aef2d9c91955e1e0e63eace8133481e5115796d83374536b27a7159509b85",
+    "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v047-isatty-v021.json": "1c7bfa786bb0b858f9a267753c6189a5d464dc531a3ac5ea9d38062ad28bd48f",
+    "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v047-linux-amd64.json": "6f678afc4d0d8e6ac56b9adc58b3d6a45c44811d34ff8790e995802187c8d45b",
+    "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v047.json": "bf61f5cc8ba86595922e001a6624cc98507d83837a8d8627a73639dc4081c36f",
+    "tools/gomad3/internal/compatibilitypack/packs/reflect2-go126.json": "8df4d3135d4edc2903f0c5242397115ed5f1d5f39f9a46b1a6f2b8eeabad39ea",
+    "tools/gomad3/internal/compatibilitypack/packs/temporal-functional-compute-darwin-arm64.json": "238575d9e6b642bccca180b780c4ec176d95b258d2dfdb22e23e99316b0d6d5b",
+    "tools/gomad3/internal/compatibilitypack/packs/temporal-functional-compute-linux-amd64.json": "59c69afd0cdb2cd4a8deaaea3ce4ea8ae3910743bb474945759e2964839726e4",
+    "tools/gomad3/internal/compatibilitypack/packs/temporal-functional-tests-darwin-arm64.json": "4e861bc1e1f7a60704bbf52dfe2df997e06aba349b07be7ddac8011bd437a365",
+    "tools/gomad3/internal/compatibilitypack/packs/temporal-functional-tests-linux-amd64.json": "2a74ff01c7aeef8132db894e530f54dc74bf5104cf17b5dbe69e1145c1713d9e",
+    "tools/gomad3/internal/compatibilitypack/packs/temporal-leaf-xsys-darwin-arm64.json": "1ebf73e8f3a3bb424e617b9294e89290de68c7837171d602b71ac5ec425c5b77",
+    "tools/gomad3/internal/compatibilitypack/packs/temporal-leaf-xxhash-darwin-arm64.json": "9a9f167727dafc89651503836f18b7f5ee87674a9c2f9ecaee9a824a66bafc91",
+    "tools/gomad3/deterministicio/cactusstatsd_adapter.go": "04df9510a71e8546c5d6fdefef9e5c4ea5c83a783ec86d92ef5026c8dafd1d50",
+    "tools/gomad3/deterministicio/fx_adapter.go": "30087c430dfe6b4393d7c9b94e4939f12f93dd58ae90670d6ee740e463810c9f",
+    "tools/gomad3/deterministicio/grpc_adapter.go": "ada8ae1b129d79d3701083f70656e6fe3e7240d4ffaf49dfdbfe75d85441ebe2",
+    "tools/gomad3/deterministicio/hashicorpmetrics_adapter.go": "28c8110162eafb9cb11eb34232372e5e16a282448196901a1305426169b68972",
+    "tools/gomad3/deterministicio/libc_adapter.go": "cc445478612c235837ceb2702645496cea0ac47ee7d457291bde1fd82f5d6d6a",
+    "tools/gomad3/deterministicio/memberlist_adapter.go": "91e74c69b1acb2df5740a490ecd66c6bafa22e5d5d4fbd473454d8988ab8bd98",
+    "tools/gomad3/deterministicio/memory_adapter.go": "a2af9c410c90a39c18f4ea02dd90376cf8787f32f95e06c173869e0d7a61e18c",
+    "tools/gomad3/deterministicio/otelsdk_adapter.go": "fad4f690d91e9ceac2a226e8555f9ac32460674b9e43d1022a5a56440247b8fd",
+    "tools/gomad3/deterministicio/pebble_adapter.go": "01469f6c2b8d69b2b0f3d84db2cccf523efe52604d7a4571b6212cdb7440231d",
+    "tools/gomad3/deterministicio/sentry_adapter.go": "0c2f69da758faffbae427817435e6d577d4cc5597e1fe12f556dcb819c1d3157",
+    "tools/gomad3/deterministicio/sockaddr_adapter.go": "fd3a7a698648155c05a6f07174e68a98e3d4caf947b3528b6ff066c667c4e2c9",
+    "tools/gomad3/deterministicio/sprig_adapter.go": "e1f4112eddc76531c6c34291a1c83a9c60bd738e758646bf24a785c04f72fee8",
+    "tools/gomad3/deterministicio/temporalsdk_adapter.go": "02af3f94db9aeff4318c232125e5222e29964aa5c7680950071262ff136e4429",
+    "tools/gomad3/deterministicio/validator_adapter.go": "34b1d0345693c489d254ee3d22d4f04e468660f82129d807f108ad83fd9f1567",
+    "tools/gomad3/deterministicio/xnet_adapter.go": "7906dde699cf7f9a18901215b9399f725e98e563b04a8c176843d69eb724c1b8"
+  }
+}

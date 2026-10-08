@@ -1,0 +1,158 @@
+{
+  "base_commit": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+  },
+  "commands": [
+    {
+      "name": "portable-pinimpact",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason|TestPackRootLoadErrorsArePathFree|TestMissingExplicitPackRootSelectsNoPacks|TestExplicitPackRootOverridesEnvironmentAndRetainsReports|TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport|TestAdapterModuleSumRecords|TestPackOnlyDuplicateSumRemainsSelected|TestAdaptedPackDuplicateSumIsInvalidated|TestUnchangedModuleInvalidatesNothing|TestCommittedBumpKeepsTheStrandedPackInvalidated|TestMissingCandidateModuleSumIsUnknown|TestRemovedModules|TestIndirectOnlyBump|TestUnknownPinsCountAsInvalidated|TestInvalidInputAndResolutionFailures|TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure|TestGoResolverSelectsTheModuleGraphOutsideTheModule|TestGoResolverReportsUnavailableModulesAsInfrastructureFailures|TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestPortableFixturePinDecisions)$' ./upgrade/pinimpact",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 1.597,
+      "log": "portable-pinimpact.log",
+      "log_sha256": "a75d82bb32ad319658ba4e957ce28594059833526d8df1c90e6d5c9f5e1e3989",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    },
+    {
+      "name": "portable-registry",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestAdapterRegistryPortablePinDecisions|TestAdapterModuleSumRecords)$' ./deterministicio",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.385,
+      "log": "portable-registry.log",
+      "log_sha256": "9d6ec02dea83ca3eb54983125ec3610f8f71a657857a49629afa96d61e4f07ce",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    },
+    {
+      "name": "cli-and-upgrade-and-packs",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool ./upgrade ./internal/compatibilitypack/...",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 7.09,
+      "log": "cli-and-upgrade-and-packs.log",
+      "log_sha256": "96f3b4e0407491cca9e2b85fe55c41ddc7b9ad90c3060fe018caf0204d93fbe9",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    },
+    {
+      "name": "validate",
+      "command": "make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 5.45,
+      "log": "validate.log",
+      "log_sha256": "0d5aa3105e4fbd11ce89317c80c4faa7f452a8b9cc18f4820fe7f7ec5dcfa69f",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    },
+    {
+      "name": "architecture",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$' .",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 26.542,
+      "log": "architecture.log",
+      "log_sha256": "ae5ecb93a0e53976bae222ab2a14a25d6f5fb58e4b525866a4898df60eccfc78",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    },
+    {
+      "name": "vet",
+      "command": "go -C tools/gomad3 vet -tags test_dep ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.584,
+      "log": "vet.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    },
+    {
+      "name": "errortype",
+      "command": "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.589,
+      "log": "errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    },
+    {
+      "name": "lint-base",
+      "command": "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 2.092,
+      "log": "lint-base.log",
+      "log_sha256": "95ae04d269fd730da1ab41319920bb850041faa2348557cf3643bface4aacb6d",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": null
+    },
+    {
+      "name": "lint-final",
+      "command": "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.584,
+      "log": "lint-final.log",
+      "log_sha256": "95ae04d269fd730da1ab41319920bb850041faa2348557cf3643bface4aacb6d",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": null
+    },
+    {
+      "name": "lint-fast",
+      "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=2c183e6e1d7da96094f08e241e9333e5f27cabb5 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 2.585,
+      "log": "lint-fast.log",
+      "log_sha256": "9303cb94c6dac4badf3c82e2e96f4b9ecc55f1947971effcda0db37d1b26838b",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    },
+    {
+      "name": "format",
+      "command": "test -z \"$(gofmt -l tools/gomad3/deterministicio/adapter_pin_decisions_test.go tools/gomad3/upgrade/pinimpact/portable_fixtures_test.go tools/gomad3/cmd/gomadtool/pin_impact_diagnostics_test.go tools/gomad3/cmd/gomadtool/pin_impact.go)\"",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.175,
+      "log": "format.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    },
+    {
+      "name": "diff-check",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "elapsed_seconds": 0.208,
+      "log": "diff-check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_tree_sha256": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1",
+      "expected_exit": 0
+    }
+  ]
+}

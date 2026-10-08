@@ -1,0 +1,36 @@
+{
+  "annotation_only": true,
+  "original_receipts_preserved": [
+    "baseline-lint-source.json",
+    "baseline-lint-commands.json"
+  ],
+  "receipt_source_tree_sha256_meaning": "0a808cc23b5414b43bd86e688d9a2e40c98e4984ff231865c3e6dc5188fc58a1 is the command wrapper's frozen main-checkout digest. It is NOT the source digest of the detached baseline worktree where lint executed.",
+  "executed_baseline_source": {
+    "base_commit": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+    "git_root_tree": "65a0c52ff26db4c2ee35d3ee72a1de85c8a5903d",
+    "git_gomad3_tree": "8925e6594f82d390d2ddf863ccd5c697f82046b0",
+    "production_source_sha256": "cd4fc46016cf265dcfc59d5cc64afe3d529ae84049167b13875bc95db694d36c",
+    "module_and_lint_config": {
+      "tools/gomad3/go.mod": {
+        "git_blob": "b3e775680231fa831307fb7f10853534b46b8ba8",
+        "sha256": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f"
+      },
+      "tools/gomad3/go.sum": {
+        "git_blob": "9e6a024a7df6663f3de9d22454c44fa5d1c55a21",
+        "sha256": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960"
+      },
+      ".github/.golangci.yml": {
+        "git_blob": "cfc64ff577f1462844b6e7b1fdffb197708572a2",
+        "sha256": "692a0839444d1d26a23541897c633229ad8ccc572cecdc0498baef290f7a253c"
+      }
+    }
+  },
+  "binding_method": "Read-only Git object identities at the retained base commit; original terminal receipt already records execution in its detached worktree, pinned lint argv, production SHA and output SHA. No gate rerun or claim of a newly observed worktree-wide SHA256.",
+  "temporary_worktree": {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-base-lint-k0ebNZ/worktree",
+    "removed_after_terminal_lint": true,
+    "retained_evidence": "verify.mjs baseline-lint removes the worktree only after terminal run; subsequent git worktree list --porcelain showed only the three pre-existing worktrees. No baseline worktree remains."
+  },
+  "no_gate_rerun": true,
+  "no_source_change": true
+}
