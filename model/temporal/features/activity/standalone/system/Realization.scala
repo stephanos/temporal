@@ -680,16 +680,11 @@ private val externalCancelRequested = externalRead(
 private val externalCompleted = externalRead("externalCompleted", system.Fact.statusCompleted)
 private val externalFailed = externalRead("externalFailed", system.Fact.statusFailed)
 private val externalCanceled = externalRead("externalCanceled", system.Fact.statusCanceled)
-private val sameExecution = Condition.equal(
-  Field[ActivityExecutionInfo, String](_.runId),
-  executionRun
-)
 private val running = Condition.equal(
   Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
   Operand.enumValue(ACTIVITY_EXECUTION_STATUS_RUNNING)
 )
 private val heldStarted = Condition.all(
-  sameExecution,
   running,
   Condition.equal(
     Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
@@ -697,7 +692,6 @@ private val heldStarted = Condition.all(
   )
 )
 private val heldCancelRequested = Condition.all(
-  sameExecution,
   running,
   Condition.equal(
     Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
@@ -713,7 +707,6 @@ private val awaitExternalCancelRequested =
   }
 private def terminalExternal(status: io.temporal.api.enums.v1.ActivityExecutionStatus) =
   Condition.all(
-    sameExecution,
     Condition.equal(
       Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
       Operand.enumValue(status)

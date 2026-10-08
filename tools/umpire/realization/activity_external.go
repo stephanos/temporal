@@ -155,7 +155,7 @@ func (a *realizing) externalSettlements() {
 		for _, c := range reads {
 			poll := c.GetPoll()
 			from := a.evidence[poll.GetEvidence()].GetSingle()
-			if from.GetMethod() != activityService+"DescribeActivityExecution" || from.GetPath() != "info" || !sameExternalOperand(identity, assignmentOf(poll.GetAssign(), "namespace")) || !sameExternalOperand(operation, assignmentOf(poll.GetAssign(), "activity_id")) || assignmentOf(poll.GetAssign(), "run_id").GetLearnedValue() != run || !externalEqual(poll.GetUntil(), "run_id", &umpirespb.Operand{Kind: &umpirespb.Operand_LearnedValue{LearnedValue: run}}) {
+			if from.GetMethod() != activityService+"DescribeActivityExecution" || from.GetPath() != "info" || !sameExternalOperand(identity, assignmentOf(poll.GetAssign(), "namespace")) || !sameExternalOperand(operation, assignmentOf(poll.GetAssign(), "activity_id")) || assignmentOf(poll.GetAssign(), "run_id").GetLearnedValue() != run {
 				fail("command %s lacks Describe info of the learned execution", c.GetId())
 			}
 		}
@@ -179,7 +179,7 @@ func (a *realizing) externalSettlements() {
 			if !sameExternalOperand(identity, assignmentOf(cancel.GetAssign(), "namespace")) || !sameExternalOperand(operation, assignmentOf(cancel.GetAssign(), "activity_id")) || assignmentOf(cancel.GetAssign(), "run_id").GetLearnedValue() != run {
 				fail("request-cancel crosses the learned execution")
 			}
-			if include := assignmentOf(settlement.GetPoll().GetAssign(), "include_outcome"); include.GetLiteral().GetFlag() != true {
+			if include := assignmentOf(settlement.GetPoll().GetAssign(), "include_outcome"); !include.GetLiteral().GetFlag() {
 				fail("cancellation settlement must include outcome")
 			}
 		}

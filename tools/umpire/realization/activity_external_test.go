@@ -1,6 +1,7 @@
 package realization
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -38,7 +39,7 @@ func externalRealization(method string) *umpirespb.Realization {
 		if method == "RespondActivityTaskCanceledById" {
 			state = "PENDING_ACTIVITY_STATE_CANCEL_REQUESTED"
 		}
-		conditions := []*umpirespb.Operand{equal("run_id", withRun[2].Value)}
+		var conditions []*umpirespb.Operand
 		if id == "settled" {
 			status, state = "ACTIVITY_EXECUTION_STATUS_FAILED", "PENDING_ACTIVITY_STATE_UNSPECIFIED"
 			if method == "RespondActivityTaskCanceledById" {
@@ -129,6 +130,13 @@ func TestActivityExternalSettlementAdmitsTimerFreePendingAndRejectsIncompleteBin
 		"late-publication": func(r *umpirespb.Realization) {
 			r.Scripts[0].Items[1], r.Scripts[0].Items[3] = r.Scripts[0].Items[3], r.Scripts[0].Items[1]
 		},
+		"unpinned-held-run": func(r *umpirespb.Realization) {
+			held := r.Scripts[0].Items[2].Command.GetPoll()
+			held.Assign = slices.DeleteFunc(held.Assign, func(a *umpirespb.Assignment) bool { return a.GetTarget() == "run_id" })
+		},
+		"crossed-settlement-run": func(r *umpirespb.Realization) {
+			r.Scripts[0].Items[4].Command.GetPoll().Assign[2].Value = &umpirespb.Operand{Kind: &umpirespb.Operand_LearnedValue{LearnedValue: "other-run"}}
+		},
 		"incomplete-cleanup": func(r *umpirespb.Realization) { r.ExternalSettlements[0].Cleanup.Regardless = false },
 		"wrong-cleanup-target": func(r *umpirespb.Realization) {
 			r.ExternalSettlements[0].Cleanup.GetRpc().Assign[1].Value.GetLiteral().Kind = &umpirespb.ProtoValue_Text{Text: "other"}
@@ -149,5 +157,5 @@ func TestActivityExternalSettlementAdmitsTimerFreePendingAndRejectsIncompleteBin
 func TestActivityExternalSettlementRequiresHeldAndTerminalEvidence(t *testing.T) {
 	r := externalRealization("RespondActivityTaskFailedById")
 	r.Scripts[0].Items[2].Command.GetPoll().Until = nil
-	require.NotEmpty(t, externalProblems(r), "a bare Describe without a held state, learned-run and terminal condition is no settlement proof")
+	require.NotEmpty(t, externalProblems(r), "a bare Describe without a held state and terminal condition is no settlement proof")
 }
