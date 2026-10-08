@@ -1,0 +1,52 @@
+{
+  "id": "final-fast-lint",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "argv": [
+    "make",
+    "lint-code-fast",
+    "GOLANGCI_LINT_BASE_REV=58aa272e92af2c1bc8b355f5021522a630bcd57a",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "ALL_TEST_TAGS=test_dep"
+  ],
+  "environment": {
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOFLAGS": "",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "LINT_POLICY_GOLANGCI": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED"
+  ],
+  "started_at": "2026-10-08T06:13:37.831Z",
+  "ended_at": "2026-10-08T06:13:42.300Z",
+  "elapsed_seconds": 4.455525544,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "source_sha256": {
+    ".github/.golangci.yml": "692a0839444d1d26a23541897c633229ad8ccc572cecdc0498baef290f7a253c",
+    "cmd/tools/lintcode/lint_policy_test.go": "8da4ad9401b21bf658fa4b9423b30bea800afd36858ff1b3febadd8c0da0235d",
+    "tools/gomad3/runner/internal/campaign/controller.go": "043981c7ac6e97713971c62a308693089ec0f0499e75d52d6c7d9474eec843de",
+    "tools/gomad3/runner/internal/campaign/controller_test.go": "3a8ce5ffc13578cccbdd1e9d78007d6f65606025d4c287fecf73a3720cc669a3",
+    "tools/gomad3/runner/internal/campaign/controller_completion_test.go": "048cd02e1fe26ec39fdf7c919fc1ee538206efa2e5cf34be42303c38ebef1520",
+    "tools/gomad3/Makefile": "727b952b113beaec3b64fed7ce045fba4b3bb860292e82e49798b1a26eb8fdbd",
+    "go.mod": "8f5c8b618955af605647a4a4cfc0f93a82f2c25423038166a3d9faafaba14b32",
+    "go.sum": "15dbb85a0134b17beba7707f6d9565eb55009ca05b05f0cd43ad5a6679f58849",
+    "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+    "tools/gomad3/go.sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960"
+  },
+  "log": {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-fast-lint.log.json",
+    "encoding": "base64",
+    "original_sha256": "492cad1d02031d3491723a158eef87ca172e5aee337d9f6a47e3e92673f16c31",
+    "storage_sha256": "77d72ad44c22e17afc6897b8a0a2646e64d3bae45a16730ed5c91fc9da14c8a3",
+    "original_bytes": 6162
+  }
+}

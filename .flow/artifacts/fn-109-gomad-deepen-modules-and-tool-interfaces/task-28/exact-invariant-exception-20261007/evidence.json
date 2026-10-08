@@ -1,0 +1,377 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.28",
+  "status": "scope_complete_conductor_deferred",
+  "flow_status": "in_progress",
+  "base_commit": "58aa272e92af2c1bc8b355f5021522a630bcd57a",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"./cmd/tools/lintcode\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"./runner/internal/campaign\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"-run\",\"SeedController|Controller|Plan|Publication|TornActiveTail|ChangedRuns|JournalPublishes\",\"./runner/internal/campaign\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\",\"vet\",\"-tags\",\"test_dep\",\"-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype\",\"-style-check=false\",\"./runner/internal/campaign\"]",
+    "[\"/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\",\"run\",\"--config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml\",\"--fix=false\",\"--build-tags=test_dep\",\"--output.json.path=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/fn10928-exception/baseline-campaign-findings.json\",\"./runner/internal/campaign\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"-run\",\"^TestLintPolicy\",\"./cmd/tools/lintcode\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"-run\",\"^TestLintPolicy\",\"./cmd/tools/lintcode\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"./cmd/tools/lintcode\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"./runner/internal/campaign\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"-run\",\"SeedController|Controller|Plan|Publication|TornActiveTail|ChangedRuns|JournalPublishes\",\"./runner/internal/campaign\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\",\"vet\",\"-tags\",\"test_dep\",\"-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype\",\"-style-check=false\",\"./runner/internal/campaign\"]",
+    "[\"/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\",\"run\",\"--config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml\",\"--fix=false\",\"--build-tags=test_dep\",\"--output.json.path=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/fn10928-exception/final-campaign-findings.json\",\"./runner/internal/campaign\"]",
+    "[\"make\",\"lint-code-fast\",\"GOLANGCI_LINT_BASE_REV=58aa272e92af2c1bc8b355f5021522a630bcd57a\",\"GOLANGCI_LINT_FIX=false\",\"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\",\"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\",\"ALL_TEST_TAGS=test_dep\"]",
+    "[\"make\",\"-C\",\"tools/gomad3\",\"validate\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"-run\",\"^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestRunnerExternalConsumerCompiles)$\",\".\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt\",\"-l\",\"cmd/tools/lintcode/lint_policy_test.go\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/fn10928-exception/duplicate-4WAZN1\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"-run\",\"^TestLintPolicyCampaignInvariantSourceBinding$\",\"./cmd/tools/lintcode\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/fn10928-exception/moved-XjNPEc\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"-run\",\"^TestLintPolicyCampaignInvariantSourceBinding$\",\"./cmd/tools/lintcode\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/fn10928-exception/condition-1AOyLX\",\"test\",\"-count=1\",\"-tags\",\"test_dep\",\"-v\",\"-run\",\"^TestLintPolicyCampaignInvariantSourceBinding$\",\"./cmd/tools/lintcode\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal\",\"env\",\"-json\",\"GOOS\",\"GOARCH\",\"GOVERSION\",\"GOROOT\",\"GOCACHE\",\"GOMODCACHE\",\"GOPROXY\",\"GOSUMDB\",\"GOWORK\",\"GOTOOLCHAIN\",\"GOFLAGS\",\"GOENV\"]",
+    "[\"/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\",\"version\",\"--json\"]",
+    "[\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\",\"-C\",\"/Users/stephan/Workspace/skunkworks/gomad/temporal\",\"version\",\"-m\",\"/tmp/fn109-lint-tools.ZdNe1t50/errortype\"]"
+  ],
+  "tier": "Tier: implementer gpt-6.1-sol at high (explicit invocation; jev-unavailable(no_key) did not override)",
+  "executed_model_metadata_available": false,
+  "platform": {
+    "os": "linux",
+    "arch": "arm64",
+    "qualification": "stock Go 1.27.1 developmental source evidence"
+  },
+  "source": {
+    "changed_product_paths": [
+      ".github/.golangci.yml",
+      "cmd/tools/lintcode/lint_policy_test.go"
+    ],
+    "controller_sha256": "043981c7ac6e97713971c62a308693089ec0f0499e75d52d6c7d9474eec843de",
+    "controller_byte_identical_to_base": true,
+    "unchanged_gomad_source_and_dependency_diff": true,
+    "legacy_config_bytes_preserved": true,
+    "legacy_rule_count": 17,
+    "new_rule_count": 1,
+    "total_rule_count": 18,
+    "source_matched_historical_campaign": true
+  },
+  "tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "gates": {
+    "baseline-policy": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-policy.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 9.411671671,
+      "top_level_test_passes": 18,
+      "skips": [],
+      "source_matches_current": false
+    },
+    "baseline-campaign": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 7.426882753,
+      "top_level_test_passes": 79,
+      "skips": [],
+      "source_matches_current": false
+    },
+    "baseline-focused": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-focused.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 0.734067167,
+      "top_level_test_passes": 22,
+      "skips": [],
+      "source_matches_current": false
+    },
+    "baseline-errortype": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-errortype.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 0.302709792,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": false
+    },
+    "baseline-campaign-lint": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign-lint.receipt.json",
+      "observed_exit": 1,
+      "elapsed_seconds": 0.584611542,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": false
+    },
+    "red-policy": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy.receipt.json",
+      "observed_exit": 1,
+      "elapsed_seconds": 7.824037837,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": false
+    },
+    "red-policy-corrected": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy-corrected.receipt.json",
+      "observed_exit": 1,
+      "elapsed_seconds": 7.237821254,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": false
+    },
+    "green-policy": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/green-policy.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 9.311672713,
+      "top_level_test_passes": 19,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "final-campaign": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 7.304636295,
+      "top_level_test_passes": 79,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "final-focused": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-focused.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 0.758213459,
+      "top_level_test_passes": 22,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "final-errortype": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-errortype.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 0.285063625,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "final-campaign-lint": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign-lint.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 0.639767709,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "final-fast-lint": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-fast-lint.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 4.455525544,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "final-validation": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-validation.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 6.553034337,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "final-boundaries": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-boundaries.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 9.825317922,
+      "top_level_test_passes": 3,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "final-format": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-format.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 0.024926042,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "source-binding-duplicate": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-duplicate.receipt.json",
+      "observed_exit": 1,
+      "elapsed_seconds": 0.673972209,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "source-binding-moved": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-moved.receipt.json",
+      "observed_exit": 1,
+      "elapsed_seconds": 0.5368165,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "source-binding-condition": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-condition.receipt.json",
+      "observed_exit": 1,
+      "elapsed_seconds": 0.531157292,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "toolchain-info": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/toolchain-info.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 0.006706666,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "golangci-info": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/golangci-info.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 0.140193458,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    },
+    "errortype-info": {
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/errortype-info.receipt.json",
+      "observed_exit": 0,
+      "elapsed_seconds": 0.009788,
+      "top_level_test_passes": 0,
+      "skips": [],
+      "source_matches_current": true
+    }
+  },
+  "campaign_lint": {
+    "raw_reports": [
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign-findings.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign-findings.json"
+    ],
+    "before": [
+      {
+        "FromLinter": "forbidigo",
+        "Text": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "Severity": "",
+        "SourceLines": [
+          "\t\tpanic(\"gomad3: completed an inactive campaign attempt\")"
+        ],
+        "Pos": {
+          "Filename": "tools/gomad3/runner/internal/campaign/controller.go",
+          "Offset": 3872,
+          "Line": 129,
+          "Column": 3
+        },
+        "ExpectNoLint": false,
+        "ExpectedNoLintLinter": ""
+      },
+      {
+        "FromLinter": "forbidigo",
+        "Text": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "Severity": "",
+        "SourceLines": [
+          "\t\tpanic(\"gomad3: completed a campaign attempt without a classification\")"
+        ],
+        "Pos": {
+          "Filename": "tools/gomad3/runner/internal/campaign/controller.go",
+          "Offset": 4015,
+          "Line": 132,
+          "Column": 3
+        },
+        "ExpectNoLint": false,
+        "ExpectedNoLintLinter": ""
+      }
+    ],
+    "after": [],
+    "resolved": 2,
+    "introduced": 0,
+    "scope": "unfiltered ./runner/internal/campaign with unchanged source and enabled rules"
+  },
+  "fast_lint": {
+    "scope": "one ordinary root host package ./cmd/tools/lintcode selected from task base 58aa272e92; fixes disabled; errortype reached",
+    "aggregate_gomad_lint_claim": false
+  },
+  "tdd": {
+    "baseline": "existing policy, campaign, focused and errortype green; approved invariant diagnostics reproduced",
+    "red": "approved root and nested fixtures fail with actual forbidigo 2; corrected red log includes passing refusal controls",
+    "incidental_failure": "initial raw semicolon fixture also produced gci; replaced with a gofmt-clean trailing-comment negative control before config edit",
+    "green": "all current policy tests including root/nested actual tool and occurrence/context binding pass",
+    "mutant_controls": [
+      "duplicate exact matching statement",
+      "moved Complete method",
+      "changed inactive guard condition"
+    ],
+    "mutants_only_in_ignored_fixture_copies": true
+  },
+  "preservation": {
+    "generator_inputs": "VERSION_INPUTS, BOUNDARY_INPUTS and COMPATIBILITY_INPUTS inspected; no tools/gomad3 or dependency changes against task base; make validate used check modes and generated no tracked changes",
+    "public_boundary": "fresh TestPackageArchitecture and TestPublicPackagesDoNotExportTypeAliases inspect both declared source sets; TestRunnerExternalConsumerCompiles passes",
+    "historical_cleanup_source": "all seven historical task28 source hashes match; fifteen prior repairs reused, not reimplemented",
+    "unrelated_user_paths": [
+      ".turbo/plans/gomad3-glossary-update.md",
+      ".turbo/technical-debt.md"
+    ],
+    "conductor_metadata": "MILESTONES.md pre-existed and worker did not write it"
+  },
+  "proof_limits": [
+    "golangci matches diagnostic source lines, not function context; the separate source-policy test binds matching occurrences to the first two exact guards in SeedController.Complete",
+    "Unix os.Root.Close returns nil; no real nonnil-root-close injection demonstrated",
+    "No full original-base lint rerun or predicted aggregate 263 claim; fn109.21 retains final aggregate acceptance",
+    "Native linux/amd64 and darwin/arm64 execution remains with fn128 and fn149; no patched-runtime/native/soak qualification or CI action",
+    "Conductor owns fresh formal review, Git commit, Flow completion and task/parent metadata"
+  ],
+  "stage": "impl-review skipped(policy: conductor-deferred; root owns the gate)",
+  "worker_repository_git_writes": 0,
+  "worker_flow_lifecycle_writes": 0,
+  "owned_delegates": 0,
+  "live_command_handles": 0,
+  "pending_commands": 0,
+  "references": {
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-policy.receipt.json": "695ecacf8bbefad83e35b10bcfd9f65299031a94b5fd6396bfe466080e3c5ca1",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-policy.log.json": "7b0db62e7693201a381cf8019186d45387f7c8d827a162c068320e8f3a5627e1",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign.receipt.json": "dd2cef7541b8716dbe8bf5deccdb6733f72ef152b21f9ee8ced254ba69341193",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign.log.json": "befad8abde3500b4b8c94272a736816a26587607f9cd707cc88c024fd9498a15",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-focused.receipt.json": "f4d5d8faf5f808a16a9c33d16635b7f32079b91facefc2c8c5a99397188bebcd",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-focused.log.json": "bec7a558c015e35f201b272ba37df4ad7ca76dc485038b9349cd935f384f4311",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-errortype.receipt.json": "f26e81d6bbcf73ff46e5aedf707af875d298c5dc5f09401491cee22bc733ba12",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-errortype.log.json": "42242983c08c68dbde2646b14e3e9b89399271e85c0fb6c7fa7cb85c7914bb10",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign-lint.receipt.json": "cf29715d2fd60c7065e83afb1e43f14c320561d1dfe8db9ef062b0d8b3baeba7",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign-lint.log.json": "23c9214bdd9f939a184d0dd414e3d6f2bcecce252aecf057888aaee1c2e509cb",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy.receipt.json": "f60072a1e136e517beeb9eb9433167e70e752cd8ddc0c5058688afc37b0d0860",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy.log.json": "8d78ef104a45a0f83252d076702ea824181ea56887726c82c70e6ed568bdd1d4",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy-corrected.receipt.json": "9b1c1e443487cf3105fcb223006bd70574a2d76a517c382c3dbbc2fa49448420",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy-corrected.log.json": "25272102926b07b3ced2756a3adeecbf58369d06c7f78dbd66b132440ad2489c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/green-policy.receipt.json": "298072969165712a66e9587f4308b5e2b5c2efffe7c4d1f9102ed580a4c7e944",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/green-policy.log.json": "f4c6c63746b154e411e795b3e6d86b4c16b0ce8860af2e0e12420724b96c2f31",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign.receipt.json": "01d83e53e2f4a94c0cf64429d482e106eee15e144f5f89e417e90692ba87b48f",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign.log.json": "13d389b0aeab88b609e912dac4f6d3831da70b3816b7eeb73db17995b31d3de3",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-focused.receipt.json": "6e3ba964863890e4989e3f3998b61895f7bb49b05185a979bb0a06769493448a",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-focused.log.json": "2fff46a50e483bf8d06479b5e718555da19141c568f10f99077b90210f9a6581",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-errortype.receipt.json": "f044b6809535700fa54e54889bb0653e71232d7d12742330f9e5d2c5dbd287d5",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-errortype.log.json": "42242983c08c68dbde2646b14e3e9b89399271e85c0fb6c7fa7cb85c7914bb10",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign-lint.receipt.json": "40eb1186a36f692d2cd717189044265fc1343964d6b0ff3affa9b262889212ca",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign-lint.log.json": "32b5c75c762d0c03779be34a9a8ec1b55e34cd1ef4003f49349a7b64ee416193",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-fast-lint.receipt.json": "ba3953aaf2a1b84b2a6db5e843c3837bbb543a10296ecdb094187efc46430d3c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-fast-lint.log.json": "77d72ad44c22e17afc6897b8a0a2646e64d3bae45a16730ed5c91fc9da14c8a3",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-validation.receipt.json": "7885b5796bb4646d9d2d9f9d8a0aaf0f8f5732ef0cc9db0e6db98be3d8851a63",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-validation.log.json": "7fe214008ac2535231d7e9997f88877006f7454bcfce30b7c7d4542d01a1a32d",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-boundaries.receipt.json": "a041b47d36c6f8eeca3baed3c3cd987630cecee5fc736b8b67e4af25f9a8e012",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-boundaries.log.json": "93e3a61c40efcc47c96ca3e332603b0dfb00d497d3f863f1e8473ae517873fdb",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-format.receipt.json": "b045b51e1145ba7ed8443186dd64ca4552fbec13ba486e0679c825bc594e996c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-format.log.json": "42242983c08c68dbde2646b14e3e9b89399271e85c0fb6c7fa7cb85c7914bb10",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-duplicate.receipt.json": "e56de9736621c1539e7d22aefb0d8e870ce00bad1f48cd8e9d25a6646fd053e0",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-duplicate.log.json": "09e1103dffbfb3f4077545365b91a5127440565660c56bcec2fabacd84bcd035",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-moved.receipt.json": "ac70e11b3a21b50da1116aa9aa5b1d2a0f82eecc86ad145569a294dd813b9893",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-moved.log.json": "b9289d5eb9a59334ce9a8e531cc4600bb8d1c1912916780f10a091520d3bde1f",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-condition.receipt.json": "853f0884531e01f485bf6122c2dd7fa4fec9b7217de2ce4b3eb9e738008cb97a",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-condition.log.json": "049962ee75603ffe17aff051b6f9ffdd08ad0002eb8ed3582215fb771cb1529d",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/toolchain-info.receipt.json": "255de309384c48ec54504c906ef84d501da57f8c3ece50ae9901bc2f6a7e3514",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/toolchain-info.log.json": "533b10be79fac8655e4e27f1b46c743dcf63fb26c1d2470429610ba9086604a3",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/golangci-info.receipt.json": "cf0583d42a0a34a90a4b80a833a161d91f970a8420b23136388dbdb868199e8c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/golangci-info.log.json": "bbb353f33c979c7138c4ee4b1f3ca1975072b9900e1ec9f0a0538e74385f468f",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/errortype-info.receipt.json": "7d0056efccde1d85326e887b242d73e1af17c1ef66ff00c7550a10e6d855f871",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/errortype-info.log.json": "1e2fa39775a0c57c2b858a5c70c97ea266db715b7c64dc853fdce4551b6420a2",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign-findings.json": "6435ce327b6b84c068eefb3095905670129befc69d3138df9decbb8d1d585e95",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign-findings.json": "a25b3b080d325db333c8c2d11ae3894f585f7509adc948bfee398aa98f2d0c71",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/evidence.json": "a8d3385bfad4f9abe6111155c63e2ddc054b28ef945d719c6093963c1e0a55e8",
+    ".flow/tmp/next-gate-8486dcb98d/root-full-lint.log": "c9a8008eba9d4aaa202e4eb44e113ebe99322d65e02dfee9c64da1edc5468bd5",
+    "/home/agent/go/pkg/mod/github.com/golangci/golangci-lint/v2@v2.13.0/pkg/result/processors/base_rule.go": "4d4015580e3b006708e3f73a267f775b91ce4f0fd41507583eaf710969bbe2a1",
+    "/home/agent/go/pkg/mod/github.com/golangci/golangci-lint/v2@v2.13.0/pkg/result/processors/exclusion_rules.go": "a46e40499edbd2d1171c8f90cf063e6574574ffed7759aa2f46f216706b7f97b",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/root.go": "56355baf52dd718903a59c94d54eee5e2765d50383b471d08819accd1ec02acd",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/root_openat.go": "1896b0feba64b0e6dccf7c8cb1543919cd78fb05f7b110662e313caeab22d2b7",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/run.cjs": "4a84cb401363283a27143fcf0c7a260318ec3663fae9c64c7cedf8d8a45c96e7",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/prove-source-binding.cjs": "a38c8d6a2578b636badbb3fe10af394e12e713e1bed93132a1daf4ad0b5973ac",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/handover.md": "601a8361192bd80927819d16313f77852bb717acb2156a680b041d2c5ac54989",
+    ".flow/artifacts/source-unblocking-20261007/owner-decisions.md": "4bf26d4bcf510564b6bb0745b689667f2e00c3590e9bf78e9a8891a83f678928"
+  }
+}

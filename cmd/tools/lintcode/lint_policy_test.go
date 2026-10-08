@@ -1,13 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
+	"go/ast"
 	"go/format"
+	"go/parser"
+	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -30,7 +35,7 @@ func TestLintPolicyPathExpressions(t *testing.T) {
 		}
 	}
 	require.NoError(t, yaml.Unmarshal(data, &policy))
-	require.Len(t, policy.Linters.Exclusions.Rules, 17)
+	require.Len(t, policy.Linters.Exclusions.Rules, 18)
 	for _, tc := range []struct {
 		name    string
 		rules   []int
@@ -51,6 +56,7 @@ func TestLintPolicyPathExpressions(t *testing.T) {
 		{"legacy eventually", []int{10}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go", "tests/schedule_test.go", "tests/schedule_migration_test.go"}, []string{"tests/nexus_standalone_testXgo", "tests/schedule_test.go.txt", "tests/schedule_extra_test.go", "tests/nested/schedule_test.go"}},
 		{"legacy collect", []int{11}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go"}, []string{"tests/schedule_test.go", "tests/nexus_workflow_testXgo", "tests/nexus_workflow_test.go.txt", "tests/nested/nexus_workflow_test.go"}},
 		{"tools revive", []int{15}, false, []string{"tools/gomad3/policy.go", "tools/gomad3sim/policy_test.go", "tools/helper.go"}, []string{"tools_extra/helper.go", "ordinary/tools/helper.go", "../tools/gomad3/policy.go", "tools/helperXgo", "tools/helper.txt"}},
+		{"campaign completion invariants", []int{17}, false, []string{"tools/gomad3/runner/internal/campaign/controller.go"}, []string{"tools/gomad3/runner/internal/campaign/other.go", "tools/gomad3/runner/internal/campaign/controller_test.go", "tools/gomad3/runner/internal/campaign/controllerXgo", "tools/gomad3/runner/internal/campaign/controller.go.txt", "ordinary/tools/gomad3/runner/internal/campaign/controller.go", "../tools/gomad3/runner/internal/campaign/controller.go"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, index := range tc.rules {
@@ -78,6 +84,63 @@ func TestLintPolicyPathExpressions(t *testing.T) {
 		require.True(t, compiled.MatchString(paths[0]))
 		require.False(t, compiled.MatchString(paths[1]))
 	}
+}
+
+func TestLintPolicyCampaignInvariantSourceBinding(t *testing.T) {
+	t.Parallel()
+	config, err := os.ReadFile("../../../.github/.golangci.yml")
+	require.NoError(t, err)
+	var policy struct {
+		Linters struct {
+			Exclusions struct {
+				Rules []struct {
+					Source string
+				}
+			}
+		}
+	}
+	require.NoError(t, yaml.Unmarshal(config, &policy))
+	require.Len(t, policy.Linters.Exclusions.Rules, 18)
+	pattern, err := regexp.Compile(policy.Linters.Exclusions.Rules[17].Source)
+	require.NoError(t, err)
+	data, err := os.ReadFile("../../../tools/gomad3/runner/internal/campaign/controller.go")
+	require.NoError(t, err)
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, "controller.go", data, 0)
+	require.NoError(t, err)
+	var complete *ast.FuncDecl
+	for _, declaration := range file.Decls {
+		function, ok := declaration.(*ast.FuncDecl)
+		if ok && function.Name.Name == "Complete" && function.Recv != nil {
+			var receiver bytes.Buffer
+			require.NoError(t, format.Node(&receiver, fset, function.Recv.List[0].Type))
+			if receiver.String() == "*SeedController" {
+				require.Nil(t, complete)
+				complete = function
+			}
+		}
+	}
+	require.NotNil(t, complete)
+	require.GreaterOrEqual(t, len(complete.Body.List), 2)
+	var approvedLines []int
+	for index, want := range []string{
+		"if controller.active == 0 {\n\tpanic(\"gomad3: completed an inactive campaign attempt\")\n}",
+		"if completion.Kind == CompletionInvalid || completion.Kind > CompletionFailure {\n\tpanic(\"gomad3: completed a campaign attempt without a classification\")\n}",
+	} {
+		guard, ok := complete.Body.List[index].(*ast.IfStmt)
+		require.True(t, ok)
+		var statement bytes.Buffer
+		require.NoError(t, format.Node(&statement, fset, guard))
+		require.Equal(t, want, statement.String())
+		approvedLines = append(approvedLines, fset.Position(guard.Body.List[0].Pos()).Line)
+	}
+	var excludedLines []int
+	for index, line := range strings.Split(string(data), "\n") {
+		if pattern.MatchString(line) {
+			excludedLines = append(excludedLines, index+1)
+		}
+	}
+	require.Equal(t, approvedLines, excludedLines, "only the two pre-mutation guards in SeedController.Complete may match the source exception")
 }
 
 func TestLintPolicyRealGolangci(t *testing.T) {
@@ -155,6 +218,68 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 			}
 			require.Equal(t, tc.findings, got, "actual command: %q; output: %s", args, output)
 			t.Logf("cwd=%s argv=%q findings=%v", tc.dir, args, got)
+		})
+	}
+	for _, module := range []string{".", "tools/gomad3"} {
+		t.Run("campaign invariants "+module, func(t *testing.T) {
+			fixture := &lintRepo{t: t, root: t.TempDir()}
+			fixture.write(".github/.golangci.yml", string(config))
+			fixture.write("go.mod", "module example.invalid/policy\n\ngo 1.27.1\n")
+			if module != "." {
+				fixture.write(module+"/go.mod", "module example.invalid/nested\n\ngo 1.27.1\n")
+			}
+			fixture.git("init", "-q")
+			for _, tc := range []struct {
+				name, path, source string
+				allowed            bool
+			}{
+				{"approved guards", "tools/gomad3/runner/internal/campaign/controller.go", "func Complete(active, classified bool) bool {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\nif !classified {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
+				{"other panic at approved path", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"ordinary finding\")\n}\n}", false},
+				{"inactive panic at other path", "tools/gomad3/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
+				{"classification panic at other path", "tools/gomad3/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\n}", false},
+				{"changed message at approved path", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt extra\")\n}\n}", false},
+				{"trailing comment on approved line", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\") // other source\n}\n}", false},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					formatted, err := format.Source([]byte("package campaign\n\n" + tc.source + "\n"))
+					require.NoError(t, err)
+					fixture.write(tc.path, string(formatted))
+					t.Cleanup(func() { require.NoError(t, os.Remove(filepath.Join(fixture.root, tc.path))) })
+					outputPath := filepath.Join(t.TempDir(), "issues.json")
+					packagePath := "./tools/gomad3/runner/internal/campaign"
+					if module != "." {
+						packagePath = "./runner/internal/campaign"
+					}
+					args := []string{"run", "--config=" + filepath.Join(fixture.root, ".github/.golangci.yml"), "--fix=false", "--build-tags=test_dep", "--output.json.path=" + outputPath, packagePath}
+					command := exec.CommandContext(t.Context(), binary, args...)
+					command.Dir = filepath.Join(fixture.root, module)
+					output, runErr := command.CombinedOutput()
+					if tc.allowed {
+						require.NoError(t, runErr, string(output))
+					} else {
+						var exit *exec.ExitError
+						require.ErrorAs(t, runErr, &exit, string(output))
+						require.Equal(t, 1, exit.ExitCode(), string(output))
+					}
+					data, err := os.ReadFile(outputPath)
+					require.NoError(t, err, string(output))
+					var report struct {
+						Issues []struct {
+							FromLinter string
+							Pos        struct{ Filename string }
+						}
+					}
+					require.NoError(t, json.Unmarshal(data, &report))
+					if tc.allowed {
+						require.Empty(t, report.Issues)
+					} else {
+						require.Len(t, report.Issues, 1)
+						require.Equal(t, "forbidigo", report.Issues[0].FromLinter)
+						require.Equal(t, tc.path, filepath.ToSlash(report.Issues[0].Pos.Filename))
+					}
+					t.Logf("cwd=%s argv=%q allowed=%t findings=%v source=%q", module, args, tc.allowed, report.Issues, string(formatted))
+				})
+			}
 		})
 	}
 }

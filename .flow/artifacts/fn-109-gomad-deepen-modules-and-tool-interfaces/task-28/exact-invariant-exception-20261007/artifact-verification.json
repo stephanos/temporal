@@ -1,0 +1,797 @@
+{
+  "status": "passed",
+  "verification_setup_observations": [
+    "The first per-file verifier expected exit 0 and stopped on a clean no-index added-file comparison with observed exit 1 and empty output. The verifier was corrected to record exit 1 and require empty whitespace diagnostics; all files were then checked successfully.",
+    "A dependent saved-file parse attempted before that first verifier produced its receipt failed ENOENT. The actual saved receipt and all JSON files were parsed successfully after the corrected verifier completed."
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started_at": "2026-10-08T06:20:48.934Z",
+  "ended_at": "2026-10-08T06:20:49.500Z",
+  "evidence": {
+    "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/evidence.json",
+    "sha256": "d65f53614c2d1c95c2cc710c70ea680ea90ab49afdd97e6b6fdefb251df16f3e"
+  },
+  "saved_json_files_parsed": 47,
+  "references_hash_verified": 56,
+  "tool_hashes_verified": 3,
+  "initial_artifact_directory_check": {
+    "status": "inconclusive",
+    "argv": [
+      "git",
+      "diff",
+      "--check",
+      "--no-index",
+      "/dev/null",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007"
+    ],
+    "observed_command_exit": null,
+    "output": "error: Could not access .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/null",
+    "reason": "file-vs-directory comparison was the wrong surface; shell block continued and its last command exit does not identify this command"
+  },
+  "artifact_file_checks": [
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign-findings.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "6435ce327b6b84c068eefb3095905670129befc69d3138df9decbb8d1d585e95",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign-lint.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "23c9214bdd9f939a184d0dd414e3d6f2bcecce252aecf057888aaee1c2e509cb",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign-lint.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "cf29715d2fd60c7065e83afb1e43f14c320561d1dfe8db9ef062b0d8b3baeba7",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "befad8abde3500b4b8c94272a736816a26587607f9cd707cc88c024fd9498a15",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-campaign.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "dd2cef7541b8716dbe8bf5deccdb6733f72ef152b21f9ee8ced254ba69341193",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-errortype.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "42242983c08c68dbde2646b14e3e9b89399271e85c0fb6c7fa7cb85c7914bb10",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-errortype.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "f26e81d6bbcf73ff46e5aedf707af875d298c5dc5f09401491cee22bc733ba12",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-focused.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "bec7a558c015e35f201b272ba37df4ad7ca76dc485038b9349cd935f384f4311",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-focused.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "f4d5d8faf5f808a16a9c33d16635b7f32079b91facefc2c8c5a99397188bebcd",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-policy.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "7b0db62e7693201a381cf8019186d45387f7c8d827a162c068320e8f3a5627e1",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/baseline-policy.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "695ecacf8bbefad83e35b10bcfd9f65299031a94b5fd6396bfe466080e3c5ca1",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/errortype-info.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "1e2fa39775a0c57c2b858a5c70c97ea266db715b7c64dc853fdce4551b6420a2",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/errortype-info.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "7d0056efccde1d85326e887b242d73e1af17c1ef66ff00c7550a10e6d855f871",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/evidence.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "d65f53614c2d1c95c2cc710c70ea680ea90ab49afdd97e6b6fdefb251df16f3e",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-boundaries.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "93e3a61c40efcc47c96ca3e332603b0dfb00d497d3f863f1e8473ae517873fdb",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-boundaries.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "a041b47d36c6f8eeca3baed3c3cd987630cecee5fc736b8b67e4af25f9a8e012",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign-findings.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "a25b3b080d325db333c8c2d11ae3894f585f7509adc948bfee398aa98f2d0c71",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign-lint.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "32b5c75c762d0c03779be34a9a8ec1b55e34cd1ef4003f49349a7b64ee416193",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign-lint.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "40eb1186a36f692d2cd717189044265fc1343964d6b0ff3affa9b262889212ca",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "13d389b0aeab88b609e912dac4f6d3831da70b3816b7eeb73db17995b31d3de3",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-campaign.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "01d83e53e2f4a94c0cf64429d482e106eee15e144f5f89e417e90692ba87b48f",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-errortype.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "42242983c08c68dbde2646b14e3e9b89399271e85c0fb6c7fa7cb85c7914bb10",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-errortype.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "f044b6809535700fa54e54889bb0653e71232d7d12742330f9e5d2c5dbd287d5",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-fast-lint.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "77d72ad44c22e17afc6897b8a0a2646e64d3bae45a16730ed5c91fc9da14c8a3",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-fast-lint.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "ba3953aaf2a1b84b2a6db5e843c3837bbb543a10296ecdb094187efc46430d3c",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-focused.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "2fff46a50e483bf8d06479b5e718555da19141c568f10f99077b90210f9a6581",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-focused.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "6e3ba964863890e4989e3f3998b61895f7bb49b05185a979bb0a06769493448a",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-format.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "42242983c08c68dbde2646b14e3e9b89399271e85c0fb6c7fa7cb85c7914bb10",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-format.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "b045b51e1145ba7ed8443186dd64ca4552fbec13ba486e0679c825bc594e996c",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-validation.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "7fe214008ac2535231d7e9997f88877006f7454bcfce30b7c7d4542d01a1a32d",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/final-validation.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "7885b5796bb4646d9d2d9f9d8a0aaf0f8f5732ef0cc9db0e6db98be3d8851a63",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/golangci-info.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "bbb353f33c979c7138c4ee4b1f3ca1975072b9900e1ec9f0a0538e74385f468f",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/golangci-info.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "cf0583d42a0a34a90a4b80a833a161d91f970a8420b23136388dbdb868199e8c",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/green-policy.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "f4c6c63746b154e411e795b3e6d86b4c16b0ce8860af2e0e12420724b96c2f31",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/green-policy.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "298072969165712a66e9587f4308b5e2b5c2efffe7c4d1f9102ed580a4c7e944",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/handover.md"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "601a8361192bd80927819d16313f77852bb717acb2156a680b041d2c5ac54989",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/prove-source-binding.cjs"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "a38c8d6a2578b636badbb3fe10af394e12e713e1bed93132a1daf4ad0b5973ac",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy-corrected.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "25272102926b07b3ced2756a3adeecbf58369d06c7f78dbd66b132440ad2489c",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy-corrected.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "9b1c1e443487cf3105fcb223006bd70574a2d76a517c382c3dbbc2fa49448420",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "8d78ef104a45a0f83252d076702ea824181ea56887726c82c70e6ed568bdd1d4",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/red-policy.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "f60072a1e136e517beeb9eb9433167e70e752cd8ddc0c5058688afc37b0d0860",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/run.cjs"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "4a84cb401363283a27143fcf0c7a260318ec3663fae9c64c7cedf8d8a45c96e7",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-condition.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "049962ee75603ffe17aff051b6f9ffdd08ad0002eb8ed3582215fb771cb1529d",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-condition.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "853f0884531e01f485bf6122c2dd7fa4fec9b7217de2ce4b3eb9e738008cb97a",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-duplicate.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "09e1103dffbfb3f4077545365b91a5127440565660c56bcec2fabacd84bcd035",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-duplicate.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "e56de9736621c1539e7d22aefb0d8e870ce00bad1f48cd8e9d25a6646fd053e0",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-moved.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "b9289d5eb9a59334ce9a8e531cc4600bb8d1c1912916780f10a091520d3bde1f",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/source-binding-moved.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "ac70e11b3a21b50da1116aa9aa5b1d2a0f82eecc86ad145569a294dd813b9893",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/toolchain-info.log.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "533b10be79fac8655e4e27f1b46c743dcf63fb26c1d2470429610ba9086604a3",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/toolchain-info.receipt.json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "",
+      "sha256": "255de309384c48ec54504c906ef84d501da57f8c3ece50ae9901bc2f6a7e3514",
+      "interpretation": "no-index comparison contains an added file (exit 1), with no whitespace diagnostics"
+    }
+  ],
+  "product_check": {
+    "argv": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      ".github/.golangci.yml",
+      "cmd/tools/lintcode/lint_policy_test.go"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "remaining_commands": 0
+}

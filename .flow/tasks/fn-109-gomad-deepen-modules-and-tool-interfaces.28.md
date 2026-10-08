@@ -5,6 +5,8 @@ satisfies: [R16, R18, R19]
 
 ## Description
 
+Current resumed candidate: [exact invariant exception handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/handover.md) and [source-bound gate evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/exact-invariant-exception-20261007/evidence.json). The existing fifteen source repairs remain integrated; this review covers the two owner-approved exact-site exceptions and unchanged campaign behavior, not deferred native qualification or parent aggregate lint.
+
 Source-work resumption (2026-10-07). The owner requested unblocking and completing the source tasks on the current gomad branch. This task returns to todo for its retained source work, with all dependency/admission and acceptance requirements preserved except the expressly scoped owner decisions in [source-unblocking-20261007/owner-decisions.md](../artifacts/source-unblocking-20261007/owner-decisions.md). Historical Done summary and Evidence below retain their original provenance; current lifecycle status comes from flowctl. Native qualification remains deferred under fn-128/fn-149 and is not revived by this resumption.
 
 
