@@ -1,0 +1,124 @@
+{
+  "branch_name": "fn-149-gomad-deferred-darwin-qualification",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-08T03:48:15.007730Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-149-gomad-deferred-darwin-qualification",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T04:00:47.263444Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "27ac7a33f24306fdc1885425c6e4be0807c840bb540cef1865c9218a9eb73d1f",
+      "backend": "host",
+      "counter_kind": "plan",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "host",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d76bcd615bdd10531bd24dead4b59660",
+            "classification": "introduced",
+            "findingId": "finding-d76bcd615bdd10531bd24dead4b59660",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d28d67c40ce74dd8886cf11b36fe7d2ddaf23675",
+      "head_sha_observed": false,
+      "kind": "plan",
+      "outcome": "verdict",
+      "output_bytes": 1987,
+      "output_sha256": "bdc4592db953d8747c222b2ea1d2f2c18866018a5b9e8403e0bbe3f3d4cbe178",
+      "reservation_id": "d567dc24f90344bbb5b8e5fea44acfa9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T03:58:24.120460Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4810837d04fff99fc8a3be9ac8dd3b71b3d6c3dcbc3985f46cbbd7f0ffe36259",
+      "backend": "host",
+      "counter_kind": "plan",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "host",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d76bcd615bdd10531bd24dead4b59660",
+            "classification": "introduced",
+            "findingId": "finding-d76bcd615bdd10531bd24dead4b59660",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "d28d67c40ce74dd8886cf11b36fe7d2ddaf23675",
+      "head_sha_observed": false,
+      "kind": "plan",
+      "outcome": "verdict",
+      "output_bytes": 1140,
+      "output_sha256": "a4cea8ec3425614c31d2e56a9bae1d4dd883ae9b2ab37c7f0a7c711530f21a40",
+      "reservation_id": "6605e3d5d99a4dd0a717e98bb337b3f8",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T04:00:47.254943Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 2,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-149-gomad-deferred-darwin-qualification.md",
+  "status": "open",
+  "title": "Gomad deferred Darwin qualification",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-08T04:00:47.264130Z"
+}

@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md",
   "status": "todo",
   "title": "Emit the canonical one-context-line patch and pin regeneration to the descriptor",
-  "updated_at": "2026-10-05T23:39:14.483272Z"
+  "updated_at": "2026-10-08T03:51:40.238733Z"
 }

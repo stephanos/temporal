@@ -1014,6 +1014,14 @@ the qualified profile. The inventory, its runtime check, and the rerouted sites
 are a merged candidate whose native darwin/arm64 and linux/amd64 gates have not
 yet run.
 
+Remaining current-candidate native Darwin qualification is deferred under
+[fn-149](../../.flow/specs/fn-149-gomad-deferred-darwin-qualification.md), and native
+Linux qualification and Linux CI work remain deferred under
+[fn-128](../../.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md).
+The [native transfer manifest](../../.flow/artifacts/native-scope-transfer-2026-10-07.md)
+preserves the exact inherited gates and retained source requirements. These
+deferrals establish no native pass or soak bound and authorize no PR, push or CI run.
+
 At the start of every mark phase, while the world is still stopped, the
 runtime greys every M with its g0, gsignal and `self` handle, every P's `oldm`
 handle, and every goroutine, and an idle M does not keep the `allp` snapshot

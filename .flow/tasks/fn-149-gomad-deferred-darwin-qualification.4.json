@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T03:49:22.181378Z",
+  "depends_on": [
+    "fn-149-gomad-deferred-darwin-qualification.1",
+    "fn-149-gomad-deferred-darwin-qualification.2",
+    "fn-149-gomad-deferred-darwin-qualification.3"
+  ],
+  "id": "fn-149-gomad-deferred-darwin-qualification.4",
+  "priority": null,
+  "spec": "fn-149-gomad-deferred-darwin-qualification",
+  "spec_path": ".flow/tasks/fn-149-gomad-deferred-darwin-qualification.4.md",
+  "status": "todo",
+  "title": "Retain Darwin scheduled soak and final qualification matrix",
+  "updated_at": "2026-10-08T03:49:22.181378Z"
+}

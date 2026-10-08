@@ -1,5 +1,10 @@
 # Gomad deferred Linux qualification and repairs
 
+## Native deferral amendment (2026-10-07)
+
+The owner instructed "no PR for Lnux CI; defer that work". All Linux qualification and Linux CI work remain deferred here, with the existing blocked tasks, not-ready state, unchanged requirements and explicit owner-request/native-linux/amd64 revival trigger. No PR, push or workflow run is authorized. The source specs' remaining native Darwin qualification now belongs to [fn-149](fn-149-gomad-deferred-darwin-qualification.md) under the [native transfer manifest](../artifacts/native-scope-transfer-2026-10-07.md). That later amendment supersedes this spec's contextual statements that source owners retain Darwin qualification; all Linux scope, dependencies, command ledgers and historical evidence below remain unchanged. Source owners retain every ordinary source/portable requirement, preservation, lint and source review. Revival grants no publication or CI authority.
+
+
 ## Goal & Context
 
 The existing Gomad specs can complete their implementation and Darwin acceptance without waiting for native Linux hardware. This spec owns every remaining linux/amd64 execution obligation transferred on 2026-10-04 from fn-105, fn-109, fn-110, fn-112, fn-113 and fn-114, including D11 and D12. Linux remains unverified until the owning tasks retain native evidence.

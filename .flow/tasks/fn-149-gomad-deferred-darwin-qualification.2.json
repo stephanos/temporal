@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T03:49:22.180739Z",
+  "depends_on": [
+    "fn-149-gomad-deferred-darwin-qualification.1"
+  ],
+  "id": "fn-149-gomad-deferred-darwin-qualification.2",
+  "priority": null,
+  "spec": "fn-149-gomad-deferred-darwin-qualification",
+  "spec_path": ".flow/tasks/fn-149-gomad-deferred-darwin-qualification.2.md",
+  "status": "todo",
+  "title": "Retain Darwin model, pack and integration qualification",
+  "updated_at": "2026-10-08T03:58:25.697316Z"
+}

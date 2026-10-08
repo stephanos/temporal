@@ -1,5 +1,14 @@
 # Gomad: minimize the runtime patch without losing functionality
 
+## Native qualification ownership amendment (2026-10-07)
+
+The owner approved deferring remaining native Darwin qualification to [fn-149](fn-149-gomad-deferred-darwin-qualification.md). The [native transfer manifest](../artifacts/native-scope-transfer-2026-10-07.md) maps every affected open task, requirement slice and exact command ledger. Linux qualification and Linux CI work remain deferred under fn-128; the owner explicitly instructed "no PR for Lnux CI; defer that work". Missing transferred native proof no longer blocks this spec or its mapped source tasks.
+
+This dated owner decision supersedes older missing-Darwin, no-renewed-deferral and native-first admission clauses only for transferred native execution, reports, packs/replay, qualification measurements, soak and platform-specific qualification guidance. The mapped task amendments are authoritative over their older criteria. Source integration, predecessor source review and retained source acceptance remain required, including fn-110.5's predecessor rule. Implementation, ordinary host-source coverage, lint, both-source-set static checks, generated-output validation, byte equivalence, fixed-identity/matched-first-baseline preservation, non-native measurements, documentation consistency and actual consumer checkout prerequisites stay source-owned. Native aggregate test-host execution transfers; embedded portable coverage and portable failures do not. Partial portable results cannot be labeled a full native gate pass.
+
+All other original criteria, dependency edges, completed tasks and historical evidence remain unchanged. This transfer completes no task and creates no qualification pass, soak bound, PR, push or CI run. Qualification stays unverified under its native owner until retained current-candidate proof exists. fn-128's Linux revival trigger remains unchanged; fn-149 additionally requires an explicit owner request and native darwin/arm64 execution. Neither revival grants publication or CI authority.
+
+
 ## Linux ownership amendment (2026-10-04)
 
 The owner transferred all remaining native linux/amd64 execution and Linux-only deferred work to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) on 2026-10-04. Missing transferred Linux evidence does not block this spec or its retained tasks. Darwin, shared implementation, static coverage of both supported source sets, preservation, size, full-host, review and other independent requirements remain here. Historical reports and completed-task evidence remain unchanged and do not establish current-source qualification.
@@ -210,3 +219,9 @@ regression coverage may change during implementation. The acceptance tests
 require both reductions and preserved behavior rather than a byte quota.
 Moving additional lifecycle work or changing goroutine layout would add
 qualification questions beyond the measured core candidate.
+
+### Owner waiver of the current U3 size deficit (2026-10-07)
+
+The owner instructed "ignore 642 bytes larger". For the retained current candidate, R8's extraction-size comparison accepts the measured U3 patch of 33,294 bytes against the original 32,652-byte U3 baseline. This 642-byte excess no longer blocks this spec or the corresponding size clauses in tasks .2 and .5. The measurements remain an increase; the waiver supplies no claim of an actual U3 reduction.
+
+The canonical U1 comparison, retained counts, source equivalence, preservation, identities, review and all other acceptance requirements remain unchanged. Historical reports retain their original source-bound size judgments. This amendment changes neither platform scope nor qualification status and grants no publication authority.

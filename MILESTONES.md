@@ -10,11 +10,17 @@ same seed produces the same run and a retained artifact replays byte-exactly.
 ## Work tracking
 
 Flow specs and tasks own scope, acceptance criteria (R-IDs), blockers, and evidence.
-The owner-authorized Linux scope transfer makes [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md)
-the owner of remaining native linux/amd64 verification and Linux-only deferred work from
-the linked open Gomad specs. Missing transferred Linux evidence does not block their
-completion. They retain implementation, Darwin, full-host, review and other independent
-acceptance requirements. Linux remains unverified until its owning task retains native proof.
+Remaining native linux/amd64 qualification and Linux CI work stay deferred under
+[fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md). The owner-approved
+Darwin deferral transfers remaining native darwin/arm64 qualification to
+[fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md), as mapped in the
+[native transfer manifest](.flow/artifacts/native-scope-transfer-2026-10-07.md).
+Missing transferred native evidence does not block source-spec completion. Implementation,
+ordinary host-source coverage, lint, preservation, both-source-set static checks, generated
+validation, source review and other independent acceptance remain required. Native full-host
+execution stays with the native owner; portable coverage does not substitute for that gate.
+Both platforms remain unverified for the current candidate until their owners retain native proof.
+No PR, push or CI action is authorized by the deferral or its revival.
 List every task of each open spec below, including completed tasks; remove a spec's
 entire section only when the spec is complete. Keep descriptions to one line and
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
@@ -28,11 +34,12 @@ Completed specs and their evidence remain in `.flow/` and Git history.
 
 ## Immediate delivery order
 
-1. Verify the combined D26/fn-110 candidate, then qualify fn-114 task 13, fn-112 task 5, D26, D27, and fn-110 task 2 on native Darwin; run fn-114 task 14 against that same candidate.
-2. Qualify the merged fn-112 tasks 16 and 9, fn-113 tasks 1–4, and fn-109 tasks 2–6 against the integrated source; retain each task's acceptance checks.
-3. Qualify the merged fn-109 tasks 7–12 and fn-110 tasks 3–4, and continue fn-109 tasks 13–21 and fn-110 task 5 in their delivery order. Source implementation may advance after its predecessor candidate is integrated and reviewed; keep acceptance open until its required native gates pass. Linux-only gates are deferred under fn-128 and do not hold these source specs open.
-4. Resume fn-105 D8–D10's deferred downstream qualification when its checkout is available, and run the final Darwin consumer gates. Linux consumer analyses, packs, exact replay and guidance belong to fn-128.6.
-5. Keep fn-128 deferred until the owner requests Linux qualification and native linux/amd64 execution is available. Establish its source/toolchain baseline, investigate D12 under load and restore strict replay only after the causal fix qualifies, then reconcile its final Linux matrix. The D11 audit retains its D21 trigger.
+1. Reconcile the combined D26/fn-110 source candidate, fn-114 tasks 13/14, fn-112 task 5 and D27 against their retained source checks, preservation and source reviews. Native runtime/clock proof belongs to deferred fn-149.1 and fn-128.1/.4/.7.
+2. Finish retained source acceptance for merged fn-112 tasks 16/9, fn-113 tasks 1-4 and fn-109 tasks 2-6 against the integrated candidate. Keep lint, both-source-set static checks, generated validation, first-baseline and preservation requirements open wherever unproved.
+3. Continue fn-109 tasks 7-12, fn-110 tasks 3-4, then fn-109 tasks 13-21 and fn-110 task 5 in their source delivery order, including the admitted correction owners. Predecessor source integration/review and retained source acceptance remain required. Missing native qualification now owned by fn-149 or fn-128 cannot block source admission or completion; unproved source requirements still do.
+4. Resume fn-105 D8-D10's shared source work when the real checkout is available. Native Darwin consumer analyses/packs/replay/guidance belong to fn-149.3; Linux execution belongs to fn-128.6. Neither native owner removes the actual-checkout/source-review prerequisite.
+5. Keep fn-149 deferred until an explicit Darwin qualification request and native darwin/arm64 execution are available. Then establish its pinned candidate/runtime, retain inherited integration/model/pack and downstream evidence, and reconcile an actual scheduled/dispatched soak plus final matrix. Publication and CI actions need separate authority.
+6. Keep fn-128 and its Linux CI work deferred until an explicit Linux qualification request and native linux/amd64 execution are available. Its eventual sequence remains baseline, causal D12 strict-replay fix, D21-triggered D11 audit, native model/consumer/soak evidence and final Linux matrix. No PR or CI run is part of the current work.
 
 ## Verification instructions for agents
 
@@ -68,7 +75,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
    task. This supersedes older
    task instructions reserving commits for the user. If a required gate still owned by the task
    is unavailable, commit verified progress and keep its acceptance open. Record transferred
-   Linux gates under fn-128 and link that owner from the source task. Complete the source
+   native gates under fn-128/fn-149 and link the owning task from the source task. Complete the source
    task only after all requirements it still owns pass. Preserve unrelated
    changes; push only when authorized. Broaden testing only for a concrete remaining risk,
    and retry an unchanged environment failure only when its cause or relevant inputs change.
@@ -103,8 +110,8 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 - **Qualification identity.** Reports bind exact source and toolchain identities;
   pre-integration results do not qualify a combined candidate, and Darwin results do
   not substitute for Linux gates. An unavailable host or unexplained regression leaves
-  acceptance incomplete in the task that owns the requirement. Transferred Linux requirements
-  remain incomplete under fn-128 and do not hold source-spec acceptance open.
+  acceptance incomplete in the task that owns the requirement. Transferred Linux and Darwin
+  requirements remain incomplete under fn-128 and fn-149 and do not hold source-spec acceptance open.
 - **Patch-policy boundary.** The collector-file prohibition remains in force.
   Overwriting collector-owned GC stamps requires an explicit patch-policy owner decision.
 - **Preservation.** Keep CLI grammar/defaults, recorded formats, fixed-identity
@@ -152,7 +159,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-105.6](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.6.md) | ⬜ Todo | D6: seeded and fixed virtual-clock tick policies |
 | [fn-105.7](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.7.md) | ✅ Done | D7: add required macOS functional smoke CI |
 | [fn-105.8](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.8.md) | 🚧 In progress | D8: closure-mode support for downstream targets |
-| [fn-105.9](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.9.md) | ⬜ Todo | D9: shared and Darwin downstream packs and qualification; Linux moved to fn-128.6 |
+| [fn-105.9](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.9.md) | ⬜ Todo | D9: shared downstream packs/source checks; native qualification moved to fn-149.3/fn-128.6 |
 | [fn-105.10](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.10.md) | ⬜ Todo | D10: downstream-seam guide |
 | [fn-105.11](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.11.md) | ✅ Done | D11: transfer conditional Linux audit to fn-128.3 (audit remains deferred) |
 | [fn-105.12](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.12.md) | ✅ Done | D12: transfer Linux replay correction to fn-128.2 (fix remains deferred) |
@@ -274,10 +281,10 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ⛔ Blocked | Explicit pack-root reports are path-free; native build-pin proof remains pending |
-| [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ⛔ Blocked | Verifier cleanup failures checked; regeneration and native acceptance remain open |
-| [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ⛔ Blocked | Selected v041 restored; current R4 and Darwin/full qualification pending |
-| [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ⬜ Todo | Document the bump procedure, measure it against the baseline, and run Darwin gates |
+| [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ⛔ Blocked | Path-free pack-root reports; finish retained source build-pin acceptance |
+| [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ⛔ Blocked | Verifier cleanup checked; finish retained source regeneration acceptance |
+| [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ⛔ Blocked | Selected v041 restored; finish retained R4 source acceptance |
+| [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ⬜ Todo | Bump procedure and matched baseline measurement; native gates moved to fn-149/fn-128 |
 
 <a id="search-path-findings-fn-114"></a>
 
@@ -298,7 +305,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-114.11](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md) | ✅ Done | Record select readiness in the runtime and the Choice Trace |
 | [fn-114.12](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md) | ✅ Done | Check the select-poll reduction for soundness and stop expanding no-op decisions |
 | [fn-114.13](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md) | ⛔ Blocked | Order runtime-owned goroutines by a fixed rule and offer only user goroutines as alternatives |
-| [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | ⛔ Blocked | Qualify the combined toolchain and Runner on Darwin; Linux moved to fn-128 |
+| [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | ⛔ Blocked | Combined toolchain/Runner source acceptance; native qualification moved to fn-149/fn-128 |
 | [fn-114.15](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.15.md) | ✅ Done | Scope minimizer workspace state per parent artifact |
 | [fn-114.16](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.16.md) | ✅ Done | Finish shared-target byte accounting inside a campaign and in merged-record validation |
 
@@ -313,3 +320,12 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-128.5](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.5.md) | ⛔ Blocked | Actual Linux determinism soak and measured bound |
 | [fn-128.6](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.6.md) | ⛔ Blocked | Downstream Linux analyses, packs, exact replay and guidance |
 | [fn-128.7](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.7.md) | ⛔ Blocked | Final source-bound Linux matrix, review and documentation |
+
+## Deferred Darwin qualification - [fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-149.1](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.1.md) | ⛔ Blocked | Native Darwin baseline, runtime and clock evidence |
+| [fn-149.2](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.2.md) | ⛔ Blocked | Darwin model, pack and integration qualification |
+| [fn-149.3](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.3.md) | ⛔ Blocked | Real downstream Darwin qualification and guidance |
+| [fn-149.4](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.4.md) | ⛔ Blocked | Scheduled/dispatched Darwin soak and final qualification matrix |

@@ -1,0 +1,38 @@
+# Native qualification scope transfer, 2026-10-07
+
+The owner approved deferring Darwin qualification and then instructed, "no PR for Lnux CI; defer that work". Remaining native darwin/arm64 qualification belongs to [fn-149](../specs/fn-149-gomad-deferred-darwin-qualification.md). Native linux/amd64 qualification and Linux CI work remain deferred under [fn-128](../specs/fn-128-gomad-deferred-linux-qualification-and.md). This amendment creates no PR, push, workflow run, qualification pass or measured bound.
+
+Original Darwin task/spec clauses and exact command ledgers remain pinned at Git commit `d28d67c40ce74dd8886cf11b36fe7d2ddaf23675`. The [October 4 Linux transfer](linux-scope-transfer-2026-10-04.md) and its snapshot `10d884c6f9d97681d08aaf2636f5850407f1586a` remain unchanged. Historical completed tasks, immutable artifacts and Done summaries retain their original source-bound meaning.
+
+## Native ownership mapping
+
+Every listed open donor transfers only its remaining Darwin-native execution, native reports, native pack generation/qualification, required exact replay, native qualification measurements, soak and platform-specific qualification guidance. Ordinary host-source coverage, source implementation and reviews, matched first-baseline preservation, lint, static/API behavior on both supported source sets, byte equivalence, generated-output validation, non-native measurements, documentation consistency and actual downstream checkout prerequisites remain with the donor. Requirement IDs denote native slices, never a wholesale transfer of the requirement.
+
+| Donor tasks / requirements | Native Darwin owner | Retained source scope |
+| --- | --- | --- |
+| fn-105.3-.5 / R3-R5 | fn-149.2, final reconciliation fn-149.4 | fn-109 implementation closure, static/source preservation and review |
+| fn-105.8-.10 / R8-R10 | fn-149.3, final reconciliation fn-149.4 | Shared D8-D10 implementation, supported analyses/adapters/packs, source reviews and actual checkout |
+| fn-105.31/.32 / R26/R27 | fn-149.1, affected qualification fn-149.2, final reconciliation fn-149.4 | Shared-clock correction, inventory/contract/remedies and collector/assembly policy |
+| All open fn-109.2-.21 and .23-.49 / inherited native gates, particularly R7/R19 | fn-149.1 for runtime/time-wire controls, fn-149.2 for host/model/consumer execution, fn-149.4 for native final matrix | All implementation, both-source-set static checks, R18 preservation, source dependencies/review, lint and non-native measurements |
+| fn-110.2-.5 / native slices of R2-R7 | fn-149.1, affected qualification fn-149.2, final reconciliation fn-149.4 | Representation/allowlist, zero-fuzz byte equivalence, pinned checks, preservation, size except the explicit current 642-byte U3 waiver, source review |
+| fn-112.5 / native R3/R5 slice | fn-149.1, affected qualification fn-149.2, final reconciliation fn-149.4 | Draw inventory, collector exclusions and contract reconciliation |
+| fn-112.9/.16 / native R9/R10 and inherited parent qualification | fn-149.2, final reconciliation fn-149.4 | Test-consolidation mapping, CLI regression semantics and preservation |
+| fn-112.10 / native R6/R7/R11 slice | fn-149.4 | Soak implementation/cohort/diagnostic controls, ordinary tests, shared docs consistency and guide checks |
+| fn-113.1-.4 / native R1-R6 slices | fn-149.2, final reconciliation fn-149.4 | Platform-aware pins/packs, unavailable-platform refusal/unknown behavior, approval digests, selected variants, measured manual steps and review |
+| fn-114.13/.14 / native R9/R12 slices | fn-149.1 for runtime controls, fn-149.2 for corpus/host execution, fn-149.4 for native final matrix | Scheduler/search implementation, source controls, measurements, preservation and source review |
+
+The original ledgers determine every required command, fixture, seed, repetition, disposition and control. Runtime clock/draw evidence includes removed-skip seeds 1-24, forward workloads at traced seeds 11/17, native time-wire consumption, strict preservation and toolchain identity. Host/model evidence includes native full-host, built-CLI, default/integration, race, core/smoke/representative, affected consumers and the approved platform-specific pack sequence. Downstream evidence requires the actual consumer checkout and reviewed shared D8-D10 candidate, seeds 11/17 twice each and retained exact replay. The soak retains fn-112.10's actual completed scheduled/dispatched run, execution artifacts, per-cohort cross-batch comparisons, clean counts, diagnostics/load, overflow/infrastructure separation and measured bound; local-only execution cannot replace that requirement.
+
+`make -C tools/gomad3 test-host` requires the patched runtime and runs seeded child targets. Its full native execution transfers to fn-149.2. Portable tests embedded in that aggregate remain source coverage requirements; a portable failure cannot be excused as deferred native execution. Retain command/component provenance and never label a partial stock-Go run as the full native gate. Unsupported-host failure before a fixture runs supplies no preservation or fixture pass.
+
+## Precedence, dependencies and evidence
+
+The dated amendments in each donor spec and mapped open task supersede older missing-Darwin completion, no-renewed-deferral and native-first admission clauses only for these transferred native obligations. Source integration, predecessor review and retained source acceptance still control source admission and completion. In particular, fn-110.5's predecessor qualification restriction continues to require predecessor source integration/review and retained source acceptance; it cannot require qualification now owned by fn-149 or fn-128. No donor gains a dependency on either deferred owner and no existing source dependency edge is removed.
+
+This ownership transfer completes no donor task. Every donor stays open wherever a retained requirement is unproved. Task-local authoritative amendments preserve all original criteria and historical Done summaries rather than rewriting them. Closed fn-107/fn-108 and their waivers, completed fn-105 D14 and other historical native receipts, and completed fn-112.7 Darwin conformance remain unchanged. fn-105 D6 and D15 remain separate conditional source work. Linux D11/D12, including conditional audit and causal strict-replay restoration, remain exclusively under fn-128.
+
+Revive fn-149 only on an explicit owner request plus native darwin/arm64 execution, a supported pinned toolchain/profile and a frozen reviewed source candidate. Its task 1 precedes tasks 2 and 3; task 4 depends on all three. Task 3 additionally needs the reviewed D8-D10 implementation and actual consumer checkout. Serialize shared toolchain/output writers. Bind each pack, prepared target and merged shard to the source closure as well as toolchain/profile/module identity.
+
+Qualification failures return to the original source owner. Source changes invalidate affected results; refresh them or justify unaffected coverage explicitly without carrying stale pack/profile bindings. fn-149.4 alone can establish overall current-candidate Darwin qualification after every inherited requirement passes. Historical receipts, developmental linux/arm64, static source checks, emulation, cross-compilation and other-platform reports supply no substitute.
+
+fn-128 keeps its existing blocked tasks, not-ready state and explicit owner-request/native-linux/amd64 revival trigger. Linux CI work, and all new PR/push/workflow actions, remain deferred. Qualification revival grants no publication or CI authority. No native result or soak bound is claimed by this transfer.
