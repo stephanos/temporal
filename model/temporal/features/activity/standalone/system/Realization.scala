@@ -634,7 +634,6 @@ private val byIDCalls = RequestBase(
 private val answerIdentity = Operand.text("external-answer-controller")
 private val respondCompletedById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_COMPLETED_BY_ID) {
   field(_.identity) := answerIdentity
-  field(_.getResult) := heartbeatPayloads
 }
 private val respondFailedById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_FAILED_BY_ID) {
   field(_.identity) := answerIdentity
@@ -642,7 +641,6 @@ private val respondFailedById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_FAIL
 }
 private val respondCanceledById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_CANCELED_BY_ID) {
   field(_.identity) := answerIdentity
-  field(_.getDetails) := heartbeatPayloads
 }
 private val requestExternalCancellation = requestCancelActivity.extended {
   field(_.runId) := executionRun
