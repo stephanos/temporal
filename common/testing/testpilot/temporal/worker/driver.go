@@ -305,7 +305,7 @@ func validateActivityWithholding(plans []testpilot.EntrypointPlan) error {
 					if invoke.GetMethod() == delivery.StartActivityPath {
 						assignments := invoke.GetRequestAssignments()
 						if withholding.GetMode() == testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING {
-							if !positiveRequestDuration(assignments, "heartbeat_timeout") {
+							if withholding.GetExternalSettlement() == nil && !positiveRequestDuration(assignments, "heartbeat_timeout") {
 								return ErrInvalid
 							}
 						} else if !positiveRequestDuration(assignments, "start_to_close_timeout") && !positiveRequestDuration(assignments, "schedule_to_close_timeout") {

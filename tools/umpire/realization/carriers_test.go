@@ -84,9 +84,19 @@ func TestCarriersOfTheStandaloneActivity(t *testing.T) {
 	require.Equal(t, request("RequestCancelActivityExecutionRequest"), c["requestCancel()"])
 	require.Equal(t, request("TerminateActivityExecutionRequest"), c["terminate()"])
 	// A partial class pattern binds one exact class; every bound class of the start carries the start.
-	require.Equal(t, request("StartActivityExecutionRequest"), c["start(unset,unset,unset)"])
-	require.Equal(t, request("StartActivityExecutionRequest"), c["start(unset,expires,unset)"])
-	require.NotContains(t, c, "start(expires,unset,unset)", "a class no binding performs has no carrier")
+	for _, scheduleToStart := range []string{"unset", "expires"} {
+		for _, startToClose := range []string{"unset", "expires"} {
+			for _, heartbeat := range []string{"unset", "expires"} {
+				for _, startDelay := range []string{"unset", "expires"} {
+					for _, maxAttempts := range []string{"unlimited", "one", "two"} {
+						class := "start(" + strings.Join([]string{"unset", scheduleToStart, startToClose, heartbeat, startDelay, maxAttempts}, ",") + ")"
+						require.Equal(t, request("StartActivityExecutionRequest"), c[class], class)
+					}
+				}
+			}
+		}
+	}
+	require.NotContains(t, c, "start(expires,unset,unset,unset,unset,unlimited)", "a class no binding performs has no carrier")
 	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest"}, c["respondCompleted()"])
 	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest"}, c["respondFailed(fatal)"])
 	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest"}, c["respondFailed(retryable)"])

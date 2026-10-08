@@ -25,8 +25,11 @@ type valueStore struct {
 	// it, whatever its source: where the Program declares the Run's order the causal order of one
 	// operation's evidence across sources, a lift names the previous one as its parent when it came
 	// from another.
-	lastEvidence map[string]*testpilotspb.CorrelatedIdentity
-	slots        map[string]*testpilotspb.Value
+	lastEvidence      map[string]*testpilotspb.CorrelatedIdentity
+	slots             map[string]*testpilotspb.Value
+	pendingWrites     map[string]*testpilotspb.Value
+	externalRequests  map[*node]proto.Message
+	externalSucceeded map[*node]bool
 }
 type activationValues struct {
 	store    *valueStore
@@ -274,6 +277,21 @@ func (a *activationValues) evaluate(w *valueWork, e *ir.Expression) (*testpilots
 			if ref.Entrypoint == a.graph.id {
 				if batch := a.latest[ref.ID]; batch != nil {
 					return batch.fields[testpilotspb.InstructionOutcomeField(ref.Field)]
+				}
+			}
+			if a.graph.cleanup && ref.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) {
+				for _, b := range s.program.external {
+					if a.graph.id != b.source.Cleanup.EntrypointId || ref.Entrypoint != b.controller.id || ref.ID != b.carrier.source.InstructionId && ref.ID != b.settlement.source.InstructionId {
+						continue
+					}
+					for _, controller := range s.activations {
+						if controller.graph == b.controller {
+							if batch := controller.latest[ref.ID]; batch != nil {
+								return batch.fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS]
+							}
+						}
+					}
+					return nil
 				}
 			}
 		default:

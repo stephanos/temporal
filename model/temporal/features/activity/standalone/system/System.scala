@@ -280,7 +280,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
           .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
       }
       on(requestCancel) {
-        when(scheduled, started, paused, pauseRequested) ~> effects.requestCancel
+        when(scheduled, paused) ~> effects.cancel
+        when(started, pauseRequested) ~> effects.requestCancel
         when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
           .because("cancellation already requested (chasm/lib/activity/model/model.go:201-202)")
       }
@@ -322,6 +323,35 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(cancelRequested) ~> effects.cancel
         when(started, pauseRequested) ~> rejects(Rejection.invalidArgument)
           .because("cancellation was not requested (chasm/lib/activity/model/model.go:171)")
+      }
+    }
+
+    from(service) {
+      import service.*
+
+      on(respondCompletedByID, respondFailedByID, respondCanceledByID) {
+        when(unstarted) ~> rejects(Rejection.notFound)
+        when[Closed] ~> rejects(Rejection.notFound)
+      }
+      on(respondCompletedByID) {
+        when[Live] ~> effects.complete
+      }
+      on(respondFailedByID(Failure.fatal)) {
+        when[Held] ~> effects.fail
+      }
+      on(respondFailedByID(Failure.retryable)) {
+        when(started).where(states.retriesRemaining) ~> effects.backOff
+        when(pauseRequested).where(states.retriesRemaining) ~> effects.backOffPaused
+        when(started, pauseRequested).where(s => !states.retriesRemaining(s)) ~> effects.fail
+        when(cancelRequested) ~> effects.cancel
+      }
+      on(respondFailedByID, respondCanceledByID) {
+        when(scheduled, paused) ~> rejects(Rejection.notFound)
+      }
+      on(respondCanceledByID) {
+        when(cancelRequested) ~> effects.cancel
+        when(started, pauseRequested) ~> rejects(Rejection.invalidArgument)
+          .because("cancellation was not requested")
       }
     }
 
@@ -488,24 +518,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       s.records(Fact.statusTimedOut(TimeoutType.startToClose))
     }
 
-  // What the System machine is, as its capability Properties read it, which a find through its
-  // realization asks: a terminate settles it, a cancel request is recorded, and
-  // DescribeActivityExecution reports its status by `activityStatus`. Each Property's find starts the
-  // activity and stops the worker before the control, so no attempt is in flight when it lands, as
-  // `terminatedWhileScheduled` does. A Run explains an unobserved control of an activity that is over
-  // too, which answers notFound and records nothing, so the claim's explanations disagree. It reads
-  // the realization, which reads this machine, so it waits in a section, which initializes on its
-  // first use.
+  // A terminate settles it, and DescribeActivityExecution reports its status by `activityStatus`.
+  // The terminate find starts the activity and stops the worker before the control. The held
+  // cancellation-request claim is authored on ByIDCancellation's complete service path below.
   object capabilities extends Capabilities:
     val terminable: Capability = Terminable(
       terminate = client.terminate,
       settled = Fact.statusTerminated,
-      reach = Seq(client.start(), process.stop),
-      expect = inconclusive(Reason.explanationsDisagree)
-    )
-    val cancelable: Capability = Cancelable(
-      requestCancel = client.requestCancel,
-      requested = Fact.statusCancelRequested,
       reach = Seq(client.start(), process.stop),
       expect = inconclusive(Reason.explanationsDisagree)
     )
@@ -784,6 +803,61 @@ object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
       (query find properties.heartbeatExhausts in heartbeatExhausted limits four)
         .total(19008)
         .expect(satisfied)
+
+object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    val completedByID = property when service.respondCompletedByID holds { after =>
+      after.state.phase == Phase.completed && after.records(Fact.statusCompleted)
+    }
+  object queries:
+    val scheduledCompletion = scenario.actions(client.start(), service.respondCompletedByID)
+    val scheduledCompletedByID =
+      (query find properties.completedByID in scheduledCompletion limits three)
+        .total(9504)
+        .expect(satisfied)
+
+object ByIDFailure extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    val fatalFailureByID = property when service.respondFailedByID(Failure.fatal) holds { after =>
+      after.state.phase == Phase.failed && after.records(Fact.statusFailed)
+    }
+  object queries:
+    val heldFatalFailure = scenario.actions(
+      client.start(),
+      worker.poll,
+      service.respondFailedByID(Failure.fatal)
+    )
+    val heldFailedByID =
+      (query find properties.fatalFailureByID in heldFatalFailure limits three)
+        .total(14256)
+        .expect(satisfied)
+
+object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    val cancelIsRequested =
+      property("activitySystem.cancelIsRequested") when client.requestCancel holds (
+        _.records(Fact.statusCancelRequested)
+      )
+    val canceledByID = property when service.respondCanceledByID holds { after =>
+      after.state.phase == Phase.canceled && after.records(Fact.statusCanceled)
+    }
+  object queries:
+    val heldCancellation = scenario.actions(
+      client.start(),
+      worker.poll,
+      client.requestCancel,
+      service.respondCanceledByID
+    )
+    val heldCanceledByID =
+      (query find properties.canceledByID in heldCancellation limits four)
+        .total(19008)
+        .expect(satisfied)
+    val cancelIsRequested =
+      (query(
+        "activitySystem.cancelIsRequested"
+      ) find properties.cancelIsRequested in heldCancellation limits four)
+        .total(19008)
+        .expect(inconclusive(Reason.explanationsDisagree))
 
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 

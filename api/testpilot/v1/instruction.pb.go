@@ -1309,10 +1309,13 @@ func (*ActivityAttemptCancellation) Descriptor() ([]byte, []int) {
 // server retries a timed-out attempt unless the retry policy is exhausted, so it is followed by the
 // entrypoint's next instruction or ends the activity.
 type ActivityAttemptWithholding struct {
-	state         protoimpl.MessageState  `protogen:"open.v1"`
-	Mode          ActivityWithholdingMode `protobuf:"varint,1,opt,name=mode,proto3,enum=temporal.server.api.testpilot.v1.ActivityWithholdingMode" json:"mode,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state protoimpl.MessageState  `protogen:"open.v1"`
+	Mode  ActivityWithholdingMode `protobuf:"varint,1,opt,name=mode,proto3,enum=temporal.server.api.testpilot.v1.ActivityWithholdingMode" json:"mode,omitempty"`
+	// The answer reference of the Program's explicit external-settlement declaration. Absent,
+	// SDK_PENDING retains its positive heartbeat-timeout basis.
+	ExternalSettlement *InstructionReference `protobuf:"bytes,2,opt,name=external_settlement,json=externalSettlement,proto3" json:"external_settlement,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ActivityAttemptWithholding) Reset() {
@@ -1350,6 +1353,13 @@ func (x *ActivityAttemptWithholding) GetMode() ActivityWithholdingMode {
 		return x.Mode
 	}
 	return ACTIVITY_WITHHOLDING_MODE_CONTEXT
+}
+
+func (x *ActivityAttemptWithholding) GetExternalSettlement() *InstructionReference {
+	if x != nil {
+		return x.ExternalSettlement
+	}
+	return nil
 }
 
 // Invokes the SDK heartbeat for the currently delivered attempt. Its void return proves only
@@ -1955,9 +1965,10 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x06result\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x06result\"T\n" +
 	"\x16ActivityAttemptFailure\x12:\n" +
 	"\afailure\x18\x01 \x01(\v2 .temporal.api.failure.v1.FailureR\afailure\"\x1d\n" +
-	"\x1bActivityAttemptCancellation\"k\n" +
+	"\x1bActivityAttemptCancellation\"\xd4\x01\n" +
 	"\x1aActivityAttemptWithholding\x12M\n" +
-	"\x04mode\x18\x01 \x01(\x0e29.temporal.server.api.testpilot.v1.ActivityWithholdingModeR\x04mode\"O\n" +
+	"\x04mode\x18\x01 \x01(\x0e29.temporal.server.api.testpilot.v1.ActivityWithholdingModeR\x04mode\x12g\n" +
+	"\x13external_settlement\x18\x02 \x01(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\x12externalSettlement\"O\n" +
 	"\x11ActivityHeartbeat\x12:\n" +
 	"\adetails\x18\x01 \x01(\v2 .temporal.api.common.v1.PayloadsR\adetails\"g\n" +
 	"\vInjectFault\x12\x17\n" +
@@ -2093,20 +2104,21 @@ var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
 	25, // 27: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.Expression
 	29, // 28: temporal.server.api.testpilot.v1.ActivityAttemptFailure.failure:type_name -> temporal.api.failure.v1.Failure
 	1,  // 29: temporal.server.api.testpilot.v1.ActivityAttemptWithholding.mode:type_name -> temporal.server.api.testpilot.v1.ActivityWithholdingMode
-	30, // 30: temporal.server.api.testpilot.v1.ActivityHeartbeat.details:type_name -> temporal.api.common.v1.Payloads
-	2,  // 31: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	31, // 32: temporal.server.api.testpilot.v1.WorkflowCommand.command:type_name -> temporal.api.command.v1.Command
-	32, // 33: temporal.server.api.testpilot.v1.NexusHandlerReply.response:type_name -> temporal.api.nexus.v1.StartOperationResponse
-	33, // 34: temporal.server.api.testpilot.v1.NexusHandlerReply.error:type_name -> temporal.api.nexus.v1.HandlerError
-	34, // 35: temporal.server.api.testpilot.v1.NexusOperationCompletion.payload:type_name -> temporal.api.common.v1.Payload
-	29, // 36: temporal.server.api.testpilot.v1.NexusOperationCompletion.failure:type_name -> temporal.api.failure.v1.Failure
-	9,  // 37: temporal.server.api.testpilot.v1.ReadEvidence.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
-	25, // 38: temporal.server.api.testpilot.v1.ReadEvidence.until:type_name -> temporal.server.api.testpilot.v1.Expression
-	39, // [39:39] is the sub-list for method output_type
-	39, // [39:39] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	27, // 30: temporal.server.api.testpilot.v1.ActivityAttemptWithholding.external_settlement:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	30, // 31: temporal.server.api.testpilot.v1.ActivityHeartbeat.details:type_name -> temporal.api.common.v1.Payloads
+	2,  // 32: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	31, // 33: temporal.server.api.testpilot.v1.WorkflowCommand.command:type_name -> temporal.api.command.v1.Command
+	32, // 34: temporal.server.api.testpilot.v1.NexusHandlerReply.response:type_name -> temporal.api.nexus.v1.StartOperationResponse
+	33, // 35: temporal.server.api.testpilot.v1.NexusHandlerReply.error:type_name -> temporal.api.nexus.v1.HandlerError
+	34, // 36: temporal.server.api.testpilot.v1.NexusOperationCompletion.payload:type_name -> temporal.api.common.v1.Payload
+	29, // 37: temporal.server.api.testpilot.v1.NexusOperationCompletion.failure:type_name -> temporal.api.failure.v1.Failure
+	9,  // 38: temporal.server.api.testpilot.v1.ReadEvidence.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
+	25, // 39: temporal.server.api.testpilot.v1.ReadEvidence.until:type_name -> temporal.server.api.testpilot.v1.Expression
+	40, // [40:40] is the sub-list for method output_type
+	40, // [40:40] is the sub-list for method input_type
+	40, // [40:40] is the sub-list for extension type_name
+	40, // [40:40] is the sub-list for extension extendee
+	0,  // [0:40] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_instruction_proto_init() }

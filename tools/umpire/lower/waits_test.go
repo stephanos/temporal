@@ -69,6 +69,8 @@ type wait struct {
 var (
 	readOnce          = wait{once: true}
 	deliveredAnswered = wait{interval: 250, hints: []string{"cause.delivery=3000", "cause.activityAnswer=2000"}}
+	heartbeatReceived = wait{interval: 250, hints: []string{"cause.delivery=3000", "cause.activityHeartbeat=2000", "visibility.activityHeartbeat.describeActivityExecution=2000"}}
+	timeoutRetried    = wait{interval: 250, hints: []string{"cause.delivery=3000", "deadline.startToClose=2000", "cause.timer=3000", "deadline.backoff=1000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}
 	scheduled         = map[string]wait{"controller/await-scheduled": {interval: 250, hints: []string{"cause.workflowTask=5000"}}}
 )
 
@@ -80,11 +82,28 @@ var derivedWaits = map[string]map[string]map[string]wait{
 		"pauseResume":         {"controller/await-paused": readOnce, "controller/await-completed": deliveredAnswered},
 		"scheduleToStartTimeout": {"controller/await-timed-out": {interval: 250,
 			hints: []string{"deadline.scheduleToStart=2000", "cause.timer=3000"}}},
-		"terminate":                        {"controller/await-terminated": readOnce},
-		"activitySystem.terminateSettles":  {"controller/await-terminated": readOnce},
-		"activitySystem.cancelIsRequested": {},
+		"terminate":                       {"controller/await-terminated": readOnce},
+		"activitySystem.terminateSettles": {"controller/await-terminated": readOnce},
+		"activitySystem.cancelIsRequested": {"controller/await-external-started": {interval: 250, hints: []string{"cause.delivery=3000"}},
+			"controller/await-external-cancel-requested": readOnce, "controller/await-external-canceled": readOnce},
 		"retry": {"controller/await-completed": {interval: 250, hints: []string{"cause.delivery=3000", "cause.activityAnswer=2000",
 			"deadline.backoff=1000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}},
+		"startDelayedCompletion": {"controller/await-completed": {interval: 250,
+			hints: []string{"deadline.startDelay=2000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}},
+		"retryAfterTimeout": {"controller/await-completed": timeoutRetried},
+		"retryExhaustion":   {"controller/await-failed": timeoutRetried},
+		"heartbeatThenCompletes": {"controller/await-heartbeat-receipt": heartbeatReceived,
+			"controller/await-completed": {interval: 250, hints: []string{"cause.delivery=3000", "cause.activityHeartbeat=2000", "cause.activityAnswer=2000"}}},
+		"heartbeatTimeoutRetriesThenCompletes": {"controller/await-heartbeat-receipt": heartbeatReceived,
+			"controller/await-heartbeat-retry-completion": {interval: 250, hints: []string{"cause.delivery=3000", "cause.activityHeartbeat=2000",
+				"deadline.heartbeat=2000", "cause.timer=3000", "deadline.backoff=1000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}},
+		"heartbeatTimeoutExhausts": {"controller/await-heartbeat-receipt": heartbeatReceived,
+			"controller/await-heartbeat-expiration": {interval: 250, hints: []string{"cause.delivery=3000", "cause.activityHeartbeat=2000", "deadline.heartbeat=2000", "cause.timer=3000"}}},
+		"scheduledCompletedByID": {"controller/await-external-completed": readOnce},
+		"heldFailedByID": {"controller/await-external-started": {interval: 250, hints: []string{"cause.delivery=3000"}},
+			"controller/await-external-failed": readOnce},
+		"heldCanceledByID": {"controller/await-external-started": {interval: 250, hints: []string{"cause.delivery=3000"}},
+			"controller/await-external-cancel-requested": readOnce, "controller/await-external-canceled": readOnce},
 	},
 	"activity-standalone-race": {
 		"heldDispatch.staleDelivery": {"controller/await-paused": readOnce},

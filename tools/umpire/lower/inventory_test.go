@@ -46,6 +46,10 @@ func declared(t *testing.T, m *umpirespb.Model, r *umpirespb.Realization) [][2]s
 					out = append(out, [2]string{name, code.GetRejection().String()})
 					continue
 				}
+				if binding, ok := element.Interface().(*umpirespb.ActivityExternalSettlement); ok {
+					out = append(out, [2]string{name, binding.GetAnswer()})
+					continue
+				}
 				id := element.Descriptor().Fields().ByName("id")
 				if id == nil {
 					// A required setting is named by its key.

@@ -1195,8 +1195,11 @@ type ActivityAttempt struct {
 	// The SDK heartbeat was invoked by the declared prefix of this attempt group. This supplies
 	// no evidence that the server received it; a separate declared read must establish receipt.
 	HeartbeatInvoked bool `protobuf:"varint,5,opt,name=heartbeat_invoked,json=heartbeatInvoked,proto3" json:"heartbeat_invoked,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Actual SDK delivery identity, never a namespace UUID or the Testpilot Run ID.
+	NamespaceName string `protobuf:"bytes,6,opt,name=namespace_name,json=namespaceName,proto3" json:"namespace_name,omitempty"`
+	ActivityId    string `protobuf:"bytes,7,opt,name=activity_id,json=activityId,proto3" json:"activity_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ActivityAttempt) Reset() {
@@ -1262,6 +1265,20 @@ func (x *ActivityAttempt) GetHeartbeatInvoked() bool {
 		return x.HeartbeatInvoked
 	}
 	return false
+}
+
+func (x *ActivityAttempt) GetNamespaceName() string {
+	if x != nil {
+		return x.NamespaceName
+	}
+	return ""
+}
+
+func (x *ActivityAttempt) GetActivityId() string {
+	if x != nil {
+		return x.ActivityId
+	}
+	return ""
 }
 
 // FaultInjected is the recorded fact that a Driver realized one requested outage.
@@ -1662,7 +1679,7 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\vdelivery_id\x18\x03 \x01(\tR\n" +
 	"deliveryId\x12W\n" +
 	"\bdecision\x18\x04 \x01(\x0e2;.temporal.server.api.testpilot.v1.DeliveryAdmissionDecisionR\bdecision\x12\x18\n" +
-	"\aattempt\x18\x05 \x01(\x05R\aattempt\"\xff\x01\n" +
+	"\aattempt\x18\x05 \x01(\x05R\aattempt\"\xc7\x02\n" +
 	"\x0fActivityAttempt\x12&\n" +
 	"\x0factivity_run_id\x18\x01 \x01(\tR\ractivityRunId\x12\x1f\n" +
 	"\vsdk_attempt\x18\x02 \x01(\x05R\n" +
@@ -1670,7 +1687,10 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\vdelivery_id\x18\x03 \x01(\tR\n" +
 	"deliveryId\x12U\n" +
 	"\bresponse\x18\x04 \x01(\x0e29.temporal.server.api.testpilot.v1.ActivityAttemptResponseR\bresponse\x12+\n" +
-	"\x11heartbeat_invoked\x18\x05 \x01(\bR\x10heartbeatInvoked\"i\n" +
+	"\x11heartbeat_invoked\x18\x05 \x01(\bR\x10heartbeatInvoked\x12%\n" +
+	"\x0enamespace_name\x18\x06 \x01(\tR\rnamespaceName\x12\x1f\n" +
+	"\vactivity_id\x18\a \x01(\tR\n" +
+	"activityId\"i\n" +
 	"\rFaultInjected\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
 	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\x80\x01\n" +

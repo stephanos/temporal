@@ -32,6 +32,8 @@ import io.temporal.api.common.v1.Payloads
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
 import io.temporal.api.enums.v1.TimeoutType.TIMEOUT_TYPE_HEARTBEAT
+import io.temporal.api.enums.v1.PendingActivityState.*
+import io.temporal.api.workflowservice.v1.StartActivityExecutionResponse
 import temporal.server.api.testpilot.v1.{
   ActivityAttempt,
   ActivityAttemptResponse,
@@ -604,6 +606,7 @@ object ExhaustAfterHeartbeat
         onPath(deadline.heartbeat)(awaitHeartbeatExpiration),
         everyCase(readHeartbeatAttemptCount)
       )
+
   object workers extends Workers(heartbeatAttempts)
   object evidence
       extends Evidences(
@@ -614,6 +617,247 @@ object ExhaustAfterHeartbeat
         delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
         described(everyValue(system.Fact.statusTimedOut))
       )
+
+private val activityExecutionRun = Learned("activity-execution-run", LearnedKind.text)
+private val executionRun = Operand.learnedValue[String](activityExecutionRun.id)
+private val startExternal = startActivity.withFields {
+  field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
+  read(Field[StartActivityExecutionResponse, String](_.runId), Cardinality.one)
+    .into(Target.Bind(activityExecutionRun.id))
+}
+private val byIDCalls = RequestBase(
+  workflowService,
+  "namespace" -> workerNamespace,
+  "activity_id" -> run,
+  "run_id" -> executionRun
+)
+private val answerIdentity = Operand.text("external-answer-controller")
+private val respondCompletedById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_COMPLETED_BY_ID) {
+  field(_.identity) := answerIdentity
+  field(_.getResult) := heartbeatPayloads
+}
+private val respondFailedById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_FAILED_BY_ID) {
+  field(_.identity) := answerIdentity
+  field(_.getFailure) := applicationFailure("ExternalFailure", "external fatal failure", false)
+}
+private val respondCanceledById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_CANCELED_BY_ID) {
+  field(_.identity) := answerIdentity
+  field(_.getDetails) := heartbeatPayloads
+}
+private val requestExternalCancellation = requestCancelActivity.extended {
+  field(_.runId) := executionRun
+  field(_.identity) := Operand.text("external-cancel-controller")
+  field(_.requestId) := run
+}
+private val terminateExternal = terminateActivity.extended {
+  field(_.runId) := executionRun
+}
+private val readExternalAttemptCount = readAttemptCount.extended {
+  field(_.runId) := executionRun
+}
+private val externalCleanup = command(terminateExternal, regardless = true)
+
+private def externalRead(id: String, records: RealizationFact, confirms: Taking*) = Evidence.read(
+  id = evidenceId(id),
+  records = records,
+  source = sourceId(id),
+  from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
+  operation = Field[ActivityExecutionInfo, String](_.activityId),
+  commitment = Commitment.reported,
+  fields = Vector(activityRunFieldForInfo),
+  confirms = Vector(confirms*)
+)
+private val activityRunFieldForInfo =
+  EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId))
+private val externalStarted = externalRead(
+  "externalStarted",
+  system.Fact.statusStarted,
+  Taking(worker.poll, 1)
+)
+private val externalCancelRequested = externalRead(
+  "externalCancelRequested",
+  system.Fact.statusCancelRequested,
+  Taking(client.requestCancel, 1)
+)
+private val externalCompleted = externalRead("externalCompleted", system.Fact.statusCompleted)
+private val externalFailed = externalRead("externalFailed", system.Fact.statusFailed)
+private val externalCanceled = externalRead("externalCanceled", system.Fact.statusCanceled)
+private val sameExecution = Condition.equal(
+  Field[ActivityExecutionInfo, String](_.runId),
+  executionRun
+)
+private val running = Condition.equal(
+  Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
+  Operand.enumValue(ACTIVITY_EXECUTION_STATUS_RUNNING)
+)
+private val heldStarted = Condition.all(
+  sameExecution,
+  running,
+  Condition.equal(
+    Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
+    Operand.enumValue(PENDING_ACTIVITY_STATE_STARTED)
+  )
+)
+private val heldCancelRequested = Condition.all(
+  sameExecution,
+  running,
+  Condition.equal(
+    Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
+    Operand.enumValue(PENDING_ACTIVITY_STATE_CANCEL_REQUESTED)
+  )
+)
+private val awaitExternalStarted = await(externalStarted, calls)(heldStarted) {
+  field(_.runId) := executionRun
+}
+private val awaitExternalCancelRequested =
+  await(externalCancelRequested, calls)(heldCancelRequested) {
+    field(_.runId) := executionRun
+  }
+private def terminalExternal(status: io.temporal.api.enums.v1.ActivityExecutionStatus) =
+  Condition.all(
+    sameExecution,
+    Condition.equal(
+      Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
+      Operand.enumValue(status)
+    ),
+    Condition.equal(
+      Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
+      Operand.enumValue(PENDING_ACTIVITY_STATE_UNSPECIFIED)
+    ),
+    Condition.present(
+      Field[ActivityExecutionInfo, Option[com.google.protobuf.timestamp.Timestamp]](_.closeTime)
+    )
+  )
+private val awaitExternalCompleted = await(externalCompleted, calls)(
+  terminalExternal(ACTIVITY_EXECUTION_STATUS_COMPLETED)
+) {
+  field(_.runId) := executionRun
+  field(_.includeOutcome) := Operand.flag(true)
+}
+private val awaitExternalFailed = await(externalFailed, calls)(
+  terminalExternal(ACTIVITY_EXECUTION_STATUS_FAILED)
+) {
+  field(_.runId) := executionRun
+  field(_.includeOutcome) := Operand.flag(true)
+}
+private val awaitExternalCanceled = await(externalCanceled, calls)(
+  terminalExternal(ACTIVITY_EXECUTION_STATUS_CANCELED)
+) {
+  field(_.runId) := executionRun
+  field(_.includeOutcome) := Operand.flag(true)
+}
+private val failurePublication = ActivityPublication("external-failure-pending")
+private val cancellationPublication = ActivityPublication("external-cancellation-pending")
+private val awaitFailurePublication = awaitActivityPublication(failurePublication)
+private val awaitCancellationPublication = awaitActivityPublication(cancellationPublication)
+private val failurePending = attemptPending(respondFailedById)
+private val cancellationPending = attemptPending(respondCanceledById)
+private val externalFailureAttempts = script(
+  "external-failure-attempts",
+  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+)(onPath(service.respondFailedByID(Failure.fatal))(failurePending))
+private val externalCancellationAttempts = script(
+  "external-cancellation-attempts",
+  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+)(onPath(service.respondCanceledByID)(cancellationPending))
+private val scheduledExternalSettlement = ActivityExternalSettlement.Scheduled(
+  carrier = startExternal,
+  answer = respondCompletedById,
+  settlement = awaitExternalCompleted,
+  cleanup = externalCleanup
+)
+private val fatalExternalSettlement = ActivityExternalSettlement(
+  carrier = startExternal,
+  activity = externalFailureAttempts,
+  attempt = 1,
+  pending = failurePublication,
+  held = awaitExternalStarted,
+  answer = respondFailedById,
+  settlement = awaitExternalFailed,
+  cleanup = externalCleanup
+)
+private val canceledExternalSettlement = ActivityExternalSettlement(
+  carrier = startExternal,
+  activity = externalCancellationAttempts,
+  attempt = 1,
+  pending = cancellationPublication,
+  held = awaitExternalCancelRequested,
+  answer = respondCanceledById,
+  settlement = awaitExternalCanceled,
+  cleanup = externalCleanup,
+  requestCancel = Some(requestExternalCancellation)
+)
+
+object ScheduledCompletionByID
+    extends Realizes(
+      ByIDCompletion,
+      learned = Vector(activityExecutionRun),
+      observations = Vector(correlated, publicAttemptCount)
+    ):
+  object controller
+      extends Controller(
+        perform(client.start() -> startExternal),
+        perform(service.respondCompletedByID -> respondCompletedById),
+        everyCase(awaitExternalCompleted),
+        everyCase(readExternalAttemptCount)
+      )
+  object evidence
+      extends Evidences(
+        answered(system.Fact.statusScheduled, startExternal),
+        externalCompleted
+      )
+  object serverSteps extends ServerSteps(scheduledExternalSettlement)
+
+object HeldFailureByID
+    extends Realizes(
+      ByIDFailure,
+      learned = Vector(activityExecutionRun),
+      observations = Vector(correlated, publicAttemptCount)
+    ):
+  object controller
+      extends Controller(
+        perform(client.start() -> startExternal),
+        everyCase(awaitFailurePublication),
+        everyCase(awaitExternalStarted),
+        perform(service.respondFailedByID(Failure.fatal) -> respondFailedById),
+        everyCase(awaitExternalFailed),
+        everyCase(readExternalAttemptCount)
+      )
+  object workers extends Workers(externalFailureAttempts)
+  object evidence
+      extends Evidences(
+        answered(system.Fact.statusScheduled, startExternal),
+        externalStarted,
+        externalFailed
+      )
+  object serverSteps extends ServerSteps(fatalExternalSettlement)
+
+object HeldCancellationByID
+    extends Realizes(
+      ByIDCancellation,
+      learned = Vector(activityExecutionRun),
+      observations = Vector(correlated, publicAttemptCount)
+    ):
+  object controller
+      extends Controller(
+        perform(client.start() -> startExternal),
+        everyCase(awaitCancellationPublication),
+        everyCase(awaitExternalStarted),
+        perform(client.requestCancel -> requestExternalCancellation),
+        everyCase(awaitExternalCancelRequested),
+        perform(service.respondCanceledByID -> respondCanceledById),
+        everyCase(awaitExternalCanceled),
+        everyCase(readExternalAttemptCount)
+      )
+  object workers extends Workers(externalCancellationAttempts)
+  object evidence
+      extends Evidences(
+        answered(system.Fact.statusScheduled, startExternal),
+        externalStarted,
+        externalCancelRequested,
+        externalCanceled
+      )
+  object serverSteps extends ServerSteps(canceledExternalSettlement)
 
 // ### The held race
 // A controller starts one activity on a queue no worker polls, holds its dispatch between

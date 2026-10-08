@@ -98,6 +98,7 @@ type PreparedProgram struct {
 	slots      map[string]ir.Type
 	carriers   map[carrierCoordinate]contract.ReservationCarrierPlan
 	roles      map[string]contract.PreparedRole
+	external   []*activityExternalSettlement
 	// evidence holds every declaration by identity; runEventLifts the ones a recorded Run Event
 	// feeds, in declaration order; correlatedObservationID the one CorrelatedEvidence Observation
 	// those lifts, and a read's, emit into.
@@ -270,9 +271,10 @@ func (d *evidenceDeclaration) lift(observationID string, guard *ir.Expression) *
 }
 
 type slotWriter struct {
-	graph    *graph
-	node     int
-	optional bool
+	graph        *graph
+	node         int
+	optional     bool
+	asynchronous bool
 }
 
 // ProgramCeiling is the Program ceiling every Profile's limits must fit under: Prepare admits a

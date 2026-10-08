@@ -137,6 +137,13 @@ declarations and the causal run order above:
   The immutable `EntrypointPlan.ActivityAttempts()` exposes their instruction indexes. Reservation
   counts follow groups, while node and edge ceilings still charge every instruction. A local
   heartbeat marker proves SDK invocation only; a `PENDING` outcome proves no server acceptance.
+- **Activity external settlement.** The activity-local declaration binds the start, an exact By-ID
+  answer, terminal Describe and bounded cleanup. Its held variants also bind the reservation,
+  pending-publication slot and held Describe. Publication makes the slot ready only after the
+  pending Run event is recorded. Cancellation additionally requires successful RequestCancel and
+  RUNNING/CANCEL_REQUESTED before the answer. The controller-only completion variant declares no
+  worker or pending slot. Missing held fields cannot stand for that absence. All variants pin the
+  namespace name, activity ID and learned execution run, with an empty workflow ID.
 - **Instruction limits.** An instruction's timeout and attempts are each its own `limits`, else the
   Program's declared `instruction_defaults`, else the Profile's `InstructionDefaults`; an
   instruction none of them covers is refused at preparation. A Temporal Case declares its defaults,

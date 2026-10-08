@@ -44,6 +44,43 @@ func (this *Program) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ActivityExternalSettlement to the protobuf v3 wire format
+func (val *ActivityExternalSettlement) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ActivityExternalSettlement from the protobuf v3 wire format
+func (val *ActivityExternalSettlement) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ActivityExternalSettlement) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ActivityExternalSettlement values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ActivityExternalSettlement) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ActivityExternalSettlement
+	switch t := that.(type) {
+	case *ActivityExternalSettlement:
+		that1 = t
+	case ActivityExternalSettlement:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type RequiredSetting to the protobuf v3 wire format
 func (val *RequiredSetting) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

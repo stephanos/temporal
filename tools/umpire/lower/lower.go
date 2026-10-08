@@ -405,9 +405,29 @@ func (l *lowering) withholdingOccurrences() (problems []error) {
 					count++
 				}
 			}
-			if count > 1 {
+			external := command.GetAttemptWithheld().GetExternalSettlement()
+			if external != "" && count != 1 {
+				problems = append(problems, errorAt(command.GetPosition(), "withholding command %s requires exactly one occurrence of its external answer; got %d", command.GetId(), count))
+			} else if count > 1 {
 				problems = append(problems, errorAt(command.GetPosition(),
 					"withholding command %s requires exactly one occurrence of its armed timer; got %d", command.GetId(), count))
+			}
+			if external != "" && count == 1 {
+				starts, _ := l.attemptClasses(script)
+				var delivered int64
+				for _, taken := range l.keys {
+					if starts[taken] {
+						delivered++
+					}
+					if taken == key {
+						break
+					}
+				}
+				for _, e := range l.a.r.GetExternalSettlements() {
+					if e.GetAnswer() == external && e.GetAttempt() != delivered {
+						problems = append(problems, errorAt(e.GetPosition(), "external settlement %s declares attempt %d; selected publication is attempt %d", external, e.GetAttempt(), delivered))
+					}
+				}
 			}
 		}
 	}
@@ -941,10 +961,11 @@ var realizationFields = map[protoreflect.Name]func(*accounting) error{
 	"cleanup": func(a *accounting) error {
 		return a.field("realization", "cleanup", a.l.a.r.GetCleanup(), a.c.GetProgram().GetCleanup().GetEntrypointId(), "program.cleanup")
 	},
-	"required_settings": (*accounting).requiredSettings,
-	"behavior":          (*accounting).behavior,
-	"server_steps":      (*accounting).serverSteps,
-	"rejection_codes":   (*accounting).rejectionCodes,
+	"required_settings":    (*accounting).requiredSettings,
+	"behavior":             (*accounting).behavior,
+	"server_steps":         (*accounting).serverSteps,
+	"rejection_codes":      (*accounting).rejectionCodes,
+	"external_settlements": (*accounting).externalSettlements,
 }
 
 var correlationFields = map[protoreflect.Name]func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error{
@@ -1592,7 +1613,11 @@ func parts(c *testpilotspb.Case) []string {
 				list := m.Get(f).List()
 				for j := range list.Len() {
 					element := list.Get(j).Message()
-					each := path + "[" + element.Get(element.Descriptor().Fields().ByNumber(1)).String() + "]"
+					id := element.Get(element.Descriptor().Fields().ByNumber(1)).String()
+					if binding, ok := element.Interface().(*testpilotspb.ActivityExternalSettlement); ok {
+						id = binding.GetAnswer().GetInstructionId()
+					}
+					each := path + "[" + id + "]"
 					out = append(out, each)
 					if instructions := element.Descriptor().Fields().ByName("instructions"); instructions != nil {
 						nodes := element.Get(instructions).List()

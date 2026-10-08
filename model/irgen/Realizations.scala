@@ -1901,10 +1901,17 @@ private[irgen] trait Realizations:
         deadlineBases.clear()
         val emitted = emit(ir.Realization, Bound(call, familyScope(sym, Bound(call, Map.empty))))
         ownFacts(emitted)
-        val stated = d.sections
+        val stepDeclarations = d.sections
           .get("serverSteps")
           .map(s => itemsOf(Bound(sectionArgument(s), Map.empty)))
           .getOrElse(Nil)
+        val external = stepDeclarations.filter { b =>
+          val declaration = reduce(b)
+          isNamed(declaration.term.tpe, "temporal.realize.ActivityExternalSettlement") ||
+          isNamed(declaration.term.tpe, "temporal.realize.ActivityExternalSettlement$.Scheduled")
+        }
+        val stated = stepDeclarations
+          .filterNot(external.contains)
           .map(b =>
             b -> ir.ServerStep.messageReads.read(
               message(valueOf(irField(ir.Realization.scalaDescriptor, "server_steps", at), b), at)
@@ -1923,6 +1930,7 @@ private[irgen] trait Realizations:
             )
           }
           .withServerSteps(serverSteps(emitted, machine, stated, at))
+          .withExternalSettlements(external.map(b => emit(ir.ActivityExternalSettlement, b)))
         classesOfMachine(r, machine)
         distinctName("realizations", realizations.values.map(r => r.name -> r.id), r.name, id, at)
         realizations(id) = r
@@ -2110,7 +2118,8 @@ private[irgen] trait Realizations:
       "umpire.realize.Addressee",
       "umpire.realize.Script",
       "umpire.realize.Actuator",
-      "umpire.realize.Learned"
+      "umpire.realize.Learned",
+      "temporal.realize.ActivityPublication"
     )
 
   // The id of a declaration written out: the argument of its `id` parameter.

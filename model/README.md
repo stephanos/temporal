@@ -1415,6 +1415,13 @@ in its `DescribedStatus`, whose `table` is the realization-side form of the `Des
 [.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the IR generator reads it when it lifts,
 and it adds nothing to the IR.
 
+Standalone By-ID realizations use the activity-local `ActivityExternalSettlement` in `serverSteps`.
+The held variants link one SDK-pending attempt and its `ActivityPublication` wait to the held and
+terminal Describe reads, the typed By-ID answer and bounded cleanup. The `Scheduled` variant links
+controller-only completion and cleanup without declaring a worker. The start binds its actual
+execution run ID once; requests pin that learned run, namespace name and activity ID, with empty
+workflow ID. A pending diagnostic proves local publication, not server acceptance or a timer event.
+
 A realization whose system serves the feature only behind a flag says so,
 `requiredSettings = Vector(RequiredSetting(key, value))`, with the kit's `RequiredSetting`, the
 key and value as the server's dynamic configuration spells them (the standalone Nexus

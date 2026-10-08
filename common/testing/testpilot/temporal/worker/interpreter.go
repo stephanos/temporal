@@ -269,7 +269,7 @@ func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activa
 	terminal := instructions[group[len(group)-1]].Source().GetInstruction().GetActivityAttemptWithholding()
 	if terminal != nil && terminal.GetMode() == testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING {
 		info := activity.GetInfo(ctx)
-		if info.ActivityRunID == "" || info.HeartbeatTimeout <= 0 {
+		if info.ActivityRunID == "" || terminal.GetExternalSettlement() == nil && info.HeartbeatTimeout <= 0 {
 			return nil, ErrInvalid
 		}
 	}

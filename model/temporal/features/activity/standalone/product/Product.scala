@@ -76,6 +76,12 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       retryScheduled -> retry(s),
       retryExhausted -> fail(s)
     )
+    val retryPaused = choice
+    def serviceRetry(s: State) = choose(
+      retryScheduled -> retry(s),
+      retryPaused -> enter(s.copy(phase = Phase.paused), Fact.statusPaused),
+      retryExhausted -> fail(s)
+    )
     val cancel = effect { phase = canceled }
     val pause = effect { phase = Phase.paused }
     // started also reads a held attempt whose pause is pending (System.refinement.toProduct).
@@ -141,7 +147,8 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
           .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
       }
       on(requestCancel) {
-        when(scheduled, started, paused) ~> effects.requestCancel
+        when(scheduled, paused) ~> effects.cancel
+        when(started) ~> effects.requestCancel
         when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
           .because("cancellation already requested (chasm/lib/activity/model/model.go:201-202)")
       }
@@ -180,6 +187,32 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
         when(cancelRequested) ~> effects.cancel
         when(started) ~> rejects(Rejection.invalidArgument)
           .because("cancellation was not requested (chasm/lib/activity/model/model.go:171)")
+      }
+    }
+
+    from(service) {
+      import service.*
+
+      on(respondCompletedByID, respondFailedByID, respondCanceledByID) {
+        when[Closed] ~> rejects(Rejection.notFound)
+      }
+      on(respondCompletedByID) {
+        when[Live] ~> effects.complete
+      }
+      on(respondFailedByID(Failure.fatal)) {
+        when[Held] ~> effects.fail
+      }
+      on(respondFailedByID(Failure.retryable)) {
+        when(started) ~> effects.serviceRetry
+        when(cancelRequested) ~> effects.cancel
+      }
+      on(respondFailedByID, respondCanceledByID) {
+        when(scheduled, paused) ~> rejects(Rejection.notFound)
+      }
+      on(respondCanceledByID) {
+        when(cancelRequested) ~> effects.cancel
+        when(started) ~> rejects(Rejection.invalidArgument)
+          .because("cancellation was not requested")
       }
     }
 

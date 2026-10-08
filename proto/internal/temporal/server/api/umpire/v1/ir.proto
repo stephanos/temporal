@@ -748,6 +748,21 @@ message Realization {
   // The shared rejection reasons and the gRPC status codes a Temporal RPC returns for them. The
   // Temporal realization kit attaches the complete table to every realization.
   repeated RejectionCode rejection_codes = 18;
+  repeated ActivityExternalSettlement external_settlements = 19;
+}
+
+// One local pending publication followed by a typed controller answer and bounded cleanup.
+message ActivityExternalSettlement {
+  Position position = 1;
+  string carrier = 2;
+  string activity = 3;
+  int64 attempt = 4;
+  string pending = 5;
+  string held = 6;
+  string answer = 7;
+  string request_cancel = 8;
+  string settlement = 9;
+  Command cleanup = 10;
 }
 
 // A dynamic-configuration setting a realization requires: its key and its value, each spelled as
@@ -1147,6 +1162,7 @@ message Command {
     // Used only in an activity script's on-path item naming one bounded timer, never a performance.
     AttemptWithheld attempt_withheld = 20;
     AttemptHeartbeat attempt_heartbeat = 21;
+    string await_activity_publication = 22;
   }
   // The exhaustive kinds of evidence, by id, this command's read is the closing read of: the read
   // after which their sources report nothing more.
@@ -1155,7 +1171,11 @@ message Command {
 
 message AttemptHeartbeat { Proto details = 1; }
 
-message AttemptWithheld { WithholdingMode mode = 1; }
+message AttemptWithheld {
+  WithholdingMode mode = 1;
+  // The controller's typed answer named by the external-settlement declaration.
+  string external_settlement = 2;
+}
 
 enum WithholdingMode {
   WITHHOLDING_MODE_CONTEXT = 0;

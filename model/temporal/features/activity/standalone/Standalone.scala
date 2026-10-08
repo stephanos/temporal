@@ -77,6 +77,15 @@ object client extends Client:
   val requestCancel = action(this).on(activity).results("Delivery")
   val terminate = action(this).on(activity).results("Delivery")
 
+object service extends Client:
+  val respondCompletedByID = action(this).on(activity)
+  val respondFailedByID = action(this)
+    .input(failure)
+    .example(Failure.fatal, "ApplicationFailureNonRetryable")
+    .example(Failure.retryable, "ApplicationFailureRetryable")
+    .on(activity)
+  val respondCanceledByID = action(this).on(activity)
+
 // The kind's worker actions (../Activity.scala) bound to this activity. The timers and deadlines
 // are the kind's.
 object worker:
@@ -111,12 +120,18 @@ object exports:
     system.HeartbeatRetry.queries,
     system.HeartbeatCompletion.queries,
     system.HeartbeatExhaustion.queries,
+    system.ByIDCompletion.queries,
+    system.ByIDFailure.queries,
+    system.ByIDCancellation.queries,
     StandaloneActivity.queries,
     system.Standalone,
     system.RetryAfterTimeout,
     system.HeartbeatThenCompletion,
     system.RetryAfterHeartbeat,
-    system.ExhaustAfterHeartbeat
+    system.ExhaustAfterHeartbeat,
+    system.ScheduledCompletionByID,
+    system.HeldFailureByID,
+    system.HeldCancellationByID
   )
 
   // Its history record, the admission designs, and the shared task queue's providers it composes.

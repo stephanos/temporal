@@ -29,6 +29,21 @@ message Program {
   // set, evidence lifted from one source names the operation's previously lifted evidence, from
   // another source, as its causal parent. Unset, only a source's ordinals order its evidence.
   bool run_order_is_causal = 10;
+  repeated ActivityExternalSettlement activity_external_settlements = 11;
+}
+
+// ActivityExternalSettlement binds one pending activity reservation to the controller's bounded
+// held read, typed external answer, terminal read and independent cleanup.
+message ActivityExternalSettlement {
+  InstructionReference carrier = 1;
+  string activity_entrypoint_id = 2;
+  int64 reservation_ordinal = 3;
+  string pending_slot_id = 4;
+  InstructionReference held = 5;
+  InstructionReference answer = 6;
+  InstructionReference request_cancel = 7;
+  InstructionReference settlement = 8;
+  InstructionReference cleanup = 9;
 }
 
 // A dynamic-configuration setting a Program requires: its key and its value, each spelled as the

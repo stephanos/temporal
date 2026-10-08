@@ -582,6 +582,14 @@ one group each. Heartbeat is a write, not an answer. SDK-pending is a local disp
 no Respond RPC. Its record is published after the prefix and before the selected server timer,
 without claiming a future delivery or timeout. Context withholding requires a start-to-close or
 schedule-to-close request-field basis; pending heartbeat withholding requires a heartbeat basis.
+Alternatively, `ActivityExternalSettlement` supplies an explicit timer-free basis: one pending
+attempt is published before the controller's By-ID failure or cancellation. Its typed publication
+wait, held Describe, answer, terminal Describe and bounded cleanup are linked by value. Cancellation
+requires publication before RequestCancel, then RUNNING/CANCEL_REQUESTED before CanceledById.
+The nested `Scheduled` variant completes an unpolled activity through the controller and has no
+activity script, pending publication or held evidence. Both variants use the activity execution run
+learned from StartActivityExecution, never the Testpilot run ID as execution authority. Raw Describe
+attempt counts remain scheduling observations, not SDK delivery identity.
 An invocation record cannot prove server receipt: requested Describe details and count must do so,
 and only an actual HEARTBEAT failure together with the next SDK delivery and completion identifies
 a successful heartbeat-timeout retry. The

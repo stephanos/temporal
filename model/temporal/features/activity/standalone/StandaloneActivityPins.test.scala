@@ -2,7 +2,7 @@ package umpire
 // What the standalone activity Model's effects do, run as Scala.
 
 import temporal.features.activity.{failure, Failure}
-import temporal.features.activity.standalone.{activity, client, system, worker}
+import temporal.features.activity.standalone.{activity, client, service, system, worker}
 import temporal.features.activity.{deadline, timers, Timeout, TimeoutType}
 import temporal.features.activity.standalone.product
 import temporal.shared.worker.worker as process
@@ -268,7 +268,13 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.requestCancel.decl,
         None,
-        s => s.phase == scheduled || s.phase == started || s.phase == paused,
+        s => s.phase == scheduled || s.phase == paused,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(
+        client.requestCancel.decl,
+        None,
+        _.phase == started,
         s => accepted(s.copy(phase = cancelRequested), Fact.statusCancelRequested)
       ),
       ExpectedRule(
@@ -321,6 +327,65 @@ class StandaloneActivityPins extends munit.FunSuite:
         None,
         _.phase == cancelRequested,
         s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut, Fact.heartbeatTimedOut)
+      )
+    ) ++ productServiceRules
+
+  private def productServiceRules: List[ExpectedRule[product.State, product.Fact]] =
+    import product.{Fact, Phase, State}
+    import Phase.*
+    val closed =
+      List(service.respondCompletedByID, service.respondFailedByID, service.respondCanceledByID)
+        .map(a =>
+          ExpectedRule[State, Fact](a.decl, None, s => closedProduct(s.phase), rejectedNotFound)
+        )
+    val unheld = List(service.respondFailedByID, service.respondCanceledByID)
+      .map(a =>
+        ExpectedRule[State, Fact](
+          a.decl,
+          None,
+          s => s.phase == scheduled || s.phase == paused,
+          rejectedNotFound
+        )
+      )
+    closed ++ unheld ++ List[ExpectedRule[State, Fact]](
+      ExpectedRule(
+        service.respondCompletedByID.decl,
+        None,
+        s => productLive(s.phase),
+        s => accepted(s.copy(phase = completed), Fact.statusCompleted)
+      ),
+      ExpectedRule(
+        service.respondFailedByID.decl,
+        Some(List(Failure.fatal)),
+        s => s.phase == started || s.phase == cancelRequested,
+        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+      ),
+      ExpectedRule(
+        service.respondFailedByID.decl,
+        Some(List(Failure.retryable)),
+        _.phase == started,
+        s =>
+          accepted(s.copy(phase = scheduled), Fact.statusScheduled) ++
+            accepted(s.copy(phase = paused), Fact.statusPaused) ++
+            accepted(s.copy(phase = failed), Fact.statusFailed)
+      ),
+      ExpectedRule(
+        service.respondFailedByID.decl,
+        Some(List(Failure.retryable)),
+        _.phase == cancelRequested,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(
+        service.respondCanceledByID.decl,
+        None,
+        _.phase == cancelRequested,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(
+        service.respondCanceledByID.decl,
+        None,
+        _.phase == started,
+        s => rejectedBecause(s, "invalidArgument", "cancellation was not requested")
       )
     )
 
@@ -469,7 +534,13 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.requestCancel.decl,
         None,
-        s => liveSystem(s.phase) && s.phase != cancelRequested,
+        s => s.phase == scheduled || s.phase == paused,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(
+        client.requestCancel.decl,
+        None,
+        s => s.phase == started || s.phase == pauseRequested,
         s => accepted(s.copy(phase = cancelRequested), Fact.statusCancelRequested)
       ),
       ExpectedRule(
@@ -615,7 +686,91 @@ class StandaloneActivityPins extends munit.FunSuite:
             Fact.heartbeatTimedOut
           )
       )
-    ) ++ startRules
+    ) ++ startRules ++ systemServiceRules
+
+  private def systemServiceRules: List[ExpectedRule[system.State, system.Fact]] =
+    import system.{Fact, Phase, State}
+    import Phase.*
+    val absentOrClosed =
+      List(service.respondCompletedByID, service.respondFailedByID, service.respondCanceledByID)
+        .map(a =>
+          ExpectedRule[State, Fact](
+            a.decl,
+            None,
+            s => s.phase == unstarted || closedSystem(s.phase),
+            rejectedNotFound
+          )
+        )
+    val unheld = List(service.respondFailedByID, service.respondCanceledByID)
+      .map(a =>
+        ExpectedRule[State, Fact](
+          a.decl,
+          None,
+          s => s.phase == scheduled || s.phase == paused,
+          rejectedNotFound
+        )
+      )
+    absentOrClosed ++ unheld ++ List[ExpectedRule[State, Fact]](
+      ExpectedRule(
+        service.respondCompletedByID.decl,
+        None,
+        s => liveSystem(s.phase),
+        s => accepted(s.copy(phase = completed), Fact.statusCompleted)
+      ),
+      ExpectedRule(
+        service.respondFailedByID.decl,
+        Some(List(Failure.fatal)),
+        s => heldSystem(s.phase),
+        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+      ),
+      ExpectedRule(
+        service.respondFailedByID.decl,
+        Some(List(Failure.retryable)),
+        s => s.phase == started && retriesRemain(s),
+        s =>
+          acceptedBecause(
+            s.copy(phase = scheduled, dispatch = Dispatch.backoff),
+            "a retryable attempt backs off; the client reads scheduled again",
+            Fact.statusScheduled,
+            Fact.attemptCount
+          )
+      ),
+      ExpectedRule(
+        service.respondFailedByID.decl,
+        Some(List(Failure.retryable)),
+        s => s.phase == pauseRequested && retriesRemain(s),
+        s =>
+          accepted(
+            s.copy(phase = paused, dispatch = Dispatch.backoff),
+            Fact.statusPaused,
+            Fact.attemptCount
+          )
+      ),
+      ExpectedRule(
+        service.respondFailedByID.decl,
+        Some(List(Failure.retryable)),
+        s => (s.phase == started || s.phase == pauseRequested) && !retriesRemain(s),
+        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+      ),
+      ExpectedRule(
+        service.respondFailedByID.decl,
+        Some(List(Failure.retryable)),
+        _.phase == cancelRequested,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(
+        service.respondCanceledByID.decl,
+        None,
+        _.phase == cancelRequested,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(
+        service.respondCanceledByID.decl,
+        None,
+        s => s.phase == started || s.phase == pauseRequested,
+        s => rejectedBecause(s, "invalidArgument", "cancellation was not requested")
+      )
+    )
 
   private val startRules: List[ExpectedRule[system.State, system.Fact]] =
     for
@@ -710,6 +865,9 @@ class StandaloneActivityPins extends munit.FunSuite:
         worker.respondCompleted,
         worker.respondFailed,
         worker.respondCanceled,
+        service.respondCompletedByID,
+        service.respondFailedByID,
+        service.respondCanceledByID,
         process.stop,
         timers.timeout,
         deadline.heartbeat
@@ -728,6 +886,9 @@ class StandaloneActivityPins extends munit.FunSuite:
         worker.respondCompleted,
         worker.respondFailed,
         worker.respondCanceled,
+        service.respondCompletedByID,
+        service.respondFailedByID,
+        service.respondCanceledByID,
         process.stop,
         timers.startDelay,
         timers.backoff,

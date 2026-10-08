@@ -145,7 +145,12 @@ message ActivityAttemptCancellation {}
 // timeout the server applies to it, ends the attempt, so the server times the attempt out. The
 // server retries a timed-out attempt unless the retry policy is exhausted, so it is followed by the
 // entrypoint's next instruction or ends the activity.
-message ActivityAttemptWithholding { ActivityWithholdingMode mode = 1; }
+message ActivityAttemptWithholding {
+  ActivityWithholdingMode mode = 1;
+  // The answer reference of the Program's explicit external-settlement declaration. Absent,
+  // SDK_PENDING retains its positive heartbeat-timeout basis.
+  InstructionReference external_settlement = 2;
+}
 
 // The default retains SDK context-deadline withholding. Pending ends local execution with the
 // SDK's pending sentinel and offers no answer RPC; the server attempt remains unsettled.

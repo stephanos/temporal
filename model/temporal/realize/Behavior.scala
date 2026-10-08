@@ -38,6 +38,24 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
       METHOD_DESCRIBE_ACTIVITY_EXECUTION,
       Visible.atOnce
     ),
+    // The frontend synthesizes the standalone component token; history persists the component
+    // update before replying, and Describe reads it under a lease:
+    // service/frontend/workflow_handler.go:1817-1832, :2060-2074, :2249-2264;
+    // service/history/handler.go:425-429, :476-480, :527-531;
+    // service/history/chasm_engine.go:437-456; chasm/lib/activity/activity.go:463-470,
+    // :513-522, :539-547; chasm/lib/activity/handler.go:194-203.
+    METHOD_RESPOND_ACTIVITY_TASK_COMPLETED_BY_ID.visibleTo(
+      METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+      Visible.atOnce
+    ),
+    METHOD_RESPOND_ACTIVITY_TASK_FAILED_BY_ID.visibleTo(
+      METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+      Visible.atOnce
+    ),
+    METHOD_RESPOND_ACTIVITY_TASK_CANCELED_BY_ID.visibleTo(
+      METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+      Visible.atOnce
+    ),
     // A worker's answer applies the attempt's outcome, or a retry's reschedule and count, in the
     // respond's transaction: service/history/handler.go:425-429, :476-480, :527-531,
     // chasm/lib/activity/activity.go:463, :513, :539, attempt.go:204-240.

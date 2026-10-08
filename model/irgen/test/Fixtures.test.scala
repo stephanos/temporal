@@ -69,6 +69,65 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
       ) ++ roots
     )
 
+  test(
+    "external settlement references and publication bind without a timer or a learned-kind escape"
+  ):
+    val result = lift("fixture.heartbeat.ExternalBindings", "fixture.heartbeat.ScheduledBindings")
+    assertEquals(result.exit, 0, result.output)
+    val model = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(scratch.resolve("out.json")))
+    val realizations = model
+      .path("realizations")
+      .elements()
+      .asScala
+      .toSeq
+      .map(r => r.path("name").asText() -> r)
+      .toMap
+    val external = realizations("externalBindings")
+    val bindings = external.path("externalSettlements").elements().asScala.toSeq
+    assertEquals(bindings.size, 1)
+    val binding = bindings.head
+    assertEquals(binding.path("carrier").asText(), "external-start")
+    assertEquals(binding.path("activity").asText(), "external-attempts")
+    assertEquals(binding.path("attempt").asLong(), 1L)
+    assertEquals(binding.path("pending").asText(), "pending-activity")
+    assertEquals(binding.path("held").asText(), "external-held")
+    assertEquals(binding.path("answer").asText(), "external-answer")
+    assertEquals(binding.path("settlement").asText(), "external-terminal")
+    assertEquals(binding.path("cleanup").path("id").asText(), "external-cleanup")
+    assertEquals(binding.path("cleanup").path("regardless").asBoolean(), true)
+    assertEquals(external.path("learned").size(), 0)
+    assertEquals(external.path("serverSteps").size(), 0)
+    val scripts = external.path("scripts").elements().asScala.toSeq
+    val controllerCommands =
+      scripts.head.path("items").elements().asScala.toSeq.map(_.path("command"))
+    assertEquals(
+      controllerCommands(1).path("awaitActivityPublication").asText(),
+      "pending-activity"
+    )
+    val pending = scripts(1).path("items").get(0).path("command").path("attemptWithheld")
+    assertEquals(pending.path("mode").asText(), "WITHHOLDING_MODE_SDK_PENDING")
+    assertEquals(pending.path("externalSettlement").asText(), "external-answer")
+    val scheduled = realizations("scheduledBindings")
+    assertEquals(scheduled.path("scripts").size(), 1)
+    val scheduledBasis = scheduled.path("externalSettlements").get(0)
+    assertEquals(scheduledBasis.path("answer").asText(), "scheduled-answer")
+    for absent <- Seq("activity", "attempt", "pending", "held", "requestCancel") do
+      assert(!scheduledBasis.has(absent), absent)
+
+  test("controller-only completion refuses a typed failure method and request"):
+    val result = tools.scalaCli(
+      Seq(
+        "compile",
+        "--server=false",
+        "model/irgen/testdata/realizationRefusals/externalWrongMethod"
+      )
+    )
+    assertNotEquals(result.exit, 0)
+    assert(result.output.contains("Wrong.scala:"), result.output)
+    assert(result.output.contains("RespondActivityTaskFailedByIdRequest"), result.output)
+    assert(result.output.contains("RespondActivityTaskCompletedByIdRequest"), result.output)
+
   test("deadline basis comes from the selected request field, not the input name"):
     val result = lift(
       "fixture.heartbeat.FieldBasis",

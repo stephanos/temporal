@@ -72,7 +72,10 @@ abstract class Workers(val scripts: Script*)
 abstract class Evidences(val items: (Evidence | EvidenceRef[?, ?] | TypedEvidence[?])*)
 
 // The server steps the realization states beyond, or instead of, the derived ones.
-abstract class ServerSteps(val steps: ServerStep*)
+abstract class ServerSteps(
+    val steps: (ServerStep | ActivityExternalSettlement[?, ?] |
+      ActivityExternalSettlement.Scheduled)*
+)
 
 // The actuators a run needs beyond its commands.
 abstract class Controls(val actuators: Actuator*)

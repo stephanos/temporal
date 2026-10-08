@@ -173,7 +173,7 @@ func tokenDigest(token string) string {
 // transportSession is a real Driver over a real SDK client and worker, polling the frontend, with
 // one open Session whose activity start has been carried. task builds the activity task the server
 // would dispatch for an attempt of that start.
-func transportSession(t *testing.T, shape func(*testpilotspb.Program)) (*frontend, *Session, func(token string, attempt int32) *workflowservice.PollActivityTaskQueueResponse) {
+func transportSession(t *testing.T, shape func(*testpilotspb.Program), profileModifiers ...func(*testpilot.ProfileSpec)) (*frontend, *Session, func(token string, attempt int32) *workflowservice.PollActivityTaskQueueResponse) {
 	t.Helper()
 	server := &frontend{
 		tasks:     make(chan *workflowservice.PollActivityTaskQueueResponse, 8),
@@ -195,8 +195,14 @@ func transportSession(t *testing.T, shape func(*testpilotspb.Program)) (*fronten
 
 	prepared := preparedActivityFixture(t, shape, func(profile *testpilot.ProfileSpec) {
 		profile.Opcodes = append(profile.Opcodes, testpilot.ActivityAttemptWithholding)
+		for _, modify := range profileModifiers {
+			modify(profile)
+		}
 	})
 	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
+	if len(profileModifiers) > 0 {
+		catalog, err = testpilot.NewCatalog(testsupport.DescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto, testpilotspb.File_temporal_server_api_testpilot_v1_run_proto))
+	}
 	require.NoError(t, err)
 	host, err := New(Options{
 		Profile: testpilot.ProfileSpec{

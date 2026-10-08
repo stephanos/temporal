@@ -26,7 +26,6 @@ import (
 
 const (
 	activityEvidence = "temporal.features.activity.standalone.system.evidence."
-	activityActions  = "temporal.features.activity.standalone.system.action.activitySystem."
 	describeActivity = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
 )
 
@@ -40,7 +39,7 @@ type activityCase struct {
 }
 
 const (
-	plainStart   = "start-unset-unset-unset"
+	plainStart   = "start-unset-unset-unset-unset-unset-unlimited"
 	startedOnce  = "poll"
 	answerDone   = "respondCompleted"
 	answerFailed = "respondFailed-retryable"
@@ -56,40 +55,96 @@ func begun(rest map[string][]string) map[string][]string {
 
 var activityCases = map[string]activityCase{
 	// completed: start, poll, respondCompleted.
-	"completion": {[]string{"start-activity", "await-completed"}, []string{"complete-attempt"},
+	"completion": {[]string{"start-activity", "await-completed", "read-attempt-count"}, []string{"complete-attempt"},
 		begun(map[string][]string{"statusCompleted": {answerDone}}), nil},
+	"startDelayedCompletion": {[]string{"start-activity", "await-completed", "read-attempt-count"}, []string{"complete-attempt"},
+		map[string][]string{"statusScheduled": {"start-unset-unset-unset-unset-expires-unlimited"},
+			"statusStarted": {"startDelay", startedOnce}, "statusCompleted": {answerDone}}, []string{"startDelay"}},
 	// nonRetryable: start, poll, respondFailed(fatal).
-	"nonRetryableFailure": {[]string{"start-activity", "await-failed"}, []string{"fail-activity"},
+	"nonRetryableFailure": {[]string{"start-activity", "await-failed", "read-attempt-count"}, []string{"fail-activity"},
 		begun(map[string][]string{"statusFailed": {"respondFailed-fatal"}}), nil},
 	// retriedThenCompleted: start, poll, respondFailed(retryable), backoff, poll,
 	// respondCompleted. The second attempt's delivery is one piece of evidence: it confirms the
 	// failure the server retried, the backoff, which records nothing, and the second attempt start.
-	"retry": {[]string{"start-activity", "await-completed"}, []string{"fail-attempt", "complete-attempt"},
+	"retry": {[]string{"start-activity", "await-completed", "read-attempt-count"}, []string{"fail-attempt", "complete-attempt"},
 		begun(map[string][]string{"attemptCount": {answerFailed, "backoff", startedOnce}, "statusCompleted": {answerDone}}), []string{"backoff"}},
 	// terminatedWhileScheduled: start, stop, terminate. The stop records nothing.
-	"terminate": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
+	"terminate": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated", "read-attempt-count"}, []string{},
 		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"stop", "terminate"}}, []string{"stop"}},
 	// pausedThenCompleted: start, pause, unpause, poll, respondCompleted.
 	// Starting arms the in-server delivery hold before it sends the request; the following hold waits
 	// until that dispatch is intercepted. The release schedules the activity again, which its own
 	// answer confirms, without letting the worker poll while the activity is paused.
 	"pauseResume": {[]string{"start-activity", "hold-dispatch-before-pause", "pause-activity", "await-paused", "unpause-activity", "release-dispatch-after-pause",
-		"await-completed"}, []string{"complete-attempt"},
+		"await-completed", "read-attempt-count"}, []string{"complete-attempt"},
 		begun(map[string][]string{"statusPaused": {"pause"}, "statusScheduledAgain": {"unpause"}, "statusCompleted": {answerDone}}), nil},
 	// scheduleToStartExpires: start(unset, expires, unset), stop, scheduleToStart. The in-server
 	// hold closes the worker-stop race and is canceled by cleanup after the timer fires.
-	"scheduleToStartTimeout": {[]string{"stop-worker", "start-activity", "hold-dispatch-before-timeout", "await-timed-out"}, []string{},
-		map[string][]string{"statusScheduled": {"start-unset-expires-unset"}, "statusTimedOut": {"stop", "scheduleToStart"}}, []string{"stop"}},
+	"scheduleToStartTimeout": {[]string{"stop-worker", "start-activity", "hold-dispatch-before-timeout", "await-timed-out", "read-attempt-count"}, []string{},
+		map[string][]string{"statusScheduled": {"start-unset-expires-unset-unset-unset-unlimited"}, "statusTimedOut": {"stop", "scheduleToStart"}}, []string{"stop"}},
 	// The finds the protocol's capabilities generate, each over the Scenario its Property's
 	// `reach` writes before the control: start, stop, then the control. Terminable's takes
 	// terminatedWhileScheduled's path and the same instructions as terminate's Case, but is a Case of
 	// its own (its Property and fingerprints differ), so `terminated` and `terminate` stay authored.
-	"activitySystem.terminateSettles": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
+	"activitySystem.terminateSettles": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated", "read-attempt-count"}, []string{},
 		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"stop", "terminate"}}, []string{"stop"}},
-	// Cancelable's: start, stop, requestCancel. The request's answer confirms it, so
-	// nothing is awaited after it.
-	"activitySystem.cancelIsRequested": {[]string{"stop-worker", "start-activity", "request-cancel-activity"}, []string{},
-		map[string][]string{"statusScheduled": {plainStart}, "statusCancelRequested": {"stop", "requestCancel"}}, []string{"stop"}},
+	// The preserved cancellation-request claim now runs the complete held service path, with
+	// publication and actual held evidence before the request, and external settlement after it.
+	"activitySystem.cancelIsRequested": {[]string{"start-activity", "await-cancellation-publication", "await-external-started", "request-external-cancellation",
+		"await-external-cancel-requested", "respond-canceled-by-id", "await-external-canceled", "read-external-attempt-count"}, []string{"cancellation-pending"},
+		map[string][]string{"statusScheduled": {plainStart}, "externalStarted": {startedOnce}, "externalCancelRequested": {"requestCancel"},
+			"externalCanceled": {"respondCanceledByID"}}, nil},
+	"retryAfterTimeout": {[]string{"start-activity", "await-completed", "read-attempt-count"}, []string{"withhold-attempt", "complete-attempt"},
+		map[string][]string{"statusScheduled": {"start-unset-unset-expires-unset-unset-two"}, "statusStarted": {startedOnce},
+			"attemptCount": {"startToClose", "backoff", startedOnce}, "statusCompleted": {answerDone}}, []string{"backoff"}},
+	"retryExhaustion": {[]string{"start-activity", "await-failed", "read-attempt-count"}, []string{"withhold-attempt", "fail-attempt"},
+		map[string][]string{"statusScheduled": {"start-unset-unset-expires-unset-unset-two"}, "statusStarted": {startedOnce},
+			"attemptCount": {"startToClose", "backoff", startedOnce}, "statusFailed": {answerFailed}}, []string{"backoff"}},
+	"heartbeatThenCompletes": {[]string{"start-activity", "await-heartbeat-receipt", "read-heartbeat-details", "await-completed", "read-attempt-count"},
+		[]string{"heartbeat-attempt", "complete-attempt"},
+		map[string][]string{"statusScheduled": {"start-unset-unset-unset-expires-unset-unlimited"}, "statusStarted": {startedOnce},
+			"heartbeatReceived": {"recordHeartbeat"}, "statusCompleted": {answerDone}}, nil},
+	"heartbeatTimeoutRetriesThenCompletes": {[]string{"start-activity", "await-heartbeat-receipt", "read-heartbeat-details", "await-heartbeat-retry-completion", "read-attempt-count"},
+		[]string{"heartbeat-attempt", "pending-heartbeat-attempt", "complete-attempt"},
+		map[string][]string{"statusScheduled": {"start-unset-unset-unset-expires-unset-two"}, "statusStarted": {startedOnce},
+			"heartbeatReceived": {"recordHeartbeat"}, "heartbeatTimedOut": {"heartbeat", "backoff", startedOnce}, "heartbeatCompleted": {answerDone}}, []string{"backoff"}},
+	"heartbeatTimeoutExhausts": {[]string{"start-activity", "await-heartbeat-receipt", "read-heartbeat-details", "await-heartbeat-expiration", "read-attempt-count"},
+		[]string{"heartbeat-attempt", "pending-heartbeat-attempt"},
+		map[string][]string{"statusScheduled": {"start-unset-unset-unset-expires-unset-one"}, "statusStarted": {startedOnce},
+			"heartbeatReceived": {"recordHeartbeat"}, "heartbeatExpired": {"heartbeat"}}, nil},
+}
+
+func activityEntrypoints(query string, want activityCase) map[string][]string {
+	script := "attempts"
+	switch query {
+	case "retryAfterTimeout", "retryExhaustion":
+		script = "timeout-attempts"
+	case "heartbeatThenCompletes", "heartbeatTimeoutRetriesThenCompletes", "heartbeatTimeoutExhausts":
+		script = "heartbeat-attempts"
+	case "heldFailedByID":
+		script = "external-failure-attempts"
+	case "heldCanceledByID", "activitySystem.cancelIsRequested":
+		script = "external-cancellation-attempts"
+	case "scheduledCompletedByID":
+		return map[string][]string{"controller": want.controller}
+	}
+	return map[string][]string{"controller": want.controller, script: want.activity}
+}
+
+func activityRealizationFor(t *testing.T, m *umpirespb.Model, query string) *umpirespb.Realization {
+	t.Helper()
+	for _, q := range m.GetQueries() {
+		if q.GetName() != query {
+			continue
+		}
+		matches := slices.DeleteFunc(slices.Clone(m.GetRealizations()), func(r *umpirespb.Realization) bool {
+			return r.GetMachine() != q.GetScenario().GetMachine()
+		})
+		require.Len(t, matches, 1, "the Query names exactly one realization of its machine")
+		return matches[0]
+	}
+	require.FailNow(t, "no Query "+query)
+	return nil
 }
 
 // activityLimits is, for each Query that lowers to no Case, the one thing that keeps it from one, and
@@ -135,9 +190,8 @@ func defined(names map[string]string, local string) string {
 }
 
 // Every find Query of the activity Model lowers to a Case, or names the one thing that keeps it from
-// one. Eight lower: the completion, the retry and the pause and resume among them, and the two finds
-// the protocol's capabilities generate. Each Case carries the
-// commands its path performs and the reads its path's classes call for, confirms each step by its own
+// one. Each Case carries the commands its path performs and the reads its path's classes call for,
+// confirms each step by its own
 // evidence, prepares unchanged under the Profile derived from it, as any black-box consumer prepares a
 // Case, and is the same bytes when the Model is read and lowered again.
 //
@@ -150,10 +204,15 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 
-	require.ElementsMatch(t, finds(m), slices.Concat(slices.Collect(maps.Keys(activityCases)), slices.Collect(maps.Keys(activityLimits))),
+	cases := maps.Clone(activityCases)
+	for query := range activityByIDCases {
+		require.NotContains(t, cases, query, "a By-ID Case does not replace an existing Query's expectation")
+	}
+	maps.Copy(cases, activityByIDCases)
+	require.ElementsMatch(t, finds(m), slices.Concat(slices.Collect(maps.Keys(cases)), slices.Collect(maps.Keys(activityLimits))),
 		"every find Query of the Model is accounted for")
 
-	for query, want := range activityCases {
+	for query, want := range cases {
 		t.Run(query, func(t *testing.T) {
 			l, err := p.Lower(query, activityIdentity(query))
 			require.NoError(t, err)
@@ -161,7 +220,8 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 			require.Empty(t, l.Unsupported)
 			require.Empty(t, l.OffPath)
 			c := l.Case
-			require.Equal(t, map[string][]string{"controller": want.controller, "attempts": want.activity}, instructionIDs(c))
+			r := activityRealizationFor(t, m, query)
+			require.Equal(t, activityEntrypoints(query, want), instructionIDs(c))
 
 			// The inventory accounts for everything the realization declares, as its message tree lists it.
 			var inventory [][2]string
@@ -169,7 +229,7 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 				inventory = append(inventory, [2]string{e.Kind, e.ID})
 				requireDeclaredIn(t, e.Position, activityRealizationAt)
 			}
-			require.ElementsMatch(t, declared(t, m, m.GetRealizations()[0]), inventory)
+			require.ElementsMatch(t, declared(t, m, r), inventory)
 
 			names := definitions(c)
 			confirmed := map[string][]string{}
@@ -185,7 +245,7 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 
 			var silent []string
 			for _, gap := range c.GetProvenance().GetKnownGaps() {
-				silent = append(silent, strings.TrimPrefix(gap.GetSubject(), activityActions))
+				silent = append(silent, strings.TrimPrefix(gap.GetSubject(), "temporal.features.activity.standalone.system.action."+r.GetMachine()+"."))
 			}
 			require.Equal(t, want.silent, silent)
 
@@ -511,7 +571,7 @@ func TestAFieldOfEvidenceIsCarriedAsTheScalarItsDescriptorMakesIt(t *testing.T) 
 func TestTheIdentityAFieldNamesIsInTheProjectionFingerprint(t *testing.T) {
 	lower := func(change func(*umpirespb.Realization)) *testpilotspb.Case {
 		m := loaded(t, "activity-standalone")
-		change(m.GetRealizations()[0])
+		change(realizationNamed(t, m, "standalone"))
 		p, err := NewProducer(m)
 		require.NoError(t, err)
 		l, err := p.Lower("completion", activityIdentity("completion"))
@@ -542,7 +602,7 @@ func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *
 	const scheduled = activityEvidence + "statusScheduled"
 	changed := func(change func(*umpirespb.RunEventSource)) *Producer {
 		m := loaded(t, "activity-standalone")
-		for _, e := range m.GetRealizations()[0].GetEvidence() {
+		for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
 			if e.GetId() == scheduled {
 				change(e.GetRunEvent())
 			}

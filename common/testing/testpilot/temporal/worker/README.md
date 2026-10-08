@@ -74,8 +74,14 @@ the SDK returns no receipt, and a separate declared Describe read must establish
 deadline, the start-to-close or schedule-to-close timeout the server applies, ends it, the SDK sends
 nothing and the server times the attempt out; any other end of the context is a refusal. Its start
 must carry a positive start-to-close or schedule-to-close timeout. `SDK_PENDING` mode requires a
-standalone start with a positive heartbeat timeout and returns the exact SDK `ErrResultPending`.
+standalone start with a positive heartbeat timeout, or the prepared activity-local external
+settlement declaration, and returns the exact SDK `ErrResultPending`.
 The SDK sends no answer RPC, while the reservation settles immediately with `PENDING`.
+An external settlement publishes the actual pending attempt before exposing its single-assignment
+publication slot. The controller awaits that slot before a By-ID answer, and before requesting
+cancellation on the cancellation path. Namespace name, activity ID and the execution run learned
+from the start must match the actual SDK delivery; By-ID's synthesized zero attempt is no worker
+cancellation authority. The external basis does not select or credit a timer.
 Preparation reserves one activation per group, so every attempt is its own activation under its own reservation, and
 the script's values carry across the attempts as a Nexus handler's do across its deliveries, so a
 later attempt's guard reads what an earlier one admitted.
@@ -180,7 +186,8 @@ not name the worker's namespace and task queue by their binding identities. A de
 prefix invokes the SDK once; cancellation separately heartbeats every 100 ms until the server asks
 for cancellation. The worker caps the SDK heartbeat throttle at that period. Context withholding
 requires a positive start-to-close or schedule-to-close request timeout; SDK-pending withholding
-requires a standalone start with a positive heartbeat timeout, including on the actual SDK delivery.
+requires a standalone start with a positive heartbeat timeout, including on the actual SDK delivery,
+unless its prepared external-settlement declaration supplies the timer-free basis.
 The pending answer settles the local reservation immediately without offering a completion,
 failure, or cancellation to the server.
 

@@ -389,6 +389,13 @@ def attemptWithheld: Instruction = WorkerInstruction.AttemptWithheld()
 // positively bounded heartbeat server timer.
 def attemptPending: Instruction = WorkerInstruction.AttemptWithheld(WithholdingMode.sdkPending)
 
+def attemptPending[Req <: scalapb.GeneratedMessage, Rsp <: scalapb.GeneratedMessage](
+    answer: Instruction.TypedRpc[Req, Rsp]
+): Instruction = WorkerInstruction.AttemptWithheld(WithholdingMode.sdkPending, Some(answer))
+
+def awaitActivityPublication(publication: ActivityPublication): Instruction =
+  WorkerInstruction.AwaitActivityPublication(publication)
+
 // Invokes the SDK heartbeat; its persisted receipt is evidence read from Describe.
 def attemptHeartbeat(details: TypedProto[io.temporal.api.common.v1.Payloads]): Instruction =
   WorkerInstruction.AttemptHeartbeat(details)

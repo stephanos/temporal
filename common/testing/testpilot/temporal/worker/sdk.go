@@ -312,6 +312,8 @@ func (i *sdkWorkerInterceptor) activateActivity(ctx context.Context, input deliv
 	case answer.err == nil:
 	case answer.err == activity.ErrResultPending:
 		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING
+		outcome.ActivityAttempt.NamespaceName = input.Namespace
+		outcome.ActivityAttempt.ActivityId = input.ActivityID
 	case errors.Is(answer.err, errDeclaredCancellation):
 		answer.result, answer.err, answer.canceled = nil, temporal.NewCanceledError(), true
 		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED

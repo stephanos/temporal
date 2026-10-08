@@ -195,10 +195,15 @@ func activityAttempt(request *workflowservice.StartActivityExecutionRequest, act
 // answered is the recorded outcome of an attempt that did what its script said: a succeeded
 // activation carrying the attempt's identities and what the worker answered Temporal with.
 func answered(activityRunID string, attempt int32, deliveryID string, response testpilotspb.ActivityAttemptResponse) *testpilotspb.InstructionOutcome {
-	return &testpilotspb.InstructionOutcome{
+	outcome := &testpilotspb.InstructionOutcome{
 		Status:          testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED,
 		ActivityAttempt: &testpilotspb.ActivityAttempt{ActivityRunId: activityRunID, SdkAttempt: attempt, DeliveryId: deliveryID, Response: response},
 	}
+	if response == testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING {
+		outcome.ActivityAttempt.NamespaceName = "namespace"
+		outcome.ActivityAttempt.ActivityId = "activity-id"
+	}
+	return outcome
 }
 
 // refused is the recorded outcome of an attempt the Driver itself failed: the non-retryable

@@ -192,6 +192,7 @@ type ProgramPlan struct {
 	// realization's API behavior declares them.
 	InstructionDefaults *testpilotspb.InstructionLimits
 	RunOrderIsCausal    bool
+	ExternalSettlements []*testpilotspb.ActivityExternalSettlement
 }
 
 // ActionBinding is what one action class is realized as. Key is the class key a Scenario spells;

@@ -112,6 +112,35 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 	if a.r.GetCleanup() != "" {
 		out.Plan.Cleanup = &testpilotspb.Cleanup{EntrypointId: a.r.GetCleanup()}
 	}
+	for _, e := range a.r.GetExternalSettlements() {
+		binding, err := a.externalSettlement(e)
+		if err != nil {
+			problems = append(problems, err)
+			continue
+		}
+		out.Plan.ExternalSettlements = append(out.Plan.ExternalSettlements, binding)
+		if e.GetPending() != "" {
+			out.Plan.Slots = append(out.Plan.Slots, &testpilotspb.Slot{
+				SlotId: e.GetPending(),
+				Content: &testpilotspb.Slot_Value{Value: &testpilotspb.ValueType{
+					Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{
+						Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.ActivityAttempt"}},
+					}},
+				}},
+			})
+		}
+		cleanup, err := a.command(&umpirespb.Script{Id: a.r.GetCleanup()}, e.GetCleanup())
+		if err != nil {
+			problems = append(problems, err)
+			continue
+		}
+		node := cleanup.with(e.GetCleanup().GetId(), nil)
+		node.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
+			externalSucceeded(binding.GetCarrier()),
+			{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: externalSucceeded(binding.GetSettlement())}}},
+		}}}}
+		out.Plan.Cleanup.Instructions = append(out.Plan.Cleanup.Instructions, node)
+	}
 	for _, s := range a.r.GetRequiredSettings() {
 		out.Plan.RequiredSettings = append(out.Plan.RequiredSettings, &testpilotspb.RequiredSetting{Key: s.GetKey(), Value: s.GetValue()})
 	}
@@ -543,6 +572,41 @@ func (a *adapter) command(s *umpirespb.Script, c *umpirespb.Command) (built, err
 		opts = append(opts, cp.Guard(guard))
 	}
 	node := cp.Node(c.GetId(), instruction, opts...)
+	if s.GetController() != nil && len(a.r.GetExternalSettlements()) > 0 {
+		var dependencies []string
+		if c.GetAfter() != nil {
+			dependencies = c.GetAfter().GetCommands()
+		} else {
+			previous := ""
+			for _, item := range s.GetItems() {
+				commands := []*umpirespb.Command{item.GetCommand()}
+				for _, p := range item.GetPerforms() {
+					commands = append(commands, p.GetCommand())
+				}
+				for _, declared := range commands {
+					if declared == nil {
+						continue
+					}
+					if declared.GetId() == c.GetId() && previous != "" {
+						dependencies = []string{previous}
+					}
+					previous = declared.GetId()
+				}
+			}
+		}
+		var guards []*testpilotspb.Expression
+		if node.Guard != nil {
+			guards = append(guards, node.Guard)
+		}
+		for _, id := range dependencies {
+			guards = append(guards, externalSucceeded(&testpilotspb.InstructionReference{EntrypointId: s.GetId(), InstructionId: id}))
+		}
+		if len(guards) == 1 {
+			node.Guard = guards[0]
+		} else if len(guards) > 1 {
+			node.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: guards}}}
+		}
+	}
 	if c.GetAfter() != nil {
 		node.After = &testpilotspb.After{}
 		for _, id := range c.GetAfter().GetCommands() {
@@ -606,6 +670,8 @@ func (a *adapter) instruction(s *umpirespb.Script, c *umpirespb.Command) (*testp
 		return a.poll(c, in.Poll)
 	case *umpirespb.Command_AwaitLearned:
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: in.AwaitLearned}}}, nil
+	case *umpirespb.Command_AwaitActivityPublication:
+		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: in.AwaitActivityPublication}}}, nil
 	case *umpirespb.Command_AwaitCommand:
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{
 			Instruction: &testpilotspb.InstructionReference{EntrypointId: s.GetId(), InstructionId: in.AwaitCommand}}}}, nil
@@ -664,8 +730,19 @@ func (a *adapter) instruction(s *umpirespb.Script, c *umpirespb.Command) (*testp
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{
 			ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}}, nil
 	case *umpirespb.Command_AttemptWithheld:
+		var external *testpilotspb.InstructionReference
+		if id := in.AttemptWithheld.GetExternalSettlement(); id != "" {
+			for _, e := range a.r.GetExternalSettlements() {
+				if e.GetAnswer() == id {
+					external = &testpilotspb.InstructionReference{EntrypointId: a.controllerID(), InstructionId: id}
+				}
+			}
+			if external == nil {
+				return nil, errorAt(c.GetPosition(), "unknown external settlement %s", id)
+			}
+		}
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{
-			ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{Mode: testpilotspb.ActivityWithholdingMode(in.AttemptWithheld.GetMode())}}}, nil
+			ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{Mode: testpilotspb.ActivityWithholdingMode(in.AttemptWithheld.GetMode()), ExternalSettlement: external}}}, nil
 	case *umpirespb.Command_AttemptHeartbeat:
 		details := &commonpb.Payloads{}
 		if err := a.w.into(in.AttemptHeartbeat.GetDetails(), details); err != nil {

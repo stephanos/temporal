@@ -718,6 +718,9 @@ func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, reque
 		admit = s.recorder.admitCleanup
 	}
 	err := admit(ctx, func(ctx context.Context) ([]contract.EffectHandle, error) {
+		if err := s.values.admitExternalRequest(n, request); err != nil {
+			return nil, err
+		}
 		if s.attempts >= s.values.program.limits.MaxAttempts {
 			return nil, ir.Invalid(ir.LimitExceeded, "scheduler", "attempt ceiling exceeded")
 		}
@@ -973,7 +976,16 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		// declaration rejected.
 		liftErr := s.liftRunEvents(ctx, reservation.values, []*testpilotspb.RunEvent{record})
 		record.ExecutionIncomplete = liftErr != nil
-		decision, err := publish(ctx, []*testpilotspb.RunEvent{record}, nil)
+		pendingSlot, pendingCommit, pendingErr := s.values.externalPublication(id, outcome.GetActivityAttempt())
+		if pendingErr != nil {
+			return Stop, s.recorder.completionFailure(ctx, "activation_failed", pendingErr)
+		}
+		decision, err := publish(ctx, []*testpilotspb.RunEvent{record}, pendingCommit)
+		if pendingSlot != "" {
+			if publicationErr := s.values.finishExternalPublication(pendingSlot, decision == Continue && err == nil && liftErr == nil); publicationErr != nil && err == nil {
+				err = publicationErr
+			}
+		}
 		switch {
 		case err != nil:
 			return decision, err
@@ -993,6 +1005,12 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		if completion.cleanup {
 			return Stop, err
 		}
+		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
+	}
+	if err := s.values.checkExternalReceipt(a.graph.nodes[task.index], completion.result); err != nil {
+		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
+	}
+	if err := s.values.checkExternalCarrierBatch(a.graph.nodes[task.index], batch); err != nil {
 		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
 	}
 	source := s.nodeSource(task)
@@ -1028,7 +1046,13 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 	if completion.cleanup {
 		return s.recorder.publishCleanup(ctx, facts, func() error { return a.commit(ctx, batch) })
 	}
-	return s.recorder.publish(ctx, facts, func() error { return a.commit(ctx, batch) })
+	return s.recorder.publish(ctx, facts, func() error {
+		if err := a.commit(ctx, batch); err != nil {
+			return err
+		}
+		s.values.markExternalSuccess(a.graph.nodes[task.index], batch.outcome)
+		return nil
+	})
 }
 
 func (s *scheduler) deliverCompletion(completion schedulerCompletion) {

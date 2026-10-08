@@ -663,6 +663,19 @@ func (a *admission) scope(g *graph, n *node) map[ir.Reference]ir.Binding {
 			scope[ir.Reference{Kind: ir.OutcomeReference, Entrypoint: g.id, ID: previous.source.InstructionId, Field: int32(field)}] = ir.Binding{Type: typ, Available: previous.guardSource == nil && field != testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}
 		}
 	}
+	if g.cleanup {
+		for _, b := range a.prepared.external {
+			if b.cleanup != n {
+				continue
+			}
+			for _, previous := range []*node{b.carrier, b.settlement} {
+				scope[ir.Reference{Kind: ir.OutcomeReference, Entrypoint: b.controller.id, ID: previous.source.InstructionId, Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS)}] = ir.Binding{Type: previous.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS], Available: true}
+			}
+			binding := scope[ir.Reference{Kind: ir.SlotReference, ID: b.runSlot}]
+			binding.Available = true
+			scope[ir.Reference{Kind: ir.SlotReference, ID: b.runSlot}] = binding
+		}
+	}
 	return scope
 }
 
@@ -674,7 +687,7 @@ func (a *admission) successScope(g *graph, n *node, guard *ir.Expression, scope 
 			continue
 		}
 		for slotID, writer := range a.writers {
-			if writer.graph == g && writer.node == index && !writer.optional {
+			if writer.graph == g && writer.node == index && !writer.optional && !writer.asynchronous {
 				reference := ir.Reference{Kind: ir.SlotReference, ID: slotID}
 				binding := scope[reference]
 				binding.Available = true

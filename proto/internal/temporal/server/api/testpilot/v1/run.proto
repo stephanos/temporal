@@ -133,6 +133,9 @@ message ActivityAttempt {
   // The SDK heartbeat was invoked by the declared prefix of this attempt group. This supplies
   // no evidence that the server received it; a separate declared read must establish receipt.
   bool heartbeat_invoked = 5;
+  // Actual SDK delivery identity, never a namespace UUID or the Testpilot Run ID.
+  string namespace_name = 6;
+  string activity_id = 7;
 }
 
 // ActivityAttemptResponse is the answer a worker offered Temporal for one declared activity attempt,

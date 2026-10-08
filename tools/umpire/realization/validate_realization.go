@@ -119,6 +119,7 @@ func Admit(d Admitter, r *umpirespb.Realization) {
 	a.confirms(mm)
 	a.held(mm)
 	a.behavior(mm)
+	a.externalSettlements()
 }
 
 // attemptOf checks evidence that is the Run's record of an attempt: it names an attempt, counted from
@@ -591,6 +592,15 @@ func (a *realizing) performs(mm *umpirespb.Machine, s *umpirespb.Script, p *umpi
 // perform the timeout: the server does. The activity's context supplies the execution deadline.
 func (a *realizing) withholding(s *umpirespb.Script, item *umpirespb.Item) {
 	at := item.GetPosition()
+	if answer := item.GetCommand().GetAttemptWithheld().GetExternalSettlement(); answer != "" {
+		for _, e := range a.r.GetExternalSettlements() {
+			if e.GetAnswer() == answer && e.GetActivity() == s.GetId() && item.GetCommand().GetAttemptWithheld().GetMode() == umpirespb.WITHHOLDING_MODE_SDK_PENDING && len(item.GetWhen()) == 1 {
+				return
+			}
+		}
+		a.report(at, "command %s names unknown or crossed external settlement %s", item.GetCommand().GetId(), answer)
+		return
+	}
 	if len(item.GetWhen()) != 1 {
 		a.report(at, "command %s withholds an attempt without exactly one armed bounded server timer", item.GetCommand().GetId())
 		return
@@ -728,6 +738,10 @@ func (a *realizing) command(s *umpirespb.Script, c commandOf, all map[string]*um
 		}
 	case *umpirespb.Command_AwaitCommand:
 		named(in.AwaitCommand)
+	case *umpirespb.Command_AwaitActivityPublication:
+		if s.GetController() == nil || in.AwaitActivityPublication == "" {
+			a.report(c.at, "command %s awaits no controller activity publication", c.name)
+		}
 	case *umpirespb.Command_Finish:
 		a.typed(c, in.Finish.GetResult(), false)
 	case *umpirespb.Command_Fault:

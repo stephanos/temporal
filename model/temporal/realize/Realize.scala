@@ -17,11 +17,13 @@ import umpire.realize.{
   Activation,
   Addressee,
   Behavior,
+  Command,
   Field,
   Instruction,
   KeyedRef,
   Name,
   Recorded,
+  Script,
   Setting,
   SystemStep,
   TypedProto
@@ -75,7 +77,12 @@ enum WorkerInstruction extends Instruction:
   case AttemptHeartbeat(details: TypedProto[Payloads])
 
   // Offers no answer; the attempt's declared server deadline ends it.
-  case AttemptWithheld(mode: WithholdingMode = WithholdingMode.context)
+  case AttemptWithheld(
+      mode: WithholdingMode = WithholdingMode.context,
+      externalSettlement: Option[Instruction.TypedRpc[?, ?]] = None
+  )
+
+  case AwaitActivityPublication(publication: ActivityPublication)
 
   // A deliberate outage of the worker that polls a task-queue role.
   case Fault(role: String | Role, kind: FaultKind)
@@ -184,6 +191,37 @@ final case class ServerStep(
     deadlineMs: Long = 0,
     timeoutBasis: TimeoutBasis = TimeoutBasis.unspecified
 ) extends SystemStep
+
+final case class ActivityPublication(id: String)
+
+final case class ActivityExternalSettlement[
+    Req <: GeneratedMessage,
+    Rsp <: GeneratedMessage
+](
+    carrier: Command | Instruction,
+    activity: Script,
+    attempt: Long,
+    pending: ActivityPublication,
+    held: Command | Instruction,
+    answer: Instruction.TypedRpc[Req, Rsp],
+    settlement: Command | Instruction,
+    cleanup: Command,
+    requestCancel: Option[Instruction.TypedRpc[
+      io.temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest,
+      io.temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse
+    ]] = None
+) extends SystemStep
+
+object ActivityExternalSettlement:
+  final case class Scheduled(
+      carrier: Command | Instruction,
+      answer: Instruction.TypedRpc[
+        io.temporal.api.workflowservice.v1.RespondActivityTaskCompletedByIdRequest,
+        io.temporal.api.workflowservice.v1.RespondActivityTaskCompletedByIdResponse
+      ],
+      settlement: Command | Instruction,
+      cleanup: Command
+  ) extends SystemStep
 
 extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](write: MethodDescriptor[Req, Rsp])
   // That the effect of the call `write` is visible to `read` `when`.
