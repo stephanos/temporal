@@ -37,14 +37,20 @@ const (
 		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"intervalMs":"1"}}],` +
 		`"attemptNumbering":{"position":{"file":"f"},"first":"1","oneRun":true},` +
 		`"instructionDefaults":{"position":{"file":"f"},"timeoutMs":"1","attempts":"1"},"runOrderIsCausal":true},` +
-		`"serverSteps":[{"position":{"file":"f"},"step":{"action":"a"},"kind":"CAUSE_KIND_TIMER","deadlineMs":"2"}],` +
-		`"rejectionCodes":[{"rejection":"REJECTION_NOT_FOUND","grpcCode":"NOT_FOUND"}]}]}`
+		`"serverSteps":[{"position":{"file":"f"},"step":{"action":"a"},"kind":"CAUSE_KIND_TIMER","deadlineMs":"2","timeoutBasis":"TIMEOUT_BASIS_HEARTBEAT"}],` +
+		`"rejectionCodes":[{"rejection":"REJECTION_NOT_FOUND","grpcCode":"NOT_FOUND"}],` +
+		`"externalSettlements":[{"position":{"file":"f"},"carrier":"c","activity":"a","attempt":"1","pending":"p","held":"h","answer":"a","requestCancel":"r",` +
+		`"settlement":"s","cleanup":{"attemptWithheld":{"mode":"WITHHOLDING_MODE_SDK_PENDING","externalSettlement":"s"}}},` +
+		`{"cleanup":{"attemptHeartbeat":{"details":{"fields":[{"name":"d","value":{"messages":{"values":[{"message":"m"}]}}}]}}}},` +
+		`{"cleanup":{"awaitActivityPublication":"p"}}]}]}`
 )
 
 // schemaAddedField is a field the schema gained after the capture: the message it was added to, by its
-// name in the file (dotted when nested), and its descriptor.
+// name in the file (dotted when nested), and its descriptor. It is declared last, or right before the
+// captured field named before.
 type schemaAddedField struct {
 	message string
+	before  string
 	field   *descriptorpb.FieldDescriptorProto
 }
 
@@ -152,6 +158,18 @@ var (
 		{message: "RunExpectation", field: schemaFieldOf("conformance_reason", 9, schemaOptional, schemaEnum, "RunExpectation.Reason", "conformanceReason")},
 		// The capability Property a generated Property was expanded from, inert (fn-134.1).
 		{message: "Property", field: schemaFieldOf("origin", 8, schemaOptional, schemaMessage, "PropertyOrigin", "origin")},
+		// The typed request field whose timeout supplies a timer server step (fn-129.1).
+		{message: "ServerStep", field: schemaFieldOf("timeout_basis", 5, schemaOptional, schemaEnum, "TimeoutBasis", "timeoutBasis")},
+		// An activity attempt's answer withheld, and its heartbeat (fn-128.3, fn-129.1).
+		{message: "Command", before: "closes", field: schemaFieldOf("attempt_withheld", 20, schemaOptional, schemaMessage, "AttemptWithheld", "attemptWithheld", 0)},
+		{message: "Command", before: "closes", field: schemaFieldOf("attempt_heartbeat", 21, schemaOptional, schemaMessage, "AttemptHeartbeat", "attemptHeartbeat", 0)},
+		// An ordered list of typed protobuf messages (fn-129.1).
+		{message: "ProtoValue", field: schemaFieldOf("messages", 10, schemaOptional, schemaMessage, "ProtoMessages", "messages", 0)},
+		// The activity settlements a controller answers independently, by ID, and the wait for their
+		// pending publication (fn-129.2).
+		{message: "Realization", field: schemaFieldOf("external_settlements", 19, schemaRepeated, schemaMessage, "ActivityExternalSettlement",
+			"externalSettlements")},
+		{message: "Command", before: "closes", field: schemaFieldOf("await_activity_publication", 22, schemaOptional, schemaString, "", "awaitActivityPublication", 0)},
 	}
 	// An expected Run's reasons, prose at the capture, are the judge's ids since fn-124.5, so the
 	// captured wire bytes no longer encode their expected Runs as the schema now reads them.
@@ -236,6 +254,33 @@ var (
 			EnumType: []*descriptorpb.EnumDescriptorProto{schemaEnumOf("Rejection", "REJECTION_UNSPECIFIED", "REJECTION_NOT_FOUND",
 				"REJECTION_ALREADY_EXISTS", "REJECTION_FAILED_PRECONDITION", "REJECTION_INVALID_ARGUMENT")},
 		}},
+		// Command.attempt_heartbeat's and Command.attempt_withheld's messages (fn-128.3, fn-129.1, fn-129.2).
+		{after: "Command", message: &descriptorpb.DescriptorProto{Name: proto.String("AttemptHeartbeat"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("details", 1, schemaOptional, schemaMessage, "Proto", "details"),
+		}}},
+		{after: "AttemptHeartbeat", message: &descriptorpb.DescriptorProto{Name: proto.String("AttemptWithheld"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("mode", 1, schemaOptional, schemaEnum, "WithholdingMode", "mode"),
+			schemaFieldOf("external_settlement", 2, schemaOptional, schemaString, "", "externalSettlement"),
+		}}},
+		// ProtoValue.messages' message (fn-129.1).
+		{after: "ProtoValue", message: &descriptorpb.DescriptorProto{Name: proto.String("ProtoMessages"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("values", 1, schemaRepeated, schemaMessage, "Proto", "values"),
+		}}},
+		// Realization.external_settlements' entry (fn-129.2).
+		{after: "Realization", message: &descriptorpb.DescriptorProto{Name: proto.String("ActivityExternalSettlement"),
+			Field: []*descriptorpb.FieldDescriptorProto{
+				schemaFieldOf("position", 1, schemaOptional, schemaMessage, "Position", "position"),
+				schemaFieldOf("carrier", 2, schemaOptional, schemaString, "", "carrier"),
+				schemaFieldOf("activity", 3, schemaOptional, schemaString, "", "activity"),
+				schemaFieldOf("attempt", 4, schemaOptional, schemaInt64, "", "attempt"),
+				schemaFieldOf("pending", 5, schemaOptional, schemaString, "", "pending"),
+				schemaFieldOf("held", 6, schemaOptional, schemaString, "", "held"),
+				schemaFieldOf("answer", 7, schemaOptional, schemaString, "", "answer"),
+				schemaFieldOf("request_cancel", 8, schemaOptional, schemaString, "", "requestCancel"),
+				schemaFieldOf("settlement", 9, schemaOptional, schemaString, "", "settlement"),
+				schemaFieldOf("cleanup", 10, schemaOptional, schemaMessage, "Command", "cleanup"),
+			},
+		}},
 	}
 	schemaAddedEnums = []schemaAddedEnum{
 		// The kinds of asynchronous cause a CauseBound, a Visibility and a ServerStep name (fn-118.2).
@@ -246,7 +291,14 @@ var (
 			{Name: proto.String("CAUSE_KIND_HANDLER_REPLY"), Number: proto.Int32(3)},
 			{Name: proto.String("CAUSE_KIND_DELIVERY"), Number: proto.Int32(4)},
 			{Name: proto.String("CAUSE_KIND_TIMER"), Number: proto.Int32(5)},
+			// An SDK activity heartbeat (fn-129.1).
+			{Name: proto.String("CAUSE_KIND_ACTIVITY_HEARTBEAT"), Number: proto.Int32(6)},
 		}}},
+		// The typed request field whose timeout supplies a timer server step (fn-129.1).
+		{after: "CauseKind", enum: schemaEnumOf("TimeoutBasis", "TIMEOUT_BASIS_UNSPECIFIED", "TIMEOUT_BASIS_SCHEDULE_TO_CLOSE",
+			"TIMEOUT_BASIS_START_TO_CLOSE", "TIMEOUT_BASIS_HEARTBEAT")},
+		// How an activity attempt's answer is withheld (fn-129.1).
+		{after: "TimeoutBasis", enum: schemaEnumOf("WithholdingMode", "WITHHOLDING_MODE_CONTEXT", "WITHHOLDING_MODE_SDK_PENDING")},
 	}
 )
 
@@ -378,7 +430,12 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 			require.NotEqual(t, added.field.GetName(), field.GetName(), "%s.%s was captured", added.message, field.GetName())
 			require.NotEqual(t, added.field.GetNumber(), field.GetNumber(), "%s.%s was captured", added.message, field.GetName())
 		}
-		message.Field = append(message.Field, proto.CloneOf(added.field))
+		i := len(message.GetField())
+		if added.before != "" {
+			i = slices.IndexFunc(message.GetField(), func(f *descriptorpb.FieldDescriptorProto) bool { return f.GetName() == added.before })
+			require.NotEqual(t, -1, i, "%s.%s was not captured", added.message, added.before)
+		}
+		message.Field = slices.Insert(message.Field, i, proto.CloneOf(added.field))
 	}
 }
 
