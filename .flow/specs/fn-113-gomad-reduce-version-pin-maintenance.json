@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-113-gomad-reduce-version-pin-maintenance",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-08T20:59:27.376210Z",
   "created_at": "2026-10-02T03:34:29.349673Z",
   "default_impl": null,
   "default_review": null,
@@ -330,6 +330,42 @@
       "task": "fn-113-gomad-reduce-version-pin-maintenance.4",
       "timestamp": "2026-10-08T20:49:05.194524Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "835e94af3d5978442e26736f5c0507a7a258de1fe53179495dd38eb0cc840080",
+      "backend": "codex",
+      "base_sha": "ca6fd855868fac364b69cb31394c87ad2912e623",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1aa6fdbd13f77dbe7bd64c56656e7b96af2dcfaf",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 720206,
+      "output_sha256": "4ff734f0a7c2cc7b5c72fc1e30f4cda1fef5cfc150d638e25158e277c098d627",
+      "reservation_id": "c12cb256d436411eaed0f7d83c9debfa",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T20:59:27.349826Z",
+      "tool_calls": 30,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -338,11 +374,12 @@
     "impl:fn-113-gomad-reduce-version-pin-maintenance.3": 1,
     "impl:fn-113-gomad-reduce-version-pin-maintenance.4": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-113-gomad-reduce-version-pin-maintenance.1": 0,
     "impl:fn-113-gomad-reduce-version-pin-maintenance.2": 0,
     "impl:fn-113-gomad-reduce-version-pin-maintenance.3": 0,
@@ -363,5 +400,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T20:49:05.227732Z"
+  "updated_at": "2026-10-08T20:59:27.383542Z"
 }

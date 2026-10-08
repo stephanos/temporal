@@ -1,0 +1,8 @@
+{
+  "task_title": "Read-only preparation of fn-109.10 installation-description source acceptance",
+  "task_body": "Audit the current integrated installation owner, original preservation/equivalence source controls and retained task10 evidence. Identify exact current assertions, native-only exclusions, source coverage gaps, recoverable compatible baseline and smallest additive private-source coverage admission. This is preparation, not task admission or implementation. Use current source and Git/raw hashes; no Go/build/test/lint/generator/download execution, source edits, review verdict, Flow mutation or commits. Return one small findings file and exact identities in the assigned task-unique artifacts directory.",
+  "acceptance": "Concrete requirement-to-current-test/evidence mapping, original baseline/probe preservation identities, private stock-source testability recommendation, bounded verification recipe and truthful remaining owners; all processes terminal. Native qualification and Linux CI stay deferred; original unsupported-host refusal and all unaffected behavior remain exact.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}
