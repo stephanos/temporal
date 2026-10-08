@@ -1,0 +1,75 @@
+{
+  "base": "f73e83c9d3a33931e3a28d0b1ba5f39a5af07370",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a11d85-cc79-7890-bb17-6287b12385bf",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a11d85-cc74-7d71-bd42-329dd76b5fe5",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a11d85-cc75-7b71-832c-9fc0b4f9f233",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "f73e83c9d3a33931e3a28d0b1ba5f39a5af07370",
+    "headSha": "34b398ecdadc9d79c64dec8d30dd9999b29ed66f",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "f73e83c9d3a33931e3a28d0b1ba5f39a5af07370",
+          "headSha": "34b398ecdadc9d79c64dec8d30dd9999b29ed66f",
+          "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/source-acceptance-20261008/aggregate-evidence.mjs",
+          "side": "head",
+          "startLine": 21
+        },
+        "body": "The evidence claims the attachment mutation \u201cfailed both real composition and portable-plan assertions.\u201d Both red and green receipts select only `TestPrepareCompositionOrderAndCleanupIsolation` and `TestPrepareCustomPreparerSkipsAdaptersAndValidates` in `./internal/preparation`. Neither executes portable planning. This overstates mutation coverage and is repeated in `evidence.json` and `handover.md:25`.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-1ff78da42553d8cbcb2739a7a2b1c6d299de3df226b52819c625b65fac632792",
+        "id": "finding-97545ddf2f4a7566a3ebfbe1a81e06ce",
+        "lastSeenReceiptId": "review-1ff78da42553d8cbcb2739a7a2b1c6d299de3df226b52819c625b65fac632792",
+        "ordinal": 1,
+        "rIds": [
+          "R19"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Correct all three summaries to name the composition and custom-preparer assertions actually executed. Preserve the receipts; describe portable-plan coverage through its separate existing runs.",
+        "title": "The evidence claims the attachment mutation \u201cfailed both real composition and portable-plan assertions"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-1ff78da42553d8cbcb2739a7a2b1c6d299de3df226b52819c625b65fac632792"
+  },
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.7",
+  "introduced_count": 1,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: The evidence claims the attachment mutation \u201cfailed both real composition and portable-plan assertions\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The evidence claims the attachment mutation \u201cfailed both real composition and portable-plan assertions.\u201d Both red and green receipts select only `TestPrepareCompositionOrderAndCleanupIsolation` and `TestPrepareCustomPreparerSkipsAdaptersAndValidates` in `./internal/preparation`. Neither executes portable planning. This overstates mutation coverage and is repeated in `evidence.json` and `handover.md:25`.\n- **Suggestion**: Correct all three summaries to name the composition and custom-preparer assertions actually executed. Preserve the receipts; describe portable-plan coverage through its separate existing runs.\n- **File:Line**: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/source-acceptance-20261008/aggregate-evidence.mjs:21\n- **R-IDs**: R19\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "97bb53d7a90346ef879e1e6b0ba38bd0",
+  "rid": "97bb53d7a90346ef879e1e6b0ba38bd0",
+  "session_id": "01a11d85-cc79-7890-bb17-6287b12385bf",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-08T22:00:44.462821Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}
