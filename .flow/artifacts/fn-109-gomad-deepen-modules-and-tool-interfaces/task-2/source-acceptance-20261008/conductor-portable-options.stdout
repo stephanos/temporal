@@ -1,0 +1,20 @@
+{"Time":"2026-10-08T10:52:40.862132915Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-08T10:52:40.864360165Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionsCharacterization"}
+{"Time":"2026-10-08T10:52:40.864404623Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionsCharacterization","Output":"=== RUN   TestCampaignOptionsCharacterization\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:52:40.869969998Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionsCharacterization","Output":"--- PASS: TestCampaignOptionsCharacterization (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:52:40.869987998Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionsCharacterization","Elapsed":0.01}
+{"Time":"2026-10-08T10:52:40.869998248Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignRequestNormalizesTheRequest"}
+{"Time":"2026-10-08T10:52:40.870000332Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignRequestNormalizesTheRequest","Output":"=== RUN   TestCampaignRequestNormalizesTheRequest\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:52:40.87000329Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignRequestNormalizesTheRequest","Output":"--- PASS: TestCampaignRequestNormalizesTheRequest (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:52:40.870005082Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignRequestNormalizesTheRequest","Elapsed":0}
+{"Time":"2026-10-08T10:52:40.870007832Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCoordinatorConfigNormalizesDecodedOptions"}
+{"Time":"2026-10-08T10:52:40.870012415Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCoordinatorConfigNormalizesDecodedOptions","Output":"=== RUN   TestCoordinatorConfigNormalizesDecodedOptions\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:52:40.870026415Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCoordinatorConfigNormalizesDecodedOptions","Output":"--- PASS: TestCoordinatorConfigNormalizesDecodedOptions (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:52:40.870029498Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCoordinatorConfigNormalizesDecodedOptions","Elapsed":0}
+{"Time":"2026-10-08T10:52:40.870031832Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCoordinatorConfigCarriesTheNormalizedOptions"}
+{"Time":"2026-10-08T10:52:40.870054998Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCoordinatorConfigCarriesTheNormalizedOptions","Output":"=== RUN   TestCoordinatorConfigCarriesTheNormalizedOptions\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:52:40.870079873Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCoordinatorConfigCarriesTheNormalizedOptions","Output":"--- PASS: TestCoordinatorConfigCarriesTheNormalizedOptions (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:52:40.87008529Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCoordinatorConfigCarriesTheNormalizedOptions","Elapsed":0}
+{"Time":"2026-10-08T10:52:40.870129832Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:52:40.870354165Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"ok  \tgo.temporal.io/server/tools/gomad3/runner\t0.008s\n"}
+{"Time":"2026-10-08T10:52:40.870372123Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":0.008}

@@ -1,0 +1,33 @@
+# Task2 retained source acceptance
+
+The retained implementation has current evidence for R1 source acceptance. No product, test, fixture, generated output or documentation changed. The task remains `in_progress`; root owns fresh source review, Git, MILESTONES and completion. The sole Go lane has no attributable live command at handover.
+
+stage: impl-review - skipped(policy: host-deferred - conductor owns the gate)
+
+Tier: session (jev-unavailable(no_key)); explicit project implementer retained gpt-6.1-sol/high. Requested tier is not proof of actual execution metadata; no actual model is asserted.
+
+## Source and preservation
+
+`reconstruct.mjs` rebuilds all20 complete original postimages in memory from indexed Git blobs and the two retained dirty-test preimages, applies each hunk at its original position with exact context, and checks every pre/post SHA. Five current files are exact; `owner-chain.json` and `delta-proof.json` bind the other15 to retained fn109.3/.5/.6/.7 patches and actual later owners, including fn109.12 Artifact handles, fn112.9 consolidation and fn112.16 success keys. Merge ca334 is a reconciliation boundary, not a substitute owner. Its rebased task2 slice/pointer isolation, task3 completion constructors and task6 dependency propagation are disclosed explicitly.
+
+The immediate task2 base is `1b970bc1444f4da6428c843a91d3d0fa998dbde3`. The distinct first fn109 baseline remains `6782b55f49a0317b230e827ea2a63a37d116d502` plus dirty fn108.2-.6: all670 retained reconstructed inputs verify against manifest `d78601b3176195f8cc06860f5499e757a2d04333b9211f0ed13a92976b017845`. Later38957053 is not substituted.
+
+All eight private options declarations are byte-equal to original task2. Local/isolated consumers share the normalized options; runtime callbacks, injected execution dependencies, resolved commands and Runner identity remain separate. Recorded CampaignPlan/v1 and portable-plan schemas remain independent. The original public CampaignSpec declaration is exact48fields before/after task2; current removal of Executor belongs to fn109.6, not this task or an R18 waiver. Fn109.26 owns current CLI semantic presentation; the current CLI controls pass.
+
+Both fixture files retain exact task2 postimage hashes, including new request bytes. All75 actually executed historical row objects are unchanged; the76th `coverage-choice-probes` row remains historical reconstruction, not another historical execution. Current characterization exercises76 vectors, not universal preservation. The test's sole later delta is ca334's five-line `/tmp` adjustment. Under matched filesystem identity, the entire original/current Runner mount-validation branch and readonlymount parser/capture source are byte-identical, with directory/symlink refusal before limit validation. Four controls pass with the original parser overlay and current parser. Unlike Darwin symlink and Linux directory outcomes are not claimed byte-equal; no fixture recapture or new exemption occurred.
+
+## Current observations
+
+Raw receipts retain exact argv, cwd, sanitized environment, tool hashes, timing, exit, output hashes, all test actions and source before/after digest. The green selections are options4, transport-controls12, architecture2, CLI36, plan/resume10, options helpers3, and mount controls4 with each source binding. There are71 unique portable top-level test names after package-qualified deduplication, not75 unique tests. Check-only generator validation and configured errortype pass. No portable selected test skipped.
+
+`portable-transport` retains exit1:12 passes and `TestExecutionEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment` fails at the unsupported linux/arm64 runtime guard before its fixture. That observation is fixture-unexecuted native evidence, not a source assertion failure or portable pass. No native full-host/isolated strategy run is claimed. Those gates remain with fn149/fn128.
+
+Configured `make lint-code-fast` at the actual task2 base exits2 with68 findings. The earlier97bd diagnostic exits2 with80 and is not task2 attribution. A distinct unfiltered Runner run exits2 with17 findings; every original-task-path statement it reports already exists in the exact preimage, and no task2-introduced statement is reported. Findings include inherited errcheck, exhaustive, forbidigo and staticcheck rules; none is waived, hidden, fixed or erased. Their concrete source line/file hashes, actual Git origins and correction route to aggregate fn109.21 are retained. This is not a global clean-lint claim or a reuse of old427/430 counts. Format check lists the inherited fn109.13 runtime overlay separator; it remains unchanged and receives no broader fn110 waiver.
+
+Exact87 runtime inputs, all72 original raw receipts (521317 bytes), the pinned archive and both materialized supported source inventories rebind to current source. Of the prior1223-input closure,1222 still match; `campaign/retained_evidence_test.go` changed under DONE fn112.16 and its old test pass is not reused. The source-static bindings are not native qualification. The all-tracked task2 digest is `2f7a622132d11444f9df8ba535ab3dc1891282af1e28bf34495b374c8073caf8`: MILESTONES Todo→IP tracking drift explains its difference from task31; narrow runtime bindings, not whole-tree fingerprints, justify reuse. Both unrelated user documents retain their required hashes.
+
+## Root handoff
+
+Run `node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/conductor-verify.mjs` before changing MILESTONES. It is read-only, accepts the base as an ancestor after `.flow` commits and the exact captured IP board, checks each intervening commit snapshot, rederives the historical reconstruction/source/lint/mount bindings and checks the frozen artifacts. It admits no DONE-board exemption. `lint-location-proof.json` pins all17 actual owning functions and exact original pre/post five-line contexts and patch-added-line positions for the five findings inside original task2 files; generic statement presence alone is not the acceptance argument. Task6 reconstruction covers31 patch images, not all65 manifest entries. Then perform the deferred fresh source review over current original implementation and owners, not only the evidence diff. Aggregate R18/lint and all transferred native obligations remain open with their existing owners.
+
+Commits: `[]`; base `bad15a4b58711ed3fffdab0eb2c6cafc10d62e8a`. No lifecycle mutation, review verdict, commit, PR, push or CI action was taken. Gate failures and proof-authoring mistakes remain distinct; evidence helpers were corrected only before freeze, without replacing raw records.

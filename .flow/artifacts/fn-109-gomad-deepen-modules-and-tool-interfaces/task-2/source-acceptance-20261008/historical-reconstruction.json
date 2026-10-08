@@ -1,0 +1,186 @@
+{
+  "patch_sha256": "43f42cd3b0ae689da8f69b8560c6494088ffd6777e48cb4ed462ef551fc04967",
+  "method": "Exact Git blob or retained parent preimages; each hunk consumed at its original line with byte-equal context; all20 pre/post SHA-256 verified in memory, no later tree substituted",
+  "rows": [
+    {
+      "path": "tools/gomad3/runner/campaign_plan.go",
+      "preimage_sha256": "d3c662b5bbf100ba83b19d782822b0bf12c969b9840a2290bbb2ef457794209b",
+      "postimage_sha256": "971ca267797585c025c37d241daf902ccae9bccf4592fac3e385ab15cd8ad82f",
+      "origin": "git blob ee119daa05",
+      "hunks": 4,
+      "current_sha256": "a3980afd105cab495e1ccd0558dfd9dfc4a5520f059723f06bc62915ace816a1",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_shard_execution.go",
+      "preimage_sha256": "b1f55723fb00c752771b646c2a2ffab453a7be612be9727644ee0061e804fa1c",
+      "postimage_sha256": "ccab0448e04bdd7ea296b33a1fa862d4f1a1225e1f578d7d75e60eea5c022434",
+      "origin": "git blob a9c3ede008",
+      "hunks": 1,
+      "current_sha256": "afc4efe87e018e1de892d9851c3197a7dbe7d3e76dc85e8b0b60ac5def881a91",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/choice_exploration_campaign.go",
+      "preimage_sha256": "93b38b7342cac5e0cf28eae809a27dfb118e2f28b7baaef918910c08e52a27fe",
+      "postimage_sha256": "97ccab042a548067377f3e751a82b8ccf4026f45d102b673e3224085e3af6958",
+      "origin": "git blob f80da401be",
+      "hunks": 4,
+      "current_sha256": "5744948588413558345e30b479a906baf74d87e3c33c171d15dffd7001ee88fa",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/choice_exploration_divergence_test.go",
+      "preimage_sha256": "dd8a49b9909aa2d63661360f9a32a3ea3817988e31f484773bd42284bf765a1f",
+      "postimage_sha256": "741432e6aec336de45616880938749cd3c136a664824abe1740a2f251aaa5c6a",
+      "origin": "git blob 9a3867de3d",
+      "hunks": 1,
+      "current_sha256": "877355a89f2abccf6a18947bdf904ebea62926b53841628d6eb4391ed7fe148d",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator.go",
+      "preimage_sha256": "2b399bdd783bce29d14ff71c9a60c48744aea09079ceb9a67ebb01a0b9006099",
+      "postimage_sha256": "63628a21f6a6e40cad27aca3a969bc020b7bbad293bb6884d1c182f593582b2c",
+      "origin": "git blob 43e869b815",
+      "hunks": 4,
+      "current_sha256": "63628a21f6a6e40cad27aca3a969bc020b7bbad293bb6884d1c182f593582b2c",
+      "current_equals_original": true
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator_transport_test.go",
+      "preimage_sha256": "76b5d8992c421e9332097a532940d6fb950b5ef8c4e54ce7bad076bd99304e1f",
+      "postimage_sha256": "9a26fae76be28b3e08792f514d39297a20c777ac3d4a46463c297ea0bd6b3c64",
+      "origin": "git blob d859b41886",
+      "hunks": 4,
+      "current_sha256": "1494b84cbfad58a395ad11904f2d4be26d23530e25062055271ba7e4d0201f21",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/evidence.go",
+      "preimage_sha256": "b3119b37e950381a43336fdaef020a06a5a664cafb7deaa4da61fd80da9d8ea9",
+      "postimage_sha256": "05d6b71e29fe8eb3fba4100f74584a16241e6dbd7d4343dd4ce12366a53a3fe4",
+      "origin": "git blob 7343d69114",
+      "hunks": 1,
+      "current_sha256": "05d6b71e29fe8eb3fba4100f74584a16241e6dbd7d4343dd4ce12366a53a3fe4",
+      "current_equals_original": true
+    },
+    {
+      "path": "tools/gomad3/runner/guidance.go",
+      "preimage_sha256": "3df9975230b5fc22d1e3643189ee66b8e9ac7ef366f5c24791e7241f7a7cb036",
+      "postimage_sha256": "35394f9e810dd38a31cc24fac2086b83c5cf107aece7d70dd649208a6b5c081c",
+      "origin": "git blob 9c537aab36",
+      "hunks": 1,
+      "current_sha256": "97e6fdf68dbdf756d2dc61e805ac4db07c5a985113d72119c66766639b9f7b6a",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/minimize_operation.go",
+      "preimage_sha256": "2fbe51ec4591710c4ed2db886e198006e0d7d69f0f927c1659581e4dc27f3e4e",
+      "postimage_sha256": "967b6671bbb0f28ce21a1178b68fe0c9cc9743796dcdc302d6ea4ba4cdd827d6",
+      "origin": "git blob 4a5dcd596f",
+      "hunks": 1,
+      "current_sha256": "758cc37786e21093a9e4c1833eab3feb10e571c2aa9bb029024d52b71359f346",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan.go",
+      "preimage_sha256": "7eedba01ebecafebb92f5f2130492df10129880c86da140d17b3a6791fa98c69",
+      "postimage_sha256": "b34f1216f8b11109bae496012b437eb3471d881b9a0e427094764a92bb90e7c2",
+      "origin": "git blob a47bfa69f1",
+      "hunks": 1,
+      "current_sha256": "95112a7c797ef8592c7af6b19fd187e3d55f4daef21cbb4b9720ab770d8bd3ee",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/resume.go",
+      "preimage_sha256": "255f8aee8f7d59d3c1f58215405fdc97995f1fe4b0a6cb41db6a7426e42a8f63",
+      "postimage_sha256": "4e0f4ec6b3faa8948d951b0862eeaa36dc0168d38e682b57cb34a1b8451d461d",
+      "origin": "git blob 9c8f473b82",
+      "hunks": 2,
+      "current_sha256": "e6ad4a35cbb0ee23addce937a88743bc1dfcdde5aea9a9ef726a679105c9269a",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/retention.go",
+      "preimage_sha256": "7a7425bfe91adc3dbcafa8049709cb38159dd55d1e92fae3ba0fa5bbf6da9918",
+      "postimage_sha256": "3ed085af90aa61a0360c0c8147708a81b95a4e62a059f3102e0e547fdbbb1f6d",
+      "origin": "git blob ad22c53024",
+      "hunks": 1,
+      "current_sha256": "3ed085af90aa61a0360c0c8147708a81b95a4e62a059f3102e0e547fdbbb1f6d",
+      "current_equals_original": true
+    },
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "preimage_sha256": "a2c93ffe076a60eb8aa407597b78bccdfb4d23c8ee8ce1913b5b25025084a4e5",
+      "postimage_sha256": "358a37dafa538e66b7b02baea2c0c8cff78268fee35f3a0c5cd75d653eee3e0f",
+      "origin": "git blob 1722fd8399",
+      "hunks": 15,
+      "current_sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/simulation_exploration_campaign.go",
+      "preimage_sha256": "c0946a0cb0a778b9244c97d0e05789d961ee64b94f944c8bbedb8df4dee7df32",
+      "postimage_sha256": "c8b5234386bdb01a5059fd3afe06e158df50bc27a66404a59522fc5c5a30c6d7",
+      "origin": "git blob 6f78770190",
+      "hunks": 5,
+      "current_sha256": "190a195c9215a5f7111a84ceb4016e94b8dcad2879a8f10286d33948199fdbfe",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/retention_test.go",
+      "preimage_sha256": "9505a4bd607df61dd34c63b651e5d154c347e3b49fb74721edb433d34cafe5f8",
+      "postimage_sha256": "76e634f98998d8479c38daaa38249906bdc514451b6d4e205183bd470e7738a7",
+      "origin": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/parent-verified-preimages/retention_test.go",
+      "hunks": 1,
+      "current_sha256": "35a5599194d809a364751743318dc3c9e7304810bbeb8fd819e69dc8d3f14194",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "preimage_sha256": "1afc4bd5251b9c09e24e6fc64867ef926787f8956712371268f1e4be63e8461a",
+      "postimage_sha256": "e66828ed56f98a0776ef5573660c57ec85157dbba7082dd4d34faecb7bfed519",
+      "origin": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/parent-verified-preimages/runner_test.go",
+      "hunks": 2,
+      "current_sha256": "7cb8fe0f7cd3abed0ed244b04254d8793ad606eb01e9bde8278e739a7b3432d8",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_options.go",
+      "preimage_sha256": null,
+      "postimage_sha256": "aa62b1252f33a4f64dd8eba0c1f553567c0faa2791c54aac48c4ec0487539d06",
+      "origin": "new file",
+      "hunks": 1,
+      "current_sha256": "7f2eb52921e6aaf2f34d5f3ec9da79b83979627dd45bf40e57f2e9400862aeb0",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_options_characterization_test.go",
+      "preimage_sha256": null,
+      "postimage_sha256": "6d6e90c1c3cd22eabeaf6a92f6b1d90e38abd7d9ed8fb2005f9f2f287fd3b429",
+      "origin": "new file",
+      "hunks": 1,
+      "current_sha256": "a6cf58f682d74b7471b6860e64e715fcbf1529bb1367c0aeed3dd143e4ededef",
+      "current_equals_original": false
+    },
+    {
+      "path": "tools/gomad3/runner/testdata/campaign-options-before.json",
+      "preimage_sha256": null,
+      "postimage_sha256": "642ca4a6ca8db5a8b95ccde6bb551d0529ff71ea7ca60f5050e247d7f60560e6",
+      "origin": "new file",
+      "hunks": 1,
+      "current_sha256": "642ca4a6ca8db5a8b95ccde6bb551d0529ff71ea7ca60f5050e247d7f60560e6",
+      "current_equals_original": true
+    },
+    {
+      "path": "tools/gomad3/runner/testdata/campaign-options-request-after.json",
+      "preimage_sha256": null,
+      "postimage_sha256": "d4304f340aec4c2da604fc419b0cbfc5afa34e4a45a4247547a6a93bd80b6ce1",
+      "origin": "new file",
+      "hunks": 1,
+      "current_sha256": "d4304f340aec4c2da604fc419b0cbfc5afa34e4a45a4247547a6a93bd80b6ce1",
+      "current_equals_original": true
+    }
+  ]
+}

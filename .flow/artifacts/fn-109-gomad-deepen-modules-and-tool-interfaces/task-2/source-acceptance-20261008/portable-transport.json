@@ -1,0 +1,261 @@
+{
+  "argv": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-count=1",
+    "-json",
+    "-tags",
+    "test_dep",
+    "-run",
+    "^(TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner|TestCoordinatorRejectsMalformedRequests|TestExploreRejectsPrivateExecutionForIsolatedCampaign|TestDecodeCoordinatorMessages.*|TestValidateConfigRecordsOnlyTheForwardClockTick|TestCampaignShard.*|TestPendingJobsRetainsGlobalOrdinalsForShard|TestExecutionEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment)$",
+    "./runner"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "removed_environment": [
+    "GOROOT",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED",
+    "GOMAD3_CAPTURE_OPTIONS_BASELINE",
+    "GOMAD3_CAPTURE_OPTIONS_AFTER"
+  ],
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T10:22:45.340Z",
+  "ended": "2026-10-08T10:22:45.725Z",
+  "elapsed_seconds": 0.385,
+  "sources_before_sha256": "2f7a622132d11444f9df8ba535ab3dc1891282af1e28bf34495b374c8073caf8",
+  "sources_after_sha256": "2f7a622132d11444f9df8ba535ab3dc1891282af1e28bf34495b374c8073caf8",
+  "source_changes": [],
+  "stdout_sha256": "cacb264e7f487eee14d6470bc295f5c0fa60f387f0980f438c0e54214c3783ee",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  },
+  "tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignShardPartitionsCanonicalOrdinals",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignShardRejectsInvalidAssignments",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestPendingJobsRetainsGlobalOrdinalsForShard",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestValidateConfigRecordsOnlyTheForwardClockTick",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecodeCoordinatorMessagesForwardsProgressAndFinalResponse",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecodeCoordinatorMessagesRejectsProgressAfterResult",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecodeCoordinatorMessagesPreservesDrainFailure",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestExploreRejectsPrivateExecutionForIsolatedCampaign",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportCoversEveryCampaignSpecField",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportRoundTripsEveryTransportedField/distinct_nonzero_values",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportRoundTripsEveryTransportedField/zero_values",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportRoundTripsEveryTransportedField/explicit_false_regression_override",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportRoundTripsEveryTransportedField",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_forced_decisions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/missing_forced_decisions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_result_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/missing_result_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/missing_dimension_bounds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_executions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_exploration_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/choice_depth_with_simulation_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/forced_decisions_with_choice_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/result_bytes_with_choice_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/dimension_bound_with_choice_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_choice_depth",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/simulation_bounds_with_seed_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/unknown_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_runtime_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_scenario_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_network_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_storage_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_fault_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_crash_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/malformed_JSON",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/wrong_field_type",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/unknown_field",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/unknown_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/trailing_data",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestExecutionEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment",
+      "action": "fail"
+    }
+  ],
+  "top_level_counts": {
+    "pass": 12,
+    "fail": 1,
+    "skip": 0
+  }
+}

@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {out,read,sha} from './reconstruct.mjs';
+const evidence=read(out+'/evidence.json');
+assert.equal(sha(evidence),'945db05cad9f2aacaa28211de84721efdae586533d39e32fc0ae7894fcbe192d');
+const frozen=JSON.parse(evidence);
+const audit=spawnSync('node',[out+'/conductor-verify.mjs'],{encoding:'utf8',maxBuffer:4<<20});
+assert.equal(audit.status,0,audit.stderr);
+const labels=['portable-options','portable-transport-controls','architecture','current-cli-consumers','portable-plan-resume','portable-options-helpers','matched-mount-current','validate','configured-errortype'];
+const unique=new Set();
+for(const label of labels){
+ const original=JSON.parse(read(out+'/'+label+'.json'));
+ const receipt=JSON.parse(read(out+'/conductor-'+label+'.json'));
+ assert.deepEqual(receipt.argv,original.argv,label);
+ assert.deepEqual(receipt.environment,original.environment,label);
+ assert.deepEqual(receipt.removed_environment,original.removed_environment,label);
+ assert.deepEqual(receipt.tool_sha256,original.tool_sha256,label);
+ assert.equal(receipt.exit,0,label);assert.equal(receipt.signal,null);assert.equal(receipt.error,null);
+ assert.equal(receipt.sources_before_sha256,frozen.source_identity_sha256,label);
+ assert.equal(receipt.sources_after_sha256,frozen.source_identity_sha256,label);
+ assert.deepEqual(receipt.source_changes,[],label);
+ assert.equal(sha(read(out+'/conductor-'+label+'.stdout')),receipt.stdout_sha256,label);
+ assert.equal(sha(read(out+'/conductor-'+label+'.stderr')),receipt.stderr_sha256,label);
+ const events=read(out+'/conductor-'+label+'.stdout').toString().split('\n').flatMap(line=>{try{return [JSON.parse(line)];}catch{return [];}}).filter(e=>e.Test&&['pass','fail','skip'].includes(e.Action));
+ assert.deepEqual(events.map(e=>({package:e.Package,test:e.Test,action:e.Action})),receipt.tests,label);
+ assert(events.every(e=>e.Action==='pass'),label);
+ const top=events.filter(e=>!e.Test.includes('/'));
+ assert.deepEqual(receipt.top_level_counts,{pass:top.length,fail:0,skip:0},label);
+ assert.deepEqual(receipt.tests,original.tests,label);
+ for(const event of top)unique.add(event.Package+'::'+event.Test);
+}
+assert.equal(unique.size,71);
+assert.deepEqual([...unique].sort(),frozen.unique_portable_top_level_tests);
+console.log(audit.stdout.trim());
+console.log(JSON.stringify({root_commands:labels.length,unique_current_portable_passes:unique.size,fail:0,skip:0,validation:0,errortype:0,frozen_evidence_sha256:sha(evidence),native_qualification:false}));

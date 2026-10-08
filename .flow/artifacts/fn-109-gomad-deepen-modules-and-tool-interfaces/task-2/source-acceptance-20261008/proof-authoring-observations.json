@@ -1,0 +1,9 @@
+{
+  "observations": [
+    {"kind":"read-only exploration","exit":1,"reason":"A source-inspection regular expression assumed campaignRequestFromSpec in remote7fe6, whose function is named newCampaignRun. No product or artifact receipt was modified."},
+    {"kind":"proof authoring","exit":1,"reason":"The initial reconstruction read helper prepended root to an absolute /tmp baseline path. The helper now uses path.resolve; original gate receipts and historical-reconstruction.json were not overwritten."},
+    {"kind":"supplemental proof authoring","exit":1,"reason":"The original group expression matched the seven embedded options groups but excluded root campaignOptions. It now includes the root and verifies all eight exact declarations; no product assertion, fixture or command receipt was changed."}
+  ],
+  "gate_observations": "Every actual gate failure remains in its distinct raw receipt. These authoring failures produced no success proof and are not test failures or passes.",
+  "helper_edit_scope": "Only evidence helpers were corrected before final freeze. Raw capture.mjs command records retain their original argv/env/source before-after/exit/output hashes. No original raw receipt or proof was replaced."
+}

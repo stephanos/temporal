@@ -1,0 +1,16 @@
+{"Time":"2026-10-08T10:34:28.222724186Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-08T10:34:28.225034686Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestParseSingleBaseSeedSharesRunnerStrategyRule"}
+{"Time":"2026-10-08T10:34:28.225059019Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestParseSingleBaseSeedSharesRunnerStrategyRule","Output":"=== RUN   TestParseSingleBaseSeedSharesRunnerStrategyRule\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:34:28.225070269Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestParseSingleBaseSeedSharesRunnerStrategyRule","Output":"--- PASS: TestParseSingleBaseSeedSharesRunnerStrategyRule (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:34:28.225074269Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestParseSingleBaseSeedSharesRunnerStrategyRule","Elapsed":0}
+{"Time":"2026-10-08T10:34:28.225086852Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionErrorsPreserveKindThroughWrapping"}
+{"Time":"2026-10-08T10:34:28.225089436Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionErrorsPreserveKindThroughWrapping","Output":"=== RUN   TestCampaignOptionErrorsPreserveKindThroughWrapping\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:34:28.225092061Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionErrorsPreserveKindThroughWrapping","Output":"--- PASS: TestCampaignOptionErrorsPreserveKindThroughWrapping (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:34:28.225096727Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionErrorsPreserveKindThroughWrapping","Elapsed":0}
+{"Time":"2026-10-08T10:34:28.225098852Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionNormalizationAndValidation"}
+{"Time":"2026-10-08T10:34:28.225100394Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionNormalizationAndValidation","Output":"=== RUN   TestCampaignOptionNormalizationAndValidation\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:34:28.225107394Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionNormalizationAndValidation","Output":"--- PASS: TestCampaignOptionNormalizationAndValidation (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:34:28.225110311Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestCampaignOptionNormalizationAndValidation","Elapsed":0}
+{"Time":"2026-10-08T10:34:28.225151727Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:34:28.225383311Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"ok  \tgo.temporal.io/server/tools/gomad3/runner\t0.002s\n"}
+{"Time":"2026-10-08T10:34:28.225395561Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":0.003}

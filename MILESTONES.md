@@ -191,7 +191,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-109.1](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.1.md) | ✅ Done | Carry simulation bounds through real isolated execution. |
-| [fn-109.2](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.2.md) | ⬜ Todo | Give local and isolated campaigns one normalized options owner |
+| [fn-109.2](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.2.md) | 🚧 In progress | Give local and isolated campaigns one normalized options owner |
 | [fn-109.3](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.3.md) | ⬜ Todo | Give the seed controller one atomic completion transition |
 | [fn-109.4](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.4.md) | ⬜ Todo | Resolve CLI installation and private child modes through one application construction path |
 | [fn-109.5](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md) | ⬜ Todo | Share plan and explore parsing directly and move semantic normalization to Runner |

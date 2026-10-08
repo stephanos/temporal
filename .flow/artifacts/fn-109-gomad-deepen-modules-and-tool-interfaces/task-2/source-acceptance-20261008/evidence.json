@@ -1,0 +1,775 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.2",
+  "status": "in_progress",
+  "base_commit": "bad15a4b58711ed3fffdab0eb2c6cafc10d62e8a",
+  "head": "bad15a4b58711ed3fffdab0eb2c6cafc10d62e8a",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestCampaignOptionsCharacterization|TestCampaignRequestNormalizesTheRequest|TestCoordinatorConfigNormalizesDecodedOptions|TestCoordinatorConfigCarriesTheNormalizedOptions)$\" \"./runner\" [exit 0; portable-options.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner|TestCoordinatorRejectsMalformedRequests|TestExploreRejectsPrivateExecutionForIsolatedCampaign|TestDecodeCoordinatorMessages.*|TestValidateConfigRecordsOnlyTheForwardClockTick|TestCampaignShard.*|TestPendingJobsRetainsGlobalOrdinalsForShard|TestExecutionEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment)$\" \"./runner\" [exit 1; portable-transport.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner|TestCoordinatorRejectsMalformedRequests|TestExploreRejectsPrivateExecutionForIsolatedCampaign|TestDecodeCoordinatorMessages.*|TestValidateConfigRecordsOnlyTheForwardClockTick|TestCampaignShard.*|TestPendingJobsRetainsGlobalOrdinalsForShard)$\" \"./runner\" [exit 0; portable-transport-controls.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \".\" \"-run\" \"^(TestPackageArchitecture|TestExactModuleEdges)$\" [exit 0; architecture.json]",
+    "\"make\" \"-C\" \"tools/gomad3\" \"validate\" [exit 0; validate.json]",
+    "\"make\" \"lint-code-fast\" \"GOLANGCI_LINT_FIX=false\" \"GOLANGCI_LINT_BASE_REV=97bdba0fde\" \"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\" \"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"ALL_TEST_TAGS=test_dep\" [exit 2; configured-original-task-lint.json]",
+    "\"make\" \"lint-code-fast\" \"GOLANGCI_LINT_FIX=false\" \"GOLANGCI_LINT_BASE_REV=1b970bc1444f4da6428c843a91d3d0fa998dbde3\" \"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\" \"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"ALL_TEST_TAGS=test_dep\" [exit 2; actual-task2-base-lint.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestCampaignSemanticValidation.*|TestResolveExplore.*|TestResolveChoiceTrace.*|TestPlan.*|TestCharacterize.*|TestPublicCommand.*|TestExploreErrorReports.*|TestQualifyGrammar.*|TestRunResumeForwardsCampaignAndClassifiesResult|TestResumeGuidanceModePreservesExplicitFalseAndTrue)$\" \"./cmd/gomad/internal/cli\" [exit 0; current-cli-consumers.json]",
+    "\"make\" \"lint-code\" \"GOLANGCI_LINT_BASE_REV=\" \"GOLANGCI_LINT_FIX=false\" \"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\" \"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\" \"LINT_CODE_TARGETS=./runner\" \"ALL_TEST_TAGS=test_dep\" [exit 2; unfiltered-options-package-lint.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestPreflightResumeReturnsValidatedLifecycleAndPlan|TestPreflightResumeRejectsUnrecoverableLifecycle|TestRecoverAndResumeShareExclusiveLock|TestValidateBatchPlanRejectsChangedArtifactCapacity|TestBatchJournalRecordsCanonicalResumePlan|TestChoiceProfileMatchesResumePlanExactly|TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes|TestResumeExplorationJournalWrittenBeforeTheStartOrdinal|TestResumeExplorationJournalRequiresItsStartOrdinal|TestSeedCampaignPlanRejectsChoiceStartOrdinal)$\" \"./runner/internal/campaign\" [exit 0; portable-plan-resume.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestParseSingleBaseSeedSharesRunnerStrategyRule|TestCampaignOptionErrorsPreserveKindThroughWrapping|TestCampaignOptionNormalizationAndValidation)$\" \"./runner\" [exit 0; portable-options-helpers.json]",
+    "\"bash\" \"-c\" \"git ls-files -z tools/gomad3 tools/gomad3sim tools/gomad3integration tests/gomadfunctional | while IFS= read -r -d \\\"\\\" p; do case \\\"$p\\\" in *.go) printf \\\"%s\\\\0\\\" \\\"$p\\\";; esac; done | xargs -0 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l\" [exit 0; check-format.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"vet\" \"-tags\" \"test_dep\" \"-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"-style-check=false\" \"./runner\" \"./cmd/gomad/internal/cli\" \"./runner/internal/campaign\" [exit 0; configured-errortype.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/matched-mount-overlay.json\" \"-run\" \"^(TestParseMappingsNormalizesSourcesAndTargets|TestParseMappingsRejectsUnsafeOrOverlappingMappings|TestParseMappingsRejectsNonDirectoryAndSymlinkRoots|TestCaptureEnforcesLimitsBeforePublishingEntry)$\" \"./deterministicio/readonlymount\" [exit 0; matched-mount-original.json]",
+    "\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestParseMappingsNormalizesSourcesAndTargets|TestParseMappingsRejectsUnsafeOrOverlappingMappings|TestParseMappingsRejectsNonDirectoryAndSymlinkRoots|TestCaptureEnforcesLimitsBeforePublishingEntry)$\" \"./deterministicio/readonlymount\" [exit 0; matched-mount-current.json]"
+  ],
+  "review_verdict": null,
+  "review_mode": "host-deferred",
+  "native_qualification": false,
+  "source_identity_sha256": "2f7a622132d11444f9df8ba535ab3dc1891282af1e28bf34495b374c8073caf8",
+  "milestones_ip_sha256": "c0fcff2e439d079d78bb2d9b8521eddd9fe460521f64409cc7d3f1bf0a665f99",
+  "command_receipts": [
+    {
+      "label": "portable-options",
+      "path": "portable-options.json",
+      "sha256": "12554ba83c0f6fe89a3597ce57a1e8c16ec5fba2d79d8c1bb34fd40a5e373fe7",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestCampaignOptionsCharacterization|TestCampaignRequestNormalizesTheRequest|TestCoordinatorConfigNormalizesDecodedOptions|TestCoordinatorConfigCarriesTheNormalizedOptions)$",
+        "./runner"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "portable-transport",
+      "path": "portable-transport.json",
+      "sha256": "95df40958fbd6381a0c410d043d9af3de1c134f03be596f34bc5aba06ce19354",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner|TestCoordinatorRejectsMalformedRequests|TestExploreRejectsPrivateExecutionForIsolatedCampaign|TestDecodeCoordinatorMessages.*|TestValidateConfigRecordsOnlyTheForwardClockTick|TestCampaignShard.*|TestPendingJobsRetainsGlobalOrdinalsForShard|TestExecutionEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment)$",
+        "./runner"
+      ],
+      "exit": 1,
+      "top_level_counts": {
+        "pass": 12,
+        "fail": 1,
+        "skip": 0
+      }
+    },
+    {
+      "label": "portable-transport-controls",
+      "path": "portable-transport-controls.json",
+      "sha256": "db4bc0613f550bc2c80d91a203281a998f9022bb97e9de0cddca1ae1c7cdb605",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner|TestCoordinatorRejectsMalformedRequests|TestExploreRejectsPrivateExecutionForIsolatedCampaign|TestDecodeCoordinatorMessages.*|TestValidateConfigRecordsOnlyTheForwardClockTick|TestCampaignShard.*|TestPendingJobsRetainsGlobalOrdinalsForShard)$",
+        "./runner"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 12,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "architecture",
+      "path": "architecture.json",
+      "sha256": "72b9477659b44784d03176550d1802affaa158acea0e1fa0f85f10683ad6ee4e",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestExactModuleEdges)$"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 2,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "validate",
+      "path": "validate.json",
+      "sha256": "d5640cfdf4cee23b12ce62a0174d5102bcd0b7fccb775fe6f69077ef8e4b1dd1",
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "configured-original-task-lint",
+      "path": "configured-original-task-lint.json",
+      "sha256": "6444ba379794ad28ea9ade55623ec2af19f842839de04fe456d35f0ee167c9f3",
+      "argv": [
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT_BASE_REV=97bdba0fde",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "exit": 2,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "actual-task2-base-lint",
+      "path": "actual-task2-base-lint.json",
+      "sha256": "56ebe2c786a0e39e167e61257b76d91d44f08b0c072ef30cc3a9d26b6f3d7cd0",
+      "argv": [
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT_BASE_REV=1b970bc1444f4da6428c843a91d3d0fa998dbde3",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "exit": 2,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "current-cli-consumers",
+      "path": "current-cli-consumers.json",
+      "sha256": "82e8125b0e2b6772bbe3f4098c1774e5a4617bee1e888964e1ba2f37b605575f",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestCampaignSemanticValidation.*|TestResolveExplore.*|TestResolveChoiceTrace.*|TestPlan.*|TestCharacterize.*|TestPublicCommand.*|TestExploreErrorReports.*|TestQualifyGrammar.*|TestRunResumeForwardsCampaignAndClassifiesResult|TestResumeGuidanceModePreservesExplicitFalseAndTrue)$",
+        "./cmd/gomad/internal/cli"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 36,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "unfiltered-options-package-lint",
+      "path": "unfiltered-options-package-lint.json",
+      "sha256": "a68f2ff4a9a2a4cc98e3fd4cf4ccab7c21b6e62e8ffa178cd93e52dc901a3be4",
+      "argv": [
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_BASE_REV=",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "LINT_CODE_TARGETS=./runner",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "exit": 2,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "portable-plan-resume",
+      "path": "portable-plan-resume.json",
+      "sha256": "8f90ce131de3d92bfa20d2a5ace6588e55167af2edef259c7553edc01f2eba5f",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestPreflightResumeReturnsValidatedLifecycleAndPlan|TestPreflightResumeRejectsUnrecoverableLifecycle|TestRecoverAndResumeShareExclusiveLock|TestValidateBatchPlanRejectsChangedArtifactCapacity|TestBatchJournalRecordsCanonicalResumePlan|TestChoiceProfileMatchesResumePlanExactly|TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes|TestResumeExplorationJournalWrittenBeforeTheStartOrdinal|TestResumeExplorationJournalRequiresItsStartOrdinal|TestSeedCampaignPlanRejectsChoiceStartOrdinal)$",
+        "./runner/internal/campaign"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 10,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "portable-options-helpers",
+      "path": "portable-options-helpers.json",
+      "sha256": "130fdd78718b3e5c9c8db0890597f50b7450ef08d9f99ccd9de262e04998cdd4",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestParseSingleBaseSeedSharesRunnerStrategyRule|TestCampaignOptionErrorsPreserveKindThroughWrapping|TestCampaignOptionNormalizationAndValidation)$",
+        "./runner"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 3,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "check-format",
+      "path": "check-format.json",
+      "sha256": "23b317307bde47364289cc6de438198d8b8b346341cb983e575e298147333c3a",
+      "argv": [
+        "bash",
+        "-c",
+        "git ls-files -z tools/gomad3 tools/gomad3sim tools/gomad3integration tests/gomadfunctional | while IFS= read -r -d \"\" p; do case \"$p\" in *.go) printf \"%s\\0\" \"$p\";; esac; done | xargs -0 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "configured-errortype",
+      "path": "configured-errortype.json",
+      "sha256": "b062982d0f89633a8d4b92775461bf7ac48e6c35beb04ee5d9b35d111aa3ecfe",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-style-check=false",
+        "./runner",
+        "./cmd/gomad/internal/cli",
+        "./runner/internal/campaign"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "matched-mount-original",
+      "path": "matched-mount-original.json",
+      "sha256": "8f09f958fba7bf05787af0b7161a88cb003903b305e392f6d8efe61e673f1b37",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/matched-mount-overlay.json",
+        "-run",
+        "^(TestParseMappingsNormalizesSourcesAndTargets|TestParseMappingsRejectsUnsafeOrOverlappingMappings|TestParseMappingsRejectsNonDirectoryAndSymlinkRoots|TestCaptureEnforcesLimitsBeforePublishingEntry)$",
+        "./deterministicio/readonlymount"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "label": "matched-mount-current",
+      "path": "matched-mount-current.json",
+      "sha256": "b4c8963068a6a69ac06b574a1fc2a43f7808ad50e1289534502e3a44cf34c635",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestParseMappingsNormalizesSourcesAndTargets|TestParseMappingsRejectsUnsafeOrOverlappingMappings|TestParseMappingsRejectsNonDirectoryAndSymlinkRoots|TestCaptureEnforcesLimitsBeforePublishingEntry)$",
+        "./deterministicio/readonlymount"
+      ],
+      "exit": 0,
+      "top_level_counts": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      }
+    }
+  ],
+  "portable_pass_receipts": [
+    "portable-options",
+    "portable-transport-controls",
+    "architecture",
+    "current-cli-consumers",
+    "portable-plan-resume",
+    "portable-options-helpers",
+    "matched-mount-original",
+    "matched-mount-current"
+  ],
+  "unique_portable_top_level_tests": [
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCampaignSemanticValidationBelongsToRunner",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeByteSizeAndFlagValueRejection",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExecuteShardRequestOutputAndStatus",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreErrorWriteRouting",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreOutputAndStatus",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeExploreRequestDefaultsAndWiring",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHelpAndUsage",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeHiddenPlanFlag",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInputRejection",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationResolution",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeInstallationWiring",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeOutputWriterFailures",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanFlagErrors",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanInputRejection",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanOperationErrors",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestAndOutput",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizePlanRequestDefaults",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeReplayRequestOutputAndStatus",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestCharacterizeUnknownCommandsAndPrivateModes",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanAndExploreRejectHiddenPlanRoute",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPlanValidationOrderAndJSONRouting",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandExplicitZeroAndIrrelevantFlagClassification",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestPublicCommandWriterFailuresPreserveStatus",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreSeedsSupportsCountWithoutAmbiguity",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRejectsExplorationBoundsForSeeds",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResolveExploreTypedErrorPresentation",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestResumeGuidanceModePreservesExplicitFalseAndTrue",
+    "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli::TestRunResumeForwardsCampaignAndClassifiesResult",
+    "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount::TestCaptureEnforcesLimitsBeforePublishingEntry",
+    "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount::TestParseMappingsNormalizesSourcesAndTargets",
+    "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount::TestParseMappingsRejectsNonDirectoryAndSymlinkRoots",
+    "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount::TestParseMappingsRejectsUnsafeOrOverlappingMappings",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestBatchJournalRecordsCanonicalResumePlan",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestChoiceProfileMatchesResumePlanExactly",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestPreflightResumeRejectsUnrecoverableLifecycle",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestPreflightResumeReturnsValidatedLifecycleAndPlan",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestRecoverAndResumeShareExclusiveLock",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestResumeExplorationJournalRequiresItsStartOrdinal",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestResumeExplorationJournalWrittenBeforeTheStartOrdinal",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestSeedCampaignPlanRejectsChoiceStartOrdinal",
+    "go.temporal.io/server/tools/gomad3/runner/internal/campaign::TestValidateBatchPlanRejectsChangedArtifactCapacity",
+    "go.temporal.io/server/tools/gomad3/runner::TestCampaignOptionErrorsPreserveKindThroughWrapping",
+    "go.temporal.io/server/tools/gomad3/runner::TestCampaignOptionNormalizationAndValidation",
+    "go.temporal.io/server/tools/gomad3/runner::TestCampaignOptionsCharacterization",
+    "go.temporal.io/server/tools/gomad3/runner::TestCampaignRequestNormalizesTheRequest",
+    "go.temporal.io/server/tools/gomad3/runner::TestCampaignShardPartitionsCanonicalOrdinals",
+    "go.temporal.io/server/tools/gomad3/runner::TestCampaignShardRejectsInvalidAssignments",
+    "go.temporal.io/server/tools/gomad3/runner::TestCoordinatorConfigCarriesTheNormalizedOptions",
+    "go.temporal.io/server/tools/gomad3/runner::TestCoordinatorConfigNormalizesDecodedOptions",
+    "go.temporal.io/server/tools/gomad3/runner::TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner",
+    "go.temporal.io/server/tools/gomad3/runner::TestCoordinatorRejectsMalformedRequests",
+    "go.temporal.io/server/tools/gomad3/runner::TestCoordinatorTransportCoversEveryCampaignSpecField",
+    "go.temporal.io/server/tools/gomad3/runner::TestCoordinatorTransportRoundTripsEveryTransportedField",
+    "go.temporal.io/server/tools/gomad3/runner::TestDecodeCoordinatorMessagesForwardsProgressAndFinalResponse",
+    "go.temporal.io/server/tools/gomad3/runner::TestDecodeCoordinatorMessagesPreservesDrainFailure",
+    "go.temporal.io/server/tools/gomad3/runner::TestDecodeCoordinatorMessagesRejectsProgressAfterResult",
+    "go.temporal.io/server/tools/gomad3/runner::TestExploreRejectsPrivateExecutionForIsolatedCampaign",
+    "go.temporal.io/server/tools/gomad3/runner::TestParseSingleBaseSeedSharesRunnerStrategyRule",
+    "go.temporal.io/server/tools/gomad3/runner::TestPendingJobsRetainsGlobalOrdinalsForShard",
+    "go.temporal.io/server/tools/gomad3/runner::TestValidateConfigRecordsOnlyTheForwardClockTick",
+    "go.temporal.io/server/tools/gomad3::TestExactModuleEdges",
+    "go.temporal.io/server/tools/gomad3::TestPackageArchitecture"
+  ],
+  "artifacts": [
+    {
+      "path": "actual-task2-base-lint.json",
+      "bytes": 2210,
+      "sha256": "56ebe2c786a0e39e167e61257b76d91d44f08b0c072ef30cc3a9d26b6f3d7cd0"
+    },
+    {
+      "path": "actual-task2-base-lint.stderr",
+      "bytes": 11963,
+      "sha256": "a767f417d66b259e60da0b8c5a66089531d5b571706b5c48a040ab865e61fe50"
+    },
+    {
+      "path": "actual-task2-base-lint.stdout",
+      "bytes": 49196,
+      "sha256": "203331564cad0cd4330712ee0c451cbe5e32bb8f00b555aa951132e7955629dd"
+    },
+    {
+      "path": "architecture.json",
+      "bytes": 2437,
+      "sha256": "72b9477659b44784d03176550d1802affaa158acea0e1fa0f85f10683ad6ee4e"
+    },
+    {
+      "path": "architecture.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "architecture.stdout",
+      "bytes": 1950,
+      "sha256": "8e5ee7fb7a5a4637254f16fd733483e4205a53ee346833ab6c61e7869cdee4d3"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 3431,
+      "sha256": "446ccf7ca7eabcea8b9fb24ffda25e549654373a4fd8e1f7f8230bf45a6704c2"
+    },
+    {
+      "path": "check-format.json",
+      "bytes": 2220,
+      "sha256": "23b317307bde47364289cc6de438198d8b8b346341cb983e575e298147333c3a"
+    },
+    {
+      "path": "check-format.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "check-format.stdout",
+      "bytes": 60,
+      "sha256": "ee1d4868ccb75c63fcfa3a867077117cbc47a81174b529b177a853842f8bbf0b"
+    },
+    {
+      "path": "conductor-verify.mjs",
+      "bytes": 4818,
+      "sha256": "8b70a016544bb1b7bd4269104e480a1660459e99553abcb1b736d66272293145"
+    },
+    {
+      "path": "configured-errortype.json",
+      "bytes": 2233,
+      "sha256": "b062982d0f89633a8d4b92775461bf7ac48e6c35beb04ee5d9b35d111aa3ecfe"
+    },
+    {
+      "path": "configured-errortype.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "configured-errortype.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "configured-original-task-lint.json",
+      "bytes": 2182,
+      "sha256": "6444ba379794ad28ea9ade55623ec2af19f842839de04fe456d35f0ee167c9f3"
+    },
+    {
+      "path": "configured-original-task-lint.stderr",
+      "bytes": 12500,
+      "sha256": "7ddf3aa72a0f2679048f5341f6bcf2c7fc3938b7ca61101be4475c041be5b3e4"
+    },
+    {
+      "path": "configured-original-task-lint.stdout",
+      "bytes": 64156,
+      "sha256": "251dc4cce87f41c6fca5bd26518ffea54242b5750ada52d1c6ff8c2b8349301e"
+    },
+    {
+      "path": "current-cli-consumers.json",
+      "bytes": 47737,
+      "sha256": "82e8125b0e2b6772bbe3f4098c1774e5a4617bee1e888964e1ba2f37b605575f"
+    },
+    {
+      "path": "current-cli-consumers.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-cli-consumers.stdout",
+      "bytes": 242385,
+      "sha256": "17681855e9d66a0ec05ff4dd3e194837d74335315ac235ff145c1227a2790e68"
+    },
+    {
+      "path": "delta-proof.json",
+      "bytes": 30223,
+      "sha256": "013b49c8164e9cab25484b7ebe9eeb5f6846190505b2ccbcc12cecd007ad1bcb"
+    },
+    {
+      "path": "delta-proof.mjs",
+      "bytes": 8731,
+      "sha256": "09bd6642737327255e58872965d36f9fc8c8057e6e6964fb5fbb70ede07f69f9"
+    },
+    {
+      "path": "handover.md",
+      "bytes": 6672,
+      "sha256": "5221800a4b47f1f4f47f04c8417082015cba7631fe426c46456f66b1d2be714b"
+    },
+    {
+      "path": "historical-reconstruction.json",
+      "bytes": 9158,
+      "sha256": "d196aefc5ccd2691db0a774ccacf47c8b5a4183cea876b2d043eb0b0bc52bebb"
+    },
+    {
+      "path": "lint-location-proof.json",
+      "bytes": 34152,
+      "sha256": "99fb279060f1c34f58841125b8f2627e8aab8ceb619e826ac7367a24beecc006"
+    },
+    {
+      "path": "lint-location-proof.mjs",
+      "bytes": 4606,
+      "sha256": "b6dbbe2d2784d3b68d6f467d50af5807b01df5e6322e6d4ab137b50b59f06d65"
+    },
+    {
+      "path": "lint-proof-authoring-observation.json",
+      "bytes": 491,
+      "sha256": "2805a1d674cf842e730353f00aa53feeed782f682651c4f1ff9e366f9a36aee3"
+    },
+    {
+      "path": "matched-mount-current.json",
+      "bytes": 4320,
+      "sha256": "b4c8963068a6a69ac06b574a1fc2a43f7808ad50e1289534502e3a44cf34c635"
+    },
+    {
+      "path": "matched-mount-current.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "matched-mount-current.stdout",
+      "bytes": 11044,
+      "sha256": "a386c8ac3e08e5b6494b36f212e6390934cb45c122e12756a9718e578031988d"
+    },
+    {
+      "path": "matched-mount-original-config.go",
+      "bytes": 1972,
+      "sha256": "bb6c04a25b7c6c2ecb2519e55517d75b19596bd503a26d71ec4697eeb9c5e72d"
+    },
+    {
+      "path": "matched-mount-original.json",
+      "bytes": 4512,
+      "sha256": "8f09f958fba7bf05787af0b7161a88cb003903b305e392f6d8efe61e673f1b37"
+    },
+    {
+      "path": "matched-mount-original.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "matched-mount-original.stdout",
+      "bytes": 11051,
+      "sha256": "d03f8140bf1da80f1e5b9b48e4e70d477eeace704ac290b79112d07c0ff7fb04"
+    },
+    {
+      "path": "matched-mount-overlay.json",
+      "bytes": 304,
+      "sha256": "332b6c9acb7fc4364ef1673a58914d2f3111aa5ff65e526a5bce868e6e946d4b"
+    },
+    {
+      "path": "owner-chain.json",
+      "bytes": 20154,
+      "sha256": "276ed8847c97252e8519e465fd9f94d4edac49b6e77b3fd7d406d9ccce8097e3"
+    },
+    {
+      "path": "owner-chain.mjs",
+      "bytes": 3261,
+      "sha256": "575394b1c14ac4737ed580cf54ee97210cbbef13144d22f15dd2fdee3e49ee0b"
+    },
+    {
+      "path": "portable-options-helpers.json",
+      "bytes": 2774,
+      "sha256": "130fdd78718b3e5c9c8db0890597f50b7450ef08d9f99ccd9de262e04998cdd4"
+    },
+    {
+      "path": "portable-options-helpers.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "portable-options-helpers.stdout",
+      "bytes": 3232,
+      "sha256": "1b38765d78975e24c5f5ea5a8ce07d604e33c04389355e446f8cfc2af812f663"
+    },
+    {
+      "path": "portable-options.json",
+      "bytes": 2941,
+      "sha256": "12554ba83c0f6fe89a3597ce57a1e8c16ec5fba2d79d8c1bb34fd40a5e373fe7"
+    },
+    {
+      "path": "portable-options.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "portable-options.stdout",
+      "bytes": 3986,
+      "sha256": "123e009be3c31fae8cb498f7cd76e736a68d067ebab5b9f5ee05c2a071d50f47"
+    },
+    {
+      "path": "portable-plan-resume.json",
+      "bytes": 4464,
+      "sha256": "8f90ce131de3d92bfa20d2a5ace6588e55167af2edef259c7553edc01f2eba5f"
+    },
+    {
+      "path": "portable-plan-resume.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "portable-plan-resume.stdout",
+      "bytes": 10268,
+      "sha256": "9df9c4b372154b8f0170810cc416a21db7c6d8bc745f39764faa7fd35e156c56"
+    },
+    {
+      "path": "portable-transport-controls.json",
+      "bytes": 10028,
+      "sha256": "db4bc0613f550bc2c80d91a203281a998f9022bb97e9de0cddca1ae1c7cdb605"
+    },
+    {
+      "path": "portable-transport-controls.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "portable-transport-controls.stdout",
+      "bytes": 41645,
+      "sha256": "b5a44ca7dc7527d303269b6edbda2ad4077eb8299073d9482a9677410b9b0932"
+    },
+    {
+      "path": "portable-transport.json",
+      "bytes": 10277,
+      "sha256": "95df40958fbd6381a0c410d043d9af3de1c134f03be596f34bc5aba06ce19354"
+    },
+    {
+      "path": "portable-transport.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "portable-transport.stdout",
+      "bytes": 42995,
+      "sha256": "cacb264e7f487eee14d6470bc295f5c0fa60f387f0980f438c0e54214c3783ee"
+    },
+    {
+      "path": "proof-authoring-observations.json",
+      "bytes": 1224,
+      "sha256": "6ced17e507d9286611863039fd84fdf14bc97492941231cec4c939862c47f644"
+    },
+    {
+      "path": "proof.mjs",
+      "bytes": 10659,
+      "sha256": "9094f9f4d0b377f7690fd6b2c528570b6e32b5017db9333c9921392e3007ee17"
+    },
+    {
+      "path": "reconstruct.mjs",
+      "bytes": 3836,
+      "sha256": "f0f1ac64d81b59a5a0217c0afb35ff494de4d9e868ada239a8124bb1b72ad752"
+    },
+    {
+      "path": "source-proof.json",
+      "bytes": 309303,
+      "sha256": "e606388836aa8f9fa7e527fa28f5335a4f2a583c89ec0d21a60a5fa12d933260"
+    },
+    {
+      "path": "unfiltered-options-package-lint.json",
+      "bytes": 2284,
+      "sha256": "a68f2ff4a9a2a4cc98e3fd4cf4ccab7c21b6e62e8ffa178cd93e52dc901a3be4"
+    },
+    {
+      "path": "unfiltered-options-package-lint.stderr",
+      "bytes": 6083,
+      "sha256": "7515b81c039edaf8f5a6aaaf3ac92441aaaf1b474d643940e8437fd89fbd2228"
+    },
+    {
+      "path": "unfiltered-options-package-lint.stdout",
+      "bytes": 3217,
+      "sha256": "1cdb94e8e5cd54df9ce8d99dd40ccd98388c6acd564eea63513d6c8acf9d81b3"
+    },
+    {
+      "path": "validate.json",
+      "bytes": 1970,
+      "sha256": "d5640cfdf4cee23b12ce62a0174d5102bcd0b7fccb775fe6f69077ef8e4b1dd1"
+    },
+    {
+      "path": "validate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "validate.stdout",
+      "bytes": 2162,
+      "sha256": "94478a13122943b5836d1f4f06aa372bf6296fdeb1773ef81e52593918815a3c"
+    }
+  ],
+  "live_commands": [],
+  "lane_release": "All attributable Go/generator/cache commands have terminated; root may take the lane after terminal handover.",
+  "limitations": [
+    "Expanded transport guard failure is fixture-unexecuted native evidence, not a source assertion failure or pass",
+    "Lint is not globally clean: actual task-base diff68, adjacent-base diagnostic80, unfilteredRunner17; function-scoped task2 introduced findings0",
+    "One inherited gofmt separator remains; no policy exemption expanded",
+    "Native Darwin and Linux and full test-host remain fn149/fn128 deferred",
+    "Current source review and task completion belong to conductor",
+    "Task6 reconstruction verifies31 patch images, not all65 manifest entries",
+    "All-tracked digest includes admitted MILESTONES IP drift; exact runtime binding87 justifies narrower reused static proof",
+    "Current mount branch/source byte equality and matched source overlay controls do not constitute a whole-original Runner runtime test"
+  ]
+}

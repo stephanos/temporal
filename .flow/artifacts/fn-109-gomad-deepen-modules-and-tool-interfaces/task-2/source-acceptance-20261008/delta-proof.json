@@ -1,0 +1,639 @@
+{
+  "rows": [
+    {
+      "path": "tools/gomad3/runner/campaign_plan.go",
+      "preimage_sha256": "d3c662b5bbf100ba83b19d782822b0bf12c969b9840a2290bbb2ef457794209b",
+      "postimage_sha256": "971ca267797585c025c37d241daf902ccae9bccf4592fac3e385ab15cd8ad82f",
+      "origin": "git blob ee119daa05",
+      "hunks": 4,
+      "current_sha256": "a3980afd105cab495e1ccd0558dfd9dfc4a5520f059723f06bc62915ace816a1",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.5 retained semantic-owner patch; f608449c016b751a8fd4e19561518e979ebfc31e helper additions via ca334; fn109.26 current CLI presentation restoration fec3ce56e7ea2f1498617148cb2c6d47f1297bc0"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_shard_execution.go",
+      "preimage_sha256": "b1f55723fb00c752771b646c2a2ffab453a7be612be9727644ee0061e804fa1c",
+      "postimage_sha256": "ccab0448e04bdd7ea296b33a1fa862d4f1a1225e1f578d7d75e60eea5c022434",
+      "origin": "git blob a9c3ede008",
+      "hunks": 1,
+      "current_sha256": "afc4efe87e018e1de892d9851c3197a7dbe7d3e76dc85e8b0b60ac5def881a91",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 exact current postimage"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/choice_exploration_campaign.go",
+      "preimage_sha256": "93b38b7342cac5e0cf28eae809a27dfb118e2f28b7baaef918910c08e52a27fe",
+      "postimage_sha256": "97ccab042a548067377f3e751a82b8ccf4026f45d102b673e3224085e3af6958",
+      "origin": "git blob f80da401be",
+      "hunks": 4,
+      "current_sha256": "5744948588413558345e30b479a906baf74d87e3c33c171d15dffd7001ee88fa",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 exact a3 postimage; fn112.16 StoreKeyExecution via 6be0755fef727146f86bac6658436f6874680cc8 / ca334"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/choice_exploration_divergence_test.go",
+      "preimage_sha256": "dd8a49b9909aa2d63661360f9a32a3ea3817988e31f484773bd42284bf765a1f",
+      "postimage_sha256": "741432e6aec336de45616880938749cd3c136a664824abe1740a2f251aaa5c6a",
+      "origin": "git blob 9a3867de3d",
+      "hunks": 1,
+      "current_sha256": "877355a89f2abccf6a18947bdf904ebea62926b53841628d6eb4391ed7fe148d",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 exact current postimage"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator.go",
+      "preimage_sha256": "2b399bdd783bce29d14ff71c9a60c48744aea09079ceb9a67ebb01a0b9006099",
+      "postimage_sha256": "63628a21f6a6e40cad27aca3a969bc020b7bbad293bb6884d1c182f593582b2c",
+      "origin": "git blob 43e869b815",
+      "hunks": 4,
+      "current_sha256": "63628a21f6a6e40cad27aca3a969bc020b7bbad293bb6884d1c182f593582b2c",
+      "current_equals_original": true,
+      "owners": [
+        "task2 exact retained postimage"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator_transport_test.go",
+      "preimage_sha256": "76b5d8992c421e9332097a532940d6fb950b5ef8c4e54ce7bad076bd99304e1f",
+      "postimage_sha256": "9a26fae76be28b3e08792f514d39297a20c777ac3d4a46463c297ea0bd6b3c64",
+      "origin": "git blob d859b41886",
+      "hunks": 4,
+      "current_sha256": "1494b84cbfad58a395ad11904f2d4be26d23530e25062055271ba7e4d0201f21",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 private Executor consumer map migration; exact current postimage"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/evidence.go",
+      "preimage_sha256": "b3119b37e950381a43336fdaef020a06a5a664cafb7deaa4da61fd80da9d8ea9",
+      "postimage_sha256": "05d6b71e29fe8eb3fba4100f74584a16241e6dbd7d4343dd4ce12366a53a3fe4",
+      "origin": "git blob 7343d69114",
+      "hunks": 1,
+      "current_sha256": "05d6b71e29fe8eb3fba4100f74584a16241e6dbd7d4343dd4ce12366a53a3fe4",
+      "current_equals_original": true,
+      "owners": [
+        "task2 exact retained postimage"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/guidance.go",
+      "preimage_sha256": "3df9975230b5fc22d1e3643189ee66b8e9ac7ef366f5c24791e7241f7a7cb036",
+      "postimage_sha256": "35394f9e810dd38a31cc24fac2086b83c5cf107aece7d70dd649208a6b5c081c",
+      "origin": "git blob 9c537aab36",
+      "hunks": 1,
+      "current_sha256": "97e6fdf68dbdf756d2dc61e805ac4db07c5a985113d72119c66766639b9f7b6a",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 private replay execution dependency propagation via a619f541b83728fd9aacfc6f7747300a2d100f91 / ca334"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/minimize_operation.go",
+      "preimage_sha256": "2fbe51ec4591710c4ed2db886e198006e0d7d69f0f927c1659581e4dc27f3e4e",
+      "postimage_sha256": "967b6671bbb0f28ce21a1178b68fe0c9cc9743796dcdc302d6ea4ba4cdd827d6",
+      "origin": "git blob 4a5dcd596f",
+      "hunks": 1,
+      "current_sha256": "758cc37786e21093a9e4c1833eab3feb10e571c2aa9bb029024d52b71359f346",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 retained dependency migration; fn109.12 detached/opened Artifact ownership 3a3c31b0a7b22ab2c669735743d3f1e2d2985bab"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan.go",
+      "preimage_sha256": "7eedba01ebecafebb92f5f2130492df10129880c86da140d17b3a6791fa98c69",
+      "postimage_sha256": "b34f1216f8b11109bae496012b437eb3471d881b9a0e427094764a92bb90e7c2",
+      "origin": "git blob a47bfa69f1",
+      "hunks": 1,
+      "current_sha256": "95112a7c797ef8592c7af6b19fd187e3d55f4daef21cbb4b9720ab770d8bd3ee",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 retained dependency migration; fn109.7 retained preparation owner patch, exact a3/current postimage"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/resume.go",
+      "preimage_sha256": "255f8aee8f7d59d3c1f58215405fdc97995f1fe4b0a6cb41db6a7426e42a8f63",
+      "postimage_sha256": "4e0f4ec6b3faa8948d951b0862eeaa36dc0168d38e682b57cb34a1b8451d461d",
+      "origin": "git blob 9c8f473b82",
+      "hunks": 2,
+      "current_sha256": "e6ad4a35cbb0ee23addce937a88743bc1dfcdde5aea9a9ef726a679105c9269a",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.5 then fn109.6 byte-exact retained chain; fn109.12 detached/opened Artifact ownership 3a3c31b0a7b22ab2c669735743d3f1e2d2985bab"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/retention.go",
+      "preimage_sha256": "7a7425bfe91adc3dbcafa8049709cb38159dd55d1e92fae3ba0fa5bbf6da9918",
+      "postimage_sha256": "3ed085af90aa61a0360c0c8147708a81b95a4e62a059f3102e0e547fdbbb1f6d",
+      "origin": "git blob ad22c53024",
+      "hunks": 1,
+      "current_sha256": "3ed085af90aa61a0360c0c8147708a81b95a4e62a059f3102e0e547fdbbb1f6d",
+      "current_equals_original": true,
+      "owners": [
+        "task2 exact retained postimage"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "preimage_sha256": "a2c93ffe076a60eb8aa407597b78bccdfb4d23c8ee8ce1913b5b25025084a4e5",
+      "postimage_sha256": "358a37dafa538e66b7b02baea2c0c8cff78268fee35f3a0c5cd75d653eee3e0f",
+      "origin": "git blob 1722fd8399",
+      "hunks": 15,
+      "current_sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.3 exact retained pre/post between task2 and task5; fn109.5 then fn109.6 then fn109.7 exact retained chain to a3; ca334 adopts fn109.3 completion constructors from 09c1f3ccaf6d119eb12f998756e95a896e00d672 and fn109.6 replay dependencies; fn112.16 StoreKeyExecution 6be0755fef727146f86bac6658436f6874680cc8"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/simulation_exploration_campaign.go",
+      "preimage_sha256": "c0946a0cb0a778b9244c97d0e05789d961ee64b94f944c8bbedb8df4dee7df32",
+      "postimage_sha256": "c8b5234386bdb01a5059fd3afe06e158df50bc27a66404a59522fc5c5a30c6d7",
+      "origin": "git blob 6f78770190",
+      "hunks": 5,
+      "current_sha256": "190a195c9215a5f7111a84ceb4016e94b8dcad2879a8f10286d33948199fdbfe",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 exact a3 postimage; fn112.16 StoreKeyExecution 6be0755fef727146f86bac6658436f6874680cc8 via ca334"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/retention_test.go",
+      "preimage_sha256": "9505a4bd607df61dd34c63b651e5d154c347e3b49fb74721edb433d34cafe5f8",
+      "postimage_sha256": "76e634f98998d8479c38daaa38249906bdc514451b6d4e205183bd470e7738a7",
+      "origin": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/parent-verified-preimages/retention_test.go",
+      "hunks": 1,
+      "current_sha256": "35a5599194d809a364751743318dc3c9e7304810bbeb8fd819e69dc8d3f14194",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 exact a3 postimage; fn112.16 stronger disk/journal counts 6be0755fef727146f86bac6658436f6874680cc8 via ca334; fn109.12 opened Artifact methods 3a3c31b0a7b22ab2c669735743d3f1e2d2985bab"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "preimage_sha256": "1afc4bd5251b9c09e24e6fc64867ef926787f8956712371268f1e4be63e8461a",
+      "postimage_sha256": "e66828ed56f98a0776ef5573660c57ec85157dbba7082dd4d34faecb7bfed519",
+      "origin": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/parent-verified-preimages/runner_test.go",
+      "hunks": 2,
+      "current_sha256": "7cb8fe0f7cd3abed0ed244b04254d8793ad606eb01e9bde8278e739a7b3432d8",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.6 exact a3 postimage; fn109.12 opened Artifact methods 3a3c31b0a7b22ab2c669735743d3f1e2d2985bab; fn112.9 table consolidation ebc5ea1e099777c9a3bda922666c200e56c9540e"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_options.go",
+      "preimage_sha256": null,
+      "postimage_sha256": "aa62b1252f33a4f64dd8eba0c1f553567c0faa2791c54aac48c4ec0487539d06",
+      "origin": "new file",
+      "hunks": 1,
+      "current_sha256": "7f2eb52921e6aaf2f34d5f3ec9da79b83979627dd45bf40e57f2e9400862aeb0",
+      "current_equals_original": false,
+      "owners": [
+        "fn109.5 then fn109.6 exact retained chain to a3; ca334 retains request slice/pointer ownership from rebased fn109.2 normalization implementation 7fe6c833c0f03b46d9b2876d9f6a1b59d5f7c2ac; current normalization test mutates original lists to enforce isolation"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_options_characterization_test.go",
+      "preimage_sha256": null,
+      "postimage_sha256": "6d6e90c1c3cd22eabeaf6a92f6b1d90e38abd7d9ed8fb2005f9f2f287fd3b429",
+      "origin": "new file",
+      "hunks": 1,
+      "current_sha256": "a6cf58f682d74b7471b6860e64e715fcbf1529bb1367c0aeed3dd143e4ededef",
+      "current_equals_original": false,
+      "owners": [
+        "ca3345469a2541b7686606268b0f19cde030a8fe merge resolution adds only host-/tmp five-line adjustment; all other source byte-equal to retained task2 postimage"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/testdata/campaign-options-before.json",
+      "preimage_sha256": null,
+      "postimage_sha256": "642ca4a6ca8db5a8b95ccde6bb551d0529ff71ea7ca60f5050e247d7f60560e6",
+      "origin": "new file",
+      "hunks": 1,
+      "current_sha256": "642ca4a6ca8db5a8b95ccde6bb551d0529ff71ea7ca60f5050e247d7f60560e6",
+      "current_equals_original": true,
+      "owners": [
+        "task2 exact retained postimage"
+      ]
+    },
+    {
+      "path": "tools/gomad3/runner/testdata/campaign-options-request-after.json",
+      "preimage_sha256": null,
+      "postimage_sha256": "d4304f340aec4c2da604fc419b0cbfc5afa34e4a45a4247547a6a93bd80b6ce1",
+      "origin": "new file",
+      "hunks": 1,
+      "current_sha256": "d4304f340aec4c2da604fc419b0cbfc5afa34e4a45a4247547a6a93bd80b6ce1",
+      "current_equals_original": true,
+      "owners": [
+        "task2 exact retained postimage"
+      ]
+    }
+  ],
+  "runner_task3_post_sha256": "157eb0abf82c8191253c46991bdecbcd073fd80fe3ab8ba9e141bd388c48fe1f",
+  "preparation_chain": [
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "task6_sha256": "38cc9fcb0a3b45b219c8f23f00896e5df5c0b988fce28ba3fed4ab6ddd41e214",
+      "task7_sha256": "c257c5ee5f299e7b2dc1fec54a42918ec535291c8de67912e949bc6a0c94d2cf",
+      "equals_integrated_a3": true,
+      "equals_current": false
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan.go",
+      "task6_sha256": "afd6c68a7346a006de85ecf17cb00d522ec7f4599f75fb7447981769502f32d0",
+      "task7_sha256": "95112a7c797ef8592c7af6b19fd187e3d55f4daef21cbb4b9720ab770d8bd3ee",
+      "equals_integrated_a3": true,
+      "equals_current": true
+    }
+  ],
+  "private_options_groups": [
+    {
+      "name": "campaignOptions",
+      "original_sha256": "8ad1bba9fddffc78408b9cd67379976c61ae896b6440d9b8952dcde7e7b01b89",
+      "current_sha256": "8ad1bba9fddffc78408b9cd67379976c61ae896b6440d9b8952dcde7e7b01b89",
+      "identical": true
+    },
+    {
+      "name": "campaignIdentityOptions",
+      "original_sha256": "1d276c9e2fe3f6bd21bfb86351bc2e0805c6475219174f2645138aa1119ad037",
+      "current_sha256": "1d276c9e2fe3f6bd21bfb86351bc2e0805c6475219174f2645138aa1119ad037",
+      "identical": true
+    },
+    {
+      "name": "campaignTargetOptions",
+      "original_sha256": "dd6b8e97efe9c1e97022eacf194d4a456de1377a1f74885cb58d6db1ce73f8b2",
+      "current_sha256": "dd6b8e97efe9c1e97022eacf194d4a456de1377a1f74885cb58d6db1ce73f8b2",
+      "identical": true
+    },
+    {
+      "name": "campaignSearchOptions",
+      "original_sha256": "cfa7b614b126206732820dcfd21fc2aa2735887ab18ac2677a58e51ce703d6d8",
+      "current_sha256": "cfa7b614b126206732820dcfd21fc2aa2735887ab18ac2677a58e51ce703d6d8",
+      "identical": true
+    },
+    {
+      "name": "campaignResourceOptions",
+      "original_sha256": "6505c14893607f85cb710fe674c2f1aec14ae6ff7c864db2e462d95c4dedaa5d",
+      "current_sha256": "6505c14893607f85cb710fe674c2f1aec14ae6ff7c864db2e462d95c4dedaa5d",
+      "identical": true
+    },
+    {
+      "name": "campaignObservationOptions",
+      "original_sha256": "ffcb49fb9b35056d80427ff056b9f01bcc93caf2be871cb148236d8ff90c7ec7",
+      "current_sha256": "ffcb49fb9b35056d80427ff056b9f01bcc93caf2be871cb148236d8ff90c7ec7",
+      "identical": true
+    },
+    {
+      "name": "campaignRetentionOptions",
+      "original_sha256": "6aa920b8380c0c6096798ccd1eb6c5bd66c823d28fd6216cfee2fd833873417d",
+      "current_sha256": "6aa920b8380c0c6096798ccd1eb6c5bd66c823d28fd6216cfee2fd833873417d",
+      "identical": true
+    },
+    {
+      "name": "campaignGuidanceOptions",
+      "original_sha256": "69f2197948b10f48cb8021a4ef5fd8b36337de557a5ea548505cdb2f31a8001b",
+      "current_sha256": "69f2197948b10f48cb8021a4ef5fd8b36337de557a5ea548505cdb2f31a8001b",
+      "identical": true
+    }
+  ],
+  "matched_mount": {
+    "original_branch_sha256": "9b30e9a2d8cf4c910908c16d43ea40d0c7ccb0c24a512e8f6ef0119fc799d3b7",
+    "current_branch_sha256": "9b30e9a2d8cf4c910908c16d43ea40d0c7ccb0c24a512e8f6ef0119fc799d3b7",
+    "branch_byte_identical": true,
+    "order": "ParseMappings (Lstat directory/symlink refusal) before Prepare/validateLimits",
+    "files": [
+      {
+        "path": "tools/gomad3/deterministicio/readonlymount/config.go",
+        "sha256": "bb6c04a25b7c6c2ecb2519e55517d75b19596bd503a26d71ec4697eeb9c5e72d",
+        "bytes": 1972,
+        "original_base_sha256": "bb6c04a25b7c6c2ecb2519e55517d75b19596bd503a26d71ec4697eeb9c5e72d",
+        "identical": true
+      },
+      {
+        "path": "tools/gomad3/deterministicio/readonlymount/capture.go",
+        "sha256": "2c59456f395472f01c7b7bfaddeca2be50f82f7667b7e09d4d68fb9ecd744784",
+        "bytes": 11189,
+        "original_base_sha256": "2c59456f395472f01c7b7bfaddeca2be50f82f7667b7e09d4d68fb9ecd744784",
+        "identical": true
+      }
+    ],
+    "tmp_identity": {
+      "mode": 17407,
+      "is_directory": true,
+      "is_symlink": false
+    },
+    "host_adjustment": {
+      "commit": "ca3345469a2541b7686606268b0f19cde030a8fe",
+      "original_test_sha256": "6d6e90c1c3cd22eabeaf6a92f6b1d90e38abd7d9ed8fb2005f9f2f287fd3b429",
+      "current_test_sha256": "a6cf58f682d74b7471b6860e64e715fcbf1529bb1367c0aeed3dd143e4ededef",
+      "only_delta": "\t\tif want.Name == \"mount-limits\" {\n\t\t\tif source, err := os.Lstat(\"/tmp\"); err == nil && source.IsDir() {\n\t\t\t\twant.Error = \"read-only mount limits must be positive\"\n\t\t\t}\n\t\t}\n",
+      "fixture_edit": false,
+      "waiver": false,
+      "scope": "Matched filesystem type preserves exact validation source and precedence. Historical Darwin symlink error and Linux directory limits error are not claimed byte-equal."
+    },
+    "receipts": [
+      {
+        "label": "matched-mount-original",
+        "argv": [
+          "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+          "-C",
+          "tools/gomad3",
+          "test",
+          "-count=1",
+          "-json",
+          "-tags",
+          "test_dep",
+          "-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/matched-mount-overlay.json",
+          "-run",
+          "^(TestParseMappingsNormalizesSourcesAndTargets|TestParseMappingsRejectsUnsafeOrOverlappingMappings|TestParseMappingsRejectsNonDirectoryAndSymlinkRoots|TestCaptureEnforcesLimitsBeforePublishingEntry)$",
+          "./deterministicio/readonlymount"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+        "environment": {
+          "GOENV": "off",
+          "GOWORK": "off",
+          "GOTOOLCHAIN": "local",
+          "GOFLAGS": "",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOMAXPROCS": "2",
+          "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        },
+        "removed_environment": [
+          "GOROOT",
+          "GOMADSEED",
+          "GOMAD3_CHILD_SEED",
+          "GOMAD3_SEED",
+          "GOMAD3_CAPTURE_OPTIONS_BASELINE",
+          "GOMAD3_CAPTURE_OPTIONS_AFTER"
+        ],
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T10:42:42.938Z",
+        "ended": "2026-10-08T10:42:43.129Z",
+        "elapsed_seconds": 0.191,
+        "sources_before_sha256": "2f7a622132d11444f9df8ba535ab3dc1891282af1e28bf34495b374c8073caf8",
+        "sources_after_sha256": "2f7a622132d11444f9df8ba535ab3dc1891282af1e28bf34495b374c8073caf8",
+        "source_changes": [],
+        "stdout_sha256": "d03f8140bf1da80f1e5b9b48e4e70d477eeace704ac290b79112d07c0ff7fb04",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tool_sha256": {
+          "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+          "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+        },
+        "tests": [
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestCaptureEnforcesLimitsBeforePublishingEntry",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsNormalizesSourcesAndTargets",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/missing_equals",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/empty_source",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/target_traversal",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/target_root",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/duplicate",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/nested",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsNonDirectoryAndSymlinkRoots",
+            "action": "pass"
+          }
+        ],
+        "top_level_counts": {
+          "pass": 4,
+          "fail": 0,
+          "skip": 0
+        }
+      },
+      {
+        "label": "matched-mount-current",
+        "argv": [
+          "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+          "-C",
+          "tools/gomad3",
+          "test",
+          "-count=1",
+          "-json",
+          "-tags",
+          "test_dep",
+          "-run",
+          "^(TestParseMappingsNormalizesSourcesAndTargets|TestParseMappingsRejectsUnsafeOrOverlappingMappings|TestParseMappingsRejectsNonDirectoryAndSymlinkRoots|TestCaptureEnforcesLimitsBeforePublishingEntry)$",
+          "./deterministicio/readonlymount"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+        "environment": {
+          "GOENV": "off",
+          "GOWORK": "off",
+          "GOTOOLCHAIN": "local",
+          "GOFLAGS": "",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOMAXPROCS": "2",
+          "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        },
+        "removed_environment": [
+          "GOROOT",
+          "GOMADSEED",
+          "GOMAD3_CHILD_SEED",
+          "GOMAD3_SEED",
+          "GOMAD3_CAPTURE_OPTIONS_BASELINE",
+          "GOMAD3_CAPTURE_OPTIONS_AFTER"
+        ],
+        "exit": 0,
+        "signal": null,
+        "error": null,
+        "started": "2026-10-08T10:43:13.991Z",
+        "ended": "2026-10-08T10:43:14.137Z",
+        "elapsed_seconds": 0.146,
+        "sources_before_sha256": "2f7a622132d11444f9df8ba535ab3dc1891282af1e28bf34495b374c8073caf8",
+        "sources_after_sha256": "2f7a622132d11444f9df8ba535ab3dc1891282af1e28bf34495b374c8073caf8",
+        "source_changes": [],
+        "stdout_sha256": "a386c8ac3e08e5b6494b36f212e6390934cb45c122e12756a9718e578031988d",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tool_sha256": {
+          "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+          "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+        },
+        "tests": [
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestCaptureEnforcesLimitsBeforePublishingEntry",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsNormalizesSourcesAndTargets",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/missing_equals",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/empty_source",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/target_traversal",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/target_root",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/duplicate",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings/nested",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsUnsafeOrOverlappingMappings",
+            "action": "pass"
+          },
+          {
+            "package": "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount",
+            "test": "TestParseMappingsRejectsNonDirectoryAndSymlinkRoots",
+            "action": "pass"
+          }
+        ],
+        "top_level_counts": {
+          "pass": 4,
+          "fail": 0,
+          "skip": 0
+        }
+      }
+    ],
+    "limitation": "Two runs exercise original byte-bound parser overlay and current parser with current tests; capture/limits source and Runner mount branch are exactly original bytes. This is not whole-original Runner execution or native evidence."
+  },
+  "references": [
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/task-only.patch",
+      "sha256": "52705d516b65c4ce03ec2fdf3f276e64456c4713d3140480b086ddd0265c153b",
+      "bytes": 19857
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-pre.json",
+      "sha256": "c8afd42c12237f9b06e77c5e4cb7b18e52b67e50ad43ea7e97f87301cda1e2b4",
+      "bytes": 471
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/source-post.json",
+      "sha256": "2a4529356cace8a264c18c44c46cd53a2f069d234d4db35cccfacb784289bb42",
+      "bytes": 605
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/task-only.patch",
+      "sha256": "8421c95c2d359130d14664b94181756ee1f8be4035a62eb41d8791c285613cb8",
+      "bytes": 24180
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages.json",
+      "sha256": "69bd760e751ebf55938e60f424ca6f9bf6ead2341e6d1c86df33f46488403e36",
+      "bytes": 2325
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/final-source.json",
+      "sha256": "f251e950664afe7ae2f64b498b4afcc00ae040823b08798fd86bd4c6abdd422a",
+      "bytes": 1306
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/task-only.patch",
+      "sha256": "a0f0b6c5c3b5963740b0aaab28f66d2f2d97b91ed972d16cfbe20266f670ffda",
+      "bytes": 35518
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/final-source.json",
+      "sha256": "1fed1368fe7b4dcce55d8160fbed671e4d1011b6c1903981beeb46600f91df32",
+      "bytes": 4498
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/task-only.patch",
+      "sha256": "c2d1f412be6b644540a07b713c6548023f29668ee53893484a5688366ebe36c5",
+      "bytes": 169599
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/final-source.json",
+      "sha256": "1f1f5a8fd13ce9f3501a8b0816dda3db5b2f006e56cb051e0c45bd2ecafddd35",
+      "bytes": 8730
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/source-checkpoint-verification.json",
+      "sha256": "5eddb7c6b9aa3c86d27bf4c2b2df6e560536d2fd347eaf58940a267c1dc6d1cb",
+      "bytes": 3051
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md",
+      "sha256": "f311c315800857f814dcbf1f1e7445f19df9ae4e5b4da6f8c7da1065399f324c",
+      "bytes": 33608
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/resume_plan.go",
+      "sha256": "7287a4d6b70cab19914761ecada32e52fe5f5a367f849e0b211e0ecdba8c1832",
+      "bytes": 19402
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan.go",
+      "sha256": "95112a7c797ef8592c7af6b19fd187e3d55f4daef21cbb4b9720ab770d8bd3ee",
+      "bytes": 15478
+    }
+  ],
+  "native_qualification": false,
+  "review_verdict": null
+}

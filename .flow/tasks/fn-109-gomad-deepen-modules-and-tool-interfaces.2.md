@@ -4,7 +4,6 @@ satisfies: [R1]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.2 Give local and isolated campaigns one normalized options owner
 
 ## Description
-
 Source-work resumption (2026-10-07). The owner requested unblocking and completing the source tasks on the current gomad branch. This task returns to todo for its retained source work, with all dependency/admission and acceptance requirements preserved except the expressly scoped owner decisions in [source-unblocking-20261007/owner-decisions.md](../artifacts/source-unblocking-20261007/owner-decisions.md). Historical Done summary and Evidence below retain their original provenance; current lifecycle status comes from flowctl. Native qualification remains deferred under fn-128/fn-149 and is not revived by this resumption.
 
 
@@ -18,7 +17,7 @@ Stage 1, second half of R1 (F1 options ownership). After task 1 the transport is
 
 **Size:** M
 **Files:** `tools/gomad3/runner/runner.go` (`CampaignSpec` `:126-177`, `validateConfig` `:1194-1404`), `runner/coordinator.go`, `runner/resume.go:91-110`, `runner/campaign_plan.go:40-50`, `runner/campaign_shard_execution.go:80-95`, a new private options file and its test.
-**Touches:** [tools/gomad3/runner/*.go]
+**Touches:** [`.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/**`] (current acceptance evidence only; original implementation scope remains the Runner paths listed above)
 
 ### Approach
 - One private serializable options value grouped by invariant (target intent, search settings, resource limits, observation, retention). Callbacks (`Progress`), injected dependencies (`Preparer`, `Executor`, `Replayer`), resolved child commands (`SupervisorCommand`, `CoordinatorCommand`), `RunnerBuild` and private resume state stay outside it.
@@ -50,6 +49,14 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
+### Current retained-source acceptance admission (2026-10-08)
+
+Retain the already-integrated options implementation; no product rewrite is admitted. The source reassessment in blocked-reevaluation-bc548110b9/campaign.md identifies locally executable acceptance work. Formal dependency fn-109.1 and external fn-108.5/.6 are Done and verified at admission. Re-anchor the original implementation and all20 original postimage paths against current bodies, attributing later approved changes to their actual owners; do not substitute a later tree for the first baseline. Preserve both original fixture files and all75 actually executed characterization rows plus the separately reconstructed76th row, exact new request bytes, errors/order/defaults, decoding refusals, independent recorded plan/resume schemas, and the original public contract at its implementation boundary. Later public/API/behavior changes require their original owner provenance, not a blanket waiver. Obtain current portable coverage, generator validation, both-supported-source-set static input bindings, task-owned lint and preservation evidence. Only fn-114.11/.12 approved migrations and the exact two fn-109.28 panic sites receive the dated exceptions; every other policy rule remains intact. Scope write access to this evidence directory. Report any uncovered product deficit before expanding it. No fixture recapture, platform shim, guarded-runtime bypass, native pass, PR, push or CI action is admitted. Root owns lifecycle, MILESTONES, Git and source review; the evidence worker owns the sole serialized Go/generator lane and returns terminal handover/evidence files without review/completion.
+
+
+### Current source review context
+
+Review the integrated R1 implementation and original/owned migration chain, not merely the evidence-only diff. Read [source-review-context.md](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/source-acceptance-20261008/source-review-context.md), frozen evidence, the original complete task-only patch/postimages and current Runner/coordinator/recorded-plan/CLI consumers. Root independently reran71 portable tests, generated-output validation and configured errortype with stable source; root-verification.mjs checks those exact receipts. Broad68/80 and unfilteredRunner17 lint findings stay unwaived with their owners; there is no task2-introduced finding. Native/full-host evidence is transferred, not fulfilled. No new preservation exception is proposed.
 ## Acceptance
 
 

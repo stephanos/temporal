@@ -1,0 +1,679 @@
+{
+  "scope": "actual unfiltered configured ./runner diagnostic; no broad/global pass",
+  "findings": [
+    {
+      "path": "tools/gomad3/runner/campaign.go",
+      "line": 11,
+      "column": 4,
+      "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+      "rule": "forbidigo",
+      "source_sha256": "f76d2c59da4fc899587c5ef4f048cecdde608589cd332dd85d0ee149a93d83e9",
+      "line_sha256": "01f4e783f780ac7d2fe50f7e19548c9c4c3d7db05a362c0f2e31b0fb356e3afb",
+      "line_body": "\t\t\tpanic(\"gomad3: duplicate execution completion\")",
+      "blame_commit": "53c5cebc9076bdbb439a36b7fa78cc02bc051ab9",
+      "blame_summary": "wip",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func orderShardRunCompletions(selection SeedSelection, shard CampaignShard, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {",
+        "start": 5,
+        "end": 35,
+        "sha256": "175e32b5d609ab6a53d45b8e0491327681d4828b10363447348ea111d7361e9b"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/campaign.go",
+      "line": 25,
+      "column": 3,
+      "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+      "rule": "forbidigo",
+      "source_sha256": "f76d2c59da4fc899587c5ef4f048cecdde608589cd332dd85d0ee149a93d83e9",
+      "line_sha256": "ad791ef580c54314a8312cabbddc974c4168316122fa957025a2a94a01bc0afa",
+      "line_body": "\t\tpanic(\"gomad3: execution completion order has an unresolved gap\")",
+      "blame_commit": "53c5cebc9076bdbb439a36b7fa78cc02bc051ab9",
+      "blame_summary": "wip",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func orderShardRunCompletions(selection SeedSelection, shard CampaignShard, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {",
+        "start": 5,
+        "end": 35,
+        "sha256": "175e32b5d609ab6a53d45b8e0491327681d4828b10363447348ea111d7361e9b"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/choice_exploration_divergence_test.go",
+      "line": 234,
+      "column": 5,
+      "message": "missing cases in switch of type choice.DivergenceReason: choice.DivergenceAlternativeSet, choice.DivergenceTapeExhausted, choice.DivergenceIdentityMissing, choice.DivergenceIdentityDuplicate, choice.DivergenceAlternativeCapacity, choice.DivergenceObservation",
+      "rule": "exhaustive",
+      "source_sha256": "877355a89f2abccf6a18947bdf904ebea62926b53841628d6eb4391ed7fe148d",
+      "line_sha256": "09ab813290db9bd24ee787da14f5844be5dae4ca969080a242d2a194b6af29b0",
+      "line_body": "\t\t\t\tswitch reason {",
+      "blame_commit": "df2642da2681b8f677797ec34a8b888530cb2421",
+      "blame_summary": "gomad: strengthen determinism checks and retain replay divergence evidence",
+      "in_original_twenty_paths": true,
+      "statement_in_original_preimage": true,
+      "statement_in_original_postimage": true,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {",
+        "start": 225,
+        "end": 262,
+        "sha256": "2842fe59747282baf6e1e791e0341b0b6a0c9d9bbde8206745d2b2992cb86b6a"
+      },
+      "introduced_by_task2": false,
+      "original_preimage_function": {
+        "signature": "func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {",
+        "span_start": 225,
+        "span_end": 262,
+        "line": 234,
+        "context": "\t\t\t\t\td.Observed.AlternativeSetDigest = d.Expected.AlternativeSetDigest\n\t\t\t\t}\n\t\t\t\tswitch reason {\n\t\t\t\tcase choice.DivergenceKind:\n\t\t\t\t\td.Observed.Kind = choice.KindSelectPoll"
+      },
+      "original_postimage_function": {
+        "signature": "func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {",
+        "span_start": 225,
+        "span_end": 262,
+        "line": 234,
+        "context": "\t\t\t\t\td.Observed.AlternativeSetDigest = d.Expected.AlternativeSetDigest\n\t\t\t\t}\n\t\t\t\tswitch reason {\n\t\t\t\tcase choice.DivergenceKind:\n\t\t\t\t\td.Observed.Kind = choice.KindSelectPoll"
+      },
+      "unchanged_original_finding_context_sha256": "67ab7f8b03ed0a273a5652a0ffc146f92a4dd34a2f00fb9ed4260bab27dd4704",
+      "original_postimage_line_added_by_task2": false,
+      "task2_hunks": [
+        {
+          "header": "@@ -170,7 +170,7 @@ func TestProcessExplorationCompletionKeepsRunnerDomainFallback(t *testing.T) {",
+          "post_start": 170,
+          "post_count": 7
+        }
+      ],
+      "proof": "Unique location inside matching owning function; exact pre/post five-line context unchanged and postimage line is not an added patch line. Current function and actual blame/source hashes are separately bound."
+    },
+    {
+      "path": "tools/gomad3/runner/choice_exploration_divergence_unix_test.go",
+      "line": 60,
+      "column": 19,
+      "message": "Error return value of `input.Close` is not checked",
+      "rule": "errcheck",
+      "source_sha256": "2c8ae1c3db794af0388ee6c738e9d173830217f370d32d9adad839c0b3b7e406",
+      "line_sha256": "b09af734e061b2bb3f3f7a4f41723a09d0df8b00168b78aee351f769eb5b3e0e",
+      "line_body": "\tdefer input.Close()",
+      "blame_commit": "df2642da2681b8f677797ec34a8b888530cb2421",
+      "blame_summary": "gomad: strengthen determinism checks and retain replay divergence evidence",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func TestRunChoiceExplorationKilledAfterDivergenceResumesSameState(t *testing.T) {",
+        "start": 47,
+        "end": 144,
+        "sha256": "36572dc0ccf20a2b54a1d195745e42ee6af329ee82d16c74a10ab1c6a7294c6b"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/completion.go",
+      "line": 39,
+      "column": 10,
+      "message": "ST1005: error strings should not be capitalized",
+      "rule": "staticcheck",
+      "source_sha256": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5",
+      "line_sha256": "c6024d8fb8982ea07359c08e627610eca476c5e5c2e0d3e1565a453fcaab5424",
+      "line_body": "\t\t\terr = fmt.Errorf(\"World record seed or schema does not match seed %d\", seed)",
+      "blame_commit": "b5cff8435f2f48a360dfbd2b2b851112c2560619",
+      "blame_summary": "gomad: share completion assessment and retention owners, trim dead code, record D17/D19/D20 findings",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func assessWorld(result execution.Result, seed, transitionLimit uint64) (execution.Bundle, error) {",
+        "start": 25,
+        "end": 48,
+        "sha256": "1dacb671fddaeae4807ee4265d96ef92d429714f128bff1281973115a20d7f00"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/completion_characterization_test.go",
+      "line": 95,
+      "column": 2,
+      "message": "missing cases in switch of type runner.Strategy: runner.StrategySeed",
+      "rule": "exhaustive",
+      "source_sha256": "e733fed7ad2349f849ab0efc8d0671b09f5e353e259dd967f46083ce7939032c",
+      "line_sha256": "71cef1557ec8022ab9d6981900efe9c805ea8a857740b72b8493f4b4ddbfc9e5",
+      "line_body": "\tswitch strategy {",
+      "blame_commit": "b5cff8435f2f48a360dfbd2b2b851112c2560619",
+      "blame_summary": "gomad: share completion assessment and retention owners, trim dead code, record D17/D19/D20 findings",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (CampaignSpec, faultExecutor, executionDependencies) {",
+        "start": 71,
+        "end": 109,
+        "sha256": "936dedead1096249dcb1cc55543f04872b1dd8ecad24d3203d3be68f9ea1cd6a"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/diagnostics_test.go",
+      "line": 133,
+      "column": 20,
+      "message": "Error return value of `opened.Close` is not checked",
+      "rule": "errcheck",
+      "source_sha256": "4bfb2f407daaea06ada578c9703f7cfb1b863799a102436159107562f470a237",
+      "line_sha256": "1333a492a4c322041880f3b19d593c176a6079a9dea016ca2414519912d7cca6",
+      "line_body": "\tdefer opened.Close()",
+      "blame_commit": "df2642da2681b8f677797ec34a8b888530cb2421",
+      "blame_summary": "gomad: strengthen determinism checks and retain replay divergence evidence",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func TestDiagnosticArtifactReplaysWithoutCollectingSidecar(t *testing.T) {",
+        "start": 114,
+        "end": 147,
+        "sha256": "49ea261aa7a9d6f350727262190fc6729fc09f6c5ae3119b26306ffab8001ab3"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/inspect.go",
+      "line": 401,
+      "column": 21,
+      "message": "Error return value of `opened.Close` is not checked",
+      "rule": "errcheck",
+      "source_sha256": "731851e8e3fda15a39734df3b0470aa3200f565d4743287b2098093ebfc34822",
+      "line_sha256": "65e48b04b3f0ac2e805549e2aa9ebc9e04a647f79f07b57cce981730b6238537",
+      "line_body": "\t\tdefer opened.Close()",
+      "blame_commit": "3fb5cb4210940e6c73c28f2d5389bd95ae49970d",
+      "blame_summary": "Refactor Gomad v3 package architecture",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func Inspect(path string, options InspectOptions) (Inspection, error) {",
+        "start": 361,
+        "end": 459,
+        "sha256": "e435361dec05517f2b12ebd2337e7561625ce0aaa86a175b123ae740242b681a"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/inspect.go",
+      "line": 638,
+      "column": 3,
+      "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+      "rule": "forbidigo",
+      "source_sha256": "731851e8e3fda15a39734df3b0470aa3200f565d4743287b2098093ebfc34822",
+      "line_sha256": "41ccca7270daaee9ecb5eccad9580e077537336a7e4e8db3eaf4bf75aa1c4634",
+      "line_body": "\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d\", kind))",
+      "blame_commit": "3fb5cb4210940e6c73c28f2d5389bd95ae49970d",
+      "blame_summary": "Refactor Gomad v3 package architecture",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func choiceKind(kind choice.Kind) string {",
+        "start": 629,
+        "end": 641,
+        "sha256": "803ef977f93044f9faea28ef6bf784df4cf2d24651d5fcc763b8e10e1b5f5e6e"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/inspect_test.go",
+      "line": 121,
+      "column": 21,
+      "message": "Error return value of `journal.Close` is not checked",
+      "rule": "errcheck",
+      "source_sha256": "3e03ebe6af28cacc3b40bc5c89fd1d688aedb6b2d486814501360231f640834b",
+      "line_sha256": "6e85eef968310dadd15374051440d50961bd439c0fc286b85eac5d2cff12eb89",
+      "line_body": "\tdefer journal.Close()",
+      "blame_commit": "3fb5cb4210940e6c73c28f2d5389bd95ae49970d",
+      "blame_summary": "Refactor Gomad v3 package architecture",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func TestOpenReportsValidatedBatchRuns(t *testing.T) {",
+        "start": 114,
+        "end": 141,
+        "sha256": "5a4bb47c9d45d87999d0c3c5b4d67368b47a27a0ac25a6780f8ef8426522bb1a"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/inspect_test.go",
+      "line": 247,
+      "column": 21,
+      "message": "Error return value of `journal.Close` is not checked",
+      "rule": "errcheck",
+      "source_sha256": "3e03ebe6af28cacc3b40bc5c89fd1d688aedb6b2d486814501360231f640834b",
+      "line_sha256": "6e85eef968310dadd15374051440d50961bd439c0fc286b85eac5d2cff12eb89",
+      "line_body": "\tdefer journal.Close()",
+      "blame_commit": "3fb5cb4210940e6c73c28f2d5389bd95ae49970d",
+      "blame_summary": "Refactor Gomad v3 package architecture",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func TestOpenReportsAndValidatesRetainedSuccessfulRuns(t *testing.T) {",
+        "start": 240,
+        "end": 277,
+        "sha256": "a6dcdd70e405f026c11fa7d122071d045ce373c51b4ad894238d26b7ad9d15f3"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/replay_operation.go",
+      "line": 483,
+      "column": 15,
+      "message": "ST1005: error strings should not be capitalized",
+      "rule": "staticcheck",
+      "source_sha256": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49",
+      "line_sha256": "5b624795347dcf07ad98cdbaba50e1b381bdb986de360c96f9e88127daa7b985",
+      "line_body": "\t\treturn nil, fmt.Errorf(\"World seed does not match target seed\")",
+      "blame_commit": "3a3c31b0a7b22ab2c669735743d3f1e2d2985bab",
+      "blame_summary": "gomad: separate detached Artifact references from owned opened handles",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn109.12 originating Artifact-handle owner; aggregate fn109.21",
+      "waived": false,
+      "current_function": {
+        "signature": "func preflight(config ReplaySpec) (_ *artifact.Opened, retErr error) {",
+        "start": 429,
+        "end": 511,
+        "sha256": "1608df2f1e086352b44eeb14c627544e4d4e159f1814938a01648b34e9d74d23"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/retention_characterization_test.go",
+      "line": 750,
+      "column": 20,
+      "message": "Error return value of `opened.Close` is not checked",
+      "rule": "errcheck",
+      "source_sha256": "c15ef7442ea3e41ac360608aa113fbb1e0cd508855d37294e965f4da0f36a9c1",
+      "line_sha256": "1333a492a4c322041880f3b19d593c176a6079a9dea016ca2414519912d7cca6",
+      "line_body": "\tdefer opened.Close()",
+      "blame_commit": "b5cff8435f2f48a360dfbd2b2b851112c2560619",
+      "blame_summary": "gomad: share completion assessment and retention owners, trim dead code, record D17/D19/D20 findings",
+      "in_original_twenty_paths": false,
+      "statement_in_original_preimage": false,
+      "statement_in_original_postimage": false,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func (replayer *replayRecorder) Replay(_ context.Context, config ReplaySpec) (ReplayResult, error) {",
+        "start": 743,
+        "end": 760,
+        "sha256": "aba9ded25d4b4b5cc08a77ab17f8d6c116ebfe3892f10b6b98d4918ca23715c0"
+      },
+      "introduced_by_task2": false,
+      "proof": "Path is outside all20 original patch headers; no task2 edit at this finding",
+      "task2_hunks": []
+    },
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "line": 1189,
+      "column": 33,
+      "message": "ST1005: error strings should not be capitalized",
+      "rule": "staticcheck",
+      "source_sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b",
+      "line_sha256": "66d465c22fb72582b8aa8e05ec17ef4f8d0698edb104c877516bb7ca34246b99",
+      "line_body": "\t\t\treturn SeedSelection{}, nil, fmt.Errorf(\"Runner build identity is required for campaign resume\")",
+      "blame_commit": "2f0cd2754bc0ac4ddcd6c9305c2a05d57cfe9301",
+      "blame_summary": "Reorganize GOMADv3 architecture",
+      "in_original_twenty_paths": true,
+      "statement_in_original_preimage": true,
+      "statement_in_original_postimage": true,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.Environment, error) {",
+        "start": 1183,
+        "end": 1390,
+        "sha256": "29ece37451c16d4a6e30e3fd754f5d381f6291a1966c0d25b72bcc608ecc7384"
+      },
+      "introduced_by_task2": false,
+      "original_preimage_function": {
+        "signature": "func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, error) {",
+        "span_start": 1162,
+        "span_end": 1385,
+        "line": 1168,
+        "context": "\t\t}\n\t\tif config.RunnerBuild == \"\" {\n\t\t\treturn SeedSelection{}, nil, fmt.Errorf(\"Runner build identity is required for campaign resume\")\n\t\t}\n\t\tif config.Executor == nil && len(config.SupervisorCommand) == 0 {"
+      },
+      "original_postimage_function": {
+        "signature": "func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.Environment, error) {",
+        "span_start": 1165,
+        "span_end": 1385,
+        "line": 1171,
+        "context": "\t\t}\n\t\tif config.RunnerBuild == \"\" {\n\t\t\treturn SeedSelection{}, nil, fmt.Errorf(\"Runner build identity is required for campaign resume\")\n\t\t}\n\t\tif config.Executor == nil && len(config.SupervisorCommand) == 0 {"
+      },
+      "unchanged_original_finding_context_sha256": "47acc86cf9463606a7677cda6de75290e2f91fdc4cc68c71cfd0bb222b14cdc8",
+      "original_postimage_line_added_by_task2": false,
+      "task2_hunks": [
+        {
+          "header": "@@ -371,25 +371,22 @@ type runJournalFactory interface {",
+          "post_start": 371,
+          "post_count": 22
+        },
+        {
+          "header": "@@ -411,7 +408,9 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,",
+          "post_start": 408,
+          "post_count": 9
+        },
+        {
+          "header": "@@ -465,7 +464,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,",
+          "post_start": 464,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -475,10 +474,10 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,",
+          "post_start": 474,
+          "post_count": 10
+        },
+        {
+          "header": "@@ -577,7 +576,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,",
+          "post_start": 576,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -625,14 +624,14 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,",
+          "post_start": 624,
+          "post_count": 14
+        },
+        {
+          "header": "@@ -660,7 +659,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,",
+          "post_start": 659,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -1160,6 +1159,10 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,",
+          "post_start": 1159,
+          "post_count": 10
+        },
+        {
+          "header": "@@ -1179,11 +1182,8 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e",
+          "post_start": 1182,
+          "post_count": 8
+        },
+        {
+          "header": "@@ -1274,7 +1274,7 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e",
+          "post_start": 1274,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -1427,7 +1427,7 @@ func parseEnvironment(entries []string) ([]record.Environment, error) {",
+          "post_start": 1427,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -1546,7 +1546,7 @@ func simulationCapabilityForJob(executor Executor, job runJob) (*execution.Simul",
+          "post_start": 1546,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -1625,7 +1625,7 @@ func environmentStrings(environment []record.Environment) []string {",
+          "post_start": 1625,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -1855,7 +1855,7 @@ func preservePartial(run *campaign.ExecutionJournal) error {",
+          "post_start": 1855,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -1930,7 +1930,7 @@ func newRunID() (string, error) {",
+          "post_start": 1930,
+          "post_count": 7
+        }
+      ],
+      "proof": "Unique location inside matching owning function; exact pre/post five-line context unchanged and postimage line is not an added patch line. Current function and actual blame/source hashes are separately bound."
+    },
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "line": 892,
+      "column": 20,
+      "message": "Error return value of `opened.Close` is not checked",
+      "rule": "errcheck",
+      "source_sha256": "7cb8fe0f7cd3abed0ed244b04254d8793ad606eb01e9bde8278e739a7b3432d8",
+      "line_sha256": "1333a492a4c322041880f3b19d593c176a6079a9dea016ca2414519912d7cca6",
+      "line_body": "\tdefer opened.Close()",
+      "blame_commit": "f5dce3d7783d1e44a4599eda59886c1f4c7d45ea",
+      "blame_summary": "Retain exact GOMADv3 simulation replay evidence",
+      "in_original_twenty_paths": true,
+      "statement_in_original_preimage": true,
+      "statement_in_original_postimage": true,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure(t *testing.T) {",
+        "start": 868,
+        "end": 916,
+        "sha256": "190b8d3fa75f383fcd3b9f7451a8f5e92d9ffadd5e30bea86b1946a9c1faff82"
+      },
+      "introduced_by_task2": false,
+      "original_preimage_function": {
+        "signature": "func TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure(t *testing.T) {",
+        "span_start": 1019,
+        "span_end": 1067,
+        "line": 1043,
+        "context": "\t\tt.Fatal(err)\n\t}\n\tdefer opened.Close()\n\tprofile := opened.Manifest.SimulationProfile\n\tif profile == nil {"
+      },
+      "original_postimage_function": {
+        "signature": "func TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure(t *testing.T) {",
+        "span_start": 1019,
+        "span_end": 1067,
+        "line": 1043,
+        "context": "\t\tt.Fatal(err)\n\t}\n\tdefer opened.Close()\n\tprofile := opened.Manifest.SimulationProfile\n\tif profile == nil {"
+      },
+      "unchanged_original_finding_context_sha256": "d59e35dcf659db3e11c963af92bda8ad93984ca871e557c30c00e7fcad3d9ebe",
+      "original_postimage_line_added_by_task2": false,
+      "task2_hunks": [
+        {
+          "header": "@@ -657,7 +657,7 @@",
+          "post_start": 657,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -1755,7 +1755,7 @@",
+          "post_start": 1755,
+          "post_count": 7
+        }
+      ],
+      "proof": "Unique location inside matching owning function; exact pre/post five-line context unchanged and postimage line is not an added patch line. Current function and actual blame/source hashes are separately bound."
+    },
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "line": 2259,
+      "column": 20,
+      "message": "Error return value of `opened.Close` is not checked",
+      "rule": "errcheck",
+      "source_sha256": "7cb8fe0f7cd3abed0ed244b04254d8793ad606eb01e9bde8278e739a7b3432d8",
+      "line_sha256": "1333a492a4c322041880f3b19d593c176a6079a9dea016ca2414519912d7cca6",
+      "line_body": "\tdefer opened.Close()",
+      "blame_commit": "c7bbba23bac905f5eb7a7bd6596fce967cf2350a",
+      "blame_summary": "Complete Gomad v3 qualification and guidance",
+      "in_original_twenty_paths": true,
+      "statement_in_original_preimage": true,
+      "statement_in_original_postimage": true,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func (replayer *matchingReplayer) Replay(_ context.Context, config ReplaySpec) (ReplayResult, error) {",
+        "start": 2253,
+        "end": 2262,
+        "sha256": "0339ca42d2ff101be5ba06a1026aca67292363b3d1c17fad375ab74496ebb305"
+      },
+      "introduced_by_task2": false,
+      "original_preimage_function": {
+        "signature": "func (replayer *matchingReplayer) Replay(_ context.Context, config ReplaySpec) (ReplayResult, error) {",
+        "span_start": 2422,
+        "span_end": 2431,
+        "line": 2428,
+        "context": "\t\treturn ReplayResult{}, err\n\t}\n\tdefer opened.Close()\n\treturn ReplayResult{Artifact: opened.Detached(), Verified: true, Match: true}, nil\n}"
+      },
+      "original_postimage_function": {
+        "signature": "func (replayer *matchingReplayer) Replay(_ context.Context, config ReplaySpec) (ReplayResult, error) {",
+        "span_start": 2422,
+        "span_end": 2431,
+        "line": 2428,
+        "context": "\t\treturn ReplayResult{}, err\n\t}\n\tdefer opened.Close()\n\treturn ReplayResult{Artifact: opened.Detached(), Verified: true, Match: true}, nil\n}"
+      },
+      "unchanged_original_finding_context_sha256": "e261ba4ad67ea76cd9059dc01cde3ebf6b46c7ddf4f52ec75e678689b4dfdd2d",
+      "original_postimage_line_added_by_task2": false,
+      "task2_hunks": [
+        {
+          "header": "@@ -657,7 +657,7 @@",
+          "post_start": 657,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -1755,7 +1755,7 @@",
+          "post_start": 1755,
+          "post_count": 7
+        }
+      ],
+      "proof": "Unique location inside matching owning function; exact pre/post five-line context unchanged and postimage line is not an added patch line. Current function and actual blame/source hashes are separately bound."
+    },
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "line": 2366,
+      "column": 13,
+      "message": "Error return value of `file.Close` is not checked",
+      "rule": "errcheck",
+      "source_sha256": "7cb8fe0f7cd3abed0ed244b04254d8793ad606eb01e9bde8278e739a7b3432d8",
+      "line_sha256": "65527827a371b4534c427fea664d5c03b0acedb89baaa1d2907b0572fa96c92b",
+      "line_body": "\t\tfile.Close()",
+      "blame_commit": "54fff6fa5af7d950ead98bc55222e1a6fa14e341",
+      "blame_summary": "Add Gomad v3 runner and deterministic World",
+      "in_original_twenty_paths": true,
+      "statement_in_original_preimage": true,
+      "statement_in_original_postimage": true,
+      "task2_introduced_statement": false,
+      "correction_owner": "fn-109-gomad-deepen-modules-and-tool-interfaces.21 (aggregate R18; preserve originating source-owner attribution)",
+      "waived": false,
+      "current_function": {
+        "signature": "func (mutatingExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {",
+        "start": 2357,
+        "end": 2374,
+        "sha256": "82aa2e2ed21bf3d48be388f830888c00db3dc1c67610577612580dc631607bb3"
+      },
+      "introduced_by_task2": false,
+      "original_preimage_function": {
+        "signature": "func (mutatingExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {",
+        "span_start": 2526,
+        "span_end": 2543,
+        "line": 2535,
+        "context": "\t}\n\tif _, err := file.Write([]byte(\"mutation\")); err != nil {\n\t\tfile.Close()\n\t\treturn execution.Result{}, err\n\t}"
+      },
+      "original_postimage_function": {
+        "signature": "func (mutatingExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {",
+        "span_start": 2526,
+        "span_end": 2543,
+        "line": 2535,
+        "context": "\t}\n\tif _, err := file.Write([]byte(\"mutation\")); err != nil {\n\t\tfile.Close()\n\t\treturn execution.Result{}, err\n\t}"
+      },
+      "unchanged_original_finding_context_sha256": "42e2a8b572c7c3172fc5d6cd0df1e8feb483e1d0012743c82d03e960adc89308",
+      "original_postimage_line_added_by_task2": false,
+      "task2_hunks": [
+        {
+          "header": "@@ -657,7 +657,7 @@",
+          "post_start": 657,
+          "post_count": 7
+        },
+        {
+          "header": "@@ -1755,7 +1755,7 @@",
+          "post_start": 1755,
+          "post_count": 7
+        }
+      ],
+      "proof": "Unique location inside matching owning function; exact pre/post five-line context unchanged and postimage line is not an added patch line. Current function and actual blame/source hashes are separately bound."
+    }
+  ],
+  "task2_introduced_findings": 0,
+  "new_options_files": [
+    {
+      "path": "tools/gomad3/runner/campaign_options.go",
+      "sha256": "7f2eb52921e6aaf2f34d5f3ec9da79b83979627dd45bf40e57f2e9400862aeb0",
+      "reported_findings": 0
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_options_characterization_test.go",
+      "sha256": "a6cf58f682d74b7471b6860e64e715fcbf1529bb1367c0aeed3dd143e4ededef",
+      "reported_findings": 0
+    }
+  ],
+  "unfiltered_count": 17,
+  "original_base_diff_count": 68,
+  "adjacent_base_diagnostic_count": 80,
+  "waivers_added": [],
+  "task6_patch_images": 31,
+  "task6_manifest_entries": 65,
+  "task6_other34_postimages_reconstructed": false
+}
