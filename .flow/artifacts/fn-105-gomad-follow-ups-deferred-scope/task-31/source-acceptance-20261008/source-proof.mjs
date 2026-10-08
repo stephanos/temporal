@@ -1,0 +1,41 @@
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+const root='/Users/stephan/Workspace/skunkworks/gomad/temporal',out=dirname(fileURLToPath(import.meta.url));
+const sha=v=>createHash('sha256').update(v).digest('hex'),read=p=>readFileSync(root+'/'+p),json=p=>JSON.parse(read(p));
+function git(args){const r=spawnSync('git',args,{cwd:root,maxBuffer:32<<20});assert.equal(r.status,0,r.stderr.toString());return r.stdout;}
+const ref='8c8f8973c391dc74ae56f88b7bbac86d785e3745';assert.equal(git(['rev-parse','HEAD']).toString().trim(),ref);
+assert(!existsSync(out+'/source-proof.json'));
+const prior='.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding.json',binding=json(prior);
+for(const entry of binding.exact_bindings)assert.equal(sha(read(entry.path)),entry.sha256,entry.path);
+let closureCount=0;const changed=[];
+for(const entry of binding.input_closure){const current=sha(read(entry.path));if(current!==entry.current_sha256)changed.push({path:entry.path,old:entry.current_sha256,current});else closureCount++;}
+assert(changed.every(e=>e.path.endsWith('.md')||e.path==='tools/gomad3/runner/internal/campaign/retained_evidence_test.go'),JSON.stringify(changed));
+for(const entry of changed){entry.reused=false;entry.last_commit=git(['log','-1','--format=%H','--',entry.path]).toString().trim();}
+assert.equal(sha(read(binding.archive.path)),binding.archive.sha256);
+const rawPath=binding.retained_raw_manifest.path,raw=json(rawPath),rawDir=rawPath.replace('/raw-manifest.json','/raw/');let bytes=0;
+for(const entry of raw){const stored=read(rawDir+(entry.retained_name??entry.name));if(entry.retained_name)assert.equal(sha(stored),entry.retained_sha256);const original=entry.encoding==='utf8-json-string'?Buffer.from(JSON.parse(stored).value):stored;assert.equal(original.length,entry.bytes);assert.equal(sha(original),entry.sha256);bytes+=original.length;}
+assert.equal(raw.length,72);assert.equal(bytes,521317);
+const inventory=binding.positive_inventory;assert.equal(sha(read(inventory.receipt)),inventory.receipt_sha256);assert.equal(sha(read(inventory.receipt.replace('.json','.stdout'))),inventory.log_sha256);
+for(const entry of binding.identity.bindings)assert.equal(sha(read(entry.path)),entry.sha256);
+const original='32cc7e6d2ba635fb87b9f53f8b71ede0f9010e28',followup='a491913907562e42e2910904872b81efc27fd8c3',mixed='ad90b462e0f947b88f0190c0b4d0f60940ff5aec';
+const paths=new Set();for(const commit of [original,followup])for(const p of git(['diff-tree','--no-commit-id','--name-only','-r',commit]).toString().trim().split('\n'))paths.add(p);
+for(const p of ['tools/gomad3/toolchain/runtime/go1.27.1.patch','tools/gomad3/simulation/schema/timewire.json','tools/gomad3/target/internal/capabilitypolicy/simulation_bridge.go','tools/gomad3/target/internal/capabilitypolicy/policy_test.go','tools/gomad3/target/capability_test.go','tools/gomad3/runner/internal/execution/simulation_progress.go','tools/gomad3/runner/internal/execution/simulation_time_wire_generated.go','tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go','tools/gomad3/runner/clock_tick_test.go','tools/gomad3/record/identity.go','tools/gomad3/runner/campaign_plan.go','tools/gomad3/runner/replay_operation.go','tests/activity_standalone_test.go','tools/gomad3/CLI.md','tools/gomad3/TUTORIAL.md','tools/gomad3/ARCHITECTURE.md']){assert(existsSync(root+'/'+p),p);paths.add(p);}
+const sourceSlice=[...paths].sort().map(path=>({path,bytes:read(path).length,sha256:sha(read(path)),last_commit:git(['log','-1','--format=%H','--',path]).toString().trim()}));
+const runtime=read('tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go').toString();
+assert(!runtime.includes('gomadClockTickOffset'));assert(runtime.includes('faketime += gomadClockTickDraw()'));assert(runtime.includes('gomadClockForward && requestDeadline < faketime'));assert(runtime.includes('gomadSimulationTimeCurrent() int64'));
+const stdlibFixtures=['clock_tick_deadline','clock_tick_due'].map(name=>{const path='tools/gomad3/internal/gomadtool/conformance/testdata/'+name+'/main.go';assert(read(path).equals(git(['show',original+':'+path])));return {path,sha256:sha(read(path)),original_body_equal:true};});
+const campaign=read('tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go').toString();for(const name of ['clock_tick_deadline','clock_tick_due','requireForwardClockDeadline','requireForwardClockDueTimer'])assert(campaign.includes(name));
+const generator=json('tools/gomad3integration/qualification/tests.generator.json'),manifest=json('tools/gomad3integration/qualification/tests.json');
+assert(!JSON.stringify(generator).includes('UpdateWhilePaused_AfterWindow_ExtendsDispatch'));assert(!JSON.stringify(manifest).includes('UpdateWhilePaused_AfterWindow_ExtendsDispatch'));
+const forward=manifest.suites.filter(w=>w.clock_tick==='forward').map(w=>({id:w.id,package:w.package,seeds:w.seeds??manifest.seeds,choice_bytes:w.choice_bytes,replay_successes:w.replay_successes}));assert(forward.length>0);
+const bridgePath='tools/gomad3sim/runtime_time_toolchain.go';assert.equal(sha(read(bridgePath)),'211c01f57125ba62115b1ffce5d2479d3c22116d51a41aefcfb1a576e8b393a9');
+const directives=[...read(bridgePath).toString().matchAll(/^\/\/go:linkname (.+)$/gm)].map(m=>m[1]);assert.deepEqual(directives,['gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance','gomadSimulationTimeCurrent runtime.gomadSimulationTimeCurrent','gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals']);
+const docs=['README','CLI','TUTORIAL','ARCHITECTURE'].map(name=>{const path='tools/gomad3/'+name+'.md',text=read(path).toString();assert(text.includes('shared clock')||text.includes('one clock'));assert(text.includes('synctest'));assert(text.includes('next timer check'));return{path,sha256:sha(read(path))};});
+const sourceRefs=[prior,rawPath,inventory.receipt,inventory.receipt.replace('.json','.stdout'),binding.identity.receipt,binding.preservation.path,'.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/bridge-pin-repair/handover.json','.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/clock-documentation/handover.json','docs/research/gomad/GOMAD_D16_FORWARD_CLOCK_POLL_DEADLINE.md','.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d16-evidence.json','.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d16-fixture-gomad.log'].map(path=>({path,sha256:sha(read(path))}));
+for(const entry of binding.user_files)assert.equal(sha(read(entry.path)),entry.sha256);
+const proof={head:ref,original_implementation:original,original_base:'70bb38e5ddec2d271c12f0e8c2489855f08eb0ef',followup,mixed_integrated_checkpoint:mixed,original_refs_ancestry:'Pure task commits remain historical Git objects; mixed ad90 is the integrated checkpoint. Full task-owned source hashes and current bodies define scope, not the whole mixed commit.',source_slice:sourceSlice,reused:{exact_runtime_inputs:binding.exact_bindings.length,unchanged_closure:closureCount,changed_since_prior:changed,raw_files:raw.length,raw_original_bytes:bytes,archive:binding.archive,materialized_inventories:inventory,identity_pointers:binding.identity.pointers},references:sourceRefs,stdlib_fixtures:stdlibFixtures,bridge_directives:directives,clock_documents:docs,forward_workloads:forward,user_files:binding.user_files,native_qualification:false,limitations:'Historical D16 offset RED is retained separately. No original D26 patched-runtime deadline GREEN receipt found. Current patched fixtures, seeds 1-24, traced forward11/17 replay and full native gates remain transferred and unverified.'};
+writeFileSync(out+'/source-proof.json',JSON.stringify(proof,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({source_slice:sourceSlice.length,exact_runtime_inputs:binding.exact_bindings.length,unchanged_closure:closureCount,changed_since_prior:changed,raw_files:raw.length,raw_original_bytes:bytes,forward_workloads:forward.length,native_qualification:false}));

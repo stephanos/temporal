@@ -1,0 +1,20 @@
+{"Time":"2026-10-08T09:52:57.720012706Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3sim"}
+{"Time":"2026-10-08T09:52:57.722006998Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestRunFailsClosedWithoutPinnedRuntime"}
+{"Time":"2026-10-08T09:52:57.722117581Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestRunFailsClosedWithoutPinnedRuntime","Output":"=== RUN   TestRunFailsClosedWithoutPinnedRuntime\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:52:57.72218529Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestRunFailsClosedWithoutPinnedRuntime","Output":"--- PASS: TestRunFailsClosedWithoutPinnedRuntime (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:52:57.722214206Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestRunFailsClosedWithoutPinnedRuntime","Elapsed":0}
+{"Time":"2026-10-08T09:52:57.722240956Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestRunRejectsUnavailableProcessBackendBeforeScenario"}
+{"Time":"2026-10-08T09:52:57.722253081Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestRunRejectsUnavailableProcessBackendBeforeScenario","Output":"=== RUN   TestRunRejectsUnavailableProcessBackendBeforeScenario\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:52:57.722268123Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestRunRejectsUnavailableProcessBackendBeforeScenario","Output":"--- PASS: TestRunRejectsUnavailableProcessBackendBeforeScenario (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:52:57.722278248Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestRunRejectsUnavailableProcessBackendBeforeScenario","Elapsed":0}
+{"Time":"2026-10-08T09:52:57.722298248Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestProcessFrameRoundTripAndStrictDecode"}
+{"Time":"2026-10-08T09:52:57.72230979Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestProcessFrameRoundTripAndStrictDecode","Output":"=== RUN   TestProcessFrameRoundTripAndStrictDecode\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:52:57.722315165Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestProcessFrameRoundTripAndStrictDecode","Output":"--- PASS: TestProcessFrameRoundTripAndStrictDecode (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:52:57.722321456Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestProcessFrameRoundTripAndStrictDecode","Elapsed":0}
+{"Time":"2026-10-08T09:52:57.722348498Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestProcessActivationFramesAreValid"}
+{"Time":"2026-10-08T09:52:57.72235254Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestProcessActivationFramesAreValid","Output":"=== RUN   TestProcessActivationFramesAreValid\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:52:57.722379081Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestProcessActivationFramesAreValid","Output":"--- PASS: TestProcessActivationFramesAreValid (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:52:57.72240229Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3sim","Test":"TestProcessActivationFramesAreValid","Elapsed":0}
+{"Time":"2026-10-08T09:52:57.722411748Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:52:57.722618873Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3sim","Output":"ok  \tgo.temporal.io/server/tools/gomad3sim\t0.002s\n"}
+{"Time":"2026-10-08T09:52:57.722630998Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3sim","Elapsed":0.003}

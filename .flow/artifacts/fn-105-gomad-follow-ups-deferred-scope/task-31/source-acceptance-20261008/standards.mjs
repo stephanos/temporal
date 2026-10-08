@@ -1,0 +1,26 @@
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+const root='/Users/stephan/Workspace/skunkworks/gomad/temporal',out=dirname(fileURLToPath(import.meta.url));
+const sha=v=>createHash('sha256').update(v).digest('hex');
+function git(args){const r=spawnSync('git',args,{cwd:root,maxBuffer:32<<20});assert.equal(r.status,0);return r.stdout.toString();}
+assert(!existsSync(out+'/standards-proof.json'));
+const pure=['32cc7e6d2ba635fb87b9f53f8b71ede0f9010e28','a491913907562e42e2910904872b81efc27fd8c3'];
+const touched=new Set(pure.flatMap(ref=>git(['diff-tree','--no-commit-id','--name-only','-r',ref]).trim().split('\n')));
+const diagnostic=readFileSync(out+'/configured-package-diagnostics.stdout','utf8');
+const findings=[...diagnostic.matchAll(/^(tools\/gomad3\/[^:\n]+):(\d+):(\d+): (.+)$/gm)].map(m=>{const path=m[1],line=Number(m[2]),source=readFileSync(root+'/'+path,'utf8').split('\n')[line-1],blame=git(['blame','-L',line+','+line,'--porcelain','--',path]);const commit=blame.split(' ')[0];return {path,line,column:Number(m[3]),message:m[4],source_line:source,source_line_sha256:sha(source),source_file_sha256:sha(readFileSync(root+'/'+path)),blame_commit:commit,blame_subject:git(['show','-s','--format=%s',commit]).trim(),in_original_task_path:touched.has(path),introduced_by_pure_r26_commit:pure.includes(commit),owner:'fn-109.21 aggregate standards and admitted correction owners; outside R26 source slice'};});
+assert.equal(findings.length,24);assert.equal(findings.filter(f=>f.in_original_task_path||f.introduced_by_pure_r26_commit).length,0);
+const source=JSON.parse(readFileSync(out+'/source-proof.json','utf8'));
+const argv=['/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt','-l',...source.source_slice.map(e=>e.path).filter(p=>p.endsWith('.go'))];
+const start=new Date(),r=spawnSync(argv[0],argv.slice(1),{cwd:root,env:process.env,maxBuffer:32<<20}),end=new Date();
+writeFileSync(out+'/format-list.stdout',r.stdout,{flag:'wx'});writeFileSync(out+'/format-list.stderr',r.stderr,{flag:'wx'});assert.equal(r.status,0);
+const listed=r.stdout.toString().trim().split('\n').filter(Boolean);assert.deepEqual(listed,['tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go']);
+const runtime='tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go',old=git(['show','a936b597b4c62fa50f11a6c16c91111cd52b1ec3:'+runtime]);assert.equal(sha(old),sha(readFileSync(root+'/'+runtime)));
+const lineage={original_task_base:'70bb38e5ddec2d271c12f0e8c2489855f08eb0ef',adjacent_extraction_base:'5df49456e649d4d3d2c6d8ba6518a2a05ca41e26',explanation:'5df is the earlier pre-extraction candidate whose descriptor test was absent. The original D26 base 70bb already contains both unchecked Close lines. The primary R26 lint is configured-original-r26-lint; configured-source-lint preserves the separate adjacent-base observation.',descriptor_original_sha256:sha(git(['show','70bb38e5ddec2d271c12f0e8c2489855f08eb0ef:tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go'])),descriptor_current_sha256:sha(readFileSync(root+'/tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go'))};
+assert.equal(lineage.descriptor_original_sha256,lineage.descriptor_current_sha256);
+const ancestor=pure.map(ref=>({ref,is_head_ancestor:spawnSync('git',['merge-base','--is-ancestor',ref,'HEAD'],{cwd:root}).status===0,all_refs:git(['for-each-ref','--contains',ref,'--format=%(refname)']).trim().split('\n').filter(Boolean)}));
+const result={findings,task_path_findings:0,task_hunk_findings:0,lineage,pure_commit_ancestry:ancestor,format:{argv,cwd:root,exit:r.status,started:start.toISOString(),ended:end.toISOString(),elapsed_seconds:(end-start)/1000,stdout_sha256:sha(r.stdout),stderr_sha256:sha(r.stderr),listed,observation:'nonclean inherited runtime overlay; no formatting waiver or product write',origin:'58b718565044ab3bc3385d3323ee908a6d54328e fn-109.13 deleted constants between maximum-alternatives and response-buffer comment; gofmt now requests the separator',exact_current_equals_compact_candidate:true},lint_policy:'.github/.golangci.yml unchanged; only existing exact controller exceptions authorized under fn109.28; no new waiver',lint_tool_sha256:Object.fromEntries(['golangci-lint-v2.13.0','errortype'].map(n=>[n,sha(readFileSync('/tmp/fn109-lint-tools.ZdNe1t50/'+n))]))};
+writeFileSync(out+'/standards-proof.json',JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({findings:findings.length,task_path_findings:0,task_hunk_findings:0,format:listed,lineage,pure_commit_ancestry:ancestor}));

@@ -1,0 +1,8 @@
+{"Time":"2026-10-08T10:10:25.744447331Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/qualification/set"}
+{"Time":"2026-10-08T10:10:25.746221789Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/qualification/set","Test":"TestWorkloadCommandCarriesTheClockTick"}
+{"Time":"2026-10-08T10:10:25.746251539Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/qualification/set","Test":"TestWorkloadCommandCarriesTheClockTick","Output":"=== RUN   TestWorkloadCommandCarriesTheClockTick\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:10:25.746264456Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/qualification/set","Test":"TestWorkloadCommandCarriesTheClockTick","Output":"--- PASS: TestWorkloadCommandCarriesTheClockTick (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:10:25.746272664Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/qualification/set","Test":"TestWorkloadCommandCarriesTheClockTick","Elapsed":0}
+{"Time":"2026-10-08T10:10:25.746278164Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/qualification/set","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T10:10:25.746434206Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/qualification/set","Output":"ok  \tgo.temporal.io/server/tools/gomad3/qualification/set\t0.002s\n"}
+{"Time":"2026-10-08T10:10:25.746446581Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/qualification/set","Elapsed":0.002}

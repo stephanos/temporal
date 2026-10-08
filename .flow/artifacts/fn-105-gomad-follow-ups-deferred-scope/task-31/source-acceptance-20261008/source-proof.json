@@ -1,0 +1,482 @@
+{
+  "head": "8c8f8973c391dc74ae56f88b7bbac86d785e3745",
+  "original_implementation": "32cc7e6d2ba635fb87b9f53f8b71ede0f9010e28",
+  "original_base": "70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+  "followup": "a491913907562e42e2910904872b81efc27fd8c3",
+  "mixed_integrated_checkpoint": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec",
+  "original_refs_ancestry": "Pure task commits remain historical Git objects; mixed ad90 is the integrated checkpoint. Full task-owned source hashes and current bodies define scope, not the whole mixed commit.",
+  "source_slice": [
+    {
+      "path": "tests/activity_standalone_test.go",
+      "bytes": 625699,
+      "sha256": "2946400cc9bff22bf0d48432c1f01f7033463ca4638d34081fafebe2a5912969",
+      "last_commit": "91b4ae075a65301f666cd9b940b3fd10f33fff38"
+    },
+    {
+      "path": "tools/gomad3/ARCHITECTURE.md",
+      "bytes": 59892,
+      "sha256": "adf54659990e7c83862d20bdb4a2d5bd8736e23e08d1d47dfc57dee24af0f04e",
+      "last_commit": "0f61fa18b8242be96ad4c51c7f2c86a95fc631ca"
+    },
+    {
+      "path": "tools/gomad3/CLI.md",
+      "bytes": 58132,
+      "sha256": "a3b1f3158d1cdd7f98bf3cc1c401ddd1148a6327073c06acd52613f6f9ec2d38",
+      "last_commit": "0f61fa18b8242be96ad4c51c7f2c86a95fc631ca"
+    },
+    {
+      "path": "tools/gomad3/README.md",
+      "bytes": 90888,
+      "sha256": "e9949e64f4e2df0cb8c230af5629a78f4f4e892862ca4a44c300ba583766acdb",
+      "last_commit": "0f61fa18b8242be96ad4c51c7f2c86a95fc631ca"
+    },
+    {
+      "path": "tools/gomad3/TUTORIAL.md",
+      "bytes": 35680,
+      "sha256": "3ed931feadc7ca131ceb1d09736f00cd1d05479bd0c3c97536a290a9526027f4",
+      "last_commit": "0f61fa18b8242be96ad4c51c7f2c86a95fc631ca"
+    },
+    {
+      "path": "tools/gomad3/choice/internal/wire/wire_generated.go",
+      "bytes": 24964,
+      "sha256": "fb0a5f32bb85f61aff141ce2a682b15364a6e461f297af609984a87b84890674",
+      "last_commit": "a936b597b4c62fa50f11a6c16c91111cd52b1ec3"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go",
+      "bytes": 15780,
+      "sha256": "ce8b0bb5e310abdb192aab317c5534a9966985a742822c32a2d63ce1f8ef78fa",
+      "last_commit": "58b718565044ab3bc3385d3323ee908a6d54328e"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/runtime_clock_tick.go",
+      "bytes": 4790,
+      "sha256": "b7ff4931f2e3aac20f10417b9ae38c6501afe5e08a32b4401a52e560cd99931a",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/clock_tick_deadline/main.go",
+      "bytes": 1089,
+      "sha256": "88cd77d38922859c63bcea526595450f6b8a97ec46b4b4dfa28b66cdd8e7f17f",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/clock_tick_due/main.go",
+      "bytes": 521,
+      "sha256": "08612315ef15bf94d7101d54ee8ea0187b366d944a9a54dcc1ee7904be0ecaa3",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3/record/identity.go",
+      "bytes": 15122,
+      "sha256": "ae1bdb9414b07599332a84c2bc31209ebdbaeeca6c77f4603d71b5af7812cee2",
+      "last_commit": "53c5cebc9076bdbb439a36b7fa78cc02bc051ab9"
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_plan.go",
+      "bytes": 5770,
+      "sha256": "a3980afd105cab495e1ccd0558dfd9dfc4a5520f059723f06bc62915ace816a1",
+      "last_commit": "ca3345469a2541b7686606268b0f19cde030a8fe"
+    },
+    {
+      "path": "tools/gomad3/runner/clock_tick_test.go",
+      "bytes": 1810,
+      "sha256": "dddd989f4b0ba00146ab3951157f307300be8e942f78462357f9fdc87d79957c",
+      "last_commit": "ca3345469a2541b7686606268b0f19cde030a8fe"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_model_wire_generated.go",
+      "bytes": 4041,
+      "sha256": "16463047c516336d33c739c14c839c952a98e1ad5fa576eacd36c8d5f3693c22",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_progress.go",
+      "bytes": 12875,
+      "sha256": "a5446daf575f02fb909955eb6ae8c6d126e3a94048a53fb1337bc444e934dcd9",
+      "last_commit": "edc9690d6d8d0a6aeb574f1e4a878aa6bd0eea0e"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_root_integration_test.go",
+      "bytes": 7014,
+      "sha256": "02544185057eff83b65b288b6062c374376b3a10137dc526405c222e052ec682",
+      "last_commit": "b7c26a2a5cf15fb3626b8114abdd44ccb2dd7005"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_test.go",
+      "bytes": 14821,
+      "sha256": "51784818fa6ca3f1e670b159406fe963501eb266c4740dfbce2009427670ba2b",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_time.go",
+      "bytes": 9453,
+      "sha256": "5ba93587f60bad5cbb7ce8547257da8869ec822485f23856bf45867732313697",
+      "last_commit": "edc9690d6d8d0a6aeb574f1e4a878aa6bd0eea0e"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_time_test.go",
+      "bytes": 30444,
+      "sha256": "3f83c32370640b54e0518f69739fd537369888f24837e1620cde23a65f8d6e90",
+      "last_commit": "edc9690d6d8d0a6aeb574f1e4a878aa6bd0eea0e"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_time_wire_generated.go",
+      "bytes": 3830,
+      "sha256": "b38db5352526b162bef952dd8e31bbe6a60cfe2bed4f4dd67da0209d283cc519",
+      "last_commit": "58b718565044ab3bc3385d3323ee908a6d54328e"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_unix.go",
+      "bytes": 21067,
+      "sha256": "95b63f504cf575574129616bec3f008de6560c29be3019537f5e8a256b150881",
+      "last_commit": "edc9690d6d8d0a6aeb574f1e4a878aa6bd0eea0e"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_unix_test.go",
+      "bytes": 2404,
+      "sha256": "0025f6826a715b3cb366fddc15752a91b102311903d6dbc817eecfb041e1a987",
+      "last_commit": "edc9690d6d8d0a6aeb574f1e4a878aa6bd0eea0e"
+    },
+    {
+      "path": "tools/gomad3/runner/replay_operation.go",
+      "bytes": 28651,
+      "sha256": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49",
+      "last_commit": "3a3c31b0a7b22ab2c669735743d3f1e2d2985bab"
+    },
+    {
+      "path": "tools/gomad3/simulation/schema/modeltransport.go.tmpl",
+      "bytes": 4135,
+      "sha256": "d127b06e5885fee539eaefd5cc90caee11e394ccf755d19790e4bd3dad9c62db",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3/simulation/schema/timewire.json",
+      "bytes": 2668,
+      "sha256": "b79745bde036ab57e908c42f8acb4548200a3b2d00a198a502dcba8c9d99fde8",
+      "last_commit": "58b718565044ab3bc3385d3323ee908a6d54328e"
+    },
+    {
+      "path": "tools/gomad3/target/capability_test.go",
+      "bytes": 16555,
+      "sha256": "6f838d2824eadd2409c7fe0ff1b5a62013587e6bab9a7c85b793e2208d17d489",
+      "last_commit": "58095d83a96b68e3eee6400b9f75ac66c5c5ad0e"
+    },
+    {
+      "path": "tools/gomad3/target/internal/capabilitypolicy/policy_test.go",
+      "bytes": 7329,
+      "sha256": "8e2946deb27470f1227cb8b654d787fc3746fe2b55bee6c35fbbeedb71ab7dd8",
+      "last_commit": "a683e64af560322014e14f3a1ef3953b27cad96a"
+    },
+    {
+      "path": "tools/gomad3/target/internal/capabilitypolicy/simulation_bridge.go",
+      "bytes": 4268,
+      "sha256": "6e8e072c7d47aa73f7e9f05d938ebe625e0e6ba56f317381978e539b30342bd8",
+      "last_commit": "5350185a3601921c0a5f9ba07e1f05bdad7df81f"
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/protocol_generated.go",
+      "bytes": 33786,
+      "sha256": "1dff35c2c23bc5175adf475cf8d5ffbe95ab3fa403620c51ce25af85850ece79",
+      "last_commit": "a936b597b4c62fa50f11a6c16c91111cd52b1ec3"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+      "bytes": 24117,
+      "sha256": "4b13066eeacc5e9d33a5ada7d3924ff346786ccaf578b9856e1be5f41a94c6f9",
+      "last_commit": "a936b597b4c62fa50f11a6c16c91111cd52b1ec3"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+      "bytes": 33787,
+      "sha256": "178306826d0f968af1c9497e58f39a90b1415c689cab45baa44235b6e023ef99",
+      "last_commit": "a936b597b4c62fa50f11a6c16c91111cd52b1ec3"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+      "bytes": 24975,
+      "sha256": "160bfbc741aa5bfb5b350670c715b0436cf22900f54ca8083f9cae2dcd46f065",
+      "last_commit": "a936b597b4c62fa50f11a6c16c91111cd52b1ec3"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go",
+      "bytes": 4040,
+      "sha256": "b0fb588aaafc5b34edca2fccf288adacd2052c3907c103b69b58e35264c6f212",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model.go",
+      "bytes": 5032,
+      "sha256": "8ff33c38997cfdcfc3e1272f7bec8c2f2bf93e9f8b29482b15606a125f0a0eae",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+      "bytes": 65408,
+      "sha256": "90c7831f647bc3fd1019329b0b1c9c1904c9e0de7f98240b8d3d39dc25c73836",
+      "last_commit": "a936b597b4c62fa50f11a6c16c91111cd52b1ec3"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go",
+      "bytes": 2383,
+      "sha256": "425d75ef372ba9eba431e0384b51bf21a0ebedf5d91a315d7894363f846efe87",
+      "last_commit": "58b718565044ab3bc3385d3323ee908a6d54328e"
+    },
+    {
+      "path": "tools/gomad3integration/qualification/tests.generator.json",
+      "bytes": 7890,
+      "sha256": "6c74bf98230a02785162991509552ad54c83b29ffd2220b6fcc54277d41dff31",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3integration/qualification/tests.json",
+      "bytes": 128713,
+      "sha256": "28a25783c616e4c96d8f89ad0607eaaba5ea395596b4f00be545c8e0dd30f311",
+      "last_commit": "ca3345469a2541b7686606268b0f19cde030a8fe"
+    },
+    {
+      "path": "tools/gomad3sim/cluster_toolchain_test.go",
+      "bytes": 46424,
+      "sha256": "ae5b899d47738a3969e3e562b25b55bca5b63d20d9b83a2280cd1cbc8fe6458c",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3sim/process_node.go",
+      "bytes": 8460,
+      "sha256": "121d152595576d5a76fd01795b09ffd37413f4a76d822dfa6d4a2ee1db4484eb",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3sim/runtime_time.go",
+      "bytes": 237,
+      "sha256": "d0087e00754a54227b5417ee8fa2165a73732689861538898cf9bdbee88ffdf0",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    },
+    {
+      "path": "tools/gomad3sim/runtime_time_toolchain.go",
+      "bytes": 791,
+      "sha256": "211c01f57125ba62115b1ffce5d2479d3c22116d51a41aefcfb1a576e8b393a9",
+      "last_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec"
+    }
+  ],
+  "reused": {
+    "exact_runtime_inputs": 87,
+    "unchanged_closure": 1222,
+    "changed_since_prior": [
+      {
+        "path": "tools/gomad3/runner/internal/campaign/retained_evidence_test.go",
+        "old": "ea6a74729dc8ccb7b7035414983defde35e08edb7b81ad7ea27bc1997390ed32",
+        "current": "89ce3be984ede1d866e7cff5748c9e6a9891554c8f23ac092f91b538c8544540",
+        "reused": false,
+        "last_commit": "aa9b3d347f43bcef63349c7043048b4e60ba72a9"
+      }
+    ],
+    "raw_files": 72,
+    "raw_original_bytes": 521317,
+    "archive": {
+      "path": "tools/gomad3/.toolchain/downloads/go1.27.1.src.tar.gz",
+      "bytes": 35109201,
+      "sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1"
+    },
+    "materialized_inventories": {
+      "receipt": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source-inventories-pinned.json",
+      "receipt_sha256": "d467060c7b6af8b4eb05f1d353854c32d76442fa72088031caaa149726cd97d0",
+      "log_sha256": "e5db8479e0f26b36dcac62da353bd3141aab8747b246d6c031efd6e056260635",
+      "draw_rows": 273,
+      "seeded_rows": 86,
+      "clock_rows": 48,
+      "goroutine_rows": 10,
+      "platforms": [
+        "darwin/arm64",
+        "linux/amd64"
+      ],
+      "kind": "materialized supported source sets; no built/native runtime"
+    },
+    "identity_pointers": [
+      "/artifact/choice_profile/implementation_sha256",
+      "/artifact/choice_profile/trace/tape_sha256",
+      "/artifact/outcome/failure_signature",
+      "/artifact/record_hash",
+      "/campaign_plan/choice_profile/implementation_sha256",
+      "/portable_plan/campaign/choice_profile/implementation_sha256",
+      "/portable_plan_sha256"
+    ]
+  },
+  "references": [
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding.json",
+      "sha256": "78ca24a19fbb1df331dc2c63221ac17c625686ce59d62b3e63c104b3f015a152"
+    },
+    {
+      "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw-manifest.json",
+      "sha256": "8196b4ab5a6862b730fb356cb905e41b814d52dced9b7731dd8531fa0b018228"
+    },
+    {
+      "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source-inventories-pinned.json",
+      "sha256": "d467060c7b6af8b4eb05f1d353854c32d76442fa72088031caaa149726cd97d0"
+    },
+    {
+      "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source-inventories-pinned.stdout",
+      "sha256": "e5db8479e0f26b36dcac62da353bd3141aab8747b246d6c031efd6e056260635"
+    },
+    {
+      "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/independent-identity.stdout",
+      "sha256": "6eca2b50a210213f8dff0a09a9dbe94ffc952a4b4e6166519992a26a5917b9d2"
+    },
+    {
+      "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/preservation.json",
+      "sha256": "28748d20ea5faa43ac34f4fc6f48f6d5277fbc42040260cc47b6561e9c5bc500"
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/bridge-pin-repair/handover.json",
+      "sha256": "c6d6663e14d60546e2e2b7f44da28ed6d7d03556d5d4f33211908534782926b1"
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/clock-documentation/handover.json",
+      "sha256": "95c6a17588c51005e189e309965f002d8b106160ccc21b11e193c9b8deddef4d"
+    },
+    {
+      "path": "docs/research/gomad/GOMAD_D16_FORWARD_CLOCK_POLL_DEADLINE.md",
+      "sha256": "852f44fdbec0423470c172aa69170c3efac524e8a9b668081b0ce294f52179da"
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d16-evidence.json",
+      "sha256": "c760d176edb1cfe47143d8a142d2ab77dff87c6d03bc5223efcef257bacc41d2"
+    },
+    {
+      "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d16-fixture-gomad.log",
+      "sha256": "9787d88424e55613876b4aef21b5dd03a656b6f3dd2b609c6ba3d5abc73a3c16"
+    }
+  ],
+  "stdlib_fixtures": [
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/clock_tick_deadline/main.go",
+      "sha256": "88cd77d38922859c63bcea526595450f6b8a97ec46b4b4dfa28b66cdd8e7f17f",
+      "original_body_equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/clock_tick_due/main.go",
+      "sha256": "08612315ef15bf94d7101d54ee8ea0187b366d944a9a54dcc1ee7904be0ecaa3",
+      "original_body_equal": true
+    }
+  ],
+  "bridge_directives": [
+    "gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance",
+    "gomadSimulationTimeCurrent runtime.gomadSimulationTimeCurrent",
+    "gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals"
+  ],
+  "clock_documents": [
+    {
+      "path": "tools/gomad3/README.md",
+      "sha256": "e9949e64f4e2df0cb8c230af5629a78f4f4e892862ca4a44c300ba583766acdb"
+    },
+    {
+      "path": "tools/gomad3/CLI.md",
+      "sha256": "a3b1f3158d1cdd7f98bf3cc1c401ddd1148a6327073c06acd52613f6f9ec2d38"
+    },
+    {
+      "path": "tools/gomad3/TUTORIAL.md",
+      "sha256": "3ed931feadc7ca131ceb1d09736f00cd1d05479bd0c3c97536a290a9526027f4"
+    },
+    {
+      "path": "tools/gomad3/ARCHITECTURE.md",
+      "sha256": "adf54659990e7c83862d20bdb4a2d5bd8736e23e08d1d47dfc57dee24af0f04e"
+    }
+  ],
+  "forward_workloads": [
+    {
+      "id": "tests-advanced-visibility-suite",
+      "package": "./tests",
+      "seeds": [
+        11,
+        17
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false
+    },
+    {
+      "id": "tests-advanced-visibility-suite-legacy",
+      "package": "./tests",
+      "seeds": [
+        11,
+        17
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false
+    },
+    {
+      "id": "tests-describe-test-suite",
+      "package": "./tests",
+      "seeds": [
+        11,
+        17
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false
+    },
+    {
+      "id": "tests-nexus-otel-suite",
+      "package": "./tests",
+      "seeds": [
+        11,
+        17
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false
+    },
+    {
+      "id": "tests-nexus-standalone-test-suite",
+      "package": "./tests",
+      "seeds": [
+        11,
+        17
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false
+    },
+    {
+      "id": "tests-standalone-activity-test-suite",
+      "package": "./tests",
+      "seeds": [
+        11,
+        17
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false
+    },
+    {
+      "id": "tests-task-queue-suite",
+      "package": "./tests",
+      "seeds": [
+        11,
+        17
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false
+    },
+    {
+      "id": "tests-worker-commands-task-suite",
+      "package": "./tests",
+      "seeds": [
+        11,
+        17
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false
+    }
+  ],
+  "user_files": [
+    {
+      "path": ".turbo/plans/gomad3-glossary-update.md",
+      "bytes": 16567,
+      "sha256": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188"
+    },
+    {
+      "path": ".turbo/technical-debt.md",
+      "bytes": 42239,
+      "sha256": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+    }
+  ],
+  "native_qualification": false,
+  "limitations": "Historical D16 offset RED is retained separately. No original D26 patched-runtime deadline GREEN receipt found. Current patched fixtures, seeds 1-24, traced forward11/17 replay and full native gates remain transferred and unverified."
+}

@@ -1,0 +1,19 @@
+{"Time":"2026-10-08T09:50:58.736991025Z","Action":"start","Package":"command-line-arguments"}
+{"Time":"2026-10-08T09:50:58.73810015Z","Action":"run","Package":"command-line-arguments","Test":"TestSimulationTimeArbiterAcceptsForwardTickEpoch"}
+{"Time":"2026-10-08T09:50:58.738167858Z","Action":"output","Package":"command-line-arguments","Test":"TestSimulationTimeArbiterAcceptsForwardTickEpoch","Output":"=== RUN   TestSimulationTimeArbiterAcceptsForwardTickEpoch\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:50:58.738185108Z","Action":"output","Package":"command-line-arguments","Test":"TestSimulationTimeArbiterAcceptsForwardTickEpoch","Output":"    causal_test.go:15: simulation time request does not match the current epoch: participant=\"coordinator\" active=true generation=1 want=1 current=946684800000000100 cluster=946684800000000000 deadline=946684800000000110\n","OutputType":"error"}
+{"Time":"2026-10-08T09:50:58.738199483Z","Action":"output","Package":"command-line-arguments","Test":"TestSimulationTimeArbiterAcceptsForwardTickEpoch","Output":"--- FAIL: TestSimulationTimeArbiterAcceptsForwardTickEpoch (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:50:58.73820715Z","Action":"fail","Package":"command-line-arguments","Test":"TestSimulationTimeArbiterAcceptsForwardTickEpoch","Elapsed":0}
+{"Time":"2026-10-08T09:50:58.738212441Z","Action":"output","Package":"command-line-arguments","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:50:58.7382664Z","Action":"output","Package":"command-line-arguments","Output":"FAIL\tcommand-line-arguments\t0.001s\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:50:58.738280691Z","Action":"fail","Package":"command-line-arguments","Elapsed":0.001}
+
+{"Time":"2026-10-08T09:50:58.879454775Z","Action":"start","Package":"command-line-arguments"}
+{"Time":"2026-10-08T09:50:58.880469858Z","Action":"run","Package":"command-line-arguments","Test":"TestSimulationTimeArbiterAcceptsForwardTickEpoch"}
+{"Time":"2026-10-08T09:50:58.880520816Z","Action":"output","Package":"command-line-arguments","Test":"TestSimulationTimeArbiterAcceptsForwardTickEpoch","Output":"=== RUN   TestSimulationTimeArbiterAcceptsForwardTickEpoch\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:50:58.880538858Z","Action":"output","Package":"command-line-arguments","Test":"TestSimulationTimeArbiterAcceptsForwardTickEpoch","Output":"--- PASS: TestSimulationTimeArbiterAcceptsForwardTickEpoch (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:50:58.880559358Z","Action":"pass","Package":"command-line-arguments","Test":"TestSimulationTimeArbiterAcceptsForwardTickEpoch","Elapsed":0}
+{"Time":"2026-10-08T09:50:58.880580608Z","Action":"output","Package":"command-line-arguments","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T09:50:58.880604983Z","Action":"output","Package":"command-line-arguments","Output":"ok  \tcommand-line-arguments\t0.001s\n"}
+{"Time":"2026-10-08T09:50:58.880628066Z","Action":"pass","Package":"command-line-arguments","Elapsed":0.001}
+

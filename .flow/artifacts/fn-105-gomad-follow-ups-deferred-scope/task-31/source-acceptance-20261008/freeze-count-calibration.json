@@ -1,0 +1,10 @@
+{
+  "command": "node .flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/freeze.mjs",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "helper_sha256": "af37b135ad41321fbb9dc58e1acbc8b91d748449fa54686444758603c933a130",
+  "tool_exit_code": 1,
+  "tool_wall_time_seconds": 0.027861,
+  "raw_stderr_file": "freeze-count-calibration.stderr",
+  "provenance": "Transcribed complete raw error from foreground exec tool receipt 8d1949; exact timestamp and inherited environment were not separately captured. No output evidence.json was created by this stopped attempt.",
+  "classification": "helper aggregation error, not a product/test observation; historical causal pass must not be counted as current portable coverage"
+}

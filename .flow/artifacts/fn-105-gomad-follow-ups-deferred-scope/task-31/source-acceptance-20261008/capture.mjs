@@ -1,0 +1,31 @@
+import {createHash} from 'node:crypto';
+import {readFileSync,writeFileSync,existsSync,statSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+const root='/Users/stephan/Workspace/skunkworks/gomad/temporal';
+const out=dirname(fileURLToPath(import.meta.url));
+const stock='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin';
+export const sha=data=>createHash('sha256').update(data).digest('hex');
+function sources(){
+ const r=spawnSync('git',['ls-files','-z'],{cwd:root,maxBuffer:32<<20});assert.equal(r.status,0);
+ return Object.fromEntries(r.stdout.toString().split('\0').filter(p=>p&&!p.startsWith('.flow/')&&existsSync(resolve(root,p))&&statSync(resolve(root,p)).isFile()).sort().map(p=>[p,sha(readFileSync(resolve(root,p)))]));
+}
+const env={...process.env};
+for(const k of ['GOROOT','GOMADSEED','GOMAD3_CHILD_SEED','GOMAD3_SEED'])delete env[k];
+Object.assign(env,{GOENV:'off',GOWORK:'off',GOTOOLCHAIN:'local',GOFLAGS:'',GOEXPERIMENT:'nogreenteagc',GOMAXPROCS:'2',GOMAD3_STOCK_GO:stock+'/go',PATH:stock+':'+env.PATH});
+const [label,...argv]=process.argv.slice(2);assert(label&&argv.length&&/^[a-z0-9-]+$/.test(label));
+for(const suffix of ['.json','.stdout','.stderr'])assert(!existsSync(resolve(out,label+suffix)),'receipt exists: '+label);
+const before=sources(),started=new Date();
+const result=spawnSync(argv[0],argv.slice(1),{cwd:root,env,timeout:600000,maxBuffer:64<<20});
+const ended=new Date(),after=sources();
+writeFileSync(resolve(out,label+'.stdout'),result.stdout??'',{flag:'wx'});
+writeFileSync(resolve(out,label+'.stderr'),result.stderr??'',{flag:'wx'});
+const events=(result.stdout?.toString()??'').split('\n').filter(l=>l.startsWith('{')).flatMap(l=>{try{return [JSON.parse(l)];}catch{return [];}});
+const terminal=events.filter(e=>e.Test&&['pass','fail','skip'].includes(e.Action));
+const top=terminal.filter(e=>!e.Test.includes('/'));
+const receipt={argv,cwd:root,environment:Object.fromEntries(['GOENV','GOWORK','GOTOOLCHAIN','GOFLAGS','GOEXPERIMENT','GOMAXPROCS','GOMAD3_STOCK_GO','PATH'].map(k=>[k,env[k]])),exit:result.status,signal:result.signal,error:result.error?.message??null,started:started.toISOString(),ended:ended.toISOString(),elapsed_seconds:(ended-started)/1000,sources_before_sha256:sha(JSON.stringify(before)),sources_after_sha256:sha(JSON.stringify(after)),source_changes:[...new Set([...Object.keys(before),...Object.keys(after)])].filter(p=>before[p]!==after[p]),stdout_sha256:sha(result.stdout??''),stderr_sha256:sha(result.stderr??''),tool_sha256:{go:sha(readFileSync(stock+'/go')),gofmt:sha(readFileSync(stock+'/gofmt'))},tests:terminal.map(e=>({package:e.Package,test:e.Test,action:e.Action})),top_level_counts:Object.fromEntries(['pass','fail','skip'].map(a=>[a,top.filter(e=>e.Action===a).length]))};
+writeFileSync(resolve(out,label+'.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({label,exit:result.status,elapsed_seconds:receipt.elapsed_seconds,source_changes:receipt.source_changes,top_level_counts:receipt.top_level_counts}));
+console.log(result.stdout?.toString().slice(-1800)??'');console.log(result.stderr?.toString().slice(-1800)??'');process.exitCode=result.status??1;

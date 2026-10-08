@@ -1,0 +1,80 @@
+{
+  "receipts": [
+    {
+      "label": "transport-original-host-red",
+      "ref": "70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+      "source_path": "tools/gomad3/runner/internal/execution/simulation_time.go",
+      "source_sha256": "4c5776d2257cc6773f36ba2244c7e7a5aa5cd69ecf841cfe61003a38f39d4c80",
+      "fixture_sha256": "84a1d8ff622f2a67cfddc9a7bc1adc67a3282c8e88c86bd3b9fde3cf0ce64059",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "/tmp/r26-transport-Dqj2jI/simulation_time.go",
+        "/tmp/r26-transport-Dqj2jI/causal_test.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T09:50:58.560Z",
+      "ended": "2026-10-08T09:50:58.740Z",
+      "elapsed_seconds": 0.18,
+      "stdout_sha256": "9ceebb8ec26df9c86125549cddf3ed3e48390c2a0ea8ffa891c37859dea3bdb8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": [
+        {
+          "test": "TestSimulationTimeArbiterAcceptsForwardTickEpoch",
+          "action": "fail"
+        }
+      ],
+      "observation_scope": "stock host execution of complete historical arbiter source; no patched runtime or native process transport"
+    },
+    {
+      "label": "transport-original-host-green",
+      "ref": "32cc7e6d2ba635fb87b9f53f8b71ede0f9010e28",
+      "source_path": "tools/gomad3/runner/internal/execution/simulation_time.go",
+      "source_sha256": "4ed24e33079a51164ef0a502c2ef7ca8fc82129a67efdb34839a8125df58d7c5",
+      "fixture_sha256": "12a9a3bb90c8916e469a1995401161577fbbfd052513fdc4b0db5e690835e898",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "/tmp/r26-transport-MvcCXc/simulation_time.go",
+        "/tmp/r26-transport-MvcCXc/causal_test.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T09:50:58.747Z",
+      "ended": "2026-10-08T09:50:58.882Z",
+      "elapsed_seconds": 0.135,
+      "stdout_sha256": "2d783efaf35e9aacaa8d81ea2e6ebb0f58cf78bea765409a41a97769bd82f784",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": [
+        {
+          "test": "TestSimulationTimeArbiterAcceptsForwardTickEpoch",
+          "action": "pass"
+        }
+      ],
+      "observation_scope": "stock host execution of complete historical arbiter source; no patched runtime or native process transport"
+    }
+  ],
+  "fixture_source": {
+    "ref": "32cc7e6d2ba635fb87b9f53f8b71ede0f9010e28",
+    "path": "tools/gomad3/runner/internal/execution/simulation_time_test.go",
+    "function": "TestSimulationTimeArbiterAcceptsForwardTickEpoch",
+    "sha256": "899a917fd1dcacf62722d605a7e7c1e2dc680f2641e06ad561c3acfc9ff05d96",
+    "current_body_equal": true
+  },
+  "adaptation": "Only the predecessor factory call omits the new forward bool; complete historical implementation sources are unmodified.",
+  "historical_native_red_green_provenance": "No original D26 native RED/GREEN execution receipt found in retained Git/artifact paths. These are fresh portable source observations.",
+  "native_qualification": false
+}

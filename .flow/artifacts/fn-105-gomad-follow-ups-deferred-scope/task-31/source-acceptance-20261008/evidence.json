@@ -1,0 +1,803 @@
+{
+  "task_id": "fn-105-gomad-follow-ups-deferred-scope.31",
+  "status": "in_progress",
+  "base_commit": "8c8f8973c391dc74ae56f88b7bbac86d785e3745",
+  "commits": [],
+  "tests": [
+    "\"make\" \"-C\" \"tools/gomad3\" \"validate\"",
+    "\"go\" \"-C\" \"tools/gomad3\" \"vet\" \"-tags\" \"test_dep\" \"-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"-style-check=false\" \"./internal/gomadtool/conformance\" \"./runner/internal/execution\" \"./choice/internal/wire\" \"./target/internal/livecap\"",
+    "\"timeout\" \"600\" \"make\" \"lint-code\" \"GOLANGCI_LINT_BASE_REV=70bb38e5ddec2d271c12f0e8c2489855f08eb0ef\" \"GOLANGCI_LINT_FIX=false\" \"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\" \"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\" \"LINT_CODE_TARGETS=./internal/gomadtool/conformance ./runner/internal/execution ./choice/internal/wire ./target/internal/livecap\" \"ALL_TEST_TAGS=test_dep\"",
+    "\"timeout\" \"600\" \"make\" \"lint-code\" \"GOLANGCI_LINT_BASE_REV=\" \"GOLANGCI_LINT_FIX=false\" \"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\" \"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\" \"LINT_CODE_TARGETS=./internal/gomadtool/conformance ./runner/internal/execution ./choice/internal/wire ./target/internal/livecap\" \"ALL_TEST_TAGS=test_dep\"",
+    "\"timeout\" \"600\" \"make\" \"lint-code\" \"GOLANGCI_LINT_BASE_REV=\" \"GOLANGCI_LINT_FIX=false\" \"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\" \"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal\" \"LINT_CODE_TARGETS=./tools/gomad3sim\" \"ALL_TEST_TAGS=test_dep\"",
+    "\"timeout\" \"600\" \"make\" \"lint-code\" \"GOLANGCI_LINT_BASE_REV=70bb38e5ddec2d271c12f0e8c2489855f08eb0ef\" \"GOLANGCI_LINT_FIX=false\" \"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\" \"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal\" \"LINT_CODE_TARGETS=./tools/gomad3sim\" \"ALL_TEST_TAGS=test_dep\"",
+    "\"timeout\" \"600\" \"make\" \"lint-code\" \"GOLANGCI_LINT_BASE_REV=5df49456e649d4d3d2c6d8ba6518a2a05ca41e26\" \"GOLANGCI_LINT_FIX=false\" \"GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\" \"ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype\" \"LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\" \"LINT_CODE_TARGETS=./internal/gomadtool/conformance ./runner/internal/execution ./choice/internal/wire ./target/internal/livecap\" \"ALL_TEST_TAGS=test_dep\"",
+    "\"go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^TestBuiltInSimulation(LinknamesPinCurrentFirstPartySources|LinknamesRequireExactFirstPartySource|TimeBridgeRequiresExactSource)$\" \"./target\" \"./target/internal/capabilitypolicy\"",
+    "\"go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^TestWorkloadCommandCarriesTheClockTick$\" \"./qualification/set\"",
+    "\"go\" \"-C\" \"tools/gomad3\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestSimulationTime.*|TestServeSimulationTime.*|TestSimulationCoordinatorLimitsForwardEpochsToForwardClockExecutions|TestValidateConfigRecordsOnlyTheForwardClockTick|Test.*ClockTick.*|TestRequireForwardClockTicks.*|TestPackageArchitecture)$\" \"./runner/internal/execution\" \"./runner\" \"./record\" \"./qualification\" \"./internal/gomadtool/conformance\" \".\"",
+    "\"go\" \"test\" \"-count=1\" \"-json\" \"-tags\" \"test_dep\" \"-run\" \"^(TestProcessFrameRoundTripAndStrictDecode|TestProcessActivationFramesAreValid|TestRunFailsClosedWithoutPinnedRuntime|TestRunRejectsUnavailableProcessBackendBeforeScenario)$\" \"./tools/gomad3sim\"",
+    "\"node\" \".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/source-proof.mjs\"",
+    "\"node\" \".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/capture.mjs\" \"baseline-validate\" \"make\" \"-C\" \"tools/gomad3\" \"validate\"",
+    "\"node\" \".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/source-proof.mjs\"",
+    "\"node\" \".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/source-proof.mjs\"",
+    "\"node\" \".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/source-proof.mjs\"",
+    "\"node\" \".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/standards.mjs\"",
+    "\"node\" \".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/transport-causality.mjs\""
+  ],
+  "prs": [],
+  "scope": "source acceptance only; conductor owns review, lifecycle and commits",
+  "tier": "session (jev-unavailable(no_key)); explicit project implementer retained, gpt-6.1-sol at high",
+  "source_identity_sha256": "dbbf9522daf21658afce45350fec8c2742aa7fd4585c7cb8851b9eb3f959cfc3",
+  "current_portable_top_level_counts": {
+    "pass": 47,
+    "fail": 0,
+    "skip": 0
+  },
+  "historical_causal_host_counts": {
+    "pass": 1,
+    "fail": 1,
+    "skip": 0
+  },
+  "command_receipts": [
+    {
+      "path": "baseline-validate.json",
+      "sha256": "f54352e48722e462f93d220d1d77b6b6c309ae1aa04fece3024079d68596c7b5",
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 2.119,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "configured-errortype.json",
+      "sha256": "80830d18421cf009234538d6d64adb69f40e2e5faf5fb282d8fff383cf69b90c",
+      "argv": [
+        "go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-style-check=false",
+        "./internal/gomadtool/conformance",
+        "./runner/internal/execution",
+        "./choice/internal/wire",
+        "./target/internal/livecap"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.147,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "configured-original-r26-lint.json",
+      "sha256": "f3ae09aadb9c5cff64692da1fecdf6ae684ebc6c5f9040d5f9fab5d8f174453d",
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_BASE_REV=70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "LINT_CODE_TARGETS=./internal/gomadtool/conformance ./runner/internal/execution ./choice/internal/wire ./target/internal/livecap",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.815,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "configured-package-diagnostics.json",
+      "sha256": "a9ccd59f0c6ad12afb04955a7888abc692f19fe48780e3a0e2e393e2934c3f6b",
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_BASE_REV=",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "LINT_CODE_TARGETS=./internal/gomadtool/conformance ./runner/internal/execution ./choice/internal/wire ./target/internal/livecap",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "exit": 2,
+      "elapsed_seconds": 0.51,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "inherited diagnostic findings"
+    },
+    {
+      "path": "configured-root-package-diagnostics.json",
+      "sha256": "8bb3af3c516a78367e85219fe4086fa46dd630fa11c2ed753184899e42f32e65",
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_BASE_REV=",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal",
+        "LINT_CODE_TARGETS=./tools/gomad3sim",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.508,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "configured-root-source-lint.json",
+      "sha256": "5b50175b80309c07f12a5fe077e7f152a21204fce03d25e965a3831ab017cdaf",
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_BASE_REV=70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal",
+        "LINT_CODE_TARGETS=./tools/gomad3sim",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 3.228,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "configured-source-lint.json",
+      "sha256": "42c67368861831237f59adf26a28b7acd0b5207770b60ea7b030bb6fed392105",
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_BASE_REV=5df49456e649d4d3d2c6d8ba6518a2a05ca41e26",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "LINT_CODE_TARGETS=./internal/gomadtool/conformance ./runner/internal/execution ./choice/internal/wire ./target/internal/livecap",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "exit": 2,
+      "elapsed_seconds": 1.017,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "inherited diagnostic findings"
+    },
+    {
+      "path": "portable-bridge-pins.json",
+      "sha256": "48bade2e7f7418861c7238362a1c05ad6614ad6dd5660093a9a625e0218ea17c",
+      "argv": [
+        "go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^TestBuiltInSimulation(LinknamesPinCurrentFirstPartySources|LinknamesRequireExactFirstPartySource|TimeBridgeRequiresExactSource)$",
+        "./target",
+        "./target/internal/capabilitypolicy"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.153,
+      "top_level_counts": {
+        "pass": 3,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "portable-clock-manifest.json",
+      "sha256": "589e5be1c898e29579c85de66f9b8b529111b804c6b1b307f5424d1e05a89016",
+      "argv": [
+        "go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^TestWorkloadCommandCarriesTheClockTick$",
+        "./qualification/set"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.234,
+      "top_level_counts": {
+        "pass": 1,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "portable-clock-source.json",
+      "sha256": "04ce6f98825de0b9dcf42f35b262abd2816b1bbad61e36817782709158c585bb",
+      "argv": [
+        "go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestSimulationTime.*|TestServeSimulationTime.*|TestSimulationCoordinatorLimitsForwardEpochsToForwardClockExecutions|TestValidateConfigRecordsOnlyTheForwardClockTick|Test.*ClockTick.*|TestRequireForwardClockTicks.*|TestPackageArchitecture)$",
+        "./runner/internal/execution",
+        "./runner",
+        "./record",
+        "./qualification",
+        "./internal/gomadtool/conformance",
+        "."
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.956,
+      "top_level_counts": {
+        "pass": 39,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "portable-root-activation.json",
+      "sha256": "75c8a6be1b48d77d34d79e2ac860988f167a889007d4058a2058decabda8f1f2",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-json",
+        "-tags",
+        "test_dep",
+        "-run",
+        "^(TestProcessFrameRoundTripAndStrictDecode|TestProcessActivationFramesAreValid|TestRunFailsClosedWithoutPinnedRuntime|TestRunRejectsUnavailableProcessBackendBeforeScenario)$",
+        "./tools/gomad3sim"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.328,
+      "top_level_counts": {
+        "pass": 4,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "proof-overwrite-guard.json",
+      "sha256": "0bdafa7394246b2a1b856c66753a17a761bb997275f35d3d2ffdb6c22cb3fefd",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/source-proof.mjs"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 0.107,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "expected non-overwrite refusal"
+    },
+    {
+      "path": "receipt-overwrite-guard.json",
+      "sha256": "e0728fe37498e4070d5e012ecd62dc98e8b449a4e9e6530d4b2781fb9027e732",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/capture.mjs",
+        "baseline-validate",
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 0.109,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "expected non-overwrite refusal"
+    },
+    {
+      "path": "source-binding-check.json",
+      "sha256": "6ac38141f03038a1b6ccbf635fb7263de424b265715a03c05b5470c000cd5bf2",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/source-proof.mjs"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 0.207,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "retained source-helper failed attempt"
+    },
+    {
+      "path": "source-binding-current.json",
+      "sha256": "83d8972362ff17311f5db8a197c40323e98ddbbbfbb382904cff5a5d3962b1ec",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/source-proof.mjs"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.615,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "source-binding-final.json",
+      "sha256": "f662fe6cee11086717c0f50bbde56059a8cff078131ede2a42d2a479c373f3f4",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/source-proof.mjs"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 0.62,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "retained source-helper failed attempt"
+    },
+    {
+      "path": "standards-attribution.json",
+      "sha256": "cec3dca9593fc79b6377590249d820b5de27d641612270a323e9900a6164f55f",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/standards.mjs"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.225,
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    },
+    {
+      "path": "transport-causality.json",
+      "sha256": "704887e284befdc1d5634a55e44a7494ece65be7813a474f1fa9232eab504b3f",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/source-acceptance-20261008/transport-causality.mjs"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.445,
+      "top_level_counts": {
+        "pass": 1,
+        "fail": 1,
+        "skip": 0
+      },
+      "classification": "current source observation"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "base_commit",
+      "bytes": 41,
+      "sha256": "5487f00b9e69aeac224edd264e50df908e63c7c48890b3f76a40655c0ba07838"
+    },
+    {
+      "path": "baseline-validate.json",
+      "bytes": 1789,
+      "sha256": "f54352e48722e462f93d220d1d77b6b6c309ae1aa04fece3024079d68596c7b5"
+    },
+    {
+      "path": "baseline-validate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "baseline-validate.stdout",
+      "bytes": 2162,
+      "sha256": "14f0f6898d1f2f53f9554d007882d37feccca09025cfa71566ed9c8e482d019e"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 3329,
+      "sha256": "932370934449dd153f2b0bfeb8a474a23ea81411f97c7678bb22401c2dfc90b9"
+    },
+    {
+      "path": "configured-errortype.json",
+      "bytes": 2032,
+      "sha256": "80830d18421cf009234538d6d64adb69f40e2e5faf5fb282d8fff383cf69b90c"
+    },
+    {
+      "path": "configured-errortype.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "configured-errortype.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "configured-original-r26-lint.json",
+      "bytes": 2270,
+      "sha256": "f3ae09aadb9c5cff64692da1fecdf6ae684ebc6c5f9040d5f9fab5d8f174453d"
+    },
+    {
+      "path": "configured-original-r26-lint.stderr",
+      "bytes": 5810,
+      "sha256": "e3ab4e3bbcd0e7933e96a83029c58b91b6b93951ba5b432b0c80208fb63435c8"
+    },
+    {
+      "path": "configured-original-r26-lint.stdout",
+      "bytes": 37,
+      "sha256": "adf3b8f2200b96124e1fbddd0e68551742d61f8ffbf124db0463018cf742ff56"
+    },
+    {
+      "path": "configured-package-diagnostics.json",
+      "bytes": 2229,
+      "sha256": "a9ccd59f0c6ad12afb04955a7888abc692f19fe48780e3a0e2e393e2934c3f6b"
+    },
+    {
+      "path": "configured-package-diagnostics.stderr",
+      "bytes": 6086,
+      "sha256": "68ddf36e95c70479360fc1852f51565b6d34c4f0c78214527f0104384a9c4cdd"
+    },
+    {
+      "path": "configured-package-diagnostics.stdout",
+      "bytes": 4888,
+      "sha256": "c098a4df0a177c9640ac028c10040d7908946c004464c7c70189e84b799480c2"
+    },
+    {
+      "path": "configured-root-package-diagnostics.json",
+      "bytes": 2125,
+      "sha256": "8bb3af3c516a78367e85219fe4086fa46dd630fa11c2ed753184899e42f32e65"
+    },
+    {
+      "path": "configured-root-package-diagnostics.stderr",
+      "bytes": 5708,
+      "sha256": "a1ce3c8ab30e4027a20aaca798d82c5bca907a65e464f95feb2669839725b173"
+    },
+    {
+      "path": "configured-root-package-diagnostics.stdout",
+      "bytes": 37,
+      "sha256": "adf3b8f2200b96124e1fbddd0e68551742d61f8ffbf124db0463018cf742ff56"
+    },
+    {
+      "path": "configured-root-source-lint.json",
+      "bytes": 2165,
+      "sha256": "5b50175b80309c07f12a5fe077e7f152a21204fce03d25e965a3831ab017cdaf"
+    },
+    {
+      "path": "configured-root-source-lint.stderr",
+      "bytes": 5727,
+      "sha256": "26f867620645bd7a8eb5238483f26ccb849dc90deb5e07d370840e378b700ab0"
+    },
+    {
+      "path": "configured-root-source-lint.stdout",
+      "bytes": 37,
+      "sha256": "adf3b8f2200b96124e1fbddd0e68551742d61f8ffbf124db0463018cf742ff56"
+    },
+    {
+      "path": "configured-source-lint.json",
+      "bytes": 2270,
+      "sha256": "42c67368861831237f59adf26a28b7acd0b5207770b60ea7b030bb6fed392105"
+    },
+    {
+      "path": "configured-source-lint.stderr",
+      "bytes": 6070,
+      "sha256": "8275ae69ff7295fb87405c8e2c1c6b69b33be1c812f3cc8cd3a59a36c1c069da"
+    },
+    {
+      "path": "configured-source-lint.stdout",
+      "bytes": 447,
+      "sha256": "e59214f6c9734381271b9dee85ffbe1afd22436b6cbe850f7b790e40a1ae2e72"
+    },
+    {
+      "path": "format-list.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "format-list.stdout",
+      "bytes": 60,
+      "sha256": "ee1d4868ccb75c63fcfa3a867077117cbc47a81174b529b177a853842f8bbf0b"
+    },
+    {
+      "path": "freeze-count-calibration.json",
+      "bytes": 770,
+      "sha256": "7134fc0c0eb5d83c8e8347ff4d653cfb7cf390e42d2b761ef167b99cc647e17c"
+    },
+    {
+      "path": "freeze-count-calibration.stderr",
+      "bytes": 710,
+      "sha256": "9206f2d0bf81bcf2c752524221987ad047d6737631277880146a3ef400be4483"
+    },
+    {
+      "path": "freeze.mjs",
+      "bytes": 5232,
+      "sha256": "34e3ffa8651e16ee1a50dd6dbc79456abe3cd63e0c80f4729d6b93363505662a"
+    },
+    {
+      "path": "handover.md",
+      "bytes": 7622,
+      "sha256": "4b64a9125e2c313f653d1bb141c313125e30ce17e27eab99d6e9353ca72e2916"
+    },
+    {
+      "path": "portable-bridge-pins.json",
+      "bytes": 5116,
+      "sha256": "48bade2e7f7418861c7238362a1c05ad6614ad6dd5660093a9a625e0218ea17c"
+    },
+    {
+      "path": "portable-bridge-pins.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "portable-bridge-pins.stdout",
+      "bytes": 17513,
+      "sha256": "60e32ad2f95342b3cb5a6c054d8fb15851089c974bb5b7f608982b4af93027cf"
+    },
+    {
+      "path": "portable-clock-manifest.json",
+      "bytes": 2095,
+      "sha256": "589e5be1c898e29579c85de66f9b8b529111b804c6b1b307f5424d1e05a89016"
+    },
+    {
+      "path": "portable-clock-manifest.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "portable-clock-manifest.stdout",
+      "bytes": 1505,
+      "sha256": "dc958de1b2cb66e23951b6d16ce3f4414caf374ac19719510e78e804829f2822"
+    },
+    {
+      "path": "portable-clock-source.json",
+      "bytes": 15605,
+      "sha256": "04ce6f98825de0b9dcf42f35b262abd2816b1bbad61e36817782709158c585bb"
+    },
+    {
+      "path": "portable-clock-source.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "portable-clock-source.stdout",
+      "bytes": 75492,
+      "sha256": "150bef6685eebfc8df8742850c10fddfdaa2f77fa1790f635de5bce404357d93"
+    },
+    {
+      "path": "portable-root-activation.json",
+      "bytes": 2645,
+      "sha256": "75c8a6be1b48d77d34d79e2ac860988f167a889007d4058a2058decabda8f1f2"
+    },
+    {
+      "path": "portable-root-activation.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "portable-root-activation.stdout",
+      "bytes": 3889,
+      "sha256": "96d3c481b5550f33a61ec869e0d257719d9daf01c61ae81b9fde89ac41d76820"
+    },
+    {
+      "path": "proof-overwrite-guard.json",
+      "bytes": 1857,
+      "sha256": "0bdafa7394246b2a1b856c66753a17a761bb997275f35d3d2ffdb6c22cb3fefd"
+    },
+    {
+      "path": "proof-overwrite-guard.stderr",
+      "bytes": 755,
+      "sha256": "5c2980915544dd89e1e8ea289912ab9f096722853da2abb9ef15f80973223520"
+    },
+    {
+      "path": "proof-overwrite-guard.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "receipt-overwrite-guard.json",
+      "bytes": 1935,
+      "sha256": "e0728fe37498e4070d5e012ecd62dc98e8b449a4e9e6530d4b2781fb9027e732"
+    },
+    {
+      "path": "receipt-overwrite-guard.stderr",
+      "bytes": 693,
+      "sha256": "908a7778c4dcbcf05034ed4e99333302e65155be28a87ba823c6b6a9a71487a0"
+    },
+    {
+      "path": "receipt-overwrite-guard.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-binding-check.json",
+      "bytes": 1857,
+      "sha256": "6ac38141f03038a1b6ccbf635fb7263de424b265715a03c05b5470c000cd5bf2"
+    },
+    {
+      "path": "source-binding-check.stderr",
+      "bytes": 890,
+      "sha256": "c5918bc07f9ef6fa549474ab0542ba59eb1158000bb4083d148d27c6e12feb56"
+    },
+    {
+      "path": "source-binding-check.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-binding-current.json",
+      "bytes": 1857,
+      "sha256": "83d8972362ff17311f5db8a197c40323e98ddbbbfbb382904cff5a5d3962b1ec"
+    },
+    {
+      "path": "source-binding-current.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-binding-current.stdout",
+      "bytes": 486,
+      "sha256": "9759b832a74e12fcdaf2dfc3b568b216767f745b825e191495d51a2dce39e7ad"
+    },
+    {
+      "path": "source-binding-final.json",
+      "bytes": 1856,
+      "sha256": "f662fe6cee11086717c0f50bbde56059a8cff078131ede2a42d2a479c373f3f4"
+    },
+    {
+      "path": "source-binding-final.stderr",
+      "bytes": 934,
+      "sha256": "4f650613b99c78c924a222f719f246ec28661fc84c487832a1fcac3ab34a24aa"
+    },
+    {
+      "path": "source-binding-final.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-proof.json",
+      "bytes": 18882,
+      "sha256": "37a6063c3b8a56d59242c027f5ffe7983e871eeeeccfe7076e954d32435befe2"
+    },
+    {
+      "path": "source-proof.mjs",
+      "bytes": 8236,
+      "sha256": "9d12248fc555265f649737d2372aaf2e257fe4f43a6e323fbe97c660956efe98"
+    },
+    {
+      "path": "standards-attribution.json",
+      "bytes": 1854,
+      "sha256": "cec3dca9593fc79b6377590249d820b5de27d641612270a323e9900a6164f55f"
+    },
+    {
+      "path": "standards-attribution.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "standards-attribution.stdout",
+      "bytes": 1014,
+      "sha256": "e7e742a9ccc87607d9ae28702f8b5221444b9dc2e3dae38306d7abd55060b04c"
+    },
+    {
+      "path": "standards-proof.json",
+      "bytes": 23946,
+      "sha256": "8fa30d863bdd67ed43712a279b05bf5efe3c80e3edf0fa8772e79cb4605c3f40"
+    },
+    {
+      "path": "standards.mjs",
+      "bytes": 4790,
+      "sha256": "5627555d4b587e38bbbd69ca893b9a0bd52a29909fbb5efe068a587e52f6f256"
+    },
+    {
+      "path": "transport-causality.json",
+      "bytes": 2156,
+      "sha256": "704887e284befdc1d5634a55e44a7494ece65be7813a474f1fa9232eab504b3f"
+    },
+    {
+      "path": "transport-causality.mjs",
+      "bytes": 3730,
+      "sha256": "266cea289b127989976a7e0efa772be6fe60d05181a8da1df13dc0e6fa4a86e9"
+    },
+    {
+      "path": "transport-causality.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "transport-causality.stdout",
+      "bytes": 3019,
+      "sha256": "fcffac021ac22fc66680c35f0a10a5a9f11806cbbed0ba89ade7539053a908b9"
+    },
+    {
+      "path": "transport-original-host-green.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "transport-original-host-green.stdout",
+      "bytes": 1295,
+      "sha256": "2d783efaf35e9aacaa8d81ea2e6ebb0f58cf78bea765409a41a97769bd82f784"
+    },
+    {
+      "path": "transport-original-host-red.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "transport-original-host-red.stdout",
+      "bytes": 1722,
+      "sha256": "9ceebb8ec26df9c86125549cddf3ed3e48390c2a0ea8ffa891c37859dea3bdb8"
+    },
+    {
+      "path": "transport-proof.json",
+      "bytes": 3522,
+      "sha256": "86451ca81e06572246f4c0b2e83f8a1ce42d045f2b1350d31ff9ddc67105630e"
+    }
+  ],
+  "native_qualification": false,
+  "review_verdict": null,
+  "limitations": [
+    "Original D26 native RED/GREEN execution receipts not found; fresh causal comparison is host arbiter source only.",
+    "Inherited runtime gofmt separator remains fn-109.13; no global format pass or waiver.",
+    "Unfiltered nested package lint has 24 inherited findings, none in original R26 paths/hunks.",
+    "Transferred patched/native fixtures, seeds 1-24, forward11/17 traced replay and full-host gates remain unverified."
+  ],
+  "frozen_at": "2026-10-08T10:01:57.362Z"
+}
