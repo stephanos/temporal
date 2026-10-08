@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync,readdirSync,writeFileSync} from 'node:fs';
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {sha} from '../source-acceptance-20261008/capture.mjs';
+const out=dirname(fileURLToPath(import.meta.url)),relative='.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/conductor-source-acceptance-20261008';
+const receipt=JSON.parse(readFileSync('/tmp/impl-review-receipt-657da2bc4466-fn-109-gomad-deepen-modules-and-tool-interfaces.4.json'));
+assert.equal(receipt.verdict,'SHIP');assert.equal(receipt.introduced_count,0);
+const files=readdirSync(out).filter(p=>p.endsWith('.json')).sort();
+const receipts=files.flatMap(file=>{const p=resolve(out,file),bytes=readFileSync(p),v=JSON.parse(bytes);if(!Array.isArray(v.argv))return [];assert.equal(v.signal,null);assert.equal(v.error,null);assert.deepEqual(v.source_changes,[]);assert.equal(v.stdout_sha256,sha(readFileSync(p.replace(/\.json$/,'.stdout'))));assert.equal(v.stderr_sha256,sha(readFileSync(p.replace(/\.json$/,'.stderr'))));return [{path:relative+'/'+file,sha256:sha(bytes),argv:v.argv,exit:v.exit,signal:v.signal,error:v.error,started:v.started,ended:v.ended}];});
+for(const name of ['postreview-worker-integrity','postreview-independent-audit'])assert.equal(receipts.find(r=>r.path.endsWith('/'+name+'.json'))?.exit,0);
+const evidence={commits:['5e5d8015c7f0deb443df5877614b2fcc94c3465f'],tests:receipts.map(r=>r.argv.join(' ')+'; exit='+r.exit),prs:[],scope:'Task4 retained CLI construction source acceptance; R6 partial until task5',native_qualification:false,full_host_pass:false,global_lint_green:false,portable_unique_top_level_tests:129,full_cli_worker_pass:89,full_cli_worker_fail:3,worker_evidence_sha256:'07a5943dbcba1a096f9f9d079117c5babc8603b4854d994efbda69fdde2149f5',worker_freeze_sha256:'c631913782b13e66e991664381cf42a946f25122a8116a3748ee5c0be6c182c2',source_identity_sha256:JSON.parse(readFileSync(resolve(out,'audit.json'))).source_identity_sha256,review_rid:receipt.rid,review_receipt_sha256:sha(readFileSync('/tmp/impl-review-receipt-657da2bc4466-fn-109-gomad-deepen-modules-and-tool-interfaces.4.json')),root_receipts:receipts};
+writeFileSync(resolve(out,'completion-evidence.json'),JSON.stringify(evidence,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({receipts:receipts.length,portable_unique:129,review:receipt.verdict,native:false,global_lint_green:false}));

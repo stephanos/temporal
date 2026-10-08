@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {sha} from '../source-acceptance-20261008/capture.mjs';
+const out=dirname(fileURLToPath(import.meta.url)),receiptPath='/tmp/impl-review-receipt-657da2bc4466-fn-109-gomad-deepen-modules-and-tool-interfaces.4.json';
+const receipt=JSON.parse(readFileSync(receiptPath)),rid=receipt.rid,dir='.flow/review-fanout/'+rid;
+assert.equal(receipt.verdict,'SHIP');assert.equal(receipt.base,'ec00b9d5aa17848edb74b3644a7f34cb1661803f');
+assert.equal(receipt.findings.headSha,'5e5d8015c7f0deb443df5877614b2fcc94c3465f');
+assert.equal(receipt.introduced_count,0);assert.equal(receipt.pre_existing_count,1);
+const paths=[receiptPath,dir+'/meta.json',...['correctness','contracts','integration'].flatMap(axis=>[dir+'/'+axis+'.json',dir+'/'+axis+'.review.md'])];
+const records=paths.map(path=>{const bytes=readFileSync(path),data=bytes.toString('base64');assert.deepEqual(Buffer.from(data,'base64'),bytes);return {path,bytes:bytes.length,sha256:sha(bytes),encoding:'base64',data};});
+assert.equal(records.length,8);
+const result={task:'fn-109-gomad-deepen-modules-and-tool-interfaces.4',rid,reviewed_base:receipt.base,reviewed_head:receipt.findings.headSha,verdict:receipt.verdict,records};
+writeFileSync(resolve(out,'source-review.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({rid,verdict:receipt.verdict,introduced:receipt.introduced_count,pre_existing:receipt.pre_existing_count,lossless_records:records.length}));

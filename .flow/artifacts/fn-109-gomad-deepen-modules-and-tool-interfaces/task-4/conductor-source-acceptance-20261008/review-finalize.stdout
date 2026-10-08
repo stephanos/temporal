@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.4",
+  "verdict": "SHIP",
+  "session_id": "01a11b80-0690-7331-9d5b-08e2d393ef91",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: Doctor ignores its JSON stdout write error, allowing status 0/1 after output failure\n- **Confidence**: 100\n- **Classification**: pre_existing\n- **Problem**: Doctor ignores its JSON stdout write error, allowing status 0/1 after output failure. The base contains identical behavior, correctly preserved by this acceptance wave.\n- **Suggestion**: Address through the separate writer-error correction owner.\n- **File:Line**: tools/gomad3/cmd/gomad/internal/cli/cli.go:399\n- **R-IDs**: R18, R6\n\n```json\n{\"classification_counts\": {\"introduced\": 0, \"pre_existing\": 1}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a11b80-0690-7331-9d5b-08e2d393ef91",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a11b80-068f-7b72-8247-5417d050c597",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a11b80-068b-7092-8f6a-ca218cb3a978",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 0,
+  "introduced_count": 0,
+  "pre_existing_count": 1,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}
