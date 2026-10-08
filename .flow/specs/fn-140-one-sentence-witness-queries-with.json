@@ -7,15 +7,116 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-134-capabilities-own-their-properties"
+    "fn-134-capabilities-own-their-properties",
+    "fn-129-activity-coverage"
   ],
   "id": "fn-140-one-sentence-witness-queries-with",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T03:53:01.973088Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "beea9da2cc96caff3f69c791afc5d430a479838bd3c0294727bb91afa3c79aa9",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-67af2986e583b994ff917b5acd09cf41",
+            "classification": "introduced",
+            "findingId": "finding-67af2986e583b994ff917b5acd09cf41",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ee32b5fa6023c4ab8dfcc928f07d79afe5587186",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 676391,
+      "output_sha256": "322cf15ca1dcfba0b561e15632087e94519457c8e53a966e8262184966c4e089",
+      "reservation_id": "50794470bb134c4b80f05f618fc4d4fa",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T03:47:12.234362Z",
+      "tool_calls": 25,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "17447659cdb9ccf6b96bc0cc8b4c203cc87ed6bb27890a8d71eb9ac8aa254597",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-67af2986e583b994ff917b5acd09cf41",
+            "classification": "introduced",
+            "findingId": "finding-67af2986e583b994ff917b5acd09cf41",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ee32b5fa6023c4ab8dfcc928f07d79afe5587186",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 776,
+      "output_sha256": "f41c500d4208c9084c59a1dda371ae8f5807b7226dc8ffaafc5b01f79b1430d6",
+      "reservation_id": "df959f189cd1423ba913ca50c73c2195",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T03:53:01.971378Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-140-one-sentence-witness-queries-with.md",
   "status": "open",
   "title": "One-sentence witness Queries with explicit live expectations",
@@ -30,5 +131,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T19:01:17.281862Z"
+  "updated_at": "2026-10-08T03:53:01.973806Z"
 }
