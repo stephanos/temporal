@@ -141,7 +141,6 @@ object exports:
     system.ScheduledCompletionByID,
     system.HeldFailureByID,
     system.HeldCancellationByID,
-    system.ResetKeepingPausedActivity,
     system.ResetAfterHeartbeat
   )
 

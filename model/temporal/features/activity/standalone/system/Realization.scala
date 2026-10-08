@@ -875,76 +875,15 @@ object HeldCancellationByID
   object serverSteps extends ServerSteps(canceledExternalSettlement)
 
 // ### Reset
-// A reset with keep_paused of an activity paused before a worker took it: the reset's answer, then
-// the unpause's, which a paused activity alone accepts, then the attempt completes.
-private val resetKeepingPaused = rpc(calls, METHOD_RESET_ACTIVITY_EXECUTION) {
-  field(_.identity) := Operand.text("reset-controller")
-  field(_.keepPaused) := Operand.flag(true)
-  field(_.requestId) := run
-}
-private val resetKeptPaused = "statusPausedAfterReset"
-
-object ResetKeepingPausedActivity
-    extends Realizes(ResetKeepingPause, observations = Vector(correlated, publicAttemptCount)):
-  object controller
-      extends Controller(
-        deadlines[StartActivityExecutionRequest](
-          client.start(maxAttempts := MaxAttempts.unlimited),
-          startUnlimited,
-          duration(deadlineSeconds),
-          unset = Some(startToClose -> startUnreached)
-        )(
-          startDelay.sets(_.getStartDelay),
-          scheduleToStart.sets(_.getScheduleToStartTimeout),
-          startToClose.sets(_.getStartToCloseTimeout),
-          heartbeat.sets(_.getHeartbeatTimeout)
-        ),
-        onPath(client.pause)(holdDispatchBeforePause),
-        perform(client.pause -> pauseActivity),
-        onPath(client.pause)(described.await(system.Fact.statusPaused)),
-        perform(client.reset(ResetPause.keepPaused) -> resetKeepingPaused),
-        perform(client.unpause -> unpauseActivity),
-        onPath(client.unpause)(releaseDispatchAfterPause),
-        onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted)),
-        everyCase(readAttemptCount)
-      )
-  object workers extends Workers(attempts)
-  object evidence
-      extends Evidences(
-        answered(system.Fact.statusScheduled, startActivity),
-        described(system.Fact.statusPaused),
-        answeredAs(
-          kind = resetKeptPaused,
-          records = system.Fact.statusPaused,
-          call = resetKeepingPaused,
-          Taking(client.reset(ResetPause.keepPaused), 1)
-        ),
-        answeredAs(
-          kind = scheduledAgain,
-          records = system.Fact.statusScheduled,
-          call = unpauseActivity,
-          Taking(client.unpause, 1)
-        ),
-        delivered(
-          system.Fact.statusStarted,
-          attempts,
-          attempt = 1,
-          after = startActivity,
-          Taking(worker.poll, 1)
-        ),
-        described(system.Fact.statusCompleted)
-      )
-  object controls extends Controls(unstartedDispatch)
-
 // A reset of a held attempt, deferred until its heartbeat deadline ends it. The first attempt
 // publishes the SDK's pending record before the controller reads it held and resets it; the
 // server's next delivery is a first attempt again, which completes under a one-attempt policy.
+// The one start the path takes, with its heartbeat deadline, learning the execution run once.
 private val startResetOne = startOne.withFields {
+  field(_.getHeartbeatTimeout) := duration(deadlineSeconds)
+  field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
   read(Field[StartActivityExecutionResponse, String](_.runId), Cardinality.one)
     .into(Target.Bind(activityExecutionRun.id))
-}
-private val startResetOneUnreached = startResetOne.withFields {
-  field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
 }
 private val resetHeldActivity = rpc(byIDCalls, METHOD_RESET_ACTIVITY_EXECUTION) {
   field(_.identity) := Operand.text("reset-controller")
@@ -968,11 +907,12 @@ private val awaitResetCompleted = await(resetCompleted, calls)(
 ) {
   field(_.runId) := executionRun
 }
+private val pendingResetAttempt = attemptPending
 private val resetAttempts = script(
   "reset-attempts",
   WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
 )(
-  onPath(deadline.heartbeat)(attemptPending),
+  onPath(deadline.heartbeat)(pendingResetAttempt),
   perform(worker.respondCompleted -> completeAttempt)
 )
 
@@ -1041,16 +981,8 @@ object ResetAfterHeartbeat
     ):
   object controller
       extends Controller(
-        deadlines[StartActivityExecutionRequest](
-          client.start(maxAttempts := MaxAttempts.one),
-          startResetOne,
-          duration(deadlineSeconds),
-          unset = Some(startToClose -> startResetOneUnreached)
-        )(
-          startDelay.sets(_.getStartDelay),
-          scheduleToStart.sets(_.getScheduleToStartTimeout),
-          startToClose.sets(_.getStartToCloseTimeout),
-          heartbeat.sets(_.getHeartbeatTimeout)
+        perform(
+          client.start(heartbeat := Timeout.expires, maxAttempts := MaxAttempts.one) -> startResetOne
         ),
         everyCase(awaitResetPublication),
         everyCase(awaitResetHeld),
@@ -1085,7 +1017,11 @@ object ResetAfterHeartbeat
         ),
         resetCompleted
       )
-  object serverSteps extends ServerSteps(deferredResetSettlement)
+  object serverSteps
+      extends ServerSteps(
+        ServerStep(deadline.heartbeat, CauseKind.timer, deadlineMs, TimeoutBasis.heartbeat),
+        deferredResetSettlement
+      )
 
 // ### The held race
 // A controller starts one activity on a queue no worker polls, holds its dispatch between

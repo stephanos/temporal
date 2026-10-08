@@ -301,7 +301,7 @@ class ActivityResetRegression extends munit.FunSuite:
     assert(holds(ActivitySystem.properties.nonRetryableFails, held, failed))
   }
 
-  test("reset witnesses keep Model-only checks apart from the two realized Cases") {
+  test("reset witnesses keep Model-only checks apart from the realized deferred Case") {
     for query <- List(
         ResetSettlement.queries.resetFatality,
         ResetSettlement.queries.resetExhaustion,
@@ -311,7 +311,8 @@ class ActivityResetRegression extends munit.FunSuite:
         ResetSettlement.queries.resetScheduleToClose,
         ResetSettlement.queries.resetCancellation,
         ResetSettlement.queries.resetOutranksPause,
-        ResetSettlement.queries.resetRepeated
+        ResetSettlement.queries.resetRepeated,
+        ResetKeepingPause.queries.keepPausedReset
       )
     do
       assertEquals(query.form, QueryForm.find)
@@ -324,9 +325,8 @@ class ActivityResetRegression extends munit.FunSuite:
         seen :+ take(seen.last, cls).head.state
       }
       assert(path.size == query.scenario.actions.size + 1)
-    for query <- List(
-        ResetKeepingPause.queries.keepPausedReset,
-        DeferredReset.queries.deferredResetCompletes
-      )
-    do assertEquals(query.expectedRun, Some(temporal.realize.satisfied))
+    assertEquals(
+      DeferredReset.queries.deferredResetCompletes.expectedRun,
+      Some(temporal.realize.satisfied)
+    )
   }

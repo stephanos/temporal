@@ -643,7 +643,10 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         after.state.heartbeat == before.heartbeat &&
         after.state.maxAttempts == before.maxAttempts &&
         !after.records(Fact.statusFailed) &&
-        states.timeoutFacts.forall(fact => !after.records(fact))
+        !after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose)) &&
+        !after.records(Fact.statusTimedOut(TimeoutType.scheduleToStart)) &&
+        !after.records(Fact.statusTimedOut(TimeoutType.startToClose)) &&
+        !after.records(Fact.statusTimedOut(TimeoutType.heartbeat))
       if before.phase == Phase.resetRequested then
         after.state == before ||
         (after.state.phase == Phase.completed && after.records(Fact.statusCompleted)) ||
@@ -1261,11 +1264,25 @@ object ResetSettlement extends Derived(ActivitySystem.unmonitored):
     val resetRepeated = query find properties.resetStaysPending in resetTwice limits four
 
 // A reset with keep_paused of an activity paused before any worker took it: it stays paused, its
-// count restarted. The pause arms the dispatch hold the pause/resume path uses.
+// count restarted. It leaves the state the pause made, so no Contract clause tells the reset's step
+// from the pause's, and it stays a Model-only witness; a retried activity's reset would rewind a
+// delivered count, which only a held reset declares to the Driver.
 object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
   object properties:
+    // Paused before any attempt, with no deadline set, its count restarted.
+    val keptPaused =
+      system.State(
+        phase = Phase.paused,
+        dispatch = Dispatch.now,
+        attempts = UpTo(0),
+        scheduleToClose = Timeout.unset,
+        scheduleToStart = Timeout.unset,
+        startToClose = Timeout.unset,
+        heartbeat = Timeout.unset,
+        maxAttempts = MaxAttempts.unlimited
+      )
     val resetKeptPaused = property when client.reset(ResetPause.keepPaused) holds { s =>
-      s.state.phase == Phase.paused && s.records(Fact.statusPaused)
+      s.state == keptPaused && s.records(Fact.statusPaused)
     }
   object queries:
     val pausedThenReset = scenario.actions(
@@ -1273,8 +1290,7 @@ object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
       client.pause,
       client.reset(ResetPause.keepPaused)
     )
-    val keepPausedReset =
-      (query find properties.resetKeptPaused in pausedThenReset limits three).expect(satisfied)
+    val keepPausedReset = query find properties.resetKeptPaused in pausedThenReset limits three
 
 // A reset of a held attempt, applied when the attempt's heartbeat deadline ends it: the server's
 // next delivery is a first attempt again, which completes, though the policy allowed one attempt.
