@@ -1,0 +1,9 @@
+{
+ "classification":"New authoring/setup failures, not semantic test RED or passes",
+ "chronology":[
+  {"receipt":"writer-regression-red.json","result":"Exit1, zero collected tests due incorrect gomad3/runner import. Import corrected to established go.temporal.io/server/tools/gomad3/runner; this is not the semantic RED."},
+  {"receipt":"writer-regression-red-import-corrected.json","result":"Genuine semantic RED: both subcases collected and failed solely for missing joined diagnostic writer error bytes; three attempts/order/status3 already matched."},
+  {"observation":"Repeated atomic apply_patch verification failure for incomplete return {functions:maps,canonical_options:fixtureRows,current_harnesses: anchor while preparing narrow static proof.","result":"No edit applied. Subsequent patch used actual full lines.","full_tool_transcript_retained":false},
+  {"receipt":"writer-regression-green.json","result":"Exact original helper restored; new and unchanged existing regression pass. Existing assertions and fixture bytes untouched."}
+ ]
+}

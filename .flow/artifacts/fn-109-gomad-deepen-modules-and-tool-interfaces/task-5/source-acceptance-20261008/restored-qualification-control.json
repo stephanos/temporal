@@ -1,0 +1,413 @@
+{
+  "argv": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./qualification",
+    "-timeout",
+    "90s"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOCACHE": null
+  },
+  "removed_environment": [
+    "GOROOT",
+    "GOBIN",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T13:02:46.336Z",
+  "ended": "2026-10-08T13:02:47.075Z",
+  "monotonic_elapsed_nanos": "739363417",
+  "elapsed_seconds": 0.739363417,
+  "sources_before_sha256": "26924caa804af58a9b3b68413fd735723d28f50d385abc260ca966dc8e0cf4eb",
+  "sources_after_sha256": "26924caa804af58a9b3b68413fd735723d28f50d385abc260ca966dc8e0cf4eb",
+  "board_before": {
+    "MILESTONES.md": "24a450d8add7d343e02ec785d509119c8aa68515f3ce62f5ca63d6dce203e96d",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md": "d0ec1f6086dfd89f62633f0c1d4fdf88d1f06d0305beda83dc0ee729cfc96f4b",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.json": "8f1d3135e74cfc03727e8080608cccc3c5ed6823e955158a6c3a05e7c4f20c85",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md": "5f2f3361cce1da8aecfe17068cec81f75058bfb5f81ac1a27ce4f424bc85a86c"
+  },
+  "board_after": {
+    "MILESTONES.md": "24a450d8add7d343e02ec785d509119c8aa68515f3ce62f5ca63d6dce203e96d",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md": "d0ec1f6086dfd89f62633f0c1d4fdf88d1f06d0305beda83dc0ee729cfc96f4b",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.json": "8f1d3135e74cfc03727e8080608cccc3c5ed6823e955158a6c3a05e7c4f20c85",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md": "5f2f3361cce1da8aecfe17068cec81f75058bfb5f81ac1a27ce4f424bc85a86c"
+  },
+  "source_changes": [],
+  "stdout_bytes": 67134,
+  "stderr_bytes": 0,
+  "stdout_sha256": "04dd517caa01035ad5fb247046d7331b644c5984949900f019f99bf9799e02b2",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "golangci_lint": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence/file",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence/evidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence/second_evidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence/missing",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationRejectsChangedDiagnosticTraceAndEvidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsPreserveInterruptedQualificationEvidence/watchdog_timeout/first=false",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsPreserveInterruptedQualificationEvidence/watchdog_timeout/first=true",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsPreserveInterruptedQualificationEvidence/runner_cancelled/first=false",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsPreserveInterruptedQualificationEvidence/runner_cancelled/first=true",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsPreserveInterruptedQualificationEvidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/missing",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/contradictory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/evidence_missing",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/evidence_altered",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/status_missing",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/status_contradictory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/baseline_digest",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/missing",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/contradictory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/evidence_missing",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/evidence_altered",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/status_missing",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/status_contradictory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/baseline_digest",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsRejectCorruptedSavedReportBindings",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsUnavailableForEveryInterruptedRun",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDiagnosticsOffReportFieldsRemainAbsent",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationEventStreamReturnsRetainedResult",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDecodeResultEventRejectsInvalidStreams/missing_result",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDecodeResultEventRejectsInvalidStreams/unretained_error",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDecodeResultEventRejectsInvalidStreams/unsupported_schema",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDecodeResultEventRejectsInvalidStreams/duplicate_result",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestDecodeResultEventRejectsInvalidStreams",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportQualifiesRepeatedSuccessfulEvidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportNamesFirstEvidenceDivergence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRecordsFailureReplay",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRecordsPerRunSuccessfulReplay",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRejectsMismatchedPerRunReplay",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildReportRejectsInvalidEvidenceSet",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestBuildFailureRetainsFirstUnsupportedBoundary",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestWriteReportRetainsCanonicalPrivateFile",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestWriteRejectsInconsistentDeterministicOutcome",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportStoragePreservation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportWriteValidationPreservation/empty_root",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportWriteValidationPreservation/root_before_schema",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportWriteValidationPreservation/invalid_schema",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportWriteValidationPreservation/invalid_report",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportWriteValidationPreservation/non-directory_ancestor",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportWriteValidationPreservation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/empty",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/malformed",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/noncanonical",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/old_schema",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/future_schema",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/invalid_evidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/invalid_evidence_digest",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/double_newline",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/missing_path",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/directory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/oversized_sparse_file",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation/without_newline",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "test": "TestQualificationReportReadValidationPreservation",
+      "action": "pass"
+    }
+  ],
+  "top_level_counts": {
+    "pass": 23,
+    "fail": 0,
+    "skip": 0
+  },
+  "duplicate_terminal_identities": [],
+  "package_results": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/qualification",
+      "action": "pass"
+    }
+  ],
+  "native": false
+}

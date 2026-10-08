@@ -446,15 +446,12 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 }
 
 func reportExploreFailure(summary runner.CampaignResult, err error, reporter *exploreReporter, stderr io.Writer) int {
-	var diagnosticWriteErr error
 	if summary.ChoiceTrace != nil {
-		_, diagnosticWriteErr = fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
+		fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
 	}
 	classification := classifyExploreError(err)
 	if writeErr := reporter.Error(classification, err); writeErr != nil {
-		if _, printErr := fmt.Fprintln(stderr, errors.Join(writeErr, diagnosticWriteErr)); printErr != nil {
-			return 3
-		}
+		fmt.Fprintln(stderr, writeErr)
 		return 3
 	}
 	return exploreErrorStatus(classification)

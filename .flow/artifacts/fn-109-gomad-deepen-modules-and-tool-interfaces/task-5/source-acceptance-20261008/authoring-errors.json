@@ -1,0 +1,14 @@
+{
+  "classification": "Authoring/helper failures, not test results",
+  "chronology": [
+    {"receipt":"source-reconstruction.json","failure":"Original task5 dirty postimage was compared directly with local integration before reconstructing adjacent task6/7/8 changes; corrected using retained owner patches and exact adjacency."},
+    {"receipt":"source-reconstruction-owner-corrected.json","failure":"Original test function consolidated by completed fn112.9; corrected using retained mapping.tsv and complete original/current test bodies."},
+    {"observation":"apply_patch verification failed atomically: Failed to find expected lines: return {functions:maps,canonical_options:fixtureRows,current_harnesses:","result":"No edit applied; corrected patch used the actual full source line.","full_tool_transcript_retained":false},
+    {"observation":"lint-attribution helper succeeded and wrote lint-attribution.json; capture wrapper then failed EEXIST opening the same lint-attribution.json receipt name.","result":"The existing JSON is attribution evidence, not a command receipt. Exact child stdout/stderr remain lint-attribution.stdout/stderr. Wrapper exit1 is an authoring failure, not a test failure.","full_tool_transcript_retained":false},
+    {"observation":"Read-only node -e diagnostic had an extra closing brace: SyntaxError: Unexpected token '}'", "result":"Exit1, then corrected read-only inspection; no source/evidence mutations from the diagnostic.","full_tool_transcript_retained":false},
+    {"receipt":"source-reconstruction-mapping-corrected.json","failure":"TSV comments/short rows yielded undefined.split; corrected by requiring at least six columns."},
+    {"receipt":"source-reconstruction-tsv-corrected.json","failure":"Compared actual 76-cell canonical corpus with an earlier historical 75-cell receipt; corrected to the retained complete 76-cell original and exact historical 75-row subset binding."},
+    {"receipt":"source-reconstruction-complete-corpus.json","result":"Corrected reconstruction completed exit0; no old pass observations reused."}
+  ],
+  "missing_transcripts_are_not_reconstructed_or_claimed_exact": true
+}

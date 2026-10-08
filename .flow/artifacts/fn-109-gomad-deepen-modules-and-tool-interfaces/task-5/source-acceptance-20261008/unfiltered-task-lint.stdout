@@ -1,0 +1,216 @@
+[1;36mLinting code...[0m
+tools/gomad3/cmd/gomad/internal/cli/application.go:88:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/application.go:185:14: ST1005: error strings should not be capitalized (staticcheck)
+		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:36:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:41:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:46:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:57:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:63:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:109:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:117:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "gomad: %s: merge campaign shards: %v\n", classification, err)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:123:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:98:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:136:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "unknown gomad command %q\n%s", arguments[0], usage)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:364:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:369:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:374:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:379:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "resolve artifact directory: %v\n", err)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:396:15: Error return value of `fmt.Fprintf` is not checked (errcheck)
+			fmt.Fprintf(stderr, "encode doctor report: %v\n", marshalErr)
+			           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:399:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stdout, "%s\n", encoded)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:401:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stdout, "gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\n", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:403:15: Error return value of `fmt.Fprintf` is not checked (errcheck)
+			fmt.Fprintf(stdout, "%-10s %-5s %s\n", check.Name, check.Status, check.Detail)
+			           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:442:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:450:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:454:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, writeErr)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:474:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:483:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:491:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:596:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:608:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:616:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:674:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:682:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:689:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:697:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:705:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:719:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:736:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:746:17: Error return value of `fmt.Fprintln` is not checked (errcheck)
+				fmt.Fprintln(stderr, writeErr)
+				            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:752:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:759:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:996:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1001:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1010:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1013:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1017:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stdout, "gomad: verified %s\n", result.Artifact.Path)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1022:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/qualify.go:83:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/qualify.go:181:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/qualify.go:193:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, writeErr)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:32:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:44:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:52:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:70:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:76:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/runner/campaign.go:11:4: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+			panic("gomad3: duplicate execution completion")
+			^
+tools/gomad3/runner/campaign.go:25:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: execution completion order has an unresolved gap")
+		^
+tools/gomad3/runner/choice_exploration_divergence_test.go:234:5: missing cases in switch of type choice.DivergenceReason: choice.DivergenceAlternativeSet, choice.DivergenceTapeExhausted, choice.DivergenceIdentityMissing, choice.DivergenceIdentityDuplicate, choice.DivergenceAlternativeCapacity, choice.DivergenceObservation (exhaustive)
+				switch reason {
+				^
+tools/gomad3/runner/choice_exploration_divergence_unix_test.go:60:19: Error return value of `input.Close` is not checked (errcheck)
+	defer input.Close()
+	                 ^
+tools/gomad3/runner/completion.go:39:10: ST1005: error strings should not be capitalized (staticcheck)
+			err = fmt.Errorf("World record seed or schema does not match seed %d", seed)
+			      ^
+tools/gomad3/runner/completion_characterization_test.go:95:2: missing cases in switch of type runner.Strategy: runner.StrategySeed (exhaustive)
+	switch strategy {
+	^
+tools/gomad3/runner/diagnostics_test.go:133:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/inspect.go:401:21: Error return value of `opened.Close` is not checked (errcheck)
+		defer opened.Close()
+		                  ^
+tools/gomad3/runner/inspect.go:638:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("unknown validated choice kind %d", kind))
+		^
+tools/gomad3/runner/inspect_test.go:121:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/inspect_test.go:247:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World seed does not match target seed")
+		            ^
+tools/gomad3/runner/retention_characterization_test.go:750:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/runner.go:1189:33: ST1005: error strings should not be capitalized (staticcheck)
+			return SeedSelection{}, nil, fmt.Errorf("Runner build identity is required for campaign resume")
+			                             ^
+tools/gomad3/runner/runner_test.go:895:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/runner_test.go:2262:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/runner_test.go:2369:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+70 issues:
+* errcheck: 61
+* exhaustive: 2
+* forbidigo: 3
+* staticcheck: 4

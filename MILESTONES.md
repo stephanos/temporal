@@ -194,7 +194,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.2](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.2.md) | ✅ Done | Give local and isolated campaigns one normalized options owner |
 | [fn-109.3](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.3.md) | ✅ Done | Give the seed controller one atomic completion transition |
 | [fn-109.4](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.4.md) | ✅ Done | Resolve CLI installation and private child modes through one application construction path |
-| [fn-109.5](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md) | ⬜ Todo | Share plan and explore parsing directly and move semantic normalization to Runner |
+| [fn-109.5](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md) | 🚧 In progress | Share plan and explore parsing directly and move semantic normalization to Runner |
 | [fn-109.6](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md) | ⬜ Todo | Move public executor injection behind private dependencies (D3). |
 | [fn-109.7](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.7.md) | ⬜ Todo | Introduce the complete preparation owner and migrate explore and portable planning |
 | [fn-109.8](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.8.md) | ⬜ Todo | Move analysis and compatibility review onto the preparation owner's inspection operation |

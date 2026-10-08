@@ -1,0 +1,53 @@
+{
+  "historical_receipt": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/source-acceptance-20261008/focused-runner.json",
+    "bytes": 30565,
+    "sha256": "47b6f34e6a6285ffc12c4f9ba0b0c1298e3edd61152d683a4c83092c30f7d562"
+  },
+  "actual_host": "linux/arm64",
+  "failures": [
+    {
+      "path": "tools/gomad3/runner/guided_selection_test.go",
+      "test": "TestGuidanceRegressionModeChangesPortablePlanIdentity",
+      "signature": "func TestGuidanceRegressionModeChangesPortablePlanIdentity(t *testing.T) {",
+      "start": 337,
+      "end": 373,
+      "body": "func TestGuidanceRegressionModeChangesPortablePlanIdentity(t *testing.T) {\n\tresult := func(uint64) execution.Result {\n\t\tr := processResult(0, \"\", \"\")\n\t\tr.IOTranscript = completeEmptyTranscript()\n\t\treturn r\n\t}\n\tconfig, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, \"0\", PolicyAll, 1)\n\tconfig.Guide = true\n\tconfig.Coverage = CoverageSemantic\n\tconfig.Corpus = filepath.Join(t.TempDir(), \"corpus\")\n\tconfig.Replayer = &matchingReplayer{}\n\tif _, err := exploreWith(context.Background(), config, configDependencies); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tconfig.Seeds = \"100\"\n\tvar identities []record.SHA256\n\tfor _, regression := range []bool{false, true} {\n\t\tconfig.Preparer = newFakePreparer(t)\n\t\tconfig.GuideRegression = regression\n\t\tplanned, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), \"plan.json\")}, configDependencies)\n\t\tif err != nil {\n\t\t\tt.Fatal(err)\n\t\t}\n\t\topened, err := openCampaignPlan(planned.Path)\n\t\tif err != nil {\n\t\t\tt.Fatal(err)\n\t\t}\n\t\tif opened.plan.Selection != \"100\" || opened.plan.SelectionCount != 1 || opened.plan.Guidance.GuidedCount != 0 {\n\t\t\tt.Fatalf(\"plan=%#v\", opened.plan)\n\t\t}\n\t\tidentities = append(identities, planned.SHA256)\n\t}\n\tif identities[0] == identities[1] {\n\t\tt.Fatal(\"regression mode did not change otherwise identical plan identity\")\n\t}\n}\n",
+      "sha256": "200acbefb84ea91dc6d7fbf5ed154a8a9e4172ab3763b0d0eed530ec5ea107fb",
+      "expected_assertions_unchanged": true
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan_test.go",
+      "test": "TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle",
+      "signature": "func TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle(t *testing.T) {",
+      "start": 16,
+      "end": 69,
+      "body": "func TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle(t *testing.T) {\n\tpreparer := newFakePreparer(t)\n\tconfig, configDependencies := testConfig(t, preparer, &fakeExecutor{}, \"9-11,2\", PolicyAll, 2)\n\tfirstPath := filepath.Join(t.TempDir(), \"campaign.plan.json\")\n\tfirst, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: firstPath}, configDependencies)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tsecondPath := filepath.Join(t.TempDir(), \"renamed.plan.json\")\n\tsecond, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: secondPath}, configDependencies)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif first.SHA256 != second.SHA256 || first.SelectionCount != 4 || first.TargetSHA256 != second.TargetSHA256 {\n\t\tt.Fatalf(\"plan identities differ: %#v %#v\", first, second)\n\t}\n\tfirstBytes, err := os.ReadFile(firstPath)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tsecondBytes, err := os.ReadFile(secondPath)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif string(firstBytes) != string(secondBytes) {\n\t\tt.Fatal(\"canonical plan bytes depend on their output path\")\n\t}\n\topened, err := openCampaignPlan(firstPath)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif opened.identity != first.SHA256 || opened.plan.Selection != config.Seeds || opened.prepared.SHA256 != string(first.TargetSHA256) {\n\t\tt.Fatalf(\"opened plan = %#v\", opened)\n\t}\n\tinspection, err := Inspect(firstPath, InspectOptions{})\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif inspection.Kind != \"campaign-plan\" || inspection.Plan == nil || inspection.Plan.SHA256 != first.SHA256 || inspection.Plan.SelectionCount != 4 {\n\t\tt.Fatalf(\"campaign plan inspection = %#v\", inspection)\n\t}\n\n\ttargetPath := filepath.Join(firstPath+campaignPlanBundleSuffix, campaignPlanTargetFile)\n\tif err := os.Chmod(targetPath, 0o700); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif err := os.WriteFile(targetPath, []byte(\"changed\"), 0o500); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif _, err := openCampaignPlan(firstPath); err == nil {\n\t\tt.Fatal(\"openCampaignPlan() accepted a changed prepared target\")\n\t}\n}\n",
+      "sha256": "c704a8b756b7bdd708260b0fc480f1a12a0fff8fe6f7fd8fb066e9d0d8801fb0",
+      "expected_assertions_unchanged": true
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan_test.go",
+      "test": "TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource",
+      "signature": "func TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource(t *testing.T) {",
+      "start": 127,
+      "end": 182,
+      "body": "func TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource(t *testing.T) {\n\tcreateSource := func() string {\n\t\troot := t.TempDir()\n\t\tif err := os.Mkdir(filepath.Join(root, \"nested\"), 0o750); err != nil {\n\t\t\tt.Fatal(err)\n\t\t}\n\t\tif err := os.WriteFile(filepath.Join(root, \"nested\", \"value\"), []byte(\"planned\"), 0o640); err != nil {\n\t\t\tt.Fatal(err)\n\t\t}\n\t\treturn root\n\t}\n\tfirstSource := createSource()\n\tsecondSource := createSource()\n\trunnerBuild := \"\"\n\tcreate := func(source, output string) CampaignPlanResult {\n\t\tconfig, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, \"1\", PolicyAll, 1)\n\t\trunnerBuild = config.RunnerBuild\n\t\tconfig.Target.WorkingDir = t.TempDir()\n\t\tconfig.IOROMounts = []string{source + \"=input\"}\n\t\tresult, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: output}, configDependencies)\n\t\tif err != nil {\n\t\t\tt.Fatal(err)\n\t\t}\n\t\treturn result\n\t}\n\tfirstPath := filepath.Join(t.TempDir(), \"first.plan.json\")\n\tsecondPath := filepath.Join(t.TempDir(), \"second.plan.json\")\n\tfirst := create(firstSource, firstPath)\n\tsecond := create(secondSource, secondPath)\n\tif first.SHA256 != second.SHA256 {\n\t\tt.Fatalf(\"identical mount trees produced different plan identities: %s != %s\", first.SHA256, second.SHA256)\n\t}\n\topened, err := openCampaignPlan(firstPath)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif len(opened.plan.IOROMounts) != 1 || opened.plan.IOROMounts[0] != \"mounts/000000=input\" {\n\t\tt.Fatalf(\"portable mount mappings = %q\", opened.plan.IOROMounts)\n\t}\n\tif err := os.WriteFile(filepath.Join(firstSource, \"nested\", \"value\"), []byte(\"changed\"), 0o640); err != nil {\n\t\tt.Fatal(err)\n\t}\n\texecutor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, \"\", \"\") }}\n\tresult, err := runCampaignShardWith(context.Background(), CampaignShardSpec{\n\t\tPlanPath: firstPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: runnerBuild,\n\t\tSupervisorCommand: []string{\"unused\"},\n\t}, executionDependencies{executor: executor},\n\t)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif result.Succeeded != 1 || len(executor.requests) != 1 {\n\t\tt.Fatalf(\"detached mount shard result = %#v requests=%d\", result, len(executor.requests))\n\t}\n}\n",
+      "sha256": "744c6428de306a8d929194bd910756f348e0bf3785cf73299b04e8f5fb7c0ac0",
+      "expected_assertions_unchanged": true
+    },
+    {
+      "path": "tools/gomad3/runner/preparation_owner_test.go",
+      "test": "TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists",
+      "signature": "func TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists(t *testing.T) {",
+      "start": 12,
+      "end": 38,
+      "body": "func TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists(t *testing.T) {\n\tconfig, dependencies := testConfig(t, nil, &fakeExecutor{}, \"1\", PolicyAll, 1)\n\tmodule, err := filepath.Abs(filepath.Join(\"..\", \"deterministicio\", \"testdata\", \"sprig\"))\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tconfig.Target = target.Spec{\n\t\tKind: target.KindGoTest, Source: \".\", WorkingDir: module,\n\t\tToolchainRoot: toolchainRoot(t),\n\t}\n\t_, _, err = deterministicio.Default().PrepareTargetBuildAdapters(t.Context(), config.Target)\n\tif err == nil || !strings.Contains(err.Error(), \"preparation root\") {\n\t\tt.Fatalf(\"pre-bundle adapter preparation error = %v\", err)\n\t}\n\tpath := filepath.Join(t.TempDir(), \"campaign.plan.json\")\n\tif _, err := createCampaignPlanWith(t.Context(), CampaignPlanSpec{Campaign: config, Output: path}, dependencies); err != nil {\n\t\tt.Fatal(err)\n\t}\n\topened, err := openCampaignPlan(path)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif len(opened.prepared.Adapters) != 1 || opened.prepared.Adapters[0].Module != \"github.com/Masterminds/sprig/v3\" {\n\t\tt.Fatalf(\"plan adapters = %#v\", opened.prepared.Adapters)\n\t}\n}\n",
+      "sha256": "f85e4946a9b5270a3efe3df33553005ee8176539b0292010b1c81b15caf4b427",
+      "expected_assertions_unchanged": true
+    }
+  ],
+  "reason": "Actual unsupported native preparation host guard preempts these existing assertions; no assertion relaxation or runtime bypass.",
+  "current_full_native_pass": false,
+  "native": false
+}

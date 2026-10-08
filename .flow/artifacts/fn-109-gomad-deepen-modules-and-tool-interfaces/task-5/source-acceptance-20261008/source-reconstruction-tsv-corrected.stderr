@@ -1,0 +1,27 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: tools/gomad3/runner/testdata/campaign-options-before.json
++ actual - expected
+
++ '642ca4a6ca8db5a8b95ccde6bb551d0529ff71ea7ca60f5050e247d7f60560e6'
+- 'f6b495b37beaa9b29fe8ed9b11d69c97f63527d550ac960e2ab1c1b711430d95'
+
+    at file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/source-acceptance-20261008/proof.mjs:36:139
+    at Array.map (<anonymous>)
+    at characterize (file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/source-acceptance-20261008/proof.mjs:36:29)
+    at build (file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/source-acceptance-20261008/proof.mjs:54:700)
+    at file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/source-acceptance-20261008/proof.mjs:56:80
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '642ca4a6ca8db5a8b95ccde6bb551d0529ff71ea7ca60f5050e247d7f60560e6',
+  expected: 'f6b495b37beaa9b29fe8ed9b11d69c97f63527d550ac960e2ab1c1b711430d95',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

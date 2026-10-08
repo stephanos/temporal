@@ -1,0 +1,719 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.5",
+  "readonly": true,
+  "no_go": true,
+  "source_identity_sha256": "26924caa804af58a9b3b68413fd735723d28f50d385abc260ca966dc8e0cf4eb",
+  "receipts": [
+    {
+      "label": "worker-integrity",
+      "sha256": "b47c77dac26230b6245cf55879dec2b308ecb10349ce2d7ac5c6594a45cdeffc",
+      "exit": 0
+    },
+    {
+      "label": "writer-negative-control",
+      "sha256": "1b98e87979df22e6be5575dbaea21d86b774c3ba23a151454eabb0eaff1d9724",
+      "exit": 1
+    },
+    {
+      "label": "restored-portable-cli",
+      "sha256": "0a91172b3db9ef2f3fe777edf7166cf25a613b58e5fa7378f303a961efea0079",
+      "exit": 0
+    },
+    {
+      "label": "restored-portable-runner",
+      "sha256": "1765ad6fa0a2559f7f2afc82a260333776d8d1631d783776db0a052f68e53556",
+      "exit": 0
+    },
+    {
+      "label": "restored-architecture-installation",
+      "sha256": "044e5f54fb0e417c888814c914e5b7a2037331cbe903dc59a65ee9d86f0990ff",
+      "exit": 0
+    },
+    {
+      "label": "restored-qualification-control",
+      "sha256": "5506eb19f471227a377f88019bb89231cdc1f9e2532b8da77b3b1163614d1d6b",
+      "exit": 0
+    },
+    {
+      "label": "restored-generators",
+      "sha256": "d5b01c5fccb301d2a475479f2b41c1f53c7d363b6969bbe1cafda8eac3495599",
+      "exit": 0
+    },
+    {
+      "label": "restored-errortype",
+      "sha256": "c135101786f4a4ee02b7b6ddd532e676fb05d49735b0ab2625df0a8bab632b21",
+      "exit": 0
+    },
+    {
+      "label": "restored-format-check",
+      "sha256": "2fc8187b7d29517da1b67ad3a6a7005b12301103fdc13863c17663c604ac0f0c",
+      "exit": 0
+    },
+    {
+      "label": "restored-fast-lint",
+      "sha256": "5387074f04d337ce490fb00a97cd842e08f999cd69bafc2abf28f3074349a56e",
+      "exit": 2
+    },
+    {
+      "label": "restored-unfiltered-lint",
+      "sha256": "4b8b60bbd5e56ac5ba56029f0ea8ba4e748e36a5ede1852cacf8734427cda202",
+      "exit": 2
+    }
+  ],
+  "worker_evidence_sha256": "2c8ea5a865ba3338a9ab2ade46de57be7f2174c07f42e4d2d5dc13236b996a3d",
+  "worker_freeze_sha256": "20f5667c48491d509d239811d9c39cc5a6c4299943e2659e20fe940d01774d92",
+  "original_helper_restoration_sha256": "9a5c8eda4f8ed34aeb049d60e8ad170adfa4c94496ca7d23b655fbb5a815d829",
+  "only_original_helper_and_additive_test_changed": true,
+  "fresh_portable_unique_pass": 139,
+  "fresh_portable_fail": 0,
+  "fresh_portable_skip": 0,
+  "negative_control_top_fail": 1,
+  "negative_control_subcase_fail": 2,
+  "mapped_assertion_terminal_bindings": [
+    "TestRunAnalyzeForwardsTargetAndClassifiesReport/cleanup_failure_preserves_classification",
+    "TestRunAnalyzeForwardsTargetAndClassifiesReport/emits_supported_JSON_without_executing_target",
+    "TestRunAnalyzeForwardsTargetAndClassifiesReport/infrastructure",
+    "TestRunAnalyzeForwardsTargetAndClassifiesReport/invalid_package",
+    "TestRunAnalyzeForwardsTargetAndClassifiesReport/opaque_executable",
+    "TestRunAnalyzeForwardsTargetAndClassifiesReport/output_failure_is_infrastructure",
+    "TestRunAnalyzeForwardsTargetAndClassifiesReport/unsupported",
+    "TestRunMinimizeForwardsFlags/bounded_store_and_installation",
+    "TestRunMinimizeForwardsFlags/initial_run",
+    "TestRunMinimizeForwardsFlags/resume",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/nondeterministic_evidence",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/rejects_unbounded_repeat",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/repeat_one_seed_and_retain_the_JSON_report",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/replays_every_retained_success",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/replays_repeated_target_failure",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/retains_missing_successful_replay_artifact",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/retains_replay_cancellation",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/retains_unsupported_boundary",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/success_bounds_require_successful_replay",
+    "TestRunQualifyForwardsFlagsAndClassifiesOutcome/successful_replay_requires_bounds",
+    "TestRunQualifySetForwardsFlags",
+    "TestRunQualifySetForwardsFlags/checks_one_shard",
+    "TestRunQualifySetForwardsFlags/public_paths_and_executable",
+    "TestRunQualifySetForwardsFlags/rejects_count_past_manifest",
+    "TestRunQualifySetForwardsFlags/rejects_index_past_count",
+    "TestRunQualifySetForwardsFlags/rejects_malformed_shard",
+    "TestRunQualifySetForwardsFlags/runs_one_shard",
+    "TestRunResumeForwardsCampaignAndClassifiesResult/invalid_journal_is_an_input_error",
+    "TestRunResumeForwardsCampaignAndClassifiesResult/stored_campaign"
+  ],
+  "unmapped_single_construction_seams": [
+    {
+      "origin": "original-task4",
+      "test": "TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments",
+      "old": [
+        {
+          "line": "\t\t\tidentity:         func(string) (string, string, string, error) { return \"/toolchain\", \"/bin/gomad\", \"sha256:runner\", nil },",
+          "i": 4
+        }
+      ]
+    },
+    {
+      "origin": "original-task5-before",
+      "test": "TestRunDoctorReportsAvailableContractAsJSON",
+      "old": [
+        {
+          "line": "\tstatus := runDoctor([]string{\"--json\", \"--artifacts\", artifacts}, &stdout, &stderr, executable)",
+          "i": 3
+        }
+      ]
+    },
+    {
+      "origin": "original-task5-before",
+      "test": "TestRunDoctorReportsRepairCommandWhenToolchainIsMissing",
+      "old": [
+        {
+          "line": "\tstatus := runDoctor([]string{\"--artifacts\", filepath.Join(root, \"artifacts\")}, &stdout, &stderr, executable)",
+          "i": 10
+        }
+      ]
+    },
+    {
+      "origin": "original-task5-before",
+      "test": "TestRunExploreReportsFlagErrorsAsJSON",
+      "old": [
+        {
+          "line": "\tstatus := runExplore([]string{\"--json\", \"--parallel\", \"invalid\"}, &stdout, &stderr)",
+          "i": 2
+        }
+      ]
+    },
+    {
+      "origin": "original-task5-before",
+      "test": "TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments",
+      "old": [
+        {
+          "line": "\t\t\tidentity:         func(string) (string, string, string, error) { return \"/toolchain\", \"/bin/gomad\", \"sha256:runner\", nil },",
+          "i": 4
+        }
+      ]
+    },
+    {
+      "origin": "original-task5-final",
+      "test": "TestRunDoctorReportsAvailableContractAsJSON",
+      "old": [
+        {
+          "line": "\tstatus := runDoctor([]string{\"--json\", \"--artifacts\", artifacts}, &stdout, &stderr, executable)",
+          "i": 3
+        }
+      ]
+    },
+    {
+      "origin": "original-task5-final",
+      "test": "TestRunDoctorReportsRepairCommandWhenToolchainIsMissing",
+      "old": [
+        {
+          "line": "\tstatus := runDoctor([]string{\"--artifacts\", filepath.Join(root, \"artifacts\")}, &stdout, &stderr, executable)",
+          "i": 10
+        }
+      ]
+    },
+    {
+      "origin": "original-task5-final",
+      "test": "TestRunExploreReportsFlagErrorsAsJSON",
+      "old": [
+        {
+          "line": "\tstatus := runExplore([]string{\"--json\", \"--parallel\", \"invalid\"}, &stdout, &stderr)",
+          "i": 2
+        }
+      ]
+    },
+    {
+      "origin": "original-task5-final",
+      "test": "TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments",
+      "old": [
+        {
+          "line": "\t\t\tidentity:         func(string) (string, string, string, error) { return \"/toolchain\", \"/bin/gomad\", \"sha256:runner\", nil },",
+          "i": 4
+        }
+      ]
+    }
+  ],
+  "static_binding": {
+    "first_fn109_baseline": {
+      "commit": "6782b55f49a0317b230e827ea2a63a37d116d502",
+      "kind": "actual first fn-109 task: commit plus dirty fn-108.2-.6",
+      "inputs": 670,
+      "manifest": {
+        "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/source.sha256",
+        "bytes": 82824,
+        "sha256": "d78601b3176195f8cc06860f5499e757a2d04333b9211f0ed13a92976b017845"
+      },
+      "later38957053_substituted": false
+    },
+    "runtime_inputs": [
+      {
+        "path": "tools/gomad3/choice/internal/wire/wire_generated.go",
+        "bytes": 24964,
+        "sha256": "fb0a5f32bb85f61aff141ce2a682b15364a6e461f297af609984a87b84890674"
+      },
+      {
+        "path": "tools/gomad3/runner/testdata/diagnostic-identity-choices.json",
+        "bytes": 13271,
+        "sha256": "b82251eb1c7efa8885bb0cf2992c10fe1a98f11fb10e69f27b4e5ba1c6b773d0"
+      },
+      {
+        "path": "tools/gomad3/target/internal/livecap/protocol_generated.go",
+        "bytes": 33786,
+        "sha256": "1dff35c2c23bc5175adf475cf8d5ffbe95ab3fa403620c51ce25af85850ece79"
+      },
+      {
+        "path": "tools/gomad3/toolchain/clock_inventory_test.go",
+        "bytes": 16048,
+        "sha256": "bbb5a791bcd1303286cbad1c6ac8f7f6f1e922041b93f30f6010ab78ef05cd76"
+      },
+      {
+        "path": "tools/gomad3/toolchain/draw_inventory_test.go",
+        "bytes": 59436,
+        "sha256": "1c50074042df64deddce91305d7544ef79f782c8eb35df275791c92a74797943"
+      },
+      {
+        "path": "tools/gomad3/toolchain/goroutine_inventory_test.go",
+        "bytes": 9990,
+        "sha256": "b2cb08435af8ab50ef890e2da98bb4eb32009b8516c38a0b646977e14a06cde8"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+        "bytes": 24117,
+        "sha256": "4b13066eeacc5e9d33a5ada7d3924ff346786ccaf578b9856e1be5f41a94c6f9"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
+        "bytes": 279,
+        "sha256": "98eab6cd0dfcee36b51a68fba1ef3d682f99d8567f6c4c7f6c8139e8d5dd1bed"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go",
+        "bytes": 286,
+        "sha256": "74a089935804dfc806b71907a09d2c1f7d4cb2cd39ceac8042c15382b439c374"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go",
+        "bytes": 2643,
+        "sha256": "3fbea44376cf2c223017381b3aa885ed271cbab7aadcfef8e707b1ba0817aa48"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go",
+        "bytes": 11697,
+        "sha256": "22c0269d0888577ee7d5c30c086c1d1e5c80dce1187b021dcc8cdd4478491436"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/simulation_specs.go",
+        "bytes": 6445,
+        "sha256": "bb67a470cdc976ceab98bd09f81d1b337e9d386f3a30715e21b1faf8cb0ee4bb"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go127.go",
+        "bytes": 31530,
+        "sha256": "4586e682fa978a017903417fbed9c17226d10894fee80b9e410f193e07f1d9da"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go",
+        "bytes": 8018,
+        "sha256": "f0d2115f7b5321c7bef9c41c93d2d2bb48e40d540187e3cd3f394bd2bd95ee79"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode_test.go",
+        "bytes": 6860,
+        "sha256": "7a4d2aed0f3e8047c9d45e60b430f3f1f54d6f43332fbc985a03fca1f087f59e"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+        "bytes": 33787,
+        "sha256": "178306826d0f968af1c9497e58f39a90b1415c689cab45baa44235b6e023ef99"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go",
+        "bytes": 2776,
+        "sha256": "923326a3c3126f783e7cb43e3e85c1a8eb810d198114782f88fb02ba4cd7437f"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/crypto/rand/gomad.go",
+        "bytes": 469,
+        "sha256": "8a08776372af7d1c2f7ab4c314fd410446bba0127946f1da8e5629d862d53c63"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go",
+        "bytes": 14003,
+        "sha256": "b7e51f62d30fa6335aa95a7a7326b646be626c4fb5fcac0d0e04c3a1216dbfb4"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash.go",
+        "bytes": 2565,
+        "sha256": "d7c42809ff2a4f65be23607670785c18c3df116609357f002103c5cb2039fbdc"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash_test.go",
+        "bytes": 746,
+        "sha256": "f70c6b8e2ac9ddb513283d4a0482b630fc4ce38ff25e71512da8e34c99378915"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+        "bytes": 24975,
+        "sha256": "160bfbc741aa5bfb5b350670c715b0436cf22900f54ca8083f9cae2dcd46f065"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go",
+        "bytes": 9382,
+        "sha256": "08f19144d690a3eb0dd480a98b42324389ccb9b474aae492cb922162add169df"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go",
+        "bytes": 125,
+        "sha256": "8f04c57217c92ed2e09e3fff4268a2c369267a55ffc9d31c48f18fca77ce3220"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go",
+        "bytes": 20951,
+        "sha256": "17a6163daca49c776abee8eac53aca8f68e47f2ef09d51a2364f83bf52d13453"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs_test.go",
+        "bytes": 26502,
+        "sha256": "1e50c6916859463598dbf0891027be623a81e0168850ca32786dca2e79dd8953"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles.go",
+        "bytes": 2940,
+        "sha256": "5b95fb83701ca10dbb8af5c53af8e9c7997cdddf8b78384a222bb585bf9de9d0"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles_test.go",
+        "bytes": 7620,
+        "sha256": "7b99ae8033ee7a94a63d7227e20e612f6f94b175b87978a1b1e87ae3716a268b"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go",
+        "bytes": 14971,
+        "sha256": "9e74dcd7201572f4618e2933b1f272439c24c478ce5e92483ca0de00e742eb98"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_commands.go",
+        "bytes": 13063,
+        "sha256": "566d197b342e62f276d6a327bfc7cf482134ad8eb0f7274908454a261944b89b"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_commands_export_test.go",
+        "bytes": 719,
+        "sha256": "48d171cba430f8ff1c6c44acaf8ed37d9503d3844bfcfe5c49ccf59a78a1171c"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_commands_test.go",
+        "bytes": 27203,
+        "sha256": "478a71de2035b5cd7a319c1a0f03f8cce899d845fad46a1c93956260d6901985"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go",
+        "bytes": 13001,
+        "sha256": "801685588aa34bc16ff361936149726492470a167a029cb2dc88dd5c22db1ff5"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go",
+        "bytes": 7862,
+        "sha256": "983194fedffe08a092ee14e113149472a91e65c2576b1806934e22b02d32e4c2"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume_host.go",
+        "bytes": 7817,
+        "sha256": "ab9a74b692fcdcdfb033fe94c0fd49f68ec885f9f0a39261467f34b93b3d2493"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/runtime.go",
+        "bytes": 2425,
+        "sha256": "00d0622d43b67e420e7e1885f2bd8c3df2c402f927444912b8276462e5f44b44"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume.go",
+        "bytes": 21073,
+        "sha256": "c31f39220a44e7b703d67b20b80e6062bde4736d6383e74be9be755524f36b10"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume_wire.go",
+        "bytes": 14463,
+        "sha256": "a1f320edd95fab8a1f2ed9932610c52abe2a28fe2823d441079a0e374ea0fc9e"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go",
+        "bytes": 42443,
+        "sha256": "efd241e55910a4006df26db847a03d90f7b44b35e5d4df357367b4b60902afa1"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous.go",
+        "bytes": 2132,
+        "sha256": "4eef76260bd645b8d8c185ce49d6be7282e3a85dfe528c0d39207cb4d9ee4456"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go",
+        "bytes": 3324,
+        "sha256": "f3b5799d5fef94c3c2be4f0fb7291c69eed9633379b61f6ecc05befae32abb3e"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/gomadio.go",
+        "bytes": 2245,
+        "sha256": "5e6b5e9609372bd7402ed6f1a4c87e8e2bf9745dd4b9d5b52d16274879198509"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/libc.go",
+        "bytes": 7264,
+        "sha256": "e56fe97787d4b1b6224d97a2d9867826e67743b7d859ba332d7d6d0d97874ef4"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/mount/client.go",
+        "bytes": 2965,
+        "sha256": "5d89f7a82f8b0d2d2275ddcb85a7b2c855b905c8f4f5fa875cfc1ff0c039365b"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/mount/client_test.go",
+        "bytes": 2219,
+        "sha256": "7bad090b017ba9041cef6e9bda3eef797b809d2f3288cd719a0c8726f0cc34c2"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go",
+        "bytes": 17084,
+        "sha256": "57b98bb88190fac515b758d07be31e8c9d428a16159a07d4f754ef2dd39b9356"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go",
+        "bytes": 10520,
+        "sha256": "cfead548fb2ecf987d4314d34fa2be1161bb1941786e2ba08dc7bfcdb0b59fba"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands.go",
+        "bytes": 7082,
+        "sha256": "025373f3e03b240e032a2785658ce7a10dc9cf242aa722e4a681dd483979c92b"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands_export_test.go",
+        "bytes": 1420,
+        "sha256": "37a1aa079922906b97f94e178fe65b82da6225eb7cbd4f172bf89ebe03eeec97"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands_test.go",
+        "bytes": 14584,
+        "sha256": "0752f0fa45c71bf4b1f127deb3a2330a4c86fa9d0dbddd95c63feb64f7057906"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_network.go",
+        "bytes": 12307,
+        "sha256": "584ac64bf45d35e0f89453f732acc22448d244be2984e284743b23c6c142acf1"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go",
+        "bytes": 11317,
+        "sha256": "b38594b3713a73f7c0bc1e2b06890ab4c27f9ee60efd6bf7ae23504e88c3a1e7"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go",
+        "bytes": 38647,
+        "sha256": "a8dd8cf68d3d50679e2a0ca839e602bb1bf7f20a9e8eabc8e9427bd35c92624d"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go",
+        "bytes": 12908,
+        "sha256": "7daeaa5c6f1f821f55c9962ebcebbfa499098ab413553a0d857706e0f6e2a99d"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/transcript.go",
+        "bytes": 1443,
+        "sha256": "723c2eec21e51b5359098d6a8647d6892089d759de5893debb8d6074edafe30a"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go",
+        "bytes": 13402,
+        "sha256": "29593b7690703947f63a440ff3c567cae3728a9ecf77fdf97fe7f207b05b6ced"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go",
+        "bytes": 1760,
+        "sha256": "49268c620249db903e6c4425028a2577db96d3944a1aee2c0ec65b2dab7c95da"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go",
+        "bytes": 254,
+        "sha256": "f3864bddb8c918707f65a42cb2dd968748ee42f956b46fb6783d75a48399dc62"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go",
+        "bytes": 4040,
+        "sha256": "b0fb588aaafc5b34edca2fccf288adacd2052c3907c103b69b58e35264c6f212"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process.go",
+        "bytes": 10144,
+        "sha256": "d7103b5ff451eb6a7e4e262c550567483f779adacc5bca1a14ff101cbf0ed7d4"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model.go",
+        "bytes": 5032,
+        "sha256": "8ff33c38997cfdcfc3e1272f7bec8c2f2bf93e9f8b29482b15606a125f0a0eae"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go",
+        "bytes": 4037,
+        "sha256": "76533f2c57ab14fa154dbca4a6dab35c30cd5948dd064b76e2b605e0f8f7e04d"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go",
+        "bytes": 958,
+        "sha256": "60d6a19f7e4acfd7806c8dbfb1b253ce2360ef3799f5af7987145c46e3b257ba"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/simulation.go",
+        "bytes": 9670,
+        "sha256": "2539a6d66294914e4322a85fcae304c36753487f03e46ff45d76fc761b043511"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/simulation_test.go",
+        "bytes": 3337,
+        "sha256": "a6b7d8123cf25ea7bd2e15ed17c673d549884de62f514d319ce11de26a0129d3"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadtrace/trace.go",
+        "bytes": 6569,
+        "sha256": "f412dc84159a9d2df5121de65a298b907f8b4f30fcd510aa1b8edf4b73ac1791"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go",
+        "bytes": 21565,
+        "sha256": "94c02eb236a69d2c1f88da7a931d6a61e941a7688f55a3b5fc5d312d4886e4a4"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go",
+        "bytes": 10213,
+        "sha256": "3687b1c7dd1de44fc086fd5efac518fd513898eb124d39486e16e0679e90cd07"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/net/gomad.go",
+        "bytes": 13598,
+        "sha256": "61006dab8bcf333e1d5f4ddf1ef9731817540f180e755ce497d40ca023a07f28"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/net/gomad_unsupported_generated.go",
+        "bytes": 8269,
+        "sha256": "607ee5a7c4f313266473e6755b7e44ff06c9e4b1df6d35290aa790ead9c92d9c"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go",
+        "bytes": 31633,
+        "sha256": "1899157f60a8ba364d8a016de6004875fecbba7a13e379cd9b5a460221dd06ff"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/os/gomad_model_conformance_test.go",
+        "bytes": 3095,
+        "sha256": "05d9261fcdef7895c9e131856b67180cb46c4b6e2def5d233d14d698a50b5573"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/os/gomad_simulation_test.go",
+        "bytes": 1452,
+        "sha256": "138056013a355ce1310bf5e0ea39d368bafd8b3b5f3ad15f18f8a4af21d4e8fe"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/os/signal/gomad.go",
+        "bytes": 391,
+        "sha256": "1edb9fe65f0c604c1a4196b5db0e0e89f6a09f696a0d09a0335f924505460f28"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/os/user/gomad.go",
+        "bytes": 452,
+        "sha256": "f343b6fe8d28d15ccbc2687d174f061bab9f793b2f8ade63f349bb8ba0c6da34"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+        "bytes": 65408,
+        "sha256": "90c7831f647bc3fd1019329b0b1c9c1904c9e0de7f98240b8d3d39dc25c73836"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go",
+        "bytes": 4755,
+        "sha256": "17b936d26b8cc7a91934caa57f621b70f5f79e732a5e8b6f530b8da24080712c"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin_arm64.s",
+        "bytes": 1013,
+        "sha256": "a161be52516b39c91e7778b7ef7ec1ae67712016c79d6d6ba9a62c172ee3ad62"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_aslr_other.go",
+        "bytes": 362,
+        "sha256": "0ab4656ccb8e6de0b6b1c386ccc3089c80fb76e6b7ed42b1610bcb23cba23a49"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go",
+        "bytes": 8173,
+        "sha256": "4b2e5c6da2861eff4aa0728a86c986e5b99fb101bcc39db5efd3d5f98af56547"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_iowire_generated.go",
+        "bytes": 1044,
+        "sha256": "a3e3695fc6cad7bad09b2fefa909c1a9df75bfff3a4f3cf8a28f3cb6f0edde88"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go",
+        "bytes": 231,
+        "sha256": "49b5075dd73ea527175e99ffb5ecb3c3cd2ffa7a41b1627e2651b1f2fd7dbc93"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go",
+        "bytes": 2383,
+        "sha256": "425d75ef372ba9eba431e0384b51bf21a0ebedf5d91a315d7894363f846efe87"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go",
+        "bytes": 2458,
+        "sha256": "d8dcca09321bd4ec618e8936d64f8109885bae01ccb6003678264bf828a2789b"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/syscall/gomad_env_unix.go",
+        "bytes": 549,
+        "sha256": "c88ccf172a7f853233e5a48ed5f26d8a6d4c297b8c2a8f57ac8fe7d252069c60"
+      },
+      {
+        "path": "tools/gomad3/toolchain/runtime/overlay/src/syscall/gomad_unix.go",
+        "bytes": 502,
+        "sha256": "69c33f9cdb4f20e1f5cbf1bde26b342014da1742f53e2a86d1ac81a099f876b9"
+      },
+      {
+        "path": "tools/gomad3/toolchain/version/version.json",
+        "bytes": 7039,
+        "sha256": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779"
+      }
+    ],
+    "retained_raw_files": 72,
+    "retained_decoded_bytes": 521317,
+    "archive": {
+      "path": "tools/gomad3/.toolchain/downloads/go1.27.1.src.tar.gz",
+      "bytes": 35109201,
+      "sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1"
+    },
+    "supported_static_inventories": {
+      "receipt": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source-inventories-pinned.json",
+      "receipt_sha256": "d467060c7b6af8b4eb05f1d353854c32d76442fa72088031caaa149726cd97d0",
+      "log_sha256": "e5db8479e0f26b36dcac62da353bd3141aab8747b246d6c031efd6e056260635",
+      "draw_rows": 273,
+      "seeded_rows": 86,
+      "clock_rows": 48,
+      "goroutine_rows": 10,
+      "platforms": [
+        "darwin/arm64",
+        "linux/amd64"
+      ],
+      "kind": "materialized supported source sets; no built/native runtime"
+    },
+    "binding": {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding.json",
+      "bytes": 437408,
+      "sha256": "78ca24a19fbb1df331dc2c63221ac17c625686ce59d62b3e63c104b3f015a152"
+    },
+    "unchanged_closure": 1219,
+    "changed_unreused": [
+      {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "current_sha256": "ae0100d3bb6b150ac1b5f7b59d2649a987c3b7d603ca7b608deef90299571511",
+        "original_closure_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+        "owner": "fn109.5 explicitly admitted exact original-function restoration",
+        "old_pass_reused": false
+      },
+      {
+        "path": "tools/gomad3/runner/completion_characterization_test.go",
+        "current_sha256": "7128a2f2b93a4f84033e284e76766b90db4bd9874112d38e1504f24cacf6a9d1",
+        "original_closure_sha256": "e733fed7ad2349f849ab0efc8d0671b09f5e353e259dd967f46083ce7939032c",
+        "owner": "Done fn109.3 exact statistics restoration",
+        "old_pass_reused": false
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/retained_evidence_test.go",
+        "current_sha256": "89ce3be984ede1d866e7cff5748c9e6a9891554c8f23ac092f91b538c8544540",
+        "original_closure_sha256": "ea6a74729dc8ccb7b7035414983defde35e08edb7b81ad7ea27bc1997390ed32",
+        "owner": "Done fn112.16",
+        "old_pass_reused": false
+      },
+      {
+        "path": "tools/gomad3/runner/runner_test.go",
+        "current_sha256": "5a7e92b82de7901dbc0d4483879f57cbd901f0359e262c8acd3ff3351ba2c998",
+        "original_closure_sha256": "7cb8fe0f7cd3abed0ed244b04254d8793ad606eb01e9bde8278e739a7b3432d8",
+        "owner": "Done fn109.3 exact statistics restoration",
+        "old_pass_reused": false
+      }
+    ],
+    "native": false,
+    "new_regression_outside_original_closure": {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/explore_failure_writer_test.go",
+      "bytes": 1988,
+      "sha256": "acbb80d5f697fc3d2040fad6dbb6d401e860c2cf56d84f9caaa9ea985f9ebc54"
+    },
+    "fourth_change_is_not_a_static_runtime_input": true
+  },
+  "lint": {
+    "configured_fast": 66,
+    "unfiltered_cli": 51,
+    "unfiltered_runner": 17,
+    "reconciliation_sha256": "64c1f457bb2c2837d3a952a7f2239671569a9fd33fa87aa28b4cac202a59f8a8",
+    "generic_exceptions": [],
+    "global_green": false
+  },
+  "native": false,
+  "full_host_pass": false
+}

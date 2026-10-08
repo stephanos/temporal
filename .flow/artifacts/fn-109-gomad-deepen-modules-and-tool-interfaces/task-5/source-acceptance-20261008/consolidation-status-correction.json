@@ -1,0 +1,8 @@
+{
+ "observed_at":"2026-10-08T13:08:00Z",
+ "correction":"The earlier authoring-errors.json phrase completed fn112.9 refers only to historical retained consolidation work. Current fn112.9 source acceptance is Todo, not Done.",
+ "current_flow_status_receipt":"current-consolidation-task-status.json",
+ "current_flow_status_exact_output":"current-consolidation-task-status.stdout",
+ "mapping_use":"Historical retained mapping.tsv plus complete original/current function assertions and actual parent hunks, with fresh current test execution. No current-Done dependency waiver or old test-pass reuse.",
+ "original_observation_preserved":true
+}

@@ -1,0 +1,20 @@
+{
+  "path": "tools/gomad3/cmd/gomad/internal/cli/explore_failure_writer_test.go",
+  "executed_corrected_red_source": "package cli\n\nimport (\n\t\"errors\"\n\t\"reflect\"\n\t\"testing\"\n\n\t\"go.temporal.io/server/tools/gomad3/runner\"\n)\n\ntype exploreFailureWriter struct {\n\tstream string\n\twrites *[]string\n\terrors []error\n}\n\nfunc (writer *exploreFailureWriter) Write(data []byte) (int, error) {\n\t*writer.writes = append(*writer.writes, writer.stream+\": \"+string(data))\n\tif len(writer.errors) > 0 {\n\t\terr := writer.errors[0]\n\t\twriter.errors = writer.errors[1:]\n\t\tif err != nil {\n\t\t\treturn 0, err\n\t\t}\n\t}\n\treturn len(data), nil\n}\n\nfunc TestExploreErrorJoinsDiagnosticAndReporterWriterFailures(t *testing.T) {\n\tfor _, finalWriteFails := range []bool{false, true} {\n\t\tt.Run(map[bool]string{false: \"final_write_succeeds\", true: \"final_write_fails\"}[finalWriteFails], func(t *testing.T) {\n\t\t\tvar writes []string\n\t\t\tvar finalError error\n\t\t\tif finalWriteFails {\n\t\t\t\tfinalError = errors.New(\"final write failed\")\n\t\t\t}\n\t\t\tstdout := &exploreFailureWriter{stream: \"stdout\", writes: &writes, errors: []error{errors.New(\"reporter write failed\")}}\n\t\t\tstderr := &exploreFailureWriter{stream: \"stderr\", writes: &writes, errors: []error{errors.New(\"diagnostic write failed\"), finalError}}\n\t\t\treporter := newExploreReporter(true, stdout, stderr)\n\t\t\tstatus := reportExploreFailure(runner.CampaignResult{ChoiceTrace: &runner.ChoiceTraceSummary{}}, errors.New(\"bad request\"), reporter, stderr)\n\t\t\twant := []string{\n\t\t\t\t\"stderr: gomad: choices-seed=0 choices-profile= choices-records=0 choices-decisions=0 choices-branching=0 choices-runnable=0 choices-select-poll=0 choices-select-result=0 choices-sha256= choices-tape-sha256= choices-terminal=\\n\",\n\t\t\t\t\"stdout: {\\\"schema\\\":\\\"gomad3.explore-event/v3\\\",\\\"type\\\":\\\"error\\\",\\\"classification\\\":\\\"invalid_input\\\",\\\"message\\\":\\\"bad request\\\"}\\n\",\n\t\t\t\t\"stderr: write explore event: reporter write failed\\ndiagnostic write failed\\n\",\n\t\t\t}\n\t\t\tif status != 3 || !reflect.DeepEqual(writes, want) {\n\t\t\t\tt.Fatalf(\"status = %d, writes = %#v, want status 3 and writes %#v\", status, writes, want)\n\t\t\t}\n\t\t})\n\t}\n}\n",
+  "sha256": "acbb80d5f697fc3d2040fad6dbb6d401e860c2cf56d84f9caaa9ea985f9ebc54",
+  "source_identity_sha256": "48a7a849f02963d47af9292c46fe2f0beaabe2dd47a021845e015654ac945ae1",
+  "actual_execution_manifest_rederived_from_pre_restoration_manifest_plus_explicit_untracked_input": true,
+  "initial_import_setup_source_sha256": "f86e6d0d97b18b8729354b20f0538500484b251b4ee24192009aae8481b569ef",
+  "setup_error_is_not_semantic_red": true,
+  "literal_three_attempt_byte_expectations": true,
+  "semantic_red": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/source-acceptance-20261008/writer-regression-red-import-corrected.json",
+    "bytes": 4492,
+    "sha256": "ea5882e5d7c231d4909c6a6b67c6042976d25bb33215c59925fb666d62de29dd"
+  },
+  "green": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/source-acceptance-20261008/writer-regression-green.json",
+    "bytes": 4752,
+    "sha256": "945ac914e3ccdb24f8d92eb90a77f34553d025cbb04878e0793634c66f37d13f"
+  }
+}

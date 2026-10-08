@@ -1,0 +1,6 @@
+{"ImportPath":"gomad3/runner","Action":"build-output","Output":"# go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli\n"}
+{"ImportPath":"gomad3/runner","Action":"build-output","Output":"cmd/gomad/internal/cli/explore_failure_writer_test.go:8:2: package gomad3/runner is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/gomad3/runner)\n"}
+{"ImportPath":"gomad3/runner","Action":"build-fail"}
+{"Time":"2026-10-08T13:00:51.317126513Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli"}
+{"Time":"2026-10-08T13:00:51.317161138Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli [setup failed]\n","OutputType":"frame"}
+{"Time":"2026-10-08T13:00:51.317169347Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli","Elapsed":0,"FailedBuild":"gomad3/runner"}
