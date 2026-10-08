@@ -7,7 +7,7 @@ import temporal.realize.*
 import temporal.features.activity.standalone.{client, maxAttempts, startToClose, MaxAttempts}
 import temporal.features.activity.standalone.system.ActivitySystem
 import temporal.features.activity.Timeout as ActivityTimeout
-import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
+import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest as StartRequest
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
 enum Timeout derives Finite:
@@ -38,7 +38,7 @@ private val value = duration(2)
 object Legacy extends Realizes(Device):
   object controller
       extends Controller(
-        deadlines[StartActivityExecutionRequest](caller.start, launch, value)(
+        deadlines[StartRequest](caller.start, launch, value)(
           delay.sets(_.getStartDelay),
           close.sets(_.getStartToCloseTimeout)
         ),
@@ -48,7 +48,7 @@ object Legacy extends Realizes(Device):
 object Bare extends Realizes(ActivitySystem):
   object controller
       extends Controller(
-        deadlines[StartActivityExecutionRequest](client.start, launch, value)(
+        deadlines[StartRequest](client.start, launch, value)(
           startToClose.sets(_.getStartToCloseTimeout)
         )
       )
@@ -56,17 +56,17 @@ object Bare extends Realizes(ActivitySystem):
 object Catalog extends Realizes(ActivitySystem):
   object controller
       extends Controller(
-        deadlines[StartActivityExecutionRequest](
+        deadlines[StartRequest](
           client.start(maxAttempts := MaxAttempts.unlimited),
           launch,
           value
         )(startToClose.sets(_.getStartToCloseTimeout)),
-        deadlines[StartActivityExecutionRequest](
+        deadlines[StartRequest](
           client.start(maxAttempts := MaxAttempts.one),
           launch,
           value
         )(startToClose.sets(_.getStartToCloseTimeout)),
-        deadlines[StartActivityExecutionRequest](
+        deadlines[StartRequest](
           client.start(maxAttempts := MaxAttempts.two),
           launch,
           value
@@ -77,7 +77,7 @@ object Catalog extends Realizes(ActivitySystem):
 object ExpiringPreset extends Realizes(ActivitySystem):
   object controller
       extends Controller(
-        deadlines[StartActivityExecutionRequest](
+        deadlines[StartRequest](
           client.start(startToClose := ActivityTimeout.expires, maxAttempts := MaxAttempts.one),
           launch,
           value
@@ -87,14 +87,14 @@ object ExpiringPreset extends Realizes(ActivitySystem):
 object DuplicatePreset extends Realizes(ActivitySystem):
   object controller
       extends Controller(
-        deadlines[StartActivityExecutionRequest](
+        deadlines[StartRequest](
           client.start(maxAttempts := MaxAttempts.two),
           launch,
           value
         )(
           startToClose.sets(_.getStartToCloseTimeout)
         ),
-        deadlines[StartActivityExecutionRequest](
+        deadlines[StartRequest](
           client.start(maxAttempts := MaxAttempts.two),
           launch,
           value
