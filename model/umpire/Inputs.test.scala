@@ -213,30 +213,30 @@ class Inputs extends munit.FunSuite:
   test("repeated protobuf messages are typed by the selected repeated message field"):
     assert(compiletime.testing.typeChecks("""
       import umpire.realize.*
-      import io.temporal.api.common.v1.{Payload, Payloads}
-      Proto[Payloads](ProtoField.typed(Field(_.payloads), ProtoValue.messages(Proto[Payload]())))
+      import com.google.protobuf.struct.{ListValue, Value}
+      Proto[ListValue](ProtoField.typed(Field(_.values), ProtoValue.messages(Proto[Value]())))
     """))
     assert(
       compiletime.testing
         .typeCheckErrors("""
       import umpire.realize.*
-      import io.temporal.api.common.v1.{Payload, Payloads}
-      Proto[Payloads](ProtoField.typed(Field(_.payloads), ProtoValue.messages(Proto[Payloads]())))
+      import com.google.protobuf.struct.ListValue
+      Proto[ListValue](ProtoField.typed(Field(_.values), ProtoValue.messages(Proto[ListValue]())))
     """).nonEmpty
     )
     assert(
       compiletime.testing
         .typeCheckErrors("""
       import umpire.realize.*
-      import io.temporal.api.common.v1.Payload
-      Proto[Payload](ProtoField.typed(Field(_.metadata), ProtoValue.messages(Proto[Payload]())))
+      import com.google.protobuf.struct.{Struct, Value}
+      Proto[Struct](ProtoField.typed(Field(_.fields), ProtoValue.messages(Proto[Value]())))
     """).nonEmpty
     )
     assert(
       compiletime.testing
         .typeCheckErrors("""
       import umpire.realize.*
-      import io.temporal.api.common.v1.Payload
-      Proto[Payload](ProtoField.typed(Field(_.data), ProtoValue.messages(Proto[Payload]())))
+      import com.google.protobuf.wrappers.BytesValue
+      Proto[BytesValue](ProtoField.typed(Field(_.value), ProtoValue.messages(Proto[BytesValue]())))
     """).nonEmpty
     )
