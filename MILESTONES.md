@@ -167,7 +167,7 @@ an assumed shared schema. Planned 2026-10-06 from the schema research (see batch
 | fn-145.1 | ✅ done | Full schema closure, linked descriptors and Scala jar exclusions passed their focused generation, compile and descriptor proofs |
 | fn-145.2 | ✅ done | Extracted the nine responsibility files; generation, descriptor-union and closure checks pass without a semantic delta |
 | fn-145.3 | ✅ done | Replaced the local marker with `google.protobuf.Empty`; wire, JSON, presence, identity and retired-name checks passed |
-| fn-145.4 | 🔄 in progress | Production artifacts, exact scratch equivalence, the no-update Model gate and Model/IR lint passed; all four property/Query snapshots match the exhaustive PREMOVE capture, and fresh replay companions preserve historical recordings; full Go verification, measured setup optimizations, integrated review and inherited activity assessment failures remain open |
+| fn-145.4 | 🔄 in progress | Production artifacts, scratch equivalence, the no-update Model gate, Model/IR lint, engine checks and bounded source/current oracles passed; PREMOVE snapshots and fresh replay provenance are pinned; full property/Go verification, integrated review and inherited activity assessment failures remain open |
 
 ### Batch 2, authoring: fn-140 → fn-123
 
