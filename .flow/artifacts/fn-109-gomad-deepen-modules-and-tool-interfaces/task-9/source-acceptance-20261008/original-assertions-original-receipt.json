@@ -1,0 +1,163 @@
+{
+  "name": "original-assertions-original",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ncd /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/original/tools/gomad3 && go test -json -count=1 -tags test_dep ./target -run '^Test(ProjectBuildInfo|NormalizeCapabilityMode|PreparationBuildEnvironment|PreparedRecordProjection|ReadProvenanceRoundTrips|ValidateProvenance|ValidateExecCapabilityModules)'"
+  ],
+  "command": "cd /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/original/tools/gomad3 && go test -json -count=1 -tags test_dep ./target -run '^Test(ProjectBuildInfo|NormalizeCapabilityMode|PreparationBuildEnvironment|PreparedRecordProjection|ReadProvenanceRoundTrips|ValidateProvenance|ValidateExecCapabilityModules)'",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-08T23:36:11.902Z",
+  "ended": "2026-10-08T23:36:13.022Z",
+  "elapsed_seconds": 1.119144125,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync completed",
+  "stdout": {
+    "path": "original-assertions-original.stdout",
+    "sha256": "ba1d62c50cdfeee5b74cbbc712ba3bd0c7e6e8703553f55c8a53e2d3ae5d7ec1"
+  },
+  "stderr": {
+    "path": "original-assertions-original.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "base_commit": "29c80199cd",
+  "original_baseline": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "head": "29c80199cdf1a7444f3a3aa99388e2f408e3cf73",
+  "source": {
+    "manifest": "source-e1dec7fa8cfe8e94c79ba8611b03496d9cd5808f8816474375a0cb7edb26d925.json",
+    "sha256": "e1dec7fa8cfe8e94c79ba8611b03496d9cd5808f8816474375a0cb7edb26d925"
+  },
+  "tools": {
+    "manifest": "tools-46f01211f542fc4c3bfbaa9e79247e0ca21dca150c86a80d5ec37c4d788fb650.json",
+    "sha256": "46f01211f542fc4c3bfbaa9e79247e0ca21dca150c86a80d5ec37c4d788fb650"
+  },
+  "controls": {
+    "manifest": "controls-2807d27507704a436e93b9b5d99cdf42fb48e0ab113876c4b11552c389a15909.json",
+    "sha256": "2807d27507704a436e93b9b5d99cdf42fb48e0ab113876c4b11552c389a15909"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off"
+  },
+  "counts": {
+    "pass": 14,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-08T23:36:12.921607913Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestProjectBuildInfoCanonicalizesModuleAndSettings",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.92188383Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestNormalizeCapabilityModeUsesClosedVocabulary",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.92198683Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestPreparationBuildEnvironmentIsolatesAmbientGoCache",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.922052871Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestPreparedRecordProjectionDefensivelyCopiesIdentity",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.944150496Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestReadProvenanceRoundTripsValidatedDocument",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-08T23:36:12.94449958Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestValidateProvenanceRejectsUnsupportedBuildModes/cgo",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.944701621Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestValidateProvenanceRejectsUnsupportedBuildModes/race",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.944824788Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestValidateProvenanceRejectsUnsupportedBuildModes/coverage",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.945023288Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestValidateProvenanceRejectsUnsupportedBuildModes/plugin",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.945173871Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestValidateProvenanceRejectsUnsupportedBuildModes/linkshared",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.945268871Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestValidateProvenanceRejectsUnsupportedBuildModes/external",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.945294205Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestValidateProvenanceRejectsUnsupportedBuildModes",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.945365996Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestValidateProvenanceRejectsClosurelessAttestation",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-08T23:36:12.945471371Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestValidateExecCapabilityModulesMatchesBuildInfo",
+      "Elapsed": 0
+    }
+  ]
+}

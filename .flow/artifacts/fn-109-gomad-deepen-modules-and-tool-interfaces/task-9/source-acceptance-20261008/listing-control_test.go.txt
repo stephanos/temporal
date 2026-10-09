@@ -1,0 +1,67 @@
+package target
+
+import (
+ "context"
+ "encoding/json"
+ "errors"
+ "fmt"
+ "os"
+ "os/exec"
+ "path/filepath"
+ "reflect"
+ "syscall"
+ "testing"
+ "time"
+)
+
+type task9ListingCause struct { Type, Text string; Children []task9ListingCause }
+func task9ListingChain(err error) task9ListingCause {
+ if err==nil{return task9ListingCause{}}
+ value:=task9ListingCause{Type:fmt.Sprintf("%T",err),Text:err.Error()}
+ if many,ok:=err.(interface{Unwrap() []error});ok{for _,child:=range many.Unwrap(){value.Children=append(value.Children,task9ListingChain(child))}}else if child:=errors.Unwrap(err);child!=nil{value.Children=append(value.Children,task9ListingChain(child))}
+ return value
+}
+
+func TestTask9ListingCharacterization(t *testing.T) {
+ root:=os.Getenv("TASK9_LISTING_CONTROL");if root==""{t.Fatal("missing declared task-owned control")}
+ t.Chdir(filepath.Join(root,"module"))
+ for _,entry:=range []string{"public-review","private-standard"}{
+  for _,mode:=range []string{"success","nonzero","invalid","malformed","signal","startup","before-cancel","cancel","deadline","stdout-overflow","stderr-overflow"}{
+   t.Run(entry+"/"+mode,func(t *testing.T){
+    marker:=filepath.Join(root,"marker")
+    if err:=os.Remove(marker);err!=nil&&!errors.Is(err,os.ErrNotExist){t.Fatal(err)}
+    t.Setenv("TASK9_LISTING_MODE",mode)
+    ctx,cancel:=context.WithTimeout(t.Context(),5*time.Second);defer cancel()
+    if mode=="before-cancel"{cancel()}else if mode=="deadline"{cancel();ctx,cancel=context.WithTimeout(t.Context(),500*time.Millisecond);defer cancel()}
+    command:=filepath.Join(root,"installation","bin","go")
+    if mode=="startup"{command=filepath.Join(root,"missing-command")}
+    var review CapabilityReview
+    done:=make(chan error,1)
+    go func(){
+     if entry=="public-review" {
+      var err error
+      installation:=filepath.Join(root,"installation");if mode=="startup"{installation=filepath.Join(root,"missing-installation")}
+      review,err=ReviewCapabilities(ctx,Spec{Kind:KindGoRun,Source:".",WorkingDir:filepath.Join(root,"module"),ToolchainRoot:installation})
+      done<-err
+     }else{
+      done<-validateExecStandardPackages(ctx,command,CapabilityClosure{Packages:[]CapabilityPackage{{ImportPath:"fmt",Standard:true}}})
+     }
+    }()
+    acknowledged:=false
+    if mode=="cancel"||mode=="deadline"{
+     ticker:=time.NewTicker(time.Millisecond);defer ticker.Stop()
+     for !acknowledged{select{case<-ticker.C:_,err:=os.Stat(marker);acknowledged=err==nil;if err!=nil&&!errors.Is(err,os.ErrNotExist){t.Fatal(err)};case<-ctx.Done():t.Fatal("child acknowledgement missing")}}
+     if mode=="cancel"{cancel()}
+    }
+    err:=<-done
+    var exit *exec.ExitError
+    asExit:=errors.As(err,&exit)
+    code:=0;state,signal:="","";var stderr []byte;var status uint32
+    if asExit{code=exit.ExitCode();stderr=exit.Stderr;if exit.ProcessState!=nil{state=exit.ProcessState.String();if ws,ok:=exit.Sys().(syscall.WaitStatus);ok{status=uint32(ws);if ws.Signaled(){signal=ws.Signal().String()}}}}
+    row:=struct{Name string;Cause task9ListingCause;Canceled,Deadline,ExecExit bool;Exit int;Signal,ProcessState string;WaitStatus uint32;ExecStderr []byte;Acknowledged bool;Review CapabilityReview;ZeroReview bool}{entry+"/"+mode,task9ListingChain(err),errors.Is(err,context.Canceled),errors.Is(err,context.DeadlineExceeded),asExit,code,signal,state,status,stderr,acknowledged,review,reflect.DeepEqual(review,CapabilityReview{})}
+    bytes,encodeErr:=json.Marshal(row);if encodeErr!=nil{t.Fatal(encodeErr)}
+    fmt.Printf("TASK9_ROW %s\n",bytes)
+   })
+  }
+ }
+}

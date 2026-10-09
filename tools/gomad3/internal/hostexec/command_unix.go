@@ -108,6 +108,9 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	command.Stdin = request.Stdin
 	command.Stdout = stdoutWrite
 	command.Stderr = stderrWrite
+	if request.CombinedOutput {
+		command.Stderr = stdoutWrite
+	}
 	if request.PreserveCommandError && command.Err == nil && name != "" && ctx.Err() == nil && request.Dir != "" {
 		// Setpgid bypasses os.StartProcess's upstream directory preflight.
 		if _, err := os.Stat(request.Dir); err != nil {

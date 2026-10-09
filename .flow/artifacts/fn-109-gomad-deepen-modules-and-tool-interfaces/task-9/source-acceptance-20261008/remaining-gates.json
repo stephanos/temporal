@@ -1,0 +1,97 @@
+[
+  {
+    "name": "public-payload-buildinfo",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "archive-cross-graph-cache",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "public-prepared-historical-final-fresh",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "archive-historical-final-cache",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "public-prepared-current-fresh",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "public-prepared-current-cached",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "download-outcomes-original",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "download-outcomes-historical-final",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "download-outcomes-current",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "original-assertions-original",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "original-assertions-historical-final",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "original-assertions-current",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "final-focused",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "supported-source-darwin",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "supported-source-linux",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "final-generated-check",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "final-lint-fast",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "final-lint-integrated-original",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "final-format",
+    "exit": 0,
+    "signal": null
+  }
+]

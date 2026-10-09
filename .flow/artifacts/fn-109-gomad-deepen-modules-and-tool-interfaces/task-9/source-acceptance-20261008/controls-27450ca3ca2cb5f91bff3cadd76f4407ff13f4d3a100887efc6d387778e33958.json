@@ -1,0 +1,34 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-command-gap-2026-10-05/base-process-probe/probe.go",
+    "sha256": "54af6ab429167b059e0f951068154a34e0015186efbc880d92d137228be783a0"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/source-selection-final.go",
+    "sha256": "515fb62de3d65cd983b1d468a25eb8d9abd938b483f68db8fe846854be3e5ebd"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/preimage.json",
+    "sha256": "2cb1632b7e21fb54c76be8445f1f11579a18c1ce1ba0dd0ad9c2e7c1c4892d3d"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/prepared-fixture.go.txt",
+    "sha256": "38a95c0b980a833394276d49caabec7e1f46b67fbcb6bb03902916461bc76994"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/controls.json",
+    "sha256": "477536b68b2cb0d99681686e1a951f01ec1713a2c12501e70ff18fdc393827ed"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/run.mjs",
+    "sha256": "49baad9d7fab1e5f391920fc268ac84a6435c7fbb0ecbe060ef200a2e1424f90"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-freeze.json",
+    "sha256": "ae1aabcb10d1b4b93867097de875682fd8ca1b16b9f4b30a5efc09465ffea3dc"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only.patch",
+    "sha256": "dca354b3804bf11a5d6bc2da48afcdeaf5a7f5aa8c94f2c6a89ae6d8592bad17"
+  }
+]

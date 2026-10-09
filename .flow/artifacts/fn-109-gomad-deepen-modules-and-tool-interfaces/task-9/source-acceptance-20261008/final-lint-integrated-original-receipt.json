@@ -1,0 +1,64 @@
+{
+  "name": "final-lint-integrated-original",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\nmake lint-code-gomad3 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025"
+  ],
+  "command": "make lint-code-gomad3 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-08T23:36:44.008Z",
+  "ended": "2026-10-08T23:36:47.262Z",
+  "elapsed_seconds": 3.252851252,
+  "exit_code": 2,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync completed",
+  "stdout": {
+    "path": "final-lint-integrated-original.stdout",
+    "sha256": "bd758b2ac0ebb6f77eed96b681c660ca8a70e5daeae6a1fd258a3fd2094105a7"
+  },
+  "stderr": {
+    "path": "final-lint-integrated-original.stderr",
+    "sha256": "5b2b6a396e1f2e4fac40c962ddedbef0432c345533a3190d7efd531797a42796"
+  },
+  "base_commit": "29c80199cd",
+  "original_baseline": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "head": "29c80199cdf1a7444f3a3aa99388e2f408e3cf73",
+  "source": {
+    "manifest": "source-e1dec7fa8cfe8e94c79ba8611b03496d9cd5808f8816474375a0cb7edb26d925.json",
+    "sha256": "e1dec7fa8cfe8e94c79ba8611b03496d9cd5808f8816474375a0cb7edb26d925"
+  },
+  "tools": {
+    "manifest": "tools-46f01211f542fc4c3bfbaa9e79247e0ca21dca150c86a80d5ec37c4d788fb650.json",
+    "sha256": "46f01211f542fc4c3bfbaa9e79247e0ca21dca150c86a80d5ec37c4d788fb650"
+  },
+  "controls": {
+    "manifest": "controls-2807d27507704a436e93b9b5d99cdf42fb48e0ab113876c4b11552c389a15909.json",
+    "sha256": "2807d27507704a436e93b9b5d99cdf42fb48e0ab113876c4b11552c389a15909"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off"
+  },
+  "counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": []
+}

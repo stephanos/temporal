@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -425,16 +426,19 @@ func adapterInventoryError(err error) error {
 }
 
 func validateExecStandardPackages(ctx context.Context, goCommand string, closure CapabilityClosure) error {
-	goCommand, err := filepath.Abs(goCommand)
-	if err != nil {
-		return fmt.Errorf("inspect pinned standard packages: %w", err)
-	}
-	result, err := gocommand.Default().Structured(ctx, gocommand.Request{
-		Command: []string{goCommand, "list", "std"}, Dir: filepath.Dir(filepath.Dir(goCommand)),
-		Env: targetbuild.Environment(), OutputLimit: maximumStandardPackagesBytes,
+	result, err := gocommand.Default().StructuredCommand(ctx, gocommand.Request{
+		Command: []string{goCommand, "list", "std"},
+		Env:     targetbuild.Environment(), OutputLimit: maximumStandardPackagesBytes,
 	})
 	if err != nil {
 		return fmt.Errorf("inspect pinned standard packages: %w: %s", err, result.Stderr)
+	}
+	if err := result.OutputError(); err != nil {
+		var stderr []byte
+		if exit, ok := err.(*exec.ExitError); ok {
+			stderr = exit.Stderr
+		}
+		return fmt.Errorf("inspect pinned standard packages: %w: %s", err, stderr)
 	}
 	standard := make(map[string]struct{})
 	for _, importPath := range strings.Fields(string(result.Stdout)) {

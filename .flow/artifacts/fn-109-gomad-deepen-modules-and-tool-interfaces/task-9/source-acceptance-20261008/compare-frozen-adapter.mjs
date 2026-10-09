@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import vm from 'node:vm';
+const out=path.dirname(new URL(import.meta.url).pathname),config=JSON.parse(fs.readFileSync(path.join(out,'adapter-executable-inputs.json'))),hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const source=fs.readFileSync(config.normalizer.path,'utf8');if(hash(Buffer.from(source))!==config.normalizer.sha256)throw Error('normalizer changed');
+const context={path};vm.createContext(context);vm.runInContext(source.slice(source.indexOf('function normalize'),source.indexOf('const first='))+'\nthis.normalize=normalize;',context);
+const inputs=['base','current'].map(name=>{const file=path.join(out,'frozen-adapter-'+name+'.stdout'),bytes=fs.readFileSync(file);return {name,path:file,sha256:hash(bytes),rows:bytes.toString().trim().split('\n').map(JSON.parse)};});
+if(inputs.some(input=>input.rows.length!==29))throw Error('incomplete unchanged29probe');
+const normalized=inputs.map(input=>context.normalize(input.rows)),differences=normalized[0].filter((row,index)=>JSON.stringify(row)!==JSON.stringify(normalized[1][index])).map(row=>row.Name);
+const result={inputs:inputs.map(({name,path,sha256})=>({name,path,sha256})),cases:29,differences,normalizer:config.normalizer,normalization:'Exactly existing executable/root/relative-root/generated missing-command PID/Started PID,time,GOPATH/Exit PID fields only; no type/error/errno/context/stderr/hash/cleanup rewriting.',observations:inputs.map(input=>({name:input.name,started:input.rows.filter(row=>row.Started).length,all_started_gone:input.rows.filter(row=>row.Started).every(row=>row.ChildGone),all_observed_gopath_removed:input.rows.filter(row=>row.Started).every(row=>row.GOPATHRemoved),relative_resolution:input.rows.find(row=>row.Name==='relative_command_resolves_child_not_parent')})),scope:'Fresh matched portable-source control using coherent0c2 empiricalBASE/current and identical caller cwd/same-depth workspace topology. Historical/tmp mismatch and failed reproduction remain retained, not waived or normalized; no native qualification.'};
+fs.writeFileSync(path.join(out,'frozen-adapter-comparison.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(result));if(differences.length)process.exitCode=1;

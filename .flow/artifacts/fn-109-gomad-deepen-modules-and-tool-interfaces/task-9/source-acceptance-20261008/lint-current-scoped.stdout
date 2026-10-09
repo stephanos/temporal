@@ -1,0 +1,8 @@
+tools/gomad3/target/internal/build/context.go:40:21: ST1005: error strings should not be capitalized (staticcheck)
+		return Context{}, fmt.Errorf("Go target package %s is not a directory", source)
+		                  ^
+tools/gomad3/target/internal/build/context.go:59:20: ST1005: error strings should not be capitalized (staticcheck)
+	return Context{}, fmt.Errorf("Go target package %s has no owning go.mod", source)
+	                  ^
+2 issues:
+* staticcheck: 2

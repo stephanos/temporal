@@ -1,0 +1,32 @@
+[
+  {
+    "name": "source-consumer-conformance",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "source-consumer-toolchain",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "source-consumer-resolver",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "source-consumer-adapterregen",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "source-consumer-upgrade",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "source-consumer-qualification",
+    "exit": 0,
+    "signal": null
+  }
+]

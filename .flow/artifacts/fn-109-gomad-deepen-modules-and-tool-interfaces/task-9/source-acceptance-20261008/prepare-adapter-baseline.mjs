@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+const repo='/Users/stephan/Workspace/skunkworks/gomad/temporal',out=path.dirname(new URL(import.meta.url).pathname),base='0c2e091b73325368b22ec142e76da5ed5ab4cad2',scratch=fs.mkdtempSync('/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-adapter-base-'),hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const targets=['tools/gomad3','tools/gomad3sim','go.mod','go.sum'];
+const archive=spawnSync('git',['archive',base,...targets],{cwd:repo,maxBuffer:100*1024*1024});if(archive.status!==0)throw Error(archive.stderr.toString());
+const extract=spawnSync('tar',['-x','-C',scratch],{input:archive.stdout});if(extract.status!==0)throw Error(extract.stderr.toString());
+const listing=spawnSync('git',['ls-tree','-r','--name-only',base,...targets],{cwd:repo,encoding:'utf8'});if(listing.status!==0)throw Error(listing.stderr);
+const files=listing.stdout.trim().split('\n').map(relative=>({path:path.join(scratch,relative),sha256:hash(fs.readFileSync(path.join(scratch,relative)))}));
+const metadata={base,scratch,archive_sha256:hash(archive.stdout),files,scope:'Whole coherent retained adapter empirical BASE; no leaf overlay or public alias. d635 remains original for all other task9 controls.'};
+fs.writeFileSync(path.join(out,'adapter-baseline-inputs.json'),JSON.stringify(metadata,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({base,scratch,files:files.length}));

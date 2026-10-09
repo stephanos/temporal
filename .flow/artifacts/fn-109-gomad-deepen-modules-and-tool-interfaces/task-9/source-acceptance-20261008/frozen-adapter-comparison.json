@@ -1,0 +1,110 @@
+{
+  "inputs": [
+    {
+      "name": "base",
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/frozen-adapter-base.stdout",
+      "sha256": "b92f5d62f5975913036da8974e9c6a210fcdbe0c1dec6e4f843d25bca57ed5af"
+    },
+    {
+      "name": "current",
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/frozen-adapter-current.stdout",
+      "sha256": "1003ca814cab548fbfec7186de2b41f1fc1718d39cb67be80225ad017523a293"
+    }
+  ],
+  "cases": 29,
+  "differences": [],
+  "normalizer": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/verify-probes.cjs",
+    "sha256": "bff8a60ca4172cf1083d7924f2a14bcf913811881d4f628af6bd97717a042631"
+  },
+  "normalization": "Exactly existing executable/root/relative-root/generated missing-command PID/Started PID,time,GOPATH/Exit PID fields only; no type/error/errno/context/stderr/hash/cleanup rewriting.",
+  "observations": [
+    {
+      "name": "base",
+      "started": 17,
+      "all_started_gone": true,
+      "all_observed_gopath_removed": true,
+      "relative_resolution": {
+        "Name": "relative_command_resolves_child_not_parent",
+        "Command": "../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-original-root/relative-cmd",
+        "Directory": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-original-root",
+        "Digest": "",
+        "Error": "list prepared package example.test/adapter for darwin/arm64: fork/exec ../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-original-root/relative-cmd: no such file or directory: ",
+        "ContextError": "",
+        "Chain": [
+          {
+            "text": "list prepared package example.test/adapter for darwin/arm64: fork/exec ../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-original-root/relative-cmd: no such file or directory: ",
+            "type": "*fmt.wrapError"
+          },
+          {
+            "text": "fork/exec ../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-original-root/relative-cmd: no such file or directory",
+            "type": "*fs.PathError"
+          },
+          {
+            "text": "no such file or directory",
+            "type": "syscall.Errno"
+          }
+        ],
+        "IsCanceled": false,
+        "IsDeadline": false,
+        "IsENOENT": true,
+        "IsEACCES": false,
+        "IsENOEXEC": false,
+        "PathError": {
+          "errno": "no such file or directory",
+          "errno_number": 2,
+          "errno_type": "syscall.Errno",
+          "op": "fork/exec",
+          "path": "../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-original-root/relative-cmd"
+        },
+        "MarkerBeforeDeadline": false,
+        "ChildGone": false,
+        "GOPATHRemoved": false
+      }
+    },
+    {
+      "name": "current",
+      "started": 17,
+      "all_started_gone": true,
+      "all_observed_gopath_removed": true,
+      "relative_resolution": {
+        "Name": "relative_command_resolves_child_not_parent",
+        "Command": "../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-current-root/relative-cmd",
+        "Directory": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-current-root",
+        "Digest": "",
+        "Error": "list prepared package example.test/adapter for darwin/arm64: fork/exec ../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-current-root/relative-cmd: no such file or directory: ",
+        "ContextError": "",
+        "Chain": [
+          {
+            "text": "list prepared package example.test/adapter for darwin/arm64: fork/exec ../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-current-root/relative-cmd: no such file or directory: ",
+            "type": "*fmt.wrapError"
+          },
+          {
+            "text": "fork/exec ../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-current-root/relative-cmd: no such file or directory",
+            "type": "*fs.PathError"
+          },
+          {
+            "text": "no such file or directory",
+            "type": "syscall.Errno"
+          }
+        ],
+        "IsCanceled": false,
+        "IsDeadline": false,
+        "IsENOENT": true,
+        "IsEACCES": false,
+        "IsENOEXEC": false,
+        "PathError": {
+          "errno": "no such file or directory",
+          "errno_number": 2,
+          "errno_type": "syscall.Errno",
+          "op": "fork/exec",
+          "path": "../../../../.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-current-root/relative-cmd"
+        },
+        "MarkerBeforeDeadline": false,
+        "ChildGone": false,
+        "GOPATHRemoved": false
+      }
+    }
+  ],
+  "scope": "Fresh matched portable-source control using coherent0c2 empiricalBASE/current and identical caller cwd/same-depth workspace topology. Historical/tmp mismatch and failed reproduction remain retained, not waived or normalized; no native qualification."
+}

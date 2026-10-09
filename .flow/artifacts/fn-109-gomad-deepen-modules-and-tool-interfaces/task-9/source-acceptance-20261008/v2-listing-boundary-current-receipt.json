@@ -1,0 +1,228 @@
+{
+  "name": "v2-listing-boundary-current",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ncd /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/current/tools/gomad3 && TASK9_LISTING_CONTROL=/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2 go test -json -count=1 -tags test_dep ./target -run '^TestTask9ListingCharacterization$'"
+  ],
+  "command": "cd /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/current/tools/gomad3 && TASK9_LISTING_CONTROL=/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2 go test -json -count=1 -tags test_dep ./target -run '^TestTask9ListingCharacterization$'",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-09T00:13:47.854Z",
+  "ended": "2026-10-09T00:13:52.217Z",
+  "elapsed_seconds": 4.361923001999999,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync completed",
+  "stdout": {
+    "path": "v2-listing-boundary-current.stdout",
+    "sha256": "a917ab0e70f0dd820c618c372d7bef0411e9c07778c9eaad4f2c6ac8b53c05f1"
+  },
+  "stderr": {
+    "path": "v2-listing-boundary-current.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "base_commit": "29c80199cd",
+  "original_baseline": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "head": "29c80199cdf1a7444f3a3aa99388e2f408e3cf73",
+  "source": {
+    "manifest": "source-04bd8c60a587c585c936c62f8fc5a3eff797d6b1d518098d08f1adf70571b4e9.json",
+    "sha256": "04bd8c60a587c585c936c62f8fc5a3eff797d6b1d518098d08f1adf70571b4e9"
+  },
+  "tools": {
+    "manifest": "tools-73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55.json",
+    "sha256": "73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55"
+  },
+  "controls": {
+    "manifest": "controls-92f95b072e763e40f22a9025c3117c022c7f2a25e2d6643bc83e8664fa46d7c1.json",
+    "sha256": "92f95b072e763e40f22a9025c3117c022c7f2a25e2d6643bc83e8664fa46d7c1"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7"
+  },
+  "counts": {
+    "pass": 23,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-09T00:13:48.598175322Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/success",
+      "Elapsed": 0.11
+    },
+    {
+      "Time": "2026-10-09T00:13:48.695565239Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/nonzero",
+      "Elapsed": 0.1
+    },
+    {
+      "Time": "2026-10-09T00:13:48.811208239Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/invalid",
+      "Elapsed": 0.12
+    },
+    {
+      "Time": "2026-10-09T00:13:48.93835128Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/malformed",
+      "Elapsed": 0.13
+    },
+    {
+      "Time": "2026-10-09T00:13:49.043130739Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/signal",
+      "Elapsed": 0.1
+    },
+    {
+      "Time": "2026-10-09T00:13:49.056692989Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/startup",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:13:49.056815947Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/before-cancel",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:13:49.157854239Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/cancel",
+      "Elapsed": 0.1
+    },
+    {
+      "Time": "2026-10-09T00:13:49.665971322Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/deadline",
+      "Elapsed": 0.51
+    },
+    {
+      "Time": "2026-10-09T00:13:49.960661781Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/stdout-overflow",
+      "Elapsed": 0.29
+    },
+    {
+      "Time": "2026-10-09T00:13:50.712608073Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/public-review/stderr-overflow",
+      "Elapsed": 0.75
+    },
+    {
+      "Time": "2026-10-09T00:13:50.818258948Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/success",
+      "Elapsed": 0.11
+    },
+    {
+      "Time": "2026-10-09T00:13:50.91833249Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/nonzero",
+      "Elapsed": 0.1
+    },
+    {
+      "Time": "2026-10-09T00:13:51.048572073Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/invalid",
+      "Elapsed": 0.13
+    },
+    {
+      "Time": "2026-10-09T00:13:51.180902948Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/malformed",
+      "Elapsed": 0.13
+    },
+    {
+      "Time": "2026-10-09T00:13:51.288617907Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/signal",
+      "Elapsed": 0.11
+    },
+    {
+      "Time": "2026-10-09T00:13:51.28950174Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/startup",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:13:51.291866823Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/before-cancel",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:13:51.39934249Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/cancel",
+      "Elapsed": 0.11
+    },
+    {
+      "Time": "2026-10-09T00:13:51.907159949Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/deadline",
+      "Elapsed": 0.51
+    },
+    {
+      "Time": "2026-10-09T00:13:52.009412199Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/stdout-overflow",
+      "Elapsed": 0.1
+    },
+    {
+      "Time": "2026-10-09T00:13:52.12585924Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization/private-standard/stderr-overflow",
+      "Elapsed": 0.12
+    },
+    {
+      "Time": "2026-10-09T00:13:52.12598849Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestTask9ListingCharacterization",
+      "Elapsed": 3.64
+    }
+  ],
+  "environment_sha256": "0bcd182b4cda9b91e0df7ddd28e517cec8e4c0494e92a74851977935c3650357"
+}

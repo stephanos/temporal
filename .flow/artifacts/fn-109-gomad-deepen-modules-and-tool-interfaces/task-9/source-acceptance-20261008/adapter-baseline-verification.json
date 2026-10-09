@@ -1,0 +1,7 @@
+{
+  "base": "0c2e091b73325368b22ec142e76da5ed5ab4cad2",
+  "count": 1039,
+  "mismatches": [],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "scope": "Every declared complete graph file byte identity checked against the actual Git tree object; no production source substitution."
+}

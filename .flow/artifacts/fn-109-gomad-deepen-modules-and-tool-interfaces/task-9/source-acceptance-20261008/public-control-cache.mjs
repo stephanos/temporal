@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+const out=path.dirname(new URL(import.meta.url).pathname),config=JSON.parse(fs.readFileSync(path.join(out,'public-control-inputs.json')));
+const label=process.argv[2];if(!/^[a-z-]+$/.test(label))throw Error('invalid cache archive label');
+const cache=path.join(config.root,'builds',config.key,'prepared-targets'),destination=path.join(config.scratch,'generated-cache-'+label);
+if(!fs.realpathSync(cache).startsWith(config.scratch+'/')||fs.existsSync(destination))throw Error('unexpected cache identity');
+const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):e.isFile()?[path.join(dir,e.name)]:[]);
+const files=walk(cache).sort().map(file=>({path:path.relative(cache,file),sha256:hash(fs.readFileSync(file))}));
+fs.renameSync(cache,destination);
+const observation={source:cache,destination,files,recoverable:true,scope:'Only this control’s generated prepared-cache output was moved. Immutable installation/dispatcher/payload INPUT unchanged.'};
+fs.writeFileSync(path.join(out,'generated-cache-'+label+'.json'),JSON.stringify(observation,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify(observation));

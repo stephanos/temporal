@@ -1,0 +1,22 @@
+{
+  "inputs": [
+    {
+      "name": "source-62a6deb0b7efdc144da8656a1fe3a7d3613a40c3766dcdbc59c9b8e959e38b2e.json",
+      "sha256": "62a6deb0b7efdc144da8656a1fe3a7d3613a40c3766dcdbc59c9b8e959e38b2e",
+      "count": 1041
+    },
+    {
+      "name": "source-04bd8c60a587c585c936c62f8fc5a3eff797d6b1d518098d08f1adf70571b4e9.json",
+      "sha256": "04bd8c60a587c585c936c62f8fc5a3eff797d6b1d518098d08f1adf70571b4e9",
+      "count": 1041
+    }
+  ],
+  "differences": [
+    {
+      "path": "tools/gomad3/target/go_command_source_test.go",
+      "before": "491f313c7e0c9fc14c2ea170073b949c871d6d19d4bc05bdeecc44d911491fd2",
+      "after": "bf8221608296a2140f4d392ecf6a5e05e46f8f5b9b15cb37872fd6e2ccda5592"
+    }
+  ],
+  "scope": "Only the authored QF1003 test-control switch edit changed. Production inputs of the earlier controls are unchanged; whole-source receipt identities remain different and are never relabeled current."
+}

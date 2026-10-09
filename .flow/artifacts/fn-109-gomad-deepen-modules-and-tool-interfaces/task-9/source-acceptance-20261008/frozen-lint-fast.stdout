@@ -1,0 +1,8 @@
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/build-outcomes.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/download-outcomes.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/query-outcomes.go
+Lint module tools/gomad3: 55 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mLinting code...[0m
+0 issues.
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'

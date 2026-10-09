@@ -1,0 +1,151 @@
+{
+  "name": "source-consumer-conformance",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ncd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/gomadtool/conformance -run '^Test(RunUpstreamExecutesTypedGatesInOrder|RunBuilderExecutesTypedPackageGate|RunLiveCapabilityExecutesPinnedSemanticFixtures|RunAcceptsExecutableSymlink|RunUpstreamStopsAtFailedGateWithBoundedEvidence|RunRejectsUnknownModeAndMissingToolchain|RunReportsInfrastructureError|RunInterceptionExecutesManifestDrivenCompilerCases|RunInterceptionRejectsMissingCompiler|ExecWrapperIsStrictPOSIX)$'"
+  ],
+  "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/gomadtool/conformance -run '^Test(RunUpstreamExecutesTypedGatesInOrder|RunBuilderExecutesTypedPackageGate|RunLiveCapabilityExecutesPinnedSemanticFixtures|RunAcceptsExecutableSymlink|RunUpstreamStopsAtFailedGateWithBoundedEvidence|RunRejectsUnknownModeAndMissingToolchain|RunReportsInfrastructureError|RunInterceptionExecutesManifestDrivenCompilerCases|RunInterceptionRejectsMissingCompiler|ExecWrapperIsStrictPOSIX)$'",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-09T00:05:29.254Z",
+  "ended": "2026-10-09T00:05:29.760Z",
+  "elapsed_seconds": 0.505357834,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync completed",
+  "stdout": {
+    "path": "source-consumer-conformance.stdout",
+    "sha256": "c8a1e71ef58c617d244e161c51d62194a80f8093f6d5ce6e464a8cdd51e4fc3c"
+  },
+  "stderr": {
+    "path": "source-consumer-conformance.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "base_commit": "29c80199cd",
+  "original_baseline": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "head": "29c80199cdf1a7444f3a3aa99388e2f408e3cf73",
+  "source": {
+    "manifest": "source-04bd8c60a587c585c936c62f8fc5a3eff797d6b1d518098d08f1adf70571b4e9.json",
+    "sha256": "04bd8c60a587c585c936c62f8fc5a3eff797d6b1d518098d08f1adf70571b4e9"
+  },
+  "tools": {
+    "manifest": "tools-73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55.json",
+    "sha256": "73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55"
+  },
+  "controls": {
+    "manifest": "controls-3c126404f69f535dab0e3735e68d43827b3074bcad2a00ed66d71d9900779c07.json",
+    "sha256": "3c126404f69f535dab0e3735e68d43827b3074bcad2a00ed66d71d9900779c07"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7"
+  },
+  "counts": {
+    "pass": 12,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-09T00:05:29.558195292Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunUpstreamExecutesTypedGatesInOrder",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-09T00:05:29.562542459Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunBuilderExecutesTypedPackageGate",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:05:29.570354459Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunLiveCapabilityExecutesPinnedSemanticFixtures",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:05:29.592925126Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunAcceptsExecutableSymlink",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-09T00:05:29.597111626Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunUpstreamStopsAtFailedGateWithBoundedEvidence",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:05:29.600724209Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunRejectsUnknownModeAndMissingToolchain/mode",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:05:29.600795001Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunRejectsUnknownModeAndMissingToolchain/toolchain",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:05:29.604238667Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunRejectsUnknownModeAndMissingToolchain",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:05:29.611748001Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunReportsInfrastructureError",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:05:29.640759542Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunInterceptionExecutesManifestDrivenCompilerCases",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-09T00:05:29.651253792Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestRunInterceptionRejectsMissingCompiler",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:05:29.651455126Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+      "Test": "TestExecWrapperIsStrictPOSIX",
+      "Elapsed": 0
+    }
+  ],
+  "environment_sha256": "0bcd182b4cda9b91e0df7ddd28e517cec8e4c0494e92a74851977935c3650357"
+}

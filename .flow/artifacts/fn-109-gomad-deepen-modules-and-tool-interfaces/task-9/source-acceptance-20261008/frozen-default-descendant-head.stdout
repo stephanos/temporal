@@ -1,0 +1,8 @@
+{"Time":"2026-10-09T00:35:24.031928856Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand"}
+{"Time":"2026-10-09T00:35:24.036444606Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestStructuredCancellationRemovesDescendant"}
+{"Time":"2026-10-09T00:35:24.036519356Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestStructuredCancellationRemovesDescendant","Output":"=== RUN   TestStructuredCancellationRemovesDescendant\n","OutputType":"frame"}
+{"Time":"2026-10-09T00:35:24.046896273Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestStructuredCancellationRemovesDescendant","Output":"--- PASS: TestStructuredCancellationRemovesDescendant (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-09T00:35:24.046957106Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestStructuredCancellationRemovesDescendant","Elapsed":0.01}
+{"Time":"2026-10-09T00:35:24.046985148Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-09T00:35:24.047078023Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Output":"ok  \tgo.temporal.io/server/tools/gomad3/target/internal/gocommand\t0.015s\n"}
+{"Time":"2026-10-09T00:35:24.047120648Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Elapsed":0.015}

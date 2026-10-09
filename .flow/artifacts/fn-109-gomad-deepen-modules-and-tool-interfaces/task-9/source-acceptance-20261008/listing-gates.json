@@ -1,0 +1,27 @@
+[
+  {
+    "name": "listing-boundary-original",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "listing-boundary-historical-final",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "listing-boundary-current",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "upgrade-head-baseline",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "adapter-matched-topology",
+    "exit": 1,
+    "signal": null
+  }
+]

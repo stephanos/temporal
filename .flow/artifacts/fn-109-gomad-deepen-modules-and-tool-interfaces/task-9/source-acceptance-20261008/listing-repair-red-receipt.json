@@ -1,0 +1,109 @@
+{
+  "name": "listing-repair-red",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ncd tools/gomad3 && go test -json -count=1 -tags test_dep ./target/internal/capabilityreview -run \"^TestListSource\""
+  ],
+  "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./target/internal/capabilityreview -run \"^TestListSource\"",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-09T00:23:25.354Z",
+  "ended": "2026-10-09T00:23:26.272Z",
+  "elapsed_seconds": 0.9174486259999994,
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync completed",
+  "stdout": {
+    "path": "listing-repair-red.stdout",
+    "sha256": "ee729997130f25929f521231919baade0ce96902c6bfc2cc939843d404af321e"
+  },
+  "stderr": {
+    "path": "listing-repair-red.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "base_commit": "29c80199cd",
+  "original_baseline": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "head": "29c80199cdf1a7444f3a3aa99388e2f408e3cf73",
+  "source": {
+    "manifest": "source-4ba52c639211a3a38094e99240bb2f421434f7cc29748a6b5f002ea6aeca6e69.json",
+    "sha256": "4ba52c639211a3a38094e99240bb2f421434f7cc29748a6b5f002ea6aeca6e69"
+  },
+  "tools": {
+    "manifest": "tools-73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55.json",
+    "sha256": "73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55"
+  },
+  "controls": {
+    "manifest": "controls-773227645c227deaec8e7bae546384cbbcc0bb499aa234d7ad4ebab350c51bca.json",
+    "sha256": "773227645c227deaec8e7bae546384cbbcc0bb499aa234d7ad4ebab350c51bca"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7"
+  },
+  "counts": {
+    "pass": 0,
+    "fail": 6,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-09T00:23:26.223100597Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target/internal/capabilityreview",
+      "Test": "TestListSourcePreservesActualCommandError",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:23:26.223612764Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target/internal/capabilityreview",
+      "Test": "TestListSourcePreservesContextOverrideForEveryFailure/command",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:23:26.223796347Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target/internal/capabilityreview",
+      "Test": "TestListSourcePreservesContextOverrideForEveryFailure/infrastructure",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:23:26.224067222Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target/internal/capabilityreview",
+      "Test": "TestListSourcePreservesContextOverrideForEveryFailure/overflow",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:23:26.224239972Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target/internal/capabilityreview",
+      "Test": "TestListSourcePreservesContextOverrideForEveryFailure/watchdog",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:23:26.224286264Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target/internal/capabilityreview",
+      "Test": "TestListSourcePreservesContextOverrideForEveryFailure",
+      "Elapsed": 0
+    }
+  ],
+  "environment_sha256": "424e380d08b337fa803cdc446939842e1c45080861da4e2e215e8ebf35854d77"
+}

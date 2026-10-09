@@ -1,0 +1,55 @@
+{
+  "scratch": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4",
+  "root": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4/installation",
+  "module": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4/module",
+  "key": "9999999999999999999999999999999999999999999999999999999999999999",
+  "go": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+  "commands": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4/commands.jsonl",
+  "literal_inputs": [
+    [
+      "go.mod",
+      "module example.com/task9\n\ngo 1.26.4\n"
+    ],
+    [
+      "main.go",
+      "package main\nfunc main() {}\n"
+    ]
+  ],
+  "dispatcher_sha256": "28eedaad622ffe1cbe88563666b0d4096e5fd6d1e7cdc906777cce10e15d6e51",
+  "modes": [
+    "stdout",
+    "stderr",
+    "stderr-stdout",
+    "malformed",
+    "signal",
+    "before-cancel",
+    "cancel",
+    "deadline"
+  ],
+  "files": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4/control.json",
+      "sha256": "959d447fea2d2a3f5de95d89fdb25f1da1512b53461a55c355fb2914f71cd1a0"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4/installation/bin/go",
+      "sha256": "28eedaad622ffe1cbe88563666b0d4096e5fd6d1e7cdc906777cce10e15d6e51"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4/installation/builds/9999999999999999999999999999999999999999999999999999999999999999/bin/go",
+      "sha256": "28eedaad622ffe1cbe88563666b0d4096e5fd6d1e7cdc906777cce10e15d6e51"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4/installation/build-key",
+      "sha256": "7de7921a7d1a3a23420a4ae6226d2f758dbfca0fe99ea6fa32497edf01ffbf5e"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4/module/go.mod",
+      "sha256": "20bf6635560470297cbf279c49c9d6c79cdd622e0f3abfc94f90c638ef90d86d"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-build-outcomes-T7rId4/module/main.go",
+      "sha256": "15dfc4f51b4ed90211b566886f456d23d6984e1bb298460786c9740b01ac183e"
+    }
+  ]
+}

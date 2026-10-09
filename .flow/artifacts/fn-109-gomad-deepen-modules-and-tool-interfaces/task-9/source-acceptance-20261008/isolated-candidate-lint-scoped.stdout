@@ -1,0 +1,11 @@
+tools/gomad3/target/go_command_source_test.go:318:4: QF1003: could use tagged switch on name (staticcheck)
+			if name == "before cancellation" {
+			^
+tools/gomad3/target/internal/build/context.go:40:21: ST1005: error strings should not be capitalized (staticcheck)
+		return Context{}, fmt.Errorf("Go target package %s is not a directory", source)
+		                  ^
+tools/gomad3/target/internal/build/context.go:59:20: ST1005: error strings should not be capitalized (staticcheck)
+	return Context{}, fmt.Errorf("Go target package %s has no owning go.mod", source)
+	                  ^
+3 issues:
+* staticcheck: 3

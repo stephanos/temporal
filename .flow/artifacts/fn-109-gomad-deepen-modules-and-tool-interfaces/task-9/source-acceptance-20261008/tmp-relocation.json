@@ -1,0 +1,1161 @@
+{
+  "moves": [
+    {
+      "source": "/tmp/fn109-task9-final-process.Dirh0T",
+      "destination": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-recovered-tmp-20261009/fn109-task9-final-process.Dirh0T",
+      "entries": [
+        {
+          "path": ".",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 1152,
+          "type": "directory"
+        },
+        {
+          "path": "bare-cmd",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 511,
+          "size": 68,
+          "type": "symlink",
+          "target": "/home/agent/.cache/codex-build/tmp/go-build2719023561/b001/exe/probe"
+        },
+        {
+          "path": "bare_command_absolute_path_entry",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "bare_command_absolute_path_entry/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "bare_command_absolute_path_entry/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "bare_command_absolute_path_entry/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 788,
+          "type": "file",
+          "sha256": "33669ce50bc5a04646ebb5fb8a47b5034e0a12f4f6b05c17425f8c7432a08c0a"
+        },
+        {
+          "path": "bare_command_absolute_path_entry/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 288,
+          "type": "file",
+          "sha256": "b9a5378ab6de8707b859dd43d7c2f7c551d89912fe81a6d54f0c3415f6215a5b"
+        },
+        {
+          "path": "bare_missing_canceled_before",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "bare_missing_canceled_before/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1013,
+          "type": "file",
+          "sha256": "a8ad1f1335c32e61dcbea9c9506926d902426db308e45d4edfad72ed723caccd"
+        },
+        {
+          "path": "bare_missing_expired_before",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "bare_missing_expired_before/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1021,
+          "type": "file",
+          "sha256": "dacdeacfc2e2b9aaf83476669691add969f061e1896449d12d8abe062202c0bc"
+        },
+        {
+          "path": "canceled_after",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "canceled_after/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "canceled_after/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "canceled_after/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1412,
+          "type": "file",
+          "sha256": "000cbad8ccf1bb0c9ede14efcc9a361a1695a31a6ffdd3e4328e10c58d8f9ebd"
+        },
+        {
+          "path": "canceled_after/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 348,
+          "type": "file",
+          "sha256": "6a0d9d66e28a241aaef46182a61e9d2055c053b5b0cac518c965befbd1e422db"
+        },
+        {
+          "path": "canceled_before",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "canceled_before/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 752,
+          "type": "file",
+          "sha256": "5a1f31660c3c60364a2f9e793fb5ab564647f9bcb24a0285f6ec80e904d5ec6a"
+        },
+        {
+          "path": "deadline_after",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "deadline_after/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "deadline_after/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "deadline_after/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1418,
+          "type": "file",
+          "sha256": "6eab5499dcbdb5226a8118d0ec10e96c8bf70092c2a0da9ae821b1426a5b6a75"
+        },
+        {
+          "path": "deadline_after/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 346,
+          "type": "file",
+          "sha256": "cf5c8f99a65666e47e5632134fc2dd5df2628ac72222ff1b6dddf128b3e1ab68"
+        },
+        {
+          "path": "dot_directory",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "dot_directory/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "dot_directory/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "dot_directory/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 879,
+          "type": "file",
+          "sha256": "226cec5f5f4c3e5ec74bda580a6d1b16e24258d6cd37514ad6b5d877c5bb88ab"
+        },
+        {
+          "path": "dot_directory/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 374,
+          "type": "file",
+          "sha256": "943f4a56697c6d8dbf81f1734a0481fc6d435c031980eded5aafed5a66a65efb"
+        },
+        {
+          "path": "empty_command",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "empty_command/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 667,
+          "type": "file",
+          "sha256": "0cb074202109690855c4c8de2588adb60337f52d8c3b3befc394b9fded023aec"
+        },
+        {
+          "path": "empty_directory",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "empty_directory/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "empty_directory/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "empty_directory/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 879,
+          "type": "file",
+          "sha256": "8951c80c64826707a5e233bc4403db9ef9fa7f2e436c8bad5973220273177548"
+        },
+        {
+          "path": "empty_directory/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 373,
+          "type": "file",
+          "sha256": "01e91f594fa23b1aa926a5b5efdc4b7d9efd0a1cbfc601c21469635f78dceb97"
+        },
+        {
+          "path": "exit0_listed_error",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "exit0_listed_error/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "exit0_listed_error/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 32,
+          "type": "file",
+          "sha256": "a5626f78be4b9c3133f59de60780a30b6cbd9ae318e06c651e272626f347f187"
+        },
+        {
+          "path": "exit0_listed_error/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1036,
+          "type": "file",
+          "sha256": "a6c34e23ad6c40b8e7d02ebfb72ac43fad90934d0138fb133f477200af56a2bd"
+        },
+        {
+          "path": "exit0_listed_error/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 348,
+          "type": "file",
+          "sha256": "ecba94b508fbd43822798b496c8d906cf4035f63996c51dd0002200515ebdd4c"
+        },
+        {
+          "path": "exit0_malformed_json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "exit0_malformed_json/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "exit0_malformed_json/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 7,
+          "type": "file",
+          "sha256": "be302461cda285db3ed2d45fb767b23e08ca8808b35a638009937df22b332d73"
+        },
+        {
+          "path": "exit0_malformed_json/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1251,
+          "type": "file",
+          "sha256": "ef5804f7447bccfaa1b004f45079ed774a0a78bffc37fc0bfcde089cd1e44f4b"
+        },
+        {
+          "path": "exit0_malformed_json/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 347,
+          "type": "file",
+          "sha256": "ed3cf2101771fff8fe90e043213598dfec082f1a1118d54e20a9edcc9df44236"
+        },
+        {
+          "path": "exit0_missing_fields",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "exit0_missing_fields/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "exit0_missing_fields/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 2,
+          "type": "file",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        },
+        {
+          "path": "exit0_missing_fields/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 990,
+          "type": "file",
+          "sha256": "df003d2e83af2b5713956c3686331cee38908da901e7e4851b663038a89b3e36"
+        },
+        {
+          "path": "exit0_missing_fields/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 348,
+          "type": "file",
+          "sha256": "019f69f7b81071e96fa02077b105f3f248061e2afa3525541aa99e8471fd1bd3"
+        },
+        {
+          "path": "exit0_trailing_json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "exit0_trailing_json/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "exit0_trailing_json/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 96,
+          "type": "file",
+          "sha256": "43286af63c57bef8ffda86007194646c14280e08f20bcbc51e35ab7f90772e37"
+        },
+        {
+          "path": "exit0_trailing_json/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1188,
+          "type": "file",
+          "sha256": "64b96aa88c22ffb4f2e85021dac1608baf8923e2910ebe56009faa9127fd4e10"
+        },
+        {
+          "path": "exit0_trailing_json/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 348,
+          "type": "file",
+          "sha256": "2a75e6bfc1b6f3887e3328ccc4dbd9ab156ab2b1fc1c5b6e3e17221f78e7dc03"
+        },
+        {
+          "path": "exit7_listed_error",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "exit7_listed_error/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "exit7_listed_error/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 32,
+          "type": "file",
+          "sha256": "a5626f78be4b9c3133f59de60780a30b6cbd9ae318e06c651e272626f347f187"
+        },
+        {
+          "path": "exit7_listed_error/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1402,
+          "type": "file",
+          "sha256": "4b86401780354f50fb3e3179e8be4443f67a9da50c48fb60ff1fd66efac2b195"
+        },
+        {
+          "path": "exit7_listed_error/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 348,
+          "type": "file",
+          "sha256": "dee6848ffa86587b7182afec64193468fc8ec5d82e60c9007cc8662cbc995ea7"
+        },
+        {
+          "path": "exit7_malformed_json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "exit7_malformed_json/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "exit7_malformed_json/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 7,
+          "type": "file",
+          "sha256": "be302461cda285db3ed2d45fb767b23e08ca8808b35a638009937df22b332d73"
+        },
+        {
+          "path": "exit7_malformed_json/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1402,
+          "type": "file",
+          "sha256": "0336380ae11af9e2eefa3728276c1f7f4d08659270e11c96e91af3837103fd1d"
+        },
+        {
+          "path": "exit7_malformed_json/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 346,
+          "type": "file",
+          "sha256": "fa8bb0e92cbfa0492400cb194ee5d6a67f0199fc1f6dde60120bfec72fcc2f2b"
+        },
+        {
+          "path": "exit7_valid_json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "exit7_valid_json/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "exit7_valid_json/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "exit7_valid_json/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1399,
+          "type": "file",
+          "sha256": "9d736de5f99a76086e202066e2f512078f5f107ed280fce26c23c2b2ce9aefab"
+        },
+        {
+          "path": "exit7_valid_json/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 347,
+          "type": "file",
+          "sha256": "c433869c1814def000dc04ac6aa05b6ccfd4c594070a057eb1e0374a8a305849"
+        },
+        {
+          "path": "expired_before",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "expired_before/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 797,
+          "type": "file",
+          "sha256": "d1bfda65f1c3c16413997a3bd76c3882b3a5dec93452a1e9f374eb064f36e887"
+        },
+        {
+          "path": "host.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 229,
+          "type": "file",
+          "sha256": "6307d34aacb43ff2ffa36e0b48a62fb0d93c20774d88eb47a3c1ff267fccc745"
+        },
+        {
+          "path": "invalid-format",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 19,
+          "type": "file",
+          "sha256": "1aaed262d563f2706515e321b24e78707237c61eca608117a8fa563228b19218"
+        },
+        {
+          "path": "invalid_directory",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "invalid_directory/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1263,
+          "type": "file",
+          "sha256": "928e12d3d19063acc75c4943be2fa5a8b381d721b1ec4bb725b7d136400149a7"
+        },
+        {
+          "path": "invalid_format",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "invalid_format/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1190,
+          "type": "file",
+          "sha256": "c1a7b01e51a633e05ef3138bd2b41547953f02b282a3999b467dd1af3e551c38"
+        },
+        {
+          "path": "missing_executable",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "missing_executable/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1194,
+          "type": "file",
+          "sha256": "60d25f700b15d89ad066b8dc4dba7e68e2a19f88f505aaa6c88bb1602a4cc8d8"
+        },
+        {
+          "path": "missing_executable_canceled_before",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "missing_executable_canceled_before/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 747,
+          "type": "file",
+          "sha256": "a48a7a4aaae97ce62b8e7db9a21e3c8e3402ce4b7ec85ffba6e0dcebf1454fc7"
+        },
+        {
+          "path": "missing_executable_expired_before",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "missing_executable_expired_before/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 792,
+          "type": "file",
+          "sha256": "d5526c2826b6453f1ba5871cd0fd938608e027c1fac7abe09f81311eecb6be3e"
+        },
+        {
+          "path": "nonexecutable",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "nonexecutable/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1210,
+          "type": "file",
+          "sha256": "f8b3672eeabcf7745308e04ad25380c4c250460c17e22782deec8f193384c4d0"
+        },
+        {
+          "path": "nonexecutable-file",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 15,
+          "type": "file",
+          "sha256": "3847030cd76d446be97aad7113998f7b35efb51b3aa8246e407974d7acc2d7f5"
+        },
+        {
+          "path": "ordinary_sigterm",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "ordinary_sigterm/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "ordinary_sigterm/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "ordinary_sigterm/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 1420,
+          "type": "file",
+          "sha256": "40cccc982171ada3412535466f4b92ddc8023cc70bca35e441348f19104a1f3b"
+        },
+        {
+          "path": "ordinary_sigterm/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 348,
+          "type": "file",
+          "sha256": "0c1ff3aff77ace025099a76a1ddee5b8ee317b7998d9d3ac2b82db86f91e67ef"
+        },
+        {
+          "path": "relative-cmd",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 511,
+          "size": 68,
+          "type": "symlink",
+          "target": "/home/agent/.cache/codex-build/tmp/go-build2719023561/b001/exe/probe"
+        },
+        {
+          "path": "relative_command_from_child_dir",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "relative_command_from_child_dir/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "relative_command_from_child_dir/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "relative_command_from_child_dir/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 798,
+          "type": "file",
+          "sha256": "dd5d9d038d2c8738afdc062431aaaee57b11812c8bfbe8355eec0e6b91420142"
+        },
+        {
+          "path": "relative_command_from_child_dir/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 293,
+          "type": "file",
+          "sha256": "f30aee6418a94cdb64c343032fdbd9326629f93c7b1f0f07415edc84925a2f4f"
+        },
+        {
+          "path": "relative_command_resolves_child_not_parent",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "relative_command_resolves_child_not_parent/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "relative_command_resolves_child_not_parent/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "relative_command_resolves_child_not_parent/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 927,
+          "type": "file",
+          "sha256": "39669ec86b5aa263b10e551aba43b3032b7f6f1037db6a1fe55ac000d99a7ebd"
+        },
+        {
+          "path": "relative_command_resolves_child_not_parent/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 352,
+          "type": "file",
+          "sha256": "c654dd66e51b0428eecfa6945282cbba0e8b6d4cadab93fc23cf7989dbea6241"
+        },
+        {
+          "path": "relative_command_with_relative_dir",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "relative_command_with_relative_dir/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "relative_command_with_relative_dir/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "relative_command_with_relative_dir/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 825,
+          "type": "file",
+          "sha256": "dc4da33a551becbf9ce1b9288aa6d965b9108d0d7bec4ffce645c6d3ecff3267"
+        },
+        {
+          "path": "relative_command_with_relative_dir/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 294,
+          "type": "file",
+          "sha256": "7c5de5200665c56aaa5602ba6cfe076449259643b675e9acc5440439c79ab3e3"
+        },
+        {
+          "path": "relative_directory",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "relative_directory/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "relative_directory/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "relative_directory/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 917,
+          "type": "file",
+          "sha256": "cc00ab764007eda49e341446defe27900c4b60829aae30ae478a6b7ed1bbd2d3"
+        },
+        {
+          "path": "relative_directory/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 348,
+          "type": "file",
+          "sha256": "bd8fc8f86d1ca63e55f5979faf33a64e0a7e9e65532fa33d5bf3ba4d8540350d"
+        },
+        {
+          "path": "success_valid_json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 192,
+          "type": "directory"
+        },
+        {
+          "path": "success_valid_json/child.stderr",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 24,
+          "type": "file",
+          "sha256": "3d92bf07f2203082a63654f1ef205b4563f04aeba2d560df72abfb6db2424d33"
+        },
+        {
+          "path": "success_valid_json/child.stdout",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 93,
+          "type": "file",
+          "sha256": "f940f16fe0ad913bb9caed6b68b44c115e5d51ac6075389832081a994788808b"
+        },
+        {
+          "path": "success_valid_json/result.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 894,
+          "type": "file",
+          "sha256": "ea9b3d2b26b1595e1bd1f676edf4660436639af8f8f2382043cf987cc99902fe"
+        },
+        {
+          "path": "success_valid_json/started.json",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 348,
+          "type": "file",
+          "sha256": "e90948a608433a8ccb3d76724be6ab955dd5d5644d5f63e8f8ec2df7442c70f2"
+        }
+      ],
+      "verified_before_retirement": true,
+      "recoverable": true
+    },
+    {
+      "source": "/tmp/fn109-task9-final-selection.fYRXEO",
+      "destination": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-recovered-tmp-20261009/fn109-task9-final-selection.fYRXEO",
+      "entries": [
+        {
+          "path": ".",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 96,
+          "type": "directory"
+        },
+        {
+          "path": "fixture",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 448,
+          "size": 384,
+          "type": "directory"
+        },
+        {
+          "path": "fixture/common.go",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 33,
+          "type": "file",
+          "sha256": "b6924046a7c0bd82070450caaf9617643f403d870c6dd3de7391ed450bf8314a"
+        },
+        {
+          "path": "fixture/common.h",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 40,
+          "type": "file",
+          "sha256": "9c5efd3e6967bae4ce5580771457e4d75bfc3d8a25411ac5b28cbc3a7142bb2d"
+        },
+        {
+          "path": "fixture/common.s",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 42,
+          "type": "file",
+          "sha256": "b0c8f1b0b8d40667130efa75584cb2273b7d1a68da58e89c7434b7f15002143c"
+        },
+        {
+          "path": "fixture/disabled_cgo.go",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 43,
+          "type": "file",
+          "sha256": "cca7966e1ae5cd2cc27e58c9e3e28e5621dad1cb1a7a217b99cac72f5d56164b"
+        },
+        {
+          "path": "fixture/excluded_test.go",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 16,
+          "type": "file",
+          "sha256": "cc1c18e264ac0966ee948757312cd4b04dbfb6672517ace4af14913aca0c24a4"
+        },
+        {
+          "path": "fixture/excluded_windows.go",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 38,
+          "type": "file",
+          "sha256": "8ac4a15c68f4f16a0d679a8cf776090299bca45bd8bcc059529fb1eafdcf1a8c"
+        },
+        {
+          "path": "fixture/selected_darwin_arm64.go",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 48,
+          "type": "file",
+          "sha256": "eb560b5dbc34c6e8078b594ef10b2ba41cdfae2bb2a0a1cf1a24b4397498156d"
+        },
+        {
+          "path": "fixture/selected_darwin_arm64.s",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 42,
+          "type": "file",
+          "sha256": "8cac8b17bb9f68669880210b0d66572f5153603ec945a62e6ce6744b25b37638"
+        },
+        {
+          "path": "fixture/selected_linux_amd64.go",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 47,
+          "type": "file",
+          "sha256": "615406e188acc63b6349baf664a59531725b39a898705ab5f12ddbee0eace7f7"
+        },
+        {
+          "path": "fixture/selected_linux_amd64.s",
+          "uid": 1000,
+          "gid": 1000,
+          "mode": 384,
+          "size": 41,
+          "type": "file",
+          "sha256": "bad0792a6cc2c1f3e7e2752bef201570341303a291a46f79d63110ff9f9065bd"
+        }
+      ],
+      "verified_before_retirement": true,
+      "recoverable": true
+    }
+  ],
+  "post_move_space": "Filesystem        1B-blocks         Used Available Use% Mounted on\noverlay        126227120128 120003956736         0 100% /\n",
+  "process_snapshot_sha256": "a8bc32b4209a9aa7d2b71657206002609bb35c3073336bc2df8f4bd15aca7f0c",
+  "scope": "Only two explicitly admitted task9-owned historical scratch roots retired after full copy/inventory verification. Historical receipts untouched; recovery remains at listed destinations."
+}

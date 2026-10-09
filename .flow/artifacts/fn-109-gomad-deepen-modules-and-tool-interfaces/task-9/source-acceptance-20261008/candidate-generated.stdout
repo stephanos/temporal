@@ -1,0 +1,3 @@
+make: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'
+GOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+make: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'

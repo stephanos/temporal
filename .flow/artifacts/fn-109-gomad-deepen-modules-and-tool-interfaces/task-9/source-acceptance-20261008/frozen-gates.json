@@ -1,0 +1,137 @@
+[
+  {
+    "name": "frozen-listing-current",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-standard-stderr-current",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-public-cache-archive",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-public-fresh",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-public-cached",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-download",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-query",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-build",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-selection",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-focused",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-command-defaults",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "frozen-task8-composition",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-architecture",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-source-darwin",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-source-linux",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-errortype",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-generated",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-consumer-conformance",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-consumer-toolchain",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-consumer-resolver",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-consumer-adapterregen",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-consumer-upgrade",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "frozen-consumer-qualification",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-lint-fast",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "frozen-lint-scoped",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "frozen-lint-integrated",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "frozen-format",
+    "exit": 0,
+    "signal": null
+  }
+]

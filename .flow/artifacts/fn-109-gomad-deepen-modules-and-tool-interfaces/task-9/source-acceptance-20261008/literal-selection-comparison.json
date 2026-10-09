@@ -1,0 +1,280 @@
+{
+  "inputs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/source-selection/stdout.txt",
+      "sha256": "f38934dfd5a31b8192d2b93504166ac6d72ad4630709a0c261649806b23d8653",
+      "row_count": 28
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/isolated-candidate-selection.stdout",
+      "sha256": "cad580febdc73ebdf4881187de88abfc5a20d97c781929022db06b500901e526",
+      "row_count": 3
+    }
+  ],
+  "compared": [
+    {
+      "platform": "literal fixture inputs",
+      "original": {
+        "kind": "fixture",
+        "source_bytes": {
+          "common.go": "package adapter\nconst Common = 1\n",
+          "common.h": "// Shared header fixture; listing only.\n",
+          "common.s": "// Shared assembly fixture; listing only.\n",
+          "disabled_cgo.go": "//go:build cgo\n\npackage adapter\nimport \"C\"\n",
+          "excluded_test.go": "package adapter\n",
+          "excluded_windows.go": "package adapter\nconst Excluded = true\n",
+          "selected_darwin_arm64.go": "package adapter\nconst Platform = \"darwin/arm64\"\n",
+          "selected_darwin_arm64.s": "// Darwin assembly fixture; listing only.\n",
+          "selected_linux_amd64.go": "package adapter\nconst Platform = \"linux/amd64\"\n",
+          "selected_linux_amd64.s": "// Linux assembly fixture; listing only.\n"
+        },
+        "source_sha256": {
+          "common.go": "b6924046a7c0bd82070450caaf9617643f403d870c6dd3de7391ed450bf8314a",
+          "common.h": "9c5efd3e6967bae4ce5580771457e4d75bfc3d8a25411ac5b28cbc3a7142bb2d",
+          "common.s": "b0c8f1b0b8d40667130efa75584cb2273b7d1a68da58e89c7434b7f15002143c",
+          "disabled_cgo.go": "cca7966e1ae5cd2cc27e58c9e3e28e5621dad1cb1a7a217b99cac72f5d56164b",
+          "excluded_test.go": "cc1c18e264ac0966ee948757312cd4b04dbfb6672517ace4af14913aca0c24a4",
+          "excluded_windows.go": "8ac4a15c68f4f16a0d679a8cf776090299bca45bd8bcc059529fb1eafdcf1a8c",
+          "selected_darwin_arm64.go": "eb560b5dbc34c6e8078b594ef10b2ba41cdfae2bb2a0a1cf1a24b4397498156d",
+          "selected_darwin_arm64.s": "8cac8b17bb9f68669880210b0d66572f5153603ec945a62e6ce6744b25b37638",
+          "selected_linux_amd64.go": "615406e188acc63b6349baf664a59531725b39a898705ab5f12ddbee0eace7f7",
+          "selected_linux_amd64.s": "bad0792a6cc2c1f3e7e2752bef201570341303a291a46f79d63110ff9f9065bd"
+        }
+      },
+      "current": {
+        "kind": "fixture",
+        "source_bytes": {
+          "common.go": "package adapter\nconst Common = 1\n",
+          "common.h": "// Shared header fixture; listing only.\n",
+          "common.s": "// Shared assembly fixture; listing only.\n",
+          "disabled_cgo.go": "//go:build cgo\n\npackage adapter\nimport \"C\"\n",
+          "excluded_test.go": "package adapter\n",
+          "excluded_windows.go": "package adapter\nconst Excluded = true\n",
+          "selected_darwin_arm64.go": "package adapter\nconst Platform = \"darwin/arm64\"\n",
+          "selected_darwin_arm64.s": "// Darwin assembly fixture; listing only.\n",
+          "selected_linux_amd64.go": "package adapter\nconst Platform = \"linux/amd64\"\n",
+          "selected_linux_amd64.s": "// Linux assembly fixture; listing only.\n"
+        },
+        "source_sha256": {
+          "common.go": "b6924046a7c0bd82070450caaf9617643f403d870c6dd3de7391ed450bf8314a",
+          "common.h": "9c5efd3e6967bae4ce5580771457e4d75bfc3d8a25411ac5b28cbc3a7142bb2d",
+          "common.s": "b0c8f1b0b8d40667130efa75584cb2273b7d1a68da58e89c7434b7f15002143c",
+          "disabled_cgo.go": "cca7966e1ae5cd2cc27e58c9e3e28e5621dad1cb1a7a217b99cac72f5d56164b",
+          "excluded_test.go": "cc1c18e264ac0966ee948757312cd4b04dbfb6672517ace4af14913aca0c24a4",
+          "excluded_windows.go": "8ac4a15c68f4f16a0d679a8cf776090299bca45bd8bcc059529fb1eafdcf1a8c",
+          "selected_darwin_arm64.go": "eb560b5dbc34c6e8078b594ef10b2ba41cdfae2bb2a0a1cf1a24b4397498156d",
+          "selected_darwin_arm64.s": "8cac8b17bb9f68669880210b0d66572f5153603ec945a62e6ce6744b25b37638",
+          "selected_linux_amd64.go": "615406e188acc63b6349baf664a59531725b39a898705ab5f12ddbee0eace7f7",
+          "selected_linux_amd64.s": "bad0792a6cc2c1f3e7e2752bef201570341303a291a46f79d63110ff9f9065bd"
+        }
+      },
+      "equal": true
+    },
+    {
+      "platform": "darwin/arm64",
+      "original": {
+        "kind": "fixture",
+        "label": "nonempty-fixture",
+        "platform": "darwin/arm64",
+        "source_sha256": {
+          "common.go": "b6924046a7c0bd82070450caaf9617643f403d870c6dd3de7391ed450bf8314a",
+          "common.h": "9c5efd3e6967bae4ce5580771457e4d75bfc3d8a25411ac5b28cbc3a7142bb2d",
+          "common.s": "b0c8f1b0b8d40667130efa75584cb2273b7d1a68da58e89c7434b7f15002143c",
+          "selected_darwin_arm64.go": "eb560b5dbc34c6e8078b594ef10b2ba41cdfae2bb2a0a1cf1a24b4397498156d",
+          "selected_darwin_arm64.s": "8cac8b17bb9f68669880210b0d66572f5153603ec945a62e6ce6744b25b37638"
+        },
+        "inventory": {
+          "GoFiles": [
+            "common.go",
+            "selected_darwin_arm64.go"
+          ],
+          "HFiles": [
+            "common.h"
+          ],
+          "IgnoredGoFiles": [
+            "disabled_cgo.go",
+            "excluded_windows.go",
+            "selected_linux_amd64.go"
+          ],
+          "IgnoredOtherFiles": [
+            "selected_linux_amd64.s"
+          ],
+          "SFiles": [
+            "common.s",
+            "selected_darwin_arm64.s"
+          ],
+          "TestGoFiles": [
+            "excluded_test.go"
+          ]
+        },
+        "digest": "sha256:2eeca986c81436b15fed9df5b22be9aa11d1b3a6349917817fe26497fe6527f0",
+        "command": [
+          "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+          "list",
+          "-e",
+          "-find",
+          "-json",
+          "."
+        ],
+        "command_exit": 0,
+        "stderr": "",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "current": {
+        "kind": "fixture",
+        "label": "nonempty-fixture",
+        "platform": "darwin/arm64",
+        "source_sha256": {
+          "common.go": "b6924046a7c0bd82070450caaf9617643f403d870c6dd3de7391ed450bf8314a",
+          "common.h": "9c5efd3e6967bae4ce5580771457e4d75bfc3d8a25411ac5b28cbc3a7142bb2d",
+          "common.s": "b0c8f1b0b8d40667130efa75584cb2273b7d1a68da58e89c7434b7f15002143c",
+          "selected_darwin_arm64.go": "eb560b5dbc34c6e8078b594ef10b2ba41cdfae2bb2a0a1cf1a24b4397498156d",
+          "selected_darwin_arm64.s": "8cac8b17bb9f68669880210b0d66572f5153603ec945a62e6ce6744b25b37638"
+        },
+        "inventory": {
+          "GoFiles": [
+            "common.go",
+            "selected_darwin_arm64.go"
+          ],
+          "HFiles": [
+            "common.h"
+          ],
+          "IgnoredGoFiles": [
+            "disabled_cgo.go",
+            "excluded_windows.go",
+            "selected_linux_amd64.go"
+          ],
+          "IgnoredOtherFiles": [
+            "selected_linux_amd64.s"
+          ],
+          "SFiles": [
+            "common.s",
+            "selected_darwin_arm64.s"
+          ],
+          "TestGoFiles": [
+            "excluded_test.go"
+          ]
+        },
+        "digest": "sha256:2eeca986c81436b15fed9df5b22be9aa11d1b3a6349917817fe26497fe6527f0",
+        "command": [
+          "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+          "list",
+          "-e",
+          "-find",
+          "-json",
+          "."
+        ],
+        "command_exit": 0,
+        "stderr": "",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "equal": true
+    },
+    {
+      "platform": "linux/amd64",
+      "original": {
+        "kind": "fixture",
+        "label": "nonempty-fixture",
+        "platform": "linux/amd64",
+        "source_sha256": {
+          "common.go": "b6924046a7c0bd82070450caaf9617643f403d870c6dd3de7391ed450bf8314a",
+          "common.h": "9c5efd3e6967bae4ce5580771457e4d75bfc3d8a25411ac5b28cbc3a7142bb2d",
+          "common.s": "b0c8f1b0b8d40667130efa75584cb2273b7d1a68da58e89c7434b7f15002143c",
+          "selected_linux_amd64.go": "615406e188acc63b6349baf664a59531725b39a898705ab5f12ddbee0eace7f7",
+          "selected_linux_amd64.s": "bad0792a6cc2c1f3e7e2752bef201570341303a291a46f79d63110ff9f9065bd"
+        },
+        "inventory": {
+          "GoFiles": [
+            "common.go",
+            "selected_linux_amd64.go"
+          ],
+          "HFiles": [
+            "common.h"
+          ],
+          "IgnoredGoFiles": [
+            "disabled_cgo.go",
+            "excluded_windows.go",
+            "selected_darwin_arm64.go"
+          ],
+          "IgnoredOtherFiles": [
+            "selected_darwin_arm64.s"
+          ],
+          "SFiles": [
+            "common.s",
+            "selected_linux_amd64.s"
+          ],
+          "TestGoFiles": [
+            "excluded_test.go"
+          ]
+        },
+        "digest": "sha256:f07021259f831522a922eb7f5e36a72d58a7d5efcd96c5197945d79484579191",
+        "command": [
+          "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+          "list",
+          "-e",
+          "-find",
+          "-json",
+          "."
+        ],
+        "command_exit": 0,
+        "stderr": "",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "current": {
+        "kind": "fixture",
+        "label": "nonempty-fixture",
+        "platform": "linux/amd64",
+        "source_sha256": {
+          "common.go": "b6924046a7c0bd82070450caaf9617643f403d870c6dd3de7391ed450bf8314a",
+          "common.h": "9c5efd3e6967bae4ce5580771457e4d75bfc3d8a25411ac5b28cbc3a7142bb2d",
+          "common.s": "b0c8f1b0b8d40667130efa75584cb2273b7d1a68da58e89c7434b7f15002143c",
+          "selected_linux_amd64.go": "615406e188acc63b6349baf664a59531725b39a898705ab5f12ddbee0eace7f7",
+          "selected_linux_amd64.s": "bad0792a6cc2c1f3e7e2752bef201570341303a291a46f79d63110ff9f9065bd"
+        },
+        "inventory": {
+          "GoFiles": [
+            "common.go",
+            "selected_linux_amd64.go"
+          ],
+          "HFiles": [
+            "common.h"
+          ],
+          "IgnoredGoFiles": [
+            "disabled_cgo.go",
+            "excluded_windows.go",
+            "selected_darwin_arm64.go"
+          ],
+          "IgnoredOtherFiles": [
+            "selected_darwin_arm64.s"
+          ],
+          "SFiles": [
+            "common.s",
+            "selected_linux_amd64.s"
+          ],
+          "TestGoFiles": [
+            "excluded_test.go"
+          ]
+        },
+        "digest": "sha256:f07021259f831522a922eb7f5e36a72d58a7d5efcd96c5197945d79484579191",
+        "command": [
+          "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+          "list",
+          "-e",
+          "-find",
+          "-json",
+          "."
+        ],
+        "command_exit": 0,
+        "stderr": "",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "equal": true
+    }
+  ],
+  "excluded": "Historical cached-original-not-prepared module inventories were separate historical supplementary observations; current fixture comparison asserts no prepared adapter pins. Actual scratch paths and caller environments differ and remain recorded, not normalized to claim whole raw-output equality.",
+  "scope": "Exact literal fixture bytes, source hashes, selected inventories, digests, argv, successful exits and empty stderr match on both supported source selections. Stock source listing only, not native execution or patched compiler qualification."
+}

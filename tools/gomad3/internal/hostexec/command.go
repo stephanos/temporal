@@ -23,6 +23,7 @@ type Request struct {
 	TerminateGrace       time.Duration
 	OutputLimit          uint64
 	PreserveCommandError bool
+	CombinedOutput       bool
 }
 
 type Result struct {

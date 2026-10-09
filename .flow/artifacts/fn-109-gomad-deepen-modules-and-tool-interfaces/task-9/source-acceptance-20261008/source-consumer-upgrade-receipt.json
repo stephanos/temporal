@@ -1,0 +1,284 @@
+{
+  "name": "source-consumer-upgrade",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ncd tools/gomad3 && go test -json -count=1 -tags test_dep ./upgrade -run '^Test(RunPublishesFailedGateEvidence|RunReplacesExistingDossierAfterFailedGate|RunReportsPublicationFailureAndKeepsPriorDossier|RunRenderingFailurePreservesGateEvidence|OverlayArchiveCleanupFailure)$'"
+  ],
+  "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./upgrade -run '^Test(RunPublishesFailedGateEvidence|RunReplacesExistingDossierAfterFailedGate|RunReportsPublicationFailureAndKeepsPriorDossier|RunRenderingFailurePreservesGateEvidence|OverlayArchiveCleanupFailure)$'",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-09T00:06:11.697Z",
+  "ended": "2026-10-09T00:06:12.403Z",
+  "elapsed_seconds": 0.7061717080000001,
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync completed",
+  "stdout": {
+    "path": "source-consumer-upgrade.stdout",
+    "sha256": "91d39ebf606ade5b06e0c73ed7ff4c6ad1b79fe82d16486e7f8773195c8d07c1"
+  },
+  "stderr": {
+    "path": "source-consumer-upgrade.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "base_commit": "29c80199cd",
+  "original_baseline": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "head": "29c80199cdf1a7444f3a3aa99388e2f408e3cf73",
+  "source": {
+    "manifest": "source-04bd8c60a587c585c936c62f8fc5a3eff797d6b1d518098d08f1adf70571b4e9.json",
+    "sha256": "04bd8c60a587c585c936c62f8fc5a3eff797d6b1d518098d08f1adf70571b4e9"
+  },
+  "tools": {
+    "manifest": "tools-73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55.json",
+    "sha256": "73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55"
+  },
+  "controls": {
+    "manifest": "controls-3c126404f69f535dab0e3735e68d43827b3074bcad2a00ed66d71d9900779c07.json",
+    "sha256": "3c126404f69f535dab0e3735e68d43827b3074bcad2a00ed66d71d9900779c07"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7"
+  },
+  "counts": {
+    "pass": 29,
+    "fail": 2,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-09T00:06:12.125983646Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/qualified/write1",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.131150771Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/qualified/write2",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.132596854Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/qualified",
+      "Elapsed": 0.04
+    },
+    {
+      "Time": "2026-10-09T00:06:12.150367271Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/gate/write1",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.153571479Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/gate/write2",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.157715896Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/gate",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-09T00:06:12.204471063Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/host/write1",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.212428229Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/host/write2",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.215123188Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/host",
+      "Elapsed": 0.06
+    },
+    {
+      "Time": "2026-10-09T00:06:12.233368146Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/publication/write1",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.235916313Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/publication/write2",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.238629063Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/publication",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-09T00:06:12.257866063Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/corpus/write1",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.262784771Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/corpus/write2",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.263786729Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/corpus",
+      "Elapsed": 0.03
+    },
+    {
+      "Time": "2026-10-09T00:06:12.282338563Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/baseline/write1",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.287265521Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/baseline/write2",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.288530688Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/baseline",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-09T00:06:12.307126688Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/boundary/write1",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.311982813Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/boundary/write2",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.313031854Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence/boundary",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-09T00:06:12.313073688Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunRenderingFailurePreservesGateEvidence",
+      "Elapsed": 0.22
+    },
+    {
+      "Time": "2026-10-09T00:06:12.318207438Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestOverlayArchiveCleanupFailure/read_and_close_fail",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.322248396Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestOverlayArchiveCleanupFailure/tar_ends_before_stored_deflate_error",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.322273896Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestOverlayArchiveCleanupFailure",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.329493229Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunPublishesFailedGateEvidence",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.336898563Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunReplacesExistingDossierAfterFailedGate",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.344142646Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_created",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.349102813Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunReportsPublicationFailureAndKeepsPriorDossier/parent_is_a_file",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T00:06:12.356824563Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_renamed",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T00:06:12.356867563Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Test": "TestRunReportsPublicationFailureAndKeepsPriorDossier",
+      "Elapsed": 0.02
+    }
+  ],
+  "environment_sha256": "0bcd182b4cda9b91e0df7ddd28e517cec8e4c0494e92a74851977935c3650357"
+}

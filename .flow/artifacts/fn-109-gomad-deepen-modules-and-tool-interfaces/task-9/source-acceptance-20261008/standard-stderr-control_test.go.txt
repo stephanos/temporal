@@ -1,0 +1,32 @@
+package target
+
+import (
+ "encoding/json"
+ "errors"
+ "fmt"
+ "os"
+ "os/exec"
+ "path/filepath"
+ "syscall"
+ "testing"
+)
+
+func TestTask9StandardStderrCharacterization(t *testing.T) {
+ root:=os.Getenv("TASK9_STANDARD_STDERR_CONTROL")
+ if root=="" {t.Fatal("missing declared task-owned control")}
+ t.Chdir(filepath.Join(root,"module"))
+ for _,size:=range []int{65535,65536,65537,4*1024*1024} {
+  t.Run(fmt.Sprint(size),func(t *testing.T){
+   t.Setenv("TASK9_STANDARD_STDERR_SIZE",fmt.Sprint(size))
+   err:=validateExecStandardPackages(t.Context(),filepath.Join(root,"go"),CapabilityClosure{Packages:[]CapabilityPackage{{ImportPath:"fmt",Standard:true}}})
+   var exit *exec.ExitError
+   asExit:=errors.As(err,&exit)
+   var stderr []byte
+   code:=0; state:=""; var status uint32
+   if asExit {stderr=exit.Stderr;code=exit.ExitCode();if exit.ProcessState!=nil{state=exit.ProcessState.String();if ws,ok:=exit.Sys().(syscall.WaitStatus);ok{status=uint32(ws)}}}
+   row:=struct{Size int;Cause task9ListingCause;ExecExit bool;Exit int;ProcessState string;WaitStatus uint32;ExecStderr []byte}{size,task9ListingChain(err),asExit,code,state,status,stderr}
+   bytes,encodeErr:=json.Marshal(row);if encodeErr!=nil{t.Fatal(encodeErr)}
+   fmt.Printf("TASK9_STDERR_ROW %s\n",bytes)
+  })
+ }
+}

@@ -1,0 +1,50 @@
+{
+  "files": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/base-probe",
+      "sha256": "f15f3b0d7d82eff2cc5a54a1858097399a2d824aac9d8fd86f285e5e06cdc3c4"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/frozen-adapter-compile-base-receipt.json",
+      "sha256": "632e0372d09f2b57fd97cdd5455301afa6eeb356817d36d41dd2500e69b225f8"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/frozen-adapter-compile-base.stdout",
+      "sha256": "21377fe5cc53b857cfdb8dbf1eb7f6abaaf110c9977617339cb26806ff0cdb13"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/frozen-adapter-compile-base.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/current-probe",
+      "sha256": "f27c07b82692d367dba3646cb2610668996fed8a96dd70d0462957d5b473c1b6"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/frozen-adapter-compile-current-receipt.json",
+      "sha256": "17f27c93223d0c33ee481ad73827763191d7acdee6f9798d6778ff05a928b1ff"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/frozen-adapter-compile-current.stdout",
+      "sha256": "a4da0fa84297e34eeb30f8ba6567c693a884aee1463ade63c2e1498855eecedc"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/frozen-adapter-compile-current.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "roots": [
+    "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-original-root",
+    "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-final-controls-1k7gUK/adapter-current-root"
+  ],
+  "normalizer": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/verify-probes.cjs",
+    "sha256": "bff8a60ca4172cf1083d7924f2a14bcf913811881d4f628af6bd97717a042631"
+  },
+  "probe": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-command-gap-2026-10-05/base-process-probe/probe.go",
+    "sha256": "54af6ab429167b059e0f951068154a34e0015186efbc880d92d137228be783a0"
+  },
+  "scope": "Real once-compiled ordinary probe executable inputs, frozen before running unchanged29cases from identical caller cwd and same-depth roots; no patched/native compiler qualification."
+}

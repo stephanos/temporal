@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+const repo='/Users/stephan/Workspace/skunkworks/gomad/temporal',out=path.dirname(new URL(import.meta.url).pathname),commit='29c80199cd';
+const scratch=fs.mkdtempSync('/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-head-');
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const archive=spawnSync('git',['archive',commit,'tools/gomad3','tools/gomad3sim','go.mod','go.sum'],{cwd:repo,maxBuffer:128*1024*1024});if(archive.status!==0)throw Error(archive.stderr.toString());
+const extraction=spawnSync('tar',['-x','-C',scratch],{cwd:repo,input:archive.stdout});if(extraction.status!==0)throw Error(extraction.stderr.toString());
+const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):e.isFile()?[path.join(dir,e.name)]:[]);
+const metadata={scratch,commit,archive_sha256:hash(archive.stdout),files:walk(scratch).sort().map(file=>({path:file,sha256:hash(fs.readFileSync(file))})),commands:[{argv:['git','archive',commit,'tools/gomad3','tools/gomad3sim','go.mod','go.sum'],cwd:repo,exit:archive.status},{argv:['tar','-x','-C',scratch],cwd:repo,exit:extraction.status}]};
+fs.writeFileSync(path.join(out,'head-baseline-inputs.json'),JSON.stringify(metadata,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({scratch,files:metadata.files.length}));

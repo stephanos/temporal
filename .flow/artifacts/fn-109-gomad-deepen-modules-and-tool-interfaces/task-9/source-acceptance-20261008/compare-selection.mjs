@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+const out = path.dirname(new URL(import.meta.url).pathname);
+const files = [path.join(path.dirname(out), 'adapter-integration-20261005/source-selection/stdout.txt'), path.join(out, 'isolated-candidate-selection.stdout')];
+const inputs = files.map(file => {const bytes = fs.readFileSync(file); return {path: file, sha256: crypto.createHash('sha256').update(bytes).digest('hex'), rows: bytes.toString().trim().split('\n').map(JSON.parse)};});
+const fixture = inputs.map(input => input.rows.filter(row => row.kind === 'fixture'));
+const project = row => Object.fromEntries(['kind', 'label', 'platform', 'source_bytes', 'source_sha256', 'inventory', 'digest', 'command', 'command_exit', 'stderr', 'stderr_bytes', 'stderr_sha256'].filter(key => row[key] !== undefined).map(key => [key, row[key]]));
+const compared = fixture[0].map((row, index) => ({platform: row.platform ?? 'literal fixture inputs', original: project(row), current: project(fixture[1][index]), equal: JSON.stringify(project(row)) === JSON.stringify(project(fixture[1][index]))}));
+if (fixture[0].length !== 3 || fixture[1].length !== 3 || compared.some(row => !row.equal)) throw Error('literal fixture source-selection discrepancy');
+const result = {inputs: inputs.map(({path, sha256, rows}) => ({path, sha256, row_count: rows.length})), compared, excluded: 'Historical cached-original-not-prepared module inventories were separate historical supplementary observations; current fixture comparison asserts no prepared adapter pins. Actual scratch paths and caller environments differ and remain recorded, not normalized to claim whole raw-output equality.', scope: 'Exact literal fixture bytes, source hashes, selected inventories, digests, argv, successful exits and empty stderr match on both supported source selections. Stock source listing only, not native execution or patched compiler qualification.'};
+fs.writeFileSync(path.join(out, 'literal-selection-comparison.json'), JSON.stringify(result, null, 2) + '\n', {flag: 'wx'});
+console.log(JSON.stringify({rows: compared.length, equal: compared.every(row => row.equal)}));

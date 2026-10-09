@@ -1,0 +1,20 @@
+{
+  "purpose": "Read-only primary-source research into lawful genuine deferred pipe-close fault proof",
+  "agent": "/root/research_fn10940_close_fault",
+  "role": "research",
+  "requested_model": "gpt-6-astra",
+  "requested_effort": "high",
+  "observed_model": "unknown",
+  "context": "fresh",
+  "judge": {
+    "preset": "tier",
+    "available": false,
+    "reason": "no_key",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "spawn_model": null,
+    "implementer": "gpt-6-astra"
+  },
+  "scope": "Write findings.md only; no execution gates, implementation, review verdict, Flow lifecycle, qualification, CI, PR or push",
+  "execution_lane": "Remains exclusively with /root/complete_fn1099_source",
+  "acceptance": "No task acceptance or requirement waiver is authorized by this research dispatch"
+}

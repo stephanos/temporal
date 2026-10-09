@@ -1,0 +1,301 @@
+{
+  "source": {
+    "manifest": "source-0cc145589ba5b275ce6b66312e8d301ba02539353cd4d3d29312cdbef7b6f6b9.json",
+    "sha256": "0cc145589ba5b275ce6b66312e8d301ba02539353cd4d3d29312cdbef7b6f6b9"
+  },
+  "listing": {
+    "cases": 22,
+    "ordinary_differences": [],
+    "oversized_differences": [
+      "public-review/stdout-overflow",
+      "public-review/stderr-overflow",
+      "private-standard/stdout-overflow",
+      "private-standard/stderr-overflow"
+    ],
+    "policy": "Private standard originally unbounded is now refused by R10. Public Review originally bounded overflow error text/type remains unresolved R18; neither public difference is waived."
+  },
+  "standard_stderr": {
+    "cases": 4,
+    "literal_differences": []
+  },
+  "public": [
+    {
+      "name": "isolated-matched-public-original",
+      "bytes": 2895,
+      "sha256": "dd69c76a42daf665c44d7ab9f9344a8c64129e0e859f0d47f50dcd8c3bccd703",
+      "literal_equal_original": true
+    },
+    {
+      "name": "isolated-matched-public-historical-final",
+      "bytes": 2895,
+      "sha256": "dd69c76a42daf665c44d7ab9f9344a8c64129e0e859f0d47f50dcd8c3bccd703",
+      "literal_equal_original": true
+    },
+    {
+      "name": "frozen-public-fresh",
+      "bytes": 2895,
+      "sha256": "dd69c76a42daf665c44d7ab9f9344a8c64129e0e859f0d47f50dcd8c3bccd703",
+      "literal_equal_original": true
+    },
+    {
+      "name": "frozen-public-cached",
+      "bytes": 2895,
+      "sha256": "dd69c76a42daf665c44d7ab9f9344a8c64129e0e859f0d47f50dcd8c3bccd703",
+      "literal_equal_original": true
+    }
+  ],
+  "outcomes": {
+    "download": {
+      "cases": 9,
+      "differences": [],
+      "original_sha256": "0636b3f77b0b75189a97d04af8e6f92d3be685a8f8d3c45729db25a2816beb49",
+      "current_sha256": "0636b3f77b0b75189a97d04af8e6f92d3be685a8f8d3c45729db25a2816beb49",
+      "normalization": "None"
+    },
+    "query": {
+      "cases": 7,
+      "differences": [],
+      "original_sha256": "08be5ccc74f2180d657c76b782e8a3b9981843e2b8d88631fef0f44301120d97",
+      "current_sha256": "08be5ccc74f2180d657c76b782e8a3b9981843e2b8d88631fef0f44301120d97",
+      "normalization": "None"
+    },
+    "build": {
+      "cases": 8,
+      "differences": [],
+      "original_sha256": "9aeabe03c2807e9779a289b1bd1b4ee2a4a45f94b76e1ec4e88009230b643cb9",
+      "current_sha256": "2cb6d580ebeaede690c3c909879de8654de7c310f126cd8132661d8c987987d4",
+      "normalization": "Top-level actual child PID only",
+      "started": 7,
+      "all_started_gone": true,
+      "all_exclusive_locks_reacquired": true
+    }
+  },
+  "public_command_ledger": {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/commands.jsonl",
+    "sha256": "ce384a71d00dbd6115a67cc03cfc258cf8e975309653f258471c6bfede3efda1",
+    "last_five_indices": [
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "fresh_builds": 1,
+    "cached_builds": 0,
+    "records": [
+      {
+        "index": 26,
+        "executable": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/tools/gomad3/.toolchain/bin/go",
+        "argv": [
+          "env",
+          "GOVERSION",
+          "GOOS",
+          "GOARCH",
+          "CGO_ENABLED"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/tools/gomad3/.toolchain",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "4397fd248e245482e13b5e56487e71610870969b3fb662d812ffdef31220116f",
+        "kind": "actual-stock-Go",
+        "exit_code": 0,
+        "signal": null,
+        "error": null,
+        "elapsed_seconds": 0.007028374999999997,
+        "stdout": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-26.stdout",
+          "sha256": "4828578569bd1648cf4e937f995bc0e34c7bcdd37a359cf3ed1e3026ec385084"
+        },
+        "stderr": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-26.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "payload_sha256": "40bf69e439dcbadd3a67a437b61687aa9864619168c40400b03bfda7ffc4a560"
+      },
+      {
+        "index": 27,
+        "executable": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/tools/gomad3/.toolchain/bin/go",
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad9-old-243784202/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "4397fd248e245482e13b5e56487e71610870969b3fb662d812ffdef31220116f",
+        "kind": "actual-stock-Go",
+        "exit_code": 0,
+        "signal": null,
+        "error": null,
+        "elapsed_seconds": 0.06551958299999998,
+        "stdout": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-27.stdout",
+          "sha256": "93d58e0695d2a2d5d931033e6569435bf61ae78c9cc1f359e698cd8670c6753b"
+        },
+        "stderr": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-27.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "payload_sha256": "40bf69e439dcbadd3a67a437b61687aa9864619168c40400b03bfda7ffc4a560"
+      },
+      {
+        "index": 28,
+        "executable": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/tools/gomad3/.toolchain/bin/go",
+        "argv": [
+          "build",
+          "-trimpath",
+          "-buildvcs=false",
+          "-o",
+          "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad9-old-243784202/prepare/.prepare-3680060609/target",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad9-old-243784202/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC",
+          "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/tools/gomad3/.toolchain/builds/9999999999999999999999999999999999999999999999999999999999999999/target-cache"
+        },
+        "environment_sha256": "23db4e313afff7847025d5dc33e3e0cc9efe0a38b7f1e7e5b21089bbec0e132f",
+        "kind": "copy-immutable-binary-INPUT",
+        "exit_code": 0,
+        "signal": null,
+        "error": null,
+        "elapsed_seconds": 0.005846165999999996,
+        "stdout": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-28.stdout",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-28.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "payload_sha256": "40bf69e439dcbadd3a67a437b61687aa9864619168c40400b03bfda7ffc4a560"
+      },
+      {
+        "index": 29,
+        "executable": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/tools/gomad3/.toolchain/bin/go",
+        "argv": [
+          "env",
+          "GOVERSION",
+          "GOOS",
+          "GOARCH",
+          "CGO_ENABLED"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/tools/gomad3/.toolchain",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "4397fd248e245482e13b5e56487e71610870969b3fb662d812ffdef31220116f",
+        "kind": "actual-stock-Go",
+        "exit_code": 0,
+        "signal": null,
+        "error": null,
+        "elapsed_seconds": 0.007742584000000008,
+        "stdout": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-29.stdout",
+          "sha256": "4828578569bd1648cf4e937f995bc0e34c7bcdd37a359cf3ed1e3026ec385084"
+        },
+        "stderr": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-29.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "payload_sha256": "40bf69e439dcbadd3a67a437b61687aa9864619168c40400b03bfda7ffc4a560"
+      },
+      {
+        "index": 30,
+        "executable": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/tools/gomad3/.toolchain/bin/go",
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad9-old-935529852/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "4397fd248e245482e13b5e56487e71610870969b3fb662d812ffdef31220116f",
+        "kind": "actual-stock-Go",
+        "exit_code": 0,
+        "signal": null,
+        "error": null,
+        "elapsed_seconds": 0.030798000000000002,
+        "stdout": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-30.stdout",
+          "sha256": "a5e975f94029eda37ac0bf0a66dd05f04dc14ce1c08d88bda4b7a2c64667c668"
+        },
+        "stderr": {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/command-30.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "payload_sha256": "40bf69e439dcbadd3a67a437b61687aa9864619168c40400b03bfda7ffc4a560"
+      }
+    ]
+  },
+  "scope": "Controlled source preservation only. Successful build transport copies one compiled INPUT, never launches; failure transport emits bytes/process outcomes, not compiler/native evidence. No universal R18 or acceptance claim."
+}

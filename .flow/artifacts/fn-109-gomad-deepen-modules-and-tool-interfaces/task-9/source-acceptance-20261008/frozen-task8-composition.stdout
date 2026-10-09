@@ -1,0 +1,5 @@
+{"Time":"2026-10-09T00:29:09.533726886Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/target"}
+{"Time":"2026-10-09T00:29:09.547749011Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target","Output":"testing: warning: no tests to run\n"}
+{"Time":"2026-10-09T00:29:09.547906469Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-09T00:29:09.548110219Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target","Output":"ok  \tgo.temporal.io/server/tools/gomad3/target\t0.014s [no tests to run]\n"}
+{"Time":"2026-10-09T00:29:09.548148553Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/target","Elapsed":0.014}

@@ -877,6 +877,30 @@ finite watchdogs, process-group cleanup, and command exit classification.
 stream's overflow before parsing. `Diagnostic` keeps bounded head/tail output
 with complete byte counts and hashes, so truncation remains usable diagnostic
 evidence. Truncated diagnostics cannot stand in for structured package data.
+Identity/cache queries and module download use `StructuredCommand` to keep
+complete bounded output and the actual command error separate from operation
+failures. Module download's original JSON
+decoder, reported module error, command error and checksum ordering applies even
+after caller cancellation. Infrastructure/cleanup, stdout overflow, stderr
+overflow and watchdog failures refuse stdout before that decoder runs. This
+does not change `Structured`'s context-sentinel policy or `Diagnostic` capture.
+Identity/cache queries refuse command errors before decoding and project their
+complete bounded stderr into the actual `exec.ExitError`, matching `Cmd.Output`.
+Standard-package inventory retains literal argv and inherited cwd, using the
+same operation and actual error. Its `Cmd.Output` stderr projection keeps the
+first and last 32 KiB with the original omitted-byte marker above 64 KiB.
+Capability listing preserves actual command errors without that projection and
+retains its original caller-context override on any failure. Both listings
+refuse incomplete streams before decoding; these bounded refusals do not claim
+literal equality with originally unbounded standard inventory.
+Compilation uses `DiagnosticCommand`: both child output descriptors share one
+real pipe, preserving ordinary combined-output order and raw command errors.
+Its single diagnostic capture retains bounded head/tail and full byte counts
+and hashes; infrastructure/cleanup and watchdog failures remain distinct.
+The cache lock is released before either operation or command errors are
+projected. Preparation's identity query retains its original background context;
+listing and compilation retain the caller context. Default host commands and
+the existing `Diagnostic` operation keep separate output streams.
 Adapter prepared-source listing uses `Compatibility`, retaining raw Go-command
 errors and bounded stderr through the existing public helper. It refuses either
 stream above 4 MiB before decoding and uses the 15-minute watchdog, bounded by

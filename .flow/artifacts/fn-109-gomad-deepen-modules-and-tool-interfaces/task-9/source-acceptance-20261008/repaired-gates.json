@@ -1,0 +1,97 @@
+[
+  {
+    "name": "candidate-public-cache-archive",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "candidate-public-fresh",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-public-cached",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-download",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-query",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-build",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-adapter",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-selection",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-focused",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-command-defaults",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-architecture",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-source-darwin",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-source-linux",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-errortype",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-generated",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-lint-fast",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-lint-scoped",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-lint-integrated",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "candidate-format",
+    "exit": 0,
+    "signal": null
+  }
+]

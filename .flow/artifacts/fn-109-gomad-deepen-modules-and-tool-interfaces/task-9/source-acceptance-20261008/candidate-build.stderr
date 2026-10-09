@@ -1,0 +1,115 @@
+unexpected fault address 0xffff930000c0
+fatal error: fault
+[signal SIGBUS: bus error code=0x2 addr=0xffff930000c0 pc=0x3e5dc8]
+
+goroutine 1 gp=0x7fff1ef0e1e0 m=0 mp=0xdf2d60 [running]:
+runtime.throw({0x6810d4?, 0x2d2ac?})
+	runtime/panic.go:1243 +0x38 fp=0x7fff1f0af7b0 sp=0x7fff1f0af780 pc=0x96e18
+runtime.sigpanic()
+	runtime/signal_unix.go:928 +0xdc fp=0x7fff1f0af810 sp=0x7fff1f0af7b0 pc=0x9916c
+sync/atomic.(*Uint32).CompareAndSwap(...)
+	sync/atomic/type.go:157
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*mappedFile).cas32(...)
+	cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:600
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*mappedFile).newCounter(0x7fff1f0c9700, {0x688008, 0xe})
+	cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:743 +0x4d8 fp=0x7fff1f0af960 sp=0x7fff1f0af820 pc=0x3e5dc8
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*file).newCounter1(0xdf0b00, {0x688008, 0xe})
+	cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:343 +0x164 fp=0x7fff1f0afa20 sp=0x7fff1f0af960 pc=0x3e4cd4
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*file).newCounter(0x10?, {0x688008?, 0x7fff1f0afa98?})
+	cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:326 +0x20 fp=0x7fff1f0afa50 sp=0x7fff1f0afa20 pc=0x3e4b30
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*file).lookup(0x6a652d?, {0x688008?, 0x7fff1f0afb38?})
+	cmd/vendor/golang.org/x/telemetry/internal/counter/file.go:119 +0x34 fp=0x7fff1f0afaa0 sp=0x7fff1f0afa50 pc=0x3e39a4
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*Counter).releaseLock(0x7fff1f0c9740, 0xffffffff)
+	cmd/vendor/golang.org/x/telemetry/internal/counter/counter.go:240 +0x140 fp=0x7fff1f0afb60 sp=0x7fff1f0afaa0 pc=0x3e3040
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*Counter).Add(0x7fff1f0c9740, 0x1)
+	cmd/vendor/golang.org/x/telemetry/internal/counter/counter.go:194 +0x320 fp=0x7fff1f0afc20 sp=0x7fff1f0afb60 pc=0x3e2b30
+cmd/vendor/golang.org/x/telemetry/internal/counter.(*Counter).Inc(...)
+	cmd/vendor/golang.org/x/telemetry/internal/counter/counter.go:146
+cmd/vendor/golang.org/x/telemetry/counter.Inc(...)
+	cmd/vendor/golang.org/x/telemetry/counter/counter.go:23
+cmd/internal/telemetry/counter.Inc(...)
+	cmd/internal/telemetry/counter/counter.go:29
+main.main()
+	cmd/go/main.go:113 +0x11c fp=0x7fff1f0afea0 sp=0x7fff1f0afc20 pc=0x61f4fc
+runtime.main()
+	runtime/proc.go:302 +0x380 fp=0x7fff1f0affd0 sp=0x7fff1f0afea0 pc=0x5f3f0
+runtime.goexit({})
+	runtime/asm_arm64.s:1039 +0x4 fp=0x7fff1f0affd0 sp=0x7fff1f0affd0 pc=0x9e144
+
+goroutine 2 gp=0x7fff1ef0e780 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:474 +0xb8 fp=0x7fff1ef92f90 sp=0x7fff1ef92f70 pc=0x96f28
+runtime.goparkunlock(...)
+	runtime/proc.go:480
+runtime.forcegchelper()
+	runtime/proc.go:387 +0xb4 fp=0x7fff1ef92fd0 sp=0x7fff1ef92f90 pc=0x5f6d4
+runtime.goexit({})
+	runtime/asm_arm64.s:1039 +0x4 fp=0x7fff1ef92fd0 sp=0x7fff1ef92fd0 pc=0x9e144
+created by runtime.init.7 in goroutine 1
+	runtime/proc.go:375 +0x24
+
+goroutine 3 gp=0x7fff1ef0ed20 m=nil [GC sweep wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:474 +0xb8 fp=0x7fff1ef93770 sp=0x7fff1ef93750 pc=0x96f28
+runtime.goparkunlock(...)
+	runtime/proc.go:480
+runtime.bgsweep(0x7fff1ef42080)
+	runtime/mgcsweep.go:279 +0x9c fp=0x7fff1ef937b0 sp=0x7fff1ef93770 pc=0x4a9fc
+runtime.gcenable.gowrap1()
+	runtime/mgc.go:214 +0x20 fp=0x7fff1ef937d0 sp=0x7fff1ef937b0 pc=0x8d660
+runtime.goexit({})
+	runtime/asm_arm64.s:1039 +0x4 fp=0x7fff1ef937d0 sp=0x7fff1ef937d0 pc=0x9e144
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:214 +0x6c
+
+goroutine 4 gp=0x7fff1ef0ef00 m=nil [GC scavenge wait]:
+runtime.gopark(0x7fff1ef42080?, 0x6e95a0?, 0x1?, 0x0?, 0x7fff1ef0ef00?)
+	runtime/proc.go:474 +0xb8 fp=0x7fff1ef93f60 sp=0x7fff1ef93f40 pc=0x96f28
+runtime.goparkunlock(...)
+	runtime/proc.go:480
+runtime.(*scavengerState).park(0xdf09c0)
+	runtime/mgcscavenge.go:425 +0x5c fp=0x7fff1ef93f90 sp=0x7fff1ef93f60 pc=0x4866c
+runtime.bgscavenge(0x7fff1ef42080)
+	runtime/mgcscavenge.go:653 +0x44 fp=0x7fff1ef93fb0 sp=0x7fff1ef93f90 pc=0x48b74
+runtime.gcenable.gowrap2()
+	runtime/mgc.go:215 +0x20 fp=0x7fff1ef93fd0 sp=0x7fff1ef93fb0 pc=0x8d620
+runtime.goexit({})
+	runtime/asm_arm64.s:1039 +0x4 fp=0x7fff1ef93fd0 sp=0x7fff1ef93fd0 pc=0x9e144
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:215 +0xac
+
+goroutine 5 gp=0x7fff1ef0f4a0 m=nil [GOMAXPROCS updater (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:474 +0xb8 fp=0x7fff1ef92770 sp=0x7fff1ef92750 pc=0x96f28
+runtime.goparkunlock(...)
+	runtime/proc.go:480
+runtime.updateMaxProcsGoroutine()
+	runtime/proc.go:7146 +0xf4 fp=0x7fff1ef927d0 sp=0x7fff1ef92770 pc=0x6d014
+runtime.goexit({})
+	runtime/asm_arm64.s:1039 +0x4 fp=0x7fff1ef927d0 sp=0x7fff1ef927d0 pc=0x9e144
+created by runtime.defaultGOMAXPROCSUpdateEnable in goroutine 1
+	runtime/proc.go:7134 +0x48
+
+goroutine 6 gp=0x7fff1ef0f680 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:474 +0xb8 fp=0x7fff1ef94580 sp=0x7fff1ef94560 pc=0x96f28
+runtime.runFinalizers()
+	runtime/mfinal.go:210 +0x100 fp=0x7fff1ef947d0 sp=0x7fff1ef94580 pc=0x3bc00
+runtime.goexit({})
+	runtime/asm_arm64.s:1039 +0x4 fp=0x7fff1ef947d0 sp=0x7fff1ef947d0 pc=0x9e144
+created by runtime.createfing in goroutine 1
+	runtime/mfinal.go:172 +0x78
+
+goroutine 7 gp=0x7fff1ef0f860 m=nil [cleanup wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:474 +0xb8 fp=0x7fff1ef94f50 sp=0x7fff1ef94f30 pc=0x96f28
+runtime.goparkunlock(...)
+	runtime/proc.go:480
+runtime.(*cleanupQueue).dequeue(0xdf1280)
+	runtime/mcleanup.go:522 +0x160 fp=0x7fff1ef94f90 sp=0x7fff1ef94f50 pc=0x38760
+runtime.runCleanups()
+	runtime/mcleanup.go:718 +0x40 fp=0x7fff1ef94fd0 sp=0x7fff1ef94f90 pc=0x38eb0
+runtime.goexit({})
+	runtime/asm_arm64.s:1039 +0x4 fp=0x7fff1ef94fd0 sp=0x7fff1ef94fd0 pc=0x9e144
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	runtime/mcleanup.go:672 +0x108

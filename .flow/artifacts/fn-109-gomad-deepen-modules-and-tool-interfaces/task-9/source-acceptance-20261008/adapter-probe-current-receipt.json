@@ -1,0 +1,64 @@
+{
+  "name": "adapter-probe-current",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ntask9_probe_root=$(mktemp -d /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-probe-current.XXXXXX) && cd tools/gomad3 && go run -tags test_dep ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-command-gap-2026-10-05/base-process-probe/probe.go \"$task9_probe_root\""
+  ],
+  "command": "task9_probe_root=$(mktemp -d /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-probe-current.XXXXXX) && cd tools/gomad3 && go run -tags test_dep ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-command-gap-2026-10-05/base-process-probe/probe.go \"$task9_probe_root\"",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-08T23:26:19.534Z",
+  "ended": "2026-10-08T23:26:32.909Z",
+  "elapsed_seconds": 13.371804048,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync completed",
+  "stdout": {
+    "path": "adapter-probe-current.stdout",
+    "sha256": "1d02abcbb3ec7aabe1d12f8321bfd81b46a66ce240cbfc4693d04c9d7b541f70"
+  },
+  "stderr": {
+    "path": "adapter-probe-current.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "base_commit": "29c80199cd",
+  "original_baseline": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "head": "29c80199cdf1a7444f3a3aa99388e2f408e3cf73",
+  "source": {
+    "manifest": "source-e1dec7fa8cfe8e94c79ba8611b03496d9cd5808f8816474375a0cb7edb26d925.json",
+    "sha256": "e1dec7fa8cfe8e94c79ba8611b03496d9cd5808f8816474375a0cb7edb26d925"
+  },
+  "tools": {
+    "manifest": "tools-46f01211f542fc4c3bfbaa9e79247e0ca21dca150c86a80d5ec37c4d788fb650.json",
+    "sha256": "46f01211f542fc4c3bfbaa9e79247e0ca21dca150c86a80d5ec37c4d788fb650"
+  },
+  "controls": {
+    "manifest": "controls-27450ca3ca2cb5f91bff3cadd76f4407ff13f4d3a100887efc6d387778e33958.json",
+    "sha256": "27450ca3ca2cb5f91bff3cadd76f4407ff13f4d3a100887efc6d387778e33958"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off"
+  },
+  "counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": []
+}

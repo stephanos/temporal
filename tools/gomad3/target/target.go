@@ -224,7 +224,7 @@ func prepareWith(ctx context.Context, spec Spec, runner gocommand.Runner) (prepa
 		return Prepared{}, err
 	}
 	spec.CapabilityMode = mode
-	identity, err := readPinnedToolchainWith(ctx, spec.ToolchainRoot, runner)
+	identity, err := readPinnedToolchainWith(context.Background(), spec.ToolchainRoot, runner)
 	if err != nil {
 		return Prepared{}, err
 	}
@@ -372,10 +372,13 @@ func readPinnedToolchainWith(ctx context.Context, root string, runner gocommand.
 	if err != nil {
 		return pinnedToolchain{}, err
 	}
-	result, err := runner.Structured(ctx, gocommand.Request{
+	result, err := runner.StructuredCommand(ctx, gocommand.Request{
 		Command: []string{description.GoCommand(), "env", "GOVERSION", "GOOS", "GOARCH", "CGO_ENABLED"},
 		Dir:     description.Root(), Env: targetbuild.Environment(), OutputLimit: maximumGoEnvironmentBytes,
 	})
+	if err == nil {
+		err = result.OutputError()
+	}
 	if err != nil {
 		return pinnedToolchain{}, fmt.Errorf("query pinned Go command: %w", err)
 	}
@@ -400,10 +403,13 @@ func ReadModuleCache(ctx context.Context, root string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("resolve pinned Go command: %w", err)
 	}
-	result, err := gocommand.Default().Structured(ctx, gocommand.Request{
+	result, err := gocommand.Default().StructuredCommand(ctx, gocommand.Request{
 		Command: []string{layout.GoCommand(), "env", "GOMODCACHE"},
 		Dir:     layout.Root(), Env: targetbuild.Environment(), OutputLimit: maximumGoEnvironmentBytes,
 	})
+	if err == nil {
+		err = result.OutputError()
+	}
 	if err != nil {
 		return "", fmt.Errorf("query pinned module cache: %w", err)
 	}
@@ -440,20 +446,18 @@ func DownloadModule(ctx context.Context, root string, module ModuleIdentity) (re
 	}
 	defer func() { retErr = errors.Join(retErr, os.RemoveAll(outside)) }()
 	query := module.Path + "@" + module.Version
-	result, runErr := gocommand.Default().Structured(ctx, gocommand.Request{
+	result, operationErr := gocommand.Default().StructuredCommand(ctx, gocommand.Request{
 		Command: []string{goCommand, "mod", "download", "-json", query},
 		Dir:     outside, Env: targetbuild.Environment(), OutputLimit: maximumGoModuleDownloadBytes,
 	})
+	if operationErr != nil {
+		return fmt.Errorf("download pinned module %s: %w", query, operationErr)
+	}
+	runErr := result.CommandError
 	output, stderr := result.Stdout, result.Stderr
 	var downloaded struct {
 		Sum   string
 		Error string
-	}
-	if runErr != nil {
-		var overflow *gocommand.OverflowError
-		if errors.As(runErr, &overflow) || errors.Is(runErr, context.Canceled) || errors.Is(runErr, context.DeadlineExceeded) {
-			return fmt.Errorf("download pinned module %s: %w", query, runErr)
-		}
 	}
 	if err := json.Unmarshal(output, &downloaded); err != nil {
 		return fmt.Errorf("download pinned module %s: %w: %s", query, errors.Join(runErr, err), strings.TrimSpace(string(stderr)))
@@ -742,13 +746,16 @@ func buildGoTargetWith(
 	if err != nil {
 		return preparation{}, err
 	}
-	result, err := runner.Diagnostic(ctx, gocommand.Request{
+	result, err := runner.DiagnosticCommand(ctx, gocommand.Request{
 		Command: append([]string{goCommand}, arguments...), Dir: commandDirectory,
 		Env: append(targetbuild.Environment(), "GOCACHE="+buildCache), OutputLimit: maximumGoBuildDiagnosticBytes,
 	})
-	output := result.Combined()
+	output := result.Output.Bytes
 	if releaseErr := cacheUse.Release(); releaseErr != nil {
 		return preparation{}, fmt.Errorf("release target build cache: %w", releaseErr)
+	}
+	if err == nil {
+		err = result.CommandError
 	}
 	if err != nil {
 		if spec.CapabilityMode != CapabilityModeClosure {

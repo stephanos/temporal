@@ -1,0 +1,8 @@
+{
+  "task_title": "Identify lawful genuine deferred pipe-close fault proof for task40",
+  "task_body": "Read-only narrow research into task40's existing contract and actual Go/kernel pipe Close paths. Identify a safe real fault reproducer allowed by the existing explicit prohibitions, or prove the limitation and recommend the smallest explicit owner decision. No execution gates, code changes, lifecycle, review verdict or qualification.",
+  "acceptance": "Primary-source grounded findings, exact retained contract and potential alternatives; distinguish actual OS fault from duplicate close, injection, static reachability and ordinary success. Store one uniquely named findings.md with citations and current source bindings.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

@@ -1,0 +1,12 @@
+/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/payload: go1.27.1-X:nogreenteagc
+	path	example.com/task9
+	mod	example.com/task9	(devel)	
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	-trimpath=true
+	build	DefaultGODEBUG=tracebacklabels=0,x509sslcertoverrideplatform=0
+	build	CGO_ENABLED=0
+	build	GOARCH=arm64
+	build	GOEXPERIMENT=nogreenteagc
+	build	GOOS=linux
+	build	GOARM64=v8.0

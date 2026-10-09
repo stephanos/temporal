@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+const out=path.dirname(new URL(import.meta.url).pathname),repo='/Users/stephan/Workspace/skunkworks/gomad/temporal',metadata=JSON.parse(fs.readFileSync(path.join(out,'adapter-baseline-inputs.json')));
+const listing=spawnSync('git',['ls-tree','-r',metadata.base,'tools/gomad3','tools/gomad3sim','go.mod','go.sum'],{cwd:repo,encoding:'utf8'});if(listing.status!==0)throw Error(listing.stderr);
+const expected=new Map(listing.stdout.trim().split('\n').map(line=>{const [identity,file]=line.split('\t');return [file,identity.split(' ')[2]];}));
+const actual=spawnSync('git',['hash-object','--stdin-paths'],{cwd:repo,input:metadata.files.map(entry=>entry.path).join('\n')+'\n',encoding:'utf8'});if(actual.status!==0)throw Error(actual.stderr);
+const hashes=actual.stdout.trim().split('\n'),mismatches=metadata.files.flatMap((entry,index)=>{const relative=path.relative(metadata.scratch,entry.path);return hashes[index]===expected.get(relative)?[]:[relative];});if(mismatches.length||hashes.length!==expected.size)throw Error('adapter BASE source graph does not match Git');
+const result={base:metadata.base,count:hashes.length,mismatches,listing_argv:listing.spawnargs,hash_argv:actual.spawnargs,cwd:repo,scope:'Every declared complete graph file byte identity checked against the actual Git tree object; no production source substitution.'};
+fs.writeFileSync(path.join(out,'adapter-baseline-verification.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(result));

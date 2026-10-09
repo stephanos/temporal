@@ -1,0 +1,2277 @@
+{
+  "base": "29c80199cd",
+  "methods": [
+    {
+      "name": "Default",
+      "before_sha256": "e65e953fff3c8354f380c84695853c4458f20df4d21af54a0b6f275d7e3495fa",
+      "after_sha256": "e65e953fff3c8354f380c84695853c4458f20df4d21af54a0b6f275d7e3495fa",
+      "equal": true
+    },
+    {
+      "name": "New",
+      "before_sha256": "c2f76f104679bf57bca9d9425d092a4ef71b14493db4116914be10d9b4925e7a",
+      "after_sha256": "c2f76f104679bf57bca9d9425d092a4ef71b14493db4116914be10d9b4925e7a",
+      "equal": true
+    },
+    {
+      "name": "DiagnosticResult.Combined",
+      "before_sha256": "c9ba26f856f3157b06b9071999bd184a6673d60c78643a037afa040c7b2f5314",
+      "after_sha256": "c9ba26f856f3157b06b9071999bd184a6673d60c78643a037afa040c7b2f5314",
+      "equal": true
+    },
+    {
+      "name": "OverflowError.Error",
+      "before_sha256": "ec5852720e4ed829cd661c5d67d4279efefabe620f12258371e6f2856e649e39",
+      "after_sha256": "ec5852720e4ed829cd661c5d67d4279efefabe620f12258371e6f2856e649e39",
+      "equal": true
+    },
+    {
+      "name": "ExitError.Error",
+      "before_sha256": "463c5b42f546f38099f9186c0dda65e89d4c6860dd15608a5c79bd220482da2b",
+      "after_sha256": "463c5b42f546f38099f9186c0dda65e89d4c6860dd15608a5c79bd220482da2b",
+      "equal": true
+    },
+    {
+      "name": "Runner.Structured",
+      "before_sha256": "031016a159731936aef38c4d9f3f7e49af6467c37fa69e5e3a9681911f903a46",
+      "after_sha256": "031016a159731936aef38c4d9f3f7e49af6467c37fa69e5e3a9681911f903a46",
+      "equal": true
+    },
+    {
+      "name": "WatchdogError.Error",
+      "before_sha256": "fea50559ad94ce238e27b96aad1b72367592a99dcf07896b3812e2a407e98976",
+      "after_sha256": "fea50559ad94ce238e27b96aad1b72367592a99dcf07896b3812e2a407e98976",
+      "equal": true
+    },
+    {
+      "name": "WatchdogError.Unwrap",
+      "before_sha256": "4ced10d7e2611ed7f4576b038472de7ee23f32c62072a3396924983cc30187d8",
+      "after_sha256": "4ced10d7e2611ed7f4576b038472de7ee23f32c62072a3396924983cc30187d8",
+      "equal": true
+    },
+    {
+      "name": "Runner.Compatibility",
+      "before_sha256": "dc4105194141af821ed6a3a4bc346974df60d1689a08fdeb9b86d993c2af5d26",
+      "after_sha256": "dc4105194141af821ed6a3a4bc346974df60d1689a08fdeb9b86d993c2af5d26",
+      "equal": true
+    },
+    {
+      "name": "Runner.Diagnostic",
+      "before_sha256": "dc5ae526a8ddafaa3f88fb5845f27d5af3581b601ef7e4208ede38dac518c8b2",
+      "after_sha256": "dc5ae526a8ddafaa3f88fb5845f27d5af3581b601ef7e4208ede38dac518c8b2",
+      "equal": true
+    },
+    {
+      "name": "Runner.execute",
+      "before_sha256": "85949bd6020279360754c4b8fc07901bb65da64f0c7ac9b1dffeb111b446887c",
+      "after_sha256": "85949bd6020279360754c4b8fc07901bb65da64f0c7ac9b1dffeb111b446887c",
+      "equal": true
+    },
+    {
+      "name": "exitError",
+      "before_sha256": "dd3329233fb77a4aa94756e599bd2d77d17d7c6532db2b5d46c7a663093710a2",
+      "after_sha256": "dd3329233fb77a4aa94756e599bd2d77d17d7c6532db2b5d46c7a663093710a2",
+      "equal": true
+    }
+  ],
+  "hostexec_inverse_exact": true,
+  "request_inverse_exact": true,
+  "existing_tests": [
+    {
+      "path": "tools/gomad3/architecture_test.go",
+      "before_sha256": "589bdad269bfd737bae06a705668b8b0bbfc3904b9dc276713518b17f34cedce",
+      "after_sha256": "589bdad269bfd737bae06a705668b8b0bbfc3904b9dc276713518b17f34cedce",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/artifact/opened_test.go",
+      "before_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+      "after_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/artifact/publication_test.go",
+      "before_sha256": "70b3ec64231a7543e2a6961318bc26ac95be6988a6b94cb31601c8a2ac47b410",
+      "after_sha256": "70b3ec64231a7543e2a6961318bc26ac95be6988a6b94cb31601c8a2ac47b410",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/artifact/retained_bytes_test.go",
+      "before_sha256": "6b848dfeb47df6047625d536c8aed3906910759d84b5db16ba4e9762bd6649fd",
+      "after_sha256": "6b848dfeb47df6047625d536c8aed3906910759d84b5db16ba4e9762bd6649fd",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/artifact/store_mode_unix_test.go",
+      "before_sha256": "8ecc1a6675e92f092b6f6a7060d6fb48325221f2517af2d9dbbd3199832c4088",
+      "after_sha256": "8ecc1a6675e92f092b6f6a7060d6fb48325221f2517af2d9dbbd3199832c4088",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/artifact/store_test.go",
+      "before_sha256": "e81dd018aa4d6bd5cb20e46d381bc2e10681820b4b6f83768ddc6bd83c8beae1",
+      "after_sha256": "e81dd018aa4d6bd5cb20e46d381bc2e10681820b4b6f83768ddc6bd83c8beae1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/artifact/target_pool_test.go",
+      "before_sha256": "f1f16a966c6195cc094de8cc5ffca7d8d837e23faa3d2e02fa727465daf2c41b",
+      "after_sha256": "f1f16a966c6195cc094de8cc5ffca7d8d837e23faa3d2e02fa727465daf2c41b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/artifact/target_pool_unix_test.go",
+      "before_sha256": "b424f0ba58e1b1a1f8e27d8fcfa700fb3afcf130ed7ee4f7c24bf196a484fac8",
+      "after_sha256": "b424f0ba58e1b1a1f8e27d8fcfa700fb3afcf130ed7ee4f7c24bf196a484fac8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/choice/diagnostic_test.go",
+      "before_sha256": "b2b86cd30586aa1d553b467d34931813538a1770acdf09c465c2df8706091a9e",
+      "after_sha256": "b2b86cd30586aa1d553b467d34931813538a1770acdf09c465c2df8706091a9e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/choice/internal/wire/wire_generated_test.go",
+      "before_sha256": "32ff7e600cb2825567810e5d4a09a0a7436e8bdc6cebb1d4e6ec3f881750815b",
+      "after_sha256": "32ff7e600cb2825567810e5d4a09a0a7436e8bdc6cebb1d4e6ec3f881750815b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/choice/legacy_v1_test.go",
+      "before_sha256": "dbc52539cfca80d10f4ba12445d367eeabfe73e3853b5eb314a22086cce4250a",
+      "after_sha256": "dbc52539cfca80d10f4ba12445d367eeabfe73e3853b5eb314a22086cce4250a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/choice/readiness_test.go",
+      "before_sha256": "42629a078c5df9e2001b67d359a99ab40aa7dfc25cbc3fdabc1a917c55920254",
+      "after_sha256": "42629a078c5df9e2001b67d359a99ab40aa7dfc25cbc3fdabc1a917c55920254",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/choice/session_test.go",
+      "before_sha256": "a161e12a3012aa4baa5b7cfc7d7b31d455d9476e5b0a424e1f4e26ce42a3ac9d",
+      "after_sha256": "a161e12a3012aa4baa5b7cfc7d7b31d455d9476e5b0a424e1f4e26ce42a3ac9d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/choice/tape_test.go",
+      "before_sha256": "df78e2be603a6de123b6fbcbd684837737998993bed96f42c19105fa5a3b794e",
+      "after_sha256": "df78e2be603a6de123b6fbcbd684837737998993bed96f42c19105fa5a3b794e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/choice/trace_test.go",
+      "before_sha256": "f163d39e14483acb07296a21e28220c7a2d1e12c97580c682eb31bb7783a0b87",
+      "after_sha256": "f163d39e14483acb07296a21e28220c7a2d1e12c97580c682eb31bb7783a0b87",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/e2e_test.go",
+      "before_sha256": "1b7c0fa99fab8b4c4ab1d1e95f940c8bf5a238f8458cdb46292af1202c6fc7e8",
+      "after_sha256": "1b7c0fa99fab8b4c4ab1d1e95f940c8bf5a238f8458cdb46292af1202c6fc7e8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/analyze_source_test.go",
+      "before_sha256": "7a9a62f86a0c3196d48e7f326c23b52e04be11ede93aa2cfa4b960511a0cbdb3",
+      "after_sha256": "7a9a62f86a0c3196d48e7f326c23b52e04be11ede93aa2cfa4b960511a0cbdb3",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go",
+      "before_sha256": "291f91dabf576abf8797331c2e0aa2a215dd7ec2624ccccd6394a93f81948f89",
+      "after_sha256": "291f91dabf576abf8797331c2e0aa2a215dd7ec2624ccccd6394a93f81948f89",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/application_test.go",
+      "before_sha256": "41c57c318387be7f32d1bc6cf61845d9428e225a869ce1e99e823205acd91792",
+      "after_sha256": "41c57c318387be7f32d1bc6cf61845d9428e225a869ce1e99e823205acd91792",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_semantics_ownership_test.go",
+      "before_sha256": "c5798ca275c7a563e3e0530abe30b63838cdce2570efc20d7e4c56f38a2117dc",
+      "after_sha256": "c5798ca275c7a563e3e0530abe30b63838cdce2570efc20d7e4c56f38a2117dc",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards_test.go",
+      "before_sha256": "d380cecbcfb99e10c1458eed3d6ca118b8d39033328496da8743daf57430da28",
+      "after_sha256": "d380cecbcfb99e10c1458eed3d6ca118b8d39033328496da8743daf57430da28",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/characterization_support_test.go",
+      "before_sha256": "fa5764deab0e65979f549328dcc97e9dc9057462512d2e1e9d7151b313a26393",
+      "after_sha256": "fa5764deab0e65979f549328dcc97e9dc9057462512d2e1e9d7151b313a26393",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go",
+      "before_sha256": "cd34cd65054126f2d1311db44395354355b45766abdd707210eb8b8ef6dd7c02",
+      "after_sha256": "cd34cd65054126f2d1311db44395354355b45766abdd707210eb8b8ef6dd7c02",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+      "before_sha256": "46525ba481d226cddf2a7723d825c09f18116fe94906920aac434666c9cdb0f3",
+      "after_sha256": "46525ba481d226cddf2a7723d825c09f18116fe94906920aac434666c9cdb0f3",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go",
+      "before_sha256": "698367760ba5b321cdc4b0b7d6d7137a70c97918588d2e40bc70635efb909aee",
+      "after_sha256": "698367760ba5b321cdc4b0b7d6d7137a70c97918588d2e40bc70635efb909aee",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/doctor_test.go",
+      "before_sha256": "3243eebce07a40e2f9e49f2a6a0a8596c453a967c846945eb1bc791e9b8a3e3e",
+      "after_sha256": "3243eebce07a40e2f9e49f2a6a0a8596c453a967c846945eb1bc791e9b8a3e3e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/exploration_divergence_test.go",
+      "before_sha256": "803f96f7910d61f700cfe46f7399e9918ae72248ed6a1783ba0d3d26adede6ae",
+      "after_sha256": "803f96f7910d61f700cfe46f7399e9918ae72248ed6a1783ba0d3d26adede6ae",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/explore_failure_writer_test.go",
+      "before_sha256": "acbb80d5f697fc3d2040fad6dbb6d401e860c2cf56d84f9caaa9ea985f9ebc54",
+      "after_sha256": "acbb80d5f697fc3d2040fad6dbb6d401e860c2cf56d84f9caaa9ea985f9ebc54",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/guidance_test.go",
+      "before_sha256": "6c85c77e52c0816caa8c0fbb24b31bb52f41d4b41aeab52cce689dbaab348b2e",
+      "after_sha256": "6c85c77e52c0816caa8c0fbb24b31bb52f41d4b41aeab52cce689dbaab348b2e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/inspect_target_sharing_test.go",
+      "before_sha256": "7dc5eec262377f73b17f2b4bde11dbb4e2db662fa32a27086909def4c69cf3b1",
+      "after_sha256": "7dc5eec262377f73b17f2b4bde11dbb4e2db662fa32a27086909def4c69cf3b1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/plan_characterization_test.go",
+      "before_sha256": "070910dee91b24ffc4e0d61c8a4d4861805aa80a7812f50565ea28e9969a0c08",
+      "after_sha256": "070910dee91b24ffc4e0d61c8a4d4861805aa80a7812f50565ea28e9969a0c08",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/quote_test.go",
+      "before_sha256": "de6277d9e2a9c710b786c5c1f3aca9fedbef46384bde2e0d9974bb24f38f2b02",
+      "after_sha256": "de6277d9e2a9c710b786c5c1f3aca9fedbef46384bde2e0d9974bb24f38f2b02",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/working_directory_test.go",
+      "before_sha256": "a38d27b28eb109b3a97fa148bf4df2a9ac8f8b6c0b105d70c5bf5b6e1cc46f03",
+      "after_sha256": "a38d27b28eb109b3a97fa148bf4df2a9ac8f8b6c0b105d70c5bf5b6e1cc46f03",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/retained_success_e2e_test.go",
+      "before_sha256": "fc83c4e8e39827a16ac7376fc8bcc73ea130abbd8da8b18f643ef1ca9685e76a",
+      "after_sha256": "fc83c4e8e39827a16ac7376fc8bcc73ea130abbd8da8b18f643ef1ca9685e76a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/watchdog_e2e_test.go",
+      "before_sha256": "e8360a2e068dc451062a68dac7195579c63a1ae7aa6749baf3656cc1bd0baf40",
+      "after_sha256": "e8360a2e068dc451062a68dac7195579c63a1ae7aa6749baf3656cc1bd0baf40",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/watchdog_replay_e2e_test.go",
+      "before_sha256": "70d96ead2a252666db0a135e11be6fda38cd036ea2bcb50d8f5bab0c4c64f8f1",
+      "after_sha256": "70d96ead2a252666db0a135e11be6fda38cd036ea2bcb50d8f5bab0c4c64f8f1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate_diagnostics_test.go",
+      "before_sha256": "5c58067b13c47ba57a1c9824bbb2acfa365d51c09e27bb382a6d6f5b29924c5b",
+      "after_sha256": "5c58067b13c47ba57a1c9824bbb2acfa365d51c09e27bb382a6d6f5b29924c5b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate_test.go",
+      "before_sha256": "ac82ab1476e7f1e7dbe1f2526d9c177da96b49ec8aff8a8a9aa008f2a98ad890",
+      "after_sha256": "ac82ab1476e7f1e7dbe1f2526d9c177da96b49ec8aff8a8a9aa008f2a98ad890",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_diagnostics_test.go",
+      "before_sha256": "46612c4cb2819f0607b41f565ca73d6c28aadfb4335adf03fa9f71edea07352e",
+      "after_sha256": "46612c4cb2819f0607b41f565ca73d6c28aadfb4335adf03fa9f71edea07352e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_output_test.go",
+      "before_sha256": "28c2a40a347ae58c747ee5d10154e8acb12a9d47f945e9ea82b99bcd5abea0ec",
+      "after_sha256": "28c2a40a347ae58c747ee5d10154e8acb12a9d47f945e9ea82b99bcd5abea0ec",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_resolved_test.go",
+      "before_sha256": "ac488eed3bbf77db7bf3b5a0f251c4c2d765bc46620b23ececdfd443c15c1ea1",
+      "after_sha256": "ac488eed3bbf77db7bf3b5a0f251c4c2d765bc46620b23ececdfd443c15c1ea1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_test.go",
+      "before_sha256": "01eabb611c9b45519a8c04bf679448205ab5f208620427bf94e5a8913ece79e1",
+      "after_sha256": "01eabb611c9b45519a8c04bf679448205ab5f208620427bf94e5a8913ece79e1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_source_test.go",
+      "before_sha256": "02f13ac2fe5a4d8962376938c64a85aaa88172ef5134cab94373ec2e3900de51",
+      "after_sha256": "02f13ac2fe5a4d8962376938c64a85aaa88172ef5134cab94373ec2e3900de51",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_root_test.go",
+      "before_sha256": "6de0ff378c1b444541655382e413744b15c5dcc4a918657e5dd8c18c85f901cf",
+      "after_sha256": "6de0ff378c1b444541655382e413744b15c5dcc4a918657e5dd8c18c85f901cf",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/diagnostic_test.go",
+      "before_sha256": "848eb9beb8e0c299c5d328131332e757c9c1f490b83201514415654ada740667",
+      "after_sha256": "848eb9beb8e0c299c5d328131332e757c9c1f490b83201514415654ada740667",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main_test.go",
+      "before_sha256": "576df7780fcd082314b9c15173a4e123399b1c93d470ad4d6f45db3caed55cb8",
+      "after_sha256": "576df7780fcd082314b9c15173a4e123399b1c93d470ad4d6f45db3caed55cb8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/maintainer_output_patch_test.go",
+      "before_sha256": "d2d0e49ca8eb598d2939a03008bb46187863ec6002793591463fd2afd86ff283",
+      "after_sha256": "d2d0e49ca8eb598d2939a03008bb46187863ec6002793591463fd2afd86ff283",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/maintainer_output_test.go",
+      "before_sha256": "c8e776ef0b50c48fe79bab162decb99c348aecdb82c24c03b570cdb612fa1027",
+      "after_sha256": "c8e776ef0b50c48fe79bab162decb99c348aecdb82c24c03b570cdb612fa1027",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/pin_impact_diagnostics_test.go",
+      "before_sha256": "a6b7e84432f75206ba7827f697c28101a9ad0f7b7e4c8fbc4e994aad8dceb7ed",
+      "after_sha256": "a6b7e84432f75206ba7827f697c28101a9ad0f7b7e4c8fbc4e994aad8dceb7ed",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/pin_impact_test.go",
+      "before_sha256": "d1d4f8ac8cdbdad5ce848980079171f8a8eef56a49749489caf64b7b70ddfb41",
+      "after_sha256": "d1d4f8ac8cdbdad5ce848980079171f8a8eef56a49749489caf64b7b70ddfb41",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/soak_test.go",
+      "before_sha256": "a636af6520c412316733fe9d1d4e7800a55aea665e922167abba4898dcea9fda",
+      "after_sha256": "a636af6520c412316733fe9d1d4e7800a55aea665e922167abba4898dcea9fda",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/upgrade_test.go",
+      "before_sha256": "27988a8e1c2bf2341cfae0913ffbce27904b435358543fb0f68d1b46f3b6135e",
+      "after_sha256": "27988a8e1c2bf2341cfae0913ffbce27904b435358543fb0f68d1b46f3b6135e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_cache_cleanup_test.go",
+      "before_sha256": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc",
+      "after_sha256": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_configuration_portable_test.go",
+      "before_sha256": "7fb748f3a781ed3a6b76830e8c0709129ca33b2827ef2e8827e7f59032660f42",
+      "after_sha256": "7fb748f3a781ed3a6b76830e8c0709129ca33b2827ef2e8827e7f59032660f42",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_consumers_portable_test.go",
+      "before_sha256": "d2df7e69581f0bc8caba49097c5831f3904bb4a46d1a9de0200bc415472f0f27",
+      "after_sha256": "d2df7e69581f0bc8caba49097c5831f3904bb4a46d1a9de0200bc415472f0f27",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_copy_test.go",
+      "before_sha256": "cbe7eda37d6f11a78957d7aee0d1773b7237f66ae09180d336f82f13c6d0f887",
+      "after_sha256": "cbe7eda37d6f11a78957d7aee0d1773b7237f66ae09180d336f82f13c6d0f887",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_graph_portable_test.go",
+      "before_sha256": "126754dae10dca15c0367ee60c90e459f04b900b5bfd1d76b6e8535d68743149",
+      "after_sha256": "126754dae10dca15c0367ee60c90e459f04b900b5bfd1d76b6e8535d68743149",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_pin_decisions_test.go",
+      "before_sha256": "5bf60b2f658a4c99bcd5f863b73de1c78336f059c232b50efaf076a32c6a11ba",
+      "after_sha256": "5bf60b2f658a4c99bcd5f863b73de1c78336f059c232b50efaf076a32c6a11ba",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_preservation_portable_test.go",
+      "before_sha256": "16c18726d46e301f30bee38ec19c6fd549cd67762cd2ff21ab1fca46333b244e",
+      "after_sha256": "16c18726d46e301f30bee38ec19c6fd549cd67762cd2ff21ab1fca46333b244e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_portable_test.go",
+      "before_sha256": "ae1ab267295505d7ba146199e02fd54265760f8e0851ac4b0eac5a701cff86bf",
+      "after_sha256": "ae1ab267295505d7ba146199e02fd54265760f8e0851ac4b0eac5a701cff86bf",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+      "before_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "after_sha256": "d7f77c9fa8c654dba62ff6b633acdcfaa7bca5796776421bee1183f6e259d6be",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_registry_test.go",
+      "before_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "after_sha256": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "before_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "after_sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_verify_cleanup_test.go",
+      "before_sha256": "9449dfd22e7c4aa9c01a148a1448035d36d37ff86683a92eab501db12c14db10",
+      "after_sha256": "9449dfd22e7c4aa9c01a148a1448035d36d37ff86683a92eab501db12c14db10",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/bootstrap_toolchain_test.go",
+      "before_sha256": "14b016f2568e25b0431b35107bad2f021d460e5e117ebae61e6bf62e96e56d0e",
+      "after_sha256": "14b016f2568e25b0431b35107bad2f021d460e5e117ebae61e6bf62e96e56d0e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/downstream_adapter_registry_test.go",
+      "before_sha256": "b603a4d49d3c6133be6aff84f43a07d0fe7d92082931bcd318b3663b49e915bd",
+      "after_sha256": "b603a4d49d3c6133be6aff84f43a07d0fe7d92082931bcd318b3663b49e915bd",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_adapter_test.go",
+      "before_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "after_sha256": "7ecf9017bb1677c2fe9a8f21841673d3711ae5c0713b358be7b5016751929984",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/grpc_dns_test.go",
+      "before_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "after_sha256": "2de1db64c3590c021e7613eb7b88b9f70dea6b6afcb3bc649e00a0a60cfa298f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+      "before_sha256": "1a132adc9a2c5a8e47c2bbe7f8dcb8500322169bb17406cc041f3a6bc82aef5f",
+      "after_sha256": "1a132adc9a2c5a8e47c2bbe7f8dcb8500322169bb17406cc041f3a6bc82aef5f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/host_dispatch_patch_test.go",
+      "before_sha256": "3c057631299f138cde58343c79166c91d87660e14fad22576343b46330117084",
+      "after_sha256": "3c057631299f138cde58343c79166c91d87660e14fad22576343b46330117084",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/internal/wire/wire_generated_test.go",
+      "before_sha256": "68a2f0395dc024f8ff8820555d3aa771cb4772ebe0f4d7e7dad3afe25cff317c",
+      "after_sha256": "68a2f0395dc024f8ff8820555d3aa771cb4772ebe0f4d7e7dad3afe25cff317c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/libc_adapter_test.go",
+      "before_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "after_sha256": "ac3aff5bf9db063c46e58252de9e1e0744e636a7c7308fa5cf2785fb904bc987",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/libc_regenerate_test.go",
+      "before_sha256": "8b06ecef241b539b50e9ef3f201e5b380e04f02ac436f361ca07bc8ac4e0bc8b",
+      "after_sha256": "8b06ecef241b539b50e9ef3f201e5b380e04f02ac436f361ca07bc8ac4e0bc8b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memberlist_adapter_test.go",
+      "before_sha256": "f02e255e85ff730a4274df27083df8121aaa0a0ba6776bbfdbc88e3ec1559c15",
+      "after_sha256": "f02e255e85ff730a4274df27083df8121aaa0a0ba6776bbfdbc88e3ec1559c15",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memory_adapter_test.go",
+      "before_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "after_sha256": "de307a20fdc159b80e1820f02a8b7304099ae3721ec29361bbb9306d84c6768d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/metrics_consumer_portable_test.go",
+      "before_sha256": "e446f13e23903848f7f8c2e4e3b9a8a73576afa0721f962496d0f50db3b67636",
+      "after_sha256": "e446f13e23903848f7f8c2e4e3b9a8a73576afa0721f962496d0f50db3b67636",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile_portable_test.go",
+      "before_sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4",
+      "after_sha256": "6dfd6c349c6c6a05995d5f9343541e0529ab7eb2e453607de3026c02dd4932c4",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/profile_test.go",
+      "before_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "after_sha256": "48b6dd1b8d6b363d3ef4ed3e2b73754a708a2a46683bc429ef927de047fc24d8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/readonlymount/capture_test.go",
+      "before_sha256": "3072f282efe218483e9e4f3f471fa12bce658a12ccc2972681375204b47ccf59",
+      "after_sha256": "3072f282efe218483e9e4f3f471fa12bce658a12ccc2972681375204b47ccf59",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/readonlymount/config_test.go",
+      "before_sha256": "3b727c6565588b550e89275672bc8165731fe05d15837de7ccd895215e002242",
+      "after_sha256": "3b727c6565588b550e89275672bc8165731fe05d15837de7ccd895215e002242",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/readonlymount/inventory_test.go",
+      "before_sha256": "5ddb793cfcf441816d05d04af6a799a03f394f60bf3391b5a084d6d57b1b4bcd",
+      "after_sha256": "5ddb793cfcf441816d05d04af6a799a03f394f60bf3391b5a084d6d57b1b4bcd",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/readonlymount/persistence_test.go",
+      "before_sha256": "4dae4b25e982ae6ebc62ce87c71d85c79e675cccaa8646c5fb5a7bb967f4bc08",
+      "after_sha256": "4dae4b25e982ae6ebc62ce87c71d85c79e675cccaa8646c5fb5a7bb967f4bc08",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/readonlymount/wire_test.go",
+      "before_sha256": "bc90d757d725d9b49431a5a752455e83e838b46460a095320efedcdd7baed2e2",
+      "after_sha256": "bc90d757d725d9b49431a5a752455e83e838b46460a095320efedcdd7baed2e2",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/requirements_test.go",
+      "before_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "after_sha256": "79154f90f4df125512aaf07dfbf02d6b7ac3039aaaad551b04ce1994209aa6db",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/semantic_coverage_test.go",
+      "before_sha256": "aab5d1609e291f3d62b2f5c52186c925dcdd82c358b9fa94535ec037ca9b5e53",
+      "after_sha256": "aab5d1609e291f3d62b2f5c52186c925dcdd82c358b9fa94535ec037ca9b5e53",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/session_test.go",
+      "before_sha256": "39340d0c47bedc9bb4d8a62673d7cf56821510efe8fdf6006561d1d3bbfae8da",
+      "after_sha256": "39340d0c47bedc9bb4d8a62673d7cf56821510efe8fdf6006561d1d3bbfae8da",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sockaddr_boundary_test.go",
+      "before_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "after_sha256": "9e6b088ac1b07d5743259b8e69e92b8937bc943a5a021668ed673e3af3ab00b5",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/cactusstatsd/cactusstatsd_test.go",
+      "before_sha256": "12fe996643e0786d3584095c65f7de206a3264ef9f3ca98111cdab5232588745",
+      "after_sha256": "12fe996643e0786d3584095c65f7de206a3264ef9f3ca98111cdab5232588745",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/grpcdns/dns_test.go",
+      "before_sha256": "c0f5f483c964a748c571b1f5a114e106c3aea6a89472136c284002abbc01c0d1",
+      "after_sha256": "c0f5f483c964a748c571b1f5a114e106c3aea6a89472136c284002abbc01c0d1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/metrics_test.go",
+      "before_sha256": "21aa88c348d91edd5aa0b3575274174ebf74a9f83860b6926bcda8569c2098c2",
+      "after_sha256": "21aa88c348d91edd5aa0b3575274174ebf74a9f83860b6926bcda8569c2098c2",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/memberlist/memberlist_test.go",
+      "before_sha256": "e97c89f8186633a37ade0b4d6f92853702875740b97afb5e059ef1a24a845bf5",
+      "after_sha256": "e97c89f8186633a37ade0b4d6f92853702875740b97afb5e059ef1a24a845bf5",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/pebble/pebble_test.go",
+      "before_sha256": "4fb681cc63a6b132717afbdff911f2eb214ede39a509450dd14a88f103366c02",
+      "after_sha256": "4fb681cc63a6b132717afbdff911f2eb214ede39a509450dd14a88f103366c02",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sentry/sentry_test.go",
+      "before_sha256": "78b2dd34ac3c5b9ca5d7fd8586e448a0462b46973a1e9b5adb1bed010faca480",
+      "after_sha256": "78b2dd34ac3c5b9ca5d7fd8586e448a0462b46973a1e9b5adb1bed010faca480",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sockaddr/boundary_test.go",
+      "before_sha256": "5bc6df2cbf3ddd11f5e2014c3f9ecfa6d85ecca20a49c5ea50276e2f18fc66d1",
+      "after_sha256": "5bc6df2cbf3ddd11f5e2014c3f9ecfa6d85ecca20a49c5ea50276e2f18fc66d1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sprig/sprig_test.go",
+      "before_sha256": "9fa84fceee936e36b00a005b9ace0d4486a9acd4efa7703e8417c135d4aca2fd",
+      "after_sha256": "9fa84fceee936e36b00a005b9ace0d4486a9acd4efa7703e8417c135d4aca2fd",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/validator/validator_test.go",
+      "before_sha256": "7392327fff85bcff4382f0d05c6a25d18f4bb09c22932ee77468b31eb50ae247",
+      "after_sha256": "7392327fff85bcff4382f0d05c6a25d18f4bb09c22932ee77468b31eb50ae247",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/xnet_adapter_test.go",
+      "before_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "after_sha256": "ea14ef0a74f51e825c0c34e180d69580919b9128f5bba121c81c01ac35dbb092",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/filesystem_handles_ownership_test.go",
+      "before_sha256": "67e23f90d84ee19c00884d4277b80641079d96580c80e97950de572ac6f87257",
+      "after_sha256": "67e23f90d84ee19c00884d4277b80641079d96580c80e97950de572ac6f87257",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/canonicaljson/canonical_characterization_test.go",
+      "before_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747",
+      "after_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/canonicaljson/canonical_test.go",
+      "before_sha256": "840517c357c1c0f24c81d8061764c814402cc443c9ff29ad727fa5f56cd41846",
+      "after_sha256": "840517c357c1c0f24c81d8061764c814402cc443c9ff29ad727fa5f56cd41846",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/discover_test.go",
+      "before_sha256": "43ccf6a9862ab4186fae44a75d91eac82cccd5cf3668e792f21353a777a0cba9",
+      "after_sha256": "43ccf6a9862ab4186fae44a75d91eac82cccd5cf3668e792f21353a777a0cba9",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/generate_test.go",
+      "before_sha256": "47f6efed5d2e58ac7996b2562f693efc03f8a9c3a2dc6af13397ad592cd7a026",
+      "after_sha256": "47f6efed5d2e58ac7996b2562f693efc03f8a9c3a2dc6af13397ad592cd7a026",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/qualify_test.go",
+      "before_sha256": "cd0d9e6e4fed5f089f523472a83b29a2e5b423841b41753a41baa3558b1e90ea",
+      "after_sha256": "cd0d9e6e4fed5f089f523472a83b29a2e5b423841b41753a41baa3558b1e90ea",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go",
+      "before_sha256": "aaf9ca88e7f679177cccd0c03b820878777b755de6d2ec003a61c3975ca66af6",
+      "after_sha256": "aaf9ca88e7f679177cccd0c03b820878777b755de6d2ec003a61c3975ca66af6",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/request_test.go",
+      "before_sha256": "98dfc30ec9d760c89d672ecf003dafba3c8742ec9eeba597557248d3398b589e",
+      "after_sha256": "98dfc30ec9d760c89d672ecf003dafba3c8742ec9eeba597557248d3398b589e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/review_test.go",
+      "before_sha256": "d8fd0591261d571c626b9a6c83a890874c56b2311f9a4c05a74ae8447fc46f3b",
+      "after_sha256": "d8fd0591261d571c626b9a6c83a890874c56b2311f9a4c05a74ae8447fc46f3b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/variant_selectors_test.go",
+      "before_sha256": "bb3e36083ccecb5e3e28d9cded14f6016ad0f0258d0ea13326d9db4ea6d161fa",
+      "after_sha256": "bb3e36083ccecb5e3e28d9cded14f6016ad0f0258d0ea13326d9db4ea6d161fa",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/evidence_test.go",
+      "before_sha256": "edc20c081d8da33fcc6541471e86ffc6d44a53d90dc1f63c51cf364e57e85031",
+      "after_sha256": "edc20c081d8da33fcc6541471e86ffc6d44a53d90dc1f63c51cf364e57e85031",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/external_test.go",
+      "before_sha256": "b83cf2ab1f14bcf2d8d0e563a6d65ac41b3a5c494d6f6199240821cfbd8cdfec",
+      "after_sha256": "b83cf2ab1f14bcf2d8d0e563a6d65ac41b3a5c494d6f6199240821cfbd8cdfec",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/mutation_test.go",
+      "before_sha256": "b6552e443ae5df2b1c6e3e8f97e52a96a06ea61a6afaead86103549c8b3ba185",
+      "after_sha256": "b6552e443ae5df2b1c6e3e8f97e52a96a06ea61a6afaead86103549c8b3ba185",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs_generated_test.go",
+      "before_sha256": "58b685662777218d494be80058864a5442d494450fd9544272907ce2bb14eebe",
+      "after_sha256": "58b685662777218d494be80058864a5442d494450fd9544272907ce2bb14eebe",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/policy_exhaustive_test.go",
+      "before_sha256": "c7a696f0ec418faa603cff4a084e155b4bdf676f2dd966910a1a338f443b8cda",
+      "after_sha256": "c7a696f0ec418faa603cff4a084e155b4bdf676f2dd966910a1a338f443b8cda",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/policy_test.go",
+      "before_sha256": "10c083a1b15bd8d6360179120a207904d6ca53dafcd8a7784d0f0b801f0cd742",
+      "after_sha256": "10c083a1b15bd8d6360179120a207904d6ca53dafcd8a7784d0f0b801f0cd742",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/profile_binding_test.go",
+      "before_sha256": "1473715cd67956e9f90897bc6d7b11873dd60939bf35b3843bb53c593c8d0692",
+      "after_sha256": "1473715cd67956e9f90897bc6d7b11873dd60939bf35b3843bb53c593c8d0692",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/schema_admission_test.go",
+      "before_sha256": "a486678a0fe8064093c011d70165d8972621835263678a05ec575c067bc6caf0",
+      "after_sha256": "a486678a0fe8064093c011d70165d8972621835263678a05ec575c067bc6caf0",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/schema_timezone_test.go",
+      "before_sha256": "5a055e7ce61f18b9fbd3fb16f68daddbe7cb1a66c6fa039973aecebf9b53c2eb",
+      "after_sha256": "5a055e7ce61f18b9fbd3fb16f68daddbe7cb1a66c6fa039973aecebf9b53c2eb",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/testdata/v041/libc_test.go",
+      "before_sha256": "b22bc85f378d93ada9af6e900761706f23110db40c81f1ec78a1c1e3b60d59a6",
+      "after_sha256": "b22bc85f378d93ada9af6e900761706f23110db40c81f1ec78a1c1e3b60d59a6",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/testdata/xsys/xsys_test.go",
+      "before_sha256": "bb8b1d16285b7043bc02ef1e1e8f7fb640158b44430d7523793866457842f7da",
+      "after_sha256": "bb8b1d16285b7043bc02ef1e1e8f7fb640158b44430d7523793866457842f7da",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/architecture_test.go",
+      "before_sha256": "ddc61684415ca6159ad92fc94b3ae7a89dbe9035357fa62f578b481387e3dc70",
+      "after_sha256": "ddc61684415ca6159ad92fc94b3ae7a89dbe9035357fa62f578b481387e3dc70",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/effects_test.go",
+      "before_sha256": "29b583b567305a207dbf4ab169961989e68b518a4722ac77d9d548a668093fd7",
+      "after_sha256": "29b583b567305a207dbf4ab169961989e68b518a4722ac77d9d548a668093fd7",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go",
+      "before_sha256": "6280351c2184961fdb24be4c482bb64d8350750883373f6245ace742e5608598",
+      "after_sha256": "6280351c2184961fdb24be4c482bb64d8350750883373f6245ace742e5608598",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/initialization_test.go",
+      "before_sha256": "3cec7fb9a3378060d67f655a2a79c69c6619c2e8dc58a3fa000758423690e1da",
+      "after_sha256": "3cec7fb9a3378060d67f655a2a79c69c6619c2e8dc58a3fa000758423690e1da",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/mutation_test.go",
+      "before_sha256": "e9f2575ce130caf92490b6368c14415a2e8fc78e610126a9d66ae9f414719a03",
+      "after_sha256": "e9f2575ce130caf92490b6368c14415a2e8fc78e610126a9d66ae9f414719a03",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/range_test.go",
+      "before_sha256": "f807d65cab62673106ee6779a6d36b7195caa475504417a2ff5d871b95ff448f",
+      "after_sha256": "f807d65cab62673106ee6779a6d36b7195caa475504417a2ff5d871b95ff448f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/signature_test.go",
+      "before_sha256": "9b2d3aeefb7ba75a967fcae628f05f88923dadbc19063eb1bef7fbcd4bd62b47",
+      "after_sha256": "9b2d3aeefb7ba75a967fcae628f05f88923dadbc19063eb1bef7fbcd4bd62b47",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/driver_test.go",
+      "before_sha256": "fae1684d32a98dedbcee1634fcad1b34f34f5ef73165f2d1bfa255cb871fa33b",
+      "after_sha256": "fae1684d32a98dedbcee1634fcad1b34f34f5ef73165f2d1bfa255cb871fa33b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/exec_wrapper_unix_test.go",
+      "before_sha256": "212cbe86ee372b4aee26e80587a06f9b9b60caad410919beb5acf27d9b5a46c8",
+      "after_sha256": "212cbe86ee372b4aee26e80587a06f9b9b60caad410919beb5acf27d9b5a46c8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/registry_test.go",
+      "before_sha256": "91adde88908a866fc658532a222c5d3b5a209e96a193d51b494ad86b1e20ea44",
+      "after_sha256": "91adde88908a866fc658532a222c5d3b5a209e96a193d51b494ad86b1e20ea44",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go",
+      "before_sha256": "4bbac67c89faabc87813ae46f56c97dec2000d72edc053035d98758132d4b188",
+      "after_sha256": "4bbac67c89faabc87813ae46f56c97dec2000d72edc053035d98758132d4b188",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/runtime_test.go",
+      "before_sha256": "fe2b99204a9439069360c41726f20f80ac6c1558e172d10b7995da5843998592",
+      "after_sha256": "fe2b99204a9439069360c41726f20f80ac6c1558e172d10b7995da5843998592",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/clock_bench/clock_bench_test.go",
+      "before_sha256": "452a6da1ee5d2a1c4282b1283f7347418535d5bfc2096604bfb7d96e6e4a2b4e",
+      "after_sha256": "452a6da1ee5d2a1c4282b1283f7347418535d5bfc2096604bfb7d96e6e4a2b4e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/clock_gotest/clock_gotest_test.go",
+      "before_sha256": "e93b5a57022365f4681e094c8047e6cc8eeab9b09ac3ce344de6f3cd78e528d1",
+      "after_sha256": "e93b5a57022365f4681e094c8047e6cc8eeab9b09ac3ce344de6f3cd78e528d1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/clock_synctest/clock_synctest_test.go",
+      "before_sha256": "010076e5d5fcd58a7b0aefbebcd423b231f44b4240c2816aaef929d02676c685",
+      "after_sha256": "010076e5d5fcd58a7b0aefbebcd423b231f44b4240c2816aaef929d02676c685",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/gotest/gotest_test.go",
+      "before_sha256": "b2883697f15c453e15d560d064b042c9b6e0f1918627980082407d10d13c52e8",
+      "after_sha256": "b2883697f15c453e15d560d064b042c9b6e0f1918627980082407d10d13c52e8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/intercept/intercept_test.go",
+      "before_sha256": "429639b334798f11d77ec6fe5e350208cadf2df51d4377cccd6485b349e5f740",
+      "after_sha256": "429639b334798f11d77ec6fe5e350208cadf2df51d4377cccd6485b349e5f740",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/bad_handled/fixture_test.go",
+      "before_sha256": "bf7c05619e33ae4ec9988f9d19fc7a23fb11b9556c0bf17e981b2eb5b661bf15",
+      "after_sha256": "bf7c05619e33ae4ec9988f9d19fc7a23fb11b9556c0bf17e981b2eb5b661bf15",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/bad_parameter/fixture_test.go",
+      "before_sha256": "46c7f79ad62b4f275e5270e7b06b30c7dd3a3fa13eaad5d58c9d0ad13e23a120",
+      "after_sha256": "46c7f79ad62b4f275e5270e7b06b30c7dd3a3fa13eaad5d58c9d0ad13e23a120",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/bad_result/fixture_test.go",
+      "before_sha256": "184982e3a43165c914f8e3681e7668ad06f92ac7babe43618c098a96bf45f46f",
+      "after_sha256": "184982e3a43165c914f8e3681e7668ad06f92ac7babe43618c098a96bf45f46f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/body_mismatch/fixture_test.go",
+      "before_sha256": "8d586119cdc2d91110860987a49c9c7d31bfa9157256a4a6a369aea696e67893",
+      "after_sha256": "8d586119cdc2d91110860987a49c9c7d31bfa9157256a4a6a369aea696e67893",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/bodyless_target/fixture_test.go",
+      "before_sha256": "ddaf3dd210576c5c957889f3c15c60c06f5b7e041949d9e0ec122076d9195435",
+      "after_sha256": "ddaf3dd210576c5c957889f3c15c60c06f5b7e041949d9e0ec122076d9195435",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/duplicate_target/fixture_test.go",
+      "before_sha256": "1e93b613e5e2dee5ad0d4c7f96e954f64a779f0c560e736456d08a93ae08c62f",
+      "after_sha256": "1e93b613e5e2dee5ad0d4c7f96e954f64a779f0c560e736456d08a93ae08c62f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/missing_hook/fixture_test.go",
+      "before_sha256": "a41d95f38d387c20fe89e7099d1a542f3b54a3e5000fc2316bf5304f38de6d41",
+      "after_sha256": "a41d95f38d387c20fe89e7099d1a542f3b54a3e5000fc2316bf5304f38de6d41",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/missing_target/fixture_test.go",
+      "before_sha256": "d6d17db9cab9509afe643c98717ebe195efcef685ace5ed2f3636028c1ff360c",
+      "after_sha256": "d6d17db9cab9509afe643c98717ebe195efcef685ace5ed2f3636028c1ff360c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/variadic/fixture_test.go",
+      "before_sha256": "e066172374eee4304baf6f0f4abfc1d67ac233636973fd135ee4b2cd15462d42",
+      "after_sha256": "e066172374eee4304baf6f0f4abfc1d67ac233636973fd135ee4b2cd15462d42",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/io_failure/io_failure_test.go",
+      "before_sha256": "28f9ea5f31fa073209210bf05079bb9de4f13409e4b31bed9829b8f0a8034513",
+      "after_sha256": "28f9ea5f31fa073209210bf05079bb9de4f13409e4b31bed9829b8f0a8034513",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/generation/boundary/boundary_manifest_test.go",
+      "before_sha256": "7dca54f12a07376d8cc6009992e3f807c77359dcec9344b0dbad2773f1f7093d",
+      "after_sha256": "7dca54f12a07376d8cc6009992e3f807c77359dcec9344b0dbad2773f1f7093d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/generation/protocol/protocol_test.go",
+      "before_sha256": "526369d96209fa3c40a5808fa4ace08a3040ff312fcbfff00258fa84ebd21cf9",
+      "after_sha256": "526369d96209fa3c40a5808fa4ace08a3040ff312fcbfff00258fa84ebd21cf9",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/validation/script_policy_test.go",
+      "before_sha256": "33a25b4874500feaa0e56e5eb8f98b08facf6ebfa7dacca200f6debe2abe0a54",
+      "after_sha256": "33a25b4874500feaa0e56e5eb8f98b08facf6ebfa7dacca200f6debe2abe0a54",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostexec/command_unix_test.go",
+      "before_sha256": "91e2953e5cd3f13212584e60e31208508c77d3063532e7be95482b4df0227fb0",
+      "after_sha256": "91e2953e5cd3f13212584e60e31208508c77d3063532e7be95482b4df0227fb0",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostexec/output_test.go",
+      "before_sha256": "6a6ee07e1aa46916e48d726d5ae931d4afeb513e96bc330b66a6c5f42a114b3f",
+      "after_sha256": "6a6ee07e1aa46916e48d726d5ae931d4afeb513e96bc330b66a6c5f42a114b3f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/lock_unix_test.go",
+      "before_sha256": "56e6c7dc737dac2a871929d48b960445c5d7474c31df4f136a4863cd25d2448c",
+      "after_sha256": "56e6c7dc737dac2a871929d48b960445c5d7474c31df4f136a4863cd25d2448c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/open_test.go",
+      "before_sha256": "f1e44fe251dc98f8bf65f7611f8f7413a26e18a95d017072d1366a6d69cafb7b",
+      "after_sha256": "f1e44fe251dc98f8bf65f7611f8f7413a26e18a95d017072d1366a6d69cafb7b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/open_unix_test.go",
+      "before_sha256": "f44cc5fdffc03be5eb03cb25e569afc67c1f51b6467514396585efb5e2f751d6",
+      "after_sha256": "f44cc5fdffc03be5eb03cb25e569afc67c1f51b6467514396585efb5e2f751d6",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/read_test.go",
+      "before_sha256": "9e2567290bf1df309f80d8328b82391dc950f1d811edbd66358edd92fdb914a5",
+      "after_sha256": "9e2567290bf1df309f80d8328b82391dc950f1d811edbd66358edd92fdb914a5",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostfs/replace_test.go",
+      "before_sha256": "8966a029194a2bb1bdf0f7ba5a29dc08cc2b099025b7b4bee10025977ec41822",
+      "after_sha256": "8966a029194a2bb1bdf0f7ba5a29dc08cc2b099025b7b4bee10025977ec41822",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/preparation/composition_test.go",
+      "before_sha256": "c06ac3ee94796397725e4eb064b852a9e92adca474bb4bdd9354482a175350d0",
+      "after_sha256": "c06ac3ee94796397725e4eb064b852a9e92adca474bb4bdd9354482a175350d0",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/preparation/inspection_source_test.go",
+      "before_sha256": "74063df2672cfbe512274796894596b8aa6c1c551a7b95c6486e6cc7a8a003a4",
+      "after_sha256": "74063df2672cfbe512274796894596b8aa6c1c551a7b95c6486e6cc7a8a003a4",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/preparation/inspection_test.go",
+      "before_sha256": "51cf3a0529b562241be783c82bef39ff409748afe211081349ae57b77c807a21",
+      "after_sha256": "51cf3a0529b562241be783c82bef39ff409748afe211081349ae57b77c807a21",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/preparation/preparation_test.go",
+      "before_sha256": "cf0ebe99a53f3e1a47e1835b9910fd39c4ca2aaa9dd43cb68d3f6b3b0da0b88f",
+      "after_sha256": "cf0ebe99a53f3e1a47e1835b9910fd39c4ca2aaa9dd43cb68d3f6b3b0da0b88f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/preparation/source_test.go",
+      "before_sha256": "2afe4fa21da81c85ada1ef79599444df6ec5721c91e738b5db5f94e62878cacb",
+      "after_sha256": "2afe4fa21da81c85ada1ef79599444df6ec5721c91e738b5db5f94e62878cacb",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/sourceinventory/inventory_test.go",
+      "before_sha256": "ff0af02073d7026398d317329491f9a18a8f2026044aebb1ead390248f7853de",
+      "after_sha256": "ff0af02073d7026398d317329491f9a18a8f2026044aebb1ead390248f7853de",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/network_handles_ownership_test.go",
+      "before_sha256": "819c8ee11a5425f5cf483f3a3ca0b3230ff60ba52aae9db929edc3ec75309b35",
+      "after_sha256": "819c8ee11a5425f5cf483f3a3ca0b3230ff60ba52aae9db929edc3ec75309b35",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/process_commands_ownership_test.go",
+      "before_sha256": "0f42a38793408a38f765333a10dabb0fe7bdcc7b8374a9fc95c98afe15d2fffc",
+      "after_sha256": "0f42a38793408a38f765333a10dabb0fe7bdcc7b8374a9fc95c98afe15d2fffc",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/analysis/analysis_test.go",
+      "before_sha256": "6a400763cf195ffbd6684ceb71992b5e4040aff6ab1ee5437399376e3eecb6ea",
+      "after_sha256": "6a400763cf195ffbd6684ceb71992b5e4040aff6ab1ee5437399376e3eecb6ea",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/analysis/prepared_review_test.go",
+      "before_sha256": "b3ca39aabc7e409a3fb6be4e6afbbfb8619610ea37015c5822b13570ce25a3ce",
+      "after_sha256": "b3ca39aabc7e409a3fb6be4e6afbbfb8619610ea37015c5822b13570ce25a3ce",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/comparison/comparison_test.go",
+      "before_sha256": "50b2b27ff8085a64070a4b16ce23c9a7787e18647d53983eef6a55dc9e8fbcd8",
+      "after_sha256": "50b2b27ff8085a64070a4b16ce23c9a7787e18647d53983eef6a55dc9e8fbcd8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/corpus/basic/concurrency/concurrency_test.go",
+      "before_sha256": "558c153cf1deadc0a3a4a230d4bc322c41661bc04e7ad718b19667eb5ac980f3",
+      "after_sha256": "558c153cf1deadc0a3a4a230d4bc322c41661bc04e7ad718b19667eb5ac980f3",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/corpus/basic/filesystem/filesystem_test.go",
+      "before_sha256": "b4057294067a0dad8f0a58ad362f4c08d34b1f220d1204c1590c8ca5f9b73fd1",
+      "after_sha256": "b4057294067a0dad8f0a58ad362f4c08d34b1f220d1204c1590c8ca5f9b73fd1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/corpus/basic/mount/mount_test.go",
+      "before_sha256": "bf52ec18e12da1e38b8f62f7ddf9069d1c468bb3adea2aa03c4a319aa1f754be",
+      "after_sha256": "bf52ec18e12da1e38b8f62f7ddf9069d1c468bb3adea2aa03c4a319aa1f754be",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/corpus/basic/network/network_test.go",
+      "before_sha256": "1a89d8b4d55f1f8dec6cb1d70f734f67a7c3bf972834541113724c2cc50d0d23",
+      "after_sha256": "1a89d8b4d55f1f8dec6cb1d70f734f67a7c3bf972834541113724c2cc50d0d23",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/corpus/thirdparty/libc/libc_test.go",
+      "before_sha256": "f15f02fa075d5c9abb6d0af236c6fcdc4046c1c25afe300eb379eef8d5ea4055",
+      "after_sha256": "f15f02fa075d5c9abb6d0af236c6fcdc4046c1c25afe300eb379eef8d5ea4055",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/corpus/thirdparty/persistence/sqlite_test.go",
+      "before_sha256": "eaa655216224912d95e19e80ea4e2f3b3042e50587aaab3798b9d952cf60b427",
+      "after_sha256": "eaa655216224912d95e19e80ea4e2f3b3042e50587aaab3798b9d952cf60b427",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/diagnostics_test.go",
+      "before_sha256": "72609fee8d40932dbb9ca0ee7d6451a8a0c34e926822c912520f84a35a3fb9f5",
+      "after_sha256": "72609fee8d40932dbb9ca0ee7d6451a8a0c34e926822c912520f84a35a3fb9f5",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/events_test.go",
+      "before_sha256": "b5e45df9bd03aedc9fd48476823d58736218bcb5bd4434dfa9e555cf2950427d",
+      "after_sha256": "b5e45df9bd03aedc9fd48476823d58736218bcb5bd4434dfa9e555cf2950427d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/qualification_test.go",
+      "before_sha256": "c4d26e3b02322961d5e1a85f0995b0b5a9cd34d695b2e6e55825700b3e5d7e19",
+      "after_sha256": "c4d26e3b02322961d5e1a85f0995b0b5a9cd34d695b2e6e55825700b3e5d7e19",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/set/manifestgen/manifestgen_test.go",
+      "before_sha256": "fe36baeea602110e1273f2fd8ca104761604f329795d67ff71bc805307246308",
+      "after_sha256": "fe36baeea602110e1273f2fd8ca104761604f329795d67ff71bc805307246308",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/set/prune_test.go",
+      "before_sha256": "59082ae9f35f953c5d759af72de81fda93100590c4167dbc1a0a70f9bcc92bc4",
+      "after_sha256": "59082ae9f35f953c5d759af72de81fda93100590c4167dbc1a0a70f9bcc92bc4",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/set/set_test.go",
+      "before_sha256": "194f336f2ff31ef35b75a4e89abd23354ab2be9c64806dd2f5cf64c3f1f52bdd",
+      "after_sha256": "194f336f2ff31ef35b75a4e89abd23354ab2be9c64806dd2f5cf64c3f1f52bdd",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/soak/soak_test.go",
+      "before_sha256": "8a41cae8e2ed32ab0aa159ed89b43437e9836303e12c0dc9c5253232926082fb",
+      "after_sha256": "8a41cae8e2ed32ab0aa159ed89b43437e9836303e12c0dc9c5253232926082fb",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/qualification/workload/workload_test.go",
+      "before_sha256": "d4e40ecfce72474acbb509438d3d1dc9956e61c52c4e5a7fadd950ba534ef775",
+      "after_sha256": "d4e40ecfce72474acbb509438d3d1dc9956e61c52c4e5a7fadd950ba534ef775",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/record/record_test.go",
+      "before_sha256": "173278e96bbe6688a2e57d89ef23092e97b7c83a16c2d21b9b744ae6a02d5482",
+      "after_sha256": "173278e96bbe6688a2e57d89ef23092e97b7c83a16c2d21b9b744ae6a02d5482",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/record/uint64_string_test.go",
+      "before_sha256": "849ffa8f39424c4298f78426fbf82120bd916ef3d6068f4d5544428eaaa68d97",
+      "after_sha256": "849ffa8f39424c4298f78426fbf82120bd916ef3d6068f4d5544428eaaa68d97",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/record/validation_timestamp_test.go",
+      "before_sha256": "411999e54d4c890ee843d5e13ee1d558135d10cd8f57c5907be421bcc5bc966c",
+      "after_sha256": "411999e54d4c890ee843d5e13ee1d558135d10cd8f57c5907be421bcc5bc966c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/record/world_terminal_identity_test.go",
+      "before_sha256": "15b5ec3027defa0863023cfab21e16f94fd7b331f5bf530af684c34694b17e23",
+      "after_sha256": "15b5ec3027defa0863023cfab21e16f94fd7b331f5bf530af684c34694b17e23",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_options_characterization_test.go",
+      "before_sha256": "a6cf58f682d74b7471b6860e64e715fcbf1529bb1367c0aeed3dd143e4ededef",
+      "after_sha256": "a6cf58f682d74b7471b6860e64e715fcbf1529bb1367c0aeed3dd143e4ededef",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_options_cli_test.go",
+      "before_sha256": "b452e842616ee8719094c78ecb1c3ccd792222a53c63e2646187cabb295b6654",
+      "after_sha256": "b452e842616ee8719094c78ecb1c3ccd792222a53c63e2646187cabb295b6654",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_options_legacy_characterization_test.go",
+      "before_sha256": "a95709b0152b438a64adae80dfe27e6f92304f22205c2f816260cd8e61145a31",
+      "after_sha256": "a95709b0152b438a64adae80dfe27e6f92304f22205c2f816260cd8e61145a31",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_options_test.go",
+      "before_sha256": "4e81cc160cc1d38010e949f23fd12e2f7cf7e61f5994583b80dd6b7d9667fe38",
+      "after_sha256": "4e81cc160cc1d38010e949f23fd12e2f7cf7e61f5994583b80dd6b7d9667fe38",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_shard_test.go",
+      "before_sha256": "9a1f90864f5bc0b80f15b18cf7518c9c1979b8ae4bc863883940a2f358e4e393",
+      "after_sha256": "9a1f90864f5bc0b80f15b18cf7518c9c1979b8ae4bc863883940a2f358e4e393",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_test.go",
+      "before_sha256": "f34a5e236c0f880e4fb9e4e2339f985c5c98f054d523531a1ce136bc1743f885",
+      "after_sha256": "f34a5e236c0f880e4fb9e4e2339f985c5c98f054d523531a1ce136bc1743f885",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/choice_exploration_divergence_test.go",
+      "before_sha256": "877355a89f2abccf6a18947bdf904ebea62926b53841628d6eb4391ed7fe148d",
+      "after_sha256": "877355a89f2abccf6a18947bdf904ebea62926b53841628d6eb4391ed7fe148d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/choice_exploration_divergence_unix_test.go",
+      "before_sha256": "2c8ae1c3db794af0388ee6c738e9d173830217f370d32d9adad839c0b3b7e406",
+      "after_sha256": "2c8ae1c3db794af0388ee6c738e9d173830217f370d32d9adad839c0b3b7e406",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/clock_tick_test.go",
+      "before_sha256": "dddd989f4b0ba00146ab3951157f307300be8e942f78462357f9fdc87d79957c",
+      "after_sha256": "dddd989f4b0ba00146ab3951157f307300be8e942f78462357f9fdc87d79957c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/completion_characterization_test.go",
+      "before_sha256": "7128a2f2b93a4f84033e284e76766b90db4bd9874112d38e1504f24cacf6a9d1",
+      "after_sha256": "7128a2f2b93a4f84033e284e76766b90db4bd9874112d38e1504f24cacf6a9d1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/completion_test.go",
+      "before_sha256": "daafa0f019c31857edd46210e1608d8ef7a7bfa61ac9760784e77fe64034f93a",
+      "after_sha256": "daafa0f019c31857edd46210e1608d8ef7a7bfa61ac9760784e77fe64034f93a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator_process_unix_test.go",
+      "before_sha256": "0979499eb2595a6b034f8fd391486a5913a70d63a213a0e9028292429cea9e05",
+      "after_sha256": "0979499eb2595a6b034f8fd391486a5913a70d63a213a0e9028292429cea9e05",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator_test.go",
+      "before_sha256": "95813ebca2f7292b0960cfa99b86fe3da102dbc4c59150a8f0c86a3540c52101",
+      "after_sha256": "95813ebca2f7292b0960cfa99b86fe3da102dbc4c59150a8f0c86a3540c52101",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator_transport_test.go",
+      "before_sha256": "1494b84cbfad58a395ad11904f2d4be26d23530e25062055271ba7e4d0201f21",
+      "after_sha256": "1494b84cbfad58a395ad11904f2d4be26d23530e25062055271ba7e4d0201f21",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/coverage_replay_test.go",
+      "before_sha256": "84bcb2df3a4db9001a806199eb04e451cb4f3ee01889b5241d3d81db86b42c65",
+      "after_sha256": "84bcb2df3a4db9001a806199eb04e451cb4f3ee01889b5241d3d81db86b42c65",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/coverage_watchdog_test.go",
+      "before_sha256": "883250548acca986514cb1cd0acd89d57a1f1e5bca66b0d518738ffc4510c99c",
+      "after_sha256": "883250548acca986514cb1cd0acd89d57a1f1e5bca66b0d518738ffc4510c99c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/diagnostic_identity_test.go",
+      "before_sha256": "f2ccc2b15fee0258e4a2459eeb5bc808a87abc82f515022a35923492ac45ebc7",
+      "after_sha256": "f2ccc2b15fee0258e4a2459eeb5bc808a87abc82f515022a35923492ac45ebc7",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/diagnostics_test.go",
+      "before_sha256": "4bfb2f407daaea06ada578c9703f7cfb1b863799a102436159107562f470a237",
+      "after_sha256": "4bfb2f407daaea06ada578c9703f7cfb1b863799a102436159107562f470a237",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/environment_integration_test.go",
+      "before_sha256": "955b585ea0acab4517ae5915435d4328edc98df587405eb863cdcfc1f8c6fb2b",
+      "after_sha256": "955b585ea0acab4517ae5915435d4328edc98df587405eb863cdcfc1f8c6fb2b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/errors_test.go",
+      "before_sha256": "86ca60e635b1e1d61119b35fb4775b687ff21ac653eb7275af0554a0073f3427",
+      "after_sha256": "86ca60e635b1e1d61119b35fb4775b687ff21ac653eb7275af0554a0073f3427",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/executor_injection_characterization_test.go",
+      "before_sha256": "559ce733b7d8161b9ad4585300afe552ba7384fb7f9091865dd22100e1949343",
+      "after_sha256": "559ce733b7d8161b9ad4585300afe552ba7384fb7f9091865dd22100e1949343",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/exploration_round_test.go",
+      "before_sha256": "7e29e1ad2f822c6840dc601b9e4b250a498a2c5a5d60bbb568474ef12018fb73",
+      "after_sha256": "7e29e1ad2f822c6840dc601b9e4b250a498a2c5a5d60bbb568474ef12018fb73",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/guidance_identity_test.go",
+      "before_sha256": "fcc4132a7f4dc7bf882348cd179c51cde1965b7d0aca3f598171d89ca74ee7e3",
+      "after_sha256": "fcc4132a7f4dc7bf882348cd179c51cde1965b7d0aca3f598171d89ca74ee7e3",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/guided_selection_test.go",
+      "before_sha256": "698538868e29b61a796bb04087e6d16bcd796d999da091bd31ea688a83aa2c46",
+      "after_sha256": "698538868e29b61a796bb04087e6d16bcd796d999da091bd31ea688a83aa2c46",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/inspect_projection_test.go",
+      "before_sha256": "7a14e720e31b5b524af22ea4a2f0875ca103d8ace31aa2e9d0c34100dabf7bdf",
+      "after_sha256": "7a14e720e31b5b524af22ea4a2f0875ca103d8ace31aa2e9d0c34100dabf7bdf",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/inspect_test.go",
+      "before_sha256": "3e03ebe6af28cacc3b40bc5c89fd1d688aedb6b2d486814501360231f640834b",
+      "after_sha256": "3e03ebe6af28cacc3b40bc5c89fd1d688aedb6b2d486814501360231f640834b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/artifact_helper_test.go",
+      "before_sha256": "07d6796e907922f5d53c4813c06a118e2754730d24906c1bc4a9cdaa0e9f96d9",
+      "after_sha256": "07d6796e907922f5d53c4813c06a118e2754730d24906c1bc4a9cdaa0e9f96d9",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+      "before_sha256": "2678a795d1010a3b310e294814d8360b2bcf2f0991c2a813b8b32530d13ae594",
+      "after_sha256": "2678a795d1010a3b310e294814d8360b2bcf2f0991c2a813b8b32530d13ae594",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/choice_exploration_divergence_test.go",
+      "before_sha256": "7f16a448d3725586b8e4a79f208d9ec2f1c5bcacafa46f3e80503232fe410d7a",
+      "after_sha256": "7f16a448d3725586b8e4a79f208d9ec2f1c5bcacafa46f3e80503232fe410d7a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/choice_exploration_journal_test.go",
+      "before_sha256": "3689c6b5322380b21a5c2cd9f3a1a5f174e8044dd9d86566c6a06b4ca0eab508",
+      "after_sha256": "3689c6b5322380b21a5c2cd9f3a1a5f174e8044dd9d86566c6a06b4ca0eab508",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/choice_exploration_start_test.go",
+      "before_sha256": "6b59bb7945cf404a95687a83caae2936167b56650eeebd018017d6855eeab29d",
+      "after_sha256": "6b59bb7945cf404a95687a83caae2936167b56650eeebd018017d6855eeab29d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/controller_completion_test.go",
+      "before_sha256": "048cd02e1fe26ec39fdf7c919fc1ee538206efa2e5cf34be42303c38ebef1520",
+      "after_sha256": "048cd02e1fe26ec39fdf7c919fc1ee538206efa2e5cf34be42303c38ebef1520",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/controller_test.go",
+      "before_sha256": "3a8ce5ffc13578cccbdd1e9d78007d6f65606025d4c287fecf73a3720cc669a3",
+      "after_sha256": "3a8ce5ffc13578cccbdd1e9d78007d6f65606025d4c287fecf73a3720cc669a3",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/filesystem_fault_test.go",
+      "before_sha256": "49d13fe45d69959e2d038d304bf5d59879009dbb6c706c6cc6f2916f30fb2de5",
+      "after_sha256": "49d13fe45d69959e2d038d304bf5d59879009dbb6c706c6cc6f2916f30fb2de5",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/lifecycle_test.go",
+      "before_sha256": "c7d7c048f18d4fd51033a804aa33d9299f350fcf7d30223483c6ff86dc9a8a83",
+      "after_sha256": "c7d7c048f18d4fd51033a804aa33d9299f350fcf7d30223483c6ff86dc9a8a83",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/merge_capacity_test.go",
+      "before_sha256": "44c3ea0f49be0467bd66fa710c67a93bfc5d6db1fbcb3f34334d83ac4cb03614",
+      "after_sha256": "44c3ea0f49be0467bd66fa710c67a93bfc5d6db1fbcb3f34334d83ac4cb03614",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/retained_evidence_test.go",
+      "before_sha256": "89ce3be984ede1d866e7cff5748c9e6a9891554c8f23ac092f91b538c8544540",
+      "after_sha256": "89ce3be984ede1d866e7cff5748c9e6a9891554c8f23ac092f91b538c8544540",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/segmented_journal_test.go",
+      "before_sha256": "35bcae45b171b087ab868572641a92a3c73f027fbc1804726b13e9ca34576cdb",
+      "after_sha256": "35bcae45b171b087ab868572641a92a3c73f027fbc1804726b13e9ca34576cdb",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/simulation_exploration_journal_test.go",
+      "before_sha256": "6fe3593b27795e50fe4e40486e9759bfdde2755126425a29194848edf68371b4",
+      "after_sha256": "6fe3593b27795e50fe4e40486e9759bfdde2755126425a29194848edf68371b4",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/corpus/corpus_test.go",
+      "before_sha256": "25ed9196f323f18ed5b427ea558c3ff45c370f2861726cb46fda6094687bbf0e",
+      "after_sha256": "25ed9196f323f18ed5b427ea558c3ff45c370f2861726cb46fda6094687bbf0e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/corpus/guide_test.go",
+      "before_sha256": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+      "after_sha256": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/choicetrace_test.go",
+      "before_sha256": "471725473e215e117f88444273c0cd5a40324288a3456da94c7419c80e938e5a",
+      "after_sha256": "471725473e215e117f88444273c0cd5a40324288a3456da94c7419c80e938e5a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+      "before_sha256": "ad735b20323c5a4d17c0759d9509506e44cf7313b31149f1cf3632c40e16bd24",
+      "after_sha256": "ad735b20323c5a4d17c0759d9509506e44cf7313b31149f1cf3632c40e16bd24",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go",
+      "before_sha256": "edd5e2a47b634e4ddb2adda011c56ef6808564cbb1f6893954062a5c9641b763",
+      "after_sha256": "edd5e2a47b634e4ddb2adda011c56ef6808564cbb1f6893954062a5c9641b763",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/draw_check_toolchain_test.go",
+      "before_sha256": "21da10ef40b04a95b8867efac48a1142a388f9d0d80da1ba380fa6daef4b8142",
+      "after_sha256": "21da10ef40b04a95b8867efac48a1142a388f9d0d80da1ba380fa6daef4b8142",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_boundary_toolchain_test.go",
+      "before_sha256": "07d696824e8d2be5891dd7da3d7770bfa2654352a999ea2432a51a90196a6b01",
+      "after_sha256": "07d696824e8d2be5891dd7da3d7770bfa2654352a999ea2432a51a90196a6b01",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_entropy_toolchain_test.go",
+      "before_sha256": "6fe841129005b97a271e383f02780e84feb7a61b54478ca18233f74acccbc6b5",
+      "after_sha256": "6fe841129005b97a271e383f02780e84feb7a61b54478ca18233f74acccbc6b5",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_filesystem_toolchain_test.go",
+      "before_sha256": "3077d72dd34fdde23cece105c91a4df554fc923fca1e656d6b06537e056a1d19",
+      "after_sha256": "3077d72dd34fdde23cece105c91a4df554fc923fca1e656d6b06537e056a1d19",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_handoff_toolchain_test.go",
+      "before_sha256": "8b417addecc8890cd771562848bfffe0686227a8639574ddd5c52279d0f35a49",
+      "after_sha256": "8b417addecc8890cd771562848bfffe0686227a8639574ddd5c52279d0f35a49",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_libc_toolchain_test.go",
+      "before_sha256": "e377e3b6bff658772f14643b1ce838570b03e401b7cb450b18c650ee818cea6a",
+      "after_sha256": "e377e3b6bff658772f14643b1ce838570b03e401b7cb450b18c650ee818cea6a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_net_bind_toolchain_test.go",
+      "before_sha256": "c1714804d38465a23b1e73d37b284912e2c7ee946494105f8b45708aff297a9d",
+      "after_sha256": "c1714804d38465a23b1e73d37b284912e2c7ee946494105f8b45708aff297a9d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_network_toolchain_test.go",
+      "before_sha256": "b3dedb18263b8d954e3c8f1b18341aa53866fed1b7d222626336b251603a003f",
+      "after_sha256": "b3dedb18263b8d954e3c8f1b18341aa53866fed1b7d222626336b251603a003f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_sandbox_toolchain_test.go",
+      "before_sha256": "40ca2e98062ccd59a46640c6a86f8428b463f94874e0b4e8b1b7dc2ddd871b14",
+      "after_sha256": "40ca2e98062ccd59a46640c6a86f8428b463f94874e0b4e8b1b7dc2ddd871b14",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_sqlite_toolchain_test.go",
+      "before_sha256": "63412fad246530ed0e730845564586b4b5f6af7b189b95ef5d02d14873613274",
+      "after_sha256": "63412fad246530ed0e730845564586b4b5f6af7b189b95ef5d02d14873613274",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_test_helpers_test.go",
+      "before_sha256": "2fe29f6def1e955f5be0975aec3fe6c07d5b78d0996d0a3725fdc875befe293d",
+      "after_sha256": "2fe29f6def1e955f5be0975aec3fe6c07d5b78d0996d0a3725fdc875befe293d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/model_conformance_compare_test.go",
+      "before_sha256": "330c6c4927f2a8f6bb6da2df5a146b1a3bbaef6c7a8c3688c446060508260202",
+      "after_sha256": "330c6c4927f2a8f6bb6da2df5a146b1a3bbaef6c7a8c3688c446060508260202",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/model_conformance_test.go",
+      "before_sha256": "860d2d3531f3e7a22740effb54a7030f681531b4f6ae1b38913a45343699f32d",
+      "after_sha256": "860d2d3531f3e7a22740effb54a7030f681531b4f6ae1b38913a45343699f32d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/outcome_test.go",
+      "before_sha256": "b7363be9d632ce5fa2c24eb110d932f6131a8366f0bc37dbdbf116a31253ba55",
+      "after_sha256": "b7363be9d632ce5fa2c24eb110d932f6131a8366f0bc37dbdbf116a31253ba55",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/process_test.go",
+      "before_sha256": "4103eb4a7436b31da48b8917603c0e33af26915aa79dcef843bc37e6eaa05b4d",
+      "after_sha256": "4103eb4a7436b31da48b8917603c0e33af26915aa79dcef843bc37e6eaa05b4d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/process_unix_test.go",
+      "before_sha256": "f234852d26d7cbda7280147f1087ac3ee0db8005562cca3dc9ddbd02705265f3",
+      "after_sha256": "f234852d26d7cbda7280147f1087ac3ee0db8005562cca3dc9ddbd02705265f3",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_progress_fixture_test.go",
+      "before_sha256": "12cbd8911c03b5ed4e0717397fec2742508daab3e28b8e91a6ca376671db8add",
+      "after_sha256": "12cbd8911c03b5ed4e0717397fec2742508daab3e28b8e91a6ca376671db8add",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_progress_lifecycle_test.go",
+      "before_sha256": "27430332b60b07ae2aebabd7f2cd8c251fae092f74bc397157699c661bcf8312",
+      "after_sha256": "27430332b60b07ae2aebabd7f2cd8c251fae092f74bc397157699c661bcf8312",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_progress_test.go",
+      "before_sha256": "7b1051a4332f73ef1263b1054002ddff061330b1ff39d476e4d076f5b1febce3",
+      "after_sha256": "7b1051a4332f73ef1263b1054002ddff061330b1ff39d476e4d076f5b1febce3",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_root_integration_test.go",
+      "before_sha256": "02544185057eff83b65b288b6062c374376b3a10137dc526405c222e052ec682",
+      "after_sha256": "02544185057eff83b65b288b6062c374376b3a10137dc526405c222e052ec682",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_test.go",
+      "before_sha256": "51784818fa6ca3f1e670b159406fe963501eb266c4740dfbce2009427670ba2b",
+      "after_sha256": "51784818fa6ca3f1e670b159406fe963501eb266c4740dfbce2009427670ba2b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_time_test.go",
+      "before_sha256": "3f83c32370640b54e0518f69739fd537369888f24837e1620cde23a65f8d6e90",
+      "after_sha256": "3f83c32370640b54e0518f69739fd537369888f24837e1620cde23a65f8d6e90",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_time_wire_generated_test.go",
+      "before_sha256": "8eea52828f19cc7de96a4d51e57b794a45444e968f08f0ddaa88894360bb6bf9",
+      "after_sha256": "8eea52828f19cc7de96a4d51e57b794a45444e968f08f0ddaa88894360bb6bf9",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_unix_test.go",
+      "before_sha256": "0025f6826a715b3cb366fddc15752a91b102311903d6dbc817eecfb041e1a987",
+      "after_sha256": "0025f6826a715b3cb366fddc15752a91b102311903d6dbc817eecfb041e1a987",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/watchdog_io_test.go",
+      "before_sha256": "1bf7e4c749ed2227d64e71ca8e680571dc6996b43f9b5c192faa1b71d02b3fd6",
+      "after_sha256": "1bf7e4c749ed2227d64e71ca8e680571dc6996b43f9b5c192faa1b71d02b3fd6",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/worldrecord_test.go",
+      "before_sha256": "61e1d2ab8a9676aaea84a1412aecbf72a68fa359976c791db420237facfa32dd",
+      "after_sha256": "61e1d2ab8a9676aaea84a1412aecbf72a68fa359976c791db420237facfa32dd",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/exploration/choice/engine_divergence_test.go",
+      "before_sha256": "cfb629c2447687ec3176c3a1acc9070b351839ab3ae10c1f0c047353e7593366",
+      "after_sha256": "cfb629c2447687ec3176c3a1acc9070b351839ab3ae10c1f0c047353e7593366",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/exploration/choice/engine_test.go",
+      "before_sha256": "1eea49a4fd0772f6280ce85327577aa8a8143b2230ce9b4c7d12124b47f5f30c",
+      "after_sha256": "1eea49a4fd0772f6280ce85327577aa8a8143b2230ce9b4c7d12124b47f5f30c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/exploration/engine_test.go",
+      "before_sha256": "1c3e9c13e7bebce7e881c8c8735efc2d80d393c53ce8524d4f15898d9cd94de3",
+      "after_sha256": "1c3e9c13e7bebce7e881c8c8735efc2d80d393c53ce8524d4f15898d9cd94de3",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/exploration/simulation/frontier_test.go",
+      "before_sha256": "dde610649b36aea86949b055aac07b5df9f483bcf3a1436d13547e9c31674233",
+      "after_sha256": "dde610649b36aea86949b055aac07b5df9f483bcf3a1436d13547e9c31674233",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/exploration/simulationrecord/record_test.go",
+      "before_sha256": "cb320aa9065eef1e77e559732f58587255bc1f57813fcd10c6c8cd0d55f1cf32",
+      "after_sha256": "cb320aa9065eef1e77e559732f58587255bc1f57813fcd10c6c8cd0d55f1cf32",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/exploration/simulationrecord/wire_test.go",
+      "before_sha256": "e8c554c593293e988b43ce2228f2f9886f3a592811e12d565ee576fc91f666e6",
+      "after_sha256": "e8c554c593293e988b43ce2228f2f9886f3a592811e12d565ee576fc91f666e6",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/minimizer/minimizer_test.go",
+      "before_sha256": "ea6e624274a0b4c694938fabc28352c18ea048d4d1c34d298ba6df0cf367463a",
+      "after_sha256": "ea6e624274a0b4c694938fabc28352c18ea048d4d1c34d298ba6df0cf367463a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/internal/minimizer/workspace_unix_test.go",
+      "before_sha256": "c0aad4e3aeca1a47c188161130120d6a0cb69d87caf772dce44337f75b0954a8",
+      "after_sha256": "c0aad4e3aeca1a47c188161130120d6a0cb69d87caf772dce44337f75b0954a8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/minimize_operation_test.go",
+      "before_sha256": "20b09aa279bad6391044609e3b77fd047113b212f2be3cbd20b45cbcac2a3275",
+      "after_sha256": "20b09aa279bad6391044609e3b77fd047113b212f2be3cbd20b45cbcac2a3275",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan_test.go",
+      "before_sha256": "eaa8787da8a2f67ff01ee01ed468a6e2eb009fcce94a422bac2ff16b4bd5c626",
+      "after_sha256": "eaa8787da8a2f67ff01ee01ed468a6e2eb009fcce94a422bac2ff16b4bd5c626",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/preparation_equivalence_legacy_test.go",
+      "before_sha256": "0db44bbf2f4c84617d75e8b77ad52df735a6834a02064a4dfc9896400b098404",
+      "after_sha256": "0db44bbf2f4c84617d75e8b77ad52df735a6834a02064a4dfc9896400b098404",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/preparation_owner_test.go",
+      "before_sha256": "e8d0309b038a77217d0d4e011a9430838563468b087be105d6a93ad191a7b66c",
+      "after_sha256": "e8d0309b038a77217d0d4e011a9430838563468b087be105d6a93ad191a7b66c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/preparation_source_test.go",
+      "before_sha256": "0ae521a7388112e7b648e9ecf9e3f116ddfeddbf3731064746017962f77b6154",
+      "after_sha256": "0ae521a7388112e7b648e9ecf9e3f116ddfeddbf3731064746017962f77b6154",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/replay_io_integration_test.go",
+      "before_sha256": "a1c7ea227188bb4231a1d30ff21c3f575cc09bf3b2087e11a945e5f4e6d3fe2b",
+      "after_sha256": "a1c7ea227188bb4231a1d30ff21c3f575cc09bf3b2087e11a945e5f4e6d3fe2b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/replay_operation_test.go",
+      "before_sha256": "bf076fd378e6f58777b0d00a34127713df9f0a45868c108ec8e9486716c5b7ed",
+      "after_sha256": "bf076fd378e6f58777b0d00a34127713df9f0a45868c108ec8e9486716c5b7ed",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/retention_characterization_test.go",
+      "before_sha256": "c15ef7442ea3e41ac360608aa113fbb1e0cd508855d37294e965f4da0f36a9c1",
+      "after_sha256": "c15ef7442ea3e41ac360608aa113fbb1e0cd508855d37294e965f4da0f36a9c1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/retention_test.go",
+      "before_sha256": "35a5599194d809a364751743318dc3c9e7304810bbeb8fd819e69dc8d3f14194",
+      "after_sha256": "35a5599194d809a364751743318dc3c9e7304810bbeb8fd819e69dc8d3f14194",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/runner_mode_unix_test.go",
+      "before_sha256": "ebdc20609fd89c246bf345e0df40f3c126b09765d898770dabe4389518228168",
+      "after_sha256": "ebdc20609fd89c246bf345e0df40f3c126b09765d898770dabe4389518228168",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "before_sha256": "5a7e92b82de7901dbc0d4483879f57cbd901f0359e262c8acd3ff3351ba2c998",
+      "after_sha256": "5a7e92b82de7901dbc0d4483879f57cbd901f0359e262c8acd3ff3351ba2c998",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/seed_completion_characterization_test.go",
+      "before_sha256": "b35b3ec2d623c5746cc58e8996ff033b8e584813e6308f5fe7e0a03fde76e2b6",
+      "after_sha256": "b35b3ec2d623c5746cc58e8996ff033b8e584813e6308f5fe7e0a03fde76e2b6",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/seeds_test.go",
+      "before_sha256": "f76599719cad68745d1a414f5851e99e4ac0388ab230abab65b85fcd903a7ba4",
+      "after_sha256": "f76599719cad68745d1a414f5851e99e4ac0388ab230abab65b85fcd903a7ba4",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/simulation_exploration_plan_test.go",
+      "before_sha256": "c9a2db776d1691b4d7cac85df80e67cc0dff5a4bdae4a99bba71bfab89a3efa0",
+      "after_sha256": "c9a2db776d1691b4d7cac85df80e67cc0dff5a4bdae4a99bba71bfab89a3efa0",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner/watchdog_replay_test.go",
+      "before_sha256": "2ec97e04725e893b6435621546c4bffb66bf22fc7f515a6a28540c1266962e42",
+      "after_sha256": "2ec97e04725e893b6435621546c4bffb66bf22fc7f515a6a28540c1266962e42",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/runner_consumer_test.go",
+      "before_sha256": "c0ed9a793b9c437d7cf1057bc66fffeeba84d44399ff8d22396f57fb1fa248bb",
+      "after_sha256": "c0ed9a793b9c437d7cf1057bc66fffeeba84d44399ff8d22396f57fb1fa248bb",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/simulation_gate_selection_test.go",
+      "before_sha256": "2b830d04d7ea3c3ad70cc33b6f9a11e96cdde4dd0ad5995f644e04429208f979",
+      "after_sha256": "2b830d04d7ea3c3ad70cc33b6f9a11e96cdde4dd0ad5995f644e04429208f979",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/adapter_source_set_test.go",
+      "before_sha256": "39613c9c1510def7aef69b191792f4d6590249e4ddb486f0918c07dc506a946c",
+      "after_sha256": "39613c9c1510def7aef69b191792f4d6590249e4ddb486f0918c07dc506a946c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/capability_golden_test.go",
+      "before_sha256": "b96dba8f5360fc6c6a375bb8df619a01f3af0ea68e549a9ecc1a2406f16c92c7",
+      "after_sha256": "b96dba8f5360fc6c6a375bb8df619a01f3af0ea68e549a9ecc1a2406f16c92c7",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/capability_projection_test.go",
+      "before_sha256": "0784d0bb3f2d9bb1a27548efb24b5db8d9a0a9388b5f1dba52ae828e6a897720",
+      "after_sha256": "0784d0bb3f2d9bb1a27548efb24b5db8d9a0a9388b5f1dba52ae828e6a897720",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/capability_review_test.go",
+      "before_sha256": "b4bdf4a35393b59557d7dd4a9edc115688a7bbe523c20014b386fe4174a7e00f",
+      "after_sha256": "b4bdf4a35393b59557d7dd4a9edc115688a7bbe523c20014b386fe4174a7e00f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/capability_source_test.go",
+      "before_sha256": "03d4e019a708647520fafb7a828efbc93774f9dfd309d79482213d9d77e545fa",
+      "after_sha256": "03d4e019a708647520fafb7a828efbc93774f9dfd309d79482213d9d77e545fa",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/capability_test.go",
+      "before_sha256": "6f838d2824eadd2409c7fe0ff1b5a62013587e6bab9a7c85b793e2208d17d489",
+      "after_sha256": "6f838d2824eadd2409c7fe0ff1b5a62013587e6bab9a7c85b793e2208d17d489",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/cleanup_test.go",
+      "before_sha256": "3fc0c9e26b6ec110724161041a479b94dbd78f88516b38c367c3851e55fbbe01",
+      "after_sha256": "3fc0c9e26b6ec110724161041a479b94dbd78f88516b38c367c3851e55fbbe01",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/coverage_test.go",
+      "before_sha256": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276",
+      "after_sha256": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/go_command_test.go",
+      "before_sha256": "a607ec3c0d161048562a0cc8ae3bc82de66906e32de2047b49a40ebf9000b67a",
+      "after_sha256": "a607ec3c0d161048562a0cc8ae3bc82de66906e32de2047b49a40ebf9000b67a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/installation_test.go",
+      "before_sha256": "59e6e98ab835ef071852468492645b70b5fb321b1fbafd45d1b2876c85e45237",
+      "after_sha256": "59e6e98ab835ef071852468492645b70b5fb321b1fbafd45d1b2876c85e45237",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/build/context_test.go",
+      "before_sha256": "cf58548da7938cb5642f9ed41c1f4d35c58364f0f33089e20c4d61dd01a598ba",
+      "after_sha256": "cf58548da7938cb5642f9ed41c1f4d35c58364f0f33089e20c4d61dd01a598ba",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/build/trim_test.go",
+      "before_sha256": "b9d5f2454be403b4430a3a4ffc3860c2480ae50c69ee4fbf78624d776dfa22c1",
+      "after_sha256": "b9d5f2454be403b4430a3a4ffc3860c2480ae50c69ee4fbf78624d776dfa22c1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/capabilitypolicy/policy_test.go",
+      "before_sha256": "8e2946deb27470f1227cb8b654d787fc3746fe2b55bee6c35fbbeedb71ab7dd8",
+      "after_sha256": "8e2946deb27470f1227cb8b654d787fc3746fe2b55bee6c35fbbeedb71ab7dd8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/capabilityreview/list_test.go",
+      "before_sha256": "e9c8292a64539af41b505750bd59603e27b7058bd4d898cdbb9c9c920d8e9305",
+      "after_sha256": "e9c8292a64539af41b505750bd59603e27b7058bd4d898cdbb9c9c920d8e9305",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/gocommand/command_test.go",
+      "before_sha256": "d6b4eac8ebbbb224171516ca62203e436dd51c5a54f6eb82b4b88d9ec846c435",
+      "after_sha256": "d6b4eac8ebbbb224171516ca62203e436dd51c5a54f6eb82b4b88d9ec846c435",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/livecap_test.go",
+      "before_sha256": "bb6d1241f37907f5de4dd3aa62a4e57640b1d7a6834f7e508e401aece9ba2975",
+      "after_sha256": "bb6d1241f37907f5de4dd3aa62a4e57640b1d7a6834f7e508e401aece9ba2975",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/project_test.go",
+      "before_sha256": "761be1ef90238785a432b0dbb865e4d757ece104d1a7c987adf9612884f75f91",
+      "after_sha256": "761be1ef90238785a432b0dbb865e4d757ece104d1a7c987adf9612884f75f91",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/toolchain_test.go",
+      "before_sha256": "c30aed124a5a35406b1433ad948eb003330f14b50d103972c66ca1e435e6ab4d",
+      "after_sha256": "c30aed124a5a35406b1433ad948eb003330f14b50d103972c66ca1e435e6ab4d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/provenance/store_test.go",
+      "before_sha256": "3c08bc9ace087f34caa6e3bdd15c6fb440e033cc9fd7f0dc79377fd410d8942c",
+      "after_sha256": "3c08bc9ace087f34caa6e3bdd15c6fb440e033cc9fd7f0dc79377fd410d8942c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/module_directory_test.go",
+      "before_sha256": "caab839cbd7bbfae37fedcc5e1102626c050fb1ea9049f48724afa93a1a7554a",
+      "after_sha256": "caab839cbd7bbfae37fedcc5e1102626c050fb1ea9049f48724afa93a1a7554a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/prepared_cache_digest_test.go",
+      "before_sha256": "55ea0b20188616f00520a2dd3bbd9e6d1372d72e3e0731a951d1695e1bdc2356",
+      "after_sha256": "55ea0b20188616f00520a2dd3bbd9e6d1372d72e3e0731a951d1695e1bdc2356",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/prepared_cache_test.go",
+      "before_sha256": "c9b57953e81b1da0913391458807bf4f41abc3a7d66ea68f240a407384898907",
+      "after_sha256": "c9b57953e81b1da0913391458807bf4f41abc3a7d66ea68f240a407384898907",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/target/target_test.go",
+      "before_sha256": "9ff3f51e79202c47a39a875628d59a9882200c096fad08ecf531289ff4d6fd27",
+      "after_sha256": "9ff3f51e79202c47a39a875628d59a9882200c096fad08ecf531289ff4d6fd27",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/build_test.go",
+      "before_sha256": "4d7063425b908409511276c5fed0688b591ce595f0dfcc503ad434507e2aa573",
+      "after_sha256": "4d7063425b908409511276c5fed0688b591ce595f0dfcc503ad434507e2aa573",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/buildkey_test.go",
+      "before_sha256": "1b5eb1fc1ff2236c58ede4309ebf6b59296a1a5389eb0488ab06406abc821f14",
+      "after_sha256": "1b5eb1fc1ff2236c58ede4309ebf6b59296a1a5389eb0488ab06406abc821f14",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/clock_inventory_test.go",
+      "before_sha256": "bbb5a791bcd1303286cbad1c6ac8f7f6f1e922041b93f30f6010ab78ef05cd76",
+      "after_sha256": "bbb5a791bcd1303286cbad1c6ac8f7f6f1e922041b93f30f6010ab78ef05cd76",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/draw_inventory_test.go",
+      "before_sha256": "1c50074042df64deddce91305d7544ef79f782c8eb35df275791c92a74797943",
+      "after_sha256": "1c50074042df64deddce91305d7544ef79f782c8eb35df275791c92a74797943",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/goroutine_inventory_test.go",
+      "before_sha256": "b2cb08435af8ab50ef890e2da98bb4eb32009b8516c38a0b646977e14a06cde8",
+      "after_sha256": "b2cb08435af8ab50ef890e2da98bb4eb32009b8516c38a0b646977e14a06cde8",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/installation/installation_test.go",
+      "before_sha256": "04c7b4477fd5cf8236a75a2692c0ccb47b6cdda328507ff3302b7ea4bf90f60d",
+      "after_sha256": "04c7b4477fd5cf8236a75a2692c0ccb47b6cdda328507ff3302b7ea4bf90f60d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/installation_test.go",
+      "before_sha256": "09b9d85936ce4ca978eb6ea6f2180e048f7c88e20676ff60edeabd0d0c216b14",
+      "after_sha256": "09b9d85936ce4ca978eb6ea6f2180e048f7c88e20676ff60edeabd0d0c216b14",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/patch_cleanup_test.go",
+      "before_sha256": "290bce62401e74dc42a3289bef80a1f3874ab9808d59ee3b55fb1fdfd9b8dfd4",
+      "after_sha256": "290bce62401e74dc42a3289bef80a1f3874ab9808d59ee3b55fb1fdfd9b8dfd4",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/patch_test.go",
+      "before_sha256": "02ae15958aa4d30513ea573cf6ad591b49d41719e73c4bad3838b6373fe7ac72",
+      "after_sha256": "02ae15958aa4d30513ea573cf6ad591b49d41719e73c4bad3838b6373fe7ac72",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode_test.go",
+      "before_sha256": "7a4d2aed0f3e8047c9d45e60b430f3f1f54d6f43332fbc985a03fca1f087f59e",
+      "after_sha256": "7a4d2aed0f3e8047c9d45e60b430f3f1f54d6f43332fbc985a03fca1f087f59e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go",
+      "before_sha256": "b7e51f62d30fa6335aa95a7a7326b646be626c4fb5fcac0d0e04c3a1216dbfb4",
+      "after_sha256": "b7e51f62d30fa6335aa95a7a7326b646be626c4fb5fcac0d0e04c3a1216dbfb4",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash_test.go",
+      "before_sha256": "f70c6b8e2ac9ddb513283d4a0482b630fc4ce38ff25e71512da8e34c99378915",
+      "after_sha256": "f70c6b8e2ac9ddb513283d4a0482b630fc4ce38ff25e71512da8e34c99378915",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go",
+      "before_sha256": "08f19144d690a3eb0dd480a98b42324389ccb9b474aae492cb922162add169df",
+      "after_sha256": "08f19144d690a3eb0dd480a98b42324389ccb9b474aae492cb922162add169df",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go",
+      "before_sha256": "8f04c57217c92ed2e09e3fff4268a2c369267a55ffc9d31c48f18fca77ce3220",
+      "after_sha256": "8f04c57217c92ed2e09e3fff4268a2c369267a55ffc9d31c48f18fca77ce3220",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs_test.go",
+      "before_sha256": "1e50c6916859463598dbf0891027be623a81e0168850ca32786dca2e79dd8953",
+      "after_sha256": "1e50c6916859463598dbf0891027be623a81e0168850ca32786dca2e79dd8953",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles_test.go",
+      "before_sha256": "7b99ae8033ee7a94a63d7227e20e612f6f94b175b87978a1b1e87ae3716a268b",
+      "after_sha256": "7b99ae8033ee7a94a63d7227e20e612f6f94b175b87978a1b1e87ae3716a268b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_commands_export_test.go",
+      "before_sha256": "48d171cba430f8ff1c6c44acaf8ed37d9503d3844bfcfe5c49ccf59a78a1171c",
+      "after_sha256": "48d171cba430f8ff1c6c44acaf8ed37d9503d3844bfcfe5c49ccf59a78a1171c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_commands_test.go",
+      "before_sha256": "478a71de2035b5cd7a319c1a0f03f8cce899d845fad46a1c93956260d6901985",
+      "after_sha256": "478a71de2035b5cd7a319c1a0f03f8cce899d845fad46a1c93956260d6901985",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go",
+      "before_sha256": "801685588aa34bc16ff361936149726492470a167a029cb2dc88dd5c22db1ff5",
+      "after_sha256": "801685588aa34bc16ff361936149726492470a167a029cb2dc88dd5c22db1ff5",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go",
+      "before_sha256": "f3b5799d5fef94c3c2be4f0fb7291c69eed9633379b61f6ecc05befae32abb3e",
+      "after_sha256": "f3b5799d5fef94c3c2be4f0fb7291c69eed9633379b61f6ecc05befae32abb3e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/mount/client_test.go",
+      "before_sha256": "7bad090b017ba9041cef6e9bda3eef797b809d2f3288cd719a0c8726f0cc34c2",
+      "after_sha256": "7bad090b017ba9041cef6e9bda3eef797b809d2f3288cd719a0c8726f0cc34c2",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go",
+      "before_sha256": "cfead548fb2ecf987d4314d34fa2be1161bb1941786e2ba08dc7bfcdb0b59fba",
+      "after_sha256": "cfead548fb2ecf987d4314d34fa2be1161bb1941786e2ba08dc7bfcdb0b59fba",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands_export_test.go",
+      "before_sha256": "37a1aa079922906b97f94e178fe65b82da6225eb7cbd4f172bf89ebe03eeec97",
+      "after_sha256": "37a1aa079922906b97f94e178fe65b82da6225eb7cbd4f172bf89ebe03eeec97",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands_test.go",
+      "before_sha256": "0752f0fa45c71bf4b1f127deb3a2330a4c86fa9d0dbddd95c63feb64f7057906",
+      "after_sha256": "0752f0fa45c71bf4b1f127deb3a2330a4c86fa9d0dbddd95c63feb64f7057906",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go",
+      "before_sha256": "49268c620249db903e6c4425028a2577db96d3944a1aee2c0ec65b2dab7c95da",
+      "after_sha256": "49268c620249db903e6c4425028a2577db96d3944a1aee2c0ec65b2dab7c95da",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go",
+      "before_sha256": "f3864bddb8c918707f65a42cb2dd968748ee42f956b46fb6783d75a48399dc62",
+      "after_sha256": "f3864bddb8c918707f65a42cb2dd968748ee42f956b46fb6783d75a48399dc62",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go",
+      "before_sha256": "76533f2c57ab14fa154dbca4a6dab35c30cd5948dd064b76e2b605e0f8f7e04d",
+      "after_sha256": "76533f2c57ab14fa154dbca4a6dab35c30cd5948dd064b76e2b605e0f8f7e04d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go",
+      "before_sha256": "60d6a19f7e4acfd7806c8dbfb1b253ce2360ef3799f5af7987145c46e3b257ba",
+      "after_sha256": "60d6a19f7e4acfd7806c8dbfb1b253ce2360ef3799f5af7987145c46e3b257ba",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/simulation_test.go",
+      "before_sha256": "a6b7d8123cf25ea7bd2e15ed17c673d549884de62f514d319ce11de26a0129d3",
+      "after_sha256": "a6b7d8123cf25ea7bd2e15ed17c673d549884de62f514d319ce11de26a0129d3",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go",
+      "before_sha256": "3687b1c7dd1de44fc086fd5efac518fd513898eb124d39486e16e0679e90cd07",
+      "after_sha256": "3687b1c7dd1de44fc086fd5efac518fd513898eb124d39486e16e0679e90cd07",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/os/gomad_model_conformance_test.go",
+      "before_sha256": "05d9261fcdef7895c9e131856b67180cb46c4b6e2def5d233d14d698a50b5573",
+      "after_sha256": "05d9261fcdef7895c9e131856b67180cb46c4b6e2def5d233d14d698a50b5573",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/os/gomad_simulation_test.go",
+      "before_sha256": "138056013a355ce1310bf5e0ea39d368bafd8b3b5f3ad15f18f8a4af21d4e8fe",
+      "after_sha256": "138056013a355ce1310bf5e0ea39d368bafd8b3b5f3ad15f18f8a4af21d4e8fe",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go",
+      "before_sha256": "49b5075dd73ea527175e99ffb5ecb3c3cd2ffa7a41b1627e2651b1f2fd7dbc93",
+      "after_sha256": "49b5075dd73ea527175e99ffb5ecb3c3cd2ffa7a41b1627e2651b1f2fd7dbc93",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go",
+      "before_sha256": "d8dcca09321bd4ec618e8936d64f8109885bae01ccb6003678264bf828a2789b",
+      "after_sha256": "d8dcca09321bd4ec618e8936d64f8109885bae01ccb6003678264bf828a2789b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/source_cleanup_test.go",
+      "before_sha256": "46b6381f0dcbe71fc34663144e730c5a93aa537a893e94d13a5da8c221541326",
+      "after_sha256": "46b6381f0dcbe71fc34663144e730c5a93aa537a893e94d13a5da8c221541326",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/source_test.go",
+      "before_sha256": "9eb452390d8e8404c658e444951d19ccd6594699b03b8f6f357217112f006ac6",
+      "after_sha256": "9eb452390d8e8404c658e444951d19ccd6594699b03b8f6f357217112f006ac6",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/descriptor_test.go",
+      "before_sha256": "92d72d9195db2a952fca928a15afc56b18d9a4a916e639da705f420ee747930d",
+      "after_sha256": "92d72d9195db2a952fca928a15afc56b18d9a4a916e639da705f420ee747930d",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/adapterregen/adapterregen_test.go",
+      "before_sha256": "83376d34035650372cf2c70622b382fd1fcf8931e5cb616b50823407bfbc358c",
+      "after_sha256": "83376d34035650372cf2c70622b382fd1fcf8931e5cb616b50823407bfbc358c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/adapterregen/checkout_revalidation_test.go",
+      "before_sha256": "bb622e84650b111c6bf349a6265bbb13492ebb7b089876f82a359c65e5bde7ce",
+      "after_sha256": "bb622e84650b111c6bf349a6265bbb13492ebb7b089876f82a359c65e5bde7ce",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/adapterregen/default_pipeline_test.go",
+      "before_sha256": "3a0a64661f09e9722069bd7aecc7365188e9e4f4846347551d4c270b0bcad71c",
+      "after_sha256": "3a0a64661f09e9722069bd7aecc7365188e9e4f4846347551d4c270b0bcad71c",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/adapterregen/lock_release_test.go",
+      "before_sha256": "7f51f047d15a7d7b7cfb42e4f547323b5d36d8b6cfc5f862758c74907ce60246",
+      "after_sha256": "7f51f047d15a7d7b7cfb42e4f547323b5d36d8b6cfc5f862758c74907ce60246",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/adapterregen/publication_cleanup_test.go",
+      "before_sha256": "2ca96287f1b51ca08acd3fff111dc0798dcb627b00c3a079e183132b1fcf3a18",
+      "after_sha256": "2ca96287f1b51ca08acd3fff111dc0798dcb627b00c3a079e183132b1fcf3a18",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/pinimpact/pack_sums_test.go",
+      "before_sha256": "50cce5e8b252c6fc87515a3471f6f7bb3cfd2994826c76a1b7a620d4d1d5218e",
+      "after_sha256": "50cce5e8b252c6fc87515a3471f6f7bb3cfd2994826c76a1b7a620d4d1d5218e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/pinimpact/packs_directory_test.go",
+      "before_sha256": "fa61180eac2a249ab890772e7e9510846b04ac916f60ada02466f0a64e204993",
+      "after_sha256": "fa61180eac2a249ab890772e7e9510846b04ac916f60ada02466f0a64e204993",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/pinimpact/pinimpact_test.go",
+      "before_sha256": "f83535808d2996da0b88b04699e2e60327df7673c189ff7cf5e293ee9fd568c6",
+      "after_sha256": "f83535808d2996da0b88b04699e2e60327df7673c189ff7cf5e293ee9fd568c6",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/pinimpact/portable_fixtures_test.go",
+      "before_sha256": "353a5e6a49d313ba0fc6eafa2227f5bff09f8ac257143434bbd370c8f9103a3b",
+      "after_sha256": "353a5e6a49d313ba0fc6eafa2227f5bff09f8ac257143434bbd370c8f9103a3b",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/pinimpact/resolver_test.go",
+      "before_sha256": "49d3c5b273102e4bfa087095126ffff2943681ff4d34e74ae2abfbc1b787d29f",
+      "after_sha256": "49d3c5b273102e4bfa087095126ffff2943681ff4d34e74ae2abfbc1b787d29f",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/pinimpact/rule_sums_test.go",
+      "before_sha256": "cefcc8cd089e1ceecc7df233bb54e25e484f04f65ef151f7a3d68bee0fec33b5",
+      "after_sha256": "cefcc8cd089e1ceecc7df233bb54e25e484f04f65ef151f7a3d68bee0fec33b5",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/upgrade_io_test.go",
+      "before_sha256": "5d6dae5f9d6527caa885080c06004cff5fcf910d4de34603285c029fc7945078",
+      "after_sha256": "5d6dae5f9d6527caa885080c06004cff5fcf910d4de34603285c029fc7945078",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/upgrade_test.go",
+      "before_sha256": "062641bb09c77ee8c401e3337d62ab7ab1ec44ecec87802e33fb11a81917799a",
+      "after_sha256": "062641bb09c77ee8c401e3337d62ab7ab1ec44ecec87802e33fb11a81917799a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/upgrade/upgrade_unix_test.go",
+      "before_sha256": "9e251e758420d5c3dbecd35ff974a3e4e12c2c92e774973cbcca8b9ecee29886",
+      "after_sha256": "9e251e758420d5c3dbecd35ff974a3e4e12c2c92e774973cbcca8b9ecee29886",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/benchmark_test.go",
+      "before_sha256": "c0b0e0690c3f4dbab17c9afaa3efe0357539a1acb01f32d2353bf0781461557e",
+      "after_sha256": "c0b0e0690c3f4dbab17c9afaa3efe0357539a1acb01f32d2353bf0781461557e",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/capacity_test.go",
+      "before_sha256": "6efa80ebd6fed8090524937f13b69806c3de3ff0ec8b9af7721de1f1132bd4f1",
+      "after_sha256": "6efa80ebd6fed8090524937f13b69806c3de3ff0ec8b9af7721de1f1132bd4f1",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/codec_test.go",
+      "before_sha256": "7d09cb4e22827dd99d1bb7b04fc43e8ede8be6008b4bbcbc1b4dd5a03258564a",
+      "after_sha256": "7d09cb4e22827dd99d1bb7b04fc43e8ede8be6008b4bbcbc1b4dd5a03258564a",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/concurrency_test.go",
+      "before_sha256": "ab630c3167806a8143ae2b0afba4f1197a2bdabbdf334e663a8165c144511383",
+      "after_sha256": "ab630c3167806a8143ae2b0afba4f1197a2bdabbdf334e663a8165c144511383",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/mailbox/mailbox_test.go",
+      "before_sha256": "2d4adf4d740eef750e80e7c178278d3a8de1d3d0ba60e0db27dc5ebf049de891",
+      "after_sha256": "2d4adf4d740eef750e80e7c178278d3a8de1d3d0ba60e0db27dc5ebf049de891",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/process/config_test.go",
+      "before_sha256": "90ccf895258ec3ad1e523f88e736c9c15c75a416e477174609af1d0c15e36a14",
+      "after_sha256": "90ccf895258ec3ad1e523f88e736c9c15c75a416e477174609af1d0c15e36a14",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/process/session_terminal_test.go",
+      "before_sha256": "29e32743dd0316c29f98f6de52101a2113492bc2af4ed3c06b1aa176ab10fdbb",
+      "after_sha256": "29e32743dd0316c29f98f6de52101a2113492bc2af4ed3c06b1aa176ab10fdbb",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/recording_terminal_test.go",
+      "before_sha256": "a1305ff362214e87bf52256f8d0bd011ebd05cc714b22544a27d1d866a840714",
+      "after_sha256": "a1305ff362214e87bf52256f8d0bd011ebd05cc714b22544a27d1d866a840714",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/recording_test.go",
+      "before_sha256": "20848d717654c0df7e1ad3da0f7db9e4b20cdf8fae66520dd79a6fcd25b37365",
+      "after_sha256": "20848d717654c0df7e1ad3da0f7db9e4b20cdf8fae66520dd79a6fcd25b37365",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/replay_test.go",
+      "before_sha256": "52cd78fb24c9fa62a6a785614f8f59cda01dbf12d8bf54f8cb62f3672aa152fe",
+      "after_sha256": "52cd78fb24c9fa62a6a785614f8f59cda01dbf12d8bf54f8cb62f3672aa152fe",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/snapshot_test.go",
+      "before_sha256": "303aeb7a66d393f4800f7c04801e55846833030d5af3bd2062d6dc4e904934e7",
+      "after_sha256": "303aeb7a66d393f4800f7c04801e55846833030d5af3bd2062d6dc4e904934e7",
+      "equal": true
+    },
+    {
+      "path": "tools/gomad3/world/world_test.go",
+      "before_sha256": "36f0c4b4186009888a723b4d90b8c82b25cc56086e8733bd8fe8e8c267092ede",
+      "after_sha256": "36f0c4b4186009888a723b4d90b8c82b25cc56086e8733bd8fe8e8c267092ede",
+      "equal": true
+    }
+  ],
+  "new_methods": [
+    "StructuredCommandResult.OutputError",
+    "Runner.StructuredCommand",
+    "Runner.DiagnosticCommand"
+  ],
+  "limitations": "Exact source preservation of existing operations and test files; not a runtime review verdict or genuine deferred-close fault execution."
+}

@@ -1,0 +1,142 @@
+[
+  {
+    "name": "isolated-matched-public-original",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-matched-cache-original",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-matched-public-historical-final",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-matched-cache-historical-final",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-matched-download-original",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-matched-query-original",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-matched-build-original",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-matched-download-historical-final",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-matched-query-historical-final",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-matched-build-historical-final",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-public-fresh",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-public-cached",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-download",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-query",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-build",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-adapter",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-selection",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-focused",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-command-defaults",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-architecture",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-source-darwin",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-source-linux",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-errortype",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-generated",
+    "exit": 0,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-lint-fast",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-lint-scoped",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-lint-integrated",
+    "exit": 1,
+    "signal": null
+  },
+  {
+    "name": "isolated-candidate-format",
+    "exit": 0,
+    "signal": null
+  }
+]

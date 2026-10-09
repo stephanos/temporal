@@ -1,0 +1,92 @@
+{
+  "scratch": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD",
+  "root": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/tools/gomad3/.toolchain",
+  "module": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/module",
+  "key": "9999999999999999999999999999999999999999999999999999999999999999",
+  "payload": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/payload",
+  "go": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+  "commands": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/commands.jsonl",
+  "fixture_sha256": "38a95c0b980a833394276d49caabec7e1f46b67fbcb6bb03902916461bc76994",
+  "dispatcher_sha256": "0cd9d6e98fcb2f9d4699ebda87dd155ff51cab6cd9d704f0597853d315a632f0",
+  "sources": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/module/go.mod",
+      "sha256": "20bf6635560470297cbf279c49c9d6c79cdd622e0f3abfc94f90c638ef90d86d"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-public-preservation-6QU3BD/module/main.go",
+      "sha256": "15dfc4f51b4ed90211b566886f456d23d6984e1bb298460786c9740b01ac183e"
+    }
+  ],
+  "original_fixture_command_inventory": [
+    [
+      "env",
+      "GOVERSION",
+      "GOOS",
+      "GOARCH",
+      "CGO_ENABLED"
+    ],
+    [
+      "list",
+      "-deps",
+      "-json",
+      "-mod=readonly",
+      "."
+    ],
+    [
+      "build",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "OUTPUT",
+      "."
+    ]
+  ],
+  "original_only_queries_consumed": [],
+  "original_source_sha256": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+  "historical_root_modules": [
+    {
+      "graph": "original",
+      "files": [
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/original/go.mod",
+          "sha256": "8f5c8b618955af605647a4a4cfc0f93a82f2c25423038166a3d9faafaba14b32"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/original/go.sum",
+          "sha256": "15dbb85a0134b17beba7707f6d9565eb55009ca05b05f0cd43ad5a6679f58849"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/original/tools/gomad3/go.mod",
+          "sha256": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/original/tools/gomad3/go.sum",
+          "sha256": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960"
+        }
+      ]
+    },
+    {
+      "graph": "historical-final",
+      "files": [
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/historical-final/go.mod",
+          "sha256": "8f5c8b618955af605647a4a4cfc0f93a82f2c25423038166a3d9faafaba14b32"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/historical-final/go.sum",
+          "sha256": "15dbb85a0134b17beba7707f6d9565eb55009ca05b05f0cd43ad5a6679f58849"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/historical-final/tools/gomad3/go.mod",
+          "sha256": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-history-wh7Fay/historical-final/tools/gomad3/go.sum",
+          "sha256": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960"
+        }
+      ]
+    }
+  ],
+  "scope": "Only build transport copies one once-compiled stock-Go INPUT; env/list execute actual pinned stock Go with requested cwd/environment. No native/patched qualification or binary launch."
+}

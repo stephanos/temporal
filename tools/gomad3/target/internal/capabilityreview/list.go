@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os/exec"
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
@@ -106,15 +107,18 @@ func ListWith(ctx context.Context, request Request, runner gocommand.Runner) ([]
 		arguments = append(arguments, "-tags", strings.Join(request.Tags, ","))
 	}
 	arguments = append(arguments, request.Package)
-	result, err := runner.Structured(ctx, gocommand.Request{
+	result, err := runner.StructuredCommand(ctx, gocommand.Request{
 		Command: append([]string{request.GoCommand}, arguments...), Dir: request.Directory,
 		Env: request.Environment, OutputLimit: request.OutputLimit,
 	})
+	if err == nil {
+		err = result.CommandError
+	}
 	if err != nil {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
-		var exit *gocommand.ExitError
+		var exit *exec.ExitError
 		if errors.As(err, &exit) {
 			return nil, &CommandError{Err: err, Stderr: result.Stderr, InvalidInput: invalidDiagnostic(result.Stderr)}
 		}
