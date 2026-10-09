@@ -83,7 +83,7 @@
     "name": "temporal.features.activity.standalone.MaxAttempts",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 42
+      "line": 54
     },
     "enum": {
       "cases": [ {
@@ -98,7 +98,7 @@
     "name": "temporal.features.activity.standalone.ResetPause",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 50
+      "line": 62
     },
     "enum": {
       "cases": [ {
@@ -182,8 +182,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.Active",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 45
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 27
     },
     "enum": {
       "cases": [ {
@@ -197,8 +197,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.AdmissionFact",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 56
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 38
     },
     "enum": {
       "cases": [ {
@@ -230,8 +230,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.AdmissionPhase",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 35
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 17
     },
     "enum": {
       "cases": [ {
@@ -251,8 +251,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.AdmissionResponseFact",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 69
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 19
     },
     "enum": {
       "cases": [ {
@@ -264,8 +264,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.AdmissionResponseState",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 66
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 16
     },
     "record": {
       "fields": [ {
@@ -283,8 +283,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.AdmissionState",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 52
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 34
     },
     "record": {
       "fields": [ {
@@ -307,8 +307,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.Answer",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 49
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 31
     },
     "enum": {
       "cases": [ {
@@ -320,8 +320,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.Finality",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 62
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 44
     },
     "enum": {
       "cases": [ {
@@ -6287,8 +6287,8 @@
   }, {
     "name": "heldDispatch.evidence",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 397
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 37
     },
     "params": [ {
       "name": "admissionFact",
@@ -6298,14 +6298,14 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 397
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 37
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 397
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 37
           },
           "var": "admissionFact"
         },
@@ -6320,8 +6320,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 397
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 37
             },
             "literal": {
               "text": "statusStarted"
@@ -6338,8 +6338,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 397
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 37
             },
             "literal": {
               "text": "statusPaused"
@@ -6356,8 +6356,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 397
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 37
             },
             "literal": {
               "text": "statusCompleted"
@@ -6375,8 +6375,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 398
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 38
             },
             "literal": {
               "text": "statusTimedOut"
@@ -6393,8 +6393,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 397
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 37
             },
             "literal": {
               "text": "dispatchSent"
@@ -6411,8 +6411,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 397
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 37
             },
             "literal": {
               "text": "attemptAdmitted"
@@ -6429,8 +6429,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 397
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 37
             },
             "literal": {
               "text": "admissionRejected"
@@ -6447,8 +6447,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 397
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 37
             },
             "literal": {
               "text": "admissionCommitFailed"
@@ -6465,8 +6465,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 397
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 37
             },
             "literal": {
               "text": "deliveryAnswered"
@@ -6478,8 +6478,8 @@
   }, {
     "name": "heldDispatch.property.staleDeliveryRejected",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 446
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 86
     },
     "params": [ {
       "name": "step",
@@ -6489,15 +6489,15 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 446
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 86
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 446
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 86
           },
           "literal": {
             "enum": {
@@ -6508,14 +6508,14 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 446
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 86
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 446
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 86
               },
               "var": "step"
             },
@@ -6527,8 +6527,8 @@
   }, {
     "name": "heldDispatch.rules.answerMatching",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 438
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 78
     },
     "params": [ {
       "name": "s",
@@ -6538,27 +6538,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 439
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 79
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 439
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 79
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 439
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 79
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 439
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 79
                   },
                   "var": "s"
                 },
@@ -6567,8 +6567,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 439
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 79
               },
               "literal": {
                 "enum": {
@@ -6581,15 +6581,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 439
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 79
           },
           "call": {
             "function": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.answerMatching",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 439
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 79
               },
               "var": "s"
             } ]
@@ -6597,8 +6597,8 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 438
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 78
           },
           "list": { }
         }
@@ -6607,8 +6607,8 @@
   }, {
     "name": "heldDispatch.rules.dispatch",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 421
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 61
     },
     "params": [ {
       "name": "s",
@@ -6618,27 +6618,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 422
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 62
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 422
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 62
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 418
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 58
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 418
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 58
                   },
                   "var": "s"
                 },
@@ -6647,14 +6647,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 422
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 62
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 422
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 62
                   },
                   "literal": {
                     "enum": {
@@ -6669,15 +6669,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 422
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 62
           },
           "call": {
             "function": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.sendDispatch",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 422
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 62
               },
               "var": "s"
             } ]
@@ -6685,8 +6685,8 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 421
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 61
           },
           "list": { }
         }
@@ -6695,8 +6695,8 @@
   }, {
     "name": "heldDispatch.rules.pause",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 424
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 64
     },
     "params": [ {
       "name": "s",
@@ -6706,27 +6706,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 425
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 65
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 425
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 65
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 418
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 58
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 418
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 58
                   },
                   "var": "s"
                 },
@@ -6735,14 +6735,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 425
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 65
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 425
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 65
                   },
                   "literal": {
                     "enum": {
@@ -6757,15 +6757,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 425
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 65
           },
           "call": {
             "function": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.pause",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 425
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 65
               },
               "var": "s"
             } ]
@@ -6773,27 +6773,27 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 426
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 66
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 426
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 66
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 418
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 58
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 418
+                        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                        "line": 58
                       },
                       "var": "s"
                     },
@@ -6802,14 +6802,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 426
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 66
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 426
+                        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                        "line": 66
                       },
                       "literal": {
                         "enum": {
@@ -6824,15 +6824,15 @@
             },
             "then": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 426
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 66
               },
               "call": {
                 "function": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.pauseHeld",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 426
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 66
                   },
                   "var": "s"
                 } ]
@@ -6840,8 +6840,8 @@
             },
             "else": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 424
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 64
               },
               "list": { }
             }
@@ -6852,8 +6852,8 @@
   }, {
     "name": "heldDispatch.rules.poll",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 428
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 68
     },
     "params": [ {
       "name": "s",
@@ -6863,27 +6863,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 429
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 69
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 429
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 69
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 418
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 58
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 418
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 58
                   },
                   "var": "s"
                 },
@@ -6892,14 +6892,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 429
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 69
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 429
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 69
                   },
                   "literal": {
                     "enum": {
@@ -6914,15 +6914,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 429
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 69
           },
           "call": {
             "function": "temporal.features.activity.standalone.system.HeldDispatch$.effects$.admitCommitted",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 429
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 69
               },
               "var": "s"
             } ]
@@ -6930,27 +6930,27 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 430
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 70
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 430
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 70
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 418
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 58
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 418
+                        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                        "line": 58
                       },
                       "var": "s"
                     },
@@ -6959,14 +6959,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 430
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 70
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 431
+                        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                        "line": 71
                       },
                       "literal": {
                         "enum": {
@@ -6976,8 +6976,8 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 432
+                        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                        "line": 72
                       },
                       "literal": {
                         "enum": {
@@ -6987,8 +6987,8 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 433
+                        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                        "line": 73
                       },
                       "literal": {
                         "enum": {
@@ -6998,8 +6998,8 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 434
+                        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                        "line": 74
                       },
                       "literal": {
                         "enum": {
@@ -7009,8 +7009,8 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 435
+                        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                        "line": 75
                       },
                       "literal": {
                         "enum": {
@@ -7025,15 +7025,15 @@
             },
             "then": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 436
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 76
               },
               "call": {
                 "function": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.rejectDelivery",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 436
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 76
                   },
                   "var": "s"
                 } ]
@@ -7041,8 +7041,8 @@
             },
             "else": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 428
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 68
               },
               "list": { }
             }
@@ -7053,8 +7053,8 @@
   }, {
     "name": "lostStartAnswer.evidence",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 482
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 122
     },
     "params": [ {
       "name": "admissionResponseFact",
@@ -7064,14 +7064,14 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 482
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 122
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 482
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 122
           },
           "var": "admissionResponseFact"
         },
@@ -7086,8 +7086,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 482
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 122
             },
             "literal": {
               "text": "dispatchSent"
@@ -7104,8 +7104,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 482
+              "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+              "line": 122
             },
             "literal": {
               "text": "attemptAdmitted"
@@ -7117,8 +7117,8 @@
   }, {
     "name": "lostStartAnswer.property.committedDespiteLostResponse",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 516
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 156
     },
     "params": [ {
       "name": "after",
@@ -7128,15 +7128,15 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 517
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 157
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 517
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 157
           },
           "literal": {
             "enum": {
@@ -7147,14 +7147,14 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 517
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 157
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 517
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 157
               },
               "var": "after"
             },
@@ -7166,8 +7166,8 @@
   }, {
     "name": "lostStartAnswer.rules.ackLoss",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 509
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 149
     },
     "params": [ {
       "name": "s",
@@ -7177,20 +7177,20 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 510
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 150
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 510
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 150
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 510
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 150
               },
               "var": "s"
             },
@@ -7199,15 +7199,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 510
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 150
           },
           "call": {
             "function": "temporal.features.activity.standalone.system.LostStartAnswer$.effects$.loseResponse",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 510
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 150
               },
               "var": "s"
             } ]
@@ -7215,8 +7215,8 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 509
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 149
           },
           "list": { }
         }
@@ -7225,8 +7225,8 @@
   }, {
     "name": "lostStartAnswer.rules.dispatch",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 506
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 146
     },
     "params": [ {
       "name": "s",
@@ -7236,20 +7236,20 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 507
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 147
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 507
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 147
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 507
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 147
               },
               "var": "s"
             },
@@ -7258,15 +7258,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 507
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 147
           },
           "call": {
             "function": "temporal.features.activity.standalone.system.LostStartAnswer$.effects$.sendDispatch",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 507
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 147
               },
               "var": "s"
             } ]
@@ -7274,8 +7274,8 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 506
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 146
           },
           "list": { }
         }
@@ -10437,8 +10437,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.answerMatching",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 204
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 176
     },
     "params": [ {
       "name": "s",
@@ -10448,21 +10448,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 205
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 177
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 205
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 177
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 205
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 177
               },
               "literal": {
                 "enum": {
@@ -10472,14 +10472,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 205
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 177
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 205
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 177
                   },
                   "var": "s"
                 },
@@ -10487,8 +10487,8 @@
                   "name": "answer",
                   "value": {
                     "position": {
-                      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                      "line": 205
+                      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                      "line": 177
                     },
                     "literal": {
                       "enum": {
@@ -10501,14 +10501,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 205
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 177
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 205
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 177
                   },
                   "literal": {
                     "enum": {
@@ -10520,8 +10520,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 205
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 177
               },
               "literal": {
                 "text": ""
@@ -10534,8 +10534,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.pause",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 188
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 160
     },
     "params": [ {
       "name": "s",
@@ -10545,21 +10545,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 188
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 160
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 188
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 160
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 188
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 160
               },
               "literal": {
                 "enum": {
@@ -10569,14 +10569,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 188
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 160
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 188
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 160
                   },
                   "var": "s"
                 },
@@ -10584,8 +10584,8 @@
                   "name": "phase",
                   "value": {
                     "position": {
-                      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                      "line": 188
+                      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                      "line": 160
                     },
                     "literal": {
                       "enum": {
@@ -10598,14 +10598,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 188
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 160
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 188
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 160
                   },
                   "literal": {
                     "enum": {
@@ -10617,8 +10617,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 188
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 160
               },
               "literal": {
                 "text": ""
@@ -10631,8 +10631,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.pauseHeld",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 191
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 163
     },
     "params": [ {
       "name": "s",
@@ -10642,21 +10642,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 192
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 164
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 192
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 164
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 192
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 164
               },
               "literal": {
                 "enum": {
@@ -10666,14 +10666,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 192
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 164
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 192
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 164
                   },
                   "var": "s"
                 },
@@ -10681,8 +10681,8 @@
                   "name": "phase",
                   "value": {
                     "position": {
-                      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                      "line": 192
+                      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                      "line": 164
                     },
                     "literal": {
                       "enum": {
@@ -10695,14 +10695,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 192
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 164
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 192
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 164
                   },
                   "literal": {
                     "enum": {
@@ -10714,8 +10714,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 192
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 164
               },
               "literal": {
                 "text": ""
@@ -10728,8 +10728,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.rejectDelivery",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 202
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 174
     },
     "params": [ {
       "name": "s",
@@ -10739,21 +10739,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 202
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 174
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 202
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 174
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 202
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 174
               },
               "literal": {
                 "enum": {
@@ -10763,14 +10763,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 202
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 174
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 202
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 174
                   },
                   "var": "s"
                 },
@@ -10778,8 +10778,8 @@
                   "name": "answer",
                   "value": {
                     "position": {
-                      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                      "line": 202
+                      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                      "line": 174
                     },
                     "literal": {
                       "enum": {
@@ -10792,14 +10792,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 202
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 174
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 202
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 174
                   },
                   "literal": {
                     "enum": {
@@ -10811,8 +10811,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 202
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 174
               },
               "literal": {
                 "text": ""
@@ -10825,8 +10825,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.effects$.sendDispatch",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 185
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 157
     },
     "params": [ {
       "name": "s",
@@ -10836,21 +10836,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 185
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 157
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 185
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 157
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 185
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 157
               },
               "literal": {
                 "enum": {
@@ -10860,20 +10860,20 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 185
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 157
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 185
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 157
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 185
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 157
                   },
                   "literal": {
                     "enum": {
@@ -10885,8 +10885,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 185
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 157
               },
               "literal": {
                 "text": ""
@@ -10899,8 +10899,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.end",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 122
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 94
     },
     "params": [ {
       "name": "s",
@@ -10910,15 +10910,15 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 122
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 94
       },
       "call": {
         "function": "temporal.features.activity.standalone.system.ActivityRecord$.states$.stopped",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 122
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 94
           },
           "var": "s"
         } ]
@@ -10927,8 +10927,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.refinement$.toProduct",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 166
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 138
     },
     "params": [ {
       "name": "s",
@@ -10938,20 +10938,20 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 166
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 138
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 166
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 138
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 166
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 138
               },
               "var": "s"
             },
@@ -10969,15 +10969,15 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 167
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 139
             },
             "construct": {
               "type": "temporal.features.activity.standalone.product.State",
               "args": [ {
                 "position": {
-                  "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                  "line": 167
+                  "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                  "line": 139
                 },
                 "literal": {
                   "enum": {
@@ -11010,15 +11010,15 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 169
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 141
             },
             "construct": {
               "type": "temporal.features.activity.standalone.product.State",
               "args": [ {
                 "position": {
-                  "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                  "line": 169
+                  "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                  "line": 141
                 },
                 "literal": {
                   "enum": {
@@ -11040,15 +11040,15 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 170
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 142
             },
             "construct": {
               "type": "temporal.features.activity.standalone.product.State",
               "args": [ {
                 "position": {
-                  "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                  "line": 170
+                  "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                  "line": 142
                 },
                 "literal": {
                   "enum": {
@@ -11070,15 +11070,15 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 171
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 143
             },
             "construct": {
               "type": "temporal.features.activity.standalone.product.State",
               "args": [ {
                 "position": {
-                  "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                  "line": 171
+                  "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                  "line": 143
                 },
                 "literal": {
                   "enum": {
@@ -11100,15 +11100,15 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 172
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 144
             },
             "construct": {
               "type": "temporal.features.activity.standalone.product.State",
               "args": [ {
                 "position": {
-                  "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                  "line": 172
+                  "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                  "line": 144
                 },
                 "literal": {
                   "enum": {
@@ -11125,8 +11125,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.refinement$.visible",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 175
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 147
     },
     "params": [ {
       "name": "f",
@@ -11136,14 +11136,14 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 175
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 147
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 175
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 147
           },
           "var": "f"
         },
@@ -11184,8 +11184,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 178
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 150
             },
             "literal": {
               "bool": true
@@ -11234,8 +11234,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 182
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 154
             },
             "literal": {
               "bool": false
@@ -11247,8 +11247,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.states$.admitted",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 140
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 112
     },
     "params": [ {
       "name": "s",
@@ -11258,14 +11258,14 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 141
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 113
       },
       "copy": {
         "base": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 141
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 113
           },
           "var": "s"
         },
@@ -11273,8 +11273,8 @@
           "name": "phase",
           "value": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 141
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 113
             },
             "literal": {
               "enum": {
@@ -11287,21 +11287,21 @@
           "name": "active",
           "value": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 141
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 113
             },
             "call": {
               "function": "temporal.features.activity.standalone.system.ActivityRecord$.states$.oneMore",
               "args": [ {
                 "position": {
-                  "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                  "line": 141
+                  "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                  "line": 113
                 },
                 "field": {
                   "base": {
                     "position": {
-                      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                      "line": 141
+                      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                      "line": 113
                     },
                     "var": "s"
                   },
@@ -11314,8 +11314,8 @@
           "name": "answer",
           "value": {
             "position": {
-              "file": "model/temporal/features/activity/standalone/system/Record.scala",
-              "line": 141
+              "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+              "line": 113
             },
             "literal": {
               "enum": {
@@ -11330,8 +11330,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.states$.countActive",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 144
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 116
     },
     "params": [ {
       "name": "active",
@@ -11346,21 +11346,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 145
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 117
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 145
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 117
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 145
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 117
               },
               "literal": {
                 "enum": {
@@ -11371,14 +11371,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 145
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 117
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 145
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 117
                   },
                   "var": "after"
                 },
@@ -11389,15 +11389,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 145
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 117
           },
           "call": {
             "function": "temporal.features.activity.standalone.system.ActivityRecord$.states$.oneMore",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 145
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 117
               },
               "var": "active"
             } ]
@@ -11405,21 +11405,21 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 146
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 118
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 146
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 118
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 146
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 118
                   },
                   "literal": {
                     "enum": {
@@ -11430,14 +11430,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 146
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 118
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 146
+                        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                        "line": 118
                       },
                       "var": "after"
                     },
@@ -11448,15 +11448,15 @@
             },
             "then": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 146
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 118
               },
               "call": {
                 "function": "temporal.features.activity.standalone.system.ActivityRecord$.states$.oneLess",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 146
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 118
                   },
                   "var": "active"
                 } ]
@@ -11464,33 +11464,33 @@
             },
             "else": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 147
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 119
               },
               "if": {
                 "condition": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 147
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 119
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 147
+                        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                        "line": 119
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                            "line": 147
+                            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                            "line": 119
                           },
                           "field": {
                             "base": {
                               "position": {
-                                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                                "line": 147
+                                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                                "line": 119
                               },
                               "var": "after"
                             },
@@ -11502,8 +11502,8 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 147
+                        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                        "line": 119
                       },
                       "literal": {
                         "enum": {
@@ -11516,8 +11516,8 @@
                 },
                 "then": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 147
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 119
                   },
                   "literal": {
                     "enum": {
@@ -11528,8 +11528,8 @@
                 },
                 "else": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 148
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 120
                   },
                   "var": "active"
                 }
@@ -11542,8 +11542,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.states$.finality",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 151
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 123
     },
     "params": [ {
       "name": "f",
@@ -11558,28 +11558,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 152
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 124
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 152
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 124
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 152
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 124
               },
               "var": "f"
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 152
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 124
               },
               "literal": {
                 "enum": {
@@ -11592,8 +11592,8 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 152
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 124
           },
           "literal": {
             "enum": {
@@ -11604,33 +11604,33 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 153
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 125
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 153
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 125
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 153
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 125
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 153
+                        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                        "line": 125
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                            "line": 153
+                            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                            "line": 125
                           },
                           "var": "after"
                         },
@@ -11642,14 +11642,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 153
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 125
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 153
+                        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                        "line": 125
                       },
                       "literal": {
                         "enum": {
@@ -11659,8 +11659,8 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 153
+                        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                        "line": 125
                       },
                       "literal": {
                         "enum": {
@@ -11675,8 +11675,8 @@
             },
             "then": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 153
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 125
               },
               "literal": {
                 "enum": {
@@ -11687,28 +11687,28 @@
             },
             "else": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 154
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 126
               },
               "if": {
                 "condition": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 154
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 126
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 154
+                        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                        "line": 126
                       },
                       "var": "f"
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 154
+                        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                        "line": 126
                       },
                       "literal": {
                         "enum": {
@@ -11721,8 +11721,8 @@
                 },
                 "then": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 154
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 126
                   },
                   "literal": {
                     "enum": {
@@ -11733,8 +11733,8 @@
                 },
                 "else": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 155
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 127
                   },
                   "literal": {
                     "enum": {
@@ -11752,8 +11752,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.states$.oneLess",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 137
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 109
     },
     "params": [ {
       "name": "a",
@@ -11763,28 +11763,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 137
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 109
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 137
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 109
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 137
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 109
               },
               "var": "a"
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 137
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 109
               },
               "literal": {
                 "enum": {
@@ -11797,8 +11797,8 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 137
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 109
           },
           "literal": {
             "enum": {
@@ -11809,8 +11809,8 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 137
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 109
           },
           "literal": {
             "enum": {
@@ -11824,8 +11824,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.states$.oneMore",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 136
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 108
     },
     "params": [ {
       "name": "a",
@@ -11835,28 +11835,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 136
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 108
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 136
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 108
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 136
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 108
               },
               "var": "a"
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 136
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 108
               },
               "literal": {
                 "enum": {
@@ -11869,8 +11869,8 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 136
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 108
           },
           "literal": {
             "enum": {
@@ -11881,8 +11881,8 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 136
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 108
           },
           "literal": {
             "enum": {
@@ -11896,8 +11896,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord$.states$.stopped",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 133
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 105
     },
     "params": [ {
       "name": "s",
@@ -11907,28 +11907,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 134
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 106
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 134
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 106
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 134
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 106
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 134
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 106
                   },
                   "var": "s"
                 },
@@ -11937,14 +11937,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 134
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 106
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 134
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 106
                   },
                   "literal": {
                     "enum": {
@@ -11954,8 +11954,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 134
+                    "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                    "line": 106
                   },
                   "literal": {
                     "enum": {
@@ -11973,8 +11973,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord.monitors.atMostOneActiveAttempt.after",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 221
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 193
     },
     "params": [ {
       "name": "after",
@@ -11984,15 +11984,15 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 221
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 193
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 221
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 193
           },
           "literal": {
             "enum": {
@@ -12003,14 +12003,14 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 221
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 193
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 221
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 193
               },
               "var": "after"
             },
@@ -12022,8 +12022,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord.monitors.atMostOneActiveAttempt.next",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 219
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 191
     },
     "params": [ {
       "name": "active",
@@ -12043,21 +12043,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 220
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 192
       },
       "call": {
         "function": "temporal.features.activity.standalone.system.ActivityRecord$.states$.countActive",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 220
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 192
           },
           "var": "active"
         }, {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 220
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 192
           },
           "var": "after"
         } ]
@@ -12066,8 +12066,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord.monitors.atMostOneActiveAttempt.violated",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 221
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 193
     },
     "params": [ {
       "name": "active",
@@ -12077,22 +12077,22 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 221
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 193
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 221
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 193
           },
           "var": "active"
         },
         "right": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 221
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 193
           },
           "literal": {
             "enum": {
@@ -12106,8 +12106,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord.monitors.terminalFinality.next",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 224
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 196
     },
     "params": [ {
       "name": "f",
@@ -12127,21 +12127,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 225
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 197
       },
       "call": {
         "function": "temporal.features.activity.standalone.system.ActivityRecord$.states$.finality",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 225
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 197
           },
           "var": "f"
         }, {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 225
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 197
           },
           "var": "after"
         } ]
@@ -12150,8 +12150,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.ActivityRecord.monitors.terminalFinality.violated",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 226
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 198
     },
     "params": [ {
       "name": "finality",
@@ -12161,22 +12161,22 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 226
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 198
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 226
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 198
           },
           "var": "finality"
         },
         "right": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 226
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 198
           },
           "literal": {
             "enum": {
@@ -12190,8 +12190,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.HeldDispatch$.effects$.admitCommitted",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 406
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 46
     },
     "params": [ {
       "name": "s",
@@ -12201,21 +12201,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 407
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 47
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 407
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 47
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 411
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 51
               },
               "literal": {
                 "enum": {
@@ -12225,29 +12225,29 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 408
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 48
               },
               "call": {
                 "function": "temporal.features.activity.standalone.system.ActivityRecord$.states$.admitted",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 408
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 48
                   },
                   "var": "s"
                 } ]
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 409
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 49
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 409
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 49
                   },
                   "literal": {
                     "enum": {
@@ -12257,8 +12257,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 410
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 50
                   },
                   "literal": {
                     "enum": {
@@ -12270,8 +12270,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 407
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 47
               },
               "literal": {
                 "text": ""
@@ -12284,8 +12284,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.HeldDispatch$.refinement$.toProduct",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 402
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 42
     },
     "params": [ {
       "name": "s",
@@ -12295,15 +12295,15 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 402
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 42
       },
       "call": {
         "function": "temporal.features.activity.standalone.system.ActivityRecord$.refinement$.toProduct",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 402
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 42
           },
           "var": "s"
         } ]
@@ -12312,8 +12312,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.HeldDispatch$.refinement$.visible",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 403
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 43
     },
     "params": [ {
       "name": "f",
@@ -12323,15 +12323,15 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 403
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 43
       },
       "call": {
         "function": "temporal.features.activity.standalone.system.ActivityRecord$.refinement$.visible",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 403
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 43
           },
           "var": "f"
         } ]
@@ -12340,8 +12340,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.LostStartAnswer$.effects$.loseResponse",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 492
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 132
     },
     "params": [ {
       "name": "s",
@@ -12351,21 +12351,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 492
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 132
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 493
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 133
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 499
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 139
               },
               "literal": {
                 "enum": {
@@ -12375,28 +12375,28 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 494
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 134
               },
               "construct": {
                 "type": "temporal.features.activity.standalone.system.AdmissionResponseState",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 495
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 135
                   },
                   "call": {
                     "function": "temporal.features.activity.standalone.system.ActivityRecord$.states$.admitted",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                        "line": 495
+                        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                        "line": 135
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                            "line": 495
+                            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                            "line": 135
                           },
                           "var": "s"
                         },
@@ -12406,8 +12406,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 496
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 136
                   },
                   "literal": {
                     "bool": false
@@ -12416,14 +12416,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 498
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 138
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 498
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 138
                   },
                   "literal": {
                     "enum": {
@@ -12435,8 +12435,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 493
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 133
               },
               "literal": {
                 "text": ""
@@ -12446,15 +12446,15 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 500
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 140
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 500
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 140
               },
               "literal": {
                 "enum": {
@@ -12464,14 +12464,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 500
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 140
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 500
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 140
                   },
                   "var": "s"
                 },
@@ -12479,8 +12479,8 @@
                   "name": "lossAvailable",
                   "value": {
                     "position": {
-                      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                      "line": 500
+                      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                      "line": 140
                     },
                     "literal": {
                       "bool": false
@@ -12490,14 +12490,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 500
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 140
               },
               "list": { }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 500
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 140
               },
               "literal": {
                 "text": "the durable update failed before its answer was lost"
@@ -12511,8 +12511,8 @@
   }, {
     "name": "temporal.features.activity.standalone.system.LostStartAnswer$.effects$.sendDispatch",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 490
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 130
     },
     "params": [ {
       "name": "s",
@@ -12522,21 +12522,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 490
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 130
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 490
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 130
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 490
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 130
               },
               "literal": {
                 "enum": {
@@ -12546,20 +12546,20 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 490
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 130
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 490
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 130
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 490
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 130
                   },
                   "literal": {
                     "enum": {
@@ -12571,8 +12571,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 490
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 130
               },
               "literal": {
                 "text": ""
@@ -12605,7 +12605,7 @@
     "name": "pause",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 81
+      "line": 93
     },
     "actor": "client",
     "on": "activity",
@@ -12615,7 +12615,7 @@
     "name": "requestCancel",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 83
+      "line": 95
     },
     "actor": "client",
     "on": "activity",
@@ -12625,7 +12625,7 @@
     "name": "reset",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 85
+      "line": 97
     },
     "actor": "client",
     "inputs": [ {
@@ -12641,7 +12641,7 @@
     "name": "start",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 70
+      "line": 82
     },
     "actor": "client",
     "inputs": [ {
@@ -12681,7 +12681,7 @@
     "name": "terminate",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 84
+      "line": 96
     },
     "actor": "client",
     "on": "activity",
@@ -12691,7 +12691,7 @@
     "name": "unpause",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 82
+      "line": 94
     },
     "actor": "client",
     "on": "activity",
@@ -12701,7 +12701,7 @@
     "name": "respondCanceledByID",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 94
+      "line": 106
     },
     "actor": "service",
     "on": "activity"
@@ -12710,7 +12710,7 @@
     "name": "respondCompletedByID",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 88
+      "line": 100
     },
     "actor": "service",
     "on": "activity"
@@ -12719,7 +12719,7 @@
     "name": "respondFailedByID",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 89
+      "line": 101
     },
     "actor": "service",
     "inputs": [ {
@@ -12750,8 +12750,8 @@
     "id": "temporal.features.activity.standalone.system.history.answerMatching",
     "name": "answerMatching",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 107
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 82
     },
     "actor": "system",
     "internal": true
@@ -12759,8 +12759,8 @@
     "id": "temporal.features.activity.standalone.system.history.dispatch",
     "name": "dispatch",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 104
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 79
     },
     "actor": "system",
     "internal": true
@@ -13110,8 +13110,8 @@
     "family": "temporal.features.activity.standalone.system",
     "name": "heldDispatch",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 392
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 32
     },
     "entity": "activity",
     "stateType": "temporal.features.activity.standalone.system.AdmissionState",
@@ -13119,15 +13119,15 @@
     "factType": "temporal.features.activity.standalone.system.AdmissionFact",
     "starts": [ {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 121
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 93
       },
       "construct": {
         "type": "temporal.features.activity.standalone.system.AdmissionState",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 121
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 93
           },
           "literal": {
             "enum": {
@@ -13137,8 +13137,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 121
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 93
           },
           "literal": {
             "enum": {
@@ -13148,8 +13148,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 121
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 93
           },
           "literal": {
             "enum": {
@@ -13162,8 +13162,8 @@
     } ],
     "ends": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 396
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 36
       },
       "lambda": {
         "params": [ {
@@ -13174,15 +13174,15 @@
         } ],
         "body": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 396
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 36
           },
           "call": {
             "function": "temporal.features.activity.standalone.system.ActivityRecord$.end",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 396
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 36
               },
               "var": "s"
             } ]
@@ -13194,29 +13194,29 @@
       "action": "temporal.features.activity.standalone.system.history.dispatch",
       "function": "heldDispatch.rules.dispatch",
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 421
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 61
       }
     }, {
       "action": "temporal.features.activity.standalone.client.pause",
       "function": "heldDispatch.rules.pause",
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 424
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 64
       }
     }, {
       "action": "temporal.features.activity.worker.poll",
       "function": "heldDispatch.rules.poll",
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 428
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 68
       }
     }, {
       "action": "temporal.features.activity.standalone.system.history.answerMatching",
       "function": "heldDispatch.rules.answerMatching",
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 438
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 78
       }
     } ],
     "evidence": "heldDispatch.evidence",
@@ -13230,8 +13230,8 @@
     "family": "temporal.features.activity.standalone.system",
     "name": "lostStartAnswer",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 482
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 122
     },
     "entity": "activity",
     "stateType": "temporal.features.activity.standalone.system.AdmissionResponseState",
@@ -13239,22 +13239,22 @@
     "factType": "temporal.features.activity.standalone.system.AdmissionResponseFact",
     "starts": [ {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 486
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 126
       },
       "construct": {
         "type": "temporal.features.activity.standalone.system.AdmissionResponseState",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 121
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 93
           },
           "construct": {
             "type": "temporal.features.activity.standalone.system.AdmissionState",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 121
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 93
               },
               "literal": {
                 "enum": {
@@ -13264,8 +13264,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 121
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 93
               },
               "literal": {
                 "enum": {
@@ -13275,8 +13275,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 121
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 93
               },
               "literal": {
                 "enum": {
@@ -13288,8 +13288,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 486
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 126
           },
           "literal": {
             "bool": true
@@ -13299,8 +13299,8 @@
     } ],
     "ends": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 487
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 127
       },
       "lambda": {
         "params": [ {
@@ -13311,21 +13311,21 @@
         } ],
         "body": {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 487
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 127
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 487
+                "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                "line": 127
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                    "line": 487
+                    "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+                    "line": 127
                   },
                   "var": "s"
                 },
@@ -13340,15 +13340,15 @@
       "action": "temporal.features.activity.standalone.system.history.dispatch",
       "function": "lostStartAnswer.rules.dispatch",
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 506
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 146
       }
     }, {
       "action": "temporal.foundations.taskqueue.fault.ackLoss",
       "function": "lostStartAnswer.rules.ackLoss",
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 509
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 149
       }
     } ],
     "evidence": "lostStartAnswer.evidence"
@@ -13357,16 +13357,16 @@
     "id": "temporal.features.activity.standalone.system.ActivityRecord.monitors.atMostOneActiveAttempt",
     "name": "atMostOneActiveAttempt",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 218
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 190
     },
     "state": {
       "named": "temporal.features.activity.standalone.system.Active"
     },
     "initial": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 219
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 191
       },
       "literal": {
         "enum": {
@@ -13382,16 +13382,16 @@
     "id": "temporal.features.activity.standalone.system.ActivityRecord.monitors.terminalFinality",
     "name": "terminalFinality",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 223
+      "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+      "line": 195
     },
     "state": {
       "named": "temporal.features.activity.standalone.system.Finality"
     },
     "initial": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 224
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 196
       },
       "literal": {
         "enum": {
@@ -13408,8 +13408,8 @@
     "machine": "heldDispatch",
     "name": "staleDeliveryRejected",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 446
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 86
     },
     "whenClass": {
       "action": "temporal.features.activity.worker.poll"
@@ -13419,8 +13419,8 @@
     "machine": "lostStartAnswer",
     "name": "committedDespiteLostResponse",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 516
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 156
     },
     "whenClass": {
       "action": "temporal.foundations.taskqueue.fault.ackLoss"
@@ -13431,20 +13431,20 @@
     "machine": "heldDispatch",
     "name": "heldStaleDelivery",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 450
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 90
     },
     "start": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 121
+        "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+        "line": 93
       },
       "construct": {
         "type": "temporal.features.activity.standalone.system.AdmissionState",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 121
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 93
           },
           "literal": {
             "enum": {
@@ -13454,8 +13454,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 121
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 93
           },
           "literal": {
             "enum": {
@@ -13465,8 +13465,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 121
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 93
           },
           "literal": {
             "enum": {
@@ -13488,27 +13488,27 @@
     "machine": "lostStartAnswer",
     "name": "oneLostResponse",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 522
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 162
     },
     "start": {
       "position": {
-        "file": "model/temporal/features/activity/standalone/system/Record.scala",
-        "line": 486
+        "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+        "line": 126
       },
       "construct": {
         "type": "temporal.features.activity.standalone.system.AdmissionResponseState",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 121
+            "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+            "line": 93
           },
           "construct": {
             "type": "temporal.features.activity.standalone.system.AdmissionState",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 121
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 93
               },
               "literal": {
                 "enum": {
@@ -13518,8 +13518,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 121
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 93
               },
               "literal": {
                 "enum": {
@@ -13529,8 +13529,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/activity/standalone/system/Record.scala",
-                "line": 121
+                "file": "model/temporal/features/activity/standalone/system/Dispatch.scala",
+                "line": 93
               },
               "literal": {
                 "enum": {
@@ -13542,8 +13542,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/activity/standalone/system/Record.scala",
-            "line": 486
+            "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+            "line": 126
           },
           "literal": {
             "bool": true
@@ -13560,8 +13560,8 @@
   "queries": [ {
     "name": "heldDispatch.staleDelivery",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 456
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 96
     },
     "form": "FORM_FIND",
     "property": {
@@ -13597,8 +13597,8 @@
   }, {
     "name": "lostStartAnswer.committed",
     "position": {
-      "file": "model/temporal/features/activity/standalone/system/Record.scala",
-      "line": 524
+      "file": "model/temporal/features/activity/standalone/system/DispatchRaces.scala",
+      "line": 164
     },
     "form": "FORM_FIND",
     "property": {
@@ -13629,7 +13629,7 @@
     "name": "heldDelivery",
     "position": {
       "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-      "line": 1088
+      "line": 1095
     },
     "machine": "heldDispatch",
     "producer": "temporal.features.activity.standalone.system.testpilot",
@@ -13724,7 +13724,7 @@
       "id": "temporal.features.activity.standalone.system.evidence.statusPaused",
       "position": {
         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-        "line": 1102
+        "line": 1109
       },
       "records": "statusPaused",
       "source": "temporal.features.activity.standalone.system.source.statusPaused",
@@ -13738,7 +13738,7 @@
       "id": "temporal.features.activity.standalone.system.evidence.admissionRejected",
       "position": {
         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-        "line": 1065
+        "line": 1072
       },
       "records": "admissionRejected",
       "source": "temporal.features.activity.standalone.system.source.record",
@@ -13749,13 +13749,13 @@
         "key": {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1073
+            "line": 1080
           },
           "path": {
             "of": {
               "position": {
                 "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                "line": 1073
+                "line": 1080
               },
               "projected": { }
             },
@@ -13765,7 +13765,7 @@
         "guard": {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1077
+            "line": 1084
           },
           "all": {
             "operands": [ {
@@ -13803,19 +13803,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                "line": 1044
+                "line": 1051
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1044
+                    "line": 1051
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                        "line": 1044
+                        "line": 1051
                       },
                       "projected": { }
                     },
@@ -13825,7 +13825,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1044
+                    "line": 1051
                   },
                   "literal": {
                     "enumName": "DELIVERY_ADMISSION_DECISION_REJECTED"
@@ -13857,7 +13857,7 @@
       "id": "temporal.features.activity.standalone.system.evidence.attemptAdmitted",
       "position": {
         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-        "line": 1065
+        "line": 1072
       },
       "records": "attemptAdmitted",
       "source": "temporal.features.activity.standalone.system.source.record",
@@ -13868,13 +13868,13 @@
         "key": {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1073
+            "line": 1080
           },
           "path": {
             "of": {
               "position": {
                 "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                "line": 1073
+                "line": 1080
               },
               "projected": { }
             },
@@ -13884,7 +13884,7 @@
         "guard": {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1077
+            "line": 1084
           },
           "all": {
             "operands": [ {
@@ -13922,19 +13922,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                "line": 1044
+                "line": 1051
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1044
+                    "line": 1051
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                        "line": 1044
+                        "line": 1051
                       },
                       "projected": { }
                     },
@@ -13944,7 +13944,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1044
+                    "line": 1051
                   },
                   "literal": {
                     "enumName": "DELIVERY_ADMISSION_DECISION_ADMITTED"
@@ -13994,7 +13994,7 @@
       "id": "hold-dispatch",
       "position": {
         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-        "line": 1034
+        "line": 1041
       },
       "holdDispatched": {
         "step": {
@@ -14013,7 +14013,7 @@
       "items": [ {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1092
+          "line": 1099
         },
         "command": {
           "id": "start-activity",
@@ -14103,12 +14103,12 @@
       }, {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1093
+          "line": 1100
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1093
+            "line": 1100
           },
           "step": {
             "action": "temporal.features.activity.standalone.system.history.dispatch"
@@ -14125,12 +14125,12 @@
       }, {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1094
+          "line": 1101
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1094
+            "line": 1101
           },
           "step": {
             "action": "temporal.features.activity.standalone.client.pause"
@@ -14169,13 +14169,13 @@
       }, {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1095
+          "line": 1102
         },
         "command": {
           "id": "await-paused",
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1095
+            "line": 1102
           },
           "poll": {
             "evidence": "temporal.features.activity.standalone.system.evidence.statusPaused",
@@ -14202,19 +14202,19 @@
             "until": {
               "position": {
                 "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                "line": 1095
+                "line": 1102
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1095
+                    "line": 1102
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                        "line": 1095
+                        "line": 1102
                       },
                       "projected": { }
                     },
@@ -14224,7 +14224,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1095
+                    "line": 1102
                   },
                   "literal": {
                     "enumName": "ACTIVITY_EXECUTION_STATUS_PAUSED"
@@ -14240,12 +14240,12 @@
       }, {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1096
+          "line": 1103
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1096
+            "line": 1103
           },
           "step": {
             "action": "temporal.features.activity.worker.poll"
@@ -14254,7 +14254,7 @@
             "id": "release-dispatch",
             "position": {
               "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-              "line": 1040
+              "line": 1047
             },
             "release": "hold-dispatch",
             "closes": [ "temporal.features.activity.standalone.system.evidence.attemptAdmitted" ]
@@ -14263,7 +14263,7 @@
       }, {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1097
+          "line": 1104
         },
         "command": {
           "id": "read-attempt-count",
@@ -14578,7 +14578,7 @@
     "name": "lostAdmissionResponse",
     "position": {
       "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-      "line": 1118
+      "line": 1125
     },
     "machine": "lostStartAnswer",
     "producer": "temporal.features.activity.standalone.system.testpilot",
@@ -14673,7 +14673,7 @@
       "id": "temporal.features.activity.standalone.system.evidence.attemptAdmitted",
       "position": {
         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-        "line": 1065
+        "line": 1072
       },
       "records": "attemptAdmitted",
       "source": "temporal.features.activity.standalone.system.source.record",
@@ -14684,13 +14684,13 @@
         "key": {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1073
+            "line": 1080
           },
           "path": {
             "of": {
               "position": {
                 "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                "line": 1073
+                "line": 1080
               },
               "projected": { }
             },
@@ -14700,7 +14700,7 @@
         "guard": {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1077
+            "line": 1084
           },
           "all": {
             "operands": [ {
@@ -14738,19 +14738,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                "line": 1044
+                "line": 1051
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1044
+                    "line": 1051
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                        "line": 1044
+                        "line": 1051
                       },
                       "projected": { }
                     },
@@ -14760,7 +14760,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1044
+                    "line": 1051
                   },
                   "literal": {
                     "enumName": "DELIVERY_ADMISSION_DECISION_ADMITTED"
@@ -14770,19 +14770,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                "line": 1135
+                "line": 1142
               },
               "greater": {
                 "left": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1135
+                    "line": 1142
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                        "line": 1135
+                        "line": 1142
                       },
                       "projected": { }
                     },
@@ -14792,7 +14792,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-                    "line": 1135
+                    "line": 1142
                   },
                   "literal": {
                     "number": "0"
@@ -14849,7 +14849,7 @@
       "id": "hold-dispatch",
       "position": {
         "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-        "line": 1034
+        "line": 1041
       },
       "holdDispatched": {
         "step": {
@@ -14868,7 +14868,7 @@
       "items": [ {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1122
+          "line": 1129
         },
         "command": {
           "id": "start-activity",
@@ -14958,12 +14958,12 @@
       }, {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1123
+          "line": 1130
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1123
+            "line": 1130
           },
           "step": {
             "action": "temporal.features.activity.standalone.system.history.dispatch"
@@ -14980,12 +14980,12 @@
       }, {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1124
+          "line": 1131
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-            "line": 1124
+            "line": 1131
           },
           "step": {
             "action": "temporal.foundations.taskqueue.fault.ackLoss"
@@ -14994,7 +14994,7 @@
             "id": "release-dispatch",
             "position": {
               "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-              "line": 1115
+              "line": 1122
             },
             "fault": {
               "role": "temporal.task-queue",
@@ -15005,7 +15005,7 @@
       }, {
         "position": {
           "file": "model/temporal/features/activity/standalone/system/Realization.scala",
-          "line": 1125
+          "line": 1132
         },
         "command": {
           "id": "read-attempt-count",

@@ -184,7 +184,7 @@
       "model": "activity-standalone-record.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "competingTimeouts",
         "Name": "competingTimers.scheduleToCloseFirst"
       },
       "standing": "no-realization"
@@ -193,7 +193,7 @@
       "model": "activity-standalone-record.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "competingTimeouts",
         "Name": "competingTimers.scheduleToStartFirst"
       },
       "standing": "no-realization"
@@ -1112,7 +1112,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "cancellation",
         "Name": "cancel"
       },
       "standing": "unsupported",
@@ -1130,7 +1130,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "cancellation",
         "Name": "cancelRequest"
       },
       "standing": "unsupported",
@@ -1157,7 +1157,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "completion",
         "Name": "completion"
       },
       "standing": "lowered",
@@ -1210,7 +1210,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "dispatchEligibility",
         "Name": "delayedAttemptsAreNotDispatched"
       },
       "standing": "nothing-to-realize"
@@ -1358,7 +1358,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "retryFailures",
         "Name": "nonRetryableFailure"
       },
       "standing": "lowered",
@@ -1380,7 +1380,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "pausing",
         "Name": "pauseResume"
       },
       "standing": "lowered",
@@ -1492,7 +1492,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "retryFailures",
         "Name": "retry"
       },
       "standing": "lowered",
@@ -1561,7 +1561,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "retryFailures",
         "Name": "retryExhaustionByFailures"
       },
       "standing": "nothing-to-realize"
@@ -1570,7 +1570,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "timeouts",
         "Name": "scheduleToStartTimeout"
       },
       "standing": "lowered",
@@ -1593,7 +1593,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "dispatchEligibility",
         "Name": "scheduleToStartWaitsForDispatch"
       },
       "standing": "nothing-to-realize"
@@ -1625,7 +1625,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "dispatchEligibility",
         "Name": "startDelayedCompletion"
       },
       "standing": "lowered",
@@ -1647,7 +1647,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "timeouts",
         "Name": "startToCloseTimeout"
       },
       "standing": "unsupported",

@@ -681,15 +681,23 @@ features/
         Product.scala          Product Phase, State and Fact, the phase accessors; ActivityProduct
       system/
         System.scala                System Phase, Dispatch, State and Fact; ActivitySystem, the lifecycle machine
+        Completion.scala            completion on the unchanged lifecycle
+        RetryFailures.scala         failure retry and exhaustion
         RetryTimeouts.scala         TimeoutRetry, the derived attempt-timeout retry model
+        Cancellation.scala          cancellation request and worker settlement
+        Pausing.scala               completion after pause and resume
+        Timeouts.scala              terminal deadlines; record-only CompetingTimeouts without a realization
         Heartbeat.scala             derived heartbeat completion, retry and exhaustion models
         ResponseByID.scala          ByIDCompletion, ByIDFailure, ByIDCancellation
         Reset.scala                 ResetSettlement, ResetKeepingPause, DeferredReset
         Dispatch.scala              the dispatch protocol: ActivityRecord, TrustingActivityRecord
+        DispatchEligibility.scala   start eligibility and delayed completion
         DispatchRaces.scala         held delivery and lost start responses: HeldDispatch, LostStartAnswer
         DispatchWithTaskQueue.scala the queue compositions: RecordMember, TrustingRecordMember, RecordOverQueue, …
         DispatchWithWorker.scala    StandaloneActivityState; ActivityWorker, StandaloneActivity
-        Realization.scala           the System realizations: standalone, heldDelivery, lostAdmissionResponse
+        Realization.scala           the System realizations: standalone, heldDelivery, lostAdmissionResponse;
+                                    CompletionExecution, RetryFailuresExecution, CancellationExecution,
+                                    PausingExecution, DispatchExecution, TimeoutsExecution
   nexus/
     Nexus.scala                shared Reply, Resolution, Outcome and signature; no form dependency
     product/

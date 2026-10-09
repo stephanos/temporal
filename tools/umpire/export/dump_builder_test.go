@@ -275,7 +275,7 @@ func TestMachineDumpCanonicalStateCostOnCompleteSystem(t *testing.T) {
 	old, oldCounts := measure(func() (map[string]any, error) { return s.noStateReuseDumpOf(x, i, mm) }, false)
 	current, currentCounts := measure(func() (map[string]any, error) { return s.dumpOf(x, i, mm) }, true)
 	require.True(t, slices.Equal(old, current), "complete owner canonical JSON bytes")
-	require.Equal(t, map[string]int{"starts": 1, "reach": 1670, "ends": 885, "classes": 119, "rows": 1670, "rowClassCells": 198730, "results": 22812, "claimRows": 1670, "claimClassCells": 198730, "claimResults": 22812, "claimReadings": 889668}, oldCounts)
+	require.Equal(t, map[string]int{"starts": 1, "reach": 1670, "ends": 885, "classes": 119, "rows": 1670, "rowClassCells": 198730, "results": 22812, "claimRows": 1670, "claimClassCells": 198730, "claimResults": 22812, "claimReadings": 661548}, oldCounts)
 	require.Equal(t, oldCounts, currentCounts)
 	require.True(t, proto.Equal(pristine, s.Model))
 	after, err := proto.MarshalOptions{Deterministic: true}.Marshal(s.Model)

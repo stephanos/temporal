@@ -145,6 +145,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       prefix + "TimeoutRetry$.queries",
       prefix + "RetryAfterTimeout",
       prefix + "ActivitySystem$.queries",
+      prefix + "RetryFailures$.queries",
       prefix + "Standalone"
     )
     ran.orFail()
