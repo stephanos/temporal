@@ -2,7 +2,7 @@ import pathlib
 import subprocess
 import sys
 
-ROOT = pathlib.Path('/Users/stephan/Workspace/skunkworks/gomad/temporal').resolve()
+ROOT = pathlib.Path(__file__).resolve().parents[4]
 if pathlib.Path.cwd().resolve() != ROOT:
     raise SystemExit('Wrong workspace')
 RUNNER = pathlib.Path(__file__).with_name('run_gate.py')

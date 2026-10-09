@@ -8,7 +8,7 @@ import subprocess
 import sys
 import time
 
-ROOT = pathlib.Path('/Users/stephan/Workspace/skunkworks/gomad/temporal').resolve()
+ROOT = pathlib.Path(__file__).resolve().parents[4]
 OUT = pathlib.Path(__file__).resolve().parent
 GO = '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go'
 LINT = '/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0'
@@ -94,4 +94,6 @@ record['source_unchanged'] = before == after
 record['orchestration_unchanged'] = scripts_before == scripts_after
 receipt.write_text(json.dumps(record, indent=2) + '\n')
 print(json.dumps({key: record[key] for key in ['command', 'exit_code', 'elapsed_seconds', 'source_unchanged', 'orchestration_unchanged', 'terminal', 'timed_out']}))
+if not record['source_unchanged'] or not record['orchestration_unchanged']:
+    raise SystemExit(125)
 sys.exit(124 if timed_out else status)
