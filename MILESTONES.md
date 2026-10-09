@@ -116,7 +116,8 @@ also holds batch-close gates and serializes work that shares a regeneration base
 
 ### Batch 1, structural moves: fn-142 → fn-143 → fn-145
 
-Starts from the current `umpire` baseline. The activity batch's joined tasks are in the tree but
+Starts from the current `umpire` baseline, which includes NewProducer's shared-table speedup
+(68.7 s → 9.6 s per call). The activity batch's joined tasks are in the tree but
 production `model/ir` and `model/cases` were not regenerated for them, so the equivalence gate compares
 scratch lifts before and after the moves, not the checked-in IR, and fn-145.4's regeneration also
 carries the joined activity changes; attribute those to their activity tasks. All three change
@@ -337,7 +338,7 @@ half of the realization lifter's lines net of what it adds.
 ### Batch 5, activity model: fn-128 → fn-138 → fn-129
 
 Moved last on 2026-10-08 at the owner's request: starts after batch 4 closes. Its done and joined
-tasks (fn-128.1–.5, fn-138, fn-129.1–.3) stay in the tree; the remaining tasks re-read their files
+tasks (fn-128.1–.5, fn-138, fn-129.1–.2 and fn-129.3's joined source) stay in the tree; the remaining tasks re-read their files
 and re-anchor to the moves, witness syntax, fault declarations, schema and Testpilot format left by
 batches 1 to 4. One regeneration, one gate run, and one live run serve fn-128.6 and fn-129.5.
 Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Each task declares its IR change, which is checked at
@@ -404,7 +405,7 @@ Runs after fn-138. Tasks run in order.
 | --- | --- | --- |
 | fn-129.1 | ✅ done | Typed heartbeat protocol; canonical lint, native/six-root checks, three fresh scratch Case recordings/replays and Profile negatives pass |
 | fn-129.2 | ✅ done | Independent by-ID service settlement; four fresh Case recordings replay exactly, three candidate native Quick commands pass; by-ID witnesses expect `explanationsDisagree` |
-| fn-129.3 | ⬜ todo | Reset with `keepPaused` and deferred apply; precedence Property extended; realized |
+| fn-129.3 | 🔄 in progress | Reset with `keepPaused` and deferred settlement joined: 65 Queries, `deferredResetCompletes` lowers and prepares, reset-aware laws via `overriding(…, of = …)`; open: direct `keepPaused` live Case (lowering refuses a reset indistinguishable from the pause before it) |
 | fn-129.4 | ⬜ todo | Exploration on the activity's `find` Queries |
 | fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
 
