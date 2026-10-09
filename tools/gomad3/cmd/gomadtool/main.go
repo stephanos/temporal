@@ -29,7 +29,9 @@ func main() {
 
 func run(arguments []string, stdout, stderr io.Writer) int {
 	if len(arguments) == 0 {
-		fmt.Fprintln(stderr, usage)
+		if _, writeErr := fmt.Fprintln(stderr, usage); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	switch arguments[0] {
@@ -70,34 +72,46 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 	case "version-generate":
 		return runVersionGenerate(arguments[1:], stderr)
 	default:
-		fmt.Fprintln(stderr, usage)
+		if _, writeErr := fmt.Fprintln(stderr, usage); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 }
 
 func runChecked(arguments []string, stdout, stderr io.Writer) int {
 	if len(arguments) < 6 || arguments[4] != "--" {
-		fmt.Fprintln(stderr, "usage: gomadtool checked-run <seconds> <expected-status> <label> <result-dir> -- <command> [args...]")
+		if _, writeErr := fmt.Fprintln(stderr, "usage: gomadtool checked-run <seconds> <expected-status> <label> <result-dir> -- <command> [args...]"); writeErr != nil {
+			return 125
+		}
 		return 125
 	}
 	seconds, secondsErr := strconv.ParseUint(arguments[0], 10, 31)
 	expected, expectedErr := strconv.Atoi(arguments[1])
 	if secondsErr != nil || seconds == 0 || expectedErr != nil || expected < 0 || expected > 255 || arguments[2] == "" {
-		fmt.Fprintln(stderr, "gomad3 checked runner requires a positive timeout and numeric expected status")
+		if _, writeErr := fmt.Fprintln(stderr, "gomad3 checked runner requires a positive timeout and numeric expected status"); writeErr != nil {
+			return 125
+		}
 		return 125
 	}
 	resultRoot, err := filepath.Abs(arguments[3])
 	if err != nil || resultRoot == string(filepath.Separator) {
-		fmt.Fprintf(stderr, "gomad3 checked runner result directory is invalid: %v\n", err)
+		if _, writeErr := fmt.Fprintf(stderr, "gomad3 checked runner result directory is invalid: %v\n", err); writeErr != nil {
+			return 125
+		}
 		return 125
 	}
 	if err := os.MkdirAll(resultRoot, 0o700); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	workingDirectory, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	executed, runErr := hostexec.Run(context.Background(), hostexec.Request{
@@ -111,7 +125,9 @@ func runChecked(arguments []string, stdout, stderr io.Writer) int {
 		actual = 128 + executed.SignalNumber
 	}
 	if runErr != nil {
-		fmt.Fprintln(stderr, runErr)
+		if _, writeErr := fmt.Fprintln(stderr, runErr); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	files := map[string][]byte{
@@ -122,23 +138,34 @@ func runChecked(arguments []string, stdout, stderr io.Writer) int {
 	}
 	for name, contents := range files {
 		if err := os.WriteFile(filepath.Join(resultRoot, name), contents, 0o600); err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 1
+			}
 			return 1
 		}
 	}
 	if actual == expected {
 		if expected == 124 && !executed.WatchdogTimeout {
-			fmt.Fprintf(stderr, "gomad3 process failed: %s: status 124 was not a timeout\n", arguments[2])
+			if _, writeErr := fmt.Fprintf(stderr, "gomad3 process failed: %s: status 124 was not a timeout\n", arguments[2]); writeErr != nil {
+				return 1
+			}
 			return 1
 		}
 		return 0
 	}
-	fmt.Fprintf(stderr, "gomad3 process failed: %s: status %d, want %d\n", arguments[2], actual, expected)
+	_, outputErr := fmt.Fprintf(stderr, "gomad3 process failed: %s: status %d, want %d\n", arguments[2], actual, expected)
 	if len(executed.Stdout.RawBytes) != 0 {
-		fmt.Fprintf(stderr, "--- stdout ---\n%s", executed.Stdout.RawBytes)
+		if _, err := fmt.Fprintf(stderr, "--- stdout ---\n%s", executed.Stdout.RawBytes); outputErr == nil {
+			outputErr = err
+		}
 	}
 	if len(executed.Stderr.RawBytes) != 0 {
-		fmt.Fprintf(stderr, "--- stderr ---\n%s", executed.Stderr.RawBytes)
+		if _, err := fmt.Fprintf(stderr, "--- stderr ---\n%s", executed.Stderr.RawBytes); outputErr == nil {
+			outputErr = err
+		}
+	}
+	if outputErr != nil {
+		return 1
 	}
 	return 1
 }
@@ -172,7 +199,9 @@ func runPatchValidate(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if err := toolchainbuild.ValidatePatch(config); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if _, err := fmt.Fprintln(stdout, "gomad3 patch and overlay inputs are valid"); err != nil {
@@ -189,7 +218,9 @@ func runScriptValidate(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if err := validation.Validate(*root); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if _, err := fmt.Fprintln(stdout, "gomad3 script ownership is valid"); err != nil {
@@ -204,7 +235,9 @@ func runPatchMaterialize(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if err := toolchainbuild.MaterializePatch(context.Background(), config); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if _, err := fmt.Fprintln(stdout, "gomad3 patch materialized"); err != nil {
@@ -232,12 +265,16 @@ func runPatchRegenerate(arguments []string, stdout, stderr io.Writer) int {
 		var err error
 		config.Gofmt, err = bootstrapGofmt(bootstrapGo)
 		if err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 1
+			}
 			return 1
 		}
 	}
 	if err := toolchainbuild.RegeneratePatch(context.Background(), config); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if _, err := fmt.Fprintln(stdout, "gomad3 patch regenerated"); err != nil {
@@ -316,12 +353,16 @@ func runBuildKey(arguments []string, stdout, stderr io.Writer) int {
 	}
 	key, err := toolchainbuild.DeriveBuildKey(input)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		_, writeErr := fmt.Fprintln(stderr, err)
+		status := 2
 		var sourceErr *toolchainbuild.BuildKeySourceError
 		if errors.As(err, &sourceErr) {
-			return 1
+			status = 1
 		}
-		return 2
+		if writeErr != nil {
+			return status
+		}
+		return status
 	}
 	if _, err := fmt.Fprintln(stdout, key); err != nil {
 		return 3
@@ -344,27 +385,38 @@ func runTest(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if err := toolchainbuild.ValidatePatch(toolchainbuild.PatchSpec{Root: config.Root, Patch: patch, Overlay: overlay}); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	report, err := conformance.Run(context.Background(), config)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		_, outputErr := fmt.Fprintln(stderr, err)
 		for _, result := range report.Cases {
 			if !result.Passed {
 				if len(result.Stdout) != 0 {
-					fmt.Fprintf(stderr, "--- stdout ---\n%s", result.Stdout)
+					if _, err := fmt.Fprintf(stderr, "--- stdout ---\n%s", result.Stdout); outputErr == nil {
+						outputErr = err
+					}
 				}
 				if len(result.Stderr) != 0 {
-					fmt.Fprintf(stderr, "--- stderr ---\n%s", result.Stderr)
+					if _, err := fmt.Fprintf(stderr, "--- stderr ---\n%s", result.Stderr); outputErr == nil {
+						outputErr = err
+					}
 				}
 			}
+		}
+		if outputErr != nil {
+			return 1
 		}
 		return 1
 	}
 	mode, err := conformance.Resolve(config.Mode)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if _, err := fmt.Fprintln(stdout, mode.Success); err != nil {
@@ -390,14 +442,18 @@ func runToolchainBuild(arguments []string, stdout, stderr io.Writer) int {
 	if config.BootstrapGo == "" {
 		config.BootstrapGo, err = exec.LookPath("go")
 		if err != nil {
-			fmt.Fprintln(stderr, "gomad3 requires an installed bootstrap Go; set GOMAD3_BOOTSTRAP_GO")
+			if _, writeErr := fmt.Fprintln(stderr, "gomad3 requires an installed bootstrap Go; set GOMAD3_BOOTSTRAP_GO"); writeErr != nil {
+				return 1
+			}
 			return 1
 		}
 	}
 	if config.BuildBash == "" {
 		config.BuildBash, err = exec.LookPath("bash")
 		if err != nil {
-			fmt.Fprintln(stderr, "gomad3 requires Bash to run upstream make.bash")
+			if _, writeErr := fmt.Fprintln(stderr, "gomad3 requires Bash to run upstream make.bash"); writeErr != nil {
+				return 1
+			}
 			return 1
 		}
 	}
@@ -407,12 +463,16 @@ func runToolchainBuild(arguments []string, stdout, stderr io.Writer) int {
 	config.FailurePhase = os.Getenv("GOMAD3_TEST_FAIL_PHASE")
 	result, err := toolchainbuild.Build(context.Background(), config)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		_, writeErr := fmt.Fprintln(stderr, err)
+		status := 1
 		var injected *toolchainbuild.InjectedFailure
 		if errors.As(err, &injected) {
-			return 86
+			status = 86
 		}
-		return 1
+		if writeErr != nil {
+			return status
+		}
+		return status
 	}
 	var outputErr error
 	if result.Waited {

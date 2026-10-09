@@ -26,7 +26,9 @@ func runUpgradeDossier(arguments []string, stdout, stderr io.Writer) int {
 
 	absoluteRoot, err := filepath.Abs(*root)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	outputPath := *output
@@ -38,7 +40,9 @@ func runUpgradeDossier(arguments []string, stdout, stderr io.Writer) int {
 		var found bool
 		baseline, found, err = gitFile(context.Background(), absoluteRoot, *baselineRef, "deterministicio/boundary/manifest.json")
 		if err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 1
+			}
 			return 1
 		}
 		if !found {
@@ -61,7 +65,9 @@ func runUpgradeDossier(arguments []string, stdout, stderr io.Writer) int {
 		CorpusReport:               *corpusReport, Gates: gates, Writer: stdout,
 	})
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if _, err := fmt.Fprintf(stdout, "gomad3 upgrade qualification dossier: %s\n", outputPath); err != nil {

@@ -59,17 +59,23 @@ func runCompatibilityPackDiscover(arguments []string, stdout, stderr io.Writer) 
 	}
 	resolvedRoot, compatibilityRoot, resolvedRequest, err := resolveCompatibilityPackPaths(*root, *compatibilityRootOverride, *requestPath)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	draftBytes, err := readCompatibilityPackFile(resolvedRequest, authoring.MaximumRequestBytes)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	draft, err := authoring.DecodeDraftRequest(draftBytes)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), compatibilityPackTimeout)
@@ -93,11 +99,15 @@ func runCompatibilityPackDiscover(arguments []string, stdout, stderr io.Writer) 
 		return 1
 	}
 	if !pathWithin(compatibilityRoot, resolvedRequest) {
-		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
+		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack"); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if err := authoring.PublishRequest(resolvedRequest, discovered); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if _, err := fmt.Fprintln(stdout, digest); err != nil {
@@ -118,12 +128,16 @@ func runCompatibilityPackReview(arguments []string, stdout, stderr io.Writer) in
 	}
 	_, compatibilityRoot, resolvedRequest, err := resolveCompatibilityPackPaths(*root, *compatibilityRootOverride, *requestPath)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	resolvedOutput, err := resolveBelow(compatibilityPathBase(*root, compatibilityRoot, *compatibilityRootOverride), *outputPath)
 	if err != nil || !pathWithin(compatibilityRoot, resolvedOutput) {
-		fmt.Fprintln(stderr, "compatibility-pack review output must be below internal/compatibilitypack")
+		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack review output must be below internal/compatibilitypack"); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	request, status := readReviewedCompatibilityPackRequest(resolvedRequest, stderr)
@@ -132,7 +146,9 @@ func runCompatibilityPackReview(arguments []string, stdout, stderr io.Writer) in
 	}
 	digest, err := authoring.PublishReview(resolvedOutput, request)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if _, err := fmt.Fprintln(stdout, digest); err != nil {
@@ -154,16 +170,22 @@ func runCompatibilityPackGenerate(arguments []string, stdout, stderr io.Writer) 
 	if *requestPath == "" && *approval == "" {
 		resolvedRoot, err := filepath.Abs(*root)
 		if err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 2
+			}
 			return 2
 		}
 		compatibilityRoot, err := compatibilityRootFor(resolvedRoot, *compatibilityRootOverride)
 		if err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 2
+			}
 			return 2
 		}
 		if err := authoring.Regenerate(compatibilityRoot); err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 1
+			}
 			return 1
 		}
 		if _, err := fmt.Fprintln(stdout, "generated compatibility packs"); err != nil {
@@ -176,7 +198,9 @@ func runCompatibilityPackGenerate(arguments []string, stdout, stderr io.Writer) 
 	}
 	_, compatibilityRoot, resolvedRequest, err := resolveCompatibilityPackPaths(*root, *compatibilityRootOverride, *requestPath)
 	if err != nil || !pathWithin(compatibilityRoot, resolvedRequest) {
-		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
+		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack"); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	request, status := readReviewedCompatibilityPackRequest(resolvedRequest, stderr)
@@ -184,7 +208,9 @@ func runCompatibilityPackGenerate(arguments []string, stdout, stderr io.Writer) 
 		return status
 	}
 	if err := authoring.Generate(compatibilityRoot, request, *approval); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if _, err := fmt.Fprintf(stdout, "generated compatibility pack %s\n", request.ID); err != nil {
@@ -204,12 +230,16 @@ func runCompatibilityPackCheck(arguments []string, stdout, stderr io.Writer) int
 	}
 	resolvedRoot, err := filepath.Abs(*root)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	compatibilityRoot, err := compatibilityRootFor(resolvedRoot, *compatibilityRootOverride)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	check := authoring.Check
@@ -217,14 +247,18 @@ func runCompatibilityPackCheck(arguments []string, stdout, stderr io.Writer) int
 		check = authoring.CheckStagedCopy
 	}
 	if err := check(compatibilityRoot); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	// The repository's own packs are refreshed and qualified through the
 	// table, so it must exist; deleting it must not pass validation.
 	if *compatibilityRootOverride == "" {
 		if err := authoring.CheckWorkingDirectories(compatibilityRoot, !*stagedCopy); err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 1
+			}
 			return 1
 		}
 	}
@@ -256,7 +290,9 @@ func runCompatibilityPackQualify(arguments []string, stdout, stderr io.Writer) i
 	}
 	resolvedRoot, compatibilityRoot, resolvedRequest, err := resolveCompatibilityPackPaths(*root, *compatibilityRootOverride, *requestPath)
 	if err != nil || !pathWithin(compatibilityRoot, resolvedRequest) {
-		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
+		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack"); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	status, outputErr := qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, *workingDirectory, stdout, stderr)
@@ -275,17 +311,23 @@ func runCompatibilityPackQualify(arguments []string, stdout, stderr io.Writer) i
 func qualifyAllCompatibilityPacks(root, override string, stdout, stderr io.Writer) int {
 	resolvedRoot, err := filepath.Abs(root)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	compatibilityRoot, err := compatibilityRootFor(resolvedRoot, override)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	directories, err := authoring.LoadWorkingDirectories(compatibilityRoot)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return compatibilityPackRefreshStatus(err)
+		}
 		return compatibilityPackRefreshStatus(err)
 	}
 	platform := runtime.GOOS + "/" + runtime.GOARCH
@@ -310,7 +352,9 @@ func qualifyAllCompatibilityPacks(root, override string, stdout, stderr io.Write
 		qualified++
 	}
 	if qualified == 0 {
-		fmt.Fprintf(stderr, "no compatibility-pack request names %s\n", platform)
+		if _, writeErr := fmt.Fprintf(stderr, "no compatibility-pack request names %s\n", platform); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if _, err := fmt.Fprintf(stdout, "qualified %d compatibility-pack requests for %s\n", qualified, platform); outputErr == nil {
@@ -425,12 +469,16 @@ func readCompatibilityPackFile(path string, maximum int) ([]byte, error) {
 func readReviewedCompatibilityPackRequest(path string, stderr io.Writer) (authoring.Request, int) {
 	contents, err := readCompatibilityPackFile(path, authoring.MaximumRequestBytes)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return authoring.Request{}, 2
+		}
 		return authoring.Request{}, 2
 	}
 	request, err := authoring.DecodeRequest(contents)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return authoring.Request{}, 2
+		}
 		return authoring.Request{}, 2
 	}
 	return request, 0

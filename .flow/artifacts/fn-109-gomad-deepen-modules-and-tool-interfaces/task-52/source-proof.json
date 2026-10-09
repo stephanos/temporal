@@ -1,0 +1,394 @@
+{
+  "base": "eb82ea59a4db14a19ce07c9ced0ee3f8e4bcddd6",
+  "inventory_reference": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/continuation-20261009/evidence.json#residual59",
+  "files": [
+    {
+      "file": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "original_call_count": 37,
+      "candidate_call_count": 37,
+      "all_fmt_operands_and_order_identical": true,
+      "admitted_writes": 24,
+      "complete_original_bytes_restored_after_removing_only_admitted_checks": true
+    },
+    {
+      "file": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+      "original_call_count": 7,
+      "candidate_call_count": 7,
+      "all_fmt_operands_and_order_identical": true,
+      "admitted_writes": 5,
+      "complete_original_bytes_restored_after_removing_only_admitted_checks": true
+    },
+    {
+      "file": "tools/gomad3/cmd/gomadtool/main.go",
+      "original_call_count": 35,
+      "candidate_call_count": 35,
+      "all_fmt_operands_and_order_identical": true,
+      "admitted_writes": 27,
+      "complete_original_bytes_restored_after_removing_only_admitted_checks": true
+    },
+    {
+      "file": "tools/gomad3/cmd/gomadtool/upgrade.go",
+      "original_call_count": 4,
+      "candidate_call_count": 4,
+      "all_fmt_operands_and_order_identical": true,
+      "admitted_writes": 3,
+      "complete_original_bytes_restored_after_removing_only_admitted_checks": true
+    }
+  ],
+  "checks": [
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 62,
+      "candidate_line": 62,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 67,
+      "candidate_line": 69,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 72,
+      "candidate_line": 76,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 96,
+      "candidate_line": 102,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 100,
+      "candidate_line": 108,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 121,
+      "candidate_line": 131,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 126,
+      "candidate_line": 138,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 135,
+      "candidate_line": 149,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 157,
+      "candidate_line": 173,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 162,
+      "candidate_line": 180,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 166,
+      "candidate_line": 186,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 179,
+      "candidate_line": 201,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 187,
+      "candidate_line": 211,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 207,
+      "candidate_line": 233,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 212,
+      "candidate_line": 240,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 220,
+      "candidate_line": 250,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 227,
+      "candidate_line": 259,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 259,
+      "candidate_line": 293,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 278,
+      "candidate_line": 314,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 283,
+      "candidate_line": 321,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 288,
+      "candidate_line": 328,
+      "form": "compatibilityPackRefreshStatus on both paths"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 313,
+      "candidate_line": 355,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 428,
+      "candidate_line": 472,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "compatibility_pack.go",
+      "base_line": 433,
+      "candidate_line": 479,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "diagnostic.go",
+      "base_line": 21,
+      "candidate_line": 21,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "diagnostic.go",
+      "base_line": 26,
+      "candidate_line": 28,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "diagnostic.go",
+      "base_line": 31,
+      "candidate_line": 35,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "diagnostic.go",
+      "base_line": 36,
+      "candidate_line": 42,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "diagnostic.go",
+      "base_line": 50,
+      "candidate_line": 58,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 32,
+      "candidate_line": 32,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 73,
+      "candidate_line": 75,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 80,
+      "candidate_line": 84,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 86,
+      "candidate_line": 92,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 91,
+      "candidate_line": 99,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 95,
+      "candidate_line": 105,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 100,
+      "candidate_line": 112,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 114,
+      "candidate_line": 128,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 125,
+      "candidate_line": 141,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 131,
+      "candidate_line": 149,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 136,
+      "candidate_line": 156,
+      "form": "first-error sequence"
+    },
+    {
+      "file": "main.go",
+      "base_line": 138,
+      "candidate_line": 158,
+      "form": "first-error sequence"
+    },
+    {
+      "file": "main.go",
+      "base_line": 141,
+      "candidate_line": 163,
+      "form": "first-error sequence"
+    },
+    {
+      "file": "main.go",
+      "base_line": 175,
+      "candidate_line": 202,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 192,
+      "candidate_line": 221,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 207,
+      "candidate_line": 238,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 235,
+      "candidate_line": 268,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 240,
+      "candidate_line": 275,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 319,
+      "candidate_line": 356,
+      "form": "write before classification; source1/invalid2"
+    },
+    {
+      "file": "main.go",
+      "base_line": 347,
+      "candidate_line": 388,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 352,
+      "candidate_line": 395,
+      "form": "first-error sequence"
+    },
+    {
+      "file": "main.go",
+      "base_line": 356,
+      "candidate_line": 399,
+      "form": "first-error sequence"
+    },
+    {
+      "file": "main.go",
+      "base_line": 359,
+      "candidate_line": 404,
+      "form": "first-error sequence"
+    },
+    {
+      "file": "main.go",
+      "base_line": 367,
+      "candidate_line": 417,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 393,
+      "candidate_line": 445,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 400,
+      "candidate_line": 454,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "main.go",
+      "base_line": 410,
+      "candidate_line": 466,
+      "form": "write before classification; injected86/ordinary1"
+    },
+    {
+      "file": "upgrade.go",
+      "base_line": 29,
+      "candidate_line": 29,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "upgrade.go",
+      "base_line": 41,
+      "candidate_line": 43,
+      "form": "checked terminal status"
+    },
+    {
+      "file": "upgrade.go",
+      "base_line": 64,
+      "candidate_line": 68,
+      "form": "checked terminal status"
+    }
+  ]
+}

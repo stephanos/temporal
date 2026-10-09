@@ -930,3 +930,18 @@ formal requirements remain open wherever unproved. Source-progress review can
 license a separate progress commit but not formal SHIP or Done on red acceptance.
 Native fn128/fn149 remain deferred/unverified; no revival, native pass, PR, push
 or CI authority follows. Preserve both unrelated untracked .turbo files.
+
+### Remaining maintainer diagnostics source admission — 2026-10-09
+
+Task52 owns exactly the 59 unchecked stderr writes retained at `eb82ea59a4`
+by fn112.10: compatibility_pack24, diagnostic5, main27 and upgrade3. Existing
+tasks46/50/51 retain their successful-output, generator-output and fixture
+ownership. The new correction checks diagnostic errors while preserving
+literal bytes, classified primary outcomes, later report attempts, completed
+publications and operation/cleanup precedence. Its task defines the bounded
+source/test surface and source gates. Task21 consumes its independent review
+and evidence. No old acceptance, first-baseline or preservation obligation is
+waived; unrelated integrated lint findings retain their correction owners.
+Native qualification stays deferred under fn149/fn128 with no CI or publication
+authority. Root admits and integrates this serial task on the existing gomad
+branch to unblock fn112.10's source gate.

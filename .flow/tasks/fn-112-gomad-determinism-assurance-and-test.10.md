@@ -52,6 +52,10 @@ The owner prioritized near-complete specs. Resume task 10 at committed source ba
 ### Diagnostic-write continuation admission (2026-10-09)
 
 Root admits exactly the four task-owned soak diagnostic checks and additive adapter controls under [the bounded admission](../artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/diagnostic-writes-20261009/admission.md), at base `4de2ba7892570a865c27a178b681e31f28fca79b`. This corrects the adapter omission in Touches without changing acceptance, dependency edges or semantics; all other command adapters remain outside this repair. Existing source/native requirements and historical evidence stay in force.
+
+### Remaining source-gate routing — 2026-10-09
+
+The [continuation audit](../artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/continuation-20261009/handover.md) rebinds nine final gate receipts to committed source `eb82ea59a4`, with six direct predecessors Done. Remaining affected lint has 59 diagnostic writes now owned by [fn-109.52](fn-109-gomad-deepen-modules-and-tool-interfaces.52.md). The original-base integrated lint remains RED204 with errortype unreached, under fn-109 correction owners and task21's reconciliation. Cross-spec task edges are unsupported, so this source prerequisite is referenced here; existing dependency edges are unchanged. Formal task10 review follows green retained source gates. Native fn149/fn128 obligations remain deferred and unverified.
 ## Acceptance
 
 

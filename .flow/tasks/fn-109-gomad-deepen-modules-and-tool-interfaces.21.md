@@ -148,3 +148,7 @@ Task50 is a direct dependency and supplies five terminal generator stderr checke
 ## Usage-status reconciliation consumer — 2026-10-09
 
 Task21 directly depends on task51’s bounded test-only correction from reviewed source-progress commit e09187751326abf393011052dd08fdfc9af61900. The parent and task-51/usage-status-20261009/admission.md admit only the later fixture’s compatibility-pack invalid-input failed-stderr expected status 2→1; task8’s original production status is preserved. Task21 implements nothing. All original acceptance, dependencies, histories, red gates and native transfers remain unchanged.
+
+### Remaining diagnostic correction — 2026-10-09
+
+Task52 owns the 59 remaining unchecked maintainer stderr writes retained by fn112.10 at `eb82ea59a4`. It preserves primary outcomes, report ordering and publications and supplies its own source checks and independent review. Task21 consumes that correction and implements nothing; all other acceptance, original-base source lint, preservation and transferred native obligations remain unchanged.

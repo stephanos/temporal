@@ -18,22 +18,30 @@ func runDiagnosticDiff(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if flags.NArg() != 2 {
-		fmt.Fprintln(stderr, "usage: gomadtool diagnostic-diff [--json] EXPECTED_TRACE ACTUAL_TRACE")
+		if _, writeErr := fmt.Fprintln(stderr, "usage: gomadtool diagnostic-diff [--json] EXPECTED_TRACE ACTUAL_TRACE"); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	expected, err := choice.ReadDiagnosticTrace(flags.Arg(0))
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	actual, err := choice.ReadDiagnosticTrace(flags.Arg(1))
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	difference, err := choice.DiffDiagnostics(expected.Bytes, actual.Bytes)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if *jsonOutput {
@@ -47,7 +55,9 @@ func runDiagnosticDiff(arguments []string, stdout, stderr io.Writer) int {
 		_, err = fmt.Fprintf(stdout, "first-divergent-ordinal=%d fields=%s\n", difference.Ordinal, strings.Join(difference.Fields, ","))
 	}
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	if difference != nil {

@@ -1,0 +1,6 @@
+{"ImportPath":"./cmd/gomadtool","Action":"build-output","Output":"# ./cmd/gomadtool\n"}
+{"ImportPath":"./cmd/gomadtool","Action":"build-output","Output":"stat /Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/gomadtool: directory not found\n"}
+{"ImportPath":"./cmd/gomadtool","Action":"build-fail"}
+{"Time":"2026-10-09T19:53:01.376943114Z","Action":"start","Package":"./cmd/gomadtool"}
+{"Time":"2026-10-09T19:53:01.377065239Z","Action":"output","Package":"./cmd/gomadtool","Output":"FAIL\t./cmd/gomadtool [setup failed]\n","OutputType":"frame"}
+{"Time":"2026-10-09T19:53:01.377150823Z","Action":"fail","Package":"./cmd/gomadtool","Elapsed":0,"FailedBuild":"./cmd/gomadtool"}

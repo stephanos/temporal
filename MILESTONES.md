@@ -275,6 +275,7 @@ CI, PR, or push authority.
 | [fn-109.49](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.49.md) | ⬜ Todo | Adapter cache cleanup repaired; full lint and original qualification remain open |
 | [fn-109.50](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.50.md) | 🚧 In progress | Check five terminal generator diagnostics without changing statuses |
 | [fn-109.51](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.51.md) | 🚧 In progress | Reconcile one usage-status fixture with the preserved original contract |
+| [fn-109.52](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.52.md) | ✅ Done | Check remaining maintainer diagnostics while preserving primary outcomes |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 
