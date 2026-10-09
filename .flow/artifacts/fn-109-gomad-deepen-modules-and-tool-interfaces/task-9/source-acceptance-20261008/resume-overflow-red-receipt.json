@@ -1,0 +1,137 @@
+{
+  "name": "resume-overflow-red",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ncd tools/gomad3 && go test -json -count=1 -tags test_dep ./target -run \"^TestCollectCapabilityListing(PreservesBoundedOutputError|PreservesInfrastructureContainingOverflow|PreservesActualCancellationBeforeOverflow)$\""
+  ],
+  "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./target -run \"^TestCollectCapabilityListing(PreservesBoundedOutputError|PreservesInfrastructureContainingOverflow|PreservesActualCancellationBeforeOverflow)$\"",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-09T01:52:26.738Z",
+  "ended": "2026-10-09T01:53:03.382Z",
+  "elapsed_seconds": 36.642946684,
+  "exit_code": 1,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync completed",
+  "stdout": {
+    "path": "resume-overflow-red.stdout",
+    "sha256": "f6de97c7b98cf5b72b4bf9771405b9ca9b2647e3d11fcc2056eb5f889fdda5f6"
+  },
+  "stderr": {
+    "path": "resume-overflow-red.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "base_commit": "29c80199cd",
+  "original_baseline": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "head": "a499777773516cf1f70fb8235dab37f97bda2a17",
+  "source": {
+    "manifest": "source-cceec9b2506af521555d7c2f142196ae3c1f9794a7d8f1b495b9edcd0531d0e0.json",
+    "sha256": "cceec9b2506af521555d7c2f142196ae3c1f9794a7d8f1b495b9edcd0531d0e0"
+  },
+  "tools": {
+    "manifest": "tools-73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55.json",
+    "sha256": "73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55"
+  },
+  "controls": {
+    "manifest": "controls-0193439c9fd68d377631218f8eaafd1022532b6129e0bae7f014148df72133d0.json",
+    "sha256": "0193439c9fd68d377631218f8eaafd1022532b6129e0bae7f014148df72133d0"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7"
+  },
+  "counts": {
+    "pass": 4,
+    "fail": 6,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-09T01:52:51.012729886Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesBoundedOutputError/stdout_exact_capacity",
+      "Elapsed": 1.77
+    },
+    {
+      "Time": "2026-10-09T01:52:53.05318797Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesBoundedOutputError/stderr_exact_capacity",
+      "Elapsed": 2.04
+    },
+    {
+      "Time": "2026-10-09T01:52:54.196734346Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesBoundedOutputError/stdout_limit_plus_one",
+      "Elapsed": 1.14
+    },
+    {
+      "Time": "2026-10-09T01:52:55.930102805Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesBoundedOutputError/stderr_limit_plus_one",
+      "Elapsed": 1.73
+    },
+    {
+      "Time": "2026-10-09T01:52:58.494296181Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesBoundedOutputError/both_streams_overflow",
+      "Elapsed": 2.56
+    },
+    {
+      "Time": "2026-10-09T01:53:01.280197974Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesBoundedOutputError/stdout_overflow_before_failed_process",
+      "Elapsed": 2.79
+    },
+    {
+      "Time": "2026-10-09T01:53:01.541767516Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesBoundedOutputError/stderr_overflow_before_failed_process",
+      "Elapsed": 0.26
+    },
+    {
+      "Time": "2026-10-09T01:53:01.541931432Z",
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesBoundedOutputError",
+      "Elapsed": 12.3
+    },
+    {
+      "Time": "2026-10-09T01:53:01.546190641Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesInfrastructureContainingOverflow",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T01:53:03.249831558Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/target",
+      "Test": "TestCollectCapabilityListingPreservesActualCancellationBeforeOverflow",
+      "Elapsed": 1.7
+    }
+  ],
+  "environment_sha256": "8ce16e51b9ef4b17c4527c21ee79f95ffeb98da75a6fa4b43539467c8bfc1cac"
+}

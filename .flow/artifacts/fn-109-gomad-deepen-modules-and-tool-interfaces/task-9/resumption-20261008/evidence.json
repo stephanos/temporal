@@ -1,0 +1,438 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.9",
+  "head": "a499777773516cf1f70fb8235dab37f97bda2a17",
+  "commits": [],
+  "prs": [],
+  "implementation": "Public collectCapabilityListing translates only direct typed overflow after InvalidInput classification; private ListWith and command mechanism unchanged.",
+  "model": {
+    "requested": "gpt-6.1-sol/high",
+    "tier": "session (jev-unavailable(no_key))",
+    "actual": "No executed-model metadata exposed"
+  },
+  "source": {
+    "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+    "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+  },
+  "final_source_rechecked": true,
+  "original_tracked_tests_unchanged": 369,
+  "source_files": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/target/capability_collection.go",
+      "sha256": "8770de8f3465c6dec35918cdf7d8a1ba31c30f3de42e6fffa7cb5ebcb9de99ce"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/target/capability_collection_overflow_test.go",
+      "sha256": "3402983b0bf8598f707a60e698b747f46c657cee7df16980d302c2f160ce9b5d"
+    }
+  ],
+  "admission": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/admission.md",
+    "sha256": "67cbc19c11edb81925400405202dbbfe367dfbf81431fe242f7a21e18bf15ed9"
+  },
+  "commands": [
+    {
+      "name": "resume-overflow-red",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-red-receipt.json",
+        "sha256": "c55e5001addd77ce778a88461097bf6873a60ac6e7a579e5a7870538db37ac69"
+      },
+      "unified_exec_session": 71366,
+      "terminal": true,
+      "exit_code": 1,
+      "elapsed_seconds": 36.642946684,
+      "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./target -run \"^TestCollectCapabilityListing(PreservesBoundedOutputError|PreservesInfrastructureContainingOverflow|PreservesActualCancellationBeforeOverflow)$\"",
+      "counts": {
+        "pass": 4,
+        "fail": 6,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-cceec9b2506af521555d7c2f142196ae3c1f9794a7d8f1b495b9edcd0531d0e0.json",
+        "sha256": "cceec9b2506af521555d7c2f142196ae3c1f9794a7d8f1b495b9edcd0531d0e0"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-green",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-green-receipt.json",
+        "sha256": "b76fe1c2b1b87e6179c99f0012498fc1f86205ac6caddf961e4067234e80ebfc"
+      },
+      "unified_exec_session": 37654,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 18.334019759,
+      "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./target -run \"^TestCollectCapabilityListing(PreservesBoundedOutputError|PreservesInfrastructureContainingOverflow|PreservesActualCancellationBeforeOverflow)$\"",
+      "counts": {
+        "pass": 10,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-focused",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-focused-receipt.json",
+        "sha256": "9e6c9933ff0713aa14f313c16d54bb30add5fb5189cf98303a553a8bbe241d00"
+      },
+      "unified_exec_session": 10284,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 9.814253962999999,
+      "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./target/... ./internal/hostexec -run \"Test(CollectCapabilityListing|ProjectBuildInfo|NormalizeCapabilityMode|PreparationBuildEnvironment|PreparedRecordProjection|ReadProvenanceRoundTrips|ValidateProvenance|ValidateExecCapabilityModules|AdapterSourceSet|ReadToolchainIdentity|GoCommand|PinnedToolchain|Compatibility|Structured|Diagnostic|List|Run|Capture|ClassifyGroupSignal|NewRejects|PreparedCacheDigest|CapabilityReviewGoldenCanonicalBytes|ProjectCapability|ValidateCapability|TargetFileCleanup|ModuleDirectory)\"",
+      "counts": {
+        "pass": 286,
+        "fail": 0,
+        "skip": 10
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-preservation",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-preservation-receipt.json",
+        "sha256": "b3d5796979b23525225975906b69e7ece2f72c49db79b6539e6726ff70a3178d"
+      },
+      "unified_exec_session": 74813,
+      "terminal": true,
+      "exit_code": 1,
+      "elapsed_seconds": 0.20992420800000036,
+      "command": "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/preservation.mjs run",
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-preservation-final",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-preservation-final-receipt.json",
+        "sha256": "8920ae90cdf91ce74160738fdd097b651269f50aef02861dfe70ce41a424b86a"
+      },
+      "unified_exec_session": 29958,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 4.768984794,
+      "command": "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/preservation.mjs run",
+      "counts": {
+        "pass": 23,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-architecture",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-architecture-receipt.json",
+        "sha256": "5e18f6c9711cb69ca442584c4a5676b850765525ff63885d64bf2deff452ef6d"
+      },
+      "unified_exec_session": 37247,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 31.334035431,
+      "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run \"TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet|TestInspectionSourceOwnershipDelegation|TestExactModuleEdges|TestDomainModulesDoNotExportWireFraming\"",
+      "counts": {
+        "pass": 14,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-generated",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-generated-receipt.json",
+        "sha256": "8a1d2ead5aa5768a3d6344ae5d2705aa141ae07eda8cc33be65ab6fcdab14a5d"
+      },
+      "unified_exec_session": 59070,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 3.4302235850000002,
+      "command": "GOFLAGS=-tags=test_dep make -C tools/gomad3 validate",
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-errortype",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-errortype-receipt.json",
+        "sha256": "77ba40c959f70f16242e937889a1b34a8e3fa16146d4ffecf2aa9dd85bef40ac"
+      },
+      "unified_exec_session": 4633,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 0.40443041699999993,
+      "command": "cd tools/gomad3 && go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./target/... ./internal/hostexec",
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-lint-fast",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-lint-fast-receipt.json",
+        "sha256": "6b11a3a9f137e0e10e634506ace1f5cef72f30e8ee034b37c72ffce9d3e0f0be"
+      },
+      "unified_exec_session": 34235,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 6.748175295,
+      "command": "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=29c80199cd",
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-lint-scoped",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-lint-scoped-receipt.json",
+        "sha256": "38e5ed92d8d8077ec6b1e6fba79ed7620710f6ba528b0613194d68f07d332baa"
+      },
+      "unified_exec_session": 32388,
+      "terminal": true,
+      "exit_code": 1,
+      "elapsed_seconds": 1.607939875,
+      "command": "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./target/... ./internal/hostexec",
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-lint-integrated",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-lint-integrated-receipt.json",
+        "sha256": "130f24d0614ac31b77f68a3d52174a4c34071bfedc9ff410928c14e69bdbb79f"
+      },
+      "unified_exec_session": 17490,
+      "terminal": true,
+      "exit_code": 2,
+      "elapsed_seconds": 1.9122830840000002,
+      "command": "make lint-code-gomad3 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025",
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-source-darwin",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-source-darwin-receipt.json",
+        "sha256": "0700c98b5ca3ec130a4bb66fe7f6086ead639e930e6000cc0e44389fb38aadd4"
+      },
+      "unified_exec_session": 34883,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 0.10461525000000006,
+      "command": "cd tools/gomad3 && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go list -json -tags test_dep ./target/... ./internal/hostexec",
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-source-linux",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-source-linux-receipt.json",
+        "sha256": "4e9671ced626cf38fa864f2e40623a51561bb7870a9fd2b45b11a115c649d8b4"
+      },
+      "unified_exec_session": 61209,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 0.21704933300000004,
+      "command": "cd tools/gomad3 && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go list -json -tags test_dep ./target/... ./internal/hostexec",
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-overflow-format",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-overflow-format-receipt.json",
+        "sha256": "42bd8e24bafed1486c9945dc0b5cd40df362d9ad9f3a78ee3965cb68908b27f9"
+      },
+      "unified_exec_session": 58689,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 0.10469491700000003,
+      "command": "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/format-gate.sh gofmt -l tools/gomad3/target/capability_collection.go tools/gomad3/target/capability_collection_overflow_test.go && git diff --check",
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": null
+    },
+    {
+      "name": "resume-upgrade-tmp-diagnostic",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-upgrade-tmp-diagnostic-receipt.json",
+        "sha256": "9eaf5788fe42d7412f1ff685907a7b30fd8da1d9225be76d61f84d5bc6045298"
+      },
+      "unified_exec_session": 63849,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 0.807294959,
+      "command": "task9_upgrade_tmp=$(mktemp -d /tmp/gomad3-upgrade-diagnostic.XXXXXX) && export TMPDIR=\"$task9_upgrade_tmp\" GOTMPDIR=\"$task9_upgrade_tmp\" && cd tools/gomad3 && node -e 'console.log(JSON.stringify({diagnostic_environment:{TMPDIR:process.env.TMPDIR,GOTMPDIR:process.env.GOTMPDIR},caller_cwd:process.cwd()}))' && df -T \"$task9_upgrade_tmp\" && go test -json -count=1 -tags test_dep ./upgrade -run '^Test(RunPublishesFailedGateEvidence|RunReplacesExistingDossierAfterFailedGate|RunReportsPublicationFailureAndKeepsPriorDossier|RunRenderingFailurePreservesGateEvidence|OverlayArchiveCleanupFailure)$'",
+      "counts": {
+        "pass": 31,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": {
+        "diagnostic_environment": {
+          "TMPDIR": "/tmp/gomad3-upgrade-diagnostic.ASVqsL",
+          "GOTMPDIR": "/tmp/gomad3-upgrade-diagnostic.ASVqsL"
+        },
+        "caller_cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+      }
+    },
+    {
+      "name": "resume-upgrade-workspace-diagnostic",
+      "receipt": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/resume-upgrade-workspace-diagnostic-receipt.json",
+        "sha256": "c0b5dd0c5b6cd49f5ead19295df42a661e84ef3c9d4174b8e97dde3ceecdd4ec"
+      },
+      "unified_exec_session": 23136,
+      "terminal": true,
+      "exit_code": 0,
+      "elapsed_seconds": 0.906049292,
+      "command": "task9_upgrade_tmp=$(mktemp -d /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad3-upgrade-diagnostic.XXXXXX) && export TMPDIR=\"$task9_upgrade_tmp\" GOTMPDIR=\"$task9_upgrade_tmp\" && cd tools/gomad3 && node -e 'console.log(JSON.stringify({diagnostic_environment:{TMPDIR:process.env.TMPDIR,GOTMPDIR:process.env.GOTMPDIR},caller_cwd:process.cwd()}))' && df -T \"$task9_upgrade_tmp\" && go test -json -count=1 -tags test_dep ./upgrade -run '^Test(RunPublishesFailedGateEvidence|RunReplacesExistingDossierAfterFailedGate|RunReportsPublicationFailureAndKeepsPriorDossier|RunRenderingFailurePreservesGateEvidence|OverlayArchiveCleanupFailure)$'",
+      "counts": {
+        "pass": 31,
+        "fail": 0,
+        "skip": 0
+      },
+      "source": {
+        "manifest": "source-7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a.json",
+        "sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a"
+      },
+      "actual_diagnostic_environment": {
+        "diagnostic_environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad3-upgrade-diagnostic.Y635I4",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad3-upgrade-diagnostic.Y635I4"
+        },
+        "caller_cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+      }
+    }
+  ],
+  "preservation": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/preservation.mjs",
+      "sha256": "5e2cf9348eb0bf846b56a65b575c58d2f70783f58e6582acc02fdb15b363368c"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/preservation-inputs.json",
+      "sha256": "bd2a9dcde692592e95f28f504b80c51e6d849b54526f243b613ea73a4bb6bbea"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/preservation-comparison.json",
+      "sha256": "c1aaa24e9381cd2687e059d76c7c2896fc02cb17e160f2202c9893dcd898f70c"
+    }
+  ],
+  "tests": [
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./target -run \"^TestCollectCapabilityListing(PreservesBoundedOutputError|PreservesInfrastructureContainingOverflow|PreservesActualCancellationBeforeOverflow)$\"",
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./target -run \"^TestCollectCapabilityListing(PreservesBoundedOutputError|PreservesInfrastructureContainingOverflow|PreservesActualCancellationBeforeOverflow)$\"",
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./target/... ./internal/hostexec -run \"Test(CollectCapabilityListing|ProjectBuildInfo|NormalizeCapabilityMode|PreparationBuildEnvironment|PreparedRecordProjection|ReadProvenanceRoundTrips|ValidateProvenance|ValidateExecCapabilityModules|AdapterSourceSet|ReadToolchainIdentity|GoCommand|PinnedToolchain|Compatibility|Structured|Diagnostic|List|Run|Capture|ClassifyGroupSignal|NewRejects|PreparedCacheDigest|CapabilityReviewGoldenCanonicalBytes|ProjectCapability|ValidateCapability|TargetFileCleanup|ModuleDirectory)\"",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/preservation.mjs run",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/preservation.mjs run",
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run \"TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet|TestInspectionSourceOwnershipDelegation|TestExactModuleEdges|TestDomainModulesDoNotExportWireFraming\"",
+    "GOFLAGS=-tags=test_dep make -C tools/gomad3 validate",
+    "cd tools/gomad3 && go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./target/... ./internal/hostexec",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=29c80199cd",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./target/... ./internal/hostexec",
+    "make lint-code-gomad3 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "cd tools/gomad3 && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go list -json -tags test_dep ./target/... ./internal/hostexec",
+    "cd tools/gomad3 && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go list -json -tags test_dep ./target/... ./internal/hostexec",
+    "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/format-gate.sh gofmt -l tools/gomad3/target/capability_collection.go tools/gomad3/target/capability_collection_overflow_test.go && git diff --check",
+    "task9_upgrade_tmp=$(mktemp -d /tmp/gomad3-upgrade-diagnostic.XXXXXX) && export TMPDIR=\"$task9_upgrade_tmp\" GOTMPDIR=\"$task9_upgrade_tmp\" && cd tools/gomad3 && node -e 'console.log(JSON.stringify({diagnostic_environment:{TMPDIR:process.env.TMPDIR,GOTMPDIR:process.env.GOTMPDIR},caller_cwd:process.cwd()}))' && df -T \"$task9_upgrade_tmp\" && go test -json -count=1 -tags test_dep ./upgrade -run '^Test(RunPublishesFailedGateEvidence|RunReplacesExistingDossierAfterFailedGate|RunReportsPublicationFailureAndKeepsPriorDossier|RunRenderingFailurePreservesGateEvidence|OverlayArchiveCleanupFailure)$'",
+    "task9_upgrade_tmp=$(mktemp -d /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/gomad3-upgrade-diagnostic.XXXXXX) && export TMPDIR=\"$task9_upgrade_tmp\" GOTMPDIR=\"$task9_upgrade_tmp\" && cd tools/gomad3 && node -e 'console.log(JSON.stringify({diagnostic_environment:{TMPDIR:process.env.TMPDIR,GOTMPDIR:process.env.GOTMPDIR},caller_cwd:process.cwd()}))' && df -T \"$task9_upgrade_tmp\" && go test -json -count=1 -tags test_dep ./upgrade -run '^Test(RunPublishesFailedGateEvidence|RunReplacesExistingDossierAfterFailedGate|RunReportsPublicationFailureAndKeepsPriorDossier|RunRenderingFailurePreservesGateEvidence|OverlayArchiveCleanupFailure)$'"
+  ],
+  "preparation_observation": "Copy process PID 3167 is terminal and its complete manifest was verified before and after the final preservation command. Its exec session/exit was not retained because the tool result was projected to output only. The premature ENOENT preservation receipt remains inconclusive.",
+  "remaining": [
+    "Root owns fresh independent source/evidence review, commits and lifecycle. Task9 remains in_progress; task40 predecessor acceptance remains open.",
+    "Scoped lint retains two exact unchanged ST1005 diagnostics; integrated lint retains 24 exact unchanged diagnostics and never reaches integrated errortype.",
+    "Original resume-defaults gate remains RED (86 named passes, five named failures); this repair does not alter hostexec default tests or claim aggregate default acceptance.",
+    "Historical upgrade publication RED remains retained. Unchanged relevant 31-case selection passes on two fresh diagnostic roots; original failing-root behavior is not causally explained.",
+    "Original retained acceptance and other source-owner requirements remain open wherever unproved. Native fn128/fn149 gates remain deferred and unverified; no native, CI, push or PR action occurred."
+  ]
+}

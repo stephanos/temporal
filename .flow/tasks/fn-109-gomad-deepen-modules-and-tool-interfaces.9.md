@@ -104,6 +104,12 @@ stage: QA - skipped(policy: no separate live application surface in this source 
 Tier: session (jev-unavailable(no_key)). Writer and fresh reviewers were dispatched to the Sol/high tier; execution metadata was not exposed.
 Tracker sync: n/a (bridge inactive).
 
+### Reviewed public overflow preservation progress, 2026-10-08
+
+The three-line public collection-boundary projection restores first-baseline generic overflow text/type while preserving the private typed refusal and context/error ordering. Additive real-process tests retain behavioral RED then 10 GREEN passes. All 11 public and 18 ordinary preservation outcomes match the first baseline literally; 286 affected tests pass with 10 original skips. Architecture, check-only generation, standalone errortype, fast Make lint, formatting and both supported source inventories pass. Fresh independent SOURCE-PROGRESS review has no actionable findings. [Root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/root-verification.md) binds the reviewed evidence and audits.
+
+This is verified progress only. Scoped lint retains two findings; integrated lint retains 24 with integrated errortype unreached. Default command RED and prior upgrade publication RED remain unresolved; two fresh-root upgrade passes do not diagnose the old failure. Task40 is now in_progress for separately admitted test-readiness repair, with its original dependency and genuine cleanup-fault acceptance unchanged. Task9 stays in_progress; formal completion and every other unproved source obligation remain open. Native fn128/fn149 stay deferred/unverified. Root commits only this reviewed progress; no push, PR or CI follows.
+
 ## Acceptance
 
 

@@ -1,0 +1,2537 @@
+{
+  "manifest": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/resumption-20261008/preservation-inputs.json",
+    "sha256": "bd2a9dcde692592e95f28f504b80c51e6d849b54526f243b613ea73a4bb6bbea"
+  },
+  "original_rows": [
+    {
+      "Name": "public-review/success",
+      "Cause": {
+        "Type": "",
+        "Text": "",
+        "Children": null
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "gomad3.target-capability-review/v4",
+        "build_tags": [],
+        "roots": [
+          {
+            "import_path": "example.com/task9",
+            "name": "main"
+          }
+        ],
+        "closure": {
+          "schema": "gomad3.target-capability-closure/v3",
+          "compatibility": [],
+          "packages": [
+            {
+              "import_path": "example.com/task9",
+              "name": "main",
+              "root": true,
+              "standard": false,
+              "imports": [],
+              "module": {
+                "path": "example.com/task9",
+                "version": "",
+                "sum": "",
+                "main": true,
+                "local": false
+              },
+              "sources": [
+                {
+                  "name": "main.go",
+                  "sha256": "sha256:15dfc4f51b4ed90211b566886f456d23d6984e1bb298460786c9740b01ac183e"
+                }
+              ],
+              "foreign_sources": []
+            }
+          ]
+        },
+        "packs": [],
+        "capability_mode": "closure",
+        "findings": [],
+        "guarded_findings": [],
+        "eliminated_findings": []
+      },
+      "ZeroReview": false
+    },
+    {
+      "Name": "public-review/nonzero",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: inspect target capability closure: exit status 7: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*capabilityreview.CommandError",
+            "Text": "inspect target capability closure: exit status 7: listing diagnostic",
+            "Children": [
+              {
+                "Type": "*exec.ExitError",
+                "Text": "exit status 7",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": 7,
+      "Signal": "",
+      "ProcessState": "exit status 7",
+      "WaitStatus": 1792,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/invalid",
+      "Cause": {
+        "Type": "*target.InvalidCapabilityReviewError",
+        "Text": "inspect target capability closure: exit status 7: no required module provides package",
+        "Children": [
+          {
+            "Type": "*capabilityreview.CommandError",
+            "Text": "inspect target capability closure: exit status 7: no required module provides package",
+            "Children": [
+              {
+                "Type": "*exec.ExitError",
+                "Text": "exit status 7",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": 7,
+      "Signal": "",
+      "ProcessState": "exit status 7",
+      "WaitStatus": 1792,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/malformed",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: decode target capability closure: invalid character 'b' looking for beginning of object key string",
+        "Children": [
+          {
+            "Type": "*fmt.wrapError",
+            "Text": "decode target capability closure: invalid character 'b' looking for beginning of object key string",
+            "Children": [
+              {
+                "Type": "*json.SyntaxError",
+                "Text": "invalid character 'b' looking for beginning of object key string",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/signal",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: inspect target capability closure: signal: killed: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*capabilityreview.CommandError",
+            "Text": "inspect target capability closure: signal: killed: listing diagnostic",
+            "Children": [
+              {
+                "Type": "*exec.ExitError",
+                "Text": "signal: killed",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": -1,
+      "Signal": "killed",
+      "ProcessState": "signal: killed",
+      "WaitStatus": 9,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/startup",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: fork/exec /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/missing-installation/bin/go: no such file or directory",
+        "Children": [
+          {
+            "Type": "*fs.PathError",
+            "Text": "fork/exec /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/missing-installation/bin/go: no such file or directory",
+            "Children": [
+              {
+                "Type": "syscall.Errno",
+                "Text": "no such file or directory",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/before-cancel",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: context canceled",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "context canceled",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": true,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/cancel",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: context canceled",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "context canceled",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": true,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": true,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/deadline",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: context deadline exceeded",
+        "Children": [
+          {
+            "Type": "context.deadlineExceededError",
+            "Text": "context deadline exceeded",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": true,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": true,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/stdout-overflow",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: target capability closure output exceeds 67108864 bytes",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "target capability closure output exceeds 67108864 bytes",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/stderr-overflow",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: target capability closure output exceeds 67108864 bytes",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "target capability closure output exceeds 67108864 bytes",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/success",
+      "Cause": {
+        "Type": "",
+        "Text": "",
+        "Children": null
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/nonzero",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: exit status 7: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "exit status 7",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": 7,
+      "Signal": "",
+      "ProcessState": "exit status 7",
+      "WaitStatus": 1792,
+      "ExecStderr": "bGlzdGluZyBkaWFnbm9zdGlj",
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/invalid",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: exit status 7: no required module provides package",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "exit status 7",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": 7,
+      "Signal": "",
+      "ProcessState": "exit status 7",
+      "WaitStatus": 1792,
+      "ExecStderr": "bm8gcmVxdWlyZWQgbW9kdWxlIHByb3ZpZGVzIHBhY2thZ2U=",
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/malformed",
+      "Cause": {
+        "Type": "*errors.errorString",
+        "Text": "exec provenance standard package classification is invalid for fmt",
+        "Children": null
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/signal",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: signal: killed: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "signal: killed",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": -1,
+      "Signal": "killed",
+      "ProcessState": "signal: killed",
+      "WaitStatus": 9,
+      "ExecStderr": "bGlzdGluZyBkaWFnbm9zdGlj",
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/startup",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: fork/exec /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/missing-command: no such file or directory: ",
+        "Children": [
+          {
+            "Type": "*fs.PathError",
+            "Text": "fork/exec /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/missing-command: no such file or directory",
+            "Children": [
+              {
+                "Type": "syscall.Errno",
+                "Text": "no such file or directory",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/before-cancel",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: context canceled: ",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "context canceled",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": true,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/cancel",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: signal: killed: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "signal: killed",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": -1,
+      "Signal": "killed",
+      "ProcessState": "signal: killed",
+      "WaitStatus": 9,
+      "ExecStderr": "bGlzdGluZyBkaWFnbm9zdGlj",
+      "Acknowledged": true,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/deadline",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: signal: killed: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "signal: killed",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": -1,
+      "Signal": "killed",
+      "ProcessState": "signal: killed",
+      "WaitStatus": 9,
+      "ExecStderr": "bGlzdGluZyBkaWFnbm9zdGlj",
+      "Acknowledged": true,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/stdout-overflow",
+      "Cause": {
+        "Type": "*errors.errorString",
+        "Text": "exec provenance standard package classification is invalid for fmt",
+        "Children": null
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/stderr-overflow",
+      "Cause": {
+        "Type": "",
+        "Text": "",
+        "Children": null
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    }
+  ],
+  "current_rows": [
+    {
+      "Name": "public-review/success",
+      "Cause": {
+        "Type": "",
+        "Text": "",
+        "Children": null
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "gomad3.target-capability-review/v4",
+        "build_tags": [],
+        "roots": [
+          {
+            "import_path": "example.com/task9",
+            "name": "main"
+          }
+        ],
+        "closure": {
+          "schema": "gomad3.target-capability-closure/v3",
+          "compatibility": [],
+          "packages": [
+            {
+              "import_path": "example.com/task9",
+              "name": "main",
+              "root": true,
+              "standard": false,
+              "imports": [],
+              "module": {
+                "path": "example.com/task9",
+                "version": "",
+                "sum": "",
+                "main": true,
+                "local": false
+              },
+              "sources": [
+                {
+                  "name": "main.go",
+                  "sha256": "sha256:15dfc4f51b4ed90211b566886f456d23d6984e1bb298460786c9740b01ac183e"
+                }
+              ],
+              "foreign_sources": []
+            }
+          ]
+        },
+        "packs": [],
+        "capability_mode": "closure",
+        "findings": [],
+        "guarded_findings": [],
+        "eliminated_findings": []
+      },
+      "ZeroReview": false
+    },
+    {
+      "Name": "public-review/nonzero",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: inspect target capability closure: exit status 7: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*capabilityreview.CommandError",
+            "Text": "inspect target capability closure: exit status 7: listing diagnostic",
+            "Children": [
+              {
+                "Type": "*exec.ExitError",
+                "Text": "exit status 7",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": 7,
+      "Signal": "",
+      "ProcessState": "exit status 7",
+      "WaitStatus": 1792,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/invalid",
+      "Cause": {
+        "Type": "*target.InvalidCapabilityReviewError",
+        "Text": "inspect target capability closure: exit status 7: no required module provides package",
+        "Children": [
+          {
+            "Type": "*capabilityreview.CommandError",
+            "Text": "inspect target capability closure: exit status 7: no required module provides package",
+            "Children": [
+              {
+                "Type": "*exec.ExitError",
+                "Text": "exit status 7",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": 7,
+      "Signal": "",
+      "ProcessState": "exit status 7",
+      "WaitStatus": 1792,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/malformed",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: decode target capability closure: invalid character 'b' looking for beginning of object key string",
+        "Children": [
+          {
+            "Type": "*fmt.wrapError",
+            "Text": "decode target capability closure: invalid character 'b' looking for beginning of object key string",
+            "Children": [
+              {
+                "Type": "*json.SyntaxError",
+                "Text": "invalid character 'b' looking for beginning of object key string",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/signal",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: inspect target capability closure: signal: killed: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*capabilityreview.CommandError",
+            "Text": "inspect target capability closure: signal: killed: listing diagnostic",
+            "Children": [
+              {
+                "Type": "*exec.ExitError",
+                "Text": "signal: killed",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": -1,
+      "Signal": "killed",
+      "ProcessState": "signal: killed",
+      "WaitStatus": 9,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/startup",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: fork/exec /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/missing-installation/bin/go: no such file or directory",
+        "Children": [
+          {
+            "Type": "*fs.PathError",
+            "Text": "fork/exec /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/missing-installation/bin/go: no such file or directory",
+            "Children": [
+              {
+                "Type": "syscall.Errno",
+                "Text": "no such file or directory",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/before-cancel",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: context canceled",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "context canceled",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": true,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/cancel",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: context canceled",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "context canceled",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": true,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": true,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/deadline",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: context deadline exceeded",
+        "Children": [
+          {
+            "Type": "context.deadlineExceededError",
+            "Text": "context deadline exceeded",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": true,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": true,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/stdout-overflow",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: target capability closure output exceeds 67108864 bytes",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "target capability closure output exceeds 67108864 bytes",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "public-review/stderr-overflow",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect target capability closure: target capability closure output exceeds 67108864 bytes",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "target capability closure output exceeds 67108864 bytes",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/success",
+      "Cause": {
+        "Type": "",
+        "Text": "",
+        "Children": null
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/nonzero",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: exit status 7: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "exit status 7",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": 7,
+      "Signal": "",
+      "ProcessState": "exit status 7",
+      "WaitStatus": 1792,
+      "ExecStderr": "bGlzdGluZyBkaWFnbm9zdGlj",
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/invalid",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: exit status 7: no required module provides package",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "exit status 7",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": 7,
+      "Signal": "",
+      "ProcessState": "exit status 7",
+      "WaitStatus": 1792,
+      "ExecStderr": "bm8gcmVxdWlyZWQgbW9kdWxlIHByb3ZpZGVzIHBhY2thZ2U=",
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/malformed",
+      "Cause": {
+        "Type": "*errors.errorString",
+        "Text": "exec provenance standard package classification is invalid for fmt",
+        "Children": null
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/signal",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: signal: killed: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "signal: killed",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": -1,
+      "Signal": "killed",
+      "ProcessState": "signal: killed",
+      "WaitStatus": 9,
+      "ExecStderr": "bGlzdGluZyBkaWFnbm9zdGlj",
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/startup",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: fork/exec /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/missing-command: no such file or directory: ",
+        "Children": [
+          {
+            "Type": "*fs.PathError",
+            "Text": "fork/exec /Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/missing-command: no such file or directory",
+            "Children": [
+              {
+                "Type": "syscall.Errno",
+                "Text": "no such file or directory",
+                "Children": null
+              }
+            ]
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/before-cancel",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: context canceled: ",
+        "Children": [
+          {
+            "Type": "*errors.errorString",
+            "Text": "context canceled",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": true,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/cancel",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: signal: killed: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "signal: killed",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": -1,
+      "Signal": "killed",
+      "ProcessState": "signal: killed",
+      "WaitStatus": 9,
+      "ExecStderr": "bGlzdGluZyBkaWFnbm9zdGlj",
+      "Acknowledged": true,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/deadline",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: signal: killed: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*exec.ExitError",
+            "Text": "signal: killed",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": true,
+      "Exit": -1,
+      "Signal": "killed",
+      "ProcessState": "signal: killed",
+      "WaitStatus": 9,
+      "ExecStderr": "bGlzdGluZyBkaWFnbm9zdGlj",
+      "Acknowledged": true,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/stdout-overflow",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: stdout output exceeds 4194304 bytes: listing diagnostic",
+        "Children": [
+          {
+            "Type": "*gocommand.OverflowError",
+            "Text": "stdout output exceeds 4194304 bytes",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    },
+    {
+      "Name": "private-standard/stderr-overflow",
+      "Cause": {
+        "Type": "*fmt.wrapError",
+        "Text": "inspect pinned standard packages: stderr output exceeds 4194304 bytes: ",
+        "Children": [
+          {
+            "Type": "*gocommand.OverflowError",
+            "Text": "stderr output exceeds 4194304 bytes",
+            "Children": null
+          }
+        ]
+      },
+      "Canceled": false,
+      "Deadline": false,
+      "ExecExit": false,
+      "Exit": 0,
+      "Signal": "",
+      "ProcessState": "",
+      "WaitStatus": 0,
+      "ExecStderr": null,
+      "Acknowledged": false,
+      "Review": {
+        "schema": "",
+        "build_tags": null,
+        "roots": null,
+        "closure": {
+          "schema": "",
+          "compatibility": null,
+          "packages": null
+        },
+        "packs": null,
+        "capability_mode": "",
+        "findings": null,
+        "guarded_findings": null,
+        "eliminated_findings": null
+      },
+      "ZeroReview": true
+    }
+  ],
+  "normalization": "None",
+  "public_cases": 11,
+  "ordinary_cases": 18,
+  "public_differences": [],
+  "ordinary_differences": [],
+  "all_original_differences": [
+    {
+      "name": "private-standard/stdout-overflow",
+      "original": {
+        "Name": "private-standard/stdout-overflow",
+        "Cause": {
+          "Type": "*errors.errorString",
+          "Text": "exec provenance standard package classification is invalid for fmt",
+          "Children": null
+        },
+        "Canceled": false,
+        "Deadline": false,
+        "ExecExit": false,
+        "Exit": 0,
+        "Signal": "",
+        "ProcessState": "",
+        "WaitStatus": 0,
+        "ExecStderr": null,
+        "Acknowledged": false,
+        "Review": {
+          "schema": "",
+          "build_tags": null,
+          "roots": null,
+          "closure": {
+            "schema": "",
+            "compatibility": null,
+            "packages": null
+          },
+          "packs": null,
+          "capability_mode": "",
+          "findings": null,
+          "guarded_findings": null,
+          "eliminated_findings": null
+        },
+        "ZeroReview": true
+      },
+      "current": {
+        "Name": "private-standard/stdout-overflow",
+        "Cause": {
+          "Type": "*fmt.wrapError",
+          "Text": "inspect pinned standard packages: stdout output exceeds 4194304 bytes: listing diagnostic",
+          "Children": [
+            {
+              "Type": "*gocommand.OverflowError",
+              "Text": "stdout output exceeds 4194304 bytes",
+              "Children": null
+            }
+          ]
+        },
+        "Canceled": false,
+        "Deadline": false,
+        "ExecExit": false,
+        "Exit": 0,
+        "Signal": "",
+        "ProcessState": "",
+        "WaitStatus": 0,
+        "ExecStderr": null,
+        "Acknowledged": false,
+        "Review": {
+          "schema": "",
+          "build_tags": null,
+          "roots": null,
+          "closure": {
+            "schema": "",
+            "compatibility": null,
+            "packages": null
+          },
+          "packs": null,
+          "capability_mode": "",
+          "findings": null,
+          "guarded_findings": null,
+          "eliminated_findings": null
+        },
+        "ZeroReview": true
+      }
+    },
+    {
+      "name": "private-standard/stderr-overflow",
+      "original": {
+        "Name": "private-standard/stderr-overflow",
+        "Cause": {
+          "Type": "",
+          "Text": "",
+          "Children": null
+        },
+        "Canceled": false,
+        "Deadline": false,
+        "ExecExit": false,
+        "Exit": 0,
+        "Signal": "",
+        "ProcessState": "",
+        "WaitStatus": 0,
+        "ExecStderr": null,
+        "Acknowledged": false,
+        "Review": {
+          "schema": "",
+          "build_tags": null,
+          "roots": null,
+          "closure": {
+            "schema": "",
+            "compatibility": null,
+            "packages": null
+          },
+          "packs": null,
+          "capability_mode": "",
+          "findings": null,
+          "guarded_findings": null,
+          "eliminated_findings": null
+        },
+        "ZeroReview": true
+      },
+      "current": {
+        "Name": "private-standard/stderr-overflow",
+        "Cause": {
+          "Type": "*fmt.wrapError",
+          "Text": "inspect pinned standard packages: stderr output exceeds 4194304 bytes: ",
+          "Children": [
+            {
+              "Type": "*gocommand.OverflowError",
+              "Text": "stderr output exceeds 4194304 bytes",
+              "Children": null
+            }
+          ]
+        },
+        "Canceled": false,
+        "Deadline": false,
+        "ExecExit": false,
+        "Exit": 0,
+        "Signal": "",
+        "ProcessState": "",
+        "WaitStatus": 0,
+        "ExecStderr": null,
+        "Acknowledged": false,
+        "Review": {
+          "schema": "",
+          "build_tags": null,
+          "roots": null,
+          "closure": {
+            "schema": "",
+            "compatibility": null,
+            "packages": null
+          },
+          "packs": null,
+          "capability_mode": "",
+          "findings": null,
+          "guarded_findings": null,
+          "eliminated_findings": null
+        },
+        "ZeroReview": true
+      }
+    }
+  ],
+  "standard_overflow_changes_from_frozen": [],
+  "command_log": {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/commands.jsonl",
+    "before_sha256": "94111137f29cb97c1499fd48394e5c78c75c8596581d439481cbf1c329bf3c67",
+    "after_sha256": "c0ac39ec81eacea8d90af6cd46ea06d93c1b3d7f32f1796914c9fe874171fb1f",
+    "new_commands": [
+      {
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "success",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "d3f93e09577a0a66e5d143cb16f62b8b414c4234bf158f26a8b46a29c1ed6140",
+        "pid": 4034,
+        "mode": "success",
+        "standard": false,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "nonzero",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "412a6ed6a20a3c0ecf702d345ac5ac89dca244029722d0c5ced9ec7e06f771ec",
+        "pid": 4041,
+        "mode": "nonzero",
+        "standard": false,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "invalid",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "c6eaa42eb74d02ac6ce04651fa3f7f15417e5380df3c17e29939ec2c92d7c3f8",
+        "pid": 4049,
+        "mode": "invalid",
+        "standard": false,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "malformed",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "319a471e7bd1a5846562a202e9bb2f5cd47a0e946d90c0b526021fdbca611ed9",
+        "pid": 4057,
+        "mode": "malformed",
+        "standard": false,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "signal",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "e93215bac6a828566b222db279b5dc85613f4fef98b90b8e7da3e55113d6fbf3",
+        "pid": 4064,
+        "mode": "signal",
+        "standard": false,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "cancel",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "3d79f9afda094d18da9cdc29d4ae858cbda82c754567d29a27b5535fcfc373bb",
+        "pid": 4072,
+        "mode": "cancel",
+        "standard": false,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "deadline",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "2b5b08ad2f90660fd18c745beb03858f376cb30fbb5bbcb29b35820310f62b3c",
+        "pid": 4079,
+        "mode": "deadline",
+        "standard": false,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "stdout-overflow",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "5f380772a4091cfdeb761c5676003515e91c3a49c3f2fd74533bfa6c3f4af9ed",
+        "pid": 4086,
+        "mode": "stdout-overflow",
+        "standard": false,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "-deps",
+          "-json",
+          "-mod=readonly",
+          "."
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "stderr-overflow",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "0bf0674defa9ceb0da81f89e56f27dd6ce688933187dc48f7fd44a33ab55d70e",
+        "pid": 4093,
+        "mode": "stderr-overflow",
+        "standard": false,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "std"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "success",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "d3f93e09577a0a66e5d143cb16f62b8b414c4234bf158f26a8b46a29c1ed6140",
+        "pid": 4100,
+        "mode": "success",
+        "standard": true,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "std"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "nonzero",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "412a6ed6a20a3c0ecf702d345ac5ac89dca244029722d0c5ced9ec7e06f771ec",
+        "pid": 4107,
+        "mode": "nonzero",
+        "standard": true,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "std"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "invalid",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "c6eaa42eb74d02ac6ce04651fa3f7f15417e5380df3c17e29939ec2c92d7c3f8",
+        "pid": 4114,
+        "mode": "invalid",
+        "standard": true,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "std"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "malformed",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "319a471e7bd1a5846562a202e9bb2f5cd47a0e946d90c0b526021fdbca611ed9",
+        "pid": 4121,
+        "mode": "malformed",
+        "standard": true,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "std"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "signal",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "e93215bac6a828566b222db279b5dc85613f4fef98b90b8e7da3e55113d6fbf3",
+        "pid": 4128,
+        "mode": "signal",
+        "standard": true,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "std"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "cancel",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "3d79f9afda094d18da9cdc29d4ae858cbda82c754567d29a27b5535fcfc373bb",
+        "pid": 4136,
+        "mode": "cancel",
+        "standard": true,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "std"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "deadline",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "2b5b08ad2f90660fd18c745beb03858f376cb30fbb5bbcb29b35820310f62b3c",
+        "pid": 4143,
+        "mode": "deadline",
+        "standard": true,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "std"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "stdout-overflow",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "5f380772a4091cfdeb761c5676003515e91c3a49c3f2fd74533bfa6c3f4af9ed",
+        "pid": 4150,
+        "mode": "stdout-overflow",
+        "standard": true,
+        "gone": true
+      },
+      {
+        "argv": [
+          "list",
+          "std"
+        ],
+        "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2/module",
+        "environment": {
+          "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+          "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+          "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-telemetry.98tay7",
+          "GOPROXY": "off",
+          "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+          "TASK9_LISTING_CONTROL": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task9-listing.YToMJw/v2",
+          "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TASK9_LISTING_MODE": "stderr-overflow",
+          "CGO_ENABLED": "0",
+          "GOENV": "off",
+          "GOEXPERIMENT": "nogreenteagc",
+          "GOFLAGS": "",
+          "GOTOOLCHAIN": "local",
+          "GOWORK": "off",
+          "TZ": "UTC"
+        },
+        "environment_sha256": "0bf0674defa9ceb0da81f89e56f27dd6ce688933187dc48f7fd44a33ab55d70e",
+        "pid": 4157,
+        "mode": "stderr-overflow",
+        "standard": true,
+        "gone": true
+      }
+    ]
+  },
+  "input_verification_before_and_after": true
+}

@@ -46,6 +46,9 @@ func collectCapabilityListing(ctx context.Context, goCommand string, spec Spec, 
 		if errors.As(err, &commandError) && commandError.InvalidInput {
 			return nil, nil, invalidCapabilityReview(err)
 		}
+		if _, ok := err.(*gocommand.OverflowError); ok {
+			err = fmt.Errorf("target capability closure output exceeds %d bytes", maximumCapabilityReviewOutputBytes)
+		}
 		return nil, nil, fmt.Errorf("inspect target capability closure: %w", err)
 	}
 	overlay, err := loadBuildOverlay(spec.BuildOverlay, commandDirectory)
