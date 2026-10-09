@@ -94,4 +94,6 @@ record['source_unchanged'] = before == after
 record['orchestration_unchanged'] = scripts_before == scripts_after
 receipt.write_text(json.dumps(record, indent=2) + '\n')
 print(json.dumps({key: record[key] for key in ['command', 'exit_code', 'elapsed_seconds', 'source_unchanged', 'orchestration_unchanged', 'terminal', 'timed_out']}))
+if not record['source_unchanged'] or not record['orchestration_unchanged']:
+    raise SystemExit(125)
 sys.exit(124 if timed_out else status)
