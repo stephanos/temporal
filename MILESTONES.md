@@ -164,7 +164,7 @@ an assumed shared schema. Planned 2026-10-06 from the schema research (see batch
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-145.1 | ⬜ todo | Full schema closure, linked descriptors and Scala jar exclusions; multi-file proof |
+| fn-145.1 | ✅ done | Full schema closure, linked descriptors and Scala jar exclusions passed their focused generation, compile and descriptor proofs |
 | fn-145.2 | ⬜ todo | Extract the nine responsibility files without changing declarations or Model meaning |
 | fn-145.3 | ⬜ todo | Local empty marker → `google.protobuf.Empty`; preserve oneof meanings |
 | fn-145.4 | ⬜ todo | Equivalence gates, shared-leaf evaluation, schema ownership docs; close (the batch's regeneration and gates) |
