@@ -1,0 +1,26 @@
+{
+  "commits": [],
+  "base_commit": "7b75ae312a6641c6b00afbb63f44ae9a9dd0c2b2",
+  "tests": [
+    "go test -tags test_dep -count=1 -timeout=90s -run '^TestBuild' -v ./toolchain",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.github/.golangci.yml ./toolchain",
+    "go vet -tags test_dep ./toolchain",
+    "gofmt -l tools/gomad3/toolchain/build_test.go",
+    "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "go test -tags test_dep -count=1 -timeout=90s -run '^TestBuild' -v ./toolchain",
+    "go test -tags test_dep -count=1 -timeout=30s -overlay=/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-61/context-controls-v2-overlay.json -run '^TestBuildLockWaitContextControls$' -v ./toolchain",
+    "go test -tags test_dep -count=1 -timeout=30s -overlay=/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-61/muted-observer-v2-overlay.json -run '^TestBuildSerializesConcurrentSameKey$' -v ./toolchain",
+    "go test -tags test_dep -count=1 -timeout=30s -overlay=/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-61/waited-false-v2-overlay.json -run '^TestBuildSerializesConcurrentSameKey$' -v ./toolchain",
+    "go test -tags test_dep -count=1 -timeout=30s -overlay=/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-61/bypassed-wait-sequential-v2-overlay.json -run '^TestBuildSerializesConcurrentSameKey$' -v ./toolchain",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.github/.golangci.yml ./toolchain",
+    "go vet -tags test_dep ./toolchain",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./toolchain",
+    "gofmt -l tools/gomad3/toolchain/build_test.go",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=7b75ae312a6641c6b00afbb63f44ae9a9dd0c2b2 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "prs": [],
+  "provenance_limits": [
+    "Governing requirements committed at 7b75ae312a6641c6b00afbb63f44ae9a9dd0c2b2 and original BASE outcome assertions independently establish their pre-edit expectations. Baseline receipts do not hash expectations.md, so the complete supplementary document's pre-edit contents and control-design chronology remain unproved. This acceptance gap is not closed by verified source ordering, preservation or actual mutant outcomes; formal SHIP and Done remain withheld."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "base_commit": "7b75ae312a6641c6b00afbb63f44ae9a9dd0c2b2",
+  "baseline_source_sha256": "4d7063425b908409511276c5fed0688b591ce595f0dfcc503ad434507e2aa573",
+  "candidate_source_sha256": "ba64e85358a6993e669a5a1925ab0cee8ece625fb43df987b9bdeca437b2cd15",
+  "only_product_path_changed": "tools/gomad3/toolchain/build_test.go",
+  "all_other_test_bytes_equal": true,
+  "all_original_outcome_assertions_equal": true,
+  "fixture_inputs_equal": true,
+  "production_lock_build_and_hostfs_equal": true,
+  "baseline_runner_and_raw_hashes_valid": true
+}

@@ -1,0 +1,5 @@
+tools/gomad3/toolchain/build_test.go:97:2: use of `time.Sleep` forbidden because "Please use await.Require / s.Await unless there's no better option" (forbidigo)
+	time.Sleep(25 * time.Millisecond)
+	^
+1 issues:
+* forbidigo: 1

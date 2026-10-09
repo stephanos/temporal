@@ -1,0 +1,7 @@
+=== RUN   TestBuildSerializesConcurrentSameKey
+    build_test.go:146: second builder did not observe lock contention before timeout
+    build_test.go:119: controlled cleanup drained every launched builder
+--- FAIL: TestBuildSerializesConcurrentSameKey (5.49s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/toolchain	5.500s
+FAIL

@@ -1,0 +1,7 @@
+=== RUN   TestBuildSerializesConcurrentSameKey
+    build_test.go:170: neither concurrent result reported lock waiting: {BuildKey:ac40ed8b38a83edca6391ea09afe5feae53ac4659eef5baa50111189f0db78c4 BuildDir:/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/tmp-61/TestBuildSerializesConcurrentSameKey2291505581/001/toolchain/builds/ac40ed8b38a83edca6391ea09afe5feae53ac4659eef5baa50111189f0db78c4 HostOS:darwin HostArch:arm64 Reused:false Waited:false}, {BuildKey:ac40ed8b38a83edca6391ea09afe5feae53ac4659eef5baa50111189f0db78c4 BuildDir:/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/tmp-61/TestBuildSerializesConcurrentSameKey2291505581/001/toolchain/builds/ac40ed8b38a83edca6391ea09afe5feae53ac4659eef5baa50111189f0db78c4 HostOS:darwin HostArch:arm64 Reused:true Waited:false}
+    build_test.go:120: controlled cleanup drained every launched builder
+--- FAIL: TestBuildSerializesConcurrentSameKey (0.30s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/toolchain	0.320s
+FAIL

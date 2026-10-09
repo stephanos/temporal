@@ -69,15 +69,31 @@ func TestBuildPublishesAndReusesImmutableToolchain(t *testing.T) {
 	}
 }
 
+type buildLockWaitContext struct {
+	context.Context
+	entered chan struct{}
+	once    sync.Once
+}
+
+func (ctx *buildLockWaitContext) Done() <-chan struct{} {
+	ctx.once.Do(func() { close(ctx.entered) })
+	return ctx.Context.Done()
+}
+
 func TestBuildSerializesConcurrentSameKey(t *testing.T) {
 	root := writeBuildFixture(t)
 	var builds atomic.Int64
 	started := make(chan struct{})
 	release := make(chan struct{})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	var releaseOnce sync.Once
 	dependencies := fakeDependencies(t, &builds)
 	dependencies.run = fakeRunner(t, "darwin", "arm64", &builds, func() {
 		close(started)
-		<-release
+		select {
+		case <-release:
+		case <-ctx.Done():
+		}
 	})
 	config := testConfig(root)
 	type outcome struct {
@@ -85,19 +101,66 @@ func TestBuildSerializesConcurrentSameKey(t *testing.T) {
 		err    error
 	}
 	results := make(chan outcome, 2)
+	pending := 0
+	defer func() {
+		cancel()
+		releaseOnce.Do(func() { close(release) })
+		timer := time.NewTimer(5 * time.Second)
+		defer timer.Stop()
+		for pending > 0 {
+			select {
+			case <-results:
+				pending--
+			case <-timer.C:
+				t.Errorf("%d concurrent builders did not exit after cancellation", pending)
+				return
+			}
+		}
+	}()
+	pending++
 	go func() {
-		result, err := buildWith(context.Background(), config, dependencies)
+		result, err := buildWith(ctx, config, dependencies)
 		results <- outcome{result: result, err: err}
 	}()
-	<-started
+	select {
+	case <-started:
+	case result := <-results:
+		pending--
+		t.Fatalf("first builder completed before starting: %+v", result)
+	case <-ctx.Done():
+		t.Fatal("first builder did not start before timeout")
+	}
+	waiter := &buildLockWaitContext{Context: ctx, entered: make(chan struct{})}
+	pending++
 	go func() {
-		result, err := buildWith(context.Background(), config, dependencies)
+		result, err := buildWith(waiter, config, dependencies)
 		results <- outcome{result: result, err: err}
 	}()
-	time.Sleep(25 * time.Millisecond)
-	close(release)
-	first := <-results
-	second := <-results
+	select {
+	case <-waiter.entered:
+	case result := <-results:
+		pending--
+		t.Fatalf("builder completed before lock contention: %+v", result)
+	case <-ctx.Done():
+		t.Fatal("second builder did not observe lock contention before timeout")
+	}
+	releaseOnce.Do(func() { close(release) })
+	receive := func() outcome {
+		t.Helper()
+		select {
+		case result := <-results:
+			pending--
+			return result
+		case <-ctx.Done():
+			t.Fatal("concurrent builder did not complete before timeout")
+			return outcome{}
+		}
+	}
+	first := receive()
+	second := receive()
+	if err := ctx.Err(); err != nil {
+		t.Fatalf("concurrent builders exceeded their deadline: %v", err)
+	}
 	if first.err != nil || second.err != nil {
 		t.Fatalf("concurrent Build() errors = %v, %v", first.err, second.err)
 	}
