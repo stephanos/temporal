@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-151-split-standalone-activity-into-smaller",
   "spec_path": ".flow/tasks/fn-151-split-standalone-activity-into-smaller.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Extract focused verification from ActivitySystem into smaller subject models",
   "updated_at": "2026-10-09T19:06:59.156029Z"
 }

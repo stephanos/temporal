@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-151-split-standalone-activity-into-smaller",
   "spec_path": ".flow/tasks/fn-151-split-standalone-activity-into-smaller.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move existing derived activity models and worker composition into subject files",
   "updated_at": "2026-10-09T19:00:40.959487Z"
 }

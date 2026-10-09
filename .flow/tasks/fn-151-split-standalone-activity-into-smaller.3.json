@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-151-split-standalone-activity-into-smaller",
   "spec_path": ".flow/tasks/fn-151-split-standalone-activity-into-smaller.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Verify behavior and generated artifacts after the activity model split",
   "updated_at": "2026-10-09T23:04:09.572811Z"
 }
