@@ -17,11 +17,17 @@
 //     IR files;
 //   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
 //     what a client reads;
-//   - system/System.scala: System Phase, State, Fact, timer and composition types; ActivitySystem,
-//     the System machine that refines it; ActivityWorker, the worker of its task queue; and
-//     StandaloneActivity, the System with that worker;
-//   - system/Record.scala: the history record of the activity, and its designs;
-//   - system/WithTaskQueue.scala: the contract's designs composed with the shared task queue.
+//   - system/System.scala: System Phase, Dispatch, State and Fact; ActivitySystem, the lifecycle
+//     machine that refines the Product;
+//   - system/RetryTimeouts.scala: TimeoutRetry, the derived attempt-timeout retry model;
+//   - system/Heartbeat.scala: the derived heartbeat completion, retry and exhaustion models;
+//   - system/ResponseByID.scala: ByIDCompletion, ByIDFailure and ByIDCancellation;
+//   - system/Reset.scala: ResetSettlement, ResetKeepingPause and DeferredReset;
+//   - system/Dispatch.scala: the dispatch protocol, ActivityRecord and TrustingActivityRecord;
+//   - system/DispatchRaces.scala: HeldDispatch and LostStartAnswer;
+//   - system/DispatchWithTaskQueue.scala: the dispatch designs composed with the shared task queue;
+//   - system/DispatchWithWorker.scala: StandaloneActivityState; ActivityWorker, the worker of its
+//     task queue; and StandaloneActivity, the System with that worker;
 //   - system/Realization.scala: the executable System realizations of StandaloneActivity,
 //     HeldDispatch and LostStartAnswer.
 //

@@ -680,10 +680,16 @@ features/
       product/
         Product.scala          Product Phase, State and Fact, the phase accessors; ActivityProduct
       system/
-        System.scala           System Phase, State and Fact; ActivitySystem, ActivityWorker, StandaloneActivity
-        Record.scala           the record and its designs: ActivityRecord, TrustingActivityRecord, HeldDispatch, LostStartAnswer
-        WithTaskQueue.scala     the designs over the task queue: RecordMember, TrustingRecordMember, RecordOverQueue, …
-        Realization.scala      the System realizations: standalone, heldDelivery, lostAdmissionResponse
+        System.scala                System Phase, Dispatch, State and Fact; ActivitySystem, the lifecycle machine
+        RetryTimeouts.scala         TimeoutRetry, the derived attempt-timeout retry model
+        Heartbeat.scala             derived heartbeat completion, retry and exhaustion models
+        ResponseByID.scala          ByIDCompletion, ByIDFailure, ByIDCancellation
+        Reset.scala                 ResetSettlement, ResetKeepingPause, DeferredReset
+        Dispatch.scala              the dispatch protocol: ActivityRecord, TrustingActivityRecord
+        DispatchRaces.scala         held delivery and lost start responses: HeldDispatch, LostStartAnswer
+        DispatchWithTaskQueue.scala the queue compositions: RecordMember, TrustingRecordMember, RecordOverQueue, …
+        DispatchWithWorker.scala    StandaloneActivityState; ActivityWorker, StandaloneActivity
+        Realization.scala           the System realizations: standalone, heldDelivery, lostAdmissionResponse
   nexus/
     Nexus.scala                shared Reply, Resolution, Outcome and signature; no form dependency
     product/
@@ -986,7 +992,7 @@ opaque contract `TaskQueueProduct` and its storage-loss variant, the providers t
 (`TaskQueueSystem` and the lossy one, failure models, and the forgetful and volatile negative
 controls), the claims `queueClaims` every provider is held to, and the provider Queries.
 A feature keeps its own syncs and its cross-entity claims, as the standalone activity's
-`system/WithTaskQueue.scala` does. The queue is a bounded abstraction, not a general queue: one message at a
+`system/DispatchWithTaskQueue.scala` does. The queue is a bounded abstraction, not a general queue: one message at a
 time, delivered at most twice before its acknowledgment. The detailed provider's table, and a
 design composed with it, has depth ten, so its free Queries run within `twelve`. Its declarations
 are named where they are declared, in `temporal.foundations.taskqueue` and its `product` and `system`

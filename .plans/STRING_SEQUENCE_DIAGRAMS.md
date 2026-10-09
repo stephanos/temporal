@@ -27,7 +27,7 @@ does not settle whether diagrams should eventually become an authoring language.
 
 ### Activity and the task queue
 
-`model/temporal/features/activity/standalone/system/WithTaskQueue.scala` already declares scenarios
+`model/temporal/features/activity/standalone/system/DispatchWithTaskQueue.scala` already declares scenarios
 whose important feature is the ordering between participants:
 
 - `staleDeliveryAfterPause`: dispatch and persist, pause the activity, then deliver.

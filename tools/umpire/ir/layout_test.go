@@ -486,7 +486,7 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"the former flattened package":          {"features.nexuscaller.closepolicy.exports", true},
 		"the former flattened folder":           {"model/temporal/features/nexuscaller/closepolicy", true},
 		"a function of a flattened package":     {"temporal.features.standaloneactivity.withTaskQueue.RecordOverQueue$.queries$.all", true},
-		"the level folders' files":              {"model/temporal/features/activity/standalone/system/Record.scala, product/Product.scala", false},
+		"the level folders' files":              {"model/temporal/features/activity/standalone/system/Dispatch.scala, product/Product.scala", false},
 		"a level package":                       {"package system\nimport temporal.features.nexus.workflow.system.ClosePolicyFamily", false},
 		"a pinned former owner":                 {`DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")`, false},
 		"a longer path ending in a folder name": {"common/testing/testpilot/record/run.go, x.record/y", false},
