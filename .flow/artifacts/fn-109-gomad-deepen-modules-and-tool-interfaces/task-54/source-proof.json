@@ -1,0 +1,47 @@
+{
+  "base_commit": "8177ddec76f30c1db027f282358a213176855ef8",
+  "production_path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+  "base_sha256": "c8b17160c1803861b93ccb526845c719168740aae1f678b34e6c299569cc5fbf",
+  "candidate_sha256": "68b45ed511f6383ccda529ea7a48cc2e2c8d9c2693c57051d899ac00eb92f40a",
+  "three_checks": [
+    {
+      "expression": "fmt.Fprintf(stdout, \"%s\\n\", encoded)",
+      "failed_write_status": 3
+    },
+    {
+      "expression": "fmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)",
+      "failed_write_status": 3
+    },
+    {
+      "expression": "fmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)",
+      "failed_write_status": 3
+    }
+  ],
+  "complete_original_bytes_reconstructed": true,
+  "old_tests_and_other_source_preserved_count": 1049,
+  "preserved_source_manifest_sha256": "ecef55477f89e614ba7c49b2bb0e1af19435a9a4732af177477e0d3b96b5302f",
+  "protected_turbo_sha256": {
+    ".turbo/plans/gomad3-glossary-update.md": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188",
+    ".turbo/technical-debt.md": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+  },
+  "lint": {
+    "affected": {
+      "before": 5,
+      "after": 2,
+      "removed": 3,
+      "added": 0,
+      "residual_message_statement_multiset_preserved": true,
+      "baseline_receipt": "../task-53/affected-configured-lint.json",
+      "candidate_receipt": "affected-configured-lint.json"
+    },
+    "original_base": {
+      "before": 99,
+      "after": 96,
+      "removed": 3,
+      "added": 0,
+      "residual_message_statement_multiset_preserved": true,
+      "baseline_receipt": "../task-53/make-gomad-original-base.json",
+      "candidate_receipt": "make-gomad-original-base.json"
+    }
+  }
+}

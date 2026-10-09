@@ -1,0 +1,8 @@
+{"Time":"2026-10-09T20:38:41.434197629Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3"}
+{"Time":"2026-10-09T20:38:41.437532546Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestRunnerExecutionInjectionIsPrivate"}
+{"Time":"2026-10-09T20:38:41.437738504Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestRunnerExecutionInjectionIsPrivate","Output":"=== RUN   TestRunnerExecutionInjectionIsPrivate\n","OutputType":"frame"}
+{"Time":"2026-10-09T20:38:41.442678254Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestRunnerExecutionInjectionIsPrivate","Output":"--- PASS: TestRunnerExecutionInjectionIsPrivate (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-09T20:38:41.443380254Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestRunnerExecutionInjectionIsPrivate","Elapsed":0.01}
+{"Time":"2026-10-09T20:38:41.443553004Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-09T20:38:41.443718546Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"ok  \tgo.temporal.io/server/tools/gomad3\t0.009s\n"}
+{"Time":"2026-10-09T20:38:41.443751296Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Elapsed":0.01}

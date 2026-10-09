@@ -410,11 +410,17 @@ func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) i
 			}
 			return 3
 		}
-		fmt.Fprintf(stdout, "%s\n", encoded)
+		if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
+			return 3
+		}
 	} else {
-		fmt.Fprintf(stdout, "gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\n", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)
+		if _, err := fmt.Fprintf(stdout, "gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\n", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion); err != nil {
+			return 3
+		}
 		for _, check := range report.Checks {
-			fmt.Fprintf(stdout, "%-10s %-5s %s\n", check.Name, check.Status, check.Detail)
+			if _, err := fmt.Fprintf(stdout, "%-10s %-5s %s\n", check.Name, check.Status, check.Detail); err != nil {
+				return 3
+			}
 		}
 		if _, err := fmt.Fprintf(stdout, "installation: source=%s toolchain=%s\nrepair: %s\n", report.InstallationSource, report.ToolchainRoot, report.RepairInstruction); err != nil {
 			return 3

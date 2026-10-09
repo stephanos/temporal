@@ -959,3 +959,16 @@ Task21 consumes this serial correction's evidence
 and independent review. Required affected/integrated source-gate gaps remain
 open; a reviewed progress commit is not formal SHIP or Done on red acceptance.
 Original preservation and native fn149/fn128 ownership remain unchanged.
+
+### Doctor output correction admission — 2026-10-09
+
+Task54 owns only the three doctor stdout writes after task53's independently
+reviewed source-progress commit `8177ddec76`. The CLI already classifies report
+failures as status3. This explicitly admits immediate status3 on JSON, headline
+or check-row write failure, stopping later text writes; successful bytes,
+availability statuses, operations and prior errors remain preserved. The
+existing checked footer remains unchanged. Replay stdout and application error
+casing are excluded. Task21 consumes the correction; task53 acceptance stays
+open on its red source gates, so task54's admission does not require its Done
+status. Reviewed progress is not formal SHIP or Done while required source
+gates remain red. Native deferrals and original acceptance remain unchanged.

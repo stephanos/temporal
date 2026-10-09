@@ -1,0 +1,9 @@
+tools/gomad3/cmd/gomad/internal/cli/application.go:187:14: ST1005: error strings should not be capitalized (staticcheck)
+		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1082:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stdout, "gomad: verified %s\n", result.Artifact.Path)
+		           ^
+2 issues:
+* errcheck: 1
+* staticcheck: 1
