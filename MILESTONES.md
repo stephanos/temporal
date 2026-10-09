@@ -145,7 +145,7 @@ and the pending-control remodel.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-155.1 | ⬜ todo | Baseline IR and step table from fn-151's close, effect-name-erasing projection, mapping skeleton, lifter probes |
+| fn-155.1 | 🔄 in progress | Baseline IR and step table from fn-151's close, effect-name-erasing projection, mapping skeleton, lifter probes |
 | fn-155.2 | ⬜ todo | System held-attempt ending: landing function, named and `armed` guards, `resetSettles`, shared reset reason, initial-state derivations |
 | fn-155.3 | ⬜ todo | Product single-fact `Recorded` conversions, shared rejection reasons, worker/By-ID must-match comment, By-ID examples |
 | fn-155.4 | ⬜ todo | HeldDispatch derived only on proven equivalence; one generic composition capability; waiver reasons section |

@@ -8,7 +8,9 @@ Implements spec section B and the cross-level parts of D: Product single-fact st
 
 **Size:** M
 **Files:** `model/temporal/features/activity/standalone/product/Product.scala`, `Standalone.scala` (reasons, examples), the System-machine owner (rule `because` references)
-**Touches:** [model/temporal/features/activity/standalone/product/Product.scala, model/temporal/features/activity/standalone/Standalone.scala, model/temporal/features/activity/standalone/system/System.scala] (System rule `because` references only; never Dispatch* or Realization.scala)
+**Touches:** [model/temporal/features/activity/standalone/product/Product.scala, model/temporal/features/activity/standalone/Standalone.scala, model/temporal/features/activity/standalone/system/System.scala]
+
+Scope: (System rule `because` references only; never Dispatch* or Realization.scala)
 
 ### Approach
 - **Single-fact Product steps.** Convert only these: `retryPaused`, `resetAppliedPaused` and other single-fact, reasonless arms become `pause(s)`/`retry(s)`. Leave `heartbeatExpires` and other multi-fact or reasoned steps in method form.
@@ -26,7 +28,6 @@ Implements spec section B and the cross-level parts of D: Product single-fact st
 - [ ] The Pins step-table test passes unchanged, including fact order
 - [ ] `project.py` on a scratch lift shows only positions, mapped identities and recorded structural-review entries
 - [ ] `make umpire-check-cases` shows no Case name change, or the change is mapped
-
 ## Acceptance
 - [ ] TBD
 
