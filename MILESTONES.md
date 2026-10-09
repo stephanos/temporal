@@ -124,7 +124,8 @@ carries the joined activity changes; attribute those to their activity tasks. Al
 layout, not meaning: the IR differs only in paths, positions, the `umpire.`→`framework.` package
 mapping and the schema's file layout. One regeneration and one equivalence gate prove the combined
 diff is exactly those mappings; one full Go suite and one review close the batch at fn-145.4. No
-live run is needed.
+live run is needed. This batch contract supersedes fn-142's original production-regeneration and
+full-gate acceptance: fn-142 closes on its scratch equivalence and focused layout verification.
 
 fn-142's isolated move and fn-145.1 to .3 (protobuf files, descriptors and the Scala jar exclusions)
 were prepared in isolation (fn-145.1–.3 on `agent/fn145-prep` in `../lane-batch2`); they join serially in the order

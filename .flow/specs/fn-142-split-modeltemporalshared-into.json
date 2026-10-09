@@ -8,11 +8,65 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-142-split-modeltemporalshared-into",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-142-split-modeltemporalshared-into.1": 1
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "150a9e8cb5c403e8773a538507432caef940bcacfbd93f40d2e35a7c3cc7acb7",
+      "backend": "codex",
+      "base_sha": "59cb017d308a87483081d24d24b10c9733c2e8cf",
+      "counter_kind": "impl",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6f73b3ef41c4a3bbabe0050a732089e3",
+            "classification": "introduced",
+            "findingId": "finding-6f73b3ef41c4a3bbabe0050a732089e3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8e9e15eab08c99b2741bf3251471d44319da5092",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1217,
+      "output_sha256": "ccf88b9ab7296bfa726bed73e92d90b26dfb0c1310312a13079287f64d810c43",
+      "reservation_id": "e5b5103531ba491fa9a4c63c8dc7abc2",
+      "round_consumed": true,
+      "scope": "impl:fn-142-split-modeltemporalshared-into.1",
+      "superseded_by": null,
+      "task": "fn-142-split-modeltemporalshared-into.1",
+      "timestamp": "2026-10-09T02:40:25.164943Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-142-split-modeltemporalshared-into.1": 0
+  },
   "spec_path": ".flow/specs/fn-142-split-modeltemporalshared-into.md",
   "status": "open",
   "title": "Split model/temporal/shared into foundations and actors",
@@ -27,5 +81,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T22:31:07.035360Z"
+  "updated_at": "2026-10-09T02:40:25.168757Z"
 }
