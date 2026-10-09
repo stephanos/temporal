@@ -299,6 +299,62 @@ class GateSuite extends munit.FunSuite:
     assertEquals(repository.ran.size, 6)
     assertNotEquals(repository.stamp, before)
 
+  test("real ScalaPB generation compiles a declaration imported by the IR root"):
+    val root = Files.createTempDirectory("umpire-gate-real-schema")
+    val schema = root.resolve(schemaFile)
+    Files.createDirectories(schema.getParent)
+    Files.writeString(
+      schema.resolveSibling("common.proto"),
+      """syntax = "proto3";
+        |package temporal.server.api.umpire.v1;
+        |option java_package = "io.temporal.server.api.umpire.v1";
+        |
+        |message Imported {
+        |  string value = 1;
+        |}
+        |""".stripMargin
+    )
+    Files.writeString(
+      schema,
+      """syntax = "proto3";
+        |package temporal.server.api.umpire.v1;
+        |option java_package = "io.temporal.server.api.umpire.v1";
+        |
+        |import "temporal/server/api/umpire/v1/common.proto";
+        |
+        |message Root {
+        |  Imported imported = 1;
+        |}
+        |""".stripMargin
+    )
+    val tools = Tools(root, sys.env)
+    val generated = gate(tools, "--generate-ir")
+    assertEquals(generated.status, 0, generated.err)
+
+    val probe = root.resolve("Probe.scala")
+    Files.writeString(
+      probe,
+      """import io.temporal.server.api.umpire.v1.{Imported, Root}
+        |
+        |object Proof:
+        |  val imported: Imported = Imported(value = "compiled")
+        |  val root: Root = Root(imported = Some(imported))
+        |""".stripMargin
+    )
+    val compiled = tools.scalaCli(
+      Seq(
+        "compile",
+        probe.toString,
+        "--scala",
+        "3.9.0",
+        "--jar",
+        root.resolve("model/build/ir-scalapb.jar").toString,
+        "--dep",
+        "com.thesamet.scalapb::scalapb-runtime:0.11.20"
+      )
+    )
+    assert(!compiled.failed, compiled.diagnostics)
+
   test("a file the IR schema imports that is missing fails with its importer"):
     val repository = Repository()
     val common = repository.importFile("common.proto")
