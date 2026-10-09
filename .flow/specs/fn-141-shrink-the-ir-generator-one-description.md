@@ -146,6 +146,25 @@ go test -tags test_dep -p 2 -timeout 30m ./tools/umpire/...
 
 [inferred] The checked-in IR and Cases are the oracle for every step. Each part must leave them byte-identical, so a difference is a defect of the step and never an accepted change.
 
+### Notes: compile-time checks for the lifter's refusals (2026-10-09, owner-selected, not requirements)
+
+[paraphrase] A review of the Scala model on 2026-10-09 found that `scalac` accepts many forms the lifter then refuses at lift time. Those forms get slower feedback and a second set of error messages, and reviewers must know the refusals. The owner chose to attach the following items here as notes rather than open a separate spec. fn-156 holds the review's other items (flags, strict equality, lint rules, test discovery).
+
+None of these items is an R-ID of this spec. Each one that is adopted while this spec moves a construct must still leave the checked-in IR and Cases byte-identical. An item that would change the IR waits for a spec of its own.
+
+1. A typed `overriding[F](replaced: F, by: F)` in place of `(AnyRef, AnyRef)`. It removes the `: AnyRef` ascriptions in capability sections and turns the lifter's `sameSignature` refusal into a compile error.
+2. Precise types for the remaining `AnyRef` and `Any` DSL parameters (27 and 19 at the time of the review).
+3. `.because(...)` takes an `inline` literal enforced with `scala.compiletime.requireConst`, so the compiler rejects what the lifter's `constString` refuses.
+4. The same treatment for every other "must be a literal" refusal.
+5. `opaque type`s for query names, evidence ids, source ids and result kinds, in place of plain `String` parameters (462 `: String` parameters at the time).
+6. Names derived from the declaring `val` at compile time, so a string like `query("x.y")` cannot drift from what it names. The owner noted the dismissal of `sourcecode` is stale (see Implementation Tradeoffs).
+7. Typed outcomes and facts in compositions, in place of `[…, String, String]` (25 uses).
+8. Real argument and result types for placeholder DSL methods, such as `deadlines.apply` returning `Item()`, so misuse fails to compile.
+9. Typed builders whose result type orders what may follow: machine sections, and the `query … in … limits` chain.
+10. `@implicitNotFound` on every required given, so the error tells the author what to write (5 at the time).
+11. Required constructor parameters (the `Recorded` pattern) for every "each case must declare X" rule.
+12. A policy: each new lifter refusal ships with a matching compile-time check, or records why none is possible.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

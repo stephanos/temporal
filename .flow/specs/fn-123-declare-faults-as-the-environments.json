@@ -12,7 +12,9 @@
     "fn-137-capabilities-read-phase-roles",
     "fn-142-split-modeltemporalshared-into",
     "fn-143-rename-modelumpire-to-modelframework",
-    "fn-145-modularize-the-umpire-ir-schema"
+    "fn-145-modularize-the-umpire-ir-schema",
+    "fn-151-split-standalone-activity-into-smaller",
+    "fn-155-name-the-standalone-activitys-repeated"
   ],
   "id": "fn-123-declare-faults-as-the-environments",
   "impl_review_rounds": {},
@@ -230,5 +232,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T19:03:49.484914Z"
+  "updated_at": "2026-10-09T18:44:37.479481Z"
 }
