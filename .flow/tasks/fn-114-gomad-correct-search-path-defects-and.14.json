@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md",
-  "status": "todo",
+  "status": "done",
   "title": "Qualify the combined toolchain and Runner on Darwin and update the docs",
   "updated_at": "2026-10-08T07:47:27.490513Z"
 }

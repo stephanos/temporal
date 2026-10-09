@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reproduce C2 and E3 with runtime fixtures on the unmodified toolchain",
   "updated_at": "2026-10-02T04:39:39.701266Z"
 }

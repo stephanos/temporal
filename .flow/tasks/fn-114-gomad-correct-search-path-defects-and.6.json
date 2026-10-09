@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add the choice-exploration start ordinal",
   "updated_at": "2026-10-02T15:15:38.255205Z"
 }

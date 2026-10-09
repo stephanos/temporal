@@ -5,7 +5,7 @@
   "priority": null,
   "spec": "fn-113-gomad-reduce-version-pin-maintenance",
   "spec_path": ".flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Baseline the pins and add the pin impact report",
   "updated_at": "2026-10-08T05:28:23.082516Z"
 }

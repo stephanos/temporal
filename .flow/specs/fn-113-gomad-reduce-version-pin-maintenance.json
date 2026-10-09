@@ -387,7 +387,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad reduce version-pin maintenance",
   "tracker": {
     "baseHashFlow": null,
@@ -400,5 +400,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T20:59:27.383542Z"
+  "updated_at": "2026-10-09T18:42:16.704570Z"
 }

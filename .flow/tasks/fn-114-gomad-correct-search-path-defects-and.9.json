@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Keep one copy of each prepared target per artifact store",
   "updated_at": "2026-10-02T04:39:43.284732Z"
 }

@@ -30,12 +30,21 @@ Status: ✅ Done · 🚧 In progress · ⛔ Blocked · ⬜ Todo.
 
 Work a spec with `/flow-next:work <spec>`; list ready tasks with `flowctl ready`.
 Record a deferred task's revival trigger in its owning Flow task before implementation.
-Completed specs and their evidence remain in `.flow/` and Git history.
+<a id="maintenance-cost"></a>
+<a id="search-path-findings-fn-114"></a>
+
+Completed specs and their evidence remain in `.flow/` and Git history, including
+[version-pin maintenance](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md)
+and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md).
 
 ## Immediate delivery order
 
-1. Reconcile the combined D26/fn-110 source candidate, fn-114 tasks 13/14, fn-112 task 5 and D27 against their retained source checks, preservation and source reviews. Native runtime/clock proof belongs to deferred fn-149.1 and fn-128.1/.4/.7.
-2. Finish retained source acceptance for merged fn-112 tasks 16/9, fn-113 tasks 1-4 and fn-109 tasks 2-6 against the integrated candidate. Keep lint, both-source-set static checks, generated validation, first-baseline and preservation requirements open wherever unproved.
+Owner priority (2026-10-09). Finish near-complete source specs first. Start with fn-112's
+remaining task 10, then prefer fn-105, fn-110 and fn-109 as their source prerequisites
+permit. Preserve task dependencies, retained acceptance and the native deferrals below.
+
+1. Finish fn-112 task 10's retained source acceptance for the delivered soak gate and shared documentation. Actual native soak runs and measured bounds remain with fn-149.4 and fn-128.5/.7; no workflow dispatch is authorized.
+2. Reconcile the combined D26/fn-110 source candidate, fn-112 tasks 5/16/9, D27 and fn-109 tasks 2-6 against their retained source checks, preservation and source reviews. Keep lint, both-source-set static checks, generated validation, first-baseline and preservation requirements open wherever unproved. Native runtime/clock proof belongs to deferred fn-149.1 and fn-128.1/.4/.7.
 3. Continue fn-109 tasks 7-12, fn-110 tasks 3-4, then fn-109 tasks 13-21 and fn-110 task 5 in their source delivery order, including the admitted correction owners. Predecessor source integration/review and retained source acceptance remain required. Missing native qualification now owned by fn-149 or fn-128 cannot block source admission or completion; unproved source requirements still do.
 4. Resume fn-105 D8-D10's shared source work when the real checkout is available. Native Darwin consumer analyses/packs/replay/guidance belong to fn-149.3; Linux execution belongs to fn-128.6. Neither native owner removes the actual-checkout/source-review prerequisite.
 5. Keep fn-149 deferred until an explicit Darwin qualification request and native darwin/arm64 execution are available. Then establish its pinned candidate/runtime, retain inherited integration/model/pack and downstream evidence, and reconcile an actual scheduled/dispatched soak plus final matrix. Publication and CI actions need separate authority.
@@ -301,40 +310,6 @@ CI, PR, or push authority.
 | [fn-112.14](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.14.md) | ✅ Done | Preserve parent cancellation classification when an exploration round finishes |
 | [fn-112.15](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.15.md) | ✅ Done | Make TestWatchdogDiagnosticReplayUsesCapturedInputs reliable |
 | [fn-112.16](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.16.md) | ✅ Done | Keep two retained successes with one outcome signature as distinct artifacts |
-
-<a id="maintenance-cost"></a>
-
-## Version-pin maintenance — [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ✅ Done | Pin-impact source acceptance; [current inventory](.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008/current-inventory.json) and [bump steps](.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008/manual-steps.md) |
-| [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ✅ Done | Retained R3 source acceptance and three-draw SHIP; native qualification deferred |
-| [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ✅ Done | Retained R4 source acceptance verified; native qualification deferred |
-| [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ✅ Done | Retained R5/source R6 acceptance and [matched source measurement](.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/source-acceptance-20261008/measurement.md); native gates remain deferred |
-
-<a id="search-path-findings-fn-114"></a>
-
-## Search-path findings — [fn-114](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-114.1](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.1.md) | ✅ Done | Re-anchor the ten findings and reproduce C3 on the unmodified tree; historical evidence retains its original candidate identity |
-| [fn-114.2](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.2.md) | ✅ Done | Historical C2/E3 controls and counterexamples; the predicted C2 same-seed prefix failure is narrowed, not reproduced by cross-seed forcing |
-| [fn-114.3](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.3.md) | ✅ Done | C1/C4 delivered in source; corpus identity binds environment/tick policy and provenance rejects coverage instrumentation |
-| [fn-114.4](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.md) | ✅ Done | C3 delivered in source; typed divergent candidates and completed siblings survive commit and resume |
-| [fn-114.5](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md) | ✅ Done | C2 stable creation-bound timer-callback identities delivered; parentless exceptions remain inventoried and same-seed counterexamples retain their meaning |
-| [fn-114.6](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.6.md) | ✅ Done | E5 delivered in source; the replay-plan start ordinal controls choice-frontier expansion |
-| [fn-114.7](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.7.md) | ✅ Done | E1 delivered in source; ordinary guidance skips answered seeds, regression mode is explicit and selection/counts remain frozen across resume/shards |
-| [fn-114.8](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.8.md) | ✅ Done | E6 resume delivered in source with accepted artifacts and consumed budgets persisted; typed scenario shrinking remains open |
-| [fn-114.9](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.9.md) | ✅ Done | E2 shared prepared targets delivered with self-contained private-copy fallback |
-| [fn-114.10](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.10.md) | ✅ Done | E2 corpus accounting/pruning/merge delivered; retained-byte measurements remain historical and current native measurement belongs to fn-149/fn-128 |
-| [fn-114.11](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md) | ✅ Done | E3 readiness recording delivered in source; select-poll records remain in the Choice Trace for replay |
-| [fn-114.12](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md) | ✅ Done | E3 frontier suppression delivered for seven proven shapes with two polled non-nil cases; unlisted shapes and selects with three or more polled cases remain expanded, and native counts retain historical identities |
-| [fn-114.13](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md) | ✅ Done | E4 source acceptance delivered and historical two-user premise refuted; head-class scheduling offers user-only alternatives, with current native controls deferred |
-| [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | ✅ Done | R12 delivered-behavior docs and retained source acceptance complete; current native qualification remains with fn-149/fn-128 |
-| [fn-114.15](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.15.md) | ✅ Done | E6 per-parent minimizer workspace isolation delivered; explicit resume fails closed on changed/corrupt state |
-| [fn-114.16](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.16.md) | ✅ Done | E2 accounting limit documented; campaign budgets charge each standalone artifact in full, while corpus sharing and merged-record target deduplication use their separate rules |
 
 ## Deferred Linux qualification and repairs — [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md)
 

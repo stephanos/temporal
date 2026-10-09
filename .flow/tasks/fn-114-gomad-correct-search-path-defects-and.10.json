@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.10.md",
-  "status": "todo",
+  "status": "done",
   "title": "Account, prune, and merge shared targets and measure retained bytes",
   "updated_at": "2026-10-02T04:39:44.001892Z"
 }

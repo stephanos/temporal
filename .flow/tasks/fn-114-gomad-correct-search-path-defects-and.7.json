@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Stop guided selection from re-running answered corpus seeds and add the regression mode",
   "updated_at": "2026-10-02T15:15:38.254170Z"
 }

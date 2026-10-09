@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Derive timer-callback goroutine identity from the timer's creator and inventory parentless creations",
   "updated_at": "2026-10-02T09:25:31.864592Z"
 }

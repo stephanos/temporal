@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-113-gomad-reduce-version-pin-maintenance",
   "spec_path": ".flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Refresh invalidated packs in one command and remove unselected variants",
   "updated_at": "2026-10-08T05:28:24.187716Z"
 }

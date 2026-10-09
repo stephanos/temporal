@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Check the select-poll reduction for soundness and stop expanding no-op decisions",
   "updated_at": "2026-10-02T04:39:45.646284Z"
 }

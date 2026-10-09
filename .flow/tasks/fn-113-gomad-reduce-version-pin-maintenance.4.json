@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-113-gomad-reduce-version-pin-maintenance",
   "spec_path": ".flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Document and measure the bump procedure; run Darwin gates",
   "updated_at": "2026-10-08T03:51:43.806052Z"
 }

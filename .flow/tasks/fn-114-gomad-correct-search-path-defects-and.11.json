@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md",
-  "status": "todo",
+  "status": "done",
   "title": "Record select readiness in the runtime and the Choice Trace",
   "updated_at": "2026-10-02T04:39:44.842288Z"
 }

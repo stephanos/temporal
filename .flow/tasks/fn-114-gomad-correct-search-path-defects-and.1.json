@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Re-anchor the ten findings and reproduce C3 on the unmodified tree",
   "updated_at": "2026-10-02T04:39:33.733112Z"
 }

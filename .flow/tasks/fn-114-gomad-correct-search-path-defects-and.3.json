@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-gomad-correct-search-path-defects-and",
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Bind environment and tick policy into the corpus identity and reject coverage-instrumented provenance",
   "updated_at": "2026-10-02T04:33:05.224706Z"
 }
