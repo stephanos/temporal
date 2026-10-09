@@ -88,9 +88,31 @@ mise exec -- go test -tags test_dep -p 2 -timeout 30m -json -count=1 ./tools/ump
 - [ ] `TestActivityEveryClaimDeclarationIsLifted` reads the five additional lifecycle subject files while retaining exact declaration equality, the existing capability-section count and name-key parsing. Dispatch protocol/race/queue claims do not enter this lifecycle inventory. Owner-key parity enhancement remains assigned to task .2. The focused parity and layout Quick commands pass with recorded output.
 - [ ] Compilation, formatting and `lint-model-models` pass with recorded output and no unused imports. Current file-layout docs and header references match the destinations, intentional retired-path examples and historical docs remain unchanged, and embedded filename comments deferred to preserve body equality are listed in the handoff. The handoff explicitly preserves inherited RED/Batch 5/fn-154 dispositions and excludes fn-155 simplification; focused passes are not reported as a green canonical suite.
 ## Done summary
-TBD
+Moved the existing standalone Activity declarations into the eight approved subject files, retaining the five core declarations, packages, exports/order, complete declaration bodies and realization standing. Updated only the current layout docs/headers and explicit lifecycle parity inventory; generated artifacts and Realization.scala remain unchanged.
 
+Tier: session (jev-unavailable(no_key))
+Internal delegation: 3 isolated edit lanes, reconciled before verification; sole implementation committer.
+stage: impl-review - ran [2026-10-09T19:29:07Z..2026-10-09T19:31:52Z]; SHIP, three fresh gpt-6.1-sol high draws, same family as writer, no findings.
+
+Structural baseline: 4755faca73354e2ab169d1a53e3e0e9ad0cf2bfd. Task base: 9dbda366e3ca61a59f47f1b483fc4aa44fb27c18, metadata-only newer. Source/artifact input hashes, pinned build-jar hashes, immutable post-move source hashes and proof-output hashes are retained in this task directory. Exact proof invocation: python3 .flow/tmp/fn151/task1/source-proof.py --verify. Its installed-buffer guard, identity/body inventories, exports/realization checks and exact source slices pass: 52 moved/core declarations plus 20 root declarations, 7,317 nested lifted source occurrences, 29 selected unchanged Activity artifacts/manifests and seven rejected negative specimens. All tracked generated-input hashes also remain unchanged.
+
+Proof handoff: baseline-declarations.json, candidate-declarations.json, splice-ledger.json, source-coordinate-map.json, negative-controls.json, source-seal.json and proof-output-sha256.txt. Task .2 consumes the destination map; task .3 composes the .1 coordinate ledger with .2 ownership changes. Coordinates include retained-core and root-header shifts; no position deletion or blanket filename normalization is authorized.
+
+Baseline: initial compile red because the new worktree lacked api-scalapb.jar; exact pinned current jars were copied to ignored model/build under explicit build-setup authorization, with SHA256 equality. Repaired baseline compile, formatting, model lint and focused Go layout/parity passed. The first candidate formatting check rejected only a redistributed import's braces; its outside-body syntax and explicit ledger were corrected, then final checks passed. A scratch log collector miscounted Go subtests after a successful layout exit; that observation was recovered from the same run, not rerun or rounded up.
+
+Focused Quick commands and readonly affected-package Go lint all passed; verify-gates.json records exact commands, exit codes, logs and actual test counts (three layout top-level tests with two subtests, one parity test). Completion inventory/fmt/lint passed again, with unchanged-source green receipts honored for compile/layout/parity:
+GATE_SKIPPED:fn1511.compile:green-receipt c3e2d08f
+GATE_SKIPPED:fn1511.layout:green-receipt c3e2d08f
+GATE_SKIPPED:fn1511.parity:green-receipt c3e2d08f
+
+Review receipt: /tmp/impl-review-receipt-0b52fb55f7b6-fn-151-split-standalone-activity-into-smaller.1.json; task-local snapshot impl-review-receipt.json. Reviewer independent source checks passed; fresh Go attempts were read-only-sandbox blocked and are not gate credit. Worker focused exit observations remain authoritative.
+
+Deferred embedded body comments for .2: ActivitySystem's properties preface still says Record.scala's claims (System.scala:532); RecordOverQueue.states still names Record.scala in its queueStepsOn rationale (DispatchWithTaskQueue.scala:104). Bodies remain exact by design. The worktree manager's .worktrees/.gitignore is authorized setup metadata; no nested gitlink or ignored proof was staged.
+
+Preserve the inherited full canonical RED, strict Activity completion/fatal-failure/pause-resume assertions, Batch 5 disposition and deferred fn-154 heavyweight Quint work. Focused passes are not canonical-suite green; .3 owns regeneration and joined checks. No fn-155 simplification, semantic/body edit, claim extraction, assertion weakening or gate manipulation occurred.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c3e2d08f209b629caccfb3d005f1c051dbbf71d7
+- Tests: diff -u .flow/tmp/fn151/task1/baseline-declarations.json .flow/tmp/fn151/task1/candidate-declarations.json, mise exec -- scala-cli compile --server=false model/project.scala model/framework model/temporal, mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/project.scala model/framework model/temporal, make lint-model-models, mise exec -- go test -tags test_dep -p 2 -timeout 30m -json -count=1 ./tools/umpire/ir -run 'Test(KindGeneralFilesAndForms|RetiredModelPathsStayRetired|StandaloneActivityRealizationFollowsSystem)$', mise exec -- go test -tags test_dep -p 2 -timeout 30m -json -count=1 ./tools/umpire/check -run '^TestActivityEveryClaimDeclarationIsLifted$', GOLANGCI_LINT_FIX=false make lint-code-fast GOLANGCI_LINT_BASE_REV=9dbda366e3ca61a59f47f1b483fc4aa44fb27c18, python3 .flow/tmp/fn151/task1/source-proof.py --verify, sha256sum -c .flow/tmp/fn151/task1/generated-input-sha256.txt, sha256sum -c .flow/tmp/fn151/task1/proof-output-sha256.txt, GATE_SKIPPED:fn1511.compile:green-receipt c3e2d08f, GATE_SKIPPED:fn1511.layout:green-receipt c3e2d08f, GATE_SKIPPED:fn1511.parity:green-receipt c3e2d08f
 - PRs:
