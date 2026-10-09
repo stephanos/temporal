@@ -469,8 +469,12 @@ catalog, independently of the supplied policy maximum and the attempt count's do
 Each Retries declaration brings its own Properties and free verify Queries under
 `<machine>.<val>.<property>`, retaining their companion origin. Fields bind first to that declaration.
 A bound override for a companion Property reaches every instance; a claim or waiver that names an
-ambiguous repeated companion Property is refused. Existing capability names and identities stay
-unchanged.
+ambiguous repeated companion Property is refused. An `overriding` with `of` names the instances it
+replaces, each by its capability val: each named instance takes the replacement under its own
+bindings, origin, Query and bounds, and every other instance stays as its companion states it. A
+named val the section does not declare, one that does not bring the Property, one named twice, an
+empty `of`, and `of` on a Property one instance brings are refused. The waiver metadata names each
+replaced instance. Existing capability names and identities stay unchanged.
 
 A Property's and a Scenario's Definition ID is formed from the family and the name alone, so two
 machines of one family that each declare a claim of one name share it. A result names a claim by its

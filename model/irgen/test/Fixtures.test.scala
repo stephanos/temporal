@@ -396,6 +396,9 @@ class Fixtures extends munit.FunSuite:
       "fixture.capabilitysections.Task$.queries"),
     "retryCapabilities" -> Seq("WaitingFailures", "ControlledFailures")
       .map(o => s"fixture.retrycapabilities.$o$$.capabilities"),
+    // fn-129.3: one instance of a repeated capability Property overridden by name.
+    "retrySelection" -> Seq("ControlledFailures", "SelectedFailures")
+      .map(o => s"fixture.retrycapabilities.$o$$.capabilities"),
     "deadlineCapabilities" -> Seq("DeadlineTimers", "SimpleDeadlines")
       .map(o => s"fixture.deadlinecapabilities.$o$$.capabilities"),
     // fn-135.2: `is { }` vals and their def twins (lifts/Blocks.scala).
@@ -2592,6 +2595,46 @@ class Fixtures extends munit.FunSuite:
     )
     assertEquals(selected.map(_.path("whenClass").path("action").asText()).toSet.size, 2)
 
+  test("an override naming one instance replaces it alone and keeps every other instance's IR"):
+    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("retrySelection"))
+    val properties = model.path("properties").elements().asScala.toSeq
+    val functions =
+      model.path("functions").elements().asScala.toSeq.map(f => f.path("name").asText() -> f).toMap
+    def property(name: String) = properties.find(_.path("name").asText() == name).get
+    def reads(name: String) =
+      functions(property(name).path("holds").asText()).findValuesAsText("function").asScala.toSet
+    val overridden = property("selectedFailures.fatal.failureEndsFailed")
+    assertEquals(
+      overridden.path("origin").path("name").asText(),
+      "temporal.capabilities.Retries.failureEndsFailed"
+    )
+    def body(name: String) =
+      val f = functions(property(name).path("holds").asText())
+        .deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+      f.remove("name")
+      f.toString.replace("selectedFailures", "").replace("controlledFailures", "")
+    assertNotEquals(
+      body("selectedFailures.fatal.failureEndsFailed"),
+      body("controlledFailures.fatal.failureEndsFailed")
+    )
+    for (selected, base) <- Seq(
+        "selectedFailures.eligible.failureEndsFailed" -> "controlledFailures.eligible.failureEndsFailed",
+        "selectedFailures.fatal.failurePauses" -> "controlledFailures.fatal.failurePauses"
+      )
+    do
+      def shape(name: String) =
+        val p = property(name).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+        p.remove(java.util.List.of("name", "machine", "position", "holds", "holds2"))
+        p
+      assertEquals(shape(selected), shape(base))
+      assertEquals(reads(selected), reads(base))
+    val queries =
+      model.path("queries").elements().asScala.toSeq.map(q => q.path("name").asText() -> q).toMap
+    for name <- properties.map(_.path("name").asText()) if name.startsWith("selectedFailures.") do
+      val base = queries(name.replace("selectedFailures.", "controlledFailures."))
+      assertEquals(queries(name).path("limits"), base.path("limits"))
+      assertEquals(queries(name).path("total"), base.path("total"))
+
   test(
     "Retries declarations refuse missing roles and invalid or ambiguous bindings at their lines"
   ):
@@ -2608,7 +2651,12 @@ class Fixtures extends munit.FunSuite:
       ("ComputedClassification", "capabilities", "computedClassification", "retryable"),
       ("AmbiguousWaiver", "capabilities", "ambiguousWaiver", "ambiguous"),
       ("AmbiguousClaim", "queries", "ambiguousClaim", "ambiguous"),
-      ("AmbiguousForeign", "capabilities", "ambiguousForeign", "shared")
+      ("AmbiguousForeign", "capabilities", "ambiguousForeign", "shared"),
+      ("UnknownInstance", "capabilities", "unknownInstance", "no capability its section declares"),
+      ("NonMatchingInstance", "capabilities", "nonMatchingInstance", "second does not bring"),
+      ("DuplicateInstance", "capabilities", "duplicateInstance", "first twice"),
+      ("EmptySelection", "capabilities", "emptySelection", "no instance"),
+      ("RedundantSelection", "capabilities", "redundantSelection", "drop `of`")
     )
     for (root, section, machine, field) <- cases do
       val out = lifted(s"retry-refused-$root")

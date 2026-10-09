@@ -140,7 +140,13 @@ private[irgen] trait Capabilities:
     }
 
   // A capability Property waiver: `except(property, because)` or `overriding(property -> def, …)`.
-  final private case class Waived(kind: String, property: Term, by: Option[Term], because: Term)
+  final private case class Waived(
+      kind: String,
+      property: Term,
+      by: Option[Term],
+      because: Term,
+      of: Option[Term] = None
+  )
 
   // Whether a field's type is an action class: a class, an action with no input or a composed one,
   // alone or in a union. A capability names the actions it is about by such fields.
@@ -334,8 +340,8 @@ private[irgen] trait Capabilities:
 
     val excepted = mutable.Set.empty[String]
     val overridden = mutable.Map.empty[String, (Symbol, Term)]
-    for w <- members.waivers do
-      val p = waivedProperty(machine, w, ds, brought)
+    val instances = declared.map((v, d) => v.symbol -> d).toMap
+    for w <- members.waivers; p <- waivedProperties(machine, w, ds, brought, instances) do
       if excepted(p.name) || overridden.contains(p.name) then
         fail(
           w.property,
@@ -505,6 +511,50 @@ private[irgen] trait Capabilities:
       )
     brought
 
+  // The capability Properties a waiver names: the one `<Capability>.<property>` names, or, with
+  // `of = Seq(instance, …)`, the instance each named capability val brings. An instance the
+  // section does not declare, one that does not bring the Property and one named twice are refused.
+  private def waivedProperties(
+      machine: String,
+      w: Waived,
+      ds: Seq[Declared],
+      brought: Seq[Brought],
+      instances: Map[Symbol, Declared]
+  ): Seq[Brought] = w.of match
+    case None     => Seq(waivedProperty(machine, w, ds, brought))
+    case Some(of) =>
+      val sym = etaDef(w.property).getOrElse(
+        fail(
+          w.property,
+          s"${w.kind} names a capability Property, `<Capability>.<property>`, not ${w.property.show}"
+        )
+      )
+      val selected = plain(of) match
+        case Apply(_, List(items)) => varargs(plain(items)).map(plain)
+        case other => fail(other, s"of names capability vals, `Seq(a, …)`, not ${other.show}")
+      if selected.isEmpty then fail(of, s"${w.kind} of $machine names no instance in `of`")
+      val written = s"${sym.maybeOwner.name.stripSuffix("$")}.${sym.name}"
+      val named = selected.map { i =>
+        val declared = instances.getOrElse(
+          i.symbol,
+          fail(
+            i,
+            s"${w.kind} of $machine names ${i.show} in `of`, which is no capability its section " +
+              s"declares: ${ds.map(_.declaration).mkString(", ")}"
+          )
+        )
+        brought
+          .find(p => p.property.symbol == sym && p.bringing.head == declared)
+          .getOrElse(
+            fail(i, s"${w.kind} of $machine: ${declared.declaration} does not bring $written")
+          )
+      }
+      for (_, twice) <- selected.groupBy(_.symbol) if twice.size > 1 do
+        fail(twice(1), s"${w.kind} of $machine names ${twice(1).symbol.name} twice in `of`")
+      if brought.count(_.property.symbol == sym) == 1 then
+        fail(of, s"${w.kind} of $machine names the one instance of $written in `of`: drop `of`")
+      named
+
   // The capability Property a waiver names, `<Capability>.<property>`, refused where the
   // capabilities `ds` of `machine` do not bring it.
   private def waivedProperty(
@@ -662,7 +712,7 @@ private[irgen] trait Capabilities:
   private def waiverOf(t: Term): Option[Waived] = arguments(plain(t)) match
     case w @ Apply(_, List(property, because)) if w.symbol.name == "except" =>
       Some(Waived("except", property, None, because))
-    case w @ Apply(_, List(pair, because)) if w.symbol.name == "overriding" =>
+    case w @ Apply(_, pair :: because :: of) if w.symbol.name == "overriding" && of.sizeIs <= 1 =>
       val (property, by) = plain(pair) match
         case Apply(TypeApply(Select(arrow, "->"), _), List(by)) =>
           plain(arrow) match
@@ -670,7 +720,7 @@ private[irgen] trait Capabilities:
             case other => fail(other, s"overriding names `property -> def`, not ${pair.show}")
         case Apply(_, List(property, by)) => (property, by)
         case other => fail(other, s"overriding names `property -> def`, not ${pair.show}")
-      Some(Waived("overriding", property, Some(by), because))
+      Some(Waived("overriding", property, Some(by), because, of.headOption))
     case _ => None
 
   // A capability, from its constructor's call: its kind, its fields' arguments and its type arguments.

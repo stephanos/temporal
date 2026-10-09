@@ -252,3 +252,120 @@ object AmbiguousForeign
     val second: Capability = Second(shared = WaitingSteps.pending)
   object queries:
     capabilities.bound(three)
+
+def controlEndsFailed(m: Declares[ControlState])(
+    failure: ClassRef,
+    retryable: Boolean,
+    retriesRemaining: ControlState => Boolean,
+    pendingCancel: ControlState => Boolean
+): Property[ControlState] =
+  m.property.when(failure) holdsAcross ((before, after) =>
+    retryable || after.state.phase == ControlPhase.failed
+  )
+
+def controlPauses(m: Declares[ControlState])(
+    failure: ClassRef,
+    retryable: Boolean,
+    retriesRemaining: ControlState => Boolean,
+    pendingPause: ControlState => Boolean,
+    pendingCancel: ControlState => Boolean
+): Property[ControlState] =
+  m.property.when(failure) holdsAcross ((before, after) =>
+    after.state.phase == ControlPhase.waiting
+  )
+
+// Two Retries instances; only the first binds a pending pause, so it alone brings failurePauses.
+abstract class TwoFailures(using
+    Declaring[ControlState, Answer, Nothing],
+    Phasing[ControlState, ControlPhase]
+) extends Capabilities:
+  val first: Capability = Retries(
+    worker.fail,
+    true,
+    ControlSteps.attempts,
+    ControlSteps.maxOne,
+    ControlSteps.remainingOne,
+    pendingPause = Some(ControlSteps.pendingPause)
+  )
+  val second: Capability = Retries(
+    worker.fatalFailure,
+    false,
+    ControlSteps.attempts,
+    ControlSteps.maxOne,
+    ControlSteps.remainingOne
+  )
+
+object UnknownInstance
+    extends Machine[ControlState, Answer, Nothing],
+      Phased[ControlState, ControlPhase](_.phase):
+  val init = ControlState(ControlPhase.waiting, UpTo(0), false, false)
+  object rules
+      extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
+  object capabilities extends TwoFailures:
+    overriding(
+      Retries.failureEndsFailed[ControlState, ControlPhase] -> controlEndsFailed,
+      because = "a fixture's unknown instance",
+      of = Seq(ControlledFailures.capabilities.eligible)
+    )
+  object queries:
+    capabilities.bound(three)
+
+object NonMatchingInstance
+    extends Machine[ControlState, Answer, Nothing],
+      Phased[ControlState, ControlPhase](_.phase):
+  val init = ControlState(ControlPhase.waiting, UpTo(0), false, false)
+  object rules
+      extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
+  object capabilities extends TwoFailures:
+    overriding(
+      Retries.failurePauses[ControlState, ControlPhase] -> controlPauses,
+      because = "a fixture's non-matching instance",
+      of = Seq(second)
+    )
+  object queries:
+    capabilities.bound(three)
+
+object DuplicateInstance
+    extends Machine[ControlState, Answer, Nothing],
+      Phased[ControlState, ControlPhase](_.phase):
+  val init = ControlState(ControlPhase.waiting, UpTo(0), false, false)
+  object rules
+      extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
+  object capabilities extends TwoFailures:
+    overriding(
+      Retries.failureEndsFailed[ControlState, ControlPhase] -> controlEndsFailed,
+      because = "a fixture's duplicate instance",
+      of = Seq(first, first)
+    )
+  object queries:
+    capabilities.bound(three)
+
+object EmptySelection
+    extends Machine[ControlState, Answer, Nothing],
+      Phased[ControlState, ControlPhase](_.phase):
+  val init = ControlState(ControlPhase.waiting, UpTo(0), false, false)
+  object rules
+      extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
+  object capabilities extends TwoFailures:
+    overriding(
+      Retries.failureEndsFailed[ControlState, ControlPhase] -> controlEndsFailed,
+      because = "a fixture's empty selection",
+      of = Seq()
+    )
+  object queries:
+    capabilities.bound(three)
+
+object RedundantSelection
+    extends Machine[ControlState, Answer, Nothing],
+      Phased[ControlState, ControlPhase](_.phase):
+  val init = ControlState(ControlPhase.waiting, UpTo(0), false, false)
+  object rules
+      extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
+  object capabilities extends TwoFailures:
+    overriding(
+      Retries.failurePauses[ControlState, ControlPhase] -> controlPauses,
+      because = "a fixture's redundant selection",
+      of = Seq(first)
+    )
+  object queries:
+    capabilities.bound(three)

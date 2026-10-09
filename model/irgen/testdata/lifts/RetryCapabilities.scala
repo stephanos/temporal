@@ -166,3 +166,54 @@ object ControlledFailures
     )
   object queries:
     capabilities.bound(three, Retries.failureReturnsToWaiting[ControlState, ControlPhase] -> two)
+
+// The fatal instance's own exhaustion law, under the capability Property's parameters.
+def fatalEndsFailed(m: Declares[ControlState])(
+    failure: ClassRef,
+    retryable: Boolean,
+    retriesRemaining: ControlState => Boolean,
+    pendingCancel: ControlState => Boolean
+): Property[ControlState] =
+  m.property.when(failure) holdsAcross ((before, after) =>
+    retryable || pendingCancel(before) || after.state.phase == ControlPhase.failed
+  )
+
+// ControlledFailures with one of its two instances of failureEndsFailed overridden by name.
+object SelectedFailures
+    extends Machine[ControlState, Answer, Nothing],
+      Phased[ControlState, ControlPhase](_.phase):
+  val init = ControlState(ControlPhase.waiting, UpTo(0), false, false)
+  object rules
+      extends Bindings(
+        worker.fail ~> ControlSteps.fail,
+        worker.fatalFailure ~> ControlSteps.fatal,
+        worker.attempt ~> ControlSteps.attempt,
+        client.pause ~> ControlSteps.pause,
+        client.cancel ~> ControlSteps.cancel
+      )
+  object capabilities extends Capabilities:
+    val eligible: Capability = Retries(
+      failure = worker.fail,
+      retryable = true,
+      attemptCount = ControlSteps.attempts,
+      maximumAttempts = ControlSteps.maxOne,
+      retriesRemaining = ControlSteps.remainingOne,
+      pendingPause = Some(ControlSteps.pendingPause),
+      pendingCancel = Some(ControlSteps.pendingCancel)
+    )
+    val fatal: Capability = Retries(
+      failure = worker.fatalFailure,
+      retryable = false,
+      attemptCount = ControlSteps.attempts,
+      maximumAttempts = ControlSteps.maxOne,
+      retriesRemaining = ControlSteps.remainingOne,
+      pendingPause = Some(ControlSteps.pendingPause),
+      pendingCancel = Some(ControlSteps.pendingCancel)
+    )
+    overriding(
+      Retries.failureEndsFailed[ControlState, ControlPhase] -> fatalEndsFailed,
+      because = "a fixture's fatal instance states its own law",
+      of = Seq(fatal)
+    )
+  object queries:
+    capabilities.bound(three, Retries.failureReturnsToWaiting[ControlState, ControlPhase] -> two)
