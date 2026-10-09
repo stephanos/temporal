@@ -31,6 +31,10 @@ Apply these instructions when implementing the milestones:
   histories. Resume the same worker for fixes where possible.
 - A blocked task holds its dependents, not unrelated work. Continue at the safe ready frontier,
   using isolated worktrees and the workflow's ownership, dependency and heavy-command constraints.
+- A completed predecessor satisfies its dependents once its Flow closure is committed in the
+  current local branch's history. Publishing or landing on origin is not required. Uncommitted
+  closures and work on unmerged branches do not count; dependent work starts from the integrated
+  local baseline. Publishing is a separate, explicitly authorized action.
 - If a particular gate remains stuck for roughly an hour, including repeated attempts, mark it
   deferred in Flow and this page. Record its command, failure evidence and condition for revisiting
   it, then focus on work that can be verified and delivered in the meantime. Preserve the failed
@@ -124,8 +128,8 @@ also holds batch-close gates and serializes work that shares a regeneration base
 
 [Spec](.flow/specs/fn-155-name-the-standalone-activitys-repeated.md) runs on fn-151's closed
 baseline, before fn-140/fn-123, so the subject-split files are refactored once. Fn-151 is closed and
-integrated locally with whole-spec review SHIP; Flow admission still requires its closure at the
-remote base or its branch on origin. Do not bypass that publication gate. It names the
+committed on the integrated local baseline with whole-spec review SHIP; that satisfies its
+dependency without publication. It names the
 held attempt's ending (effects that differ only in landing phase collapse through a landing function;
 named guards; every deadline rule reads the `armed` predicate its capability declares), moves Product
 single-fact steps onto its `Recorded` effects, gives the six reset-aware overrides one shared reason,

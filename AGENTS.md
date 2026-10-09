@@ -142,6 +142,19 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 - If `flowctl` is not found: your shell lacks the plugin's `scripts/` dir on PATH (only Claude Code injects it). Resolve it the way the skills do - the plugin install's `scripts/flowctl` (Claude/Droid: plugin-root env var; Codex: `${CODEX_HOME:-$HOME/.codex}/scripts/flowctl`; Cursor/Grok: two levels above any flow-next SKILL.md) - or update/reinstall the flow-next plugin. A repo with no `.flow/` yet: run `/flow-next:setup`.
 <!-- END FLOW-NEXT -->
 
+## Local milestone execution
+
+For MILESTONES.md work, a predecessor is satisfied once its Flow closure is committed
+in the current branch's history. Publishing a branch, opening a PR or landing on
+origin is not required to start its dependents. Uncommitted closure metadata and
+closures on unmerged branches do not satisfy dependencies. Start dependent worktrees
+from the integrated local `umpire` tip, retaining the completed baseline and plans.
+Publishing remains a separate action requiring authorization.
+
+The installed Flow CLI carries this local-commit gate. If a reinstall restores the
+publication gate, reapply `tools/flow/committed-dependencies.patch` to its scripts
+directory and run `python3 tools/flow/test_committed_dependencies.py`.
+
 <!-- flow-next:model-routing:start -->
 
 ## Model routing
