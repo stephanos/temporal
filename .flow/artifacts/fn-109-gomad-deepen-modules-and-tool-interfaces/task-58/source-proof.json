@@ -1,0 +1,77 @@
+{
+  "base_commit": "f830467fcb712a83ba504c7dd43e2beb7f2cf223",
+  "workspace": "/tmp/gomad-fn109-parallel.pmgezCtg/task-58",
+  "production": {
+    "tools/gomad3/runner/inspect.go": {
+      "base_sha256": "731851e8e3fda15a39734df3b0470aa3200f565d4743287b2098093ebfc34822",
+      "candidate_sha256": "94d69de99dbb7a30c9a307dfd4a2e51b35f24b49aaf0ae0d1da5f77766af7359",
+      "complete_preimage_reconstructed": true
+    },
+    "tools/gomad3/internal/gomadtool/conformance/driver.go": {
+      "base_sha256": "dd6910db7283a84423cb619385618f8b068a038b34e14bea3b3f3991258d57d4",
+      "candidate_sha256": "b24119b6d347f66b046e55a929bf388401aeba636a9c0616a171dd487288aca1",
+      "complete_preimage_reconstructed": true
+    }
+  },
+  "tests": {
+    "tools/gomad3/runner/inspect_cleanup_test.go": "965db096bedfb28bdacc24a96c01dfa1f1ea461dd066d8e31e3b8a8dfc354fa5",
+    "tools/gomad3/internal/gomadtool/conformance/driver_cleanup_test.go": "8c465b5368e4885b1cddbf882e0e65e1cbc631cd7ca63127c767ac44768cf1de"
+  },
+  "corrected_focused_baseline_identical_final_tests": true,
+  "initial_to_corrected_test_delta": "initial-to-corrected-proof.json",
+  "other_tracked_sources_and_old_tests_preserved_count": 1051,
+  "preserved_manifest_sha256": "8e72e2e70f1d450426dbcdcbb2b3d94571c242e592ccdef37c5d79c813e909f0",
+  "source_order": {
+    "Inspect": "Same receiver evaluated at original defer registration. Project manifest, target sharing and optional choices retain their ordering. Close runs after all original work. Nil Close leaves complete result and primary object unchanged. Sole error direct; primary and genuine cleanup error join primary-first; every genuine Close failure clears Inspection.",
+    "interceptionFixtures": "One immediate cleanup captured before exact original primary fmt.Errorf. No defer, retry, ownership transfer or additional operation. Nil cleanup returns original nil/nil/error tuple and object; nonnil cleanup joins primary-first."
+  },
+  "runtime_gaps": [
+    "Inspect genuine sole Close failure and simultaneous original primary/Close failure unexecuted. Pinned qualified Unix os.Root.Close always returns nil; no fault seam, descriptor theft or race introduced.",
+    "Invalid compiler-fixture workspace RemoveAll failure and primary-plus-cleanup failure unexecuted; no existing deterministic failure hook.",
+    "Fixture preparation controls run no native compiler or interception execution. Mock runWith requests only GOROOT before invalid fixture rejection."
+  ],
+  "unix_root_close_source": {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/root_openat.go",
+    "sha256": "1896b0feba64b0e6dccf7c8cb1543919cd78fb05f7b110662e313caeab22d2b7",
+    "lines": "32-40"
+  },
+  "lint": {
+    "original_base": {
+      "before": 80,
+      "after": 78,
+      "removed": 2,
+      "introduced": 0,
+      "baseline_receipt": "../task-56/corrected-make-gomad-original-base.json",
+      "candidate_receipt": "make-gomad-original-base.json"
+    },
+    "affected": {
+      "before": 19,
+      "after": 17,
+      "removed": 2,
+      "introduced": 0,
+      "baseline": "Extracted affected-package subset of retained original-base RED80; no separate scoped baseline run.",
+      "candidate_receipt": "affected-configured-lint.json"
+    },
+    "removed_diagnostics": [
+      [
+        "tools/gomad3/internal/gomadtool/conformance/driver.go",
+        "243",
+        "11",
+        "Error return value is not checked (errcheck)",
+        "\t\t\tcleanup()",
+        "\t\t\t       ^"
+      ],
+      [
+        "tools/gomad3/runner/inspect.go",
+        "401",
+        "21",
+        "Error return value of `opened.Close` is not checked (errcheck)",
+        "\t\tdefer opened.Close()",
+        "\t\t                  ^"
+      ]
+    ],
+    "residual_path_column_message_statement_caret_multiset_preserved": true,
+    "residual_lines_match_exact_unchanged_source_line_mapping": true,
+    "integrated_errortype": "Original-base Make recipe exits at configured lint and does not reach its errortype stage. Standalone affected errortype is separate evidence."
+  }
+}

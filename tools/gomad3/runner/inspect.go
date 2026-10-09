@@ -358,7 +358,7 @@ type InspectOptions struct {
 	Choices bool
 }
 
-func Inspect(path string, options InspectOptions) (Inspection, error) {
+func Inspect(path string, options InspectOptions) (result Inspection, retErr error) {
 	absolute, err := filepath.Abs(path)
 	if err != nil {
 		return Inspection{}, fmt.Errorf("resolve inspection path: %w", err)
@@ -398,7 +398,16 @@ func Inspect(path string, options InspectOptions) (Inspection, error) {
 		if err != nil {
 			return Inspection{}, err
 		}
-		defer opened.Close()
+		defer func(opened *artifact.Opened) {
+			if err := opened.Close(); err != nil {
+				result = Inspection{}
+				if retErr == nil {
+					retErr = err
+				} else {
+					retErr = errors.Join(retErr, err)
+				}
+			}
+		}(opened)
 		projected := projectArtifact(opened.Manifest(), absolute)
 		sharing, err := opened.TargetSharing()
 		if err != nil {

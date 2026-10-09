@@ -1,0 +1,108 @@
+package runner
+
+import (
+	"errors"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"testing"
+
+	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/record"
+)
+
+func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
+	published := publishInspectCleanupArtifact(t)
+	exitCode := uint64(0)
+	want := Inspection{
+		Schema: "gomad3.inspect/v5", Kind: "artifact", Path: published.Path,
+		Artifact: &ArtifactInspection{
+			ArtifactKind: "gomad3.success/v1", RecordHash: published.Manifest.RecordHash, CampaignID: "inspect-cleanup", Seed: 7, ReplayMode: "exact",
+			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
+			Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+			Target: TargetReport{
+				Kind: "go-test", Source: "./target", SHA256: record.HashBytes([]byte("target")), Size: 6,
+				Argv: []string{"gomad3-target"}, BuildTags: []string{"gomad_fixture"},
+				BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}, CapabilityMode: "closure", Sharing: "private",
+			},
+			Outcome:    OutcomeReport{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode, FailureSignature: published.Manifest.Outcome.FailureSignature},
+			Transcript: &Transcript{Schema: "gomad3.io-transcript/v1", SHA256: record.HashBytes([]byte(strings.Repeat("x", 384))), Bytes: 384, Records: 3},
+			Stdout:     StreamReport{FullSHA256: record.HashBytes([]byte("long output")), TotalBytes: 11, RetainedBytes: 4, DiscardedBytes: 7, Truncated: true},
+			Stderr:     StreamReport{FullSHA256: record.HashBytes(nil)},
+		},
+	}
+	wantBytes, err := canonicaljson.CanonicalJSON(want)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, sharing := range []string{"private", "shared"} {
+		t.Run(sharing, func(t *testing.T) {
+			if sharing == "shared" {
+				if err := os.Link(filepath.Join(published.Path, "target"), filepath.Join(t.TempDir(), "shared-target")); err != nil {
+					t.Fatal(err)
+				}
+				want.Artifact.Target.Sharing = "shared"
+				wantBytes, err = canonicaljson.CanonicalJSON(want)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			report, err := Inspect(published.Path, InspectOptions{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(report, want) {
+				t.Fatalf("inspection = %#v, artifact = %#v, want %#v", report, report.Artifact, want.Artifact)
+			}
+			encoded, err := canonicaljson.CanonicalJSON(report)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(encoded) != string(wantBytes) {
+				t.Fatalf("canonical inspection = %s, want %s", encoded, wantBytes)
+			}
+		})
+	}
+	report, err := Inspect(published.Path, InspectOptions{Choices: true})
+	if err == nil || err.Error() != "artifact has no choice trace" || reflect.TypeOf(err) != reflect.TypeOf(errors.New("")) || !reflect.DeepEqual(report, Inspection{}) {
+		t.Fatalf("choice inspection = %#v, error = %v", report, err)
+	}
+}
+
+func TestInspectCleanupPreservesEarlierErrors(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "missing")
+	report, err := Inspect(missing, InspectOptions{Choices: true})
+	pathError, direct := err.(*os.PathError)
+	if !direct || !errors.Is(err, os.ErrNotExist) || pathError.Op != "lstat" || pathError.Path != missing || !reflect.DeepEqual(report, Inspection{}) {
+		t.Fatalf("missing inspection = %#v, error = %v", report, err)
+	}
+	published := publishInspectCleanupArtifact(t)
+	if err := os.WriteFile(filepath.Join(published.Path, "campaign.json"), []byte("invalid"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	report, err = Inspect(published.Path, InspectOptions{Choices: true})
+	if err == nil || err.Error() != "inspection path contains conflicting artifact records" || reflect.TypeOf(err) != reflect.TypeOf(errors.New("")) || !reflect.DeepEqual(report, Inspection{}) {
+		t.Fatalf("conflicting inspection = %#v, error = %v", report, err)
+	}
+}
+
+func publishInspectCleanupArtifact(t *testing.T) artifact.Artifact {
+	t.Helper()
+	published := publishInspectArtifactAt(t, t.TempDir(), "inspect-cleanup", true)
+	manifest := published.Manifest
+	manifest.ChoiceProfile = nil
+	manifest.Environment = manifest.Environment[1:]
+	manifest.Limits.ChoiceTraceBytes = 0
+	world, payloads := record.NoneWorld()
+	manifest.World = world
+	result, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, artifact.ArtifactInput{
+		Manifest: manifest, TargetPath: filepath.Join(published.Path, "target"), Stdout: []byte("long"),
+		IOTranscript: []byte(strings.Repeat("x", 384)), World: payloads,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return result
+}

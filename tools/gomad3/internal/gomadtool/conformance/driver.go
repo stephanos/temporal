@@ -240,8 +240,12 @@ func interceptionFixtures(config Config, goRoot string) ([]fixture, func() error
 		}
 		name := strings.TrimPrefix(compilerCase.Package, "gomad3.test/interceptfail/")
 		if name == compilerCase.Package {
-			cleanup()
-			return nil, nil, fmt.Errorf("negative compiler fixture package is invalid: %s", compilerCase.Package)
+			cleanupErr := cleanup()
+			err := fmt.Errorf("negative compiler fixture package is invalid: %s", compilerCase.Package)
+			if cleanupErr != nil {
+				err = errors.Join(err, cleanupErr)
+			}
+			return nil, nil, err
 		}
 		if _, duplicate := seenNegative[name]; duplicate {
 			continue

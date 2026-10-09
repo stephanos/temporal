@@ -1,0 +1,36 @@
+{
+  "reconstruction": "Read-only replay of the two selected pre-baseline host CommandExecution apply_patch sections. Each reconstructed full byte preimage matches the existing immutable initial source manifest SHA256.",
+  "selected_patch_source": "initial-test-authoring-patches.json",
+  "initial_manifest": "focused-before-sources.json",
+  "corrected_manifest": "corrected-focused-before-sources.json",
+  "final_manifest": "focused-after-sources.json",
+  "changed_initial_to_corrected_paths": [
+    "tools/gomad3/runner/inspect_cleanup_test.go",
+    "tools/gomad3/internal/gomadtool/conformance/driver_cleanup_test.go"
+  ],
+  "production_and_all_other_initial_manifest_paths_unchanged": true,
+  "corrected_baseline_tests_identical_final": true,
+  "tests": {
+    "tools/gomad3/runner/inspect_cleanup_test.go": {
+      "initial_sha256": "dfb7ff10739fd5168121d7b41af06070353294151acfff8b100169a93a8531a6",
+      "corrected_and_final_sha256": "965db096bedfb28bdacc24a96c01dfa1f1ea461dd066d8e31e3b8a8dfc354fa5",
+      "initial_preimage": "initial-inspect_cleanup_test.go.txt",
+      "initial_to_corrected_diff": "initial-to-corrected-inspect.diff.json",
+      "diff_sha256": "5f1bcab72cf97e88c7a69d66702db841746c4357744bf43ba03c8ad525a3c5cb",
+      "diff_encoding": "Decode the unified_diff JSON string as UTF-8. diff_sha256 binds the original reviewed plain diff bytes.",
+      "encoded_file_sha256": "85dfabdf242609e0f91c92c814ef7f223e357519a2c5293d725625cde852733c"
+    },
+    "tools/gomad3/internal/gomadtool/conformance/driver_cleanup_test.go": {
+      "initial_sha256": "b375428eda826810b04fad684e54bbc759415054bd97eceed83188b850d81118",
+      "corrected_and_final_sha256": "8c465b5368e4885b1cddbf882e0e65e1cbc631cd7ca63127c767ac44768cf1de",
+      "initial_preimage": "initial-driver_cleanup_test.go.txt",
+      "initial_to_corrected_diff": "initial-to-corrected-driver.diff.json",
+      "diff_sha256": "0c75d2131c37e201cbbe7ecff9213c5487959a1d62263b5c395fa22adf24ac17",
+      "diff_encoding": "Decode the unified_diff JSON string as UTF-8. diff_sha256 binds the original reviewed plain diff bytes.",
+      "encoded_file_sha256": "9c3674c5126bb9cca7e1a264819455e81948adc3308f1e494a57747c06c41caf"
+    }
+  },
+  "exact_delta": "Between the initial and corrected focused baselines, both newly authored test files changed. Runner added exact concrete-type assertions for the no-choice and conflicting-record errors; gofmt aligned only Runner, Outcome, Stdout and Stderr fields. Its existing missing-path direct *os.PathError assertion stayed unchanged. Driver removed the reviewed-only os/exec expected fixture and shifted the three dependent indexes, added exact concrete-type assertions for direct interceptionFixtures/runWith primary errors, and guarded the existing t.Cleanup fallback with cleaned state so explicit successful caller cleanup is not followed by a second attempt. These controls strengthen direct-primary and one-attempt checks; no old assertions or production source changed. The initial runner and driver bytes are reconstructed from retained host command patches and independently match focused-before-sources.json hashes. Corrected baseline and final bytes match exactly.",
+  "new_gates_run": false,
+  "artifact_encoding": "Root authorized lossless JSON encoding of both exact reviewed unified diffs because plain diff context prefixes preceding Go tabs trigger git diff --check. Decoded bytes and their reviewed SHA256 remain identical; full initial preimages and all source/gate receipts remain unchanged."
+}

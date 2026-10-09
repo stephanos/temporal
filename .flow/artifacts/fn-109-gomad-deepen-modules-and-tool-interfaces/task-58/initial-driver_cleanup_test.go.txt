@@ -1,0 +1,136 @@
+package conformance
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"reflect"
+	"slices"
+	"testing"
+
+	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+)
+
+func TestInterceptionCleanupPreservesInvalidPackage(t *testing.T) {
+	config, goRoot := interceptionCleanupConfig(t, "invalid.fixture/negative")
+	fixtures, cleanup, err := interceptionFixtures(config, goRoot)
+	if fixtures != nil || cleanup != nil || err == nil || err.Error() != "negative compiler fixture package is invalid: invalid.fixture/negative" {
+		t.Fatalf("fixtures = %#v, cleanup nil = %t, error = %v", fixtures, cleanup == nil, err)
+	}
+	checkInterceptionCleanupWorkspace(t, config.Root, 0)
+	var requests []hostexec.Request
+	report, err := runWith(context.Background(), config, func(_ context.Context, request hostexec.Request) (hostexec.Result, error) {
+		requests = append(requests, request)
+		result := successfulCommand()
+		result.Stdout = hostexec.Output{Bytes: []byte(goRoot + "\n"), RawBytes: []byte(goRoot + "\n")}
+		return result, nil
+	})
+	if err == nil || err.Error() != "negative compiler fixture package is invalid: invalid.fixture/negative" || !reflect.DeepEqual(report, Report{Mode: "test-interception", Cases: []CaseResult{}}) {
+		t.Fatalf("report = %#v, error = %v", report, err)
+	}
+	if len(requests) != 1 || !slices.Equal(requests[0].Command, []string{config.Go, "env", "GOROOT"}) || requests[0].Dir != config.Root {
+		t.Fatalf("requests = %#v", requests)
+	}
+	checkInterceptionCleanupWorkspace(t, config.Root, 0)
+}
+
+func TestInterceptionCleanupPreservesValidFixtureOwnership(t *testing.T) {
+	config, goRoot := interceptionCleanupConfig(t, "gomad3.test/interceptfail/negative")
+	fixtures, cleanup, err := interceptionFixtures(config, goRoot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cleanup == nil {
+		t.Fatal("fixture preparation omitted caller-owned cleanup")
+	}
+	t.Cleanup(func() {
+		if err := cleanup(); err != nil {
+			t.Error(err)
+		}
+	})
+	checkInterceptionCleanupWorkspace(t, config.Root, 1)
+	toolexec := filepath.Join(config.Root, "internal", "gomadtool", "conformance", "scripts", "compiler_test_exec.sh")
+	want := []struct {
+		name    string
+		command []string
+	}{
+		{"interception-report-net", []string{config.Go, "install", "-a", "-gcflags=net=-m", "net"}},
+		{"interception-report-os", []string{config.Go, "install", "-a", "-gcflags=os=-m", "os"}},
+		{"interception-report-os/exec", []string{config.Go, "install", "-a", "-gcflags=os/exec=-m", "os/exec"}},
+		{"interception-report-os/signal", []string{config.Go, "install", "-a", "-gcflags=os/signal=-m", "os/signal"}},
+		{"interception-report-os/user", []string{config.Go, "install", "-a", "-gcflags=os/user=-m", "os/user"}},
+		{"interception-report-unsupported-platform", []string{config.Go, "install", "-a", "-gcflags=os=-m", "os"}},
+		{"interception-baseline-missing-hook", []string{config.Go, "test", "./interceptfail/missing_hook"}},
+		{"interception-negative-negative", []string{config.Go, "test", "-toolexec=" + toolexec, "./interceptfail/negative"}},
+		{"interception-invocation", []string{config.Go, "test", "-toolexec=" + toolexec, "./intercept", "-count=1"}},
+		{"interception-invocation-no-inline", []string{config.Go, "test", "-toolexec=" + toolexec, "-gcflags=all=-l", "./intercept", "-count=1"}},
+	}
+	if len(fixtures) != len(want) {
+		t.Fatalf("fixtures = %d, want %d", len(fixtures), len(want))
+	}
+	for index, planned := range fixtures {
+		if planned.tier != "test-interception" || planned.name != want[index].name || !slices.Equal(planned.command, want[index].command) {
+			t.Fatalf("fixture %d = %#v, want %#v", index, planned, want[index])
+		}
+		wantDir := config.Root
+		if index >= 6 {
+			wantDir = filepath.Join(config.Root, "internal", "gomadtool", "conformance", "testdata")
+		}
+		if planned.dir != wantDir || !slices.Contains(planned.env, "GOWORK=off") {
+			t.Fatalf("fixture %d directory = %q, environment = %#v", index, planned.dir, planned.env)
+		}
+		if index == 7 || index == 8 || index == 9 {
+			if !slices.Contains(planned.env, "GOMAD3_TEST_COMPILE="+config.Compiler) {
+				t.Fatalf("fixture %d omitted compiler identity", index)
+			}
+		}
+		wantExit := 0
+		if index == 7 {
+			wantExit = 1
+		}
+		if planned.wantExit != wantExit {
+			t.Fatalf("fixture %d exit = %d, want %d", index, planned.wantExit, wantExit)
+		}
+	}
+	if err := cleanup(); err != nil {
+		t.Fatal(err)
+	}
+	checkInterceptionCleanupWorkspace(t, config.Root, 0)
+}
+
+func interceptionCleanupConfig(t *testing.T, packageName string) (Config, string) {
+	t.Helper()
+	root := writeGoFixture(t)
+	sourceRoot := filepath.Join("..", "..", "..")
+	for _, relative := range []string{"toolchain/version/version.json", "deterministicio/boundary/manifest.json", "expected-intercepts-" + gomadversion.GoVersion + ".txt"} {
+		contents, err := os.ReadFile(filepath.Join(sourceRoot, filepath.FromSlash(relative)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(root, filepath.FromSlash(relative))
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, contents, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	manifest := fmt.Sprintf(`{"schema_version":1,"go_version":%q,"tests":[{"case":"negative","package":%q,"symbol":"Target","hook":"Hook","diagnostic":"fixture diagnostic"}]}`, gomadversion.GoVersion, packageName)
+	if err := os.WriteFile(filepath.Join(root, "deterministicio", "boundary", "compiler-tests.json"), []byte(manifest), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return Config{Root: root, Mode: "test-interception", Go: filepath.Join(root, "go", "bin", "go"), Compiler: writeExecutable(t, filepath.Join(root, "compile"))}, filepath.Join(root, "go")
+}
+
+func checkInterceptionCleanupWorkspace(t *testing.T, root string, want int) {
+	t.Helper()
+	entries, err := os.ReadDir(filepath.Join(root, ".toolchain"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != want {
+		t.Fatalf("interception workspace entries = %v, want %d", entries, want)
+	}
+}
