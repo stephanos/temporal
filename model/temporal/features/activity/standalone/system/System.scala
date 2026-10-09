@@ -10,11 +10,10 @@ import framework.*
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.Reason
 import temporal.capabilities.*
-import temporal.realize.{inconclusive, satisfied}
-import Bounds.{four, three}
+import temporal.realize.inconclusive
+import Bounds.three
 import actors.worker.worker as process
 import product.ActivityProduct
-import Timeout.expires
 
 // It begins before the activity exists, so unstarted is one phase.
 enum Phase derives Finite:
@@ -528,98 +527,17 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       }
     }
 
-  // What the System promises of its own: the settlement claims. The cross-entity claim of the
-  // activity and its worker is the composition's, and the history record's are Record.scala's.
+  // The lifecycle-wide control and reset laws; focused settlement claims live in subject files.
+  // The activity and worker's cross-entity claim is the composition's, and the dispatch record's
+  // are Dispatch.scala's.
   object properties:
     val cancelIsNotUndone = property.holdsAcross { (before, after) =>
       (before.phase == Phase.cancelRequested) implies
         (after.state.phase == Phase.cancelRequested || after.state.phase.in[Closed])
     }
 
-    // A dispatch delay remains pending across pause/unpause (model.go:239-244,355-376).
-    val dispatchRequiresReady = property.holdsAcross { (before, after) =>
-      (before.phase == Phase.scheduled && after.records(Fact.statusStarted)) implies
-        (before.dispatch == Dispatch.now)
-    }
-
-    // Schedule-to-start counts from dispatch, after either delay (model.go:312-322).
-    val scheduleToStartRequiresDispatch = property.holdsAcross { (before, after) =>
-      after.records(Fact.statusTimedOut(TimeoutType.scheduleToStart)) implies
-        (before.phase == Phase.scheduled && before.dispatch == Dispatch.now)
-    }
-
-    val completes =
-      property when worker.respondCompleted holds { s =>
-        s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
-      }
-
-    val nonRetryableFails =
-      property when worker.respondFailed(Failure.fatal) holds { s =>
-        s.state.phase == Phase.failed && s.records(Fact.statusFailed)
-      }
-
-    // Completed on the second attempt of an activity with no deadline set.
-    val completedOnRetry =
-      system.State(
-        phase = Phase.completed,
-        dispatch = Dispatch.now,
-        attempts = UpTo(states.attemptBound),
-        scheduleToClose = Timeout.unset,
-        scheduleToStart = Timeout.unset,
-        startToClose = Timeout.unset,
-        heartbeat = Timeout.unset,
-        maxAttempts = MaxAttempts.unlimited
-      )
-
-    // The attempt count saturates at `states.attemptBound`, so the claim is bounded by it: a completion on
-    // any later attempt than the second reads as this one.
-    val retryCompletes =
-      property when worker.respondCompleted holds { s =>
-        s.state == completedOnRetry && s.records(Fact.statusCompleted)
-      }
-
-    // The pinned exhaustion path takes this action twice, so both failures must satisfy the
-    // Property: the exact first retry, then the exact exhausted settlement.
-    val retryExhausts = property when worker.respondFailed(Failure.retryable) holds { s =>
-      (s.state == completedOnRetry.copy(
-        phase = Phase.scheduled,
-        dispatch = Dispatch.backoff,
-        attempts = UpTo(1),
-        maxAttempts = MaxAttempts.two
-      ) && s.records(Fact.statusScheduled) && s.records(Fact.attemptCount)) ||
-      (s.state == completedOnRetry.copy(phase = Phase.failed, maxAttempts = MaxAttempts.two) &&
-        s.records(Fact.statusFailed))
-    }
-
-    val cancelRequestedWhileStarted =
-      property when client.requestCancel holds { s =>
-        s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested)
-      }
-
-    val canceledByWorker =
-      property when worker.respondCanceled holds { s =>
-        s.state.phase == Phase.canceled && s.records(Fact.statusCanceled)
-      }
-
     val terminated = property when client.terminate holds { s =>
       s.state.phase == Phase.terminated && s.records(Fact.statusTerminated)
-    }
-
-    // Terminal deadline witnesses record which deadline settled the activity. Start-to-close
-    // uses a one-attempt start; with both scheduling deadlines set, either may fire first.
-    val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
-      s.state.phase == Phase.timedOut &&
-      s.records(Fact.statusTimedOut(TimeoutType.scheduleToStart))
-    }
-
-    val scheduleToCloseFires = property when deadline.scheduleToClose holds { s =>
-      s.state.phase == Phase.timedOut &&
-      s.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))
-    }
-
-    val startToCloseFires = property when deadline.startToClose holds { s =>
-      s.state.phase == Phase.timedOut &&
-      s.records(Fact.statusTimedOut(TimeoutType.startToClose))
     }
 
     // A pending reset ends only as its held attempt does: a completion wins, a cancellation or a
@@ -887,10 +805,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       of = Seq(startToCloseDeadline, heartbeatDeadline)
     )
 
-  // The paths, then one functional Query per side effect that settles the activity, and the Queries
-  // that carry the other promises into the lifted Model. Each path starts before the activity exists;
-  // a start that sets no deadline is `start()`, each input at `unset`. A path one Query takes is
-  // written in it.
+  // Capability laws and the lifecycle-wide control and reset Queries.
   object queries:
     capabilities.bound(
       three,
@@ -907,71 +822,11 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
     val any = scenario.free
 
-    val cancelRequestedThenCanceled = scenario.actions(
-      client.start(),
-      worker.poll,
-      client.requestCancel,
-      worker.respondCanceled
-    )
-    val completed = scenario.actions(
-      client.start(),
-      worker.poll,
-      worker.respondCompleted
-    )
-    val delayedThenCompleted = scenario.actions(
-      client.start(startDelay := expires),
-      timers.startDelay,
-      worker.poll,
-      worker.respondCompleted
-    )
-    val nonRetryable = scenario.actions(
-      client.start(),
-      worker.poll,
-      worker.respondFailed(Failure.fatal)
-    )
-    val retriedThenCompleted = scenario.actions(
-      client.start(),
-      worker.poll,
-      worker.respondFailed(Failure.retryable),
-      timers.backoff,
-      worker.poll,
-      worker.respondCompleted
-    )
-    val exhausted = scenario.actions(
-      client.start(maxAttempts := MaxAttempts.two),
-      worker.poll,
-      worker.respondFailed(Failure.retryable),
-      timers.backoff,
-      worker.poll,
-      worker.respondFailed(Failure.retryable)
-    )
     val terminatedWhileScheduled = scenario.actions(
       client.start(),
       process.stop,
       client.terminate
     )
-    val pausedThenCompleted = scenario.actions(
-      client.start(),
-      client.pause,
-      client.unpause,
-      worker.poll,
-      worker.respondCompleted
-    )
-    val scheduleToStartExpires = scenario.actions(
-      client.start(scheduleToStart := expires),
-      process.stop,
-      deadline.scheduleToStart
-    )
-    val startToCloseExpires = scenario.actions(
-      client.start(startToClose := expires, maxAttempts := MaxAttempts.one),
-      worker.poll,
-      deadline.startToClose
-    )
-
-    val delayedAttemptsAreNotDispatched =
-      query verify properties.dispatchRequiresReady in any limits eight
-    val scheduleToStartWaitsForDispatch =
-      query verify properties.scheduleToStartRequiresDispatch in any limits eight
     val cancellationKeepsPrecedence =
       query verify properties.cancelIsNotUndone in any limits eight
     val resetSettlement =
@@ -983,36 +838,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     val controlsKeepPrecedence =
       query verify properties.controlPrecedence in any limits eight
 
-    // One Query per side effect that settles the activity, apart from the Properties they find.
-    val completion =
-      (query find properties.completes in completed limits three).expect(satisfied)
-    val startDelayedCompletion =
-      (query find properties.completes in delayedThenCompleted limits four).expect(satisfied)
-    val nonRetryableFailure =
-      (query find properties.nonRetryableFails in nonRetryable limits three).expect(satisfied)
-    val retry =
-      (query find properties.retryCompletes in retriedThenCompleted limits six)
-        .expect(inconclusive(Reason.explanationsDisagree))
-    val retryExhaustionByFailures =
-      query verify properties.retryExhausts in exhausted limits six
-    val cancel =
-      query find properties.canceledByWorker in cancelRequestedThenCanceled limits four
     // The worker stops before the start, so no attempt is in flight when the client terminates.
     val terminate =
       (query find properties.terminated in terminatedWhileScheduled limits three)
         .expect(inconclusive(Reason.explanationsDisagree))
-    val pauseResume =
-      (query find properties.completes in pausedThenCompleted limits six)
-        .expect(satisfied)
-    val scheduleToStartTimeout =
-      (query find properties.scheduleToStartFires in scheduleToStartExpires limits three)
-        .expect(inconclusive(Reason.neverEvaluated))
-    val startToCloseTimeout =
-      query find properties.startToCloseFires in startToCloseExpires limits three
-
-    // The Query that carries the other promise into the lifted Model, where Go's are compared.
-
-    // Asks the one Property no functional Query asks, over the path that takes a cancel request.
-    val cancelRequest =
-      query find properties.cancelRequestedWhileStarted in cancelRequestedThenCanceled limits
-        four

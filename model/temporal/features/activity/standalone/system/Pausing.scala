@@ -1,4 +1,4 @@
-// Standalone activity completion, verified on the unchanged lifecycle.
+// Standalone activity completion after pause and resume.
 package temporal
 package features.activity
 package standalone
@@ -6,9 +6,8 @@ package system
 
 import framework.*
 import temporal.realize.satisfied
-import Bounds.three
 
-object Completion extends Derived(ActivitySystem.rebind()):
+object Pausing extends Derived(ActivitySystem.rebind()):
   object properties:
     val completes =
       property when worker.respondCompleted holds { s =>
@@ -16,11 +15,14 @@ object Completion extends Derived(ActivitySystem.rebind()):
       }
 
   object queries:
-    val completed = scenario.actions(
+    val pausedThenCompleted = scenario.actions(
       client.start(),
+      client.pause,
+      client.unpause,
       worker.poll,
       worker.respondCompleted
     )
 
-    val completion =
-      (query find properties.completes in completed limits three).expect(satisfied)
+    val pauseResume =
+      (query find properties.completes in pausedThenCompleted limits six)
+        .expect(satisfied)

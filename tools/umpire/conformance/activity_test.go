@@ -4,7 +4,7 @@ package conformance
 // would not record: evidence out of the path's order, and evidence on a Run Event its source does not
 // take. The Run's own record is evidence here, so the Run Event that carries a piece of evidence is
 // itself read. The expectations are read off model/temporal/features/activity/standalone
-// (system/System.scala, Realization.scala). The Runs the Cases record live are in played_test.go.
+// (the system subjects and system/Realization.scala). The Runs the Cases record live are in played_test.go.
 
 import (
 	"path/filepath"
@@ -64,11 +64,34 @@ func loweredActivity(t testing.TB, m *umpirespb.Model, query string) *bound {
 	require.NoError(t, err)
 	plain, err := testpilot.Prepare(lowering.Case, profile)
 	require.NoError(t, err)
-	factory, err := Prepare(m, check.ClaimKey{Family: activityFamily, Owner: activityMachine, Name: query}, lowering.Case, generous)
+	factory, err := Prepare(m, activityQueryKey(t, m, query), lowering.Case, generous)
 	require.NoError(t, err)
 	assessed, err := plain.WithAssessment(factory)
 	require.NoError(t, err)
 	return &bound{source: lowering.Case, plain: plain, assessed: assessed, factory: factory}
+}
+
+func activityQueryKey(t testing.TB, m *umpirespb.Model, name string) check.ClaimKey {
+	t.Helper()
+	for _, q := range m.GetQueries() {
+		if q.GetName() != name {
+			continue
+		}
+		owner := q.GetScenario().GetMachine()
+		for _, machine := range m.GetMachines() {
+			if machine.GetName() == owner {
+				return check.ClaimKey{Family: machine.GetFamily(), Owner: owner, Name: name}
+			}
+		}
+		for _, composition := range m.GetCompositions() {
+			if composition.GetName() == owner {
+				return check.ClaimKey{Family: composition.GetFamily(), Owner: owner, Name: name}
+			}
+		}
+		require.FailNow(t, "no owner for query "+name)
+	}
+	require.FailNow(t, "no query "+name)
+	return check.ClaimKey{}
 }
 
 // recorded is one Run Event of a constructed activity Run, with the kind of evidence it carries, by

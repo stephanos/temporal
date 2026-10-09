@@ -626,14 +626,16 @@ func summarizeSelectedPropertyRows(t *testing.T, m *umpirespb.Model, selected ma
 func TestActivityPropertiesOnEveryRow(t *testing.T) {
 	m := activityModel(t)
 	all := summarizePropertyRows(t, m)
-	require.Len(t, m.GetMachines(), 14)
-	require.Len(t, m.GetProperties(), 63)
+	require.Len(t, m.GetMachines(), 20)
+	require.Len(t, m.GetProperties(), 65)
 	owners := map[string]int{}
 	for _, p := range m.GetProperties() {
 		owners[p.GetMachine()]++
 	}
 	require.Equal(t, map[string]int{
-		"activityProduct": 3, "activitySystem": 39, "byIDCancellation": 2,
+		"activityProduct": 3, "activitySystem": 29, "byIDCancellation": 2,
+		"completion": 1, "retryFailures": 3, "cancellation": 2,
+		"pausing": 1, "dispatchEligibility": 3, "timeouts": 2,
 		"byIDCompletion": 1, "byIDFailure": 1, "deferredReset": 1,
 		"heartbeatCompletion": 1, "heartbeatExhaustion": 1, "heartbeatRetry": 1,
 		"resetKeepingPause": 1, "resetSettlement": 9, "standaloneActivity": 1, "timeoutRetry": 2,
@@ -648,19 +650,37 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 			machines++
 		}
 	}
-	require.Equal(t, 14, machines)
+	require.Equal(t, 20, machines)
 	require.Equal(t, propertyRowInventory{Rows: 2, Machine: true}, all.Owners["activityWorker"])
 	require.Equal(t, propertyRowInventory{Rows: 3, Machine: true}, all.Owners["polling"])
-	require.Equal(t, 7557400, expected)
+	require.Equal(t, 9980920, expected)
 	require.Equal(t, expected, all.Rows)
 	tally, failing := all.Tally, all.Failing
 	require.Equal(t, map[string]propertyTally{
 		"activityProduct.closedIsRejectedUniformly on activityProduct":                   {0, 210, 0},
 		"activityProduct.closedIsRejectedUniformly on activitySystem":                    {0, 119016, 2160},
+		"activityProduct.closedIsRejectedUniformly on completion":                        {0, 119016, 2160},
+		"activityProduct.closedIsRejectedUniformly on retryFailures":                     {0, 119016, 2160},
+		"activityProduct.closedIsRejectedUniformly on cancellation":                      {0, 119016, 2160},
+		"activityProduct.closedIsRejectedUniformly on pausing":                           {0, 119016, 2160},
+		"activityProduct.closedIsRejectedUniformly on dispatchEligibility":               {0, 119016, 2160},
+		"activityProduct.closedIsRejectedUniformly on timeouts":                          {0, 119016, 2160},
 		"activityProduct.pausedIsNotDispatched on activityProduct":                       {0, 210, 0},
 		"activityProduct.pausedIsNotDispatched on activitySystem":                        {0, 121176, 0},
+		"activityProduct.pausedIsNotDispatched on completion":                            {0, 121176, 0},
+		"activityProduct.pausedIsNotDispatched on retryFailures":                         {0, 121176, 0},
+		"activityProduct.pausedIsNotDispatched on cancellation":                          {0, 121176, 0},
+		"activityProduct.pausedIsNotDispatched on pausing":                               {0, 121176, 0},
+		"activityProduct.pausedIsNotDispatched on dispatchEligibility":                   {0, 121176, 0},
+		"activityProduct.pausedIsNotDispatched on timeouts":                              {0, 121176, 0},
 		"activityProduct.terminalStatesAreFinal on activityProduct":                      {0, 210, 0},
 		"activityProduct.terminalStatesAreFinal on activitySystem":                       {0, 121176, 0},
+		"activityProduct.terminalStatesAreFinal on completion":                           {0, 121176, 0},
+		"activityProduct.terminalStatesAreFinal on retryFailures":                        {0, 121176, 0},
+		"activityProduct.terminalStatesAreFinal on cancellation":                         {0, 121176, 0},
+		"activityProduct.terminalStatesAreFinal on pausing":                              {0, 121176, 0},
+		"activityProduct.terminalStatesAreFinal on dispatchEligibility":                  {0, 121176, 0},
+		"activityProduct.terminalStatesAreFinal on timeouts":                             {0, 121176, 0},
 		"activitySystem.cancelIsRequested on byIDCancellation":                           {115992, 1728, 3456},
 		"activitySystem.fatalFailure.attemptCountIsWithinPolicy on activitySystem":       {0, 112976, 8200},
 		"activitySystem.fatalFailure.failureCancels on activitySystem":                   {119016, 2160, 0},
@@ -686,22 +706,24 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		"activitySystem.startToCloseDeadline.firesInWindow on activitySystem":            {120096, 1080, 0},
 		"activitySystem.terminateSettles on activitySystem":                              {115992, 3024, 2160},
 		"canceledByID on byIDCancellation":                                               {115560, 432, 5184},
-		"canceledByWorker on activitySystem":                                             {119016, 432, 1728},
+		"canceledByWorker on cancellation":                                               {119016, 432, 1728},
 		"cancelIsNotUndone on activitySystem":                                            {0, 121176, 0},
 		"cancellationReplacesReset on resetSettlement":                                   {115992, 1728, 3456},
-		"cancelRequestedWhileStarted on activitySystem":                                  {115992, 1728, 3456},
+		"cancelRequestedWhileStarted on cancellation":                                    {115992, 1728, 3456},
 		"completedByID on byIDCompletion":                                                {115560, 3024, 2592},
-		"completes on activitySystem":                                                    {119016, 2160, 0},
+		"completes on completion":                                                        {119016, 2160, 0},
+		"completes on pausing":                                                           {119016, 2160, 0},
+		"completes on dispatchEligibility":                                               {119016, 2160, 0},
 		"completesAfterTimeout on timeoutRetry":                                          {119016, 5, 2155},
 		"completionWins on resetSettlement":                                              {119016, 720, 1440},
 		"controlPrecedence on activitySystem":                                            {0, 121176, 0},
-		"dispatchRequiresReady on activitySystem":                                        {0, 121176, 0},
+		"dispatchRequiresReady on dispatchEligibility":                                   {0, 121176, 0},
 		"failsAfterTimeout on timeoutRetry":                                              {119016, 2, 2158},
 		"fatalFailureByID on byIDFailure":                                                {115560, 1296, 4320},
 		"heartbeatCompletes on heartbeatCompletion":                                      {119016, 2160, 0},
 		"heartbeatExhausts on heartbeatExhaustion":                                       {120096, 1080, 0},
 		"heartbeatRetryCompletes on heartbeatRetry":                                      {119016, 2160, 0},
-		"nonRetryableFails on activitySystem":                                            {119016, 1296, 864},
+		"nonRetryableFails on retryFailures":                                             {119016, 1296, 864},
 		"pauseLeavesResetPending on resetSettlement":                                     {115992, 432, 4752},
 		"resetAttemptCompletes on deferredReset":                                         {119016, 2160, 0},
 		"resetKeepsPause on resetSettlement":                                             {119016, 9, 2151},
@@ -713,21 +735,51 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		"resetResumes on activitySystem":                                                 {115560, 5616, 0},
 		"resetSettles on activitySystem":                                                 {0, 120600, 576},
 		"resetStaysPending on resetSettlement":                                           {115560, 1296, 4320},
-		"retryCompletes on activitySystem":                                               {119016, 5, 2155},
-		"retryExhausts on activitySystem":                                                {119016, 5, 2155},
+		"retryCompletes on retryFailures":                                                {119016, 5, 2155},
+		"retryExhausts on retryFailures":                                                 {119016, 5, 2155},
 		"scheduleToCloseStaysTerminal on resetSettlement":                                {120168, 1008, 0},
-		"scheduleToStartFires on activitySystem":                                         {121104, 72, 0},
-		"scheduleToStartRequiresDispatch on activitySystem":                              {0, 121176, 0},
+		"scheduleToStartFires on timeouts":                                               {121104, 72, 0},
+		"scheduleToStartRequiresDispatch on dispatchEligibility":                         {0, 121176, 0},
 		"startedByPollingWorker on standaloneActivity":                                   {43762, 96, 0},
-		"startToCloseFires on activitySystem":                                            {120096, 360, 720},
+		"startToCloseFires on timeouts":                                                  {120096, 360, 720},
 		"terminated on activitySystem":                                                   {115992, 3024, 2160},
 	}, tally)
 	require.Equal(t, map[string]int{
 		"activityProduct.closedIsRejectedUniformly on activitySystem: canceled stop":                                                432,
+		"activityProduct.closedIsRejectedUniformly on completion: canceled stop":                                                    432,
+		"activityProduct.closedIsRejectedUniformly on retryFailures: canceled stop":                                                 432,
+		"activityProduct.closedIsRejectedUniformly on cancellation: canceled stop":                                                  432,
+		"activityProduct.closedIsRejectedUniformly on pausing: canceled stop":                                                       432,
+		"activityProduct.closedIsRejectedUniformly on dispatchEligibility: canceled stop":                                           432,
+		"activityProduct.closedIsRejectedUniformly on timeouts: canceled stop":                                                      432,
 		"activityProduct.closedIsRejectedUniformly on activitySystem: completed stop":                                               432,
+		"activityProduct.closedIsRejectedUniformly on completion: completed stop":                                                   432,
+		"activityProduct.closedIsRejectedUniformly on retryFailures: completed stop":                                                432,
+		"activityProduct.closedIsRejectedUniformly on cancellation: completed stop":                                                 432,
+		"activityProduct.closedIsRejectedUniformly on pausing: completed stop":                                                      432,
+		"activityProduct.closedIsRejectedUniformly on dispatchEligibility: completed stop":                                          432,
+		"activityProduct.closedIsRejectedUniformly on timeouts: completed stop":                                                     432,
 		"activityProduct.closedIsRejectedUniformly on activitySystem: failed stop":                                                  432,
+		"activityProduct.closedIsRejectedUniformly on completion: failed stop":                                                      432,
+		"activityProduct.closedIsRejectedUniformly on retryFailures: failed stop":                                                   432,
+		"activityProduct.closedIsRejectedUniformly on cancellation: failed stop":                                                    432,
+		"activityProduct.closedIsRejectedUniformly on pausing: failed stop":                                                         432,
+		"activityProduct.closedIsRejectedUniformly on dispatchEligibility: failed stop":                                             432,
+		"activityProduct.closedIsRejectedUniformly on timeouts: failed stop":                                                        432,
 		"activityProduct.closedIsRejectedUniformly on activitySystem: terminated stop":                                              432,
+		"activityProduct.closedIsRejectedUniformly on completion: terminated stop":                                                  432,
+		"activityProduct.closedIsRejectedUniformly on retryFailures: terminated stop":                                               432,
+		"activityProduct.closedIsRejectedUniformly on cancellation: terminated stop":                                                432,
+		"activityProduct.closedIsRejectedUniformly on pausing: terminated stop":                                                     432,
+		"activityProduct.closedIsRejectedUniformly on dispatchEligibility: terminated stop":                                         432,
+		"activityProduct.closedIsRejectedUniformly on timeouts: terminated stop":                                                    432,
 		"activityProduct.closedIsRejectedUniformly on activitySystem: timedOut stop":                                                432,
+		"activityProduct.closedIsRejectedUniformly on completion: timedOut stop":                                                    432,
+		"activityProduct.closedIsRejectedUniformly on retryFailures: timedOut stop":                                                 432,
+		"activityProduct.closedIsRejectedUniformly on cancellation: timedOut stop":                                                  432,
+		"activityProduct.closedIsRejectedUniformly on pausing: timedOut stop":                                                       432,
+		"activityProduct.closedIsRejectedUniformly on dispatchEligibility: timedOut stop":                                           432,
+		"activityProduct.closedIsRejectedUniformly on timeouts: timedOut stop":                                                      432,
 		"activitySystem.cancelIsRequested on byIDCancellation: canceled requestCancel":                                              432,
 		"activitySystem.cancelIsRequested on byIDCancellation: cancelRequested requestCancel":                                       432,
 		"activitySystem.cancelIsRequested on byIDCancellation: completed requestCancel":                                             432,
@@ -1131,10 +1183,10 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		"canceledByID on byIDCancellation: terminated respondCanceledByID":                                                          432,
 		"canceledByID on byIDCancellation: timedOut respondCanceledByID":                                                            432,
 		"canceledByID on byIDCancellation: unstarted respondCanceledByID":                                                           432,
-		"canceledByWorker on activitySystem: pauseRequested respondCanceled":                                                        432,
-		"canceledByWorker on activitySystem: resetKeepingPause respondCanceled":                                                     432,
-		"canceledByWorker on activitySystem: resetRequested respondCanceled":                                                        432,
-		"canceledByWorker on activitySystem: started respondCanceled":                                                               432,
+		"canceledByWorker on cancellation: pauseRequested respondCanceled":                                                          432,
+		"canceledByWorker on cancellation: resetKeepingPause respondCanceled":                                                       432,
+		"canceledByWorker on cancellation: resetRequested respondCanceled":                                                          432,
+		"canceledByWorker on cancellation: started respondCanceled":                                                                 432,
 		"cancellationReplacesReset on resetSettlement: canceled requestCancel":                                                      432,
 		"cancellationReplacesReset on resetSettlement: cancelRequested requestCancel":                                               432,
 		"cancellationReplacesReset on resetSettlement: completed requestCancel":                                                     432,
@@ -1143,14 +1195,14 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		"cancellationReplacesReset on resetSettlement: scheduled requestCancel":                                                     432,
 		"cancellationReplacesReset on resetSettlement: terminated requestCancel":                                                    432,
 		"cancellationReplacesReset on resetSettlement: timedOut requestCancel":                                                      432,
-		"cancelRequestedWhileStarted on activitySystem: canceled requestCancel":                                                     432,
-		"cancelRequestedWhileStarted on activitySystem: cancelRequested requestCancel":                                              432,
-		"cancelRequestedWhileStarted on activitySystem: completed requestCancel":                                                    432,
-		"cancelRequestedWhileStarted on activitySystem: failed requestCancel":                                                       432,
-		"cancelRequestedWhileStarted on activitySystem: paused requestCancel":                                                       432,
-		"cancelRequestedWhileStarted on activitySystem: scheduled requestCancel":                                                    432,
-		"cancelRequestedWhileStarted on activitySystem: terminated requestCancel":                                                   432,
-		"cancelRequestedWhileStarted on activitySystem: timedOut requestCancel":                                                     432,
+		"cancelRequestedWhileStarted on cancellation: canceled requestCancel":                                                       432,
+		"cancelRequestedWhileStarted on cancellation: cancelRequested requestCancel":                                                432,
+		"cancelRequestedWhileStarted on cancellation: completed requestCancel":                                                      432,
+		"cancelRequestedWhileStarted on cancellation: failed requestCancel":                                                         432,
+		"cancelRequestedWhileStarted on cancellation: paused requestCancel":                                                         432,
+		"cancelRequestedWhileStarted on cancellation: scheduled requestCancel":                                                      432,
+		"cancelRequestedWhileStarted on cancellation: terminated requestCancel":                                                     432,
+		"cancelRequestedWhileStarted on cancellation: timedOut requestCancel":                                                       432,
 		"completedByID on byIDCompletion: canceled respondCompletedByID":                                                            432,
 		"completedByID on byIDCompletion: completed respondCompletedByID":                                                           432,
 		"completedByID on byIDCompletion: failed respondCompletedByID":                                                              432,
@@ -1182,8 +1234,8 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		"fatalFailureByID on byIDFailure: terminated respondFailedByID-fatal":                                                       432,
 		"fatalFailureByID on byIDFailure: timedOut respondFailedByID-fatal":                                                         432,
 		"fatalFailureByID on byIDFailure: unstarted respondFailedByID-fatal":                                                        432,
-		"nonRetryableFails on activitySystem: resetKeepingPause respondFailed-fatal":                                                432,
-		"nonRetryableFails on activitySystem: resetRequested respondFailed-fatal":                                                   432,
+		"nonRetryableFails on retryFailures: resetKeepingPause respondFailed-fatal":                                                 432,
+		"nonRetryableFails on retryFailures: resetRequested respondFailed-fatal":                                                    432,
 		"pauseLeavesResetPending on resetSettlement: canceled pause":                                                                432,
 		"pauseLeavesResetPending on resetSettlement: cancelRequested pause":                                                         432,
 		"pauseLeavesResetPending on resetSettlement: completed pause":                                                               432,
@@ -1242,20 +1294,20 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		"resetStaysPending on resetSettlement: terminated reset-resume":                                                             432,
 		"resetStaysPending on resetSettlement: timedOut reset-resume":                                                               432,
 		"resetStaysPending on resetSettlement: unstarted reset-resume":                                                              432,
-		"retryCompletes on activitySystem: cancelRequested respondCompleted":                                                        431,
-		"retryCompletes on activitySystem: pauseRequested respondCompleted":                                                         431,
-		"retryCompletes on activitySystem: resetKeepingPause respondCompleted":                                                      431,
-		"retryCompletes on activitySystem: resetRequested respondCompleted":                                                         431,
-		"retryCompletes on activitySystem: started respondCompleted":                                                                431,
-		"retryExhausts on activitySystem: cancelRequested respondFailed-retryable":                                                  432,
-		"retryExhausts on activitySystem: pauseRequested respondFailed-retryable":                                                   431,
-		"retryExhausts on activitySystem: resetKeepingPause respondFailed-retryable":                                                432,
-		"retryExhausts on activitySystem: resetRequested respondFailed-retryable":                                                   432,
-		"retryExhausts on activitySystem: started respondFailed-retryable":                                                          428,
-		"startToCloseFires on activitySystem: pauseRequested startToClose":                                                          144,
-		"startToCloseFires on activitySystem: resetKeepingPause startToClose":                                                       216,
-		"startToCloseFires on activitySystem: resetRequested startToClose":                                                          216,
-		"startToCloseFires on activitySystem: started startToClose":                                                                 144,
+		"retryCompletes on retryFailures: cancelRequested respondCompleted":                                                         431,
+		"retryCompletes on retryFailures: pauseRequested respondCompleted":                                                          431,
+		"retryCompletes on retryFailures: resetKeepingPause respondCompleted":                                                       431,
+		"retryCompletes on retryFailures: resetRequested respondCompleted":                                                          431,
+		"retryCompletes on retryFailures: started respondCompleted":                                                                 431,
+		"retryExhausts on retryFailures: cancelRequested respondFailed-retryable":                                                   432,
+		"retryExhausts on retryFailures: pauseRequested respondFailed-retryable":                                                    431,
+		"retryExhausts on retryFailures: resetKeepingPause respondFailed-retryable":                                                 432,
+		"retryExhausts on retryFailures: resetRequested respondFailed-retryable":                                                    432,
+		"retryExhausts on retryFailures: started respondFailed-retryable":                                                           428,
+		"startToCloseFires on timeouts: pauseRequested startToClose":                                                                144,
+		"startToCloseFires on timeouts: resetKeepingPause startToClose":                                                             216,
+		"startToCloseFires on timeouts: resetRequested startToClose":                                                                216,
+		"startToCloseFires on timeouts: started startToClose":                                                                       144,
 		"terminated on activitySystem: canceled terminate":                                                                          432,
 		"terminated on activitySystem: completed terminate":                                                                         432,
 		"terminated on activitySystem: failed terminate":                                                                            432,
@@ -1271,10 +1323,28 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 	require.Equal(t, map[string]string{
 		"activityProduct.closedIsRejectedUniformly on activityProduct":                   "47346d65177c8c2a",
 		"activityProduct.closedIsRejectedUniformly on activitySystem":                    "84d0f4eaaabd50b4",
+		"activityProduct.closedIsRejectedUniformly on completion":                        "84d0f4eaaabd50b4",
+		"activityProduct.closedIsRejectedUniformly on retryFailures":                     "84d0f4eaaabd50b4",
+		"activityProduct.closedIsRejectedUniformly on cancellation":                      "84d0f4eaaabd50b4",
+		"activityProduct.closedIsRejectedUniformly on pausing":                           "84d0f4eaaabd50b4",
+		"activityProduct.closedIsRejectedUniformly on dispatchEligibility":               "84d0f4eaaabd50b4",
+		"activityProduct.closedIsRejectedUniformly on timeouts":                          "84d0f4eaaabd50b4",
 		"activityProduct.pausedIsNotDispatched on activityProduct":                       "47346d65177c8c2a",
 		"activityProduct.pausedIsNotDispatched on activitySystem":                        "dbfcf53fbe87cf17",
+		"activityProduct.pausedIsNotDispatched on completion":                            "dbfcf53fbe87cf17",
+		"activityProduct.pausedIsNotDispatched on retryFailures":                         "dbfcf53fbe87cf17",
+		"activityProduct.pausedIsNotDispatched on cancellation":                          "dbfcf53fbe87cf17",
+		"activityProduct.pausedIsNotDispatched on pausing":                               "dbfcf53fbe87cf17",
+		"activityProduct.pausedIsNotDispatched on dispatchEligibility":                   "dbfcf53fbe87cf17",
+		"activityProduct.pausedIsNotDispatched on timeouts":                              "dbfcf53fbe87cf17",
 		"activityProduct.terminalStatesAreFinal on activityProduct":                      "47346d65177c8c2a",
 		"activityProduct.terminalStatesAreFinal on activitySystem":                       "dbfcf53fbe87cf17",
+		"activityProduct.terminalStatesAreFinal on completion":                           "dbfcf53fbe87cf17",
+		"activityProduct.terminalStatesAreFinal on retryFailures":                        "dbfcf53fbe87cf17",
+		"activityProduct.terminalStatesAreFinal on cancellation":                         "dbfcf53fbe87cf17",
+		"activityProduct.terminalStatesAreFinal on pausing":                              "dbfcf53fbe87cf17",
+		"activityProduct.terminalStatesAreFinal on dispatchEligibility":                  "dbfcf53fbe87cf17",
+		"activityProduct.terminalStatesAreFinal on timeouts":                             "dbfcf53fbe87cf17",
 		"activitySystem.cancelIsRequested on byIDCancellation":                           "cf4eafb4fde9d03f",
 		"activitySystem.fatalFailure.attemptCountIsWithinPolicy on activitySystem":       "bc543de2c8f7694f",
 		"activitySystem.fatalFailure.failureCancels on activitySystem":                   "7bf22af91e10c41d",
@@ -1300,22 +1370,24 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		"activitySystem.startToCloseDeadline.firesInWindow on activitySystem":            "ec24b7035116159d",
 		"activitySystem.terminateSettles on activitySystem":                              "eec113aa6c88afb4",
 		"canceledByID on byIDCancellation":                                               "756281535c53b38c",
-		"canceledByWorker on activitySystem":                                             "83304886f813968b",
+		"canceledByWorker on cancellation":                                               "83304886f813968b",
 		"cancelIsNotUndone on activitySystem":                                            "dbfcf53fbe87cf17",
 		"cancellationReplacesReset on resetSettlement":                                   "cf4eafb4fde9d03f",
-		"cancelRequestedWhileStarted on activitySystem":                                  "cf4eafb4fde9d03f",
+		"cancelRequestedWhileStarted on cancellation":                                    "cf4eafb4fde9d03f",
 		"completedByID on byIDCompletion":                                                "6ed1bec07f1dde2f",
-		"completes on activitySystem":                                                    "ee05c495bbebdf6a",
+		"completes on completion":                                                        "ee05c495bbebdf6a",
+		"completes on pausing":                                                           "ee05c495bbebdf6a",
+		"completes on dispatchEligibility":                                               "ee05c495bbebdf6a",
 		"completesAfterTimeout on timeoutRetry":                                          "df97983f12abe645",
 		"completionWins on resetSettlement":                                              "f838835538d0e0a8",
 		"controlPrecedence on activitySystem":                                            "dbfcf53fbe87cf17",
-		"dispatchRequiresReady on activitySystem":                                        "dbfcf53fbe87cf17",
+		"dispatchRequiresReady on dispatchEligibility":                                   "dbfcf53fbe87cf17",
 		"failsAfterTimeout on timeoutRetry":                                              "ba257a34bdcd887b",
 		"fatalFailureByID on byIDFailure":                                                "a0e6d6d8280ba1c1",
 		"heartbeatCompletes on heartbeatCompletion":                                      "ee05c495bbebdf6a",
 		"heartbeatExhausts on heartbeatExhaustion":                                       "59dbb8228ce4a4fb",
 		"heartbeatRetryCompletes on heartbeatRetry":                                      "ee05c495bbebdf6a",
-		"nonRetryableFails on activitySystem":                                            "e5dd352cbf39a861",
+		"nonRetryableFails on retryFailures":                                             "e5dd352cbf39a861",
 		"pauseLeavesResetPending on resetSettlement":                                     "df4cafd0bf553a4c",
 		"resetAttemptCompletes on deferredReset":                                         "ee05c495bbebdf6a",
 		"resetKeepsPause on resetSettlement":                                             "62d087882d4a7d7c",
@@ -1327,13 +1399,13 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		"resetResumes on activitySystem":                                                 "20c9f64fcff6b835",
 		"resetSettles on activitySystem":                                                 "7243f1fbe52662c0",
 		"resetStaysPending on resetSettlement":                                           "d8d711c0e67c2bd5",
-		"retryCompletes on activitySystem":                                               "70e263b17f5cec29",
-		"retryExhausts on activitySystem":                                                "b76daef36d54d61a",
+		"retryCompletes on retryFailures":                                                "70e263b17f5cec29",
+		"retryExhausts on retryFailures":                                                 "b76daef36d54d61a",
 		"scheduleToCloseStaysTerminal on resetSettlement":                                "e168db08b6c2c8f6",
-		"scheduleToStartFires on activitySystem":                                         "3856a9defbf72137",
-		"scheduleToStartRequiresDispatch on activitySystem":                              "dbfcf53fbe87cf17",
+		"scheduleToStartFires on timeouts":                                               "3856a9defbf72137",
+		"scheduleToStartRequiresDispatch on dispatchEligibility":                         "dbfcf53fbe87cf17",
 		"startedByPollingWorker on standaloneActivity":                                   "09ac55136c06e20a",
-		"startToCloseFires on activitySystem":                                            "f5c95d1fed5590bf",
+		"startToCloseFires on timeouts":                                                  "f5c95d1fed5590bf",
 		"terminated on activitySystem":                                                   "eec113aa6c88afb4",
 	}, digests)
 }
@@ -1712,17 +1784,17 @@ func activityPropertyMutants() map[string]activityPropertyMutant {
 		// The cancel request of the Scenario's path is taken at attempt 1.
 		"cancelRequestedWhileStarted also wants the first attempt": {
 			mutate: func(t *testing.T, m *umpirespb.Model) {
-				f := activityFunction(t, m, "activitySystem.property.cancelRequestedWhileStarted")
+				f := activityFunction(t, m, "cancellation.property.cancelRequestedWhileStarted")
 				narrowed(f, binary(umpirespb.Binary_OP_EQ, stateField(f, 0, "attempts"), expr(admIntValue(1))))
 			},
-			rows: []string{"cancelRequestedWhileStarted on activitySystem at started-now-2-unset-unset-unset-unset-unlimited-requestCancel"},
+			rows: []string{"cancelRequestedWhileStarted on cancellation at started-now-2-unset-unset-unset-unset-unlimited-requestCancel"},
 		},
 		// The one worker answer on the path to a canceled activity is the canceled answer.
 		"canceledByWorker is about completion": {
 			mutate: func(_ *testing.T, m *umpirespb.Model) {
-				admProperty(m, "activitySystem", "canceledByWorker").When = &umpirespb.Property_WhenAction{WhenAction: "respondCompleted"}
+				admProperty(m, "cancellation", "canceledByWorker").When = &umpirespb.Property_WhenAction{WhenAction: "respondCompleted"}
 			},
-			rows:  []string{"canceledByWorker on activitySystem at started-now-1-unset-unset-unset-unset-unlimited-respondCompleted"},
+			rows:  []string{"canceledByWorker on cancellation at started-now-1-unset-unset-unset-unset-unlimited-respondCompleted"},
 			paths: []string{"cancel"},
 		},
 		// No path that reads this Property terminates the activity. The free search of the product
@@ -1736,6 +1808,12 @@ func activityPropertyMutants() map[string]activityPropertyMutant {
 			rows: []string{
 				"activityProduct.pausedIsNotDispatched on activityProduct at scheduled-terminate",
 				"activityProduct.pausedIsNotDispatched on activitySystem at scheduled-now-0-unset-unset-unset-unset-unlimited-terminate",
+				"activityProduct.pausedIsNotDispatched on completion at scheduled-now-0-unset-unset-unset-unset-unlimited-terminate",
+				"activityProduct.pausedIsNotDispatched on retryFailures at scheduled-now-0-unset-unset-unset-unset-unlimited-terminate",
+				"activityProduct.pausedIsNotDispatched on cancellation at scheduled-now-0-unset-unset-unset-unset-unlimited-terminate",
+				"activityProduct.pausedIsNotDispatched on pausing at scheduled-now-0-unset-unset-unset-unset-unlimited-terminate",
+				"activityProduct.pausedIsNotDispatched on dispatchEligibility at scheduled-now-0-unset-unset-unset-unset-unlimited-terminate",
+				"activityProduct.pausedIsNotDispatched on timeouts at scheduled-now-0-unset-unset-unset-unset-unlimited-terminate",
 			},
 			generated: []string{"activityProduct.pausedIsNotDispatched"},
 		},
@@ -1787,10 +1865,16 @@ func activityBoundedRowsMatchBatchCheck(t *testing.T, baseline *umpirespb.Model)
 	t.Helper()
 	require.NoError(t, ir.Validate(baseline))
 	for owner, names := range map[string][]string{
-		"activityProduct":    {"activityProduct"},
-		"activitySystem":     {"activityProduct", "activitySystem"},
-		"byIDCancellation":   {"byIDCancellation"},
-		"standaloneActivity": {"activityProduct", "activitySystem", "activityWorker"},
+		"activityProduct":     {"activityProduct"},
+		"activitySystem":      {"activityProduct", "activitySystem"},
+		"completion":          {"activityProduct", "completion"},
+		"retryFailures":       {"activityProduct", "retryFailures"},
+		"cancellation":        {"activityProduct", "cancellation"},
+		"pausing":             {"activityProduct", "pausing"},
+		"dispatchEligibility": {"activityProduct", "dispatchEligibility"},
+		"timeouts":            {"activityProduct", "timeouts"},
+		"byIDCancellation":    {"byIDCancellation"},
+		"standaloneActivity":  {"activityProduct", "activitySystem", "activityWorker"},
 	} {
 		t.Run("owner closure/"+owner, func(t *testing.T) {
 			w := newPropertyRowWalk(t, baseline, owner)
@@ -1844,6 +1928,17 @@ func activityBoundedRowsMatchBatchCheck(t *testing.T, baseline *umpirespb.Model)
 			"started-now-1-unset-unset-unset-unset-unlimited-respondCompleted",
 			"scheduled-now-0-unset-unset-unset-unset-unlimited-terminate",
 		},
+		"cancellation": {
+			"started-now-2-unset-unset-unset-unset-unlimited-requestCancel",
+			"started-now-1-unset-unset-unset-unset-unlimited-respondCanceled",
+			"started-now-1-unset-unset-unset-unset-unlimited-respondCompleted",
+			"scheduled-now-0-unset-unset-unset-unset-unlimited-terminate",
+		},
+		"completion":          {"scheduled-now-0-unset-unset-unset-unset-unlimited-terminate"},
+		"retryFailures":       {"scheduled-now-0-unset-unset-unset-unset-unlimited-terminate"},
+		"pausing":             {"scheduled-now-0-unset-unset-unset-unset-unlimited-terminate"},
+		"dispatchEligibility": {"scheduled-now-0-unset-unset-unset-unset-unlimited-terminate"},
+		"timeouts":            {"scheduled-now-0-unset-unset-unset-unset-unlimited-terminate"},
 		"standaloneActivity": {
 			"scheduled-now-1-unset-unset-unset-unset-unlimited_polling-poll",
 			"scheduled-now-0-unset-unset-unset-unset-unlimited_polling-poll",
@@ -1852,13 +1947,19 @@ func activityBoundedRowsMatchBatchCheck(t *testing.T, baseline *umpirespb.Model)
 	}
 	pristine := proto.Clone(baseline).(*umpirespb.Model)
 	want := irPropertyRowsBatch(t, baseline, selected)
-	require.Len(t, want, 3*3+4*42+3)
+	require.Len(t, want, 3*3+4*32+4*5+4+6+4+6+5+3)
 	require.Equal(t, want, irPropertyRows(t, baseline, selected))
 	batchSummary := propertyRowsSummary{Rows: len(want), Tally: map[string]propertyTally{}, Failing: map[string]int{}, Digests: map[string]string{},
 		Owners: map[string]propertyRowInventory{
-			"activityProduct":    {Rows: 210, Properties: 3, Machine: true},
-			"activitySystem":     {Rows: 121176, Properties: 42, Machine: true, Refined: "activityProduct"},
-			"standaloneActivity": {Rows: 43858, Properties: 1},
+			"activityProduct":     {Rows: 210, Properties: 3, Machine: true},
+			"activitySystem":      {Rows: 121176, Properties: 32, Machine: true, Refined: "activityProduct"},
+			"completion":          {Rows: 121176, Properties: 4, Machine: true, Refined: "activityProduct"},
+			"retryFailures":       {Rows: 121176, Properties: 6, Machine: true, Refined: "activityProduct"},
+			"cancellation":        {Rows: 121176, Properties: 5, Machine: true, Refined: "activityProduct"},
+			"pausing":             {Rows: 121176, Properties: 4, Machine: true, Refined: "activityProduct"},
+			"dispatchEligibility": {Rows: 121176, Properties: 6, Machine: true, Refined: "activityProduct"},
+			"timeouts":            {Rows: 121176, Properties: 5, Machine: true, Refined: "activityProduct"},
+			"standaloneActivity":  {Rows: 43858, Properties: 1},
 		}}
 	batchLines := map[string][]string{}
 	for key, side := range want {
@@ -1883,8 +1984,8 @@ func activityBoundedRowsMatchBatchCheck(t *testing.T, baseline *umpirespb.Model)
 		batchSummary.Digests[claim] = hex.EncodeToString(sum[:8])
 	}
 	require.Equal(t, batchSummary, summarizeSelectedPropertyRows(t, baseline, selected))
-	require.False(t, want[rowKeyOf("canceledByWorker", "activitySystem", "started-now-1-unset-unset-unset-unset-unlimited-respondCompleted")].About)
-	require.True(t, want[rowKeyOf("canceledByWorker", "activitySystem", "started-now-1-unset-unset-unset-unset-unlimited-respondCanceled")].About)
+	require.False(t, want[rowKeyOf("canceledByWorker", "cancellation", "started-now-1-unset-unset-unset-unset-unlimited-respondCompleted")].About)
+	require.True(t, want[rowKeyOf("canceledByWorker", "cancellation", "started-now-1-unset-unset-unset-unset-unlimited-respondCanceled")].About)
 	mutants := activityPropertyMutants()
 	mutants["the third heartbeat choice alone fails"] = activityPropertyMutant{mutate: func(t *testing.T, m *umpirespb.Model) {
 		f := activityFunction(t, m, "activityProduct.property.activityProduct.pausedIsNotDispatched")

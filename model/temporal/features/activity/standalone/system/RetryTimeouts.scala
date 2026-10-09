@@ -15,13 +15,13 @@ import Timeout.expires
 object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
   object properties:
     val completesAfterTimeout = property when worker.respondCompleted holds { s =>
-      s.state == ActivitySystem.properties.completedOnRetry.copy(
+      s.state == RetryFailures.states.completedOnRetry.copy(
         startToClose = Timeout.expires,
         maxAttempts = MaxAttempts.two
       ) && s.records(Fact.statusCompleted)
     }
     val failsAfterTimeout = property when worker.respondFailed(Failure.retryable) holds { s =>
-      s.state == ActivitySystem.properties.completedOnRetry.copy(
+      s.state == RetryFailures.states.completedOnRetry.copy(
         phase = Phase.failed,
         startToClose = Timeout.expires,
         maxAttempts = MaxAttempts.two

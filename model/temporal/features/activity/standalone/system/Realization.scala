@@ -1,5 +1,5 @@
 // How a Case runs the standalone activity's System machines: StandaloneActivity, HeldDispatch,
-// LostStartAnswer and TimeoutRetry.
+// LostStartAnswer, TimeoutRetry and the focused lifecycle subjects.
 //
 // For StandaloneActivity a controller starts one activity with StartActivityExecution, controls it,
 // and reads its status back with DescribeActivityExecution. The Case's own worker runs the attempts,
@@ -460,6 +460,13 @@ object Standalone
         )
       )
   object controls extends Controls(unstartedDispatch)
+
+object CompletionExecution extends DerivesFrom(Standalone, Completion)
+object RetryFailuresExecution extends DerivesFrom(Standalone, RetryFailures)
+object CancellationExecution extends DerivesFrom(Standalone, Cancellation)
+object PausingExecution extends DerivesFrom(Standalone, Pausing)
+object DispatchExecution extends DerivesFrom(Standalone, DispatchEligibility)
+object TimeoutsExecution extends DerivesFrom(Standalone, Timeouts)
 
 // Uses the unchanged System rows, but only the timeout path's second-delivery evidence. The first
 // attempt withholds its answer until its armed deadline; the second completes or exhausts retries.

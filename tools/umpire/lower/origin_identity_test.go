@@ -71,7 +71,14 @@ func TestAnOriginMovesNoAnswerFingerprintLoweringOrModelIdentity(t *testing.T) {
 			continue
 		}
 		lowered++
-		key := check.ClaimKey{Family: "temporal.features.activity.standalone.system", Owner: "activitySystem", Name: q.GetName()}
+		key := check.ClaimKey{Owner: q.GetScenario().GetMachine(), Name: q.GetName()}
+		for _, machine := range plain.GetMachines() {
+			if machine.GetName() == key.Owner {
+				key.Family = machine.GetFamily()
+				break
+			}
+		}
+		require.NotEmpty(t, key.Family, q.GetName())
 		wantFactory, wantErr := conformance.Prepare(plain, key, want.Case, conformance.DefaultLimits())
 		gotFactory, gotErr := conformance.Prepare(traced, key, got.Case, conformance.DefaultLimits())
 		if wantErr != nil {

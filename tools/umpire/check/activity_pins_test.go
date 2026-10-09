@@ -116,11 +116,19 @@ func TestActivityRefinement(t *testing.T) {
 
 func TestActivityQueries(t *testing.T) {
 	r := checked(t, activityModel(t))
-	for _, name := range []string{"completion", "nonRetryableFailure", "retry", "cancel", "terminate", "pauseResume",
-		"scheduleToStartTimeout", "startToCloseTimeout",
+	for _, query := range []struct{ owner, name string }{
+		{"completion", "completion"},
+		{"retryFailures", "nonRetryableFailure"},
+		{"retryFailures", "retry"},
+		{"cancellation", "cancel"},
+		{"activitySystem", "terminate"},
+		{"pausing", "pauseResume"},
+		{"timeouts", "scheduleToStartTimeout"},
+		{"timeouts", "startToCloseTimeout"},
 		// The finds the protocol's capabilities generate, one per same-step Property.
-		"activitySystem.terminateSettles"} {
-		require.Equal(t, Found, receiptOf(t, r, "query activitySystem "+name).Kind, name)
+		{"activitySystem", "activitySystem.terminateSettles"},
+	} {
+		require.Equal(t, Found, receiptOf(t, r, "query "+query.owner+" "+query.name).Kind, query.name)
 	}
 	require.Equal(t, Found, receiptOf(t, r, "query byIDCancellation activitySystem.cancelIsRequested").Kind)
 	// The product's Properties, which its capabilities generate as verifications over a free search of the

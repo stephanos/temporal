@@ -130,6 +130,7 @@ func TestActivitySystemResults(t *testing.T) {
 	require.Empty(t, report.Unsupported())
 	want := map[string]ReceiptKind{
 		"refinement activitySystem activityProduct":         Verified,
+		"refinement competingTimeouts activityProduct":      Verified,
 		"refinement activityRecord activityProduct":         Verified,
 		"refinement trustingActivityRecord activityProduct": RefinementRejected,
 
@@ -144,8 +145,8 @@ func TestActivitySystemResults(t *testing.T) {
 		"composition recordOverForgetful":        RefinementRejected,
 		"composition recordOverVolatile":         RefinementRejected,
 
-		"query activitySystem competingTimers.scheduleToStartFirst": Found,
-		"query activitySystem competingTimers.scheduleToCloseFirst": Found,
+		"query competingTimeouts competingTimers.scheduleToStartFirst": Found,
+		"query competingTimeouts competingTimers.scheduleToCloseFirst": Found,
 
 		// The product's capability Properties, which the system contract's Model carries with the product.
 		"query activityProduct activityProduct.terminalStatesAreFinal":    Verified,
@@ -353,9 +354,9 @@ func TestActivityTerminalFinality(t *testing.T) {
 func TestActivityCompetingTimers(t *testing.T) {
 	c := systemModel(t)
 	for query, table := range map[string][2]string{
-		"query activitySystem competingTimers.": {"activitySystem", "scheduled-now-0-expires-expires-unset-unset-unlimited"},
-		current:                                 {"activityRecord", "scheduled-none-settled"},
-		stale:                                   {"trustingActivityRecord", "scheduled-none-settled"},
+		"query competingTimeouts competingTimers.": {"competingTimeouts", "scheduled-now-0-expires-expires-unset-unset-unlimited"},
+		current: {"activityRecord", "scheduled-none-settled"},
+		stale:   {"trustingActivityRecord", "scheduled-none-settled"},
 	} {
 		mm := c.built[table[0]]
 		over := map[string]string{}

@@ -40,7 +40,7 @@ func withheldTimeoutRetry(t *testing.T) *umpirespb.Model {
 		}
 	}
 	for _, function := range m.GetFunctions() {
-		if function.GetName() == "activitySystem.property.retryCompletes" {
+		if function.GetName() == "retryFailures.property.retryCompletes" {
 			function.GetBody().GetBinary().GetLeft().GetBinary().GetRight().GetConstruct().Args[timeoutArgument].GetLiteral().GetEnum().Case = "expires"
 		}
 		// The checked-in fixture predates timeout retries; this isolates the bridge from model regeneration.
@@ -50,7 +50,7 @@ func withheldTimeoutRetry(t *testing.T) *umpirespb.Model {
 			call.Args = call.GetArgs()[:1]
 		}
 	}
-	r := realizationNamed(t, m, "standalone")
+	r := realizationNamed(t, m, "retryFailuresExecution")
 	script := scriptNamed(t, r, "attempts")
 	script.Items = append([]*umpirespb.Item{{Position: script.GetPosition(), When: []*umpirespb.ActionClass{timer},
 		Command: &umpirespb.Command{Id: "withhold-attempt", Position: script.GetPosition(), Instruction: &umpirespb.Command_AttemptWithheld{AttemptWithheld: &umpirespb.AttemptWithheld{}}}}}, script.GetItems()...)
@@ -60,9 +60,9 @@ func withheldTimeoutRetry(t *testing.T) *umpirespb.Model {
 		}
 	}
 	evidenceModel := &umpirespb.Model{Realizations: []*umpirespb.Realization{r}}
-	first := evidenceOf(t, evidenceModel, "statusStarted")
+	first := evidenceOf(t, evidenceModel, "retryFailuresExecution", "statusStarted")
 	first.Confirms = []*umpirespb.Taking{{Step: proto.CloneOf(script.GetActivity().GetStarts()[0]), Occurrence: 1}}
-	second := evidenceOf(t, evidenceModel, "attemptCount")
+	second := evidenceOf(t, evidenceModel, "retryFailuresExecution", "attemptCount")
 	second.Confirms[0].Step = proto.CloneOf(timer)
 	controller := scriptNamed(t, r, "controller")
 	controller.Items = slices.DeleteFunc(controller.GetItems(), func(item *umpirespb.Item) bool {
@@ -135,7 +135,7 @@ func TestAWithholdingCommandRequiresOneTimerOccurrence(t *testing.T) {
 
 func TestWithholdingRefusesAnUnprovenSDKContextTimeoutBasis(t *testing.T) {
 	m := withheldTimeoutRetry(t)
-	for _, step := range realizationNamed(t, m, "standalone").GetServerSteps() {
+	for _, step := range realizationNamed(t, m, "retryFailuresExecution").GetServerSteps() {
 		step.TimeoutBasis = umpirespb.TIMEOUT_BASIS_UNSPECIFIED
 	}
 	_, err := NewProducer(m)

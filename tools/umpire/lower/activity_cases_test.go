@@ -1,7 +1,7 @@
 package lower
 
 // The Cases of the standalone activity Model. Every expectation is read off
-// model/temporal/features/activity/standalone: system/System.scala's Scenarios say which classes
+// model/temporal/features/activity/standalone: the system subjects' Scenarios say which classes
 // a path takes, its protocol machine what each step records, and Realization.scala which command
 // performs a class, which command a Case carries for one, and which kind of evidence confirms a step.
 
@@ -176,7 +176,7 @@ var activityLimits = map[string]struct {
 		Owner: "none: a recorded limit of the prototype"}, "Evidence.runEvent("},
 }
 
-// System.scala's reset settlement witnesses and paused reset witness belong to machines that
+// Reset.scala's reset settlement witnesses and paused reset witness belong to machines that
 // declare no realization. They have no executable Case.
 var activityModelOnly = map[string]string{
 	"keepPausedReset":      "resetKeepingPause",
@@ -570,7 +570,7 @@ func TestTheInventoryOfAnActivityCaseDoesNotCloseOverAChangedDeclaration(t *test
 		"a field fewer than the Case keeps": {func(e *umpirespb.Evidence) { e.Fields = e.GetFields()[:2] },
 			"evidence " + started + " keeps 2 fields, and the Case's program.evidence[evidence.statusStarted] keeps 3"},
 		"a field carried without its value": {func(e *umpirespb.Evidence) { e.GetFields()[2].Redacted = true },
-			"field activityRun of evidence " + started + " of realization standalone is carried without its value, which is in no part of the Case"},
+			"field activityRun of evidence " + started + " of realization completionExecution is carried without its value, which is in no part of the Case"},
 		"a field the Case does not keep": {func(e *umpirespb.Evidence) {
 			e.Fields = append(e.Fields, &umpirespb.EvidenceField{Id: "offered", Path: "activity_attempt.activity_run_id"})
 		}, "evidence " + started + " keeps field offered at activity_attempt.activity_run_id, and the Case's program.evidence[evidence.statusStarted] does not"},
@@ -639,7 +639,7 @@ func TestAFieldOfEvidenceIsCarriedAsTheScalarItsDescriptorMakesIt(t *testing.T) 
 func TestTheIdentityAFieldNamesIsInTheProjectionFingerprint(t *testing.T) {
 	lower := func(change func(*umpirespb.Realization)) *testpilotspb.Case {
 		m := loaded(t, "activity-standalone")
-		change(realizationNamed(t, m, "standalone"))
+		change(realizationNamed(t, m, "completionExecution"))
 		p, err := NewProducer(m)
 		require.NoError(t, err)
 		l, err := p.Lower("completion", activityIdentity("completion"))
@@ -670,7 +670,7 @@ func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *
 	const scheduled = activityEvidence + "statusScheduled"
 	changed := func(change func(*umpirespb.RunEventSource)) *Producer {
 		m := loaded(t, "activity-standalone")
-		for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
+		for _, e := range realizationNamed(t, m, "completionExecution").GetEvidence() {
 			if e.GetId() == scheduled {
 				change(e.GetRunEvent())
 			}

@@ -9,7 +9,7 @@ import temporal.features.activity.standalone.{
   worker,
   MaxAttempts
 }
-import temporal.features.activity.standalone.system.ActivitySystem
+import temporal.features.activity.standalone.system.{ActivitySystem, RetryFailures}
 import framework.outcomes.Outcome
 
 class ActivityRetryRegression extends munit.FunSuite:
@@ -54,7 +54,7 @@ class ActivityRetryRegression extends munit.FunSuite:
           assertEquals(ActivitySystem.states.retriesRemaining(polled), retryAllowed)
           val failed = take(polled, worker.respondFailed(Failure.retryable))
           if policy == MaxAttempts.two then
-            val satisfies = ActivitySystem.properties.retryExhausts.decl.holds.get
+            val satisfies = RetryFailures.properties.retryExhausts.decl.holds.get
               .asInstanceOf[Step[
                 system.State,
                 Outcome,
@@ -123,7 +123,7 @@ class ActivityRetryRegression extends munit.FunSuite:
     val result = path.foldLeft(ActivitySystem.init)((s, c) => take(s, c).state)
     assertEquals(
       result,
-      ActivitySystem.properties.completedOnRetry
+      RetryFailures.states.completedOnRetry
         .copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.two)
     )
   }

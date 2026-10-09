@@ -19,17 +19,23 @@
 //     what a client reads;
 //   - system/System.scala: System Phase, Dispatch, State and Fact; ActivitySystem, the lifecycle
 //     machine that refines the Product;
+//   - system/Completion.scala: completion on the unchanged lifecycle;
+//   - system/RetryFailures.scala: failure retry and exhaustion;
 //   - system/RetryTimeouts.scala: TimeoutRetry, the derived attempt-timeout retry model;
+//   - system/Cancellation.scala: cancellation request and worker settlement;
+//   - system/Pausing.scala: completion after pause and resume;
+//   - system/Timeouts.scala: terminal deadlines and model-only competing scheduling deadlines;
 //   - system/Heartbeat.scala: the derived heartbeat completion, retry and exhaustion models;
 //   - system/ResponseByID.scala: ByIDCompletion, ByIDFailure and ByIDCancellation;
 //   - system/Reset.scala: ResetSettlement, ResetKeepingPause and DeferredReset;
 //   - system/Dispatch.scala: the dispatch protocol, ActivityRecord and TrustingActivityRecord;
+//   - system/DispatchEligibility.scala: start eligibility and delayed completion;
 //   - system/DispatchRaces.scala: HeldDispatch and LostStartAnswer;
 //   - system/DispatchWithTaskQueue.scala: the dispatch designs composed with the shared task queue;
 //   - system/DispatchWithWorker.scala: StandaloneActivityState; ActivityWorker, the worker of its
 //     task queue; and StandaloneActivity, the System with that worker;
 //   - system/Realization.scala: the executable System realizations of StandaloneActivity,
-//     HeldDispatch and LostStartAnswer.
+//     HeldDispatch, LostStartAnswer and the executable lifecycle subjects.
 //
 // A machine object reads its header (entity, init, end, evidence), then its sections in order:
 // states, refinement, effects, monitors, rules, properties, capabilities and queries. A composition
@@ -129,7 +135,12 @@ object exports:
     ActivityProduct.capabilities,
     ActivitySystem.capabilities,
     ActivitySystem.queries,
-    system.Completion,
+    system.Completion.queries,
+    system.RetryFailures.queries,
+    system.Cancellation.queries,
+    system.Pausing.queries,
+    system.DispatchEligibility.queries,
+    system.Timeouts.queries,
     system.TimeoutRetry.queries,
     system.HeartbeatRetry.queries,
     system.HeartbeatCompletion.queries,
@@ -142,6 +153,12 @@ object exports:
     system.DeferredReset.queries,
     StandaloneActivity.queries,
     system.Standalone,
+    system.CompletionExecution,
+    system.RetryFailuresExecution,
+    system.CancellationExecution,
+    system.PausingExecution,
+    system.DispatchExecution,
+    system.TimeoutsExecution,
     system.RetryAfterTimeout,
     system.HeartbeatThenCompletion,
     system.RetryAfterHeartbeat,
@@ -155,6 +172,7 @@ object exports:
   // Its history record, the admission designs, and the shared task queue's providers it composes.
   // A composition no Query runs over is a root of its own.
   val activityStandaloneRecord = irFile("activity-standalone-record")(
+    system.CompetingTimeouts.queries,
     system.ActivityRecord.queries,
     system.TrustingActivityRecord.queries,
     foundations.taskqueue.system.TaskQueueSystem.queries,

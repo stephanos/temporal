@@ -332,6 +332,7 @@ func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
 	x := exported(t, s)
 	got := kinds(x.Unsupported)
 	require.Equal(t, Unsupported, got["module-refinement taskQueueSystem"])
+	require.Equal(t, Unsupported, got["module-refinement competingTimeouts"])
 	require.Equal(t, Unsupported, got["query-agreement 87 Queries"])
 	// Five of the seven compositions are exported. The two over a provider that does not refine the
 	// queue it replaces have no composed table in Go either: the reader rejects the replacement.
@@ -345,9 +346,9 @@ func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
 	for _, replacing := range []string{"recordOverLossyMatching", "recordOverMatching", "trustingRecordOverMatching"} {
 		require.Contains(t, only(t, x.Unsupported, ModuleRefinement, replacing).Explanation, "goir's verdict")
 	}
-	// Seven machine refinements, three replacements, two rejected compositions and the Queries; the
+	// Eight machine refinements, three replacements, two rejected compositions and the Queries; the
 	// activity system declares no progress claim.
-	require.Len(t, x.Unsupported, 7+3+2+1)
+	require.Len(t, x.Unsupported, 8+3+2+1)
 	progress := kinds(exported(t, openNamed(t, "nexus-workflow-close")).Unsupported)
 	require.Equal(t, Unsupported, progress["progress-agreement retainAndRoute.outcomeReachesOwner"])
 	require.Len(t, progress, 10+1)

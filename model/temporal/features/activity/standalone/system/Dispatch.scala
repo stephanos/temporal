@@ -266,18 +266,6 @@ object ActivityRecord
   object queries:
     capabilities.bound(five)
 
-    // The System's own deadlines, which the record's IR file carries: neither is ordered before
-    // the other, so each firing is a trace of its own. Both deadlines are set and no attempt started,
-    // so either may fire first.
-    val bothDeadlinesStartFirst = ActivitySystem.scenario.actions(
-      client.start(scheduleToClose := Timeout.expires, scheduleToStart := Timeout.expires),
-      deadline.scheduleToStart
-    )
-    val bothDeadlinesCloseFirst = ActivitySystem.scenario.actions(
-      client.start(scheduleToClose := Timeout.expires, scheduleToStart := Timeout.expires),
-      deadline.scheduleToClose
-    )
-
     // Every claim and path, declared on the design `m`, since each belongs to one machine.
     def admissionQueries(
         m: Machine[State, Outcome, AdmissionFact],
@@ -326,15 +314,6 @@ object ActivityRecord
           )
           .in(staleDeliveryAfterPause) limits three
       )
-
-    val competingTimers = Vector(
-      query("competingTimers.scheduleToStartFirst") find
-        ActivitySystem.properties.scheduleToStartFires in
-        bothDeadlinesStartFirst limits three,
-      query("competingTimers.scheduleToCloseFirst") find
-        ActivitySystem.properties.scheduleToCloseFires in
-        bothDeadlinesCloseFirst limits three
-    )
 
     val activityRecordQueries = admissionQueries(ActivityRecord, capabilities)
 

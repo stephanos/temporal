@@ -38,11 +38,11 @@ func TestUnreachableBindings(t *testing.T) {
 func TestUncoveredClasses(t *testing.T) {
 	uncovered := "start-unset-expires-unset-unset-unset-unlimited"
 	before := run(t, read(t, activityIR), uncoveredClasses)
-	require.NotContains(t, before.subjects["standalone"], uncovered)
+	require.NotContains(t, before.subjects["timeoutsExecution"], uncovered)
 
 	m := read(t, activityIR, func(ir *umpirespb.Model) {
 		removed := 0
-		for _, s := range realization(ir, "activitySystem").GetScripts() {
+		for _, s := range realization(ir, "timeouts").GetScripts() {
 			for _, item := range s.GetItems() {
 				item.Performs = slices.DeleteFunc(item.Performs, func(p *umpirespb.Performance) bool {
 					in := p.GetStep().GetInputs()
@@ -59,8 +59,8 @@ func TestUncoveredClasses(t *testing.T) {
 		require.Equal(t, 1, removed)
 	})
 	after := run(t, m, uncoveredClasses)
-	require.Contains(t, after.subjects["standalone"], uncovered)
-	for _, s := range after.subjects["standalone"] {
+	require.Contains(t, after.subjects["timeoutsExecution"], uncovered)
+	for _, s := range after.subjects["timeoutsExecution"] {
 		require.NotContains(t, []string{"scheduleToClose", "scheduleToStart", "startToClose"}, s, "a timer is the system's")
 	}
 }

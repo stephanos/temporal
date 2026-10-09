@@ -15,7 +15,8 @@ import temporal.features.activity.standalone.system.{
   ActivitySystem,
   DeferredReset,
   ResetKeepingPause,
-  ResetSettlement
+  ResetSettlement,
+  RetryFailures
 }
 import framework.outcomes.{Outcome, Rejection}
 
@@ -287,9 +288,9 @@ class ActivityResetRegression extends munit.FunSuite:
   }
 
   test("the ordinary fatal witness is unchanged and claims no reset coverage") {
-    val query = ActivitySystem.queries.nonRetryableFailure
+    val query = RetryFailures.queries.nonRetryableFailure
     assertEquals(query.form, QueryForm.find)
-    assertEquals(query.property, ActivitySystem.properties.nonRetryableFails.decl)
+    assertEquals(query.property, RetryFailures.properties.nonRetryableFails.decl)
     assertEquals(
       query.scenario.actions,
       Vector[ClassRef](client.start(), worker.poll, worker.respondFailed(Failure.fatal))
@@ -297,7 +298,7 @@ class ActivityResetRegression extends munit.FunSuite:
     assertEquals(query.expectedRun, Some(temporal.realize.satisfied))
     val held = take(take(ActivitySystem.init, client.start()).head.state, worker.poll()).head.state
     val failed = take(held, worker.respondFailed(Failure.fatal)).head
-    assert(holds(ActivitySystem.properties.nonRetryableFails, held, failed))
+    assert(holds(RetryFailures.properties.nonRetryableFails, held, failed))
   }
 
   test("reset witnesses keep Model-only checks apart from the realized deferred Case") {

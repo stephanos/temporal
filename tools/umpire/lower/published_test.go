@@ -83,9 +83,9 @@ func TestARecordOfAnAttemptReachesARunWithTheAttemptsAnswer(t *testing.T) {
 	}
 }
 
-func evidenceOf(t *testing.T, m *umpirespb.Model, kind string) *umpirespb.Evidence {
+func evidenceOf(t *testing.T, m *umpirespb.Model, realization, kind string) *umpirespb.Evidence {
 	t.Helper()
-	for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
+	for _, e := range realizationNamed(t, m, realization).GetEvidence() {
 		if e.GetId() == activityEvidence+kind {
 			return e
 		}
@@ -101,13 +101,13 @@ func evidenceOf(t *testing.T, m *umpirespb.Model, kind string) *umpirespb.Eviden
 // attempt in flight at the failure, it would have passed.
 func TestARecordIsLateByTheAttemptItIsDeclaredOf(t *testing.T) {
 	m := loaded(t, "activity-standalone")
-	second := evidenceOf(t, m, "attemptCount")
+	second := evidenceOf(t, m, "retryFailuresExecution", "attemptCount")
 	require.Equal(t, int64(2), second.GetRunEvent().GetAttempt().GetNumber())
 	second.Confirms = second.GetConfirms()[:1]
-	r := realizationNamed(t, m, "standalone")
+	r := realizationNamed(t, m, "retryFailuresExecution")
 	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "startedAgain", Position: second.GetPosition(), Records: "statusStarted",
 		Source: "temporal.features.activity.standalone.system.source.again", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
-		Confirms: []*umpirespb.Taking{{Step: evidenceOf(t, m, "statusStarted").GetConfirms()[0].GetStep(), Occurrence: 2}},
+		Confirms: []*umpirespb.Taking{{Step: evidenceOf(t, m, "retryFailuresExecution", "statusStarted").GetConfirms()[0].GetStep(), Occurrence: 2}},
 		From: &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
 			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}}}})
 	p, err := NewProducer(m)
@@ -128,11 +128,11 @@ func TestARecordIsLateByTheAttemptItIsDeclaredOf(t *testing.T) {
 // the evidence that confirms the failure, though it confirms a step after it.
 func TestARecordIsEarlyByTheAttemptItIsDeclaredOf(t *testing.T) {
 	m := loaded(t, "activity-standalone")
-	second := evidenceOf(t, m, "attemptCount")
+	second := evidenceOf(t, m, "retryFailuresExecution", "attemptCount")
 	failure := second.GetConfirms()[0]
 	second.Confirms = second.GetConfirms()[1:]
 	second.GetRunEvent().GetAttempt().Number = 1
-	r := realizationNamed(t, m, "standalone")
+	r := realizationNamed(t, m, "retryFailuresExecution")
 	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "failed", Position: second.GetPosition(), Records: second.GetRecords(),
 		Source: "temporal.features.activity.standalone.system.source.failed", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
 		Confirms: []*umpirespb.Taking{failure},
@@ -172,7 +172,7 @@ func TestEvidenceTheControllerRecordsIsNotDeferred(t *testing.T) {
 	}
 	require.Equal(t, []string{activityEvidence + "statusStarted"}, late(func(*umpirespb.Model) {}))
 	require.Empty(t, late(func(m *umpirespb.Model) {
-		source := evidenceOf(t, m, "statusStarted").GetRunEvent()
+		source := evidenceOf(t, m, "cancellationExecution", "statusStarted").GetRunEvent()
 		source.Kind, source.Attempt = umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED, nil
 	}))
 }
@@ -182,7 +182,7 @@ func TestEvidenceTheControllerRecordsIsNotDeferred(t *testing.T) {
 // the Model is refused where the evidence is written, before any Query of it is lowered.
 func TestADiagnosticDeclaredTheRecordOfNoAttemptHasNoProducer(t *testing.T) {
 	m := loaded(t, "activity-standalone")
-	evidenceOf(t, m, "statusStarted").GetRunEvent().Attempt = nil
+	evidenceOf(t, m, "completionExecution", "statusStarted").GetRunEvent().Attempt = nil
 	p, err := NewProducer(m)
 	require.Nil(t, p)
 	require.ErrorContains(t, err, "evidence "+activityEvidence+"statusStarted is what a worker reports of an activation and is declared the record of no attempt")
@@ -198,23 +198,25 @@ func TestADiagnosticDeclaredTheRecordOfNoAttemptHasNoProducer(t *testing.T) {
 // says why. A Query whose Case runs one of them is not in the way of it.
 func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) {
 	m := loaded(t, "activity-standalone")
-	r := realizationNamed(t, m, "standalone")
-	// A class is performed by one script, so the second activity takes over the failure that is
-	// retried, and is activated by no class of its own.
-	first := scriptNamed(t, r, "attempts")
-	other := proto.CloneOf(first)
-	other.Id, other.GetActivity().Starts, other.Items = "other", nil, nil
-	for _, item := range first.GetItems() {
-		for i, performance := range item.GetPerforms() {
-			if performance.GetCommand().GetId() == "fail-attempt" {
-				other.Items = append(other.Items, &umpirespb.Item{Position: item.GetPosition(), When: item.GetWhen(), Performs: []*umpirespb.Performance{performance}})
-				item.Performs = append(item.GetPerforms()[:i:i], item.GetPerforms()[i+1:]...)
-				break
+	for _, realization := range []string{"retryFailuresExecution", "completionExecution"} {
+		r := realizationNamed(t, m, realization)
+		// A class is performed by one script, so the second activity takes over the failure that is
+		// retried, and is activated by no class of its own.
+		first := scriptNamed(t, r, "attempts")
+		other := proto.CloneOf(first)
+		other.Id, other.GetActivity().Starts, other.Items = "other", nil, nil
+		for _, item := range first.GetItems() {
+			for i, performance := range item.GetPerforms() {
+				if performance.GetCommand().GetId() == "fail-attempt" {
+					other.Items = append(other.Items, &umpirespb.Item{Position: item.GetPosition(), When: item.GetWhen(), Performs: []*umpirespb.Performance{performance}})
+					item.Performs = append(item.GetPerforms()[:i:i], item.GetPerforms()[i+1:]...)
+					break
+				}
 			}
 		}
+		require.Len(t, other.GetItems(), 1)
+		r.Scripts = append(r.Scripts, other)
 	}
-	require.Len(t, other.GetItems(), 1)
-	r.Scripts = append(r.Scripts, other)
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 
@@ -245,7 +247,7 @@ func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) 
 // the attempt as one Run Event, and the path asks for two pieces of evidence of it.
 func TestAnAttemptRecordedAsTwoKindsOfEvidenceHasNoCase(t *testing.T) {
 	m := loaded(t, "activity-standalone")
-	evidenceOf(t, m, "attemptCount").GetRunEvent().GetAttempt().Number = 1
+	evidenceOf(t, m, "retryFailuresExecution", "attemptCount").GetRunEvent().GetAttempt().Number = 1
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	l, err := p.Lower("retry", activityIdentity("retry"))
@@ -265,7 +267,9 @@ func TestAnAttemptRecordedAsTwoKindsOfEvidenceHasNoCase(t *testing.T) {
 // is an error of the realization against the path, where the record is written.
 func TestARecordOfAnAttemptThePathNeverStartsIsAnError(t *testing.T) {
 	m := loaded(t, "activity-standalone")
-	evidenceOf(t, m, "attemptCount").GetRunEvent().GetAttempt().Number = 3
+	for _, realization := range []string{"retryFailuresExecution", "completionExecution"} {
+		evidenceOf(t, m, realization, "attemptCount").GetRunEvent().GetAttempt().Number = 3
+	}
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	l, err := p.Lower("retry", activityIdentity("retry"))
@@ -286,7 +290,7 @@ func TestARecordOfAnAttemptThePathNeverStartsIsAnError(t *testing.T) {
 // kind runs after the instruction of an earlier one.
 func TestTheControllersInstructionsRecordEvidenceInThePathsOrder(t *testing.T) {
 	controller := func(m *umpirespb.Model) *umpirespb.Script {
-		return scriptNamed(t, realizationNamed(t, m, "standalone"), "controller")
+		return scriptNamed(t, realizationNamed(t, m, "completionExecution"), "controller")
 	}
 	item := func(s *umpirespb.Script, command string) int {
 		for i, it := range s.GetItems() {
@@ -346,7 +350,7 @@ func TestAnInstructionRunsAfterTheOnesItIsWrittenAfter(t *testing.T) {
 // realization writes none.
 func TestTheLoweredGuardOfAnAttemptsRecordStatesTheAttempt(t *testing.T) {
 	m := loaded(t, "activity-standalone")
-	evidenceOf(t, m, "statusStarted").GetRunEvent().Guard = nil
+	evidenceOf(t, m, "completionExecution", "statusStarted").GetRunEvent().Guard = nil
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	l, err := p.Lower("completion", activityIdentity("completion"))

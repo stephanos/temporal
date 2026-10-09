@@ -109,34 +109,38 @@ func pauseOfCancelRequestedByDefault(t *testing.T) func(*umpirespb.Model) {
 func withoutBackoffClaims(t *testing.T) func(*umpirespb.Model) {
 	t.Helper()
 	return func(ir *umpirespb.Model) {
-		for _, name := range []string{
-			"activitySystem.fatalFailure.attemptCountIsWithinPolicy",
-			"activitySystem.fatalFailure.failureEndsFailed",
-			"activitySystem.heartbeatDeadline.deadlineReturnsToWaiting",
-			"activitySystem.retryableFailure.attemptCountIsWithinPolicy",
-			"activitySystem.retryableFailure.failureReturnsToWaiting",
-			"activitySystem.scheduleToCloseDeadline.deadlineTimesOut",
-			"activitySystem.scheduleToStartDeadline.deadlineTimesOut",
-			"activitySystem.startToCloseDeadline.deadlineReturnsToWaiting",
-			"dispatchRequiresReady", "resetKeepsPaused", "resetResumes", "resetSettles", "scheduleToStartRequiresDispatch",
+		for _, claim := range []struct{ owner, name string }{
+			{"activitySystem", "activitySystem.fatalFailure.attemptCountIsWithinPolicy"},
+			{"activitySystem", "activitySystem.fatalFailure.failureEndsFailed"},
+			{"activitySystem", "activitySystem.heartbeatDeadline.deadlineReturnsToWaiting"},
+			{"activitySystem", "activitySystem.retryableFailure.attemptCountIsWithinPolicy"},
+			{"activitySystem", "activitySystem.retryableFailure.failureReturnsToWaiting"},
+			{"activitySystem", "activitySystem.scheduleToCloseDeadline.deadlineTimesOut"},
+			{"activitySystem", "activitySystem.scheduleToStartDeadline.deadlineTimesOut"},
+			{"activitySystem", "activitySystem.startToCloseDeadline.deadlineReturnsToWaiting"},
+			{"dispatchEligibility", "dispatchRequiresReady"},
+			{"activitySystem", "resetKeepsPaused"},
+			{"activitySystem", "resetResumes"},
+			{"activitySystem", "resetSettles"},
+			{"dispatchEligibility", "scheduleToStartRequiresDispatch"},
 		} {
 			properties, queries := 0, 0
 			ir.Properties = slices.DeleteFunc(ir.Properties, func(p *umpirespb.Property) bool {
-				match := p.GetMachine() == "activitySystem" && p.GetName() == name
+				match := p.GetMachine() == claim.owner && p.GetName() == claim.name
 				if match {
 					properties++
 				}
 				return match
 			})
 			ir.Queries = slices.DeleteFunc(ir.Queries, func(q *umpirespb.Query) bool {
-				match := q.GetProperty().GetMachine() == "activitySystem" && q.GetProperty().GetName() == name
+				match := q.GetProperty().GetMachine() == claim.owner && q.GetProperty().GetName() == claim.name
 				if match {
 					queries++
 				}
 				return match
 			})
-			require.Equal(t, 1, properties, name)
-			require.Equal(t, 1, queries, name)
+			require.Equal(t, 1, properties, claim)
+			require.Equal(t, 1, queries, claim)
 		}
 	}
 }
@@ -211,7 +215,9 @@ func TestUnconstrainedResult(t *testing.T) {
 
 func TestWitnessOnly(t *testing.T) {
 	_, holes := holesOf(t, Options{})
-	require.Contains(t, subjectsOf(holes[WitnessOnly]["activitySystem"]), "completes")
+	for _, owner := range []string{"completion", "pausing", "dispatchEligibility"} {
+		require.Contains(t, subjectsOf(holes[WitnessOnly][owner]), "completes", owner)
+	}
 	// A verify of a composition's Property holds the table to it.
 	require.Empty(t, holes[WitnessOnly]["standaloneActivity"])
 
@@ -222,7 +228,9 @@ func TestWitnessOnly(t *testing.T) {
 			}
 		}
 	})
-	require.NotContains(t, subjectsOf(holes[WitnessOnly]["activitySystem"]), "completes")
+	for _, owner := range []string{"completion", "pausing", "dispatchEligibility"} {
+		require.NotContains(t, subjectsOf(holes[WitnessOnly][owner]), "completes", owner)
+	}
 }
 
 func TestMustNotPinnedIsOffByDefault(t *testing.T) {

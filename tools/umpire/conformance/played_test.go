@@ -305,7 +305,7 @@ func TestALoweredActivityCaseRunsLiveAndReplaysAlike(t *testing.T) {
 	open := func(query, id string, why reason) assessed {
 		return func(_ []int64, runID string) testpilot.PropertyAssessment {
 			return testpilot.PropertyAssessment{ID: id, Status: testpilot.PropertyInconclusive, Reason: ir.ExpectationID(why),
-				Detail: activityMachine + `, run="standaloneActivityTests-` + query + `";` + runID + ": " + wording[why]}
+				Detail: activityQueryKey(t, m, query).Owner + `, run="standaloneActivityTests-` + query + `";` + runID + ": " + wording[why]}
 		}
 	}
 	for query, test := range map[string]struct {
