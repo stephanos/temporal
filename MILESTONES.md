@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-08.
+As of 2026-10-09.
 
 ## Keeping this page current
 
@@ -166,7 +166,7 @@ an assumed shared schema. Planned 2026-10-06 from the schema research (see batch
 | --- | --- | --- |
 | fn-145.1 | ✅ done | Full schema closure, linked descriptors and Scala jar exclusions passed their focused generation, compile and descriptor proofs |
 | fn-145.2 | ✅ done | Extracted the nine responsibility files; generation, descriptor-union and closure checks pass without a semantic delta |
-| fn-145.3 | ⬜ todo | Local empty marker → `google.protobuf.Empty`; preserve oneof meanings |
+| fn-145.3 | ✅ done | Replaced the local marker with `google.protobuf.Empty`; wire, JSON, presence, identity and retired-name checks passed |
 | fn-145.4 | ⬜ todo | Equivalence gates, shared-leaf evaluation, schema ownership docs; close (the batch's regeneration and gates) |
 
 ### Batch 2, authoring: fn-140 → fn-123
