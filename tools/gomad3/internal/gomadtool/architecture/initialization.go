@@ -120,7 +120,7 @@ func (a *effectAnalysis) checkStartupSource(metadata Package, pos token.Pos) {
 			a.report("unresolved-effect", pos, "cannot read standard startup source: "+metadata.ImportPath)
 			return
 		}
-		fmt.Fprintf(digest, "%x  %s\n", sha256.Sum256(data), entry.Name())
+		_, _ = digest.Write(fmt.Appendf(nil, "%x  %s\n", sha256.Sum256(data), entry.Name()))
 	}
 	if fmt.Sprintf("%x", digest.Sum(nil)) != startupSources[metadata.ImportPath] {
 		a.report("unresolved-effect", pos, "pinned standard startup source changed: "+metadata.ImportPath)

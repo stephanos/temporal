@@ -389,7 +389,7 @@ func (a *effectAnalysis) checkMemorySource(path string, pos token.Pos) bool {
 			a.report("unresolved-effect", pos, "cannot read memory summary source "+path)
 			return false
 		}
-		fmt.Fprintf(digest, "%x  %s\n", sha256.Sum256(data), entry.Name())
+		_, _ = digest.Write(fmt.Appendf(nil, "%x  %s\n", sha256.Sum256(data), entry.Name()))
 	}
 	if fmt.Sprintf("%x", digest.Sum(nil)) != memorySummarySources[path] {
 		a.report("unresolved-effect", pos, "pinned memory summary source changed: "+path)

@@ -59,6 +59,10 @@ cd ../.. && flowctl show fn-105-gomad-follow-ups-deferred-scope.4
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
+### Bounded architecture digest-lint admission, 2026-10-09
+
+The active milestone goal admits only the two architecture source-digest write corrections in checkStartupSource and checkMemorySource, plus directly necessary additive preservation tests. [Admission](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/admission.md) records the exact scope, current predecessor evidence limits, analyzer RED/GREEN and identity controls. This supersedes the operational task18 wait only for the compatible corrective scope under delivery item3. Task18 dependency and every retained task19 completion requirement remain intact; no general Stage6 implementation or acceptance waiver follows. Root owns review/commits/lifecycle; a fresh worker owns the single source and execution lane. Native fn128/fn149 stay deferred/unverified.
+
 ## Acceptance
 
 
@@ -165,3 +169,17 @@ stage: plan-sync - skipped(policy: no task reached accepted done)
 ## Current acceptance blocker (2026-10-05)
 
 Task 19 has a bounded verified World lint source correction. Original task-18/predecessor acceptance, complete R8/R18/R19 preservation and affected-consumer requirements, current Darwin/full/default/functional gates and formal review remain open. Actual scoped lint remains exit 1 with 26 unchanged ST1005/forbidigo findings. The historical formal dispatch sidecar_publish_failed supplied no verdict. A fresh source-progress review does not replace formal SHIP. Missing transferred Linux evidence is not a blocker; fn-128 owns that qualification.
+
+
+## Bounded architecture digest progress (2026-10-09)
+
+The two admitted source-digest statements now use the established infallible SHA-256 Write idiom with unchanged format and operands. Additive literal controls accept the original framing and reject changed source through both real checker loops. Actual scoped analyzer RED2 becomes GREEN0; matched controls retain22 passes before/after, the full checker package retains183 and root architecture checks retain14, with no failures/skips. Root independently reran22 identity controls, hardened preservation and configured fast Make lint. The fresh same-family reviewer reports SOURCE-PROGRESS PASS with no actionable findings. [Root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/root-verification.md) binds final source, tools, controls and reviewed packet.
+
+Original-base integrated lint falls215 to213 with integrated errortype unreached. The later-base24 to22 comparison retains only that narrower filtered meaning; [baseline accounting](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/lint-baseline-accounting.md) records exact ownership and clarifies earlier task9/task40 packets. An early validation overlap, failed clean-lint output assertion and index-dependent proof script remain retained alongside serialized and hardened replacements. All worker/root handles are terminal. No original source pin, API, comment, test or module input changed.
+
+Task19 stays in_progress, task18 stays Todo and its dependency remains intact. Complete predecessor qualification and every unproved R8/R18/R19, first-baseline, affected-consumer, preservation and formal source obligation remain open. Task40 genuine cleanup-fault and prior upgrade publication proofs remain unresolved. Native fn128/fn149 stay deferred/unverified; no formal SHIP, Done, push, PR or CI follows.
+
+stage: impl-review - skipped(policy: original-base lint red; source-progress review is separate)
+stage: completion-review - skipped(policy: retained source acceptance incomplete)
+stage: plan-sync - skipped(config: planSync.enabled false; no task completed)
+stage: tracker-sync - skipped(config: sync active false)

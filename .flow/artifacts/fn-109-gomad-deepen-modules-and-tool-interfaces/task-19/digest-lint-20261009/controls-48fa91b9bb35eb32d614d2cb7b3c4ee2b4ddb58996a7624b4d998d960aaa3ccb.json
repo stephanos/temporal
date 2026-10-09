@@ -1,0 +1,26 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/admission.md",
+    "sha256": "c1dc7770d7dbd0ad228ca3afe3e74baa61ab0bf566ef542d8ad8e62c507f2bd8"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/controls.json",
+    "sha256": "f8b272086f1e925b6a6ace70ec836e6388c030dff48bd0473812e42c8deadece"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/gates.mjs",
+    "sha256": "ab635e84395fba4cc2fb7e824a91063fa211bfc853a00d814ef19d527af1ae13"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/preservation.mjs",
+    "sha256": "a94237cca27e58da67311ca399648d9fb258ed15fbba2819fece391f43357dd0"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/run.mjs",
+    "sha256": "77e42990365ce314ca440e74129ce71835b43b79dd5d3f30c6a0407901b0ab27"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/source-unblocking-20261007/lint-next-batches.md",
+    "sha256": "104886421fe68a438685f6e3b2155a8f295d3d39b6ea15f2272a079ae8ebae1f"
+  }
+]

@@ -1,0 +1,486 @@
+{
+  "commits": [],
+  "tests": [
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run \"^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet|TestInspectionSourceOwnershipDelegation|TestExactModuleEdges|TestDomainModulesDoNotExportWireFraming)$\"",
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/gomadtool/architecture -run \"^(TestSourceDigestFraming|TestMemorySummarySourceIdentity|TestStandardStartupIdentity|TestPureMemoryFormattingAndJSON|TestPureCanonicalJSONConcreteArgument|TestDependencyInitialization|TestThirdPartyInitialization)$\"",
+    "cd tools/gomad3 && go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./internal/gomadtool/architecture",
+    "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/format-gate.sh gofmt -l tools/gomad3/internal/gomadtool/architecture/initialization.go tools/gomad3/internal/gomadtool/architecture/standard.go tools/gomad3/internal/gomadtool/architecture/source_digest_test.go && git diff --check",
+    "GOFLAGS=-tags=test_dep make -C tools/gomad3 validate",
+    "make lint-code-gomad3 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "make lint-code-gomad3 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=21b30b4604788c9e2e54b6c33f3e47045725daf9",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/gomadtool/architecture",
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/gomadtool/architecture",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/preservation.mjs",
+    "cd tools/gomad3 && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go list -json -tags test_dep ./internal/gomadtool/architecture",
+    "cd tools/gomad3 && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go list -json -tags test_dep ./internal/gomadtool/architecture",
+    "go version && go env GOOS GOARCH GOROOT && uname -m"
+  ],
+  "prs": [],
+  "task": "fn-109.19",
+  "scope": "two architecture source-digest writes and one additive literal-preservation test",
+  "base_commit": "21b30b4604788c9e2e54b6c33f3e47045725daf9",
+  "original_lint_filter": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+  "later_lint_filter": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "first_architecture_checkpoint": "4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7",
+  "final_source": {
+    "manifest": "source-eb4136469addda8629a61bab47a4a95c015ca60f1547dc17b10edb048b93ecfd.json",
+    "sha256": "eb4136469addda8629a61bab47a4a95c015ca60f1547dc17b10edb048b93ecfd"
+  },
+  "final_tools": {
+    "manifest": "tools-73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55.json",
+    "sha256": "73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55"
+  },
+  "final_controls": {
+    "manifest": "controls-2a808448e42918b74e0576a8020e1f45bf83109670ec13b6c19a74a2d36182a7.json",
+    "sha256": "2a808448e42918b74e0576a8020e1f45bf83109670ec13b6c19a74a2d36182a7"
+  },
+  "changed_files": [
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/initialization.go",
+      "sha256": "fd18cb817ff2878a74512acdd539c37df1562ba661514c31745c08e8e49ed74c"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/standard.go",
+      "sha256": "e2aa8cea52963450d88aa3b1932f9702751318b3cc2d3a38d32a7316ed7fab6e"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/architecture/source_digest_test.go",
+      "sha256": "32d14a22e1f7eb9afd2eb84e6dc442381befc93b84831bbf29beab50a58297d4"
+    }
+  ],
+  "receipts": [
+    {
+      "path": "digest-architecture-after-receipt.json",
+      "sha256": "4f4bdcdc6d2f8111480b1a813660bcbc7d6e414d33526d90c05a086b37dba4d4",
+      "exit_code": 0,
+      "elapsed_seconds": 30.84142214,
+      "counts": {
+        "pass": 14,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-controls-after-receipt.json",
+      "sha256": "1f2ecc4df193fe5639545686ce16208110de5c4d72abd48fc97408923f594ec1",
+      "exit_code": 0,
+      "elapsed_seconds": 6.981324753,
+      "counts": {
+        "pass": 22,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-controls-before-receipt.json",
+      "sha256": "84115f3907e27ca9507ea51035dfeb67efc012a74164c8edc0d8bbb2d0e4bdcf",
+      "exit_code": 0,
+      "elapsed_seconds": 7.169882878,
+      "counts": {
+        "pass": 22,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-errortype-after-receipt.json",
+      "sha256": "762ffbe5d8b65f5726df9aef39079f39623206e622d8526bd945f7ffe8d0c1ef",
+      "exit_code": 0,
+      "elapsed_seconds": 0.20416041699999998,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-format-after-receipt.json",
+      "sha256": "3986b34666483b89c02606140b8359d181acd2f6edf34e2d394be0b6fe33a684",
+      "exit_code": 0,
+      "elapsed_seconds": 0.10317537499999997,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-generated-after-receipt.json",
+      "sha256": "cafb921371274335ca70e46b7ee228ef77b5e310ad5958dc535224fd935c0e5c",
+      "exit_code": 0,
+      "elapsed_seconds": 2.815485001,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-generated-serialized-receipt.json",
+      "sha256": "3e7e1d130826054b770a7fecab657e9ee388c70b7bcb120a0c98157b06c22a45",
+      "exit_code": 0,
+      "elapsed_seconds": 2.312419584,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-integrated-after-receipt.json",
+      "sha256": "313e4592efb1cba3433b3af7442c78786cae8022cb3f69c3b0b59dffe74c40de",
+      "exit_code": 2,
+      "elapsed_seconds": 1.9237965430000001,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-integrated-before-receipt.json",
+      "sha256": "8c0bfd91f1b8f149b2c1d3be3bc66984eacfb274b6e624a367e9ecf0fa4e6bd1",
+      "exit_code": 2,
+      "elapsed_seconds": 3.2430445019999996,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-integrated-later-after-receipt.json",
+      "sha256": "e5fa3511fcabe8ea94138a68e8071edfc022925e47a839268090ff06bf7afb38",
+      "exit_code": 2,
+      "elapsed_seconds": 1.7089982089999998,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-integrated-later-before-receipt.json",
+      "sha256": "2a8bff1bc448cddeb7b8d0a19eefcc6f8667e3737781fd1c93fbda32f2227bd8",
+      "exit_code": 2,
+      "elapsed_seconds": 2.117634668,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-lint-fast-after-receipt.json",
+      "sha256": "0c11d04c1a34261952e1f1218e5a99465f69b400208d864fc8de13fb0f6384cd",
+      "exit_code": 0,
+      "elapsed_seconds": 3.62051721,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-lint-green-receipt.json",
+      "sha256": "1de7ff22f04464d54ed4bf5f81d2eca315dde948ccc892d2ec1fd794a8014761",
+      "exit_code": 0,
+      "elapsed_seconds": 1.3086105010000002,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-lint-red-receipt.json",
+      "sha256": "7bb383eaf72fb4a7e308330a3c2241a2ab536c16c137f9e2f1f7fbb9ee13c605",
+      "exit_code": 1,
+      "elapsed_seconds": 0.6133101670000001,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-package-after-receipt.json",
+      "sha256": "0de5e15110c8e494215b917ce50aaf593e7edfbf472a3b162288b539d3070fb4",
+      "exit_code": 0,
+      "elapsed_seconds": 124.046664725,
+      "counts": {
+        "pass": 183,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-preservation-after-receipt.json",
+      "sha256": "06b0359b97cbe9117da5ddb1c87942744b09b21cca84b692318ac18936b612ba",
+      "exit_code": 1,
+      "elapsed_seconds": 1.3078300419999997,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-preservation-corrected-receipt.json",
+      "sha256": "d67e17f966dc9ce572e287598179c195b5e561afec73eebb6b6719c6aa71d464",
+      "exit_code": 0,
+      "elapsed_seconds": 1.909364043,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-source-darwin-receipt.json",
+      "sha256": "51c3b6090548b57b16f74404b3af0a0d7347d9ad8c57c95e3889203e305aa0dc",
+      "exit_code": 0,
+      "elapsed_seconds": 0.10535745799999995,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-source-linux-receipt.json",
+      "sha256": "1923a8768cad42f4a8ba109bff7a0b74216456c2c62c8b63239ffa44c3325bb5",
+      "exit_code": 0,
+      "elapsed_seconds": 0.103897334,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-tool-provenance-receipt.json",
+      "sha256": "efb0731f90d5493765d95ab79a01747f083e0c62304fe354e7940120d49ca719",
+      "exit_code": 0,
+      "elapsed_seconds": 0.113147625,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": "digest-preservation-baseline-inventory-receipt.json",
+      "sha256": "6117cd1c923211201af002a0cc43c7527b5d44fe74e76e1450fcefa8d8c66cfc",
+      "exit_code": 0,
+      "elapsed_seconds": 1.407114917,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    }
+  ],
+  "literal_digest": "67ad170a9788e8b8d82ab27c22a54c6f98af43713537fa5775a11f1424d4bcd5",
+  "protected_test_pin_module_inputs": 401,
+  "checks": {
+    "matched_controls": {
+      "top_level": 7,
+      "named_passes": 22,
+      "fail": 0,
+      "skip": 0
+    },
+    "architecture_package": {
+      "top_level": 27,
+      "named_passes": 183,
+      "fail": 0,
+      "skip": 0
+    },
+    "root_architecture": {
+      "top_level": 7,
+      "named_passes": 14,
+      "fail": 0,
+      "skip": 0,
+      "host_vet_packages_per_source_set": 55,
+      "source_sets": [
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ]
+    },
+    "scoped_unfiltered_lint": {
+      "before": 2,
+      "after": 0,
+      "exit_before": 1,
+      "exit_after": 0
+    },
+    "fast_make_lint": {
+      "packages": 55,
+      "filter": "21b30b4604788c9e2e54b6c33f3e47045725daf9",
+      "issues": 0,
+      "exit_code": 0,
+      "errortype_reached": true
+    },
+    "original_base_integrated_lint": {
+      "packages": 55,
+      "before": 215,
+      "after": 213,
+      "errcheck_before": 160,
+      "errcheck_after": 158,
+      "exhaustive": 2,
+      "forbidigo": 9,
+      "staticcheck": 44,
+      "exit_before": 2,
+      "exit_after": 2,
+      "errortype_reached": false,
+      "residual_stdout_byte_identical": true
+    },
+    "later_base_integrated_lint": {
+      "packages": 55,
+      "before": 24,
+      "after": 22,
+      "errcheck_before": 20,
+      "errcheck_after": 18,
+      "forbidigo": 1,
+      "staticcheck": 3,
+      "exit_before": 2,
+      "exit_after": 2,
+      "errortype_reached": false,
+      "residual_stdout_byte_identical": true
+    },
+    "standalone_errortype": {
+      "scope": "./internal/gomadtool/architecture",
+      "exit_code": 0
+    },
+    "generation": {
+      "mode": "check only",
+      "authoritative_receipt": "digest-generated-serialized-receipt.json",
+      "exit_code": 0
+    },
+    "formatting_and_diff_check": 0
+  },
+  "sequencing": {
+    "all_handles_terminal": true,
+    "lane": "free",
+    "unified_handles": [
+      {
+        "id": 24434,
+        "exit_code": 1
+      },
+      {
+        "id": 35346,
+        "exit_code": 0
+      },
+      {
+        "id": 75265,
+        "exit_code": 1
+      },
+      {
+        "id": 86752,
+        "exit_code": 1
+      },
+      {
+        "id": 65576,
+        "exit_code": 0
+      },
+      {
+        "id": 32755,
+        "exit_code": 0
+      },
+      {
+        "id": 69978,
+        "exit_code": 0
+      },
+      {
+        "id": 24142,
+        "exit_code": 0
+      },
+      {
+        "id": 32968,
+        "exit_code": 1
+      },
+      {
+        "id": 99904,
+        "exit_code": 0
+      },
+      {
+        "id": 96766,
+        "exit_code": 0
+      }
+    ],
+    "supplementary_overlap": {
+      "package_handle": 69978,
+      "validation_handle": 24142,
+      "start": "2026-10-09T02:39:42.581Z",
+      "end": "2026-10-09T02:39:45.397Z",
+      "seconds": 2.816,
+      "validation_receipt": "digest-generated-after-receipt.json",
+      "replacement": "digest-generated-serialized-receipt.json"
+    },
+    "driver_failure": {
+      "handle": 32968,
+      "cause": "preservation artifact expected empty successful analyzer stdout; actual successful stdout is 0 issues newline",
+      "production_source_changed": false,
+      "failed_receipt_retained": "digest-preservation-after-receipt.json",
+      "corrected_receipt": "digest-preservation-corrected-receipt.json"
+    }
+  },
+  "tool_execution": "stock go1.27.1 linux/arm64; uname aarch64; developmental source checks only",
+  "reuse": "Earlier task40 default92-green remains retained; no broad unrelated Go gates repeated",
+  "review": {
+    "source_progress": "pending root coordination",
+    "formal_ship": "not admitted while integrated source lint remains red",
+    "writer_requested_model": "gpt-6.1-sol",
+    "writer_requested_effort": "high",
+    "selector": "Tier session; jev-unavailable(no_key)",
+    "actual_model_metadata": "unavailable"
+  },
+  "preservation_script_provenance": {
+    "preimage": "preservation-preimage.mjs",
+    "preimage_sha256": "a94237cca27e58da67311ca399648d9fb258ed15fbba2819fece391f43357dd0",
+    "failed_control_manifest": "controls-48fa91b9bb35eb32d614d2cb7b3c4ee2b4ddb58996a7624b4d998d960aaa3ccb.json",
+    "corrected": "preservation-index-dependent.mjs",
+    "corrected_sha256": "7a0f1bee8a20bfca3df2d94aaf2cb4e7f78d3bb1b1507e8fc4b0d5436cbdf49e",
+    "corrected_control_manifest": "controls-f675ebcf0f8a7ca0f3a773395ec632bca48900f70499e1b5442a686580330382.json",
+    "preimage_and_corrected_bytes_match_their_receipt_control_hashes": true,
+    "baseline_inventory_correction": {
+      "script": "preservation.mjs",
+      "sha256": "94bfff84047b9ea1a1062feafc967e218167d392e53e8273c6874d8043a75ad2",
+      "control_manifest": "controls-2a808448e42918b74e0576a8020e1f45bf83109670ec13b6c19a74a2d36182a7.json",
+      "control_manifest_sha256": "2a808448e42918b74e0576a8020e1f45bf83109670ec13b6c19a74a2d36182a7",
+      "prior_script": "preservation-index-dependent.mjs",
+      "prior_sha256": "7a0f1bee8a20bfca3df2d94aaf2cb4e7f78d3bb1b1507e8fc4b0d5436cbdf49e",
+      "prior_controls": "controls-before-baseline-inventory.json",
+      "prior_controls_sha256": "f8b272086f1e925b6a6ace70ec836e6388c030dff48bd0473812e42c8deadece",
+      "inventory_command": [
+        "git",
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "21b30b4604788c9e2e54b6c33f3e47045725daf9",
+        "--",
+        "tools/gomad3"
+      ],
+      "original_protected_files": 401,
+      "deleted_baseline_paths_checked": true,
+      "additive_fixture_bound_separately_to": {
+        "manifest": "source-eb4136469addda8629a61bab47a4a95c015ca60f1547dc17b10edb048b93ecfd.json",
+        "sha256": "eb4136469addda8629a61bab47a4a95c015ca60f1547dc17b10edb048b93ecfd"
+      },
+      "authoritative_receipt": "digest-preservation-baseline-inventory-receipt.json",
+      "raw_receipt_sha256": "6117cd1c923211201af002a0cc43c7527b5d44fe74e76e1450fcefa8d8c66cfc",
+      "script_and_prior_version_match_their_receipt_controls": true,
+      "source_changes": false,
+      "go_gate_reruns": false
+    }
+  },
+  "remaining_acceptance": [
+    "task18 dependency and complete current qualification (13 of 14 historical manifest entries match; later Makefile owner changes)",
+    "all retained task19 R8/R18/R19, first-baseline, affected-consumer, preservation and formal acceptance requirements not proved by this repair",
+    "current integrated original-base 213 residual findings; integrated errortype unreached",
+    "task40 genuine pipe-Close fault proof and prior upgrade publication ENOENT proof",
+    "native fn128 and fn149 deferred and unverified"
+  ],
+  "external_actions": "none; no staging, commits, Flow lifecycle changes, push, PR or CI"
+}

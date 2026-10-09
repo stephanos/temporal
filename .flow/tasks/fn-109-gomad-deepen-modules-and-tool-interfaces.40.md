@@ -114,3 +114,8 @@ Revive completion when those exact source-owned inputs and native Darwin executi
 - Commits:
 - Tests:
 - PRs:
+
+
+## Original-base lint clarification (2026-10-09)
+
+The readiness packet's 24 integrated findings use the later `d635e23f00d926a43b942f25a9d05bd0ccb72025` revision filter. Root now records the original `951c5516e9e7b3066e7e069adda9565cfd68844c` comparison as authoritative for retained source acceptance. Task19's fresh before/after receipts report 215 to 213 findings across 55 host packages; integrated errortype remains unreached. [Baseline accounting](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/lint-baseline-accounting.md) retains both scopes and exact ownership counts. Historical raw packets remain unchanged. Task40 scoped lint remains clean, and its admitted default readiness failures remain repaired. Genuine deferred/simultaneous pipe-close fault proof, the historical watchdog winner, prior upgrade publication RED and all other unproved source acceptance requirements remain open. Task40 stays in_progress with native fn128/fn149 deferred/unverified.

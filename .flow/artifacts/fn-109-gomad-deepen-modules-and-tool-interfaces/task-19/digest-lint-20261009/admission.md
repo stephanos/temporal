@@ -1,0 +1,19 @@
+# Task19 source-digest lint admission
+
+Scheduling: wave (bounded task-id correction)
+Ready frontier: task19's ordinary dependency is open; compatible correction admitted below
+Selected wave: fn-109.19
+Selection rule: remove two actual architecture digest-write diagnostics blocking current source lint
+Isolation: one writer in the existing owner-selected gomad checkout
+Dispatch count: 1
+Sequential fallback: serialize all source writers and Go/build/lint/generator gates
+
+The active milestone goal admits the two compatible architecture source-digest corrections from [lint-next-batches.md](../../../source-unblocking-20261007/lint-next-batches.md), under MILESTONES delivery item3. Root preserves task19's task18 dependency, historical summaries, source acceptance and native transfers. This supersedes the operational predecessor wait only for these two independently scoped corrections; it does not admit task19 completion, further Stage6 implementation or an acceptance waiver. Task18's retained production review and integrated source remain historical evidence. Root rechecked its 14-file final manifest at HEAD21b30b4604. Thirteen entries match; tools/gomad3/Makefile has later owner changes. No complete current task18 qualification is claimed.
+
+Allow edits only to checkStartupSource in tools/gomad3/internal/gomadtool/architecture/initialization.go and checkMemorySource in standard.go, replacing their unchecked fmt.Fprintf calls to a private sha256.New hash with the established digest.Write(fmt.Appendf(nil, ...)) idiom. SHA-256 Write is infallible; use the existing explicit blank-return treatment. Preserve sorted enumeration, Go-file selection, exact lowercase hex/two-space/name/newline framing, read failures, diagnostic order, source pins and per-entry allocation. Only directly necessary additive digest-preservation tests are allowed. Existing tests, comments, public APIs, startup/memory pins, generator inputs and policy stay unchanged. No regeneration, pin refresh, whole-stream buffer, shared helper extraction, suppression or generic output wrapper is admitted.
+
+The meaningful RED is the actual pinned analyzer's two errcheck diagnostics. Retain unchanged-source behavior controls before the edit and GREEN controls after it; do not invent a behavioral failure where the behavior must remain identical. Any added expected digests must derive from ordered literal fixture bytes independently of the rewritten loops. Required checks include the affected identity/purity/initialization controls, root architecture/public-edge/both-source-set checks, check-only validation, formatting, standalone errortype, unfiltered scoped lint, actual fast Make lint and actual original-base integrated lint. Measure the diagnostic delta from the complete reports, retaining all remaining findings and failed results. Native fn128/fn149 remain deferred and unverified; stock Linux arm64 supplies only developmental source evidence.
+
+Root owns scope, Flow lifecycle, independent review and separate commits. A fresh worker owns source/tests/evidence and the sole execution lane. Handover/evidence belong in this directory; raw command receipts are write-once and bind actual source/tool/control inputs, commands, environment, exits, elapsed time and terminal handles. Existing task9/task40 default and preservation progress stays intact. Genuine pipe-close fault proof, prior upgrade publication RED and all other unproved obligations remain open. No push, PR, CI or native revival follows.
+
+The bounded read-only ownership scout requested gpt-6-astra/high and found these two sites still unimplemented. Root did not invoke its dispatch judge before spawning that scout; no selector outcome or actual executed-model telemetry is inferred. The task worker will receive the task-aware judge result before dispatch. The two pre-existing Turbo documents remain untouched and excluded from commits.

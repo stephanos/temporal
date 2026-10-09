@@ -1,0 +1,221 @@
+{
+  "name": "root-digest-controls",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal || exit 99\ncd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/gomadtool/architecture -run \"^(TestSourceDigestFraming|TestMemorySummarySourceIdentity|TestStandardStartupIdentity|TestPureMemoryFormattingAndJSON|TestPureCanonicalJSONConcreteArgument|TestDependencyInitialization|TestThirdPartyInitialization)$\""
+  ],
+  "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/gomadtool/architecture -run \"^(TestSourceDigestFraming|TestMemorySummarySourceIdentity|TestStandardStartupIdentity|TestPureMemoryFormattingAndJSON|TestPureCanonicalJSONConcreteArgument|TestDependencyInitialization|TestThirdPartyInitialization)$\"",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-09T02:53:32.298Z",
+  "ended": "2026-10-09T02:53:39.782Z",
+  "elapsed_seconds": 7.483937836999999,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync completed",
+  "stdout": {
+    "path": "root-digest-controls.stdout",
+    "sha256": "b7afda8bf3629b17102ec2e6511a8be8f650d08cca05fbc5bf2f1683c7b40202"
+  },
+  "stderr": {
+    "path": "root-digest-controls.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "base_commit": "21b30b4604788c9e2e54b6c33f3e47045725daf9",
+  "original_baseline": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+  "head": "21b30b4604788c9e2e54b6c33f3e47045725daf9",
+  "source": {
+    "manifest": "source-eb4136469addda8629a61bab47a4a95c015ca60f1547dc17b10edb048b93ecfd.json",
+    "sha256": "eb4136469addda8629a61bab47a4a95c015ca60f1547dc17b10edb048b93ecfd"
+  },
+  "tools": {
+    "manifest": "tools-73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55.json",
+    "sha256": "73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55"
+  },
+  "controls": {
+    "manifest": "controls-2a808448e42918b74e0576a8020e1f45bf83109670ec13b6c19a74a2d36182a7.json",
+    "sha256": "2a808448e42918b74e0576a8020e1f45bf83109670ec13b6c19a74a2d36182a7"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task19-digest-telemetry"
+  },
+  "counts": {
+    "pass": 22,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-09T02:53:33.015124135Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestMemorySummarySourceIdentity/foreign-inspected-body",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-09T02:53:33.031567926Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestMemorySummarySourceIdentity/changed-source",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-09T02:53:33.031959093Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestMemorySummarySourceIdentity",
+      "Elapsed": 0.36
+    },
+    {
+      "Time": "2026-10-09T02:53:33.481979468Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestPureMemoryFormattingAndJSON",
+      "Elapsed": 0.45
+    },
+    {
+      "Time": "2026-10-09T02:53:33.990457969Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestPureCanonicalJSONConcreteArgument",
+      "Elapsed": 0.51
+    },
+    {
+      "Time": "2026-10-09T02:53:34.526331802Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization/called-dependency",
+      "Elapsed": 0.54
+    },
+    {
+      "Time": "2026-10-09T02:53:35.080660844Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization/blank-import",
+      "Elapsed": 0.55
+    },
+    {
+      "Time": "2026-10-09T02:53:35.646052344Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization/variable-initializer",
+      "Elapsed": 0.57
+    },
+    {
+      "Time": "2026-10-09T02:53:36.184888303Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization/second-init",
+      "Elapsed": 0.54
+    },
+    {
+      "Time": "2026-10-09T02:53:36.728048261Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization/transitive-import",
+      "Elapsed": 0.54
+    },
+    {
+      "Time": "2026-10-09T02:53:36.748660511Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization/pure-initializers",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-09T02:53:37.317372595Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization/once-callback",
+      "Elapsed": 0.57
+    },
+    {
+      "Time": "2026-10-09T02:53:37.853268054Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization/pure-once",
+      "Elapsed": 0.54
+    },
+    {
+      "Time": "2026-10-09T02:53:38.952834096Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization/standard-startup",
+      "Elapsed": 1.1
+    },
+    {
+      "Time": "2026-10-09T02:53:38.952887846Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestDependencyInitialization",
+      "Elapsed": 4.96
+    },
+    {
+      "Time": "2026-10-09T02:53:39.472407013Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestThirdPartyInitialization/clock",
+      "Elapsed": 0.52
+    },
+    {
+      "Time": "2026-10-09T02:53:39.491377763Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestThirdPartyInitialization/pure",
+      "Elapsed": 0.02
+    },
+    {
+      "Time": "2026-10-09T02:53:39.491419179Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestThirdPartyInitialization",
+      "Elapsed": 0.54
+    },
+    {
+      "Time": "2026-10-09T02:53:39.762119555Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestStandardStartupIdentity",
+      "Elapsed": 0.27
+    },
+    {
+      "Time": "2026-10-09T02:53:39.764133096Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestSourceDigestFraming/startup",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T02:53:39.76554918Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestSourceDigestFraming/memory",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T02:53:39.765604305Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture",
+      "Test": "TestSourceDigestFraming",
+      "Elapsed": 0
+    }
+  ],
+  "environment_sha256": "8ab1d1568296307cd0fb569be8b1b3e2b509456329d42076542123aa4184b763"
+}

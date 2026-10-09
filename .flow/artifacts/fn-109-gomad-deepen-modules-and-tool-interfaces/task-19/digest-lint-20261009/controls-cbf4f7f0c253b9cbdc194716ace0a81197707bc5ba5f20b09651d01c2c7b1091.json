@@ -1,0 +1,18 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/admission.md",
+    "sha256": "c1dc7770d7dbd0ad228ca3afe3e74baa61ab0bf566ef542d8ad8e62c507f2bd8"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/controls.json",
+    "sha256": "b58948bb0f6754f31f261d00a121d79842195912b7d25975b2582b8a85c1880f"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/run.mjs",
+    "sha256": "77e42990365ce314ca440e74129ce71835b43b79dd5d3f30c6a0407901b0ab27"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/source-unblocking-20261007/lint-next-batches.md",
+    "sha256": "104886421fe68a438685f6e3b2155a8f295d3d39b6ea15f2272a079ae8ebae1f"
+  }
+]
