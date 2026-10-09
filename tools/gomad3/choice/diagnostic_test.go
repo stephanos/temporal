@@ -74,7 +74,11 @@ func TestDiagnosticSessionCollectsOnlyCompleteBoundedTrace(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer session.Close()
+	defer func(session *DiagnosticSession) {
+		if err := session.Close(); err != nil {
+			t.Error(err)
+		}
+	}(session)
 	if _, err := session.Collect(); err == nil {
 		t.Fatal("recording trace accepted")
 	}

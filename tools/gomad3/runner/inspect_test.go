@@ -118,7 +118,11 @@ func TestOpenReportsValidatedBatchRuns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func(journal *campaign.CampaignJournal) {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}(journal)
 	if err := journal.StartExecutions(); err != nil {
 		t.Fatal(err)
 	}
@@ -244,7 +248,11 @@ func TestOpenReportsAndValidatesRetainedSuccessfulRuns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func(journal *campaign.CampaignJournal) {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}(journal)
 	retained := publishInspectArtifactAt(t, journal.SuccessesPath(), "run-inspect-success", true)
 	relative, err := filepath.Rel(journal.Path(), retained.Path)
 	if err != nil {

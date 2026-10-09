@@ -1,0 +1,27 @@
+# Task57 cleanup lifetime proof
+
+The 16 cleanup checks retain the original Close operation, receiver and argument evaluation at registration, registration location and reverse execution order. Parameterized inline defers capture each receiver immediately and execute Close after the unchanged test body. No cleanup registration moves to testing.T.Cleanup.
+
+| Original cleanup | Retained behavior | Runtime evidence boundary |
+| --- | --- | --- |
+| choice diagnostic session Close | Same session captured before Collect; nil required; failure reports through t.Error | Existing complete bounded trace control reaches the open session and deferred healthy Close |
+| hostfs root Close | Same root captured before OpenRoot; file still closes explicitly first; nil required | Existing regular-file metadata and file-close assertions execute |
+| choice-divergence helper stdin Close | Same parent-owned interface captured before Start; only os.ErrClosed additionally allowed after Cmd.Wait | Existing helper fails before its barrier on this host; its SIGKILL/resume proof remains open |
+| diagnostic replay artifact Close | Same artifact captured after replay and before the unchanged manifest assertions; nil required | Native replay fixture needs the unavailable patched toolchain; its ordinary execution remains open |
+| two inspection journal Close calls | Each same journal captured before StartExecutions/publication/Inspect; nil required | Existing batch and retained-success journal controls execute unchanged |
+| retention replayRecorder artifact Close | Same handle captured before Manifest and corpus-index observation; failure uses existing replayer.t.Error; stored result/error stay unchanged | Guided admission fails at the inherited linux/arm64 preparation guard before callback entry |
+| simulation-retention artifact Close | Same artifact captured before profile/payload assertions; nil required | Existing consumer fails at the inherited host guard before artifact opening |
+| matchingReplayer artifact Close | Same handle captured at existing defer point; Snapshot executes before Close; detached return survives; sole Close error direct; combined error primary-first | Additive direct ordinary artifact replay observes nil cleanup, detached alias isolation, zero-valued failure result and call counts; genuine Close fault is unexecuted |
+| mutatingExecutor Write-error Close | One explicit Close before the original Write-error return; nil keeps the raw Write error; genuine failure joins Write-first; existing successful Close untouched | Additive ordinary file mutation reaches successful Write/Close and exact bytes/mode/result; missing/directory inputs reach unchanged earlier primary errors; Write failure and simultaneous Close failure are unexecuted |
+| two Linux syscall.Close calls | Descriptor values captured at registration; descriptor1 closes before descriptor0; every nonnil error including EBADF fails | Existing Linux same-descriptor dup control executes ordinary linux/arm64 source; supported-host execution belongs to the native owners |
+| flooded stdout/stderr head Close | Each file captured separately; stderr closes before stdout; nil required; file Stat/body assertions stay intact | Existing process output accounting and both partial-head sizes execute before healthy cleanup |
+| Unix LaunchResources close | Same owner captured after createPipe and before inherited-end checks; nil required; owner implementation unchanged | Existing parent/inherited-end lifetime assertions execute |
+| killed minimizer helper stdin Close | Same parent-owned interface captured before Start; existing later process-cleanup defer still runs first; only os.ErrClosed additionally allowed after Cmd.Wait | Existing lock-contention, kill/wait and resumed-checkpoint control executes unchanged |
+
+Genuine nonnil diagnostic-session/root/artifact/journal/file/LaunchResources cleanup faults and unexpected killed-stdin errors are unexecuted. Ordinary healthy closure does not prove their reporting branches. No descriptor theft, synthetic Close injection, race, fault seam, host spoof or native guard change was introduced.
+
+The matchingReplayer combined-error branch cannot execute from its current post-registration body, which returns its snapshot with nil error. Source preserves primary-first joining should a genuine primary and cleanup error coexist; no combined runtime proof is claimed. Callback consumers, canonical bytes and cleanup order retain their original assertions through exact whole-file reconstruction in prove_source.py.
+
+The initial new matchingReplayer control expected publication-only TargetSharing. The immutable focused-before receipt retains that authoring failure. The documented artifact.Opened.Snapshot contract clears TargetSharing; the sole new-fixture correction sets that exact expected field to the empty string, retains full equality and executes unchanged cleanup source in focused-before-corrected. This is no regression RED-to-GREEN claim. The causal defect evidence is task56's actual 80-finding analyzer receipt.
+
+Root owns the combined ordinary runner gate, integrated controls, independent review and task lifecycle. Required source gaps remain open. Native darwin/arm64 and linux/amd64 qualification stays deferred and unverified under fn149/fn128; linux/arm64 ordinary source controls establish no native qualification or determinism bound.

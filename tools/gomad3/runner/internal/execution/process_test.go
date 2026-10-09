@@ -753,12 +753,20 @@ func TestRunBoundsFloodedOutputWithoutBlocking(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer stdoutHead.Close()
+	defer func(stdoutHead *os.File) {
+		if err := stdoutHead.Close(); err != nil {
+			t.Error(err)
+		}
+	}(stdoutHead)
 	stderrHead, err := os.CreateTemp(t.TempDir(), "stderr-head")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer stderrHead.Close()
+	defer func(stderrHead *os.File) {
+		if err := stderrHead.Close(); err != nil {
+			t.Error(err)
+		}
+	}(stderrHead)
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},

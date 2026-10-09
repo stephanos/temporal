@@ -12,8 +12,16 @@ func TestDup2SameDescriptorIsNoOp(t *testing.T) {
 	if err := syscall.Pipe(descriptors[:]); err != nil {
 		t.Fatal(err)
 	}
-	defer syscall.Close(descriptors[0])
-	defer syscall.Close(descriptors[1])
+	defer func(descriptor int) {
+		if err := syscall.Close(descriptor); err != nil {
+			t.Error(err)
+		}
+	}(descriptors[0])
+	defer func(descriptor int) {
+		if err := syscall.Close(descriptor); err != nil {
+			t.Error(err)
+		}
+	}(descriptors[1])
 
 	if err := dup2(descriptors[0], descriptors[0]); err != nil {
 		t.Fatalf("dup2 descriptor onto itself: %v", err)

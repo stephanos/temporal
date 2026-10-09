@@ -130,7 +130,11 @@ func TestDiagnosticArtifactReplaysWithoutCollectingSidecar(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer opened.Close()
+	defer func(opened *artifact.Opened) {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}(opened)
 	found := false
 	for _, entry := range opened.Manifest().Environment {
 		found = found || entry.Name == choice.DiagnosticProfileEnvironment

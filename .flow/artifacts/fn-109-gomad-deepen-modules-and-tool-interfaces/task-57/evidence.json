@@ -1,0 +1,852 @@
+{
+  "task_id": "fn-109.57",
+  "status": "in_progress",
+  "workspace": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57",
+  "base_commit": "f830467fcb712a83ba504c7dd43e2beb7f2cf223",
+  "commits": [],
+  "tests": [
+    "go test -tags test_dep -count=1 -json -run \"^(TestCleanupMatchingReplayerPreservesDetachedResultAndCalls|TestCleanupMutatingExecutorPreservesPreparedTargetAndErrors|TestDiagnosticSessionCollectsOnlyCompleteBoundedTrace|TestOpenRootUsesTheSameInvariant|TestClosedArtifactRejectsPayloadAccess|TestGuidedAdmissionReplaysBeforeTheCorpusAdvances|TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds|TestRunGuidesFromReplayVerifiedChoiceCoverage|TestDiagnosticsPlanShardAndGuidanceKeepTheProfile|TestOpenReportsValidatedBatchRuns|TestOpenReportsAndValidatesRetainedSuccessfulRuns|TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure|TestRunRejectsPreparedTargetMutationBeforeFailurePublication|TestRunChoiceExplorationKilledAfterDivergenceResumesSameState|TestDup2SameDescriptorIsNoOp|TestLaunchResourcesOwnPipeCreationAndInheritance|TestRunBoundsFloodedOutputWithoutBlocking|TestRunTimesOutAndRemovesTermIgnoringProcessGroup|TestWorkspaceLockOfKilledProcessDoesNotBlockResume)$\" ./choice ./internal/hostfs ./artifact ./runner ./runner/internal/execution ./runner/internal/minimizer",
+    "go test -tags test_dep -count=1 -json -run \"^(TestCleanupMatchingReplayerPreservesDetachedResultAndCalls|TestCleanupMutatingExecutorPreservesPreparedTargetAndErrors|TestDiagnosticSessionCollectsOnlyCompleteBoundedTrace|TestOpenRootUsesTheSameInvariant|TestClosedArtifactRejectsPayloadAccess|TestGuidedAdmissionReplaysBeforeTheCorpusAdvances|TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds|TestRunGuidesFromReplayVerifiedChoiceCoverage|TestDiagnosticsPlanShardAndGuidanceKeepTheProfile|TestOpenReportsValidatedBatchRuns|TestOpenReportsAndValidatesRetainedSuccessfulRuns|TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure|TestRunRejectsPreparedTargetMutationBeforeFailurePublication|TestRunChoiceExplorationKilledAfterDivergenceResumesSameState|TestDup2SameDescriptorIsNoOp|TestLaunchResourcesOwnPipeCreationAndInheritance|TestRunBoundsFloodedOutputWithoutBlocking|TestRunTimesOutAndRemovesTermIgnoringProcessGroup|TestWorkspaceLockOfKilledProcessDoesNotBlockResume)$\" ./choice ./internal/hostfs ./artifact ./runner ./runner/internal/execution ./runner/internal/minimizer",
+    "gofmt -w tools/gomad3/choice/diagnostic_test.go tools/gomad3/internal/hostfs/open_test.go tools/gomad3/runner/choice_exploration_divergence_unix_test.go tools/gomad3/runner/diagnostics_test.go tools/gomad3/runner/inspect_test.go tools/gomad3/runner/retention_characterization_test.go tools/gomad3/runner/runner_test.go tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go tools/gomad3/runner/internal/execution/process_test.go tools/gomad3/runner/internal/execution/process_unix_test.go tools/gomad3/runner/internal/minimizer/workspace_unix_test.go tools/gomad3/runner/cleanup_test.go && git diff --check",
+    "go test -tags test_dep -count=1 -json -run \"^(TestCleanupMatchingReplayerPreservesDetachedResultAndCalls|TestCleanupMutatingExecutorPreservesPreparedTargetAndErrors|TestDiagnosticSessionCollectsOnlyCompleteBoundedTrace|TestOpenRootUsesTheSameInvariant|TestClosedArtifactRejectsPayloadAccess|TestGuidedAdmissionReplaysBeforeTheCorpusAdvances|TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds|TestRunGuidesFromReplayVerifiedChoiceCoverage|TestDiagnosticsPlanShardAndGuidanceKeepTheProfile|TestOpenReportsValidatedBatchRuns|TestOpenReportsAndValidatesRetainedSuccessfulRuns|TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure|TestRunRejectsPreparedTargetMutationBeforeFailurePublication|TestRunChoiceExplorationKilledAfterDivergenceResumesSameState|TestDup2SameDescriptorIsNoOp|TestLaunchResourcesOwnPipeCreationAndInheritance|TestRunBoundsFloodedOutputWithoutBlocking|TestRunTimesOutAndRemovesTermIgnoringProcessGroup|TestWorkspaceLockOfKilledProcessDoesNotBlockResume)$\" ./choice ./internal/hostfs ./artifact ./runner ./runner/internal/execution ./runner/internal/minimizer",
+    "go test -tags test_dep -count=1 -json ./choice ./internal/hostfs ./runner/internal/execution ./runner/internal/minimizer",
+    "go vet -tags test_dep ./choice ./internal/hostfs ./runner ./runner/internal/execution ./runner/internal/minimizer",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./choice ./internal/hostfs ./runner ./runner/internal/execution ./runner/internal/minimizer",
+    "go test -tags test_dep -count=1 -json -run \"^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestDomainModulesDoNotExportWireFraming|TestPublicPackagesDoNotExportForwardingAliases|TestHostPackageVet|TestRunnerExecutionInjectionIsPrivate)$\" .",
+    "make -C tools/gomad3 validate",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/tmp/gomad-fn109-parallel.pmgezCtg/task-57/.github/.golangci.yml ./choice ./internal/hostfs ./runner ./runner/internal/execution ./runner/internal/minimizer",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=f830467fcb712a83ba504c7dd43e2beb7f2cf223 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "prs": [],
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "requested_implementer": "gpt-6.1-sol at high",
+  "execution_telemetry": "unobserved",
+  "baseline": "red; focused-before-corrected exit1 before cleanup edits; actual source-identical task56 RED80 analyzer inventory reused at root instruction",
+  "review": "host-deferred; conductor owns independent review and no writer verdict",
+  "commit_authority": "root granted one local source+packet checkpoint after independent review and receipt verification; no gate, Done, review-state or target mutation authorized",
+  "commit_capture": "commits[] records the empty pre-checkpoint range; resolve the subsequent checkpoint from gomad-fn10957-source-cleanup-20261009 HEAD. Conductor owns integrated commit-ID evidence updates.",
+  "final_source_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+  "source_proof": "source-proof.json",
+  "lifetime_and_fault_boundaries": "lifetimes-and-gaps.md",
+  "baseline_authoring_correction": {
+    "initial_receipt": "focused-before.json",
+    "initial_new_test_sha256": "2c870291d6a3dbf97eeb28d3933e24c326c40af45573dc979af0ea45ff379d67",
+    "corrected_new_test_sha256": "79daf087d2fc5c548d27346f35632f03318ca2497a0c46f132dd9da90b361ce4",
+    "contract": "tools/gomad3/artifact/open.go Snapshot clears publication-only TargetSharing; only the new expected field was corrected and full equality retained",
+    "causal_regression_claim": false
+  },
+  "focused_corrected_baseline_final_outcomes_identical": true,
+  "lint": {
+    "original_base": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "baseline80_receipt": "../task-56/corrected-make-gomad-original-base.json",
+    "before": 80,
+    "after": 64,
+    "removed": 16,
+    "added": 0,
+    "residual_complete_identity_preserved": true,
+    "affected_unfiltered_reported": 26,
+    "fast_base": "f830467fcb712a83ba504c7dd43e2beb7f2cf223",
+    "fast_exit": 0,
+    "fast_filtered_reported": 0,
+    "fast_unfiltered_residuals": 64,
+    "fast_is_no_global_green_claim": true
+  },
+  "gate_observations": [
+    {
+      "name": "focused-before",
+      "receipt": "focused-before.json",
+      "receipt_sha256": "a5bf8ac511a9295f52794ee20d64b4a44c6e4fe423361a0250bc510a42ad379f",
+      "command": "go test -tags test_dep -count=1 -json -run \"^(TestCleanupMatchingReplayerPreservesDetachedResultAndCalls|TestCleanupMutatingExecutorPreservesPreparedTargetAndErrors|TestDiagnosticSessionCollectsOnlyCompleteBoundedTrace|TestOpenRootUsesTheSameInvariant|TestClosedArtifactRejectsPayloadAccess|TestGuidedAdmissionReplaysBeforeTheCorpusAdvances|TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds|TestRunGuidesFromReplayVerifiedChoiceCoverage|TestDiagnosticsPlanShardAndGuidanceKeepTheProfile|TestOpenReportsValidatedBatchRuns|TestOpenReportsAndValidatesRetainedSuccessfulRuns|TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure|TestRunRejectsPreparedTargetMutationBeforeFailurePublication|TestRunChoiceExplorationKilledAfterDivergenceResumesSameState|TestDup2SameDescriptorIsNoOp|TestLaunchResourcesOwnPipeCreationAndInheritance|TestRunBoundsFloodedOutputWithoutBlocking|TestRunTimesOutAndRemovesTermIgnoringProcessGroup|TestWorkspaceLockOfKilledProcessDoesNotBlockResume)$\" ./choice ./internal/hostfs ./artifact ./runner ./runner/internal/execution ./runner/internal/minimizer",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3",
+      "exit_code": 1,
+      "elapsed_seconds": 3.645,
+      "source_before_sha256": "5b9250bc68ecca9e94ef603a9202cfaeb166811216dee71c17d40c11cfb5b0ea",
+      "source_after_sha256": "5b9250bc68ecca9e94ef603a9202cfaeb166811216dee71c17d40c11cfb5b0ea",
+      "stdout_sha256": "4b56bda73231963887b6a3a3203c5d730837b1db9992cabee95d8ea2402b2f4a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": true,
+      "observations": {
+        "pass": 14,
+        "fail": 13
+      },
+      "top_level": {
+        "pass": 11,
+        "fail": 8
+      },
+      "failures": [
+        "TestRunChoiceExplorationKilledAfterDivergenceResumesSameState",
+        "TestCleanupMatchingReplayerPreservesDetachedResultAndCalls",
+        "TestDiagnosticsPlanShardAndGuidanceKeepTheProfile",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances",
+        "TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds",
+        "TestRunGuidesFromReplayVerifiedChoiceCoverage",
+        "TestRunRejectsPreparedTargetMutationBeforeFailurePublication",
+        "TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure"
+      ],
+      "skips": [],
+      "failure_output": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunChoiceExplorationKilledAfterDivergenceResumesSameState",
+          "output_prefix": "=== RUN   TestRunChoiceExplorationKilledAfterDivergenceResumesSameState\n    choice_exploration_divergence_unix_test.go:99: crash helper failed: exit status 1: \n--- FAIL: TestRunChoiceExplorationKilledAfterDivergenceResumesSameState (0.04s)\n",
+          "complete_output_sha256": "7ac0b9e71648edd479de64e5fb9ef9ba60fe807cade864ed21e1ad9f9b378bed"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestCleanupMatchingReplayerPreservesDetachedResultAndCalls",
+          "output_prefix": "=== RUN   TestCleanupMatchingReplayerPreservesDetachedResultAndCalls\n    cleanup_test.go:23: first replay = runner.ReplayResult{Artifact:artifact.Artifact{Path:\"/tmp/fn10957-cleanup.D7HlnKT9/TestCleanupMatchingReplayerPreservesDetachedResultAndCalls1696687676/001/sha256-bb1ad7fbf725d3cd76eaba16014ce9ba\", Manifest:record.ExecutionRecord{SchemaVersion:0x1, ArtifactKind:\"gomad3.target-failure/v1\", RecordHash:\"sha256:7303da0924e80cac8d82028b3a4c3402ac80ddd4a87f778b2592e763282af36b\", CreatedAt:\"2026-",
+          "complete_output_sha256": "63ae0cff6bc60aa2be6f40629cf545aec8f31c06d041514131a5b98ed8cd6a38"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestDiagnosticsPlanShardAndGuidanceKeepTheProfile",
+          "output_prefix": "=== RUN   TestDiagnosticsPlanShardAndGuidanceKeepTheProfile\n    diagnostics_test.go:96: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestDiagnosticsPlanShardAndGuidanceKeepTheProfile (0.00s)\n",
+          "complete_output_sha256": "2dd4d8c59818e459efbf3c4a787a850349ed6533c3f8faacff86edd6d7ebe2ef"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay (0.02s)\n",
+          "complete_output_sha256": "99fa479c49e36de7258254929c617651b82224479ec28435aafe1e17c43a97d9"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay (0.01s)\n",
+          "complete_output_sha256": "aea2e8f7f1103b8465af72b261cde901ab0ab946b4b67589c844a229281a46c1"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay (0.01s)\n",
+          "complete_output_sha256": "b50417fd5b4b05d9893add45d1bda00c97cd64d3fd5f136753ade02d05b13de2"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay (0.01s)\n",
+          "complete_output_sha256": "a64417b4c43d3e1ddba894fed703c35f43ee7c99df2c273185c6cc69ed2f09ae"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript (0.01s)\n",
+          "complete_output_sha256": "95d36e3160724868ab5c7bd7995140f86c2a1eb48af394f974b75f739b948e2f"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances (0.06s)\n",
+          "complete_output_sha256": "b23b86e8bee8f7f8b5984a9eddf0e3d12fc7591f9e62de9a95cd7afd5f6fa72b"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds",
+          "output_prefix": "=== RUN   TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds\n    runner_test.go:318: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds (0.01s)\n",
+          "complete_output_sha256": "99421df41cd8e3c1080314388b4e3dd95a50f2775dc05e3cc04dcbdca99d5710"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunGuidesFromReplayVerifiedChoiceCoverage",
+          "output_prefix": "=== RUN   TestRunGuidesFromReplayVerifiedChoiceCoverage\n    runner_test.go:374: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestRunGuidesFromReplayVerifiedChoiceCoverage (0.01s)\n",
+          "complete_output_sha256": "fbd2f81bb63010cc569f8a172d096ef1c07b6039e891aaa852ea29c9702ce50c"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunRejectsPreparedTargetMutationBeforeFailurePublication",
+          "output_prefix": "=== RUN   TestRunRejectsPreparedTargetMutationBeforeFailurePublication\n    runner_test.go:706: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x29e61a985030)}\n--- FAIL: TestRunRejectsPreparedTargetMutationBeforeFailurePublication (0.01s)\n",
+          "complete_output_sha256": "4c27619bf98fd796142eee30c1777516d6dba9348308f7db45bda671f0ed779f"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure",
+          "output_prefix": "=== RUN   TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure\n    runner_test.go:886: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure (0.01s)\n",
+          "complete_output_sha256": "bb1fd3321e84cc95ceab5f3ec91e61d5c674295ae7e19aa729a8af45f75e7b67"
+        }
+      ]
+    },
+    {
+      "name": "focused-before-corrected",
+      "receipt": "focused-before-corrected.json",
+      "receipt_sha256": "2962548a66cc60c141eda483885e863a30a212e3dcecd5b1283613e46ba74cc3",
+      "command": "go test -tags test_dep -count=1 -json -run \"^(TestCleanupMatchingReplayerPreservesDetachedResultAndCalls|TestCleanupMutatingExecutorPreservesPreparedTargetAndErrors|TestDiagnosticSessionCollectsOnlyCompleteBoundedTrace|TestOpenRootUsesTheSameInvariant|TestClosedArtifactRejectsPayloadAccess|TestGuidedAdmissionReplaysBeforeTheCorpusAdvances|TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds|TestRunGuidesFromReplayVerifiedChoiceCoverage|TestDiagnosticsPlanShardAndGuidanceKeepTheProfile|TestOpenReportsValidatedBatchRuns|TestOpenReportsAndValidatesRetainedSuccessfulRuns|TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure|TestRunRejectsPreparedTargetMutationBeforeFailurePublication|TestRunChoiceExplorationKilledAfterDivergenceResumesSameState|TestDup2SameDescriptorIsNoOp|TestLaunchResourcesOwnPipeCreationAndInheritance|TestRunBoundsFloodedOutputWithoutBlocking|TestRunTimesOutAndRemovesTermIgnoringProcessGroup|TestWorkspaceLockOfKilledProcessDoesNotBlockResume)$\" ./choice ./internal/hostfs ./artifact ./runner ./runner/internal/execution ./runner/internal/minimizer",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3",
+      "exit_code": 1,
+      "elapsed_seconds": 1.747,
+      "source_before_sha256": "5be983890625afae6174516df3b88249497248586507da7517f2b57aae68c6f0",
+      "source_after_sha256": "5be983890625afae6174516df3b88249497248586507da7517f2b57aae68c6f0",
+      "stdout_sha256": "9c246ee1486f5e8624454f1f8361a4e93793ce69614e817c07fb321a2db5807d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": true,
+      "observations": {
+        "pass": 15,
+        "fail": 12
+      },
+      "top_level": {
+        "pass": 12,
+        "fail": 7
+      },
+      "failures": [
+        "TestRunChoiceExplorationKilledAfterDivergenceResumesSameState",
+        "TestDiagnosticsPlanShardAndGuidanceKeepTheProfile",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances",
+        "TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds",
+        "TestRunGuidesFromReplayVerifiedChoiceCoverage",
+        "TestRunRejectsPreparedTargetMutationBeforeFailurePublication",
+        "TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure"
+      ],
+      "skips": [],
+      "failure_output": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunChoiceExplorationKilledAfterDivergenceResumesSameState",
+          "output_prefix": "=== RUN   TestRunChoiceExplorationKilledAfterDivergenceResumesSameState\n    choice_exploration_divergence_unix_test.go:99: crash helper failed: exit status 1: \n--- FAIL: TestRunChoiceExplorationKilledAfterDivergenceResumesSameState (0.01s)\n",
+          "complete_output_sha256": "b9896dbbd217dddcaef69770d14f909007932a4ea1cbbc426e707999e566530b"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestDiagnosticsPlanShardAndGuidanceKeepTheProfile",
+          "output_prefix": "=== RUN   TestDiagnosticsPlanShardAndGuidanceKeepTheProfile\n    diagnostics_test.go:96: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestDiagnosticsPlanShardAndGuidanceKeepTheProfile (0.00s)\n",
+          "complete_output_sha256": "2dd4d8c59818e459efbf3c4a787a850349ed6533c3f8faacff86edd6d7ebe2ef"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay (0.00s)\n",
+          "complete_output_sha256": "9523f83f22139e1369459ec3b7b2fcbf027ed45476d08500e28e2d8cc9c8b0c9"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay (0.00s)\n",
+          "complete_output_sha256": "b542e2f1dcba59459851ad1c2f6aa60ce298ab0937621105f88cf354616464da"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay (0.00s)\n",
+          "complete_output_sha256": "2e699edb124ba574f1c90d84cccf6a8536453c51effdd136cf9613f9e521ed11"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay (0.00s)\n",
+          "complete_output_sha256": "3fab4d2f780e81f07c596de168eaf4e714f7c4134364e26e7c642b641851aa1d"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript\n    retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript (0.00s)\n",
+          "complete_output_sha256": "bf4623c87f07a616f3ca427b416fd533d84395076dc1d3a814074754b14c9bc2"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances (0.01s)\n",
+          "complete_output_sha256": "47d718b43ebef2563a2fc422f0ff3ff262fe027e7256c93d2819ddcc585e0236"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds",
+          "output_prefix": "=== RUN   TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds\n    runner_test.go:318: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds (0.00s)\n",
+          "complete_output_sha256": "ac63a5969c0aa28e3d49fe1b5e2557dda2d7a62e0d7e6f496a60ccd03652bfe3"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunGuidesFromReplayVerifiedChoiceCoverage",
+          "output_prefix": "=== RUN   TestRunGuidesFromReplayVerifiedChoiceCoverage\n    runner_test.go:374: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestRunGuidesFromReplayVerifiedChoiceCoverage (0.00s)\n",
+          "complete_output_sha256": "3f76dae568671f22e9cd046fae5812bbd7c51dfce0b1e4646c3ab62380bed028"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunRejectsPreparedTargetMutationBeforeFailurePublication",
+          "output_prefix": "=== RUN   TestRunRejectsPreparedTargetMutationBeforeFailurePublication\n    runner_test.go:706: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x10512c1c3320)}\n--- FAIL: TestRunRejectsPreparedTargetMutationBeforeFailurePublication (0.00s)\n",
+          "complete_output_sha256": "d70f8ce6b2cdfc7e0749af25bfcdd7265dd0cd0430b8b7b3f09a1cd7d6f354a7"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure",
+          "output_prefix": "=== RUN   TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure\n    runner_test.go:886: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure (0.00s)\n",
+          "complete_output_sha256": "0f9bd4e673b669d0415ea94af9557b74659332cb9585c40b728a4cfcd97ee3ec"
+        }
+      ]
+    },
+    {
+      "name": "format-owned",
+      "receipt": "format-owned.json",
+      "receipt_sha256": "53b98107a3f350abee8221d2b1e94c5df7aca6168b5f5564ef5db3600b78b00d",
+      "command": "gofmt -w tools/gomad3/choice/diagnostic_test.go tools/gomad3/internal/hostfs/open_test.go tools/gomad3/runner/choice_exploration_divergence_unix_test.go tools/gomad3/runner/diagnostics_test.go tools/gomad3/runner/inspect_test.go tools/gomad3/runner/retention_characterization_test.go tools/gomad3/runner/runner_test.go tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go tools/gomad3/runner/internal/execution/process_test.go tools/gomad3/runner/internal/execution/process_unix_test.go tools/gomad3/runner/internal/minimizer/workspace_unix_test.go tools/gomad3/runner/cleanup_test.go && git diff --check",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57",
+      "exit_code": 0,
+      "elapsed_seconds": 0.121,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": true
+    },
+    {
+      "name": "focused-after",
+      "receipt": "focused-after.json",
+      "receipt_sha256": "335ca1744d5342e56805fa5c69337c684cf4190f216051d59658b56256e85612",
+      "command": "go test -tags test_dep -count=1 -json -run \"^(TestCleanupMatchingReplayerPreservesDetachedResultAndCalls|TestCleanupMutatingExecutorPreservesPreparedTargetAndErrors|TestDiagnosticSessionCollectsOnlyCompleteBoundedTrace|TestOpenRootUsesTheSameInvariant|TestClosedArtifactRejectsPayloadAccess|TestGuidedAdmissionReplaysBeforeTheCorpusAdvances|TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds|TestRunGuidesFromReplayVerifiedChoiceCoverage|TestDiagnosticsPlanShardAndGuidanceKeepTheProfile|TestOpenReportsValidatedBatchRuns|TestOpenReportsAndValidatesRetainedSuccessfulRuns|TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure|TestRunRejectsPreparedTargetMutationBeforeFailurePublication|TestRunChoiceExplorationKilledAfterDivergenceResumesSameState|TestDup2SameDescriptorIsNoOp|TestLaunchResourcesOwnPipeCreationAndInheritance|TestRunBoundsFloodedOutputWithoutBlocking|TestRunTimesOutAndRemovesTermIgnoringProcessGroup|TestWorkspaceLockOfKilledProcessDoesNotBlockResume)$\" ./choice ./internal/hostfs ./artifact ./runner ./runner/internal/execution ./runner/internal/minimizer",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3",
+      "exit_code": 1,
+      "elapsed_seconds": 2.051,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "b90c6ef83a5deebe43b496b7c1db1fc6f7b1cfa3fde90ebfb86fbe3563b8decd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": true,
+      "observations": {
+        "pass": 15,
+        "fail": 12
+      },
+      "top_level": {
+        "pass": 12,
+        "fail": 7
+      },
+      "failures": [
+        "TestRunChoiceExplorationKilledAfterDivergenceResumesSameState",
+        "TestDiagnosticsPlanShardAndGuidanceKeepTheProfile",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript",
+        "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances",
+        "TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds",
+        "TestRunGuidesFromReplayVerifiedChoiceCoverage",
+        "TestRunRejectsPreparedTargetMutationBeforeFailurePublication",
+        "TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure"
+      ],
+      "skips": [],
+      "failure_output": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunChoiceExplorationKilledAfterDivergenceResumesSameState",
+          "output_prefix": "=== RUN   TestRunChoiceExplorationKilledAfterDivergenceResumesSameState\n    choice_exploration_divergence_unix_test.go:103: crash helper failed: exit status 1: \n--- FAIL: TestRunChoiceExplorationKilledAfterDivergenceResumesSameState (0.01s)\n",
+          "complete_output_sha256": "a0d13bda6a80414f6159701252459e7f42d27a9daf7dae52d5f5168b2f917cf8"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestDiagnosticsPlanShardAndGuidanceKeepTheProfile",
+          "output_prefix": "=== RUN   TestDiagnosticsPlanShardAndGuidanceKeepTheProfile\n    diagnostics_test.go:96: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestDiagnosticsPlanShardAndGuidanceKeepTheProfile (0.00s)\n",
+          "complete_output_sha256": "2dd4d8c59818e459efbf3c4a787a850349ed6533c3f8faacff86edd6d7ebe2ef"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay\n    retention_characterization_test.go:806: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay (0.00s)\n",
+          "complete_output_sha256": "f4fc74adc6d25ed85563bd71f61353b1f83d4abdfc073255e85eee7c26ed057e"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay\n    retention_characterization_test.go:806: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay (0.00s)\n",
+          "complete_output_sha256": "b46a4a0939db70a6f3b6c82ad4026fc3a22abcbb385aeab8d424c238a64796d5"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay\n    retention_characterization_test.go:806: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay (0.00s)\n",
+          "complete_output_sha256": "363b27a09838a6a50c8a5a9dc49f6afcfff6419c4667707f25da17910ca1159b"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay\n    retention_characterization_test.go:806: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay (0.02s)\n",
+          "complete_output_sha256": "ae24c4090ff392cde57fe6b9f17d937d88c60c0572433f9f421845604a214e25"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript\n    retention_characterization_test.go:806: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript (0.00s)\n",
+          "complete_output_sha256": "17cb1ec5e5937ed12c12cfc33dbc14f63a3f4926c578299aee09ac20ea00f6a0"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances",
+          "output_prefix": "=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances\n--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances (0.03s)\n",
+          "complete_output_sha256": "d3b6691a09ea67140e6f0017d3eba3403ef6c91a5cf9323000d9752005760459"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds",
+          "output_prefix": "=== RUN   TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds\n    runner_test.go:318: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds (0.01s)\n",
+          "complete_output_sha256": "99421df41cd8e3c1080314388b4e3dd95a50f2775dc05e3cc04dcbdca99d5710"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunGuidesFromReplayVerifiedChoiceCoverage",
+          "output_prefix": "=== RUN   TestRunGuidesFromReplayVerifiedChoiceCoverage\n    runner_test.go:374: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestRunGuidesFromReplayVerifiedChoiceCoverage (0.00s)\n",
+          "complete_output_sha256": "3f76dae568671f22e9cd046fae5812bbd7c51dfce0b1e4646c3ab62380bed028"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunRejectsPreparedTargetMutationBeforeFailurePublication",
+          "output_prefix": "=== RUN   TestRunRejectsPreparedTargetMutationBeforeFailurePublication\n    runner_test.go:706: exploreWith() error = &preparation.stageError{stage:\"validation\", err:(*errors.errorString)(0x510b70d18eb0)}\n--- FAIL: TestRunRejectsPreparedTargetMutationBeforeFailurePublication (0.00s)\n",
+          "complete_output_sha256": "cf33090edc56c1594d54a038ac89f04ceb35019e63163eaf069467a92661bfe6"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner",
+          "test": "TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure",
+          "output_prefix": "=== RUN   TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure\n    runner_test.go:886: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n--- FAIL: TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure (0.01s)\n",
+          "complete_output_sha256": "bb1fd3321e84cc95ceab5f3ec91e61d5c674295ae7e19aa729a8af45f75e7b67"
+        }
+      ]
+    },
+    {
+      "name": "ordinary-distinct",
+      "receipt": "ordinary-distinct.json",
+      "receipt_sha256": "e0082887abce071d24a1d3c06bda2c2b5546a7c1d18399d40d6545a524ba2cad",
+      "command": "go test -tags test_dep -count=1 -json ./choice ./internal/hostfs ./runner/internal/execution ./runner/internal/minimizer",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3",
+      "exit_code": 1,
+      "elapsed_seconds": 7.194,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "8afe00a35837e965dc6a8a1881ca1d6273658ffcdd4ba7ee3c9fab355873ab74",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": true,
+      "observations": {
+        "pass": 295,
+        "fail": 38,
+        "skip": 10
+      },
+      "top_level": {
+        "pass": 152,
+        "fail": 38,
+        "skip": 10
+      },
+      "failures": [
+        "TestDiagnosticLauncherLocalizesInjectedDraw",
+        "TestDiagnosticLauncherRejectsHostTimedSeededDraw",
+        "TestDiagnosticDrawCheckStopsHostTimedSeededDraw",
+        "TestRunTransportsCompleteChoiceTrace",
+        "TestRunReturnsValidatedOverflowChoiceTrace",
+        "TestRunReplaysCompleteChoiceTape",
+        "TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder",
+        "TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder",
+        "TestRunPreservesChoicePrefixRNGPosition",
+        "TestRunForcesCanonicalRankAtFinalPrefixDecision",
+        "TestRunTargetInheritsChoiceTapeReadOnly",
+        "TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker",
+        "TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker",
+        "TestRunRejectsUnconsumedChoiceTape",
+        "TestRunSupervisesSimulationNodeProcess",
+        "TestRunHardCrashesAndReapsSimulationNodeProcess",
+        "TestBoundaryManifestSemanticCanaries",
+        "TestProfileEntropyIsIndependentOfScheduleSeed",
+        "TestProfileFilesystemStaysInMemory",
+        "TestDirectSeedFilesystemStartsEmpty",
+        "TestProfileReadOnlyMountServesCapturedFilesInMemory",
+        "TestProfileSchedulerLockContentionLeavesSeededStreamInPlace",
+        "TestModerncLibcUsesDeterministicFilesystem",
+        "TestProfileNetworkBindContract",
+        "TestVirtualTCPCloseAfterWriteDeliversFinalBytes",
+        "TestVirtualTCPAcceptsQueuedConnectionBeforeClose",
+        "TestVirtualTCPRejectsWritesAfterHalfClose",
+        "TestVirtualTCPRejectsQueuedReadsAfterClose",
+        "TestVirtualTCPRejectsQueuedReadsAfterCloseRead",
+        "TestVirtualTCPAcceptsQueuedConnectionBeforeDeadline",
+        "TestVirtualTCPWritesToAvailableBufferBeforeDeadline",
+        "TestVirtualTCPCanceledBlockedDialDoesNotConnect",
+        "TestVirtualTCPClosedListenerRejectsBlockedDial",
+        "TestVirtualTCPReportsPortExhaustion",
+        "TestProfileTCPUsesInMemoryLoopback",
+        "TestGuardedCapabilityPublishesIOCompletionBeforeTermination",
+        "TestTargetPanicPublishesIOCompletionBeforeTermination",
+        "TestProfileSQLiteUsesVirtualTimeAndEntropy"
+      ],
+      "skips": [
+        "TestSupervisorHelper",
+        "TestTargetBootstrapHelper",
+        "TestTargetHelper",
+        "TestUnresponsiveSupervisorHelper",
+        "TestIOTerminalTargetHelper",
+        "TestEntropySupervisorHelper",
+        "TestEntropyBootstrapHelper",
+        "TestProfilePassesHostCapabilitySandbox",
+        "TestModelConformanceFilesystem",
+        "TestModelConformanceTCP"
+      ],
+      "failure_output": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestDiagnosticLauncherLocalizesInjectedDraw",
+          "output_prefix": "=== RUN   TestDiagnosticLauncherLocalizesInjectedDraw\n    diagnostics_toolchain_test.go:24: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestDiagnosticLauncherLocalizesInjectedDraw (0.00s)\n",
+          "complete_output_sha256": "7729726f50a20a776785bc8409dac1ff064df4223900564805689dcd8e838c44"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestDiagnosticLauncherRejectsHostTimedSeededDraw",
+          "output_prefix": "=== RUN   TestDiagnosticLauncherRejectsHostTimedSeededDraw\n    diagnostics_toolchain_test.go:76: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestDiagnosticLauncherRejectsHostTimedSeededDraw (0.00s)\n",
+          "complete_output_sha256": "a412b06832b2172d50440c78d0ef36b6434e7c60cd679a9f33786fe39dcdb34b"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestDiagnosticDrawCheckStopsHostTimedSeededDraw",
+          "output_prefix": "=== RUN   TestDiagnosticDrawCheckStopsHostTimedSeededDraw\n    draw_check_toolchain_test.go:30: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestDiagnosticDrawCheckStopsHostTimedSeededDraw (0.00s)\n",
+          "complete_output_sha256": "89e554e97c2638eafe8a16d868adaf13dfe6b493de4d2c1bde3e9bcab4047d59"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunTransportsCompleteChoiceTrace",
+          "output_prefix": "=== RUN   TestRunTransportsCompleteChoiceTrace\n    process_test.go:151: choice trace unterminated\n--- FAIL: TestRunTransportsCompleteChoiceTrace (0.00s)\n",
+          "complete_output_sha256": "53f64321ad1424ef90f29665c2aef3639643ceb8986d29f630cc0f2b880b3bbf"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunReturnsValidatedOverflowChoiceTrace",
+          "output_prefix": "=== RUN   TestRunReturnsValidatedOverflowChoiceTrace\n    process_test.go:177: Run() error = choice trace unterminated\n--- FAIL: TestRunReturnsValidatedOverflowChoiceTrace (0.00s)\n",
+          "complete_output_sha256": "3098492d39c4d9cac28e9241c0b15db49e7f0b18497827e551c5890813df2a1c"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunReplaysCompleteChoiceTape",
+          "output_prefix": "=== RUN   TestRunReplaysCompleteChoiceTape\n    process_test.go:204: choice trace unterminated\n--- FAIL: TestRunReplaysCompleteChoiceTape (0.00s)\n",
+          "complete_output_sha256": "02045096b3a953198fa031bd3c6d7ab257c2fdae60e3926218f9d381bf134a5d"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder",
+          "output_prefix": "=== RUN   TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder\n    process_test.go:242: choice trace unterminated\n--- FAIL: TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder (0.00s)\n",
+          "complete_output_sha256": "b938a1e85697203210ee6e08d583d754fbf7fc3e423d17e50c1a3966e5fa7082"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder",
+          "output_prefix": "=== RUN   TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder\n    process_test.go:278: choice trace unterminated\n--- FAIL: TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder (0.00s)\n",
+          "complete_output_sha256": "7cfc00e139338a8f2b7acf14e869b88db7c44d0570adb408f29d549d6c64540e"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunPreservesChoicePrefixRNGPosition",
+          "output_prefix": "=== RUN   TestRunPreservesChoicePrefixRNGPosition\n    process_test.go:352: choice trace unterminated\n--- FAIL: TestRunPreservesChoicePrefixRNGPosition (0.00s)\n",
+          "complete_output_sha256": "0298487bbcdfab11e63e79c7fbefc0ae067028c56914e291cd575d1b6254fd54"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunForcesCanonicalRankAtFinalPrefixDecision",
+          "output_prefix": "=== RUN   TestRunForcesCanonicalRankAtFinalPrefixDecision\n    process_test.go:394: choice trace unterminated\n--- FAIL: TestRunForcesCanonicalRankAtFinalPrefixDecision (0.00s)\n",
+          "complete_output_sha256": "34e3e7042e7a2ec4d333e376fcfbb3369e5ded642e86b6b63db11df67849bbb7"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunTargetInheritsChoiceTapeReadOnly",
+          "output_prefix": "=== RUN   TestRunTargetInheritsChoiceTapeReadOnly\n    process_test.go:460: choice trace unterminated\n--- FAIL: TestRunTargetInheritsChoiceTapeReadOnly (0.00s)\n",
+          "complete_output_sha256": "daf23b3b791f1c5c53428b6e1efb56963e5c5ea816e1fd932f8964cb0461a104"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker",
+          "output_prefix": "=== RUN   TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker\n    process_test.go:483: choice trace unterminated\n--- FAIL: TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker (0.00s)\n",
+          "complete_output_sha256": "98ee3dc37ed03b12d37f837b7c8b527cdd81e8429cec59a97d09df9700a6c2cd"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker",
+          "output_prefix": "=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker\n    process_test.go:540: choice trace unterminated\n--- FAIL: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker (0.00s)\n",
+          "complete_output_sha256": "302dad2ca95b018d4905385cba78f4dd8d9116c78a074cc797f7d05d622cbef7"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunRejectsUnconsumedChoiceTape",
+          "output_prefix": "=== RUN   TestRunRejectsUnconsumedChoiceTape\n    process_test.go:611: choice trace unterminated\n--- FAIL: TestRunRejectsUnconsumedChoiceTape (0.00s)\n",
+          "complete_output_sha256": "77c78efe0b1ca73bb2d2ba20190f0bf6cd5331e9b8250846f298267b248f3e39"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunSupervisesSimulationNodeProcess",
+          "output_prefix": "=== RUN   TestRunSupervisesSimulationNodeProcess\n    simulation_test.go:411: simulation coordinator result = execution.Result{Captured:true, Termination:\"exit\", ExitCode:49, Signal:\"\", WatchdogTimeout:false, Cancelled:false, Stdout:hostexec.Output{Bytes:[]uint8{}, RawBytes:[]uint8{}, FullSHA256:[32]uint8{0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55}, R",
+          "complete_output_sha256": "637f6f79482a95fa69d2b0bbdd26c89e3b1ead0df069c549612b80edbb444be1"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestRunHardCrashesAndReapsSimulationNodeProcess",
+          "output_prefix": "=== RUN   TestRunHardCrashesAndReapsSimulationNodeProcess\n    simulation_test.go:428: simulation coordinator result = execution.Result{Captured:true, Termination:\"exit\", ExitCode:49, Signal:\"\", WatchdogTimeout:false, Cancelled:false, Stdout:hostexec.Output{Bytes:[]uint8{}, RawBytes:[]uint8{}, FullSHA256:[32]uint8{0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8,",
+          "complete_output_sha256": "c51e06e435b976fb1f62852b2477fe8b9b32e6a9469411bfdafb568466afb189"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestBoundaryManifestSemanticCanaries",
+          "output_prefix": "=== RUN   TestBoundaryManifestSemanticCanaries\n    io_boundary_toolchain_test.go:28: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestBoundaryManifestSemanticCanaries (0.00s)\n",
+          "complete_output_sha256": "dddaf08e8bd86b36378dda793d15f191d1b562a1190b463803d0cc934eebffab"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestProfileEntropyIsIndependentOfScheduleSeed",
+          "output_prefix": "=== RUN   TestProfileEntropyIsIndependentOfScheduleSeed\n    io_entropy_toolchain_test.go:29: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestProfileEntropyIsIndependentOfScheduleSeed (0.00s)\n",
+          "complete_output_sha256": "c22222f65280cde10d1bae27d0cde3fcb9dc21f4a41ca2044785c01472a54764"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestProfileFilesystemStaysInMemory",
+          "output_prefix": "=== RUN   TestProfileFilesystemStaysInMemory\n    io_filesystem_toolchain_test.go:27: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestProfileFilesystemStaysInMemory (0.00s)\n",
+          "complete_output_sha256": "a652e4bf74e31d345ae0cd0cc723bfe0c4a77983e73f14111bfea124d9382747"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestDirectSeedFilesystemStartsEmpty",
+          "output_prefix": "=== RUN   TestDirectSeedFilesystemStartsEmpty\n    io_filesystem_toolchain_test.go:67: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestDirectSeedFilesystemStartsEmpty (0.00s)\n",
+          "complete_output_sha256": "e703f1d9480d6c6f3fec8415a6e8b463b48e71ecd400aaffa2c1697420616535"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestProfileReadOnlyMountServesCapturedFilesInMemory",
+          "output_prefix": "=== RUN   TestProfileReadOnlyMountServesCapturedFilesInMemory\n    io_filesystem_toolchain_test.go:94: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestProfileReadOnlyMountServesCapturedFilesInMemory (0.00s)\n",
+          "complete_output_sha256": "0c67d025996487e14b2209b2b20cc35a3f7006b2ccf7317250668f578df0efe0"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestProfileSchedulerLockContentionLeavesSeededStreamInPlace",
+          "output_prefix": "=== RUN   TestProfileSchedulerLockContentionLeavesSeededStreamInPlace\n    io_handoff_toolchain_test.go:36: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (0.00s)\n",
+          "complete_output_sha256": "e7a47a77138ce05607cc37691d6e389b7bcaf0c86374d4191f3b924e4113ef5e"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestModerncLibcUsesDeterministicFilesystem",
+          "output_prefix": "=== RUN   TestModerncLibcUsesDeterministicFilesystem\n    io_libc_toolchain_test.go:27: query pinned module cache: chdir /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: no such file or directory\n--- FAIL: TestModerncLibcUsesDeterministicFilesystem (0.00s)\n",
+          "complete_output_sha256": "3527fd6e8044a51a9dfa6e60211c9d7ba8219e1c00d0dce5aee4b4c71c4f1100"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestProfileNetworkBindContract",
+          "output_prefix": "=== RUN   TestProfileNetworkBindContract\n    io_net_bind_toolchain_test.go:30: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestProfileNetworkBindContract (0.00s)\n",
+          "complete_output_sha256": "d17c7df5b10bb4bf31583f829d8553590072c643b2a2ad60227b22f62c79e8cf"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPCloseAfterWriteDeliversFinalBytes",
+          "output_prefix": "=== RUN   TestVirtualTCPCloseAfterWriteDeliversFinalBytes\n    io_network_toolchain_test.go:16: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPCloseAfterWriteDeliversFinalBytes (0.00s)\n",
+          "complete_output_sha256": "7fe198474fbad95accf77314458664d6ec114a145b2c962f2b20fe7c1f9b2f81"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPAcceptsQueuedConnectionBeforeClose",
+          "output_prefix": "=== RUN   TestVirtualTCPAcceptsQueuedConnectionBeforeClose\n    io_network_toolchain_test.go:20: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPAcceptsQueuedConnectionBeforeClose (0.00s)\n",
+          "complete_output_sha256": "38dcf4a8537e95bdc1e1273794d6eab602a7434c3e1e93617e160dae1ae0b3d0"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPRejectsWritesAfterHalfClose",
+          "output_prefix": "=== RUN   TestVirtualTCPRejectsWritesAfterHalfClose\n    io_network_toolchain_test.go:24: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPRejectsWritesAfterHalfClose (0.00s)\n",
+          "complete_output_sha256": "af3fc2b5ce50b635175d5713928c600a229a5d8818c8a55aefbaf4e149c57096"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPRejectsQueuedReadsAfterClose",
+          "output_prefix": "=== RUN   TestVirtualTCPRejectsQueuedReadsAfterClose\n    io_network_toolchain_test.go:28: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPRejectsQueuedReadsAfterClose (0.00s)\n",
+          "complete_output_sha256": "34b28c165b80ceeb0c2b9726148bc4d26d4649da6d65d2f9de3808202c033f42"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPRejectsQueuedReadsAfterCloseRead",
+          "output_prefix": "=== RUN   TestVirtualTCPRejectsQueuedReadsAfterCloseRead\n    io_network_toolchain_test.go:32: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPRejectsQueuedReadsAfterCloseRead (0.00s)\n",
+          "complete_output_sha256": "5f4f119450a08755982334460f3e4f65abca60dea7bc21235b3856a7442e6089"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPAcceptsQueuedConnectionBeforeDeadline",
+          "output_prefix": "=== RUN   TestVirtualTCPAcceptsQueuedConnectionBeforeDeadline\n    io_network_toolchain_test.go:36: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPAcceptsQueuedConnectionBeforeDeadline (0.00s)\n",
+          "complete_output_sha256": "d35a436e57fa864bf794f0cd85c652d5d73e0857ba10bab0dd02100cf6105b3f"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPWritesToAvailableBufferBeforeDeadline",
+          "output_prefix": "=== RUN   TestVirtualTCPWritesToAvailableBufferBeforeDeadline\n    io_network_toolchain_test.go:40: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPWritesToAvailableBufferBeforeDeadline (0.00s)\n",
+          "complete_output_sha256": "bba4cda928779090b77465bbbfd3bf441dbfa0b05c0b33484f1b2d5f799bf103"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPCanceledBlockedDialDoesNotConnect",
+          "output_prefix": "=== RUN   TestVirtualTCPCanceledBlockedDialDoesNotConnect\n    io_network_toolchain_test.go:44: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPCanceledBlockedDialDoesNotConnect (0.00s)\n",
+          "complete_output_sha256": "27707da38848ed84924f636e75d4acce9364c9756f7b49829c74dacb365b8bff"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPClosedListenerRejectsBlockedDial",
+          "output_prefix": "=== RUN   TestVirtualTCPClosedListenerRejectsBlockedDial\n    io_network_toolchain_test.go:48: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPClosedListenerRejectsBlockedDial (0.00s)\n",
+          "complete_output_sha256": "92e3a3ff4993c6490f127e1e348a56e636a7478175c82da883a9d0281275b272"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestVirtualTCPReportsPortExhaustion",
+          "output_prefix": "=== RUN   TestVirtualTCPReportsPortExhaustion\n    io_network_toolchain_test.go:52: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestVirtualTCPReportsPortExhaustion (0.00s)\n",
+          "complete_output_sha256": "d7069af539649f83e2f9b6e39836642973be5b6e258a056b2c5a0efa815fad3f"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestProfileTCPUsesInMemoryLoopback",
+          "output_prefix": "=== RUN   TestProfileTCPUsesInMemoryLoopback\n    io_network_toolchain_test.go:100: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestProfileTCPUsesInMemoryLoopback (0.00s)\n",
+          "complete_output_sha256": "66a9102f543631556af984a97628ed7c6cc9668deb50c20a811812eab08de7d8"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestGuardedCapabilityPublishesIOCompletionBeforeTermination",
+          "output_prefix": "=== RUN   TestGuardedCapabilityPublishesIOCompletionBeforeTermination\n    io_sandbox_toolchain_test.go:110: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestGuardedCapabilityPublishesIOCompletionBeforeTermination (0.00s)\n",
+          "complete_output_sha256": "ccf519125e9468510f77b1d01971a1ca2c4d1682267813d8368859e78ba8b7e6"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestTargetPanicPublishesIOCompletionBeforeTermination",
+          "output_prefix": "=== RUN   TestTargetPanicPublishesIOCompletionBeforeTermination\n    io_sandbox_toolchain_test.go:120: stat pinned Go command in /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain: lstat /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestTargetPanicPublishesIOCompletionBeforeTermination (0.00s)\n",
+          "complete_output_sha256": "13ff909b4a73856dae7e5cdf87411f7228736e01fc292a51ebcbf130f9d320d8"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/runner/internal/execution",
+          "test": "TestProfileSQLiteUsesVirtualTimeAndEntropy",
+          "output_prefix": "=== RUN   TestProfileSQLiteUsesVirtualTimeAndEntropy\n    io_sqlite_toolchain_test.go:26: fork/exec /tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3/.toolchain/bin/go: no such file or directory\n--- FAIL: TestProfileSQLiteUsesVirtualTimeAndEntropy (0.00s)\n",
+          "complete_output_sha256": "6a654d11bb6af7c65347520f76a13640d91ed54e949002b2e64adbde40e69e05"
+        }
+      ]
+    },
+    {
+      "name": "affected-vet",
+      "receipt": "affected-vet.json",
+      "receipt_sha256": "a6ef3a6bce81a6dc68eb675b5afcc42b36b6c1415d68de609ac8e2bf535417c1",
+      "command": "go vet -tags test_dep ./choice ./internal/hostfs ./runner ./runner/internal/execution ./runner/internal/minimizer",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3",
+      "exit_code": 0,
+      "elapsed_seconds": 0.569,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": true
+    },
+    {
+      "name": "standalone-errortype",
+      "receipt": "standalone-errortype.json",
+      "receipt_sha256": "59384ede9a83745b087932b75d76cbb6a6a8a2b33a3386341dc17cf69cabf0a0",
+      "command": "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./choice ./internal/hostfs ./runner ./runner/internal/execution ./runner/internal/minimizer",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3",
+      "exit_code": 0,
+      "elapsed_seconds": 0.471,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": true
+    },
+    {
+      "name": "architecture-source-sets",
+      "receipt": "architecture-source-sets.json",
+      "receipt_sha256": "70b0182c458c56a3abaa4882c4deb4e594b5b9265ee0e80e5595f1c42cea564c",
+      "command": "go test -tags test_dep -count=1 -json -run \"^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestDomainModulesDoNotExportWireFraming|TestPublicPackagesDoNotExportForwardingAliases|TestHostPackageVet|TestRunnerExecutionInjectionIsPrivate)$\" .",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3",
+      "exit_code": 0,
+      "elapsed_seconds": 31.821,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "1f9f1621375bd86c79c30ba132c6874ed019e8b3f9a324c4c64baef35b7d0d01",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": true,
+      "observations": {
+        "pass": 10
+      },
+      "top_level": {
+        "pass": 7
+      },
+      "failures": [],
+      "skips": [],
+      "failure_output": []
+    },
+    {
+      "name": "fresh-validate",
+      "receipt": "fresh-validate.json",
+      "receipt_sha256": "fc011d4de957194b61678085be61cfa98bee267e6c169d27808caec6172ce1fa",
+      "command": "make -C tools/gomad3 validate",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57",
+      "exit_code": 0,
+      "elapsed_seconds": 7.686,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "c4cd475dfe7ef7978016e61bdfa5aa05a55714d4ee274f57082fd68c3a9db40c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": true
+    },
+    {
+      "name": "affected-configured-lint",
+      "receipt": "affected-configured-lint.json",
+      "receipt_sha256": "6df5b18c0a8dd0b2bad84be51f7d8bc729510df1eb3598607c3b2b419d8155b1",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/tmp/gomad-fn109-parallel.pmgezCtg/task-57/.github/.golangci.yml ./choice ./internal/hostfs ./runner ./runner/internal/execution ./runner/internal/minimizer",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57/tools/gomad3",
+      "exit_code": 1,
+      "elapsed_seconds": 8.152,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "d9cd0a17040669953485e01a95d36139d8a21ecf3d91845043ba3adc00c0a593",
+      "stderr_sha256": "a85307f79afee09fe7367bfdbecda3b55aca1ede160a959f19177b28f9c11878",
+      "terminal": true,
+      "diagnostics_reported": 26
+    },
+    {
+      "name": "make-fast-admitted-base",
+      "receipt": "make-fast-admitted-base.json",
+      "receipt_sha256": "8f249eb8816312f65341d6a6b80cc510286bea6d83e6c146d293b3c42c5409bd",
+      "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=f830467fcb712a83ba504c7dd43e2beb7f2cf223 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57",
+      "exit_code": 0,
+      "elapsed_seconds": 12.38,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "2c2fdd0233166ddc5c51fcc5d693a641cce83ced319f8a31aff7a5d354f8b902",
+      "stderr_sha256": "dd15559a835c3f1c07676f4a55e7c39dac8f5bc57a2dbb5f2f60df6cc0c1de87",
+      "terminal": true,
+      "diagnostics_reported": 0
+    },
+    {
+      "name": "make-gomad-original-base",
+      "receipt": "make-gomad-original-base.json",
+      "receipt_sha256": "c50e0b35407275ac04dc07f534ccb7849b0da0e6cf841ed592f07ef340d3e6d0",
+      "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "cwd": "/tmp/gomad-fn109-parallel.pmgezCtg/task-57",
+      "exit_code": 2,
+      "elapsed_seconds": 5.021,
+      "source_before_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "source_after_sha256": "a4ebdb15f1f49cd8b884144ba8f97a658e92efb0e94abd30773f714525d2cc93",
+      "stdout_sha256": "5ae0fb3f600697f7ec2ab9038d06edcbcc1c83e70e8c312a0cf4674c2b2d4b97",
+      "stderr_sha256": "a32c5c06ee8e12af6acdacc1d2dcaa673e919d91fcecf37668a02e5b49e47c82",
+      "terminal": true,
+      "diagnostics_reported": 64
+    }
+  ],
+  "remaining_source_requirements": [
+    "Conductor-owned full ordinary runner command on integrated frozen tasks57-59 inputs has not run locally",
+    "Same seven focused top-level failures and twelve observations remain red",
+    "Full execution package has thirty-eight failures and ten retained skips; no pre-cleanup full-package baseline was run in this lane",
+    "Genuine nonnil cleanup faults, Write+Close simultaneous errors and combined matching-replay errors remain unexecuted; see lifetimes-and-gaps.md",
+    "Unfiltered configured lint and original-base lint remain red",
+    "Formal SHIP/Done remain withheld; root granted only the bounded source-progress checkpoint"
+  ],
+  "native": {
+    "fn149": "deferred/unverified",
+    "fn128": "deferred/unverified",
+    "host": "developmental linux/arm64 stock Go1.27.1",
+    "qualification_claim": false,
+    "determinism_claim": false
+  },
+  "terminal": {
+    "all_gate_commands_terminal": true,
+    "last_gate_session": 44893,
+    "last_gate_exit_code": 2,
+    "lane": "RELEASED",
+    "no_live_handles": true,
+    "last_source_proof_session": 34216,
+    "last_source_proof_exit_code": 0,
+    "redundant_source_proof_observation": "inconclusive; one read-only repetition yielded a host session handle that the orchestration call discarded; its process PID 924913 is absent, but its exit is unobserved. No gate pass is derived from that observation. Retained direct successful proof runs and session34216 establish the source proof."
+  }
+}

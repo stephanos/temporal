@@ -57,7 +57,11 @@ func TestRunChoiceExplorationKilledAfterDivergenceResumesSameState(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer input.Close()
+	defer func(input io.WriteCloser) {
+		if err := input.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			t.Error(err)
+		}
+	}(input)
 	var stderr bytes.Buffer
 	command.Stderr = &stderr
 	if err := command.Start(); err != nil {

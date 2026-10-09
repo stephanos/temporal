@@ -52,7 +52,11 @@ func TestOpenRootUsesTheSameInvariant(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer root.Close()
+	defer func(root *os.Root) {
+		if err := root.Close(); err != nil {
+			t.Error(err)
+		}
+	}(root)
 	file, info, err := OpenRoot(root, "payload")
 	if err != nil {
 		t.Fatal(err)

@@ -892,7 +892,11 @@ func TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure(t *te
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer opened.Close()
+	defer func(opened *artifact.Opened) {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}(opened)
 	profile := opened.Manifest().SimulationProfile
 	if profile == nil {
 		t.Fatal("simulation exploration failure artifact omitted simulation exploration evidence")
@@ -2253,13 +2257,21 @@ type matchingReplayer struct {
 	calls int
 }
 
-func (replayer *matchingReplayer) Replay(_ context.Context, config ReplaySpec) (ReplayResult, error) {
+func (replayer *matchingReplayer) Replay(_ context.Context, config ReplaySpec) (_ ReplayResult, retErr error) {
 	replayer.calls++
 	opened, err := artifact.OpenArtifact(config.ArtifactPath)
 	if err != nil {
 		return ReplayResult{}, err
 	}
-	defer opened.Close()
+	defer func(opened *artifact.Opened) {
+		if err := opened.Close(); err != nil {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}(opened)
 	return ReplayResult{Artifact: opened.Snapshot(), Verified: true, Match: true}, nil
 }
 
@@ -2366,7 +2378,9 @@ func (mutatingExecutor) Run(_ context.Context, request execution.Spec) (executio
 		return execution.Result{}, err
 	}
 	if _, err := file.Write([]byte("mutation")); err != nil {
-		file.Close()
+		if closeErr := file.Close(); closeErr != nil {
+			return execution.Result{}, errors.Join(err, closeErr)
+		}
 		return execution.Result{}, err
 	}
 	if err := file.Close(); err != nil {

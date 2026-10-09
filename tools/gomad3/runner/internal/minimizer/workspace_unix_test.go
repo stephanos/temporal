@@ -374,7 +374,11 @@ func TestWorkspaceLockOfKilledProcessDoesNotBlockResume(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer stdin.Close()
+	defer func(stdin io.WriteCloser) {
+		if err := stdin.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+			t.Error(err)
+		}
+	}(stdin)
 	stdout, err := holder.StdoutPipe()
 	if err != nil {
 		t.Fatal(err)

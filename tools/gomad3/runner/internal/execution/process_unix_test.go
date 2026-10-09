@@ -64,7 +64,11 @@ func TestLaunchResourcesOwnPipeCreationAndInheritance(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resources.close()
+	defer func(resources *launchResources) {
+		if err := resources.close(); err != nil {
+			t.Error(err)
+		}
+	}(resources)
 	if controlWrite == nil || resources.files[controlResource] == nil || *resources.files[controlResource] == nil {
 		t.Fatal("launch resource did not retain both pipe ends")
 	}

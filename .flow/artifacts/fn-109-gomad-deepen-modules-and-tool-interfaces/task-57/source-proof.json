@@ -1,0 +1,214 @@
+{
+  "base_commit": "f830467fcb712a83ba504c7dd43e2beb7f2cf223",
+  "admitted_cleanup_calls": 16,
+  "admitted_old_files": 11,
+  "files": {
+    "tools/gomad3/choice/diagnostic_test.go": {
+      "base_sha256": "b2b86cd30586aa1d553b467d34931813538a1770acdf09c465c2df8706091a9e",
+      "candidate_sha256": "83135700780f3cf42ee1ee7e361b39afd5437beae5c8125f4b36b4624ff02c71",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/internal/hostfs/open_test.go": {
+      "base_sha256": "f1e44fe251dc98f8bf65f7611f8f7413a26e18a95d017072d1366a6d69cafb7b",
+      "candidate_sha256": "37ecb9cadb5058e5b6cc546af3f8e1e621d0d2c4009b48dbbb7bafd6f2ea78dc",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/runner/choice_exploration_divergence_unix_test.go": {
+      "base_sha256": "2c8ae1c3db794af0388ee6c738e9d173830217f370d32d9adad839c0b3b7e406",
+      "candidate_sha256": "a76ca2a02891275db2fb62a3d4fd743ed9affabdbc502d19a664c4ddbda69bad",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/runner/diagnostics_test.go": {
+      "base_sha256": "4bfb2f407daaea06ada578c9703f7cfb1b863799a102436159107562f470a237",
+      "candidate_sha256": "885b3df456c376522b484cfbdaa70e5f70ffe4d77a9c8af1d825740443606b68",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/runner/inspect_test.go": {
+      "base_sha256": "3e03ebe6af28cacc3b40bc5c89fd1d688aedb6b2d486814501360231f640834b",
+      "candidate_sha256": "140e6688d3e1dddb8dbc1e85ae53de0de15fd676f655227efae6fa09282ca8df",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/runner/retention_characterization_test.go": {
+      "base_sha256": "c15ef7442ea3e41ac360608aa113fbb1e0cd508855d37294e965f4da0f36a9c1",
+      "candidate_sha256": "87253da780594e54139a2359ef5d2655ffbf4905b54eb1380c3700f3edaf8b4e",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/runner/runner_test.go": {
+      "base_sha256": "5a7e92b82de7901dbc0d4483879f57cbd901f0359e262c8acd3ff3351ba2c998",
+      "candidate_sha256": "a4d57dbfa6fd4dbf0586f08b33edcc06f3740045731f50e2cabf8149e7faf3a7",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go": {
+      "base_sha256": "ad735b20323c5a4d17c0759d9509506e44cf7313b31149f1cf3632c40e16bd24",
+      "candidate_sha256": "246f98f7a4b6bd943d3036fb5821af7570b8be8a02e9a3179343fcbb5f3774f2",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/runner/internal/execution/process_test.go": {
+      "base_sha256": "4103eb4a7436b31da48b8917603c0e33af26915aa79dcef843bc37e6eaa05b4d",
+      "candidate_sha256": "522a5a2319423de0b9b6877c68aa25209ee69e29093487933bd532c246eb230b",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/runner/internal/execution/process_unix_test.go": {
+      "base_sha256": "f234852d26d7cbda7280147f1087ac3ee0db8005562cca3dc9ddbd02705265f3",
+      "candidate_sha256": "9f9f6158d8a75c58ac6956dff4b4f825752e7322bb3d387590ddff95db415701",
+      "exact_base_reconstructed": true
+    },
+    "tools/gomad3/runner/internal/minimizer/workspace_unix_test.go": {
+      "base_sha256": "c0aad4e3aeca1a47c188161130120d6a0cb69d87caf772dce44337f75b0954a8",
+      "candidate_sha256": "d02c4949a47213d16dadde247d448d081cf94283257657bf643473da4ae8e58e",
+      "exact_base_reconstructed": true
+    }
+  },
+  "preserved_count": 1050,
+  "preserved_manifest_sha256": "98b6eaf2b1251b6c73ca289cec5939380387f5f5d785cf980bb3366b15121551",
+  "new_test_sha256": "79daf087d2fc5c548d27346f35632f03318ca2497a0c46f132dd9da90b361ce4",
+  "initial_additive_test_sha256": "2c870291d6a3dbf97eeb28d3933e24c326c40af45573dc979af0ea45ff379d67",
+  "lint": {
+    "before": 80,
+    "after": 64,
+    "removed": 16,
+    "added": 0,
+    "removed_diagnostics": [
+      [
+        "tools/gomad3/choice/diagnostic_test.go",
+        77,
+        "21",
+        "Error return value of `session.Close` is not checked (errcheck)",
+        "\tdefer session.Close()",
+        "\t                   ^"
+      ],
+      [
+        "tools/gomad3/internal/hostfs/open_test.go",
+        55,
+        "18",
+        "Error return value of `root.Close` is not checked (errcheck)",
+        "\tdefer root.Close()",
+        "\t                ^"
+      ],
+      [
+        "tools/gomad3/runner/choice_exploration_divergence_unix_test.go",
+        60,
+        "19",
+        "Error return value of `input.Close` is not checked (errcheck)",
+        "\tdefer input.Close()",
+        "\t                 ^"
+      ],
+      [
+        "tools/gomad3/runner/diagnostics_test.go",
+        133,
+        "20",
+        "Error return value of `opened.Close` is not checked (errcheck)",
+        "\tdefer opened.Close()",
+        "\t                  ^"
+      ],
+      [
+        "tools/gomad3/runner/inspect_test.go",
+        121,
+        "21",
+        "Error return value of `journal.Close` is not checked (errcheck)",
+        "\tdefer journal.Close()",
+        "\t                   ^"
+      ],
+      [
+        "tools/gomad3/runner/inspect_test.go",
+        247,
+        "21",
+        "Error return value of `journal.Close` is not checked (errcheck)",
+        "\tdefer journal.Close()",
+        "\t                   ^"
+      ],
+      [
+        "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+        15,
+        "21",
+        "Error return value of `syscall.Close` is not checked (errcheck)",
+        "\tdefer syscall.Close(descriptors[0])",
+        "\t                   ^"
+      ],
+      [
+        "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+        16,
+        "21",
+        "Error return value of `syscall.Close` is not checked (errcheck)",
+        "\tdefer syscall.Close(descriptors[1])",
+        "\t                   ^"
+      ],
+      [
+        "tools/gomad3/runner/internal/execution/process_test.go",
+        756,
+        "24",
+        "Error return value of `stdoutHead.Close` is not checked (errcheck)",
+        "\tdefer stdoutHead.Close()",
+        "\t                      ^"
+      ],
+      [
+        "tools/gomad3/runner/internal/execution/process_test.go",
+        761,
+        "24",
+        "Error return value of `stderrHead.Close` is not checked (errcheck)",
+        "\tdefer stderrHead.Close()",
+        "\t                      ^"
+      ],
+      [
+        "tools/gomad3/runner/internal/execution/process_unix_test.go",
+        67,
+        "23",
+        "Error return value of `resources.close` is not checked (errcheck)",
+        "\tdefer resources.close()",
+        "\t                     ^"
+      ],
+      [
+        "tools/gomad3/runner/internal/minimizer/workspace_unix_test.go",
+        377,
+        "19",
+        "Error return value of `stdin.Close` is not checked (errcheck)",
+        "\tdefer stdin.Close()",
+        "\t                 ^"
+      ],
+      [
+        "tools/gomad3/runner/retention_characterization_test.go",
+        750,
+        "20",
+        "Error return value of `opened.Close` is not checked (errcheck)",
+        "\tdefer opened.Close()",
+        "\t                  ^"
+      ],
+      [
+        "tools/gomad3/runner/runner_test.go",
+        895,
+        "20",
+        "Error return value of `opened.Close` is not checked (errcheck)",
+        "\tdefer opened.Close()",
+        "\t                  ^"
+      ],
+      [
+        "tools/gomad3/runner/runner_test.go",
+        2262,
+        "20",
+        "Error return value of `opened.Close` is not checked (errcheck)",
+        "\tdefer opened.Close()",
+        "\t                  ^"
+      ],
+      [
+        "tools/gomad3/runner/runner_test.go",
+        2369,
+        "13",
+        "Error return value of `file.Close` is not checked (errcheck)",
+        "\t\tfile.Close()",
+        "\t\t          ^"
+      ]
+    ],
+    "added_diagnostics": [],
+    "residual_base_line_column_message_statement_caret_multiset_preserved": true,
+    "baseline_receipt": "../task-56/corrected-make-gomad-original-base.json",
+    "candidate_receipt": "make-gomad-original-base.json"
+  },
+  "baseline_inventory_binding": {
+    "receipt_source_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+    "source_identical_except_committed_milestone_admission": true,
+    "milestone_admission_commit": "f830467fcb712a83ba504c7dd43e2beb7f2cf223",
+    "comparison_commit": "87733ae65f",
+    "baseline_stdout_sha256": "7e57810295d9ed9b6e347c040bdcca1da78cefa3608c87cf07296f62b5022b95",
+    "no_green_baseline_or_candidate_rebinding": true
+  }
+}

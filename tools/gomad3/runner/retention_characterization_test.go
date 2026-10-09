@@ -747,7 +747,11 @@ func (replayer *replayRecorder) Replay(_ context.Context, config ReplaySpec) (Re
 		replayer.t.Errorf("guided corpus case was not published before its replay: %v", err)
 		return ReplayResult{}, err
 	}
-	defer opened.Close()
+	defer func(opened *artifact.Opened) {
+		if err := opened.Close(); err != nil {
+			replayer.t.Error(err)
+		}
+	}(opened)
 	replayer.manifest = opened.Manifest()
 	if _, err := os.Stat(filepath.Join(replayer.corpus, "corpus.json")); !os.IsNotExist(err) {
 		replayer.indexed = true
