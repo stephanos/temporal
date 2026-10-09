@@ -1,0 +1,117 @@
+// The operands a realization reads and the protobuf messages its commands write. A file of the IR
+// schema rooted at ir.proto.
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+option java_multiple_files = true;
+option java_package = "io.temporal.server.api.umpire.v1";
+
+import "temporal/server/api/umpire/v1/common.proto";
+
+// A text a Case gets its own copy of: the prefix, then the Case's fixture name when `fixture` is
+// set, then the suffix.
+message Name {
+  string prefix = 1;
+  bool fixture = 2;
+  string suffix = 3;
+}
+
+// A value a command computes when it runs.
+message Operand {
+  Position position = 1;
+  oneof kind {
+    ProtoValue literal = 2;
+    // An environment binding's value.
+    string environment = 3;
+    // The run's own id.
+    Empty run = 4;
+    // A learned value, by id.
+    string learned_value = 5;
+    // The value a poll is looking at, or the payload a Run Event's guard and key read.
+    Empty projected = 6;
+    PathOf path = 7;
+    Present present = 8;
+    Equal equal = 9;
+    All all = 10;
+    Greater greater = 11;
+    Not not = 12;
+  }
+}
+
+message PathOf {
+  Operand of = 1;
+  string path = 2;
+}
+
+message Present {
+  Operand of = 1;
+}
+
+message Equal {
+  Operand left = 1;
+  Operand right = 2;
+}
+
+// Holds when every operand does, read left to right up to the first that does not.
+message All {
+  repeated Operand operands = 1;
+}
+
+// Holds when the left integer is greater than the right.
+message Greater {
+  Operand left = 1;
+  Operand right = 2;
+}
+
+// Holds when its operand, a condition, does not.
+message Not {
+  Operand of = 1;
+}
+
+// A protobuf message written out: its fully qualified name and the fields it sets. A field it does
+// not name stays unset.
+message Proto {
+  Position position = 1;
+  string message = 2;
+  repeated ProtoField fields = 3;
+}
+
+message ProtoField {
+  // The field's protobuf name.
+  string name = 1;
+  ProtoValue value = 2;
+}
+
+message ProtoValue {
+  oneof kind {
+    string text = 1;
+    bool flag = 2;
+    int64 number = 3;
+    // An enum value, by name.
+    string enum_name = 4;
+    // Bytes, as the UTF-8 text they encode.
+    string utf8 = 5;
+    Proto message = 6;
+    ProtoMap mapping = 7;
+    // A role, by id, where a field names the role a run resolves.
+    string role_id = 8;
+    Name named = 9;
+    // An ordered list of typed protobuf messages, never a scalar or map value.
+    ProtoMessages messages = 10;
+  }
+}
+
+message ProtoMessages {
+  repeated Proto values = 1;
+}
+
+message ProtoMap {
+  repeated ProtoEntry entries = 1;
+}
+
+message ProtoEntry {
+  string key = 1;
+  ProtoValue value = 2;
+}

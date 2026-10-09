@@ -395,11 +395,7 @@ func TestSchemaRenameKeepsTheDescriptor(t *testing.T) {
 	addedSinceTheCapture(t, expected)
 	want, err := schemaDeclarations([]*descriptorpb.FileDescriptorProto{expected})
 	require.NoError(t, err)
-	var files []*descriptorpb.FileDescriptorProto
-	for _, file := range schemaClosure() {
-		files = append(files, protodesc.ToFileDescriptorProto(file))
-	}
-	got, err := schemaDeclarations(files)
+	got, err := schemaDeclarations(schemaFiles())
 	require.NoError(t, err)
 	// A declaration missing from the schema's files, or new in them, is named before any is compared.
 	require.Equal(t, schemaDeclarationNames(want), schemaDeclarationNames(got))
@@ -421,6 +417,15 @@ func schemaClosure() []protoreflect.FileDescriptor {
 	}
 	visit(umpirespb.File_temporal_server_api_umpire_v1_ir_proto)
 	return slices.SortedFunc(maps.Values(seen), func(a, b protoreflect.FileDescriptor) int { return cmp.Compare(a.Path(), b.Path()) })
+}
+
+// schemaFiles is schemaClosure's files as protoc describes them.
+func schemaFiles() []*descriptorpb.FileDescriptorProto {
+	var files []*descriptorpb.FileDescriptorProto
+	for _, file := range schemaClosure() {
+		files = append(files, protodesc.ToFileDescriptorProto(file))
+	}
+	return files
 }
 
 // schemaDeclarations is the schema's files as the one file they are declared to be: the root's name
@@ -489,11 +494,17 @@ func schemaDeclarationNames(union *descriptorpb.FileDescriptorProto) []string {
 	return names
 }
 
-// The schema split into a root and a file of the IR it imports declares what the one file did: the
-// union holds no file the declarations moved to. A declaration the split lost, declared twice, or
-// declared in another package or with other options, is refused or differs.
+// The schema's declarations as one file, split into a root and a file of the IR it imports, declare
+// what the one file did: the union holds no file the declarations moved to. A declaration the split
+// lost, declared twice, or declared in another package or with other options, is refused or differs.
 func TestSchemaDeclarationsOfASplitSchema(t *testing.T) {
-	whole := protodesc.ToFileDescriptorProto(umpirespb.File_temporal_server_api_umpire_v1_ir_proto)
+	whole, err := schemaDeclarations(schemaFiles())
+	require.NoError(t, err)
+	position := func(file *descriptorpb.FileDescriptorProto) int {
+		i := slices.IndexFunc(file.GetMessageType(), func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == "Position" })
+		require.NotEqual(t, -1, i)
+		return i
+	}
 	const commonName = schemaDirectory + "v1/common.proto"
 	split := func(moved ...string) []*descriptorpb.FileDescriptorProto {
 		root := proto.CloneOf(whole)
@@ -529,14 +540,14 @@ func TestSchemaDeclarationsOfASplitSchema(t *testing.T) {
 	protorequire.ProtoEqual(t, want, got)
 
 	lost := split("Position", "Empty")
-	lost[0].MessageType = lost[0].MessageType[1:]
+	lost[0].MessageType = slices.Delete(lost[0].MessageType, position(lost[0]), position(lost[0])+1)
 	got, err = schemaDeclarations(lost)
 	require.NoError(t, err)
 	require.NotContains(t, schemaDeclarationNames(got), "Position")
 	require.False(t, proto.Equal(want, got))
 
 	twice := split("Position", "Empty")
-	twice[1].MessageType = append(twice[1].MessageType, proto.CloneOf(twice[0].MessageType[0]))
+	twice[1].MessageType = append(twice[1].MessageType, proto.CloneOf(twice[0].MessageType[position(twice[0])]))
 	_, err = schemaDeclarations(twice)
 	require.ErrorContains(t, err, "Position is declared in "+commonName+" and in "+schemaRoot)
 
@@ -551,7 +562,7 @@ func TestSchemaDeclarationsOfASplitSchema(t *testing.T) {
 	require.ErrorContains(t, err, commonName+" has options")
 
 	changed := split("Position", "Empty")
-	changed[0].MessageType[0].Field[0].Number = proto.Int32(3)
+	changed[0].MessageType[position(changed[0])].Field[0].Number = proto.Int32(3)
 	got, err = schemaDeclarations(changed)
 	require.NoError(t, err)
 	require.Equal(t, schemaDeclarationNames(want), schemaDeclarationNames(got))

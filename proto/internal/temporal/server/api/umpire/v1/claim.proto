@@ -1,0 +1,215 @@
+// What a Model claims of its machines: Properties, Scenarios, Queries and progress. A file of the
+// IR schema rooted at ir.proto.
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+option java_multiple_files = true;
+option java_package = "io.temporal.server.api.umpire.v1";
+
+import "google/protobuf/wrappers.proto";
+import "temporal/server/api/umpire/v1/common.proto";
+import "temporal/server/api/umpire/v1/expression.proto";
+import "temporal/server/api/umpire/v1/machine.proto";
+
+// A Property: a pass/fail rule over the steps of the machine or composition it is declared on.
+message Property {
+  // The machine's or composition's name.
+  string machine = 1;
+  string name = 2;
+  Position position = 3;
+  // The steps it is about; every step when neither is set.
+  oneof when {
+    ActionClass when_class = 4;
+    // Every class of the action of this name.
+    string when_action = 5;
+  }
+  // A Function from the step record to a Boolean, or with `transition` from the state before the
+  // step and the step record.
+  string holds = 6;
+  bool transition = 7;
+  // Set only on a Property the generator expanded from a capability Property. Nothing reads it but
+  // a reader tracing a generated Property back to its definition, so no fingerprint, answer,
+  // lowering or exploration identity changes with it. Unset on an author's own Property.
+  PropertyOrigin origin = 8;
+}
+
+// The capability Property a generated Property was expanded from. The generated Property's own
+// position is where its capability is declared; this one is where the capability Property is defined.
+message PropertyOrigin {
+  // Fully qualified, e.g. `temporal.capabilities.Closable.closedIsRejectedUniformly`.
+  string name = 1;
+  Position position = 2;
+}
+
+// A Scenario: a named schedule from one start.
+message Scenario {
+  // The machine's or composition's name.
+  string machine = 1;
+  string name = 2;
+  Position position = 3;
+  Expr start = 4;
+  // The pinned schedule, one class per step.
+  repeated ActionClass actions = 5;
+  // A composition's pinned schedule, by its composed class keys.
+  repeated string keys = 6;
+  // Any action at every step, within the Query's step limit.
+  bool free = 7;
+}
+
+// A Property or Scenario, by the machine it is declared on and its name.
+message ClaimRef {
+  string machine = 1;
+  string name = 2;
+}
+
+// A bounded question: a Property, a Scenario and Limits.
+message Query {
+  string name = 1;
+  Position position = 2;
+  enum Form {
+    FORM_UNSPECIFIED = 0;
+    // One trace of the Scenario on which the Property holds.
+    FORM_FIND = 1;
+    // Whether the Property holds on every trace of the Scenario.
+    FORM_VERIFY = 2;
+  }
+  Form form = 3;
+  ClaimRef property = 4;
+  ClaimRef scenario = 5;
+  // The Scenario's machine reads the Property through the refinement it declares.
+  bool through = 6;
+  Limits limits = 7;
+  RunExpectation expected_run = 8;
+  Exploration exploration = 9;
+  // The author's count of the Query's static combinations: the Scenario machine's states times the
+  // scheduled slots within the step limit when pinned, or times its action classes times the step
+  // limit when free (model/SEMANTICS.md, Query totals). The reader recomputes and checks it; nothing
+  // else reads it, so no fingerprint, answer, lowering or exploration identity changes with it. Unset
+  // only in IR lifted before it existed. A wrapper, not proto3 `optional`, which the pinned
+  // protoc-gen-go-helpers refuses; both are written `"total": "48"` in ProtoJSON.
+  google.protobuf.Int64Value total = 10;
+}
+
+// Finite input domains over a Query's pinned prefix. Choices replace the indexed action;
+// the final action is retained. Higher total priority is tried first, ties by choice names.
+message Exploration {
+  string name = 1;
+  Position position = 2;
+  repeated Variation variations = 3;
+  int32 runs = 4;
+  int32 edits = 5;
+  bool drop_prefix = 6;
+}
+
+message Variation {
+  int32 index = 1;
+  repeated Alternative choices = 2;
+  Position position = 3;
+}
+
+message Alternative {
+  string name = 1;
+  int32 priority = 2;
+  repeated ActionClass actions = 3;
+  Position position = 4;
+}
+
+// Expected assessment of a completed live Run, separate from the Query's model-search answer.
+message RunExpectation {
+  enum Conformance {
+    CONFORMANCE_UNSPECIFIED = 0;
+    CONFORMANCE_CONFORMANT = 1;
+    CONFORMANCE_NONCONFORMANT = 2;
+    CONFORMANCE_INCONCLUSIVE = 3;
+  }
+  enum Outcome {
+    OUTCOME_UNSPECIFIED = 0;
+    OUTCOME_SATISFIED = 1;
+    OUTCOME_VIOLATED = 2;
+    OUTCOME_INCONCLUSIVE = 3;
+  }
+  // How the Run ends, as Testpilot's RunDisposition names it.
+  enum Disposition {
+    DISPOSITION_UNSPECIFIED = 0;
+    DISPOSITION_COMPLETED = 1;
+    DISPOSITION_STOPPED_BY_MONITOR = 2;
+    DISPOSITION_INCOMPLETE = 3;
+  }
+  // How the Run's cleanup ends, as Testpilot's CleanupStatus names it.
+  enum Cleanup {
+    CLEANUP_UNSPECIFIED = 0;
+    CLEANUP_SUCCEEDED = 1;
+    CLEANUP_FAILED = 2;
+    CLEANUP_TIMED_OUT = 3;
+  }
+  // Why the model assessment leaves an outcome short of satisfied, or conformance short of
+  // conformant: the judge's own reasons, by id. The assessment reports the id beside its prose
+  // (tools/umpire/conformance/conclude.go).
+  enum Reason {
+    REASON_UNSPECIFIED = 0;
+    // The Run recorded no evidence of the machine.
+    REASON_NO_EVIDENCE = 1;
+    // The Run did not close complete.
+    REASON_INCOMPLETE = 2;
+    // A hole of the Model is in reach.
+    REASON_HOLE = 3;
+    // No modeled execution explains the evidence.
+    REASON_UNEXPLAINED = 4;
+    // The explaining executions disagree on the claim.
+    REASON_EXPLANATIONS_DISAGREE = 5;
+    // An explaining execution never reaches the claim's evaluation point.
+    REASON_NEVER_EVALUATED = 6;
+    // The claim cannot be read on an explaining execution.
+    REASON_UNREADABLE = 7;
+    // Every explaining execution violates the claim.
+    REASON_EVERY_EXPLANATION_VIOLATES = 8;
+  }
+  reserved 2;
+  // The selected Property's outcome, and its reason when it is not satisfied.
+  Outcome property = 1;
+  Reason reason = 8;
+  Conformance conformance = 3;
+  repeated MonitorExpectation monitors = 4;
+  // The Contract's Verdict.
+  Outcome contract = 5;
+  Disposition disposition = 6;
+  Cleanup cleanup = 7;
+  // Why the model assessment's conformance is not conformant, by the judge's id. Set exactly when
+  // conformance is not conformant.
+  Reason conformance_reason = 9;
+}
+
+message MonitorExpectation {
+  reserved 3;
+  string name = 1;
+  RunExpectation.Outcome outcome = 2;
+  // Set exactly when the outcome is not satisfied.
+  RunExpectation.Reason reason = 4;
+}
+
+message Limits {
+  string name = 1;
+  // The depth bound.
+  int32 steps = 2;
+  // The schedule length.
+  int32 actions = 3;
+  // The product states the search may visit.
+  int32 search = 4;
+}
+
+// A bounded progress claim: from a state `from` accepts, a state `to` accepts follows within
+// `within` steps, under the named assumptions.
+message Progress {
+  // The machine's name.
+  string machine = 1;
+  string name = 2;
+  Position position = 3;
+  // Functions from the state to a Boolean.
+  string from = 4;
+  string to = 5;
+  int32 within = 6;
+  // Assumptions, by id.
+  repeated string assumptions = 7;
+}

@@ -7,8 +7,8 @@ satisfies: [R1, R2, R3]
 Move the existing declarations into the nine-file graph from the parent spec, using Task 1's closure-aware generation and descriptor harness. Keep the generated message packages and all message-level contracts stable.
 
 **Size:** M
-**Files:** `proto/internal/temporal/server/api/umpire/v1/*.proto`, `api/umpire/v1/*.pb.go`, `model/check/Gate.scala`
-**Touches:** [proto/internal/temporal/server/api/umpire/v1/*.proto, api/umpire/v1/*.pb.go, model/check/Gate.scala]
+**Files:** `proto/internal/temporal/server/api/umpire/v1/*.proto`, `api/umpire/v1/*.pb.go`, `model/check/Gate.scala`, `tools/umpire/ir/schema_test.go`
+**Touches:** [proto/internal/temporal/server/api/umpire/v1/*.proto, api/umpire/v1/*.pb.go, model/check/Gate.scala, tools/umpire/ir/schema_test.go]
 
 ### Approach
 - Extract the model chain and realization chain without changing declaration bodies.

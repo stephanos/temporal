@@ -1,0 +1,206 @@
+// The Umpire IR's machines: actions, machines, channels, monitors, assumptions, holes and the
+// compositions of machines. A file of the IR schema rooted at ir.proto.
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+option java_multiple_files = true;
+option java_package = "io.temporal.server.api.umpire.v1";
+
+import "temporal/server/api/umpire/v1/common.proto";
+import "temporal/server/api/umpire/v1/expression.proto";
+import "temporal/server/api/umpire/v1/value.proto";
+
+// An action: an actor's side effect or a timer the system owns, with its finite inputs.
+// The system owns its other steps too: an internal step, and a channel's delivery or loss.
+message Action {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  // The name its classes are keyed by.
+  string name = 2;
+  Position position = 3;
+  // The actor who takes it, by name: `system` for a timer and the system's other steps.
+  string actor = 4;
+  bool timer = 5;
+  repeated Param inputs = 6;
+  string on = 7;
+  string creates = 8;
+  repeated string schemas = 9;
+  string results = 10;
+  repeated Example examples = 11;
+  // A step of the system that is not a timer.
+  bool internal = 12;
+  // A channel's delivery of one message, its one input, by the channel's id.
+  string delivers = 13;
+  // A lossy channel's loss of one message, its one input, by the channel's id.
+  string loses = 14;
+}
+
+// An Abstraction Claim on one class of a one-input action.
+message Example {
+  Value value = 1;
+  string example = 2;
+}
+
+// A machine: a state type, the step function bound to each action, the states it starts in, the
+// states it may end in, the evidence for each fact, and the machine it refines.
+// It also names the monitors that watch it and the assumptions checking it makes.
+message Machine {
+  // The root the IDs derived from it hang off (`<family>.query.<name>`, its target, its claims):
+  // the front end's name of the package that declares it.
+  string family = 1;
+  string name = 2;
+  Position position = 3;
+  string entity = 4;
+  string state_type = 5;
+  string outcome_type = 6;
+  // Empty when the machine records no facts.
+  string fact_type = 7;
+  repeated Expr starts = 8;
+  // A predicate over the state.
+  Expr ends = 9;
+  repeated StepBinding steps = 10;
+  // A function from a fact to the recorded event or observation that confirms it.
+  string evidence = 11;
+  repeated string unobservable = 12;
+  Refinement refines = 13;
+  // Monitors, by id.
+  repeated string monitors = 14;
+  // Assumptions every result of a check of this machine names, by id: that it stands for an opaque
+  // provider, or that it includes a fault only an assumption allows.
+  repeated string assumes = 15;
+}
+
+message StepBinding {
+  // An Action's id.
+  string action = 1;
+  // A Function taking the state, then one argument per input, returning a list of the framework's
+  // step records `{outcome, state, facts, because}`.
+  string function = 2;
+  Position position = 3;
+}
+
+message Refinement {
+  // The refined machine's name.
+  string product = 1;
+  // A Function from this machine's state to the refined machine's.
+  string map = 2;
+  // A Function from a fact of this machine to whether the refined machine sees it. Empty when the
+  // refinement declares no projection.
+  string visible = 3;
+  // A Function from an outcome of this machine to whether the refined machine sees it. Empty when the
+  // refinement names no outcome the refined machine sees.
+  string visible_outcomes = 4;
+}
+
+// A bounded channel: the messages one machine's state holds between their send and their delivery.
+message Channel {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  string name = 2;
+  Position position = 3;
+  TypeRef message = 4;
+  // The most messages it holds at once, at least 1.
+  int32 capacity = 5;
+  enum Order {
+    ORDER_UNSPECIFIED = 0;
+    // In the order they were sent.
+    ORDER_FIFO = 1;
+    // Any held message may be delivered next.
+    ORDER_UNORDERED = 2;
+  }
+  Order order = 6;
+  // Whether it may lose a message it holds.
+  bool lossy = 7;
+  // How many more times than once it may deliver a message, because the acknowledgment of a
+  // delivery was lost.
+  int32 duplicates = 8;
+}
+
+// A passive monitor: a finite state that every step of the machines it watches advances, and a
+// verdict read at its evaluation point. It reads steps and never disables one.
+message Monitor {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  string name = 2;
+  Position position = 3;
+  TypeRef state = 4;
+  Expr initial = 5;
+  // A Function taking the monitor's state, the machine's state before a step and the step record,
+  // returning the monitor's state after the step.
+  string next = 6;
+  // A Function from the monitor's state to whether the monitor is violated.
+  string violated = 7;
+  // Where the verdict is read.
+  oneof evaluate {
+    // After every step.
+    Empty every_step = 8;
+    // At the end of a path, in a state the machine may end in.
+    Empty at_ends = 9;
+    // After the steps a Function from the step record to a Boolean accepts.
+    string after = 10;
+  }
+}
+
+// A named assumption a check makes and every result it reports names.
+message Assumption {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  string name = 2;
+  Position position = 3;
+  // Actions, by id, that the assumption makes weakly fair: one that stays enabled is taken.
+  repeated string fair = 4;
+}
+
+// A declared hole: behavior the Model leaves unknown on purpose, which makes a result that reaches it
+// incomplete.
+message Hole {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  string name = 2;
+  Position position = 3;
+}
+
+// A composition: one Model from machines of different entities, a state with one field per member.
+message Composition {
+  // As a machine's: the front end's name of the package that declares it.
+  string family = 1;
+  string name = 2;
+  Position position = 3;
+  string state_type = 4;
+  repeated Member members = 5;
+  repeated Sync syncs = 6;
+  // A predicate over the composed state.
+  Expr ends = 7;
+}
+
+message Member {
+  // The composed state's field the member fills.
+  string field = 1;
+  // A machine's name.
+  string machine = 2;
+  // The name of the machine this member stands in for, which it must refine: a detailed provider
+  // replacing an opaque one within this composition. Empty when it replaces none.
+  string replaces = 3;
+}
+
+// Two members' actions paired into one step.
+message Sync {
+  string name = 1;
+  SyncMove first = 2;
+  SyncMove second = 3;
+}
+
+message SyncMove {
+  // The member's field.
+  string member = 1;
+  // The action's name.
+  string action = 2;
+}
+
+// One class of an action: the action, by id, and one value per input.
+message ActionClass {
+  string action = 1;
+  repeated Value inputs = 2;
+}

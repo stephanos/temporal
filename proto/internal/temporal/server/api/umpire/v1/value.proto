@@ -1,0 +1,89 @@
+// The Umpire IR's finite values: the types a Model declares and the values of them. A file of the
+// IR schema rooted at ir.proto.
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+option java_multiple_files = true;
+option java_package = "io.temporal.server.api.umpire.v1";
+
+import "temporal/server/api/umpire/v1/common.proto";
+
+// A finite type, with its members in catalog order.
+message Type {
+  // Fully qualified, e.g. `temporal.nexuscaller.kernel.ProtocolState`.
+  string name = 1;
+  Position position = 2;
+  oneof shape {
+    // A sum of cases, each with its own finite fields; a case without fields is one member.
+    Enum enum = 3;
+    // A product of finite fields, the last field varying fastest.
+    Record record = 4;
+  }
+}
+
+message Enum {
+  repeated Case cases = 1;
+}
+
+message Case {
+  string name = 1;
+  repeated Field fields = 2;
+}
+
+message Record {
+  repeated Field fields = 1;
+}
+
+message Field {
+  string name = 1;
+  TypeRef type = 2;
+}
+
+// A reference to a finite type: a declared type, the Booleans, or an integer range.
+message TypeRef {
+  oneof ref {
+    string named = 1;
+    Empty bool = 2;
+    IntRange int_range = 3;
+    // A list of values, for a step's facts and a function's results; not a state field.
+    TypeRef list = 4;
+    // An integer with no declared range: a function parameter, never a state field.
+    Empty int = 5;
+    // What a declared channel holds, named by the channel's id: a state field's bounded collection.
+    string channel = 6;
+  }
+}
+
+message IntRange {
+  int64 low = 1;
+  int64 high = 2;
+}
+
+// A value of a finite type.
+message Value {
+  oneof kind {
+    bool bool = 1;
+    int64 int = 2;
+    EnumValue enum = 3;
+    RecordValue record = 4;
+    ListValue list = 5;
+    string text = 6;
+  }
+}
+
+message EnumValue {
+  string type = 1;
+  string case = 2;
+  repeated Value fields = 3;
+}
+
+message RecordValue {
+  string type = 1;
+  repeated Value fields = 2;
+}
+
+message ListValue {
+  repeated Value items = 1;
+}

@@ -1,0 +1,407 @@
+// How a Model is realized against the system: its roles, evidence, correlation, control, scripts
+// and the behavior of the APIs it calls. A file of the IR schema rooted at ir.proto.
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+option java_multiple_files = true;
+option java_package = "io.temporal.server.api.umpire.v1";
+
+import "temporal/server/api/umpire/v1/common.proto";
+import "temporal/server/api/umpire/v1/machine.proto";
+import "temporal/server/api/umpire/v1/operand.proto";
+import "temporal/server/api/umpire/v1/script.proto";
+
+// A realization: how the find Queries of one machine run against a system. It declares the roles a
+// run addresses, the values a run learns, what it observes and reads as evidence, the controls it
+// needs, and the scripts its controller and its workers follow. It carries no Case: a reader lowers
+// one Query's witness through it (model/SEMANTICS.md, Realizations).
+message Realization {
+  // The key the IR names it by: the front end's qualified name.
+  string id = 1;
+  string name = 2;
+  Position position = 3;
+  // The machine whose find Queries it realizes, by name.
+  string machine = 4;
+  // Who lowers it, as a Case's provenance names its producer.
+  string producer = 5;
+  string producer_version = 6;
+  repeated Role roles = 7;
+  repeated Learned learned = 8;
+  repeated Observed observations = 9;
+  repeated Evidence evidence = 10;
+  Correlation correlation = 11;
+  repeated Control controls = 12;
+  repeated Script scripts = 13;
+  // The id a run's coordinates give the cleanup it always attempts.
+  string cleanup = 14;
+  // The dynamic-configuration settings the realized system must run under. A Case lowered through
+  // the realization carries them, and preparation refuses an environment that sets one otherwise.
+  repeated RequiredSetting required_settings = 15;
+  // How the APIs a run calls behave between its calls, as the system's kit declares it once: when a
+  // write's effect is visible to a read, how long each kind of asynchronous cause may take, how
+  // attempts are numbered, the limits of an instruction no hint bounds, and whether a run's record
+  // order is causal. It shapes only a lowered Case's Program and how conformance reads a Run's
+  // attempts; no table, ID, fingerprint, Query answer or Contract reads it. Unset in a realization no
+  // kit declares behavior for.
+  ApiBehavior behavior = 16;
+  // The kind of cause each step class no command performs is, such as an activity's delivery or a
+  // server timer at a deadline the realization set.
+  repeated ServerStep server_steps = 17;
+  // The shared rejection reasons and the gRPC status codes a Temporal RPC returns for them. The
+  // Temporal realization kit attaches the complete table to every realization.
+  repeated RejectionCode rejection_codes = 18;
+  repeated ActivityExternalSettlement external_settlements = 19;
+  repeated ActivityResetSettlement reset_settlements = 20;
+}
+
+// One local pending publication followed by a typed controller answer and bounded cleanup.
+message ActivityExternalSettlement {
+  Position position = 1;
+  string carrier = 2;
+  string activity = 3;
+  int64 attempt = 4;
+  string pending = 5;
+  string held = 6;
+  string answer = 7;
+  string request_cancel = 8;
+  string settlement = 9;
+  Command cleanup = 10;
+}
+
+// One held attempt's local pending publication, then the controller's reset of that attempt, which
+// the selected per-attempt timer applies; the server's next delivery is a first attempt again,
+// whose group `fresh_attempt` names, followed by a terminal read and bounded cleanup.
+message ActivityResetSettlement {
+  Position position = 1;
+  string carrier = 2;
+  string activity = 3;
+  int64 attempt = 4;
+  string pending = 5;
+  string held = 6;
+  string reset_request = 7;
+  ActionClass timer = 8;
+  int64 fresh_attempt = 9;
+  string settlement = 10;
+  Command cleanup = 11;
+}
+
+// A dynamic-configuration setting a realization requires: its key and its value, each spelled as
+// the server's dynamic configuration spells it.
+message RequiredSetting {
+  string key = 1;
+  string value = 2;
+}
+
+// How the APIs a realization calls behave between calls (.plans/API_BEHAVIOR_HINTS.md). Each
+// declaration carries an id, which a lowered wait names the hint by, and the position it is
+// declared at, which a wait that runs out reports.
+message ApiBehavior {
+  repeated Visibility visibility = 1;
+  repeated CauseBound causes = 2;
+  // How the system numbers an activity's attempts.
+  AttemptNumbering attempt_numbering = 3;
+  // The limits of an instruction no hint bounds and that writes none: a call whose response no read
+  // waits on, a Driver wait or a control.
+  InstructionLimit instruction_defaults = 4;
+  // Whether a run's record order is the causal order of one operation's evidence across sources.
+  bool run_order_is_causal = 5;
+}
+
+// How a system numbers the attempts of one activity: the Nth delivery is the attempt numbered
+// first + N - 1, and with one_run every attempt belongs to the activity's one run.
+message AttemptNumbering {
+  Position position = 1;
+  int64 first = 2;
+  bool one_run = 3;
+}
+
+// The limits of one instruction: its deadline in milliseconds, and the attempts it may take.
+message InstructionLimit {
+  Position position = 1;
+  int64 timeout_ms = 2;
+  int64 attempts = 3;
+}
+
+// When the effect of a write is visible to a read: at once, or eventually within a bound.
+message Visibility {
+  // Stable and derived from the pair, e.g. "visibility.pauseActivityExecution.describeActivityExecution".
+  string id = 1;
+  Position position = 2;
+  oneof write {
+    // A method, "/package.Service/Method", that the API binds to HTTP POST.
+    string method = 3;
+    // A performed command that is no call, by the kind of cause it is.
+    CauseKind cause = 4;
+  }
+  // The reading method, "/package.Service/Method", that the API binds to HTTP GET.
+  string read = 5;
+  // Unset: visible at once, so a read after the write reads once. Set: visible eventually, within
+  // this bound.
+  WaitBound eventually_within = 6;
+}
+
+// How long a condition may take to hold, and how often a wait looks, in milliseconds; both positive,
+// and the interval no greater than the bound.
+message WaitBound {
+  Position position = 1;
+  int64 interval_ms = 2;
+  // (-- api-linter: core::0140::prepositions=disabled
+  //     aip.dev/not-precedent: The name is the bound's own "at most"; the IR is internal to Umpire. --)
+  int64 at_most_ms = 3;
+}
+
+// How long one kind of asynchronous cause may take, once, from the step before it.
+message CauseBound {
+  // Stable and derived from the kind, e.g. "cause.delivery".
+  string id = 1;
+  Position position = 2;
+  CauseKind kind = 3;
+  WaitBound bound = 4;
+}
+
+// A kind of asynchronous cause a read can wait for: something no command of the read's own script
+// does.
+enum CauseKind {
+  CAUSE_KIND_UNSPECIFIED = 0;
+  // An activity script's answer: RespondActivityTaskCompleted, Failed or Canceled.
+  CAUSE_KIND_ACTIVITY_ANSWER = 1;
+  // A workflow script's commands: RespondWorkflowTaskCompleted.
+  CAUSE_KIND_WORKFLOW_TASK = 2;
+  // A Nexus handler script's reply: RespondNexusTaskCompleted or Failed.
+  CAUSE_KIND_HANDLER_REPLY = 3;
+  // The server's dispatch of a task to a worker.
+  CAUSE_KIND_DELIVERY = 4;
+  // A server timer at a deadline the realization set.
+  CAUSE_KIND_TIMER = 5;
+  // An SDK activity heartbeat invocation, whose receipt must be read separately.
+  CAUSE_KIND_ACTIVITY_HEARTBEAT = 6;
+}
+
+// A step class no command performs, and the kind of cause it is.
+message ServerStep {
+  Position position = 1;
+  ActionClass step = 2;
+  CauseKind kind = 3;
+  // For a timer: the deadline the realization set for this class, written from the same kit value
+  // its request carries. A wait for it is this deadline plus the timer's CauseBound, the slack.
+  int64 deadline_ms = 4;
+  // The typed request field whose timeout supplies this timer, retained by lifting deadlines.
+  TimeoutBasis timeout_basis = 5;
+}
+
+enum TimeoutBasis {
+  TIMEOUT_BASIS_UNSPECIFIED = 0;
+  TIMEOUT_BASIS_SCHEDULE_TO_CLOSE = 1;
+  TIMEOUT_BASIS_START_TO_CLOSE = 2;
+  TIMEOUT_BASIS_HEARTBEAT = 3;
+}
+
+// A symbolic participant commands and activations address. Its bindings name the environment
+// resources a run supplies.
+message Role {
+  string id = 1;
+  Position position = 2;
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_ENDPOINT = 1;
+    KIND_WORKER = 2;
+    KIND_TASK_QUEUE = 3;
+    KIND_PARTICIPANT = 4;
+  }
+  Kind kind = 3;
+  // The environment binding of a worker's or a task queue's namespace, or empty.
+  string namespace = 4;
+  // The environment binding of the role's resource, or empty.
+  string resource = 5;
+}
+
+// A value a run learns: bound once, by one command, and read by the commands that depend on it.
+message Learned {
+  string id = 1;
+  Position position = 2;
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_TEXT = 1;
+    // An effect handle the system issues, which only a command that completes the effect reads.
+    KIND_HANDLE = 2;
+  }
+  Kind kind = 3;
+}
+
+// A typed value a run records for its checks: one protobuf message.
+message Observed {
+  string id = 1;
+  Position position = 2;
+  // The message's fully qualified protobuf name.
+  string message = 3;
+}
+
+// One kind of evidence: the recorded data that confirms the facts a machine's evidence function
+// names `records`, the field that keys it to its operation, what it commits to, the fields it keeps
+// of the recorded data, and whether its source reports every occurrence.
+message Evidence {
+  string id = 1;
+  Position position = 2;
+  // The name the machine's evidence function gives the facts this kind confirms.
+  string records = 3;
+  // The evidence source identity this kind's evidence is counted in.
+  string source = 4;
+  oneof from {
+    // The attributes member of temporal.api.history.v1.HistoryEvent a history read lifts.
+    string history = 5;
+    ReadSource read = 6;
+    // The one message at `path` in the response of a unary method.
+    ReadSource single = 11;
+    // The Run's own record of one command's events.
+    RunEventSource run_event = 12;
+  }
+  // The field path, in the recorded message, of the key that names the operation. A Run Event's
+  // evidence leaves it empty: its source's key names the operation.
+  string operation = 7;
+  enum Commitment {
+    COMMITMENT_UNSPECIFIED = 0;
+    // What a caller was told: a response or a recorded event it can read back.
+    COMMITMENT_REPORTED = 1;
+    // A durable commit of the receiver, which no response implies.
+    COMMITMENT_DURABLE = 2;
+  }
+  Commitment commitment = 8;
+  // The fields of the recorded data the evidence carries.
+  repeated EvidenceField fields = 9;
+  // Whether the source reports every occurrence of the facts this kind records, for the operations
+  // its closing read covers. A command of the realization names the kind in `closes`.
+  bool exhaustive = 10;
+  // The steps of a path one piece of this evidence confirms, where the fact it records is recorded
+  // by more steps than one and each has evidence of its own. A kind that names steps confirms those
+  // and no other, all of them or none. Empty, the kind confirms the one step of a path that records
+  // its fact.
+  repeated Taking confirms = 13;
+}
+
+// One step of a path: the `occurrence`-th step, counted from one, of a class.
+message Taking {
+  Position position = 1;
+  ActionClass step = 2;
+  int64 occurrence = 3;
+}
+
+// One field evidence carries: where it is read in the recorded data, and the identity it names.
+message EvidenceField {
+  string id = 1;
+  Position position = 2;
+  // The field path, in the recorded message.
+  string path = 3;
+  enum Role {
+    // Data that names no identity.
+    ROLE_UNSPECIFIED = 0;
+    // The logical operation, as the kind's operation key names it.
+    ROLE_OPERATION = 1;
+    // The execution attempt the fact belongs to.
+    ROLE_ATTEMPT = 2;
+    // The delivery the fact belongs to.
+    ROLE_DELIVERY = 3;
+  }
+  Role role = 4;
+  // Whether the evidence carries the field without its value.
+  bool redacted = 5;
+}
+
+// The Run Events of one kind that one command of a script records, where `guard` holds of the event's
+// payload, the instruction outcome: each is one occurrence of the evidence, of the operation `key`
+// names.
+message RunEventSource {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    // The command's own completion.
+    KIND_INSTRUCTION_COMPLETED = 1;
+    KIND_INSTRUCTION_TIMED_OUT = 2;
+    // What a worker reports of an activation the command carries, such as one attempt of an activity.
+    KIND_DIAGNOSTIC = 3;
+  }
+  Kind kind = 1;
+  // The script, by id, and its command, by id.
+  string script = 2;
+  string command = 3;
+  // The operation's key: the run's own id, or a path of the payload.
+  Operand key = 4;
+  // A condition over the payload, the value `projected` names. Unset, every such event is evidence.
+  Operand guard = 5;
+  // Set where the events are the Run's record of one attempt of an activity: the attempt, and the
+  // activity script it is an attempt of. A Run records an attempt once it is answered, so such
+  // evidence reaches the Run with that answer, and not with the command that carries it. A
+  // KIND_DIAGNOSTIC source always sets it, and no other kind does.
+  AttemptOf attempt = 6;
+}
+
+// One attempt of the activity one script runs: the `number`-th delivery to the script's worker,
+// counted from one, as the server numbers attempts.
+message AttemptOf {
+  Position position = 1;
+  // The activity's script, by id.
+  string script = 2;
+  int64 number = 3;
+}
+
+// The field at `path` in the response of a unary method: the elements of a repeated field, or one
+// message.
+message ReadSource {
+  // The full method name, "/package.Service/Method".
+  string method = 1;
+  string path = 2;
+}
+
+// How a run's evidence is keyed into operations, and the window a check of it keeps.
+message Correlation {
+  Position position = 1;
+  // The Definition ID of the projection.
+  string projection = 2;
+  // The field that scopes every evidence identity to its run.
+  string run = 3;
+  // The field that names the operation.
+  string operation = 4;
+  // The observation, of the correlated evidence message, that carries lifted evidence.
+  string observation = 5;
+  int64 events = 6;
+  int64 buffered = 7;
+  int64 keys = 8;
+  int64 support = 9;
+  int64 work = 10;
+  int64 event_size = 11;
+}
+
+// An actuator a run needs beyond its commands: a reader that cannot supply it refuses the
+// realization rather than run without it.
+message Control {
+  string id = 1;
+  Position position = 2;
+  oneof kind {
+    // Holds the deliveries of a channel, by the channel's id, until a command releases them.
+    string hold_delivery = 3;
+    HoldDispatched hold_dispatched = 5;
+  }
+  // The task-queue role whose deliveries a run holds, by id.
+  string role = 4;
+}
+
+// Holds what a step of the class dispatches, until a command releases it.
+message HoldDispatched {
+  ActionClass step = 1;
+}
+
+// The gRPC status code a shared rejection reason realizes as. Nesting the enum in this last message
+// keeps its descriptor entries at the tail and minimizes generated metadata churn.
+message RejectionCode {
+  // Zero is never a declaration: it keeps an absent or unknown value distinguishable from every
+  // closed member of the shared Scala Rejection enum.
+  enum Rejection {
+    REJECTION_UNSPECIFIED = 0;
+    REJECTION_NOT_FOUND = 1;
+    REJECTION_ALREADY_EXISTS = 2;
+    REJECTION_FAILED_PRECONDITION = 3;
+    REJECTION_INVALID_ARGUMENT = 4;
+  }
+  Rejection rejection = 1;
+  string grpc_code = 2;
+}
