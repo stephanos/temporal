@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-142-split-modeltemporalshared-into",
   "impl_review_rounds": {
-    "fn-142-split-modeltemporalshared-into.1": 1
+    "fn-142-split-modeltemporalshared-into.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -59,9 +59,55 @@
       "task": "fn-142-split-modeltemporalshared-into.1",
       "timestamp": "2026-10-09T02:40:25.164943Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "05405e7280182e18fcd673fb7c115591f794f758305e9c03364bd26f047a1e1c",
+      "backend": "codex",
+      "base_sha": "59cb017d308a87483081d24d24b10c9733c2e8cf",
+      "counter_kind": "impl",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6f73b3ef41c4a3bbabe0050a732089e3",
+            "classification": "introduced",
+            "findingId": "finding-6f73b3ef41c4a3bbabe0050a732089e3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "withdrawn"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "326988f050482326b092b31ce46be0bbe603be61",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 876,
+      "output_sha256": "3280e3fd2d312e4d3dadd1680d983d33cab6f17fac4765f081533ace9dd71312",
+      "reservation_id": "e370d58e91f14802b586e31a1c273b44",
+      "round_consumed": true,
+      "scope": "impl:fn-142-split-modeltemporalshared-into.1",
+      "superseded_by": null,
+      "task": "fn-142-split-modeltemporalshared-into.1",
+      "timestamp": "2026-10-09T02:42:02.066023Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-142-split-modeltemporalshared-into.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -81,5 +127,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T02:40:25.168757Z"
+  "updated_at": "2026-10-09T02:42:02.070353Z"
 }
