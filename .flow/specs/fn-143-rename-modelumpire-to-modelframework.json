@@ -114,7 +114,7 @@
     "impl:fn-143-rename-modelumpire-to-modelframework.1": 0
   },
   "spec_path": ".flow/specs/fn-143-rename-modelumpire-to-modelframework.md",
-  "status": "open",
+  "status": "done",
   "title": "Rename model/umpire to model/framework",
   "tracker": {
     "baseHashFlow": null,
@@ -127,5 +127,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T05:55:28.703731Z"
+  "updated_at": "2026-10-09T19:00:13.259118Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-145-modularize-the-umpire-ir-schema",
   "spec_path": ".flow/tasks/fn-145-modularize-the-umpire-ir-schema.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prove artifact identity and document schema ownership",
-  "updated_at": "2026-10-09T18:32:39.906364Z"
+  "updated_at": "2026-10-09T18:40:43.226040Z"
 }

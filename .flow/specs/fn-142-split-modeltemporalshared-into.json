@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-142-split-modeltemporalshared-into",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-09T19:02:04.848526Z",
   "created_at": "2026-10-06T20:40:16.880139Z",
   "default_impl": null,
   "default_review": null,
@@ -103,18 +103,56 @@
       "task": "fn-142-split-modeltemporalshared-into.1",
       "timestamp": "2026-10-09T02:42:02.066023Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8505055b869863e55a603280103f3310a098d9189b47d049e81850746c03066c",
+      "backend": "codex",
+      "base_sha": "59cb017d308a87483081d24d24b10c9733c2e8cf",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4755faca73354e2ab169d1a53e3e0e9ad0cf2bfd",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 548467,
+      "output_sha256": "ed8f04218ab6f0a8e3c7049564cd472f3345a6ea536514ffe81e24ca24c9c4ee",
+      "reservation_id": "ac3df9aefde641729682c256e71c3c0b",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:02:04.833658Z",
+      "tool_calls": 29,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-142-split-modeltemporalshared-into.1": 1
+    "impl:fn-142-split-modeltemporalshared-into.1": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-142-split-modeltemporalshared-into.1": 0
   },
   "spec_path": ".flow/specs/fn-142-split-modeltemporalshared-into.md",
-  "status": "open",
+  "status": "done",
   "title": "Split model/temporal/shared into foundations and actors",
   "tracker": {
     "baseHashFlow": null,
@@ -127,5 +165,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T02:42:02.070353Z"
+  "updated_at": "2026-10-09T19:02:40.798758Z"
 }

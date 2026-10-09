@@ -1,0 +1,152 @@
+{
+  "branch_name": "fn-151-split-standalone-activity-into-smaller",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T03:19:59.686137Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-142-split-modeltemporalshared-into",
+    "fn-143-rename-modelumpire-to-modelframework",
+    "fn-145-modularize-the-umpire-ir-schema"
+  ],
+  "id": "fn-151-split-standalone-activity-into-smaller",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-09T19:07:55.555568Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "cdf4cd3d6eb44d1afc06aa4f82a49673bdbc1e293e9baee74f58a7063effe461",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ec95e18c97bafbaa4e7a1fb0794438d7",
+            "classification": "introduced",
+            "findingId": "finding-ec95e18c97bafbaa4e7a1fb0794438d7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-26563ed8c074946bcd7e30ca771ea498",
+            "classification": "introduced",
+            "findingId": "finding-26563ed8c074946bcd7e30ca771ea498",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4755faca73354e2ab169d1a53e3e0e9ad0cf2bfd",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 451837,
+      "output_sha256": "f321b65f600317cf15a85b8c6c0d7c4effe596cd3f8d0d076a0caed7836b68d0",
+      "reservation_id": "f7858f8c99f1438e8456a70b8320a66f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:05:25.777550Z",
+      "tool_calls": 26,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "85358ea1dbf70aa72d2117bade3490f3a720edeb1df81184f88c653081a89a43",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ec95e18c97bafbaa4e7a1fb0794438d7",
+            "classification": "introduced",
+            "findingId": "finding-ec95e18c97bafbaa4e7a1fb0794438d7",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-26563ed8c074946bcd7e30ca771ea498",
+            "classification": "introduced",
+            "findingId": "finding-26563ed8c074946bcd7e30ca771ea498",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4755faca73354e2ab169d1a53e3e0e9ad0cf2bfd",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1014,
+      "output_sha256": "628a69454a4ce202576dcff6551a1d94d167be6527b12501e36841aac553e175",
+      "reservation_id": "a4cb1b4a88e04581bea76efce29bac89",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T19:07:55.549070Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-151-split-standalone-activity-into-smaller.md",
+  "status": "open",
+  "title": "Split standalone activity into smaller subject models",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T19:07:55.556598Z"
+}

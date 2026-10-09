@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-143-rename-modelumpire-to-modelframework",
   "spec_path": ".flow/tasks/fn-143-rename-modelumpire-to-modelframework.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move model/umpire to model/framework, package umpire to framework; regenerate; prove the diff is the umpire.\u2192framework. mapping; docs",
   "updated_at": "2026-10-08T10:35:00.037013Z"
 }

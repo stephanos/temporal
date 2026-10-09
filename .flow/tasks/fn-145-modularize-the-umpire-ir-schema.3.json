@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-145-modularize-the-umpire-ir-schema",
   "spec_path": ".flow/tasks/fn-145-modularize-the-umpire-ir-schema.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Replace the local Empty marker with protobuf Empty",
   "updated_at": "2026-10-07T04:14:53.130011Z"
 }

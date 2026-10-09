@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-145-modularize-the-umpire-ir-schema",
   "spec_path": ".flow/tasks/fn-145-modularize-the-umpire-ir-schema.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Split ir.proto into nine responsibility files",
   "updated_at": "2026-10-09T04:11:26.958214Z"
 }

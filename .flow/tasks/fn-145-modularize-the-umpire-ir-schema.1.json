@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-145-modularize-the-umpire-ir-schema",
   "spec_path": ".flow/tasks/fn-145-modularize-the-umpire-ir-schema.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Teach generation and descriptor checks the full schema closure",
   "updated_at": "2026-10-07T04:21:47.068777Z"
 }
