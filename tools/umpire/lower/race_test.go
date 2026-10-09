@@ -27,7 +27,7 @@ func TestTheHeldRaceLowers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, Lowered, l.Standing, "%v", l.Unsupported)
 	require.Empty(t, l.OffPath)
-	require.Equal(t, map[string][]string{"controller": {"start-activity", "hold-dispatch", "pause-activity", "await-paused", "release-dispatch"}},
+	require.Equal(t, map[string][]string{"controller": {"start-activity", "hold-dispatch", "pause-activity", "await-paused", "release-dispatch", "read-attempt-count"}},
 		instructionIDs(l.Case))
 	fault := func(kind testpilotspb.FaultKind) *testpilotspb.Instruction {
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{

@@ -1,7 +1,8 @@
 # Semantics of the Umpire IR
 
 The IR's meaning is defined here, not by the IR generator that writes it or the Go interpreter that reads
-it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema;
+it. The nine-file schema closure rooted at `proto/internal/temporal/server/api/umpire/v1/ir.proto`
+defines the artifact shape; [schema ownership](README.md#schema-ownership) lists its declaration owners.
 `tools/umpire/interp` and `tools/umpire/check` evaluate these rules, and their goldens hold what they derive.
 
 ## Versions
@@ -9,6 +10,12 @@ it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema;
 `Model.version` is the IR's major version. This document defines version 0, which every Model written
 before the field existed is in. A reader rejects a Model of a version it does not know, and a Model
 that uses a declaration or a field it does not implement, rather than read the Model without it.
+
+Moving a declaration between schema files changes its file descriptor and generated file-level
+symbols, while its message full name, field numbers, oneof selection and serialized payload keep
+their meaning. The local `Empty` marker has been replaced by `google.protobuf.Empty`. A present
+marker arm still selects its containing oneof, including for a zero-length payload. An absent arm
+selects nothing. The marker supplies no value semantics of its own and changes no Model version.
 
 ## Values
 
@@ -79,7 +86,7 @@ matches an equal value; `case T.C(p1, …, pn)` matches a value of case `C` whos
 alternatives match when any does.
 
 A role test is not an IR expression. A role is a trait the cases of a phase enum mix in
-(`umpire/Roles.scala`), and the IR generator lowers a test of a phase against a role `R` to the
+(`framework/Roles.scala`), and the IR generator lowers a test of a phase against a role `R` to the
 cases of the phase's enum that have `R`, directly or through a narrower role that extends it, listed
 in declaration order: `p.in[R]` on a phase value (or `isInstanceOf[R]`) is `p in list(C1, …, Cn)`, a
 rule case `when[R]` is that membership of the machine's `Phased` projection, and a type pattern against `R`,

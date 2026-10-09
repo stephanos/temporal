@@ -65,43 +65,87 @@ func rewrite(function string, change func(c *umpirespb.MatchCase) bool, ifs func
 	}
 }
 
-// pauseOfCancelRequestedByDefault decides a pause of a cancel-requested activity by a default arm,
-// as `s.phase match { case _ => Nil }` lifts, after the pause's rules are tried.
-var pauseOfCancelRequestedByDefault = rewrite("activitySystem.rules.pause", nil, func(x *umpirespb.If) bool {
-	if x.GetElse().GetList() == nil {
-		return false
+// pauseOfCancelRequestedByDefault replaces only the cancel-requested rejection with a default arm.
+func pauseOfCancelRequestedByDefault(t *testing.T) func(*umpirespb.Model) {
+	t.Helper()
+	return func(ir *umpirespb.Model) {
+		changed := 0
+		rewrite("activitySystem.rules.pause", nil, func(x *umpirespb.If) bool {
+			phases := x.GetCondition().GetBinary().GetRight().GetList().GetItems()
+			if !slices.ContainsFunc(phases, func(p *umpirespb.Expr) bool { return p.GetLiteral().GetEnum().GetCase() == "cancelRequested" }) {
+				return false
+			}
+			phase := func() *umpirespb.Expr {
+				return &umpirespb.Expr{Kind: &umpirespb.Expr_Field{Field: &umpirespb.FieldAccess{
+					Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "s"}}, Field: "phase"}}}
+			}
+			cancelRequested := &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Enum{
+				Enum: &umpirespb.EnumValue{Type: "temporal.features.activity.standalone.system.Phase", Case: "cancelRequested"}}}}}
+			none := &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}}
+			byDefault := &umpirespb.Expr{Position: x.GetThen().GetPosition(), Kind: &umpirespb.Expr_Match{Match: &umpirespb.Match{
+				Scrutinee: phase(),
+				Cases: []*umpirespb.MatchCase{{
+					Pattern: &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &emptypb.Empty{}}},
+					Body:    none,
+				}},
+			}}}
+			x.Then = &umpirespb.Expr{Position: x.GetThen().GetPosition(), Kind: &umpirespb.Expr_If{If: &umpirespb.If{
+				Condition: &umpirespb.Expr{Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{
+					Op:    umpirespb.Binary_OP_CONTAINS,
+					Left:  phase(),
+					Right: &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{Items: []*umpirespb.Expr{cancelRequested}}}},
+				}}},
+				Then: byDefault,
+				Else: x.GetThen(),
+			}}}
+			changed++
+			return true
+		})(ir)
+		require.Equal(t, 1, changed)
 	}
-	phase := func() *umpirespb.Expr {
-		return &umpirespb.Expr{Kind: &umpirespb.Expr_Field{Field: &umpirespb.FieldAccess{
-			Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "s"}}, Field: "phase"}}}
+}
+
+// The scheduled backoff's current pins, omitted only in the clone that tests absent claims.
+func withoutBackoffClaims(t *testing.T) func(*umpirespb.Model) {
+	t.Helper()
+	return func(ir *umpirespb.Model) {
+		for _, name := range []string{
+			"activitySystem.fatalFailure.attemptCountIsWithinPolicy",
+			"activitySystem.fatalFailure.failureEndsFailed",
+			"activitySystem.heartbeatDeadline.deadlineReturnsToWaiting",
+			"activitySystem.retryableFailure.attemptCountIsWithinPolicy",
+			"activitySystem.retryableFailure.failureReturnsToWaiting",
+			"activitySystem.scheduleToCloseDeadline.deadlineTimesOut",
+			"activitySystem.scheduleToStartDeadline.deadlineTimesOut",
+			"activitySystem.startToCloseDeadline.deadlineReturnsToWaiting",
+			"dispatchRequiresReady", "resetKeepsPaused", "resetResumes", "resetSettles", "scheduleToStartRequiresDispatch",
+		} {
+			properties, queries := 0, 0
+			ir.Properties = slices.DeleteFunc(ir.Properties, func(p *umpirespb.Property) bool {
+				match := p.GetMachine() == "activitySystem" && p.GetName() == name
+				if match {
+					properties++
+				}
+				return match
+			})
+			ir.Queries = slices.DeleteFunc(ir.Queries, func(q *umpirespb.Query) bool {
+				match := q.GetProperty().GetMachine() == "activitySystem" && q.GetProperty().GetName() == name
+				if match {
+					queries++
+				}
+				return match
+			})
+			require.Equal(t, 1, properties, name)
+			require.Equal(t, 1, queries, name)
+		}
 	}
-	cancelRequested := &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Enum{
-		Enum: &umpirespb.EnumValue{Type: "temporal.features.activity.standalone.system.Phase", Case: "cancelRequested"}}}}}
-	none := &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}}
-	byDefault := &umpirespb.Expr{Position: x.GetElse().GetPosition(), Kind: &umpirespb.Expr_Match{Match: &umpirespb.Match{
-		Scrutinee: phase(),
-		Cases: []*umpirespb.MatchCase{{
-			Pattern: &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &emptypb.Empty{}}},
-			Body:    none,
-		}},
-	}}}
-	x.Else = &umpirespb.Expr{Position: x.GetElse().GetPosition(), Kind: &umpirespb.Expr_If{If: &umpirespb.If{
-		Condition: &umpirespb.Expr{Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{
-			Op:    umpirespb.Binary_OP_CONTAINS,
-			Left:  phase(),
-			Right: &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{Items: []*umpirespb.Expr{cancelRequested}}}},
-		}}},
-		Then: byDefault,
-		Else: x.GetElse(),
-	}}}
-	return true
-})
+}
 
 func TestDisabledByDefault(t *testing.T) {
 	_, clean := holesOf(t, Options{})
 	require.Empty(t, clean[DisabledByDefault]["activitySystem"])
 
-	tables, holes := holesOf(t, Options{}, pauseOfCancelRequestedByDefault)
+	tables, holes := holesOf(t, Options{}, pauseOfCancelRequestedByDefault(t))
 	found := holes[DisabledByDefault]["activitySystem"]
 	require.Equal(t, []string{"pause in cancelRequested"}, subjectsOf(found))
 	require.Contains(t, found[0].Position, "model/temporal/features/activity/standalone/system/System.scala:")
@@ -115,24 +159,29 @@ func TestDisabledByDefault(t *testing.T) {
 	require.Contains(t, protocol.Rules[i].Holes, DisabledByDefault)
 
 	// An `if` whose condition names no field of the state decides by default too.
-	_, holes = holesOf(t, Options{}, rewrite("activitySystem.rules.respondCanceled", nil, func(x *umpirespb.If) bool {
+	changed := 0
+	_, holes = holesOf(t, Options{}, rewrite("activitySystem.rules.respondCompleted", nil, func(x *umpirespb.If) bool {
 		phases := x.GetCondition().GetBinary().GetRight().GetList().GetItems()
-		if len(phases) != 1 || phases[0].GetLiteral().GetEnum().GetCase() != "cancelRequested" || x.GetElse().GetList() == nil {
+		if !slices.EqualFunc(phases, []string{"started", "pauseRequested", "cancelRequested", "resetRequested", "resetKeepingPause"}, func(p *umpirespb.Expr, name string) bool {
+			return p.GetLiteral().GetEnum().GetCase() == name
+		}) || x.GetElse().GetList() == nil {
 			return false
 		}
 		x.Condition = &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: false}}}}
+		changed++
 		return true
 	}))
-	// The canceled answer's one rule now names nothing of the state, so every phase it is disabled in
+	require.Equal(t, 1, changed)
+	// The completion answer's one rule now names nothing of the state, so every phase it is disabled in
 	// is decided by default.
-	require.Equal(t, []string{"respondCanceled in unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested, completed, failed, canceled, terminated, timedOut"}, subjectsOf(holes[DisabledByDefault]["activitySystem"]))
+	require.Equal(t, []string{"respondCompleted in unstarted, scheduled, started, paused, pauseRequested, cancelRequested, resetRequested, resetKeepingPause, completed, failed, canceled, terminated, timedOut"}, subjectsOf(holes[DisabledByDefault]["activitySystem"]))
 }
 
 func TestSilentRejection(t *testing.T) {
 	tables, holes := holesOf(t, Options{})
 	silent := subjectsOf(holes[SilentRejection]["activitySystem"])
-	// A caller's pause of a paused activity is an RPC the server answers, and the Model says nothing.
-	require.Contains(t, silent, "pause in unstarted, paused, pauseRequested, cancelRequested")
+	// A pause before the activity exists still has no declared answer.
+	require.Contains(t, silent, "pause in unstarted")
 	// A timer is the system's: disabled, it is prohibited, not silent.
 	for _, s := range silent {
 		require.False(t, strings.HasPrefix(s, "backoff"), s)
@@ -142,12 +191,14 @@ func TestSilentRejection(t *testing.T) {
 	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activitySystem" })]
 	i := slices.IndexFunc(protocol.Rules, func(r Rule) bool { return r.Class == "backoff" && r.Modality == MustNot })
 	require.GreaterOrEqual(t, i, 0)
-	require.Equal(t, "s.phase != backingOff", protocol.Rules[i].Text)
+	require.Equal(t, "!((s.phase.in(scheduled, started, paused, pauseRequested, cancelRequested, resetRequested, resetKeepingPause)) && (s.dispatch == backoff))", protocol.Rules[i].Text)
 	require.Contains(t, protocol.Rules[i].Position, "model/temporal/features/activity/standalone/system/System.scala:")
 }
 
 func TestUnconstrainedResult(t *testing.T) {
 	_, holes := holesOf(t, Options{})
+	require.Empty(t, holes[UnconstrainedResult]["activitySystem"])
+	_, holes = holesOf(t, Options{}, withoutBackoffClaims(t))
 	unconstrained := subjectsOf(holes[UnconstrainedResult]["activitySystem"])
 	// The backoff timer's rows land somewhere no claim reads.
 	require.Contains(t, unconstrained, "backoff")
@@ -178,7 +229,7 @@ func TestMustNotPinnedIsOffByDefault(t *testing.T) {
 	_, holes := holesOf(t, Options{})
 	require.NotContains(t, holes, MustNotPinned)
 
-	tables, holes := holesOf(t, Options{MustNotPinned: true})
+	tables, holes := holesOf(t, Options{MustNotPinned: true}, withoutBackoffClaims(t))
 	pinned := holes[MustNotPinned]["activitySystem"]
 	// An end state's disabled pairs are no hole, in the table as in the findings.
 	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activitySystem" })]
@@ -196,7 +247,7 @@ func TestMustNotPinnedIsOffByDefault(t *testing.T) {
 }
 
 func TestTablesAreWrittenByMachineAndClass(t *testing.T) {
-	m := read(t, activityIR, pauseOfCancelRequestedByDefault)
+	m := read(t, activityIR, pauseOfCancelRequestedByDefault(t))
 	tables, _, err := m.holes()
 	require.NoError(t, err)
 	var out strings.Builder
@@ -204,6 +255,6 @@ func TestTablesAreWrittenByMachineAndClass(t *testing.T) {
 	text := out.String()
 	require.Contains(t, text, "rules activity-standalone.json activitySystem by phase\n")
 	require.Contains(t, text, "\n  pause\n")
-	require.Regexp(t, `\n    scheduled, backingOff +MAY +accepted -> paused \[statusPaused\]`, text)
+	require.Regexp(t, `\n    scheduled +MAY +accepted -> paused \[statusPaused\]`, text)
 	require.Regexp(t, `\n    cancelRequested +\? +s\.phase is _ +model/temporal/features/activity/standalone/system/System\.scala:\d+ +disabled-by-default +silent-rejection`, text)
 }

@@ -1,8 +1,6 @@
 package export
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -24,18 +22,16 @@ const maxDifferences = 8
 // Properties, over every step; and what the evaluator covered. What the export leaves out follows as
 // unsupported.
 func (s *Slice) QuintAgreement(x *QuintExport, itf []byte) ([]Receipt, error) {
-	var trace struct {
-		States []map[string]any `json:"states"`
+	wanted := make([]string, 0, len(x.Machines)+len(x.Compositions))
+	for i := range x.Machines {
+		wanted = append(wanted, fmt.Sprintf("m%d", i))
 	}
-	if err := json.Unmarshal(itf, &trace); err != nil {
-		return nil, fmt.Errorf("the Quint dump is no ITF trace: %w", err)
+	for j := range x.Compositions {
+		wanted = append(wanted, fmt.Sprintf("c%d", j))
 	}
-	if len(trace.States) == 0 {
-		return nil, errors.New("the Quint dump holds no state")
-	}
-	out, ok := trace.States[0]["out"].(map[string]any)
-	if !ok {
-		return nil, errors.New("the Quint dump's first state has no variable out")
+	dump, err := indexQuintDump(itf, wanted)
+	if err != nil {
+		return nil, err
 	}
 	var receipts []Receipt
 	// Every counterexample of one dump is replayed through one interpretation, made afresh for it.
@@ -50,14 +46,44 @@ func (s *Slice) QuintAgreement(x *QuintExport, itf []byte) ([]Receipt, error) {
 		return fresh.replay(machine, monitor, trace)
 	}
 	for i := range x.Machines {
-		compared, err := s.machineReceipts(x, i, out, replay)
+		key := fmt.Sprintf("m%d", i)
+		var raw []byte
+		if span, ok := dump.parts[key]; ok {
+			raw = itf[span.start:span.end]
+		}
+		theirs, present, err := x.reader(i).rawMachine(raw)
+		if err != nil && !present {
+			return nil, err
+		}
+		if !present {
+			return nil, fmt.Errorf("the Quint dump has no part m%d for the machine %s", i, x.Machines[i])
+		}
+		if err != nil {
+			return nil, fmt.Errorf("the Quint dump of %s: %w", x.Machines[i], err)
+		}
+		compared, err := s.machineViewReceipts(x, i, theirs, replay)
 		if err != nil {
 			return nil, err
 		}
 		receipts = append(receipts, compared...)
 	}
 	for j := range x.Compositions {
-		compared, err := s.compositionReceipts(x, j, out)
+		key := fmt.Sprintf("c%d", j)
+		var raw []byte
+		if span, ok := dump.parts[key]; ok {
+			raw = itf[span.start:span.end]
+		}
+		theirs, present, err := x.composedReader(j).rawMachine(raw)
+		if err != nil && !present {
+			return nil, err
+		}
+		if !present {
+			return nil, fmt.Errorf("the Quint dump has no part c%d for the composition %s", j, x.Compositions[j])
+		}
+		if err != nil {
+			return nil, fmt.Errorf("the Quint dump of %s: %w", x.Compositions[j], err)
+		}
+		compared, err := s.compositionViewReceipts(x, j, theirs)
 		if err != nil {
 			return nil, err
 		}
@@ -82,6 +108,11 @@ func (s *Slice) machineReceipts(x *QuintExport, i int, out map[string]any, repla
 	if err != nil {
 		return nil, fmt.Errorf("the Quint dump of %s: %w", name, err)
 	}
+	return s.machineViewReceipts(x, i, theirs, replay)
+}
+
+func (s *Slice) machineViewReceipts(x *QuintExport, i int, theirs *machineView, replay func(machine, monitor string, trace *check.Trace) error) ([]Receipt, error) {
+	name := x.Machines[i]
 	mm := s.machines[name]
 	if mm == nil {
 		return nil, fmt.Errorf("the export names the machine %s, which the Model does not declare", name)
@@ -112,6 +143,11 @@ func (s *Slice) compositionReceipts(x *QuintExport, j int, out map[string]any) (
 	if err != nil {
 		return nil, fmt.Errorf("the Quint dump of %s: %w", name, err)
 	}
+	return s.compositionViewReceipts(x, j, theirs)
+}
+
+func (s *Slice) compositionViewReceipts(x *QuintExport, j int, theirs *machineView) ([]Receipt, error) {
+	name := x.Compositions[j]
 	c, err := s.bound.Composition(name)
 	if err != nil {
 		return nil, fmt.Errorf("the export names the composition %s, which Go does not build: %w", name, err)

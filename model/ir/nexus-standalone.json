@@ -1,6 +1,42 @@
 {
   "source": "model: temporal.features.nexus.standalone.Standalone, temporal.features.nexus.standalone.system.NexusSystem, temporal.features.nexus.standalone.system.NexusSystem$.capabilities, temporal.features.nexus.standalone.system.NexusSystem$.queries",
   "types": [ {
+    "name": "framework.outcomes.Outcome",
+    "position": {
+      "file": "model/framework/Syntax.scala",
+      "line": 60
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      }, {
+        "name": "rejected",
+        "fields": [ {
+          "name": "why",
+          "type": {
+            "named": "framework.outcomes.Rejection"
+          }
+        } ]
+      } ]
+    }
+  }, {
+    "name": "framework.outcomes.Rejection",
+    "position": {
+      "file": "model/framework/Syntax.scala",
+      "line": 55
+    },
+    "enum": {
+      "cases": [ {
+        "name": "notFound"
+      }, {
+        "name": "alreadyExists"
+      }, {
+        "name": "failedPrecondition"
+      }, {
+        "name": "invalidArgument"
+      } ]
+    }
+  }, {
     "name": "temporal.features.nexus.Reply",
     "position": {
       "file": "model/temporal/features/nexus/Nexus.scala",
@@ -163,42 +199,6 @@
         "type": {
           "bool": { }
         }
-      } ]
-    }
-  }, {
-    "name": "umpire.outcomes.Outcome",
-    "position": {
-      "file": "model/umpire/Syntax.scala",
-      "line": 60
-    },
-    "enum": {
-      "cases": [ {
-        "name": "accepted"
-      }, {
-        "name": "rejected",
-        "fields": [ {
-          "name": "why",
-          "type": {
-            "named": "umpire.outcomes.Rejection"
-          }
-        } ]
-      } ]
-    }
-  }, {
-    "name": "umpire.outcomes.Rejection",
-    "position": {
-      "file": "model/umpire/Syntax.scala",
-      "line": 55
-    },
-    "enum": {
-      "cases": [ {
-        "name": "notFound"
-      }, {
-        "name": "alreadyExists"
-      }, {
-        "name": "failedPrecondition"
-      }, {
-        "name": "invalidArgument"
       } ]
     }
   } ],
@@ -370,7 +370,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -603,14 +603,14 @@
                       "line": 97
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/product/Product.scala",
                           "line": 97
                         },
                         "construct": {
-                          "type": "umpire.outcomes.Outcome",
+                          "type": "framework.outcomes.Outcome",
                           "case": "rejected",
                           "args": [ {
                             "position": {
@@ -619,7 +619,7 @@
                             },
                             "literal": {
                               "enum": {
-                                "type": "umpire.outcomes.Rejection",
+                                "type": "framework.outcomes.Rejection",
                                 "case": "notFound"
                               }
                             }
@@ -866,14 +866,14 @@
                       "line": 97
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/product/Product.scala",
                           "line": 97
                         },
                         "construct": {
-                          "type": "umpire.outcomes.Outcome",
+                          "type": "framework.outcomes.Outcome",
                           "case": "rejected",
                           "args": [ {
                             "position": {
@@ -882,7 +882,7 @@
                             },
                             "literal": {
                               "enum": {
-                                "type": "umpire.outcomes.Rejection",
+                                "type": "framework.outcomes.Rejection",
                                 "case": "notFound"
                               }
                             }
@@ -1129,14 +1129,14 @@
                       "line": 97
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/product/Product.scala",
                           "line": 97
                         },
                         "construct": {
-                          "type": "umpire.outcomes.Outcome",
+                          "type": "framework.outcomes.Outcome",
                           "case": "rejected",
                           "args": [ {
                             "position": {
@@ -1145,7 +1145,7 @@
                             },
                             "literal": {
                               "enum": {
-                                "type": "umpire.outcomes.Rejection",
+                                "type": "framework.outcomes.Rejection",
                                 "case": "notFound"
                               }
                             }
@@ -2152,26 +2152,26 @@
   }, {
     "name": "nexusSystem.property.nexusSystem.cancelIsRequested",
     "position": {
-      "file": "model/temporal/capabilities/Cancelable.scala",
-      "line": 26
+      "file": "model/temporal/features/nexus/standalone/system/System.scala",
+      "line": 144
     },
     "params": [ {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Cancelable.scala",
-        "line": 26
+        "file": "model/temporal/features/nexus/standalone/system/System.scala",
+        "line": 144
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-            "line": 171
+            "line": 144
           },
           "literal": {
             "enum": {
@@ -2182,14 +2182,14 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Cancelable.scala",
-            "line": 26
+            "file": "model/temporal/features/nexus/standalone/system/System.scala",
+            "line": 144
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/capabilities/Cancelable.scala",
-                "line": 26
+                "file": "model/temporal/features/nexus/standalone/system/System.scala",
+                "line": 144
               },
               "var": "step"
             },
@@ -2202,7 +2202,7 @@
     "name": "nexusSystem.property.nexusSystem.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 142
+      "line": 153
     },
     "params": [ {
       "name": "before",
@@ -2212,40 +2212,40 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-        "line": 143
+        "line": 154
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-            "line": 143
+            "line": 154
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                "line": 143
+                "line": 154
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                    "line": 143
+                    "line": 154
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 143
+                        "line": 154
                       },
                       "var": "before"
                     },
@@ -2255,13 +2255,13 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                    "line": 143
+                    "line": 154
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 143
+                        "line": 154
                       },
                       "literal": {
                         "enum": {
@@ -2272,7 +2272,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 143
+                        "line": 154
                       },
                       "literal": {
                         "enum": {
@@ -2283,7 +2283,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 143
+                        "line": 154
                       },
                       "literal": {
                         "enum": {
@@ -2294,7 +2294,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 143
+                        "line": 154
                       },
                       "literal": {
                         "enum": {
@@ -2312,27 +2312,27 @@
         "right": {
           "position": {
             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-            "line": 144
+            "line": 155
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                "line": 144
+                "line": 155
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                    "line": 144
+                    "line": 155
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 144
+                        "line": 155
                       },
                       "var": "after"
                     },
@@ -2342,7 +2342,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                    "line": 144
+                    "line": 155
                   },
                   "var": "before"
                 }
@@ -2351,27 +2351,27 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                "line": 144
+                "line": 155
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                    "line": 144
+                    "line": 155
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 144
+                        "line": 155
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                            "line": 144
+                            "line": 155
                           },
                           "var": "after"
                         },
@@ -2381,19 +2381,19 @@
                     "right": {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 161
+                        "line": 173
                       },
                       "construct": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "rejected",
                         "args": [ {
                           "position": {
                             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                            "line": 161
+                            "line": 173
                           },
                           "literal": {
                             "enum": {
-                              "type": "umpire.outcomes.Rejection",
+                              "type": "framework.outcomes.Rejection",
                               "case": "failedPrecondition"
                             }
                           }
@@ -2405,27 +2405,27 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                    "line": 144
+                    "line": 155
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 144
+                        "line": 155
                       },
                       "binary": {
                         "op": "OP_EQ",
                         "left": {
                           "position": {
                             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                            "line": 144
+                            "line": 155
                           },
                           "field": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                                "line": 144
+                                "line": 155
                               },
                               "var": "after"
                             },
@@ -2435,11 +2435,11 @@
                         "right": {
                           "position": {
                             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                            "line": 144
+                            "line": 155
                           },
                           "literal": {
                             "enum": {
-                              "type": "umpire.outcomes.Outcome",
+                              "type": "framework.outcomes.Outcome",
                               "case": "accepted"
                             }
                           }
@@ -2449,20 +2449,20 @@
                     "right": {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                        "line": 145
+                        "line": 156
                       },
                       "binary": {
                         "op": "OP_OR",
                         "left": {
                           "position": {
                             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                            "line": 145
+                            "line": 156
                           },
                           "field": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                                "line": 145
+                                "line": 156
                               },
                               "var": "before"
                             },
@@ -2472,20 +2472,20 @@
                         "right": {
                           "position": {
                             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                            "line": 145
+                            "line": 156
                           },
                           "binary": {
                             "op": "OP_EQ",
                             "left": {
                               "position": {
                                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                                "line": 145
+                                "line": 156
                               },
                               "field": {
                                 "base": {
                                   "position": {
                                     "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                                    "line": 145
+                                    "line": 156
                                   },
                                   "var": "before"
                                 },
@@ -2495,7 +2495,7 @@
                             "right": {
                               "position": {
                                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
-                                "line": 145
+                                "line": 156
                               },
                               "literal": {
                                 "enum": {
@@ -2530,7 +2530,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -2688,7 +2688,7 @@
     "params": [ {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -2701,7 +2701,7 @@
         "left": {
           "position": {
             "file": "model/temporal/features/nexus/standalone/system/System.scala",
-            "line": 165
+            "line": 177
           },
           "literal": {
             "enum": {
@@ -3452,14 +3452,14 @@
                     "line": 119
                   },
                   "construct": {
-                    "type": "umpire.Step",
+                    "type": "framework.Step",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
                         "line": 119
                       },
                       "construct": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "rejected",
                         "args": [ {
                           "position": {
@@ -3468,7 +3468,7 @@
                           },
                           "literal": {
                             "enum": {
-                              "type": "umpire.outcomes.Rejection",
+                              "type": "framework.outcomes.Rejection",
                               "case": "failedPrecondition"
                             }
                           }
@@ -3876,14 +3876,14 @@
                     "line": 129
                   },
                   "construct": {
-                    "type": "umpire.Step",
+                    "type": "framework.Step",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/nexus/standalone/system/System.scala",
                         "line": 129
                       },
                       "construct": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "rejected",
                         "args": [ {
                           "position": {
@@ -3892,7 +3892,7 @@
                           },
                           "literal": {
                             "enum": {
-                              "type": "umpire.outcomes.Rejection",
+                              "type": "framework.outcomes.Rejection",
                               "case": "failedPrecondition"
                             }
                           }
@@ -4038,7 +4038,7 @@
             "line": 68
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/product/Product.scala",
@@ -4046,7 +4046,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -4241,7 +4241,7 @@
                       "line": 56
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/product/Product.scala",
@@ -4249,7 +4249,7 @@
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
@@ -4351,7 +4351,7 @@
                       "line": 58
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/product/Product.scala",
@@ -4359,7 +4359,7 @@
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
@@ -4461,7 +4461,7 @@
                       "line": 60
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/product/Product.scala",
@@ -4469,7 +4469,7 @@
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
@@ -4579,7 +4579,7 @@
             "line": 66
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/product/Product.scala",
@@ -4587,7 +4587,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -4676,7 +4676,7 @@
             "line": 64
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/product/Product.scala",
@@ -4684,7 +4684,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -4773,7 +4773,7 @@
             "line": 50
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/product/Product.scala",
@@ -4781,7 +4781,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -4870,7 +4870,7 @@
             "line": 62
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/product/Product.scala",
@@ -4878,7 +4878,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -4967,7 +4967,7 @@
             "line": 72
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/product/Product.scala",
@@ -4975,7 +4975,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -5165,7 +5165,7 @@
             "line": 75
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -5173,7 +5173,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -5289,7 +5289,7 @@
                   "line": 80
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -5297,7 +5297,7 @@
                     },
                     "literal": {
                       "enum": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "accepted"
                       }
                     }
@@ -5383,7 +5383,7 @@
                   "line": 81
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -5391,7 +5391,7 @@
                     },
                     "literal": {
                       "enum": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "accepted"
                       }
                     }
@@ -5477,7 +5477,7 @@
                   "line": 82
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -5485,7 +5485,7 @@
                     },
                     "literal": {
                       "enum": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "accepted"
                       }
                     }
@@ -5577,7 +5577,7 @@
             "line": 92
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -5585,7 +5585,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -5638,7 +5638,7 @@
             "line": 86
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -5646,7 +5646,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -5732,7 +5732,7 @@
             "line": 68
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -5740,7 +5740,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -5828,7 +5828,7 @@
             "line": 74
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -5836,7 +5836,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -5925,7 +5925,7 @@
             "line": 73
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -5933,7 +5933,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -6022,7 +6022,7 @@
             "line": 72
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -6030,7 +6030,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -6119,7 +6119,7 @@
             "line": 89
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/standalone/system/System.scala",
@@ -6127,7 +6127,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -6499,7 +6499,7 @@
     "params": [ {
       "name": "o",
       "type": {
-        "named": "umpire.outcomes.Outcome"
+        "named": "framework.outcomes.Outcome"
       }
     } ],
     "body": {
@@ -6650,6 +6650,14 @@
     }
   } ],
   "actions": [ {
+    "id": "temporal.actors.worker.worker.stop",
+    "name": "stop",
+    "position": {
+      "file": "model/temporal/actors/worker/Worker.scala",
+      "line": 44
+    },
+    "actor": "worker"
+  }, {
     "id": "temporal.features.nexus.client.terminate",
     "name": "terminate",
     "position": {
@@ -6748,14 +6756,6 @@
     },
     "actor": "system",
     "timer": true
-  }, {
-    "id": "temporal.shared.worker.worker.stop",
-    "name": "stop",
-    "position": {
-      "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 44
-    },
-    "actor": "worker"
   } ],
   "machines": [ {
     "family": "temporal.features.nexus.product",
@@ -6766,7 +6766,7 @@
     },
     "entity": "operation",
     "stateType": "temporal.features.nexus.product.State",
-    "outcomeType": "umpire.outcomes.Outcome",
+    "outcomeType": "framework.outcomes.Outcome",
     "factType": "temporal.features.nexus.product.Fact",
     "starts": [ {
       "position": {
@@ -6914,7 +6914,7 @@
         "line": 113
       }
     }, {
-      "action": "temporal.shared.worker.worker.stop",
+      "action": "temporal.actors.worker.worker.stop",
       "function": "nexusProduct.rules.stop",
       "position": {
         "file": "model/temporal/features/nexus/product/Product.scala",
@@ -6945,7 +6945,7 @@
     },
     "entity": "operation",
     "stateType": "temporal.features.nexus.standalone.system.State",
-    "outcomeType": "umpire.outcomes.Outcome",
+    "outcomeType": "framework.outcomes.Outcome",
     "factType": "temporal.features.nexus.standalone.system.Fact",
     "starts": [ {
       "position": {
@@ -7126,25 +7126,18 @@
     "name": "nexusSystem.cancelIsRequested",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 169
+      "line": 143
     },
     "whenClass": {
       "action": "temporal.features.nexus.standalone.client.requestCancel"
     },
-    "holds": "nexusSystem.property.nexusSystem.cancelIsRequested",
-    "origin": {
-      "name": "temporal.capabilities.Cancelable.cancelIsRequested",
-      "position": {
-        "file": "model/temporal/capabilities/Cancelable.scala",
-        "line": 22
-      }
-    }
+    "holds": "nexusSystem.property.nexusSystem.cancelIsRequested"
   }, {
     "machine": "nexusSystem",
     "name": "nexusSystem.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 160
+      "line": 172
     },
     "holds": "nexusSystem.property.nexusSystem.closedIsRejectedUniformly",
     "transition": true,
@@ -7160,7 +7153,7 @@
     "name": "nexusSystem.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 160
+      "line": 172
     },
     "holds": "nexusSystem.property.nexusSystem.terminalStatesAreFinal",
     "transition": true,
@@ -7176,7 +7169,7 @@
     "name": "nexusSystem.terminateSettles",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 163
+      "line": 175
     },
     "whenClass": {
       "action": "temporal.features.nexus.client.terminate"
@@ -7195,7 +7188,7 @@
     "name": "asyncThenSucceeded",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 184
+      "line": 190
     },
     "start": {
       "position": {
@@ -7247,10 +7240,10 @@
     } ]
   }, {
     "machine": "nexusSystem",
-    "name": "nexusSystem.cancelIsRequested",
+    "name": "cancelRequest",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 169
+      "line": 196
     },
     "start": {
       "position": {
@@ -7291,7 +7284,7 @@
     "name": "nexusSystem.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 160
+      "line": 172
     },
     "start": {
       "position": {
@@ -7328,7 +7321,7 @@
     "name": "nexusSystem.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 160
+      "line": 172
     },
     "start": {
       "position": {
@@ -7365,7 +7358,7 @@
     "name": "nexusSystem.terminateSettles",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 163
+      "line": 175
     },
     "start": {
       "position": {
@@ -7406,7 +7399,7 @@
     "name": "nexusSystem.cancelIsRequested",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 169
+      "line": 201
     },
     "form": "FORM_FIND",
     "property": {
@@ -7415,7 +7408,7 @@
     },
     "scenario": {
       "machine": "nexusSystem",
-      "name": "nexusSystem.cancelIsRequested"
+      "name": "cancelRequest"
     },
     "limits": {
       "name": "three",
@@ -7436,7 +7429,7 @@
     "name": "nexusSystem.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 160
+      "line": 172
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -7458,7 +7451,7 @@
     "name": "nexusSystem.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 160
+      "line": 172
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -7480,7 +7473,7 @@
     "name": "nexusSystem.terminateSettles",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 163
+      "line": 175
     },
     "form": "FORM_FIND",
     "property": {
@@ -7510,7 +7503,7 @@
     "name": "terminalHolds",
     "position": {
       "file": "model/temporal/features/nexus/standalone/system/System.scala",
-      "line": 190
+      "line": 199
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -8021,26 +8014,74 @@
         "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
       }, {
+        "id": "visibility.resetActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 38
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ResetActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
         "id": "visibility.requestCancelActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 37
+          "line": 45
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.respondActivityTaskCompletedById.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 55
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompletedById",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.respondActivityTaskFailedById.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 59
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailedById",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.respondActivityTaskCanceledById.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 63
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCanceledById",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
       }, {
         "id": "visibility.activityAnswer.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 44
+          "line": 70
         },
         "cause": "CAUSE_KIND_ACTIVITY_ANSWER",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
       }, {
+        "id": "visibility.activityHeartbeat.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 75
+        },
+        "cause": "CAUSE_KIND_ACTIVITY_HEARTBEAT",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "eventuallyWithin": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 77
+          },
+          "intervalMs": "250",
+          "atMostMs": "2000"
+        }
+      }, {
         "id": "visibility.startNexusOperationExecution.describeNexusOperationExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 48
+          "line": 82
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartNexusOperationExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
@@ -8048,7 +8089,7 @@
         "id": "visibility.terminateNexusOperationExecution.describeNexusOperationExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 55
+          "line": 89
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateNexusOperationExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
@@ -8056,7 +8097,7 @@
         "id": "visibility.startWorkflowExecution.getWorkflowExecutionHistory",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 61
+          "line": 95
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
@@ -8064,7 +8105,7 @@
         "id": "visibility.workflowTask.getWorkflowExecutionHistory",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 68
+          "line": 102
         },
         "cause": "CAUSE_KIND_WORKFLOW_TASK",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
@@ -8072,14 +8113,14 @@
         "id": "visibility.handlerReply.describeWorkflowExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 74
+          "line": 108
         },
         "cause": "CAUSE_KIND_HANDLER_REPLY",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution",
         "eventuallyWithin": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 76
+            "line": 110
           },
           "intervalMs": "250",
           "atMostMs": "2000"
@@ -8089,13 +8130,13 @@
         "id": "cause.delivery",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 82
+          "line": 116
         },
         "kind": "CAUSE_KIND_DELIVERY",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 82
+            "line": 116
           },
           "intervalMs": "250",
           "atMostMs": "3000"
@@ -8104,13 +8145,28 @@
         "id": "cause.activityAnswer",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 86
+          "line": 120
         },
         "kind": "CAUSE_KIND_ACTIVITY_ANSWER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 86
+            "line": 120
+          },
+          "intervalMs": "250",
+          "atMostMs": "2000"
+        }
+      }, {
+        "id": "cause.activityHeartbeat",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 121
+        },
+        "kind": "CAUSE_KIND_ACTIVITY_HEARTBEAT",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 121
           },
           "intervalMs": "250",
           "atMostMs": "2000"
@@ -8119,13 +8175,13 @@
         "id": "cause.workflowTask",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 89
+          "line": 124
         },
         "kind": "CAUSE_KIND_WORKFLOW_TASK",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 89
+            "line": 124
           },
           "intervalMs": "250",
           "atMostMs": "5000"
@@ -8134,13 +8190,13 @@
         "id": "cause.handlerReply",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 94
+          "line": 129
         },
         "kind": "CAUSE_KIND_HANDLER_REPLY",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 94
+            "line": 129
           },
           "intervalMs": "250",
           "atMostMs": "5000"
@@ -8149,13 +8205,13 @@
         "id": "cause.timer",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 99
+          "line": 134
         },
         "kind": "CAUSE_KIND_TIMER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 99
+            "line": 134
           },
           "intervalMs": "250",
           "atMostMs": "3000"
@@ -8164,7 +8220,7 @@
       "attemptNumbering": {
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 104
+          "line": 139
         },
         "first": "1",
         "oneRun": true
@@ -8172,7 +8228,7 @@
       "instructionDefaults": {
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 109
+          "line": 144
         },
         "timeoutMs": "10000",
         "attempts": "1"

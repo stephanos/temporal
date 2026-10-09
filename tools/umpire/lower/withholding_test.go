@@ -86,7 +86,7 @@ func TestAWithheldTimeoutRetryLowersToTwoAttempts(t *testing.T) {
 	require.Equal(t, Lowered, lowered.Standing, "%v", lowered.Unsupported)
 	require.Empty(t, lowered.Unsupported)
 	c := lowered.Case
-	require.Equal(t, map[string][]string{"controller": {"start-activity", "await-completed"}, "attempts": {"withhold-attempt", "complete-attempt"}}, instructionIDs(c))
+	require.Equal(t, map[string][]string{"controller": {"start-activity", "await-completed", "read-attempt-count"}, "attempts": {"withhold-attempt", "complete-attempt"}}, instructionIDs(c))
 	protorequire.ProtoEqual(t, &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{}}},
 		instruction(t, c, "attempts", "withhold-attempt").GetInstruction())
 	require.NotNil(t, instruction(t, c, "attempts", "complete-attempt").GetInstruction().GetFinish())

@@ -95,14 +95,17 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 
 func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 	m := proto.Clone(load(t)).(*umpirespb.Model)
+	var position *umpirespb.Position
 	for _, mm := range m.GetMachines() {
 		for _, b := range mm.GetSteps() {
 			if b.GetFunction() == "nexusSystem.rules.reply" {
+				position = b.GetPosition()
 				b.Function = "nexusSystem.rules.backoff"
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/temporal/features/nexus/workflow/system/System.scala:212: nexusSystem.rules.backoff "+
+	require.NotNil(t, position)
+	require.ErrorContains(t, Validate(m), fmt.Sprintf("%s:%d: nexusSystem.rules.backoff ", position.GetFile(), position.GetLine())+
 		"steps reply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 

@@ -1,6 +1,7 @@
 package export
 
 import (
+	"bytes"
 	"cmp"
 	"encoding/json"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -76,7 +78,7 @@ func TestAgreementReadsAFaithfulDump(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			s := openNamed(t, name)
 			x := exported(t, s)
-			receipts, err := s.QuintAgreement(x, encodeDump(t, s, x, nil))
+			receipts, err := s.QuintAgreement(x, encodeFaithfulDump(t, s, x))
 			require.NoError(t, err)
 			for _, r := range receipts {
 				if r.Kind != Covered && r.Kind != Unsupported {
@@ -435,9 +437,139 @@ func encodeDump(t *testing.T, s *Slice, x *QuintExport, tamper func(machine stri
 	return dumpPartsOf(t, s, x).encode(t, tamper)
 }
 
+func encodeFaithfulDump(t *testing.T, s *Slice, x *QuintExport) []byte {
+	t.Helper()
+	type part struct {
+		key          string
+		size, offset int
+		escaped      []byte
+	}
+	var parts []part
+	measure := func(key string, d any, err error) {
+		require.NoError(t, err)
+		encoded, err := json.Marshal(d)
+		require.NoError(t, err)
+		parts = append(parts, part{key: key, size: len(encoded)})
+	}
+	for i, name := range x.Machines {
+		d, err := s.dumpOf(x, i, s.machines[name])
+		measure(fmt.Sprintf("m%d", i), d, err)
+	}
+	for j := range x.Compositions {
+		d, err := s.dumpOfComposition(x, j)
+		measure(fmt.Sprintf("c%d", j), d, err)
+	}
+	order := make([]int, len(parts))
+	const prefix = `{"states":[{"out":{`
+	const suffix = `}}],"vars":["out"]}`
+	size := len(prefix) + len(suffix) + max(0, len(parts)-1)
+	for i := range parts {
+		order[i] = i
+		var err error
+		parts[i].escaped, err = json.Marshal(parts[i].key)
+		require.NoError(t, err)
+		size += len(parts[i].escaped) + 1 + parts[i].size
+	}
+	slices.SortFunc(order, func(a, b int) int { return cmp.Compare(parts[a].key, parts[b].key) })
+	encoded := make([]byte, size)
+	offset := copy(encoded, prefix)
+	for n, i := range order {
+		if n > 0 {
+			encoded[offset] = ','
+			offset++
+		}
+		offset += copy(encoded[offset:], parts[i].escaped)
+		encoded[offset] = ':'
+		offset++
+		parts[i].offset = offset
+		offset += parts[i].size
+	}
+	copy(encoded[offset:], suffix)
+	write := func(i int, d any, err error) {
+		require.NoError(t, err)
+		value, err := json.Marshal(d)
+		require.NoError(t, err)
+		require.Len(t, value, parts[i].size, "same-Slice owner encoding length changed between passes: %s", parts[i].key)
+		copy(encoded[parts[i].offset:parts[i].offset+parts[i].size], value)
+	}
+	for i, name := range x.Machines {
+		d, err := s.dumpOf(x, i, s.machines[name])
+		write(i, d, err)
+	}
+	for j := range x.Compositions {
+		d, err := s.dumpOfComposition(x, j)
+		write(len(x.Machines)+j, d, err)
+	}
+	return encoded
+}
+
+func TestUntamperedDumpPreservesCompleteEncodingAndWarmReads(t *testing.T) {
+	for _, fixture := range []struct {
+		name string
+		open func(*testing.T) *Slice
+	}{
+		{"monitored record", func(t *testing.T) *Slice { return openNamed(t, "activity-standalone-record") }},
+		{"parameterized deadline owners", deadlineSlice},
+		{"Nexus composition", func(t *testing.T) *Slice { return openNamed(t, "nexus-workflow") }},
+	} {
+		t.Run(fixture.name, func(t *testing.T) {
+			originalModel, pristine, modelBytes, name, machines, compositions, want, receipts := func() (
+				*umpirespb.Model, *umpirespb.Model, []byte, string, []string, []string, []byte, []Receipt,
+			) {
+				original := fixture.open(t)
+				pristine := proto.Clone(original.Model).(*umpirespb.Model)
+				modelBytes, err := (proto.MarshalOptions{Deterministic: true}).Marshal(pristine)
+				require.NoError(t, err)
+				x := exported(t, original)
+				switch fixture.name {
+				case "monitored record":
+					require.NotEmpty(t, original.machines["trustingActivityRecord"].Monitors)
+				case "parameterized deadline owners":
+					require.Equal(t, []string{"deadlineTimers", "simpleDeadlines"}, x.Machines)
+					require.True(t, slices.ContainsFunc(original.machines["deadlineTimers"].Classes, func(c interp.Class) bool {
+						return len(c.Inputs) > 0
+					}), "the complete admitted fixture includes parameterized classes")
+				case "Nexus composition":
+					require.NotEmpty(t, x.Compositions)
+				default:
+				}
+				want := dumpPartsOf(t, original, x).encode(t, nil)
+				receipts, err := original.QuintAgreement(x, want)
+				require.NoError(t, err)
+				require.NotEmpty(t, receipts)
+				pristineOpenModel(t, pristine, modelBytes, original)
+				return original.Model, pristine, modelBytes, original.Name, slices.Clone(x.Machines), slices.Clone(x.Compositions), want, receipts
+			}()
+			current := openSlice(t, proto.Clone(pristine).(*umpirespb.Model))
+			current.Name = name
+			x := exported(t, current)
+			require.Equal(t, machines, x.Machines)
+			require.Equal(t, compositions, x.Compositions)
+			got := encodeFaithfulDump(t, current, x)
+			require.Equal(t, want, got, "complete cold encoding, including every row, claim and monitor product")
+			actual, err := current.QuintAgreement(x, got)
+			require.NoError(t, err)
+			require.Equal(t, receipts, actual, "complete ordered native receipts and fresh witness replay")
+			if fixture.name == "monitored record" {
+				witnesses := only(t, actual, MonitorAgreement, "trustingActivityRecord").Witnesses
+				require.Len(t, witnesses, 2)
+				for _, witness := range witnesses {
+					require.NoError(t, current.Replay("trustingActivityRecord", witness.Monitor, witness.Trace))
+				}
+			}
+			require.Equal(t, want, encodeFaithfulDump(t, current, x), "repeat the same Slice after native reads and replay")
+			pristineOpenModel(t, pristine, modelBytes, current)
+			require.True(t, proto.Equal(pristine, originalModel))
+			originalBytes, err := (proto.MarshalOptions{Deterministic: true}).Marshal(originalModel)
+			require.NoError(t, err)
+			require.Equal(t, modelBytes, originalBytes)
+		})
+	}
+}
+
 // dumpParts is the dump of Go's own interpretation, each machine's and each composition's part
-// encoded apart. The parts are interpreted once and never changed: every encoding decodes them
-// afresh, so what one tampering changes no other encoding sees.
+// encoded apart. The parts never change: only tampered encodings decode them afresh, so what one
+// tampering changes no other encoding sees.
 type dumpParts struct {
 	keys, names []string
 	encoded     [][]byte
@@ -466,9 +598,53 @@ func dumpPartsOf(t *testing.T, s *Slice, x *QuintExport) *dumpParts {
 // encode writes the dump with each part tampered with.
 func (p *dumpParts) encode(t *testing.T, tamper func(machine string, d map[string]any)) []byte {
 	t.Helper()
+	out := map[string]json.RawMessage{}
+	for i, key := range p.keys {
+		if tamper == nil {
+			out[key] = p.encoded[i]
+			continue
+		}
+		// A round trip gives the tamperers their own plain JSON values.
+		var plain map[string]any
+		require.NoError(t, json.Unmarshal(p.encoded[i], &plain))
+		tamper(p.names[i], plain)
+		encoded, err := json.Marshal(plain)
+		require.NoError(t, err)
+		out[key] = encoded
+	}
+	keys := make([]string, 0, len(out))
+	for key := range out {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+	const prefix = `{"states":[{"out":{`
+	const suffix = `}}],"vars":["out"]}`
+	size := len(prefix) + len(suffix) + max(0, len(keys)-1)
+	escaped := make([][]byte, len(keys))
+	for i, key := range keys {
+		var err error
+		escaped[i], err = json.Marshal(key)
+		require.NoError(t, err)
+		size += len(escaped[i]) + 1 + len(out[key])
+	}
+	encoded := make([]byte, 0, size)
+	encoded = append(encoded, prefix...)
+	for i, key := range keys {
+		if i > 0 {
+			encoded = append(encoded, ',')
+		}
+		encoded = append(encoded, escaped[i]...)
+		encoded = append(encoded, ':')
+		encoded = append(encoded, out[key]...)
+	}
+	encoded = append(encoded, suffix...)
+	return encoded
+}
+
+func originalDumpEncoding(t *testing.T, p *dumpParts, tamper func(string, map[string]any)) []byte {
+	t.Helper()
 	out := map[string]any{}
 	for i, key := range p.keys {
-		// A round trip gives the tamperers plain JSON values.
 		var plain map[string]any
 		require.NoError(t, json.Unmarshal(p.encoded[i], &plain))
 		if tamper != nil {
@@ -479,6 +655,124 @@ func (p *dumpParts) encode(t *testing.T, tamper func(machine string, d map[strin
 	encoded, err := json.Marshal(map[string]any{"vars": []string{"out"}, "states": []any{map[string]any{"out": out}}})
 	require.NoError(t, err)
 	return encoded
+}
+
+func rawMessageDumpEncoding(t *testing.T, p *dumpParts) []byte {
+	t.Helper()
+	out := map[string]json.RawMessage{}
+	for i, key := range p.keys {
+		out[key] = p.encoded[i]
+	}
+	encoded, err := json.Marshal(map[string]any{"vars": []string{"out"}, "states": []any{map[string]any{"out": out}}})
+	require.NoError(t, err)
+	return encoded
+}
+
+func syntheticDumpParts(t *testing.T, count int) *dumpParts {
+	t.Helper()
+	p := &dumpParts{}
+	for i := range count {
+		state := map[string]any{"tag": "state<&>", "value": map[string]any{"#bigint": "9007199254740993"}}
+		step := map[string]any{"f_outcome": "accepted", "f_state": state, "f_facts": []any{}, "f_because": fmt.Sprintf("reason%d<&>", i), "f_choice": "named"}
+		pair := map[string]any{"cls": "act<&>", "steps": []any{step}}
+		part := map[string]any{"starts": []any{state}, "reach": map[string]any{"#set": []any{state}}, "closed": true,
+			"ends": map[string]any{"#set": []any{}}, "classes": map[string]any{"#set": []any{"act<&>"}},
+			"rows": map[string]any{"#set": []any{map[string]any{"src": state, "by": map[string]any{"#set": []any{pair}}}}},
+			"claims": map[string]any{"#set": []any{map[string]any{"src": state, "by": map[string]any{"#set": []any{
+				map[string]any{"cls": "act<&>", "steps": []any{map[string]any{"p0": map[string]any{"about": true, "holds": false}}}},
+			}}}}}, "product": map[string]any{"#set": []any{map[string]any{"state": state, "monitor": "reading"}}}}
+		encoded, err := json.Marshal(part)
+		require.NoError(t, err)
+		prefix := "m"
+		if i%2 != 0 {
+			prefix = "c"
+		}
+		p.keys = append(p.keys, fmt.Sprintf("%s%d", prefix, i))
+		p.names = append(p.names, fmt.Sprintf("owner%d", i))
+		p.encoded = append(p.encoded, encoded)
+	}
+	return p
+}
+
+func TestDumpEncodingPreservesTheOriginalBytesAndTamperIsolation(t *testing.T) {
+	for _, fixture := range []struct {
+		name  string
+		parts func(*testing.T) *dumpParts
+	}{
+		{name: "machine and composition records", parts: func(t *testing.T) *dumpParts { return syntheticDumpParts(t, 4) }},
+		{name: "shuffled duplicate and escaped keys", parts: func(t *testing.T) *dumpParts {
+			p := syntheticDumpParts(t, 6)
+			p.keys = []string{"m10", "m2", "c0", "m2", "key<\"&\n>", "m1"}
+			return p
+		}},
+		{name: "empty envelope", parts: func(*testing.T) *dumpParts { return &dumpParts{} }},
+		{name: "generated record model", parts: func(t *testing.T) *dumpParts {
+			s := openNamed(t, "activity-standalone-record")
+			return dumpPartsOf(t, s, exported(t, s))
+		}},
+	} {
+		t.Run(fixture.name, func(t *testing.T) {
+			p := fixture.parts(t)
+			stored := slices.Clone(p.encoded)
+			for i := range p.encoded {
+				stored[i] = slices.Clone(p.encoded[i])
+			}
+			pristine := originalDumpEncoding(t, p, nil)
+			require.Equal(t, pristine, p.encode(t, nil))
+			var originalOrder, currentOrder []string
+			tamper := func(order *[]string) func(string, map[string]any) {
+				return func(name string, part map[string]any) {
+					*order = append(*order, name)
+					part["closed"] = false
+					part["probe"] = name + "<&>"
+				}
+			}
+			want := originalDumpEncoding(t, p, tamper(&originalOrder))
+			require.Equal(t, want, p.encode(t, tamper(&currentOrder)))
+			require.Equal(t, p.names, originalOrder)
+			require.Equal(t, originalOrder, currentOrder)
+			if len(p.keys) == 0 {
+				require.Equal(t, want, pristine, "an empty envelope has no part to tamper")
+			} else {
+				require.NotEqual(t, want, pristine)
+			}
+			require.Equal(t, pristine, p.encode(t, nil))
+			require.Equal(t, stored, p.encoded)
+		})
+	}
+}
+
+func TestUntamperedDumpDoesNotRebuildAllDecodedParts(t *testing.T) {
+	p := syntheticDumpParts(t, 32)
+	want := originalDumpEncoding(t, p, nil)
+	measure := func(encode func() []byte) float64 {
+		return testing.AllocsPerRun(3, func() { require.Equal(t, want, encode()) })
+	}
+	original := measure(func() []byte { return originalDumpEncoding(t, p, nil) })
+	current := measure(func() []byte { return p.encode(t, nil) })
+	t.Logf("nil-tamper allocations: original=%g current=%g", original, current)
+	require.Less(t, current, original, "immutable encoded parts must not rebuild a generic graph")
+}
+
+func TestDumpEnvelopeDoesNotDuplicateItsWholeEncoding(t *testing.T) {
+	p := syntheticDumpParts(t, 128)
+	want := originalDumpEncoding(t, p, nil)
+	measure := func(encode func() []byte) int64 {
+		return testing.Benchmark(func(b *testing.B) {
+			b.ReportAllocs()
+			for range b.N {
+				if !bytes.Equal(want, encode()) {
+					b.Fatal("envelope bytes differ from the independent original encoder")
+				}
+			}
+		}).AllocedBytesPerOp()
+	}
+	raw := measure(func() []byte { return rawMessageDumpEncoding(t, p) })
+	current := measure(func() []byte { return p.encode(t, nil) })
+	t.Logf("envelope bytes allocated: RawMessage marshal=%d current=%d output=%d", raw, current, len(want))
+	encoded := p.encode(t, nil)
+	require.Equal(t, want, encoded)
+	require.Equal(t, len(encoded), cap(encoded), "one pre-sized output must have no grow-buffer spare capacity")
 }
 
 // quintDump is what Quint's evaluator computes of an export.
@@ -861,7 +1155,9 @@ func TestQuintKeepsEveryNamedAlternative(t *testing.T) {
 	require.True(t, strings.HasSuffix(list, `f_choice: "rejects"}]`), list)
 	require.NotContains(t, list, "oneOf")
 
-	// Go's table reports the names, in the order of the list, on the rows that read `admitted`.
+	type namedRow struct{ owner, class, vector string }
+	inventory := map[namedRow]int{}
+	namedRows, admissionRows := 0, 0
 	named := map[string]bool{}
 	for _, name := range x.Machines {
 		for _, row := range s.machines[name].Table.Rows {
@@ -871,13 +1167,45 @@ func TestQuintKeepsEveryNamedAlternative(t *testing.T) {
 					choices = append(choices, r.Choice)
 				}
 			}
-			// The queue's enqueue names its own alternatives in the Model.
-			if len(choices) > 0 && !slices.Equal(choices, []string{"enqueueCommits", "enqueueFails"}) {
-				require.Equal(t, []string{"accepts", "rejects"}, choices, name)
+			if len(choices) == 0 {
+				continue
+			}
+			vector, err := json.Marshal(choices)
+			require.NoError(t, err)
+			inventory[namedRow{name, row.Action, string(vector)}]++
+			namedRows++
+			if slices.Equal(choices, []string{"accepts", "rejects"}) {
 				named[name] = true
+				admissionRows++
 			}
 		}
 	}
+	require.Equal(t, map[namedRow]int{
+		{"activityProduct", "heartbeat", "[\"heartbeatRetry\",\"heartbeatPaused\",\"heartbeatExhausted\"]"}:           1,
+		{"activityProduct", "pause", "[\"pauseApplied\",\"pausePending\",\"pauseAlreadyRequested\"]"}:                 1,
+		{"activityProduct", "reset-keepPaused", "[\"resetPending\",\"resetPausePending\",\"resetAlreadyRequested\"]"}: 1,
+		{"activityProduct", "reset-resume", "[\"resetPending\",\"resetAlreadyRequested\"]"}:                           1,
+		{"activityProduct", "respondFailed-fatal", "[\"failureFatal\",\"resetApplied\",\"resetAppliedPaused\"]"}:      1,
+		{"activityProduct", "respondFailed-retryable", "[\"retryScheduled\",\"retryPaused\",\"retryExhausted\"]"}:     1,
+		{"activityProduct", "respondFailedByID-fatal", "[\"failureFatal\",\"resetApplied\",\"resetAppliedPaused\"]"}:  1,
+		{"activityProduct", "respondFailedByID-retryable", "[\"retryScheduled\",\"retryPaused\",\"retryExhausted\"]"}: 1,
+		{"activityProduct", "unpause", "[\"pauseWithdrawn\",\"unpauseNotRequested\"]"}:                                1,
+		{"activityRecord", "poll", "[\"accepts\",\"rejects\"]"}:                                                       6,
+		{"forgetfulQueue", "enqueue", "[\"enqueueCommits\",\"enqueueFails\"]"}:                                        6,
+		{"lossyMatchingQueue", "enqueue", "[\"enqueueCommits\",\"enqueueFails\"]"}:                                    6,
+		{"recordMember", "poll", "[\"accepts\",\"rejects\"]"}:                                                         6,
+		{"taskQueueProduct", "enqueue", "[\"enqueueCommits\",\"enqueueFails\"]"}:                                      1,
+		{"taskQueueProductUnderStorageLoss", "enqueue", "[\"enqueueCommits\",\"enqueueFails\"]"}:                      1,
+		{"taskQueueSystem", "enqueue", "[\"enqueueCommits\",\"enqueueFails\"]"}:                                       6,
+		{"trustingActivityRecord", "poll", "[\"accepts\",\"rejects\"]"}:                                               36,
+		{"trustingRecordMember", "poll", "[\"accepts\",\"rejects\"]"}:                                                 36,
+		{"volatileQueue", "enqueue", "[\"enqueueCommits\",\"enqueueFails\"]"}:                                         6,
+	}, inventory)
+	require.Equal(t, 119, namedRows)
+	require.Equal(t, 84, admissionRows)
+	require.Equal(t, map[string]bool{
+		"activityRecord": true, "recordMember": true, "trustingActivityRecord": true, "trustingRecordMember": true,
+	}, named)
 	require.Contains(t, named, "trustingActivityRecord")
 
 	receipts, err := s.QuintAgreement(x, encodeDump(t, s, x, nil))

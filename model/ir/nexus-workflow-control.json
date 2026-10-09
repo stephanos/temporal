@@ -1,6 +1,42 @@
 {
   "source": "model: temporal.features.nexus.workflow.ForgedControl, temporal.features.nexus.workflow.system.TrustingCaller$.queries",
   "types": [ {
+    "name": "framework.outcomes.Outcome",
+    "position": {
+      "file": "model/framework/Syntax.scala",
+      "line": 60
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      }, {
+        "name": "rejected",
+        "fields": [ {
+          "name": "why",
+          "type": {
+            "named": "framework.outcomes.Rejection"
+          }
+        } ]
+      } ]
+    }
+  }, {
+    "name": "framework.outcomes.Rejection",
+    "position": {
+      "file": "model/framework/Syntax.scala",
+      "line": 55
+    },
+    "enum": {
+      "cases": [ {
+        "name": "notFound"
+      }, {
+        "name": "alreadyExists"
+      }, {
+        "name": "failedPrecondition"
+      }, {
+        "name": "invalidArgument"
+      } ]
+    }
+  }, {
     "name": "temporal.features.nexus.Reply",
     "position": {
       "file": "model/temporal/features/nexus/Nexus.scala",
@@ -57,7 +93,7 @@
     "name": "temporal.features.nexus.workflow.system.Fact",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 46
+      "line": 47
     },
     "enum": {
       "cases": [ {
@@ -86,7 +122,7 @@
     "name": "temporal.features.nexus.workflow.system.Phase",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 22
+      "line": 23
     },
     "enum": {
       "cases": [ {
@@ -111,7 +147,7 @@
     "name": "temporal.features.nexus.workflow.system.State",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 33
+      "line": 34
     },
     "record": {
       "fields": [ {
@@ -147,7 +183,7 @@
     "name": "temporal.features.nexus.workflow.system.TimeoutType",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 43
+      "line": 44
     },
     "enum": {
       "cases": [ {
@@ -158,48 +194,12 @@
         "name": "startToClose"
       } ]
     }
-  }, {
-    "name": "umpire.outcomes.Outcome",
-    "position": {
-      "file": "model/umpire/Syntax.scala",
-      "line": 60
-    },
-    "enum": {
-      "cases": [ {
-        "name": "accepted"
-      }, {
-        "name": "rejected",
-        "fields": [ {
-          "name": "why",
-          "type": {
-            "named": "umpire.outcomes.Rejection"
-          }
-        } ]
-      } ]
-    }
-  }, {
-    "name": "umpire.outcomes.Rejection",
-    "position": {
-      "file": "model/umpire/Syntax.scala",
-      "line": 55
-    },
-    "enum": {
-      "cases": [ {
-        "name": "notFound"
-      }, {
-        "name": "alreadyExists"
-      }, {
-        "name": "failedPrecondition"
-      }, {
-        "name": "invalidArgument"
-      } ]
-    }
   } ],
   "functions": [ {
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.effects$.backOff",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 174
+      "line": 189
     },
     "params": [ {
       "name": "s",
@@ -210,37 +210,37 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 176
+        "line": 191
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 176
+            "line": 191
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 179
+                "line": 194
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 177
+                "line": 192
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 177
+                    "line": 192
                   },
                   "var": "s"
                 },
@@ -249,7 +249,7 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 177
+                      "line": 192
                     },
                     "literal": {
                       "enum": {
@@ -263,20 +263,20 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 177
+                      "line": 192
                     },
                     "call": {
                       "function": "temporal.features.nexus.workflow.system.NexusSystem$.states$.saturatingSucc",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 177
+                          "line": 192
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 177
+                              "line": 192
                             },
                             "var": "s"
                           },
@@ -290,13 +290,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 178
+                "line": 193
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 178
+                    "line": 193
                   },
                   "literal": {
                     "enum": {
@@ -309,7 +309,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 176
+                "line": 191
               },
               "literal": {
                 "text": ""
@@ -322,20 +322,20 @@
     "requires": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 175
+        "line": 190
       },
       "call": {
         "function": "temporal.features.nexus.workflow.system.NexusSystem$.states$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 175
+            "line": 190
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 175
+                "line": 190
               },
               "var": "s"
             },
@@ -348,7 +348,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.effects$.complete",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 189
+      "line": 204
     },
     "params": [ {
       "name": "s",
@@ -364,33 +364,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 190
+        "line": 205
       },
       "let": {
         "name": "startedFirst",
         "value": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 191
+            "line": 206
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 191
+                "line": 206
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 191
+                    "line": 206
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                        "line": 191
+                        "line": 206
                       },
                       "var": "s"
                     },
@@ -400,7 +400,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 191
+                    "line": 206
                   },
                   "literal": {
                     "enum": {
@@ -414,13 +414,13 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 191
+                "line": 206
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 191
+                    "line": 206
                   },
                   "literal": {
                     "enum": {
@@ -434,7 +434,7 @@
             "else": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 191
+                "line": 206
               },
               "list": { }
             }
@@ -443,13 +443,13 @@
         "body": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 192
+            "line": 207
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 192
+                "line": 207
               },
               "var": "resolution"
             },
@@ -465,37 +465,37 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 194
+                  "line": 209
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 194
+                      "line": 209
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 194
+                              "line": 209
                             },
                             "var": "s"
                           },
@@ -504,7 +504,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 194
+                                "line": 209
                               },
                               "literal": {
                                 "enum": {
@@ -518,27 +518,27 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 194
+                              "line": 209
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 194
+                              "line": 209
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                  "line": 194
+                                  "line": 209
                                 },
                                 "literal": {
                                   "enum": {
@@ -553,7 +553,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "literal": {
                           "text": ""
@@ -575,37 +575,37 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 196
+                  "line": 211
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 196
+                      "line": 211
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 196
+                              "line": 211
                             },
                             "var": "s"
                           },
@@ -614,7 +614,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 196
+                                "line": 211
                               },
                               "literal": {
                                 "enum": {
@@ -628,27 +628,27 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 196
+                              "line": 211
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 196
+                              "line": 211
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                  "line": 196
+                                  "line": 211
                                 },
                                 "literal": {
                                   "enum": {
@@ -663,7 +663,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "literal": {
                           "text": ""
@@ -685,37 +685,37 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 198
+                  "line": 213
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 198
+                      "line": 213
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 198
+                              "line": 213
                             },
                             "var": "s"
                           },
@@ -724,7 +724,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 198
+                                "line": 213
                               },
                               "literal": {
                                 "enum": {
@@ -738,27 +738,27 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 198
+                              "line": 213
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 198
+                              "line": 213
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                  "line": 198
+                                  "line": 213
                                 },
                                 "literal": {
                                   "enum": {
@@ -773,7 +773,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "literal": {
                           "text": ""
@@ -792,7 +792,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.effects$.complete$forged",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 189
+      "line": 204
     },
     "params": [ {
       "name": "s",
@@ -808,33 +808,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 190
+        "line": 205
       },
       "let": {
         "name": "startedFirst",
         "value": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 191
+            "line": 206
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 191
+                "line": 206
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 191
+                    "line": 206
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                        "line": 191
+                        "line": 206
                       },
                       "var": "s"
                     },
@@ -844,7 +844,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 191
+                    "line": 206
                   },
                   "literal": {
                     "enum": {
@@ -858,13 +858,13 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 191
+                "line": 206
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 191
+                    "line": 206
                   },
                   "literal": {
                     "enum": {
@@ -878,7 +878,7 @@
             "else": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 191
+                "line": 206
               },
               "list": { }
             }
@@ -887,13 +887,13 @@
         "body": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 192
+            "line": 207
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 192
+                "line": 207
               },
               "var": "resolution"
             },
@@ -909,37 +909,37 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 194
+                  "line": 209
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 194
+                      "line": 209
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 194
+                              "line": 209
                             },
                             "var": "s"
                           },
@@ -948,7 +948,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 194
+                                "line": 209
                               },
                               "literal": {
                                 "enum": {
@@ -962,27 +962,27 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 194
+                              "line": 209
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 194
+                              "line": 209
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                  "line": 194
+                                  "line": 209
                                 },
                                 "literal": {
                                   "enum": {
@@ -997,7 +997,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "literal": {
                           "text": ""
@@ -1020,37 +1020,37 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 196
+                  "line": 211
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 196
+                      "line": 211
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 196
+                              "line": 211
                             },
                             "var": "s"
                           },
@@ -1059,7 +1059,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 196
+                                "line": 211
                               },
                               "literal": {
                                 "enum": {
@@ -1073,27 +1073,27 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 196
+                              "line": 211
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 196
+                              "line": 211
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                  "line": 196
+                                  "line": 211
                                 },
                                 "literal": {
                                   "enum": {
@@ -1108,7 +1108,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "literal": {
                           "text": ""
@@ -1131,37 +1131,37 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 198
+                  "line": 213
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 198
+                      "line": 213
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 198
+                              "line": 213
                             },
                             "var": "s"
                           },
@@ -1170,7 +1170,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 198
+                                "line": 213
                               },
                               "literal": {
                                 "enum": {
@@ -1184,27 +1184,27 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 198
+                              "line": 213
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 198
+                              "line": 213
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                  "line": 198
+                                  "line": 213
                                 },
                                 "literal": {
                                   "enum": {
@@ -1219,7 +1219,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "literal": {
                           "text": ""
@@ -1239,7 +1239,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.effects$.complete$sent",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 189
+      "line": 204
     },
     "params": [ {
       "name": "s",
@@ -1255,33 +1255,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 190
+        "line": 205
       },
       "let": {
         "name": "startedFirst",
         "value": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 191
+            "line": 206
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 191
+                "line": 206
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 191
+                    "line": 206
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                        "line": 191
+                        "line": 206
                       },
                       "var": "s"
                     },
@@ -1291,7 +1291,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 191
+                    "line": 206
                   },
                   "literal": {
                     "enum": {
@@ -1305,13 +1305,13 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 191
+                "line": 206
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 191
+                    "line": 206
                   },
                   "literal": {
                     "enum": {
@@ -1325,7 +1325,7 @@
             "else": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 191
+                "line": 206
               },
               "list": { }
             }
@@ -1334,13 +1334,13 @@
         "body": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 192
+            "line": 207
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 192
+                "line": 207
               },
               "var": "resolution"
             },
@@ -1356,37 +1356,37 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 194
+                  "line": 209
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 194
+                      "line": 209
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 194
+                              "line": 209
                             },
                             "var": "s"
                           },
@@ -1395,7 +1395,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 194
+                                "line": 209
                               },
                               "literal": {
                                 "enum": {
@@ -1409,27 +1409,27 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 194
+                              "line": 209
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 194
+                              "line": 209
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                  "line": 194
+                                  "line": 209
                                 },
                                 "literal": {
                                   "enum": {
@@ -1444,7 +1444,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 194
+                          "line": 209
                         },
                         "literal": {
                           "text": ""
@@ -1467,37 +1467,37 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 196
+                  "line": 211
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 196
+                      "line": 211
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 196
+                              "line": 211
                             },
                             "var": "s"
                           },
@@ -1506,7 +1506,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 196
+                                "line": 211
                               },
                               "literal": {
                                 "enum": {
@@ -1520,27 +1520,27 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 196
+                              "line": 211
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 196
+                              "line": 211
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                  "line": 196
+                                  "line": 211
                                 },
                                 "literal": {
                                   "enum": {
@@ -1555,7 +1555,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 196
+                          "line": 211
                         },
                         "literal": {
                           "text": ""
@@ -1578,37 +1578,37 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 198
+                  "line": 213
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 198
+                      "line": 213
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 198
+                              "line": 213
                             },
                             "var": "s"
                           },
@@ -1617,7 +1617,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 198
+                                "line": 213
                               },
                               "literal": {
                                 "enum": {
@@ -1631,27 +1631,27 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 198
+                              "line": 213
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 198
+                              "line": 213
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                  "line": 198
+                                  "line": 213
                                 },
                                 "literal": {
                                   "enum": {
@@ -1666,7 +1666,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 198
+                          "line": 213
                         },
                         "literal": {
                           "text": ""
@@ -1686,7 +1686,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.effects$.keep",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 184
+      "line": 199
     },
     "params": [ {
       "name": "s",
@@ -1697,43 +1697,43 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 184
+        "line": 199
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 184
+            "line": 199
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 184
+                "line": 199
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 184
+                "line": 199
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 184
+                "line": 199
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 184
+                "line": 199
               },
               "literal": {
                 "text": ""
@@ -1747,7 +1747,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.effects$.reply",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 158
+      "line": 173
     },
     "params": [ {
       "name": "s",
@@ -1763,13 +1763,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 160
+        "line": 175
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 160
+            "line": 175
           },
           "var": "reply"
         },
@@ -1785,37 +1785,37 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-              "line": 161
+              "line": 176
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 161
+                  "line": 176
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 161
+                      "line": 176
                     },
                     "literal": {
                       "enum": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "accepted"
                       }
                     }
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 161
+                      "line": 176
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 161
+                          "line": 176
                         },
                         "var": "s"
                       },
@@ -1824,7 +1824,7 @@
                         "value": {
                           "position": {
                             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                            "line": 161
+                            "line": 176
                           },
                           "literal": {
                             "enum": {
@@ -1838,13 +1838,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 161
+                      "line": 176
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 161
+                          "line": 176
                         },
                         "literal": {
                           "enum": {
@@ -1857,7 +1857,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 161
+                      "line": 176
                     },
                     "literal": {
                       "text": ""
@@ -1879,37 +1879,37 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-              "line": 162
+              "line": 177
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 162
+                  "line": 177
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 162
+                      "line": 177
                     },
                     "literal": {
                       "enum": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "accepted"
                       }
                     }
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 162
+                      "line": 177
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 162
+                          "line": 177
                         },
                         "var": "s"
                       },
@@ -1918,7 +1918,7 @@
                         "value": {
                           "position": {
                             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                            "line": 162
+                            "line": 177
                           },
                           "literal": {
                             "enum": {
@@ -1932,13 +1932,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 162
+                      "line": 177
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 162
+                          "line": 177
                         },
                         "literal": {
                           "enum": {
@@ -1951,7 +1951,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 162
+                      "line": 177
                     },
                     "literal": {
                       "text": ""
@@ -1973,37 +1973,37 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-              "line": 163
+              "line": 178
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 163
+                  "line": 178
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 163
+                      "line": 178
                     },
                     "literal": {
                       "enum": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "accepted"
                       }
                     }
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 163
+                      "line": 178
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 163
+                          "line": 178
                         },
                         "var": "s"
                       },
@@ -2012,7 +2012,7 @@
                         "value": {
                           "position": {
                             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                            "line": 163
+                            "line": 178
                           },
                           "literal": {
                             "enum": {
@@ -2026,13 +2026,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 163
+                      "line": 178
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 163
+                          "line": 178
                         },
                         "literal": {
                           "enum": {
@@ -2045,7 +2045,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 163
+                      "line": 178
                     },
                     "literal": {
                       "text": ""
@@ -2067,37 +2067,37 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-              "line": 164
+              "line": 179
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 164
+                  "line": 179
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 164
+                      "line": 179
                     },
                     "literal": {
                       "enum": {
-                        "type": "umpire.outcomes.Outcome",
+                        "type": "framework.outcomes.Outcome",
                         "case": "accepted"
                       }
                     }
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 164
+                      "line": 179
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 164
+                          "line": 179
                         },
                         "var": "s"
                       },
@@ -2106,7 +2106,7 @@
                         "value": {
                           "position": {
                             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                            "line": 164
+                            "line": 179
                           },
                           "literal": {
                             "enum": {
@@ -2120,13 +2120,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 164
+                      "line": 179
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 164
+                          "line": 179
                         },
                         "literal": {
                           "enum": {
@@ -2139,7 +2139,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 164
+                      "line": 179
                     },
                     "literal": {
                       "text": ""
@@ -2167,20 +2167,20 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-              "line": 166
+              "line": 181
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 166
+                  "line": 181
                 },
                 "unary": {
                   "op": "OP_NOT",
                   "operand": {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 166
+                      "line": 181
                     },
                     "var": "retryable"
                   }
@@ -2189,37 +2189,37 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 166
+                  "line": 181
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 166
+                      "line": 181
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 166
+                          "line": 181
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 166
+                          "line": 181
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 166
+                              "line": 181
                             },
                             "var": "s"
                           },
@@ -2228,7 +2228,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 166
+                                "line": 181
                               },
                               "literal": {
                                 "enum": {
@@ -2242,13 +2242,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 166
+                          "line": 181
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 166
+                              "line": 181
                             },
                             "literal": {
                               "enum": {
@@ -2261,7 +2261,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 166
+                          "line": 181
                         },
                         "literal": {
                           "text": ""
@@ -2274,37 +2274,37 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                  "line": 168
+                  "line": 183
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 168
+                      "line": 183
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 171
+                          "line": 186
                         },
                         "literal": {
                           "enum": {
-                            "type": "umpire.outcomes.Outcome",
+                            "type": "framework.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 169
+                          "line": 184
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 169
+                              "line": 184
                             },
                             "var": "s"
                           },
@@ -2313,7 +2313,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 169
+                                "line": 184
                               },
                               "literal": {
                                 "enum": {
@@ -2327,20 +2327,20 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                "line": 169
+                                "line": 184
                               },
                               "call": {
                                 "function": "temporal.features.nexus.workflow.system.NexusSystem$.states$.saturatingSucc",
                                 "args": [ {
                                   "position": {
                                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                    "line": 169
+                                    "line": 184
                                   },
                                   "field": {
                                     "base": {
                                       "position": {
                                         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                                        "line": 169
+                                        "line": 184
                                       },
                                       "var": "s"
                                     },
@@ -2354,13 +2354,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 170
+                          "line": 185
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                              "line": 170
+                              "line": 185
                             },
                             "literal": {
                               "enum": {
@@ -2373,7 +2373,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                          "line": 168
+                          "line": 183
                         },
                         "literal": {
                           "text": ""
@@ -2391,20 +2391,20 @@
     "requires": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 159
+        "line": 174
       },
       "call": {
         "function": "temporal.features.nexus.workflow.system.NexusSystem$.states$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 159
+            "line": 174
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 159
+                "line": 174
               },
               "var": "s"
             },
@@ -2417,7 +2417,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.effects$.retry",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 202
+      "line": 217
     },
     "params": [ {
       "name": "s",
@@ -2428,37 +2428,37 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 202
+        "line": 217
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 202
+            "line": 217
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 202
+                "line": 217
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 202
+                "line": 217
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 202
+                    "line": 217
                   },
                   "var": "s"
                 },
@@ -2467,7 +2467,7 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 202
+                      "line": 217
                     },
                     "literal": {
                       "enum": {
@@ -2481,13 +2481,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 202
+                "line": 217
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 202
+                "line": 217
               },
               "literal": {
                 "text": ""
@@ -2501,7 +2501,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.effects$.schedule",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 137
+      "line": 152
     },
     "params": [ {
       "name": "s",
@@ -2527,38 +2527,38 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 143
+        "line": 158
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 143
+            "line": 158
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 152
+                "line": 167
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 144
+                "line": 159
               },
               "construct": {
                 "type": "temporal.features.nexus.workflow.system.State",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 145
+                    "line": 160
                   },
                   "literal": {
                     "enum": {
@@ -2569,7 +2569,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 146
+                    "line": 161
                   },
                   "literal": {
                     "int": "0"
@@ -2577,19 +2577,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 147
+                    "line": 162
                   },
                   "var": "scheduleToClose"
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 148
+                    "line": 163
                   },
                   "var": "scheduleToStart"
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 149
+                    "line": 164
                   },
                   "var": "startToClose"
                 } ]
@@ -2597,13 +2597,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 151
+                "line": 166
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 151
+                    "line": 166
                   },
                   "literal": {
                     "enum": {
@@ -2616,7 +2616,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 143
+                "line": 158
               },
               "literal": {
                 "text": ""
@@ -2630,7 +2630,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.effects$.timeOut",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 205
+      "line": 220
     },
     "params": [ {
       "name": "s",
@@ -2646,37 +2646,37 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 206
+        "line": 221
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 206
+            "line": 221
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 206
+                "line": 221
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 206
+                "line": 221
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 206
+                    "line": 221
                   },
                   "var": "s"
                 },
@@ -2685,7 +2685,7 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                      "line": 206
+                      "line": 221
                     },
                     "literal": {
                       "enum": {
@@ -2699,13 +2699,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 206
+                "line": 221
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 206
+                    "line": 221
                   },
                   "construct": {
                     "type": "temporal.features.nexus.workflow.system.Fact",
@@ -2713,7 +2713,7 @@
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                        "line": 206
+                        "line": 221
                       },
                       "var": "t"
                     } ]
@@ -2723,7 +2723,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 206
+                "line": 221
               },
               "literal": {
                 "text": ""
@@ -2737,7 +2737,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.states$.created",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 107
+      "line": 122
     },
     "params": [ {
       "name": "p",
@@ -2748,34 +2748,34 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 107
+        "line": 122
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 107
+            "line": 122
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 107
+                "line": 122
               },
               "var": "p"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 107
+                "line": 122
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 107
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
@@ -2786,7 +2786,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 107
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
@@ -2797,7 +2797,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 107
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
@@ -2813,27 +2813,27 @@
         "right": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 107
+            "line": 122
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 107
+                "line": 122
               },
               "var": "p"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 107
+                "line": 122
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 107
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
@@ -2844,7 +2844,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 107
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
@@ -2855,7 +2855,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 107
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
@@ -2866,7 +2866,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                    "line": 107
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
@@ -2885,7 +2885,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.states$.saturatingSucc",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 102
+      "line": 117
     },
     "params": [ {
       "name": "a",
@@ -2896,27 +2896,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 104
+        "line": 119
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 104
+            "line": 119
           },
           "binary": {
             "op": "OP_LT",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 104
+                "line": 119
               },
               "var": "a"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 59
+                "line": 60
               },
               "literal": {
                 "int": "2"
@@ -2927,21 +2927,21 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 104
+            "line": 119
           },
           "binary": {
             "op": "OP_ADD",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 104
+                "line": 119
               },
               "var": "a"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 104
+                "line": 119
               },
               "literal": {
                 "int": "1"
@@ -2952,7 +2952,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 104
+            "line": 119
           },
           "var": "a"
         }
@@ -2961,14 +2961,14 @@
     "requires": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 103
+        "line": 118
       },
       "call": {
         "function": "temporal.features.nexus.workflow.system.NexusSystem$.states$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 103
+            "line": 118
           },
           "var": "a"
         } ]
@@ -2978,7 +2978,7 @@
     "name": "temporal.features.nexus.workflow.system.NexusSystem$.states$.validAttempts",
     "position": {
       "file": "model/temporal/features/nexus/workflow/system/System.scala",
-      "line": 99
+      "line": 100
     },
     "params": [ {
       "name": "a",
@@ -2989,21 +2989,21 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 99
+        "line": 100
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 99
+            "line": 100
           },
           "binary": {
             "op": "OP_LE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 99
+                "line": 100
               },
               "literal": {
                 "int": "0"
@@ -3012,7 +3012,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 99
+                "line": 100
               },
               "var": "a"
             }
@@ -3021,21 +3021,21 @@
         "right": {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 99
+            "line": 100
           },
           "binary": {
             "op": "OP_LE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 99
+                "line": 100
               },
               "var": "a"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/System.scala",
-                "line": 59
+                "line": 60
               },
               "literal": {
                 "int": "2"
@@ -3202,7 +3202,7 @@
             "line": 38
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexus/workflow/system/TrustingCaller.scala",
@@ -3210,7 +3210,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "umpire.outcomes.Outcome",
+                  "type": "framework.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -3352,14 +3352,14 @@
                 "line": 43
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/TrustingCaller.scala",
                     "line": 43
                   },
                   "construct": {
-                    "type": "umpire.outcomes.Outcome",
+                    "type": "framework.outcomes.Outcome",
                     "case": "rejected",
                     "args": [ {
                       "position": {
@@ -3368,7 +3368,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "umpire.outcomes.Rejection",
+                          "type": "framework.outcomes.Rejection",
                           "case": "notFound"
                         }
                       }
@@ -3536,14 +3536,14 @@
                 "line": 43
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/TrustingCaller.scala",
                     "line": 43
                   },
                   "construct": {
-                    "type": "umpire.outcomes.Outcome",
+                    "type": "framework.outcomes.Outcome",
                     "case": "rejected",
                     "args": [ {
                       "position": {
@@ -3552,7 +3552,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "umpire.outcomes.Rejection",
+                          "type": "framework.outcomes.Rejection",
                           "case": "notFound"
                         }
                       }
@@ -3721,14 +3721,14 @@
                 "line": 43
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexus/workflow/system/TrustingCaller.scala",
                     "line": 43
                   },
                   "construct": {
-                    "type": "umpire.outcomes.Outcome",
+                    "type": "framework.outcomes.Outcome",
                     "case": "rejected",
                     "args": [ {
                       "position": {
@@ -3737,7 +3737,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "umpire.outcomes.Rejection",
+                          "type": "framework.outcomes.Rejection",
                           "case": "notFound"
                         }
                       }
@@ -3957,7 +3957,7 @@
     "params": [ {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -5038,6 +5038,14 @@
     }
   } ],
   "actions": [ {
+    "id": "temporal.actors.worker.worker.stop",
+    "name": "stop",
+    "position": {
+      "file": "model/temporal/actors/worker/Worker.scala",
+      "line": 44
+    },
+    "actor": "worker"
+  }, {
     "id": "temporal.features.nexus.handler.complete",
     "name": "complete",
     "position": {
@@ -5170,14 +5178,6 @@
     },
     "actor": "system",
     "timer": true
-  }, {
-    "id": "temporal.shared.worker.worker.stop",
-    "name": "stop",
-    "position": {
-      "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 44
-    },
-    "actor": "worker"
   } ],
   "machines": [ {
     "family": "temporal.features.nexus.workflow.system",
@@ -5188,19 +5188,19 @@
     },
     "entity": "operation",
     "stateType": "temporal.features.nexus.workflow.system.State",
-    "outcomeType": "umpire.outcomes.Outcome",
+    "outcomeType": "framework.outcomes.Outcome",
     "factType": "temporal.features.nexus.workflow.system.Fact",
     "starts": [ {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 82
+        "line": 83
       },
       "construct": {
         "type": "temporal.features.nexus.workflow.system.State",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 83
+            "line": 84
           },
           "literal": {
             "enum": {
@@ -5211,21 +5211,10 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 84
-          },
-          "literal": {
-            "int": "0"
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/features/nexus/workflow/system/System.scala",
             "line": 85
           },
           "literal": {
-            "enum": {
-              "type": "temporal.features.nexus.workflow.Timeout",
-              "case": "unset"
-            }
+            "int": "0"
           }
         }, {
           "position": {
@@ -5242,6 +5231,17 @@
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
             "line": 87
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.features.nexus.workflow.Timeout",
+              "case": "unset"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/features/nexus/workflow/system/System.scala",
+            "line": 88
           },
           "literal": {
             "enum": {
@@ -5380,7 +5380,7 @@
         "line": 66
       }
     }, {
-      "action": "temporal.shared.worker.worker.stop",
+      "action": "temporal.actors.worker.worker.stop",
       "function": "trustingCaller.rules.stop",
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/TrustingCaller.scala",
@@ -5446,14 +5446,14 @@
     "start": {
       "position": {
         "file": "model/temporal/features/nexus/workflow/system/System.scala",
-        "line": 82
+        "line": 83
       },
       "construct": {
         "type": "temporal.features.nexus.workflow.system.State",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 83
+            "line": 84
           },
           "literal": {
             "enum": {
@@ -5464,21 +5464,10 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
-            "line": 84
-          },
-          "literal": {
-            "int": "0"
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/features/nexus/workflow/system/System.scala",
             "line": 85
           },
           "literal": {
-            "enum": {
-              "type": "temporal.features.nexus.workflow.Timeout",
-              "case": "unset"
-            }
+            "int": "0"
           }
         }, {
           "position": {
@@ -5495,6 +5484,17 @@
           "position": {
             "file": "model/temporal/features/nexus/workflow/system/System.scala",
             "line": 87
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.features.nexus.workflow.Timeout",
+              "case": "unset"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/features/nexus/workflow/system/System.scala",
+            "line": 88
           },
           "literal": {
             "enum": {
@@ -5821,7 +5821,7 @@
             "line": 180
           },
           "step": {
-            "action": "temporal.shared.worker.worker.stop"
+            "action": "temporal.actors.worker.worker.stop"
           },
           "command": {
             "id": "stop-handler-worker",
@@ -6139,7 +6139,7 @@
             "id": "complete-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 397
+              "line": 416
             },
             "nexusCompletion": {
               "handle": "completion-authority",
@@ -6188,7 +6188,7 @@
             "id": "fail-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 397
+              "line": 416
             },
             "nexusCompletion": {
               "handle": "completion-authority",
@@ -6414,7 +6414,7 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 387
+              "line": 406
             },
             "workflowCommand": {
               "command": {
@@ -6516,7 +6516,7 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 387
+              "line": 406
             },
             "workflowCommand": {
               "command": {
@@ -6635,7 +6635,7 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 387
+              "line": 406
             },
             "workflowCommand": {
               "command": {
@@ -6754,7 +6754,7 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 387
+              "line": 406
             },
             "workflowCommand": {
               "command": {
@@ -7010,7 +7010,7 @@
             "id": "respond-async",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 392
+              "line": 411
             },
             "nexusReply": {
               "reply": {
@@ -7053,7 +7053,7 @@
             "id": "respond-sync",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 392
+              "line": 411
             },
             "nexusReply": {
               "reply": {
@@ -7125,7 +7125,7 @@
             "id": "respond-failed",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 392
+              "line": 411
             },
             "nexusReply": {
               "reply": {
@@ -7198,7 +7198,7 @@
             "id": "respond-error-retryable",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 392
+              "line": 411
             },
             "nexusReply": {
               "reply": {
@@ -7259,7 +7259,7 @@
             "id": "respond-error",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 392
+              "line": 411
             },
             "nexusReply": {
               "reply": {
@@ -7337,26 +7337,74 @@
         "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
       }, {
+        "id": "visibility.resetActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 38
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ResetActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
         "id": "visibility.requestCancelActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 37
+          "line": 45
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.respondActivityTaskCompletedById.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 55
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompletedById",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.respondActivityTaskFailedById.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 59
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailedById",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.respondActivityTaskCanceledById.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 63
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCanceledById",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
       }, {
         "id": "visibility.activityAnswer.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 44
+          "line": 70
         },
         "cause": "CAUSE_KIND_ACTIVITY_ANSWER",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
       }, {
+        "id": "visibility.activityHeartbeat.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 75
+        },
+        "cause": "CAUSE_KIND_ACTIVITY_HEARTBEAT",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "eventuallyWithin": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 77
+          },
+          "intervalMs": "250",
+          "atMostMs": "2000"
+        }
+      }, {
         "id": "visibility.startNexusOperationExecution.describeNexusOperationExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 48
+          "line": 82
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartNexusOperationExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
@@ -7364,7 +7412,7 @@
         "id": "visibility.terminateNexusOperationExecution.describeNexusOperationExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 55
+          "line": 89
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateNexusOperationExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
@@ -7372,7 +7420,7 @@
         "id": "visibility.startWorkflowExecution.getWorkflowExecutionHistory",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 61
+          "line": 95
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
@@ -7380,7 +7428,7 @@
         "id": "visibility.workflowTask.getWorkflowExecutionHistory",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 68
+          "line": 102
         },
         "cause": "CAUSE_KIND_WORKFLOW_TASK",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
@@ -7388,14 +7436,14 @@
         "id": "visibility.handlerReply.describeWorkflowExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 74
+          "line": 108
         },
         "cause": "CAUSE_KIND_HANDLER_REPLY",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution",
         "eventuallyWithin": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 76
+            "line": 110
           },
           "intervalMs": "250",
           "atMostMs": "2000"
@@ -7405,13 +7453,13 @@
         "id": "cause.delivery",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 82
+          "line": 116
         },
         "kind": "CAUSE_KIND_DELIVERY",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 82
+            "line": 116
           },
           "intervalMs": "250",
           "atMostMs": "3000"
@@ -7420,13 +7468,28 @@
         "id": "cause.activityAnswer",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 86
+          "line": 120
         },
         "kind": "CAUSE_KIND_ACTIVITY_ANSWER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 86
+            "line": 120
+          },
+          "intervalMs": "250",
+          "atMostMs": "2000"
+        }
+      }, {
+        "id": "cause.activityHeartbeat",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 121
+        },
+        "kind": "CAUSE_KIND_ACTIVITY_HEARTBEAT",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 121
           },
           "intervalMs": "250",
           "atMostMs": "2000"
@@ -7435,13 +7498,13 @@
         "id": "cause.workflowTask",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 89
+          "line": 124
         },
         "kind": "CAUSE_KIND_WORKFLOW_TASK",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 89
+            "line": 124
           },
           "intervalMs": "250",
           "atMostMs": "5000"
@@ -7450,13 +7513,13 @@
         "id": "cause.handlerReply",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 94
+          "line": 129
         },
         "kind": "CAUSE_KIND_HANDLER_REPLY",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 94
+            "line": 129
           },
           "intervalMs": "250",
           "atMostMs": "5000"
@@ -7465,13 +7528,13 @@
         "id": "cause.timer",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 99
+          "line": 134
         },
         "kind": "CAUSE_KIND_TIMER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 99
+            "line": 134
           },
           "intervalMs": "250",
           "atMostMs": "3000"
@@ -7480,7 +7543,7 @@
       "attemptNumbering": {
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 104
+          "line": 139
         },
         "first": "1",
         "oneRun": true
@@ -7488,7 +7551,7 @@
       "instructionDefaults": {
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 109
+          "line": 144
         },
         "timeoutMs": "10000",
         "attempts": "1"
@@ -7514,7 +7577,8 @@
         "action": "temporal.features.nexus.workflow.deadline.startToClose"
       },
       "kind": "CAUSE_KIND_TIMER",
-      "deadlineMs": "2000"
+      "deadlineMs": "2000",
+      "timeoutBasis": "TIMEOUT_BASIS_START_TO_CLOSE"
     } ],
     "rejectionCodes": [ {
       "rejection": "REJECTION_NOT_FOUND",

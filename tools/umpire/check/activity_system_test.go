@@ -352,7 +352,7 @@ func TestActivityTerminalFinality(t *testing.T) {
 func TestActivityCompetingTimers(t *testing.T) {
 	c := systemModel(t)
 	for query, table := range map[string][2]string{
-		"query activitySystem competingTimers.": {"activitySystem", "scheduled-0-expires-expires-unset"},
+		"query activitySystem competingTimers.": {"activitySystem", "scheduled-now-0-expires-expires-unset-unset-unlimited"},
 		current:                                 {"activityRecord", "scheduled-none-settled"},
 		stale:                                   {"trustingActivityRecord", "scheduled-none-settled"},
 	} {

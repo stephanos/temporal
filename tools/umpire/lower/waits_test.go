@@ -93,6 +93,11 @@ var derivedWaits = map[string]map[string]map[string]wait{
 			hints: []string{"deadline.startDelay=2000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}},
 		"retryAfterTimeout": {"controller/await-completed": timeoutRetried},
 		"retryExhaustion":   {"controller/await-failed": timeoutRetried},
+		"deferredResetCompletes": {
+			"controller/await-reset-held": {interval: 250, hints: []string{"cause.delivery=3000"}},
+			"controller/await-reset-completed": {interval: 250,
+				hints: []string{"deadline.heartbeat=2000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}},
+		},
 		"heartbeatThenCompletes": {"controller/await-heartbeat-receipt": heartbeatReceived,
 			"controller/await-completed": {interval: 250, hints: []string{"cause.delivery=3000", "cause.activityHeartbeat=2000", "cause.activityAnswer=2000"}}},
 		"heartbeatTimeoutRetriesThenCompletes": {"controller/await-heartbeat-receipt": heartbeatReceived,
@@ -545,9 +550,11 @@ func TestAnExplicitPollKeepsItsInterval(t *testing.T) {
 // written, as before hints existed.
 func TestNoBehaviorDerivesNoWait(t *testing.T) {
 	m := derivedModel(t, "activity-standalone", func(m *umpirespb.Model) {
-		for _, r := range m.GetRealizations() {
-			r.Behavior, r.ServerSteps = nil, nil
-		}
+		owned := realizationNamed(t, m, "standalone")
+		require.Equal(t, "activitySystem", owned.GetMachine())
+		cloned := proto.CloneOf(owned)
+		cloned.Behavior, cloned.ServerSteps = nil, nil
+		m.Realizations[slices.Index(m.GetRealizations(), owned)] = cloned
 	})
 	_, err := lowerDerived(t, m, "terminate")
 	require.ErrorContains(t, err, "command controller/await-terminated reads "+workflowService+"DescribeActivityExecution after command controller/start-activity")

@@ -45,8 +45,10 @@ func (q *Query) searcher() (*searcher, error) {
 		}
 	}
 	ends := map[string]bool{}
-	for _, e := range t.Ends {
-		ends[e] = true
+	if len(q.monitors) > 0 {
+		for _, e := range t.Ends {
+			ends[e] = true
+		}
 	}
 	return &searcher{q: q, t: t, ref: ref, ends: ends, monRead: make([]bool, len(q.monitors))}, nil
 }

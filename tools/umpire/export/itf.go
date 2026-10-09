@@ -379,8 +379,9 @@ func (x *QuintExport) declared(raw any, name string) (interp.Value, error) {
 		fields, err := x.fields(decl.GetRecord().GetFields(), raw, name)
 		return interp.Value{Kind: interp.RecordValue, Type: name, Fields: fields}, err
 	}
-	tagged, err := record(raw, fmt.Sprintf("%v, read as a case of %s,", raw, name))
-	if err != nil {
+	tagged, ok := raw.(map[string]any)
+	if !ok {
+		_, err := record(raw, fmt.Sprintf("%v, read as a case of %s,", raw, name))
 		return interp.Value{}, err
 	}
 	variant, ok := x.tags[text(tagged["tag"])]
@@ -397,10 +398,12 @@ func (x *QuintExport) fields(decls []*umpirespb.Field, raw any, name string) ([]
 	if len(decls) == 0 {
 		return nil, nil
 	}
-	values, err := record(raw, fmt.Sprintf("%v, read as the fields of %s,", raw, name))
-	if err != nil {
+	values, ok := raw.(map[string]any)
+	if !ok {
+		_, err := record(raw, fmt.Sprintf("%v, read as the fields of %s,", raw, name))
 		return nil, err
 	}
+	var err error
 	out := make([]interp.Value, len(decls))
 	for n, f := range decls {
 		if out[n], err = x.value(values["f_"+plain(f.GetName())], f.GetType()); err != nil {

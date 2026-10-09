@@ -20,7 +20,7 @@ func TestRealizerGivesTheRefinementCheckReads(t *testing.T) {
 			carried[row.Key] = *row.Product
 		}
 	}
-	require.Equal(t, "poll", carried["scheduled-0-unset-unset-unset-poll"])
+	require.Equal(t, "poll", carried["scheduled-now-0-unset-unset-unset-unset-unlimited-poll"])
 	_, err = r.Refinement("activityProduct")
 	require.ErrorContains(t, err, "refines no machine")
 }

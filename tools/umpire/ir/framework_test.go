@@ -30,20 +30,34 @@ func TestFrameworkLayout(t *testing.T) {
 		if strings.HasPrefix(rel, modelRoot+"/ir/") || strings.HasPrefix(rel, modelRoot+"/cases/") {
 			return
 		}
-		allowed := strings.NewReplacer(
-			"umpire.irgen", "",
-			"umpire.check", "",
-			"io.temporal.server.api.umpire.v1", "",
-			"umpire.case.service", "",
-		).Replace(content)
-		for i, line := range strings.Split(allowed, "\n") {
-			if strings.Contains(line, "model/umpire") || strings.Contains(line, "umpire.") ||
-				strings.TrimSpace(line) == "package umpire" {
+		for i, line := range strings.Split(content, "\n") {
+			if retiredFrameworkMention(line) {
 				mentions = append(mentions, fmt.Sprintf("%s:%d", rel, i+1))
 			}
 		}
 	}))
 	require.Empty(t, mentions, "framework sources use model/framework and the framework.* Scala namespace")
+}
+
+var preservedUmpireProtobufNamespace = regexp.MustCompile(`(?:io\.)?temporal\.server\.api\.umpire\.v1\b`)
+
+func retiredFrameworkMention(line string) bool {
+	allowed := strings.NewReplacer(
+		"umpire.irgen", "",
+		"umpire.check", "",
+		"umpire.case.service", "",
+	).Replace(preservedUmpireProtobufNamespace.ReplaceAllString(line, ""))
+	return strings.Contains(allowed, "model/umpire") || strings.Contains(allowed, "umpire.") ||
+		strings.TrimSpace(allowed) == "package umpire"
+}
+
+func TestFrameworkNamespaceDistinguishesPreservedProtobufFromRetiredDSL(t *testing.T) {
+	for _, line := range []string{"temporal.server.api.umpire.v1.Model", "io.temporal.server.api.umpire.v1.Model"} {
+		require.False(t, retiredFrameworkMention(line), line)
+	}
+	for _, line := range []string{"import umpire.*", "umpire.Finite", "package umpire", "model/umpire", "temporal.server.api.umpire.v2.Model", "temporal.server.api.umpire.v10.Model", "temporal.server.api.umpire.v1other.Model", "temporal.server.api.umpire.v1.Model; umpire.Finite"} {
+		require.True(t, retiredFrameworkMention(line), line)
+	}
 }
 
 // temporalTerms are the words that name a Temporal concept, lowercase and with their plurals: the

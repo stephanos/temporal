@@ -140,13 +140,46 @@ func (s *Slice) dumpOfComposition(x *QuintExport, j int) (map[string]any, error)
 	return out, nil
 }
 
+func cloneDumpState(v interp.Value) interp.Value {
+	v.Fields = slices.Clone(v.Fields)
+	for n := range v.Fields {
+		v.Fields[n] = cloneDumpState(v.Fields[n])
+	}
+	v.Items = slices.Clone(v.Items)
+	for n := range v.Items {
+		v.Items[n] = cloneDumpState(v.Items[n])
+	}
+	return v
+}
+
 // dumpOf is machine i's part of a dump as Go's interpretation gives it.
 func (s *Slice) dumpOf(x *QuintExport, i int, mm *interp.Machine) (map[string]any, error) {
 	decl, t := mm.Decl, mm.Table
 	stateType := named(decl.GetStateType())
+	type encodedState struct {
+		value   interp.Value
+		encoded any
+	}
+	encodedStates := map[string]encodedState{}
+	stateValue := func(v interp.Value) any {
+		key := v.Key()
+		canonical, ok := mm.State(key)
+		if !ok || !canonical.Equal(v) {
+			return x.itf(v, stateType)
+		}
+		if encoded, ok := encodedStates[key]; ok && encoded.value.Equal(v) {
+			return encoded.encoded
+		}
+		encoded := x.itf(v, stateType)
+		encodedStates[key] = encodedState{value: cloneDumpState(v), encoded: encoded}
+		return encoded
+	}
 	state := func(key string) any {
-		v, _ := mm.State(key)
-		return x.itf(v, stateType)
+		v, ok := mm.State(key)
+		if encoded, cached := encodedStates[key]; ok && cached && encoded.value.Equal(v) {
+			return encoded.encoded
+		}
+		return stateValue(v)
 	}
 	states := func(keys []string) []any {
 		out := []any{}
@@ -176,7 +209,7 @@ func (s *Slice) dumpOf(x *QuintExport, i int, mm *interp.Machine) (map[string]an
 	rows := []any{}
 	for _, key := range t.Reachable {
 		by := []any{}
-		for _, c := range mm.Classes {
+		for n, c := range mm.Classes {
 			steps := []any{}
 			for _, st := range from[key][c.Key].Steps {
 				facts := []any{}
@@ -184,9 +217,9 @@ func (s *Slice) dumpOf(x *QuintExport, i int, mm *interp.Machine) (map[string]an
 					facts = append(facts, x.itf(f, named(decl.GetFactType())))
 				}
 				steps = append(steps, map[string]any{"f_outcome": x.itf(st.Fields[0], named(decl.GetOutcomeType())),
-					"f_state": x.itf(st.Fields[1], stateType), "f_facts": facts, "f_because": st.Fields[3].Text, "f_choice": st.Choice})
+					"f_state": stateValue(st.Fields[1]), "f_facts": facts, "f_because": st.Fields[3].Text, "f_choice": st.Choice})
 			}
-			by = append(by, map[string]any{"cls": class(c), "steps": steps})
+			by = append(by, map[string]any{"cls": classes[n], "steps": steps})
 		}
 		rows = append(rows, map[string]any{"src": state(key), "by": set(by)})
 	}
@@ -198,7 +231,7 @@ func (s *Slice) dumpOf(x *QuintExport, i int, mm *interp.Machine) (map[string]an
 		claims := []any{}
 		for _, key := range t.Reachable {
 			by := []any{}
-			for _, c := range mm.Classes {
+			for n, c := range mm.Classes {
 				steps := []any{}
 				for _, reads := range view.Claims[key][c.Key] {
 					rec := map[string]any{}
@@ -207,7 +240,7 @@ func (s *Slice) dumpOf(x *QuintExport, i int, mm *interp.Machine) (map[string]an
 					}
 					steps = append(steps, rec)
 				}
-				by = append(by, map[string]any{"cls": class(c), "steps": steps})
+				by = append(by, map[string]any{"cls": classes[n], "steps": steps})
 			}
 			claims = append(claims, map[string]any{"src": state(key), "by": set(by)})
 		}
@@ -245,12 +278,12 @@ func (s *Slice) dumpOf(x *QuintExport, i int, mm *interp.Machine) (map[string]an
 	}
 	for _, key := range keysOf(p.States) {
 		by := []any{}
-		for _, c := range mm.Classes {
+		for n, c := range mm.Classes {
 			steps := []any{}
 			for _, st := range p.Steps[key][c.Key] {
 				steps = append(steps, map[string]any{"mu": mu(st.Mu), "read": flags(st.Read), "viol": flags(st.Viol)})
 			}
-			by = append(by, map[string]any{"cls": class(c), "steps": steps})
+			by = append(by, map[string]any{"cls": classes[n], "steps": steps})
 		}
 		edges = append(edges, map[string]any{"src": pstate(p.States[key]), "by": set(by)})
 	}

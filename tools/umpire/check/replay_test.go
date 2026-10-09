@@ -18,7 +18,7 @@ func TestEveryReportedWitnessReplaysUnderItsDefinitionIDs(t *testing.T) {
 	var queries []*Query
 	expected := map[string][]string{
 		// The two finds the protocol's capabilities generate lead, by their machine's prefix.
-		"activity-standalone": {"activitySystem.cancelIsRequested", "activitySystem.terminateSettles", "cancel", "cancelRequest", "completion", "nonRetryableFailure", "pauseResume", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "terminate"},
+		"activity-standalone": {"activitySystem.cancelIsRequested", "activitySystem.terminateSettles", "cancel", "cancelRequest", "completion", "deferredResetCompletes", "heartbeatThenCompletes", "heartbeatTimeoutExhausts", "heartbeatTimeoutRetriesThenCompletes", "heldCanceledByID", "heldFailedByID", "keepPausedReset", "nonRetryableFailure", "pauseResume", "resetCancellation", "resetCompletion", "resetExhaustion", "resetFatality", "resetKeptPause", "resetOutranksPause", "resetRepeated", "resetScheduleToClose", "resetTimeout", "retry", "retryAfterTimeout", "retryExhaustion", "scheduleToStartTimeout", "scheduledCompletedByID", "startDelayedCompletion", "startToCloseTimeout", "terminate"},
 		"nexus-workflow":      {"asyncCompletion", "asyncFailure", "handlerError", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "syncCompletion"},
 	}
 	for _, name := range []string{"activity-standalone", "nexus-workflow"} {
@@ -39,7 +39,7 @@ func TestEveryReportedWitnessReplaysUnderItsDefinitionIDs(t *testing.T) {
 		slices.Sort(found)
 		require.Equal(t, expected[name], found)
 	}
-	require.Len(t, queries, 18)
+	require.Len(t, queries, 38)
 	for _, q := range queries {
 		a, err := q.Answer()
 		require.NoError(t, err, q.Name)

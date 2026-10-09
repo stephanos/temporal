@@ -474,6 +474,9 @@ func (c Class) spelled() string {
 // RowKeys refuses a machine two of whose state and class pairs share a row key, as a state and a
 // class whose keys hold a "-" can: rows, hole rows and disabled pairs are found by it.
 func RowKeys(decl *umpirespb.Machine, states []Value, classes []Class) error {
+	if distinctRowKeys(states, classes) {
+		return nil
+	}
 	seen := make(map[string][2]string, len(states)*len(classes))
 	for _, s := range states {
 		state := s.Key()
@@ -487,6 +490,35 @@ func RowKeys(decl *umpirespb.Machine, states []Value, classes []Class) error {
 		}
 	}
 	return nil
+}
+
+func distinctRowKeys(states []Value, classes []Class) bool {
+	if len(states) == 0 || len(classes) == 0 {
+		return true
+	}
+	stateKeys := make(map[string]struct{}, len(states))
+	hyphens := -1
+	for _, state := range states {
+		key := state.Key()
+		count := strings.Count(key, "-")
+		if hyphens != -1 && count != hyphens {
+			return false
+		}
+		hyphens = count
+		if _, duplicate := stateKeys[key]; duplicate {
+			return false
+		}
+		stateKeys[key] = struct{}{}
+	}
+	classKeys := make(map[string]struct{}, len(classes))
+	for _, class := range classes {
+		if _, duplicate := classKeys[class.Key]; duplicate {
+			return false
+		}
+		classKeys[class.Key] = struct{}{}
+	}
+	// With k hyphens in every state key, the (k+1)th separates state from class uniquely.
+	return true
 }
 
 // rows evaluates every step function once per state and class, states-major, keeping the enabled

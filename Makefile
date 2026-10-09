@@ -670,7 +670,8 @@ umpire-check-replay-bridge:
 MODEL_ROOT := model
 MODEL_CLI := mise exec -- scala-cli
 MODEL_GATE_ARGS ?=
-MODEL_SCALAFIX = $(MODEL_CLI) --power fix --enable-built-in=false \
+# Scalafix 0.14.9 reads JDK25's URLClassPath.path; JDK27 renamed that field to searchPath.
+MODEL_SCALAFIX = $(MODEL_CLI) --power fix --jvm 25 --enable-built-in=false \
 	--scalafix-conf "$(CURDIR)/$(MODEL_ROOT)/.scalafix.conf" \
 	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
 MODEL_SOURCES := $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/framework $(MODEL_ROOT)/temporal

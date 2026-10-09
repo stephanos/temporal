@@ -1,19 +1,97 @@
 coverage model/ir/activity-standalone.json activityProduct
   properties           3 declared, 3 named by a Query
   verify Queries       3, 3 whose Property fired
+  named choices        17, 17 taken by a reachable state
 coverage model/ir/activity-standalone.json activitySystem
-  properties           10 declared, 10 named by a Query
-  non-system actions   10, 10 performed by a realization
-  facts                10, 10 with evidence
+  properties           39 declared, 39 named by a Query
+  verify Queries       30, 30 whose Property fired
+  non-system actions   15, 10 performed by a realization
+  facts                12, 10 with evidence
   refinements          1 declared, 0 read through by a Query
-  observations         1, 1 read
+  observations         2, 2 read
   API values           7 tested, 6 mapped to a fact
+coverage model/ir/activity-standalone.json byIDCancellation
+  properties           2 declared, 2 named by a Query
+  non-system actions   15, 4 performed by a realization
+  facts                12, 5 with evidence
+  observations         2, 2 read
+  API values           12 tested, 4 mapped to a fact
+coverage model/ir/activity-standalone.json byIDCompletion
+  properties           1 declared, 1 named by a Query
+  non-system actions   15, 2 performed by a realization
+  facts                12, 2 with evidence
+  observations         2, 2 read
+  API values           12 tested, 1 mapped to a fact
+coverage model/ir/activity-standalone.json byIDFailure
+  properties           1 declared, 1 named by a Query
+  non-system actions   15, 3 performed by a realization
+  facts                12, 4 with evidence
+  observations         2, 2 read
+  API values           12 tested, 3 mapped to a fact
+coverage model/ir/activity-standalone.json deferredReset
+  properties           1 declared, 1 named by a Query
+  non-system actions   15, 4 performed by a realization
+  facts                12, 5 with evidence
+  observations         2, 2 read
+  API values           12 tested, 3 mapped to a fact
+coverage model/ir/activity-standalone.json exhaustAfterHeartbeat
+  bindings             22, 22 of a realizable class
+  realizable classes   99 of performed actions, 19 bound
+coverage model/ir/activity-standalone.json heartbeatCompletion
+  properties           1 declared, 1 named by a Query
+  non-system actions   15, 4 performed by a realization
+  facts                12, 5 with evidence
+  observations         3, 3 read
+  API values           7 tested, 1 mapped to a fact
+coverage model/ir/activity-standalone.json heartbeatExhaustion
+  properties           1 declared, 1 named by a Query
+  non-system actions   15, 4 performed by a realization
+  facts                12, 6 with evidence
+  observations         3, 3 read
+  API values           11 tested, 2 mapped to a fact
+coverage model/ir/activity-standalone.json heartbeatRetry
+  properties           1 declared, 1 named by a Query
+  non-system actions   15, 4 performed by a realization
+  facts                12, 6 with evidence
+  observations         3, 3 read
+  API values           11 tested, 2 mapped to a fact
+coverage model/ir/activity-standalone.json heartbeatThenCompletion
+  bindings             22, 22 of a realizable class
+  realizable classes   99 of performed actions, 19 bound
+coverage model/ir/activity-standalone.json heldCancellationByID
+  bindings             4, 4 of a realizable class
+  realizable classes   99 of performed actions, 4 bound
+coverage model/ir/activity-standalone.json heldFailureByID
+  bindings             3, 3 of a realizable class
+  realizable classes   99 of performed actions, 3 bound
+coverage model/ir/activity-standalone.json resetAfterHeartbeat
+  bindings             4, 4 of a realizable class
+  realizable classes   100 of performed actions, 4 bound
+coverage model/ir/activity-standalone.json resetKeepingPause
+  properties           1 declared, 1 named by a Query
+coverage model/ir/activity-standalone.json resetSettlement
+  properties           9 declared, 9 named by a Query
+coverage model/ir/activity-standalone.json retryAfterHeartbeat
+  bindings             22, 22 of a realizable class
+  realizable classes   99 of performed actions, 19 bound
+coverage model/ir/activity-standalone.json retryAfterTimeout
+  bindings             21, 21 of a realizable class
+  realizable classes   100 of performed actions, 19 bound
+coverage model/ir/activity-standalone.json scheduledCompletionByID
+  bindings             2, 2 of a realizable class
+  realizable classes   97 of performed actions, 2 bound
 coverage model/ir/activity-standalone.json standalone
-  bindings             23, 23 of a realizable class
-  realizable classes   18 of performed actions, 14 bound
+  bindings             67, 67 of a realizable class
+  realizable classes   106 of performed actions, 58 bound
 coverage model/ir/activity-standalone.json standaloneActivity
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
+coverage model/ir/activity-standalone.json timeoutRetry
+  properties           2 declared, 2 named by a Query
+  non-system actions   15, 4 performed by a realization
+  facts                12, 5 with evidence
+  observations         2, 2 read
+  API values           7 tested, 2 mapped to a fact
 coverage model/ir/nexus-workflow-control.json forgedControl
   bindings             20, 20 of a realizable class
   realizable classes   19 of performed actions, 13 bound

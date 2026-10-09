@@ -113,6 +113,10 @@ var activityCases = map[string]activityCase{
 		[]string{"heartbeat-attempt", "pending-heartbeat-attempt"},
 		map[string][]string{"statusScheduled": {"start-unset-unset-unset-expires-unset-one"}, "statusStarted": {startedOnce},
 			"heartbeatReceived": {"recordHeartbeat"}, "heartbeatExpired": {"heartbeat"}}, nil},
+	"deferredResetCompletes": {[]string{"start-activity", "await-reset-publication", "await-reset-held", "reset-held-activity", "await-reset-completed", "read-external-attempt-count"},
+		[]string{"pending-reset-attempt", "complete-attempt"},
+		map[string][]string{"statusScheduled": {"start-unset-unset-unset-expires-unset-one"}, "resetStarted": {startedOnce},
+			"resetRequested": {"reset-resume"}, "attemptCount": {"heartbeat", startedOnce}, "resetCompleted": {answerDone}}, nil},
 }
 
 func activityEntrypoints(query string, want activityCase) map[string][]string {
@@ -122,6 +126,8 @@ func activityEntrypoints(query string, want activityCase) map[string][]string {
 		script = "timeout-attempts"
 	case "heartbeatThenCompletes", "heartbeatTimeoutRetriesThenCompletes", "heartbeatTimeoutExhausts":
 		script = "heartbeat-attempts"
+	case "deferredResetCompletes":
+		script = "reset-attempts"
 	case "heldFailedByID":
 		script = "external-failure-attempts"
 	case "heldCanceledByID", "activitySystem.cancelIsRequested":
@@ -170,6 +176,21 @@ var activityLimits = map[string]struct {
 		Owner: "none: a recorded limit of the prototype"}, "Evidence.runEvent("},
 }
 
+// System.scala's reset settlement witnesses and paused reset witness belong to machines that
+// declare no realization. They have no executable Case.
+var activityModelOnly = map[string]string{
+	"keepPausedReset":      "resetKeepingPause",
+	"resetCancellation":    "resetSettlement",
+	"resetCompletion":      "resetSettlement",
+	"resetExhaustion":      "resetSettlement",
+	"resetFatality":        "resetSettlement",
+	"resetKeptPause":       "resetSettlement",
+	"resetOutranksPause":   "resetSettlement",
+	"resetRepeated":        "resetSettlement",
+	"resetScheduleToClose": "resetSettlement",
+	"resetTimeout":         "resetSettlement",
+}
+
 func activityIdentity(query string) cp.Identity {
 	return cp.IdentityFor("temporal.case", "standaloneActivityTests", query)
 }
@@ -196,8 +217,8 @@ func defined(names map[string]string, local string) string {
 // evidence, prepares unchanged under the Profile derived from it, as any black-box consumer prepares a
 // Case, and is the same bytes when the Model is read and lowered again.
 //
-// Three do not lower, each for one limit no task owns, named where the realization declares what
-// meets it (activityLimits).
+// Three name a limit no task owns (activityLimits), and ten belong to machines with no realization
+// (activityModelOnly).
 func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 	m := loaded(t, "activity-standalone")
 	p, err := NewProducer(m)
@@ -213,13 +234,16 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 		require.NotContains(t, cases, query, "a By-ID Case does not replace an existing Query's expectation")
 	}
 	maps.Copy(cases, activityByIDCases)
-	require.ElementsMatch(t, finds(m), slices.Concat(slices.Collect(maps.Keys(cases)), slices.Collect(maps.Keys(activityLimits))),
+	require.ElementsMatch(t, finds(m), slices.Concat(slices.Collect(maps.Keys(cases)), slices.Collect(maps.Keys(activityLimits)),
+		slices.Collect(maps.Keys(activityModelOnly))),
 		"every find Query of the Model is accounted for")
+	standings := map[Standing]int{}
 
 	for query, want := range cases {
 		t.Run(query, func(t *testing.T) {
 			l, err := p.Lower(query, activityIdentity(query))
 			require.NoError(t, err)
+			standings[l.Standing]++
 			require.Equal(t, Lowered, l.Standing, "%v", l.Unsupported)
 			require.Empty(t, l.Unsupported)
 			require.Empty(t, l.OffPath)
@@ -280,6 +304,7 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 		t.Run(query, func(t *testing.T) {
 			l, err := p.Lower(query, activityIdentity(query))
 			require.NoError(t, err)
+			standings[l.Standing]++
 			require.Equal(t, NotSupported, l.Standing)
 			require.Nil(t, l.Case)
 			require.Empty(t, l.OffPath)
@@ -292,6 +317,24 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 			require.Equal(t, want.gap, gap)
 		})
 	}
+
+	for query, machine := range activityModelOnly {
+		t.Run(query, func(t *testing.T) {
+			a, standing, err := p.ask(query)
+			require.NoError(t, err)
+			require.Equal(t, machine, a.scenario.GetMachine())
+			require.Equal(t, NoRealization, standing)
+			require.Nil(t, a.r)
+			l, err := p.Lower(query, activityIdentity(query))
+			require.NoError(t, err)
+			standings[l.Standing]++
+			require.Equal(t, NoRealization, l.Standing)
+			require.Nil(t, l.Case)
+			require.Empty(t, l.Unsupported)
+			require.Empty(t, l.OffPath)
+		})
+	}
+	require.Equal(t, map[Standing]int{Lowered: 18, NotSupported: 3, NoRealization: 10}, standings)
 }
 
 // The retry's Case, part by part. Its two attempts are the activity entrypoint's two instructions in
@@ -383,6 +426,20 @@ func TestTheRetryCaseFailsItsFirstAttemptAndReadsItsSecondFromTheRunsRecord(t *t
 // next step.
 func TestAnAttemptRecordThatFollowsLaterEvidenceIsNamed(t *testing.T) {
 	const started = activityEvidence + "statusStarted"
+	base, err := ir.WithTotals(loaded(t, "activity-standalone"))
+	require.NoError(t, err)
+	pristine := proto.CloneOf(base)
+	baseBytes, err := proto.MarshalOptions{Deterministic: true}.Marshal(base)
+	require.NoError(t, err)
+	unchanged, err := NewProducer(base)
+	require.NoError(t, err)
+	assertUnchanged := func(t *testing.T) {
+		t.Helper()
+		require.True(t, proto.Equal(pristine, base))
+		current, err := proto.MarshalOptions{Deterministic: true}.Marshal(base)
+		require.NoError(t, err)
+		require.Equal(t, baseBytes, current)
+	}
 	// between puts steps of other Scenarios between the last attempt start and the answer of a Query's
 	// Scenario, each named by the Scenario it is taken from and its position there.
 	type taken struct {
@@ -437,14 +494,15 @@ func TestAnAttemptRecordThatFollowsLaterEvidenceIsNamed(t *testing.T) {
 			[]string{activityEvidence + "attemptCount"}},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m := loaded(t, "activity-standalone")
+			p := unchanged
 			if test.change != nil {
+				m := proto.CloneOf(base)
 				test.change(m)
+				m, err := ir.WithTotals(m)
+				require.NoError(t, err)
+				p, err = NewProducer(m)
+				require.NoError(t, err)
 			}
-			m, err := ir.WithTotals(m)
-			require.NoError(t, err)
-			p, err := NewProducer(m)
-			require.NoError(t, err)
 			a, _, err := p.ask(test.query)
 			require.NoError(t, err)
 			// The rule reads the path and the declarations, whatever else the producer makes of the path.
@@ -456,8 +514,10 @@ func TestAnAttemptRecordThatFollowsLaterEvidenceIsNamed(t *testing.T) {
 				late = append(late, gap.ID)
 			}
 			require.Equal(t, test.want, late)
+			assertUnchanged(t)
 		})
 	}
+	assertUnchanged(t)
 }
 
 // An attempt with no answer is told from the path and the scripts alone: a path that takes the class

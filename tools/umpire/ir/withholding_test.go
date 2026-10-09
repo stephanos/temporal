@@ -17,14 +17,20 @@ func TestWithholdingRequiresOneActivityScriptServerTimer(t *testing.T) {
 		want   string
 	}{
 		{"armed timer", func(*umpirespb.Realization, *umpirespb.Script, *umpirespb.Item) {}, ""},
-		{"missing timeout basis", func(r *umpirespb.Realization, _ *umpirespb.Script, _ *umpirespb.Item) {
-			r.ServerSteps[len(r.ServerSteps)-1].TimeoutBasis = umpirespb.TIMEOUT_BASIS_UNSPECIFIED
+		{"missing timeout basis", func(r *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
+			for _, step := range withholdingTimers(r, item) {
+				step.TimeoutBasis = umpirespb.TIMEOUT_BASIS_UNSPECIFIED
+			}
 		}, "timeout basis"},
-		{"heartbeat-only context basis", func(r *umpirespb.Realization, _ *umpirespb.Script, _ *umpirespb.Item) {
-			r.ServerSteps[len(r.ServerSteps)-1].TimeoutBasis = umpirespb.TIMEOUT_BASIS_HEARTBEAT
+		{"heartbeat-only context basis", func(r *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
+			for _, step := range withholdingTimers(r, item) {
+				step.TimeoutBasis = umpirespb.TIMEOUT_BASIS_HEARTBEAT
+			}
 		}, "timeout basis"},
-		{"unknown timeout basis", func(r *umpirespb.Realization, _ *umpirespb.Script, _ *umpirespb.Item) {
-			r.ServerSteps[len(r.ServerSteps)-1].TimeoutBasis = umpirespb.TimeoutBasis(99)
+		{"unknown timeout basis", func(r *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
+			for _, step := range withholdingTimers(r, item) {
+				step.TimeoutBasis = umpirespb.TimeoutBasis(99)
+			}
 		}, "timeout basis"},
 		{"unknown withholding mode", func(_ *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
 			item.GetCommand().GetAttemptWithheld().Mode = umpirespb.WithholdingMode(99)
@@ -51,11 +57,15 @@ func TestWithholdingRequiresOneActivityScriptServerTimer(t *testing.T) {
 			item.Performs = []*umpirespb.Performance{{Position: item.GetPosition(), Step: item.GetWhen()[0], Command: item.GetCommand()}}
 			item.Command, item.When = nil, nil
 		}, "withholds an attempt under a performance"},
-		{"unarmed timer", func(r *umpirespb.Realization, _ *umpirespb.Script, _ *umpirespb.Item) {
-			r.ServerSteps = r.ServerSteps[:len(r.ServerSteps)-1]
+		{"unarmed timer", func(r *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
+			r.ServerSteps = slices.DeleteFunc(r.ServerSteps, func(step *umpirespb.ServerStep) bool {
+				return proto.Equal(step.GetStep(), item.GetWhen()[0])
+			})
 		}, "without an armed bounded server timer"},
-		{"unbounded timer", func(r *umpirespb.Realization, _ *umpirespb.Script, _ *umpirespb.Item) {
-			r.ServerSteps[len(r.ServerSteps)-1].DeadlineMs = 0
+		{"unbounded timer", func(r *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
+			for _, step := range withholdingTimers(r, item) {
+				step.DeadlineMs = 0
+			}
 		}, "withholds an attempt without an armed bounded server timer"},
 		{"non timer cause", func(_ *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
 			item.When[0] = &umpirespb.ActionClass{Action: "temporal.features.activity.worker.poll"}
@@ -76,6 +86,7 @@ func TestWithholdingRequiresOneActivityScriptServerTimer(t *testing.T) {
 				}
 			}
 			script.Items = append(script.Items, item)
+			require.NotEmpty(t, withholdingTimers(r, item), "the specimen names its actual bound timer")
 			test.change(r, script, item)
 			err = Validate(m)
 			if test.want == "" {
@@ -86,4 +97,14 @@ func TestWithholdingRequiresOneActivityScriptServerTimer(t *testing.T) {
 			requireLocated(t, err, "model/temporal/features/activity/standalone/system/Realization.scala:")
 		})
 	}
+}
+
+func withholdingTimers(r *umpirespb.Realization, item *umpirespb.Item) []*umpirespb.ServerStep {
+	var timers []*umpirespb.ServerStep
+	for _, step := range r.GetServerSteps() {
+		if proto.Equal(step.GetStep(), item.GetWhen()[0]) {
+			timers = append(timers, step)
+		}
+	}
+	return timers
 }

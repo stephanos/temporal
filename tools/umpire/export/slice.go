@@ -151,7 +151,21 @@ func OpenWithin(m *umpirespb.Model, scope check.Scope) (*Slice, error) {
 	if err != nil {
 		return nil, err
 	}
-	machines, err := interp.Build(m)
+	var machines map[string]*interp.Machine
+	if scope.Ceilings == interp.DefaultCeilings {
+		machines = make(map[string]*interp.Machine, len(m.GetMachines()))
+		for _, decl := range m.GetMachines() {
+			mm := bound.Machine(decl.GetName())
+			if mm == nil {
+				machines = nil
+				break
+			}
+			machines[decl.GetName()] = mm
+		}
+	}
+	if machines == nil {
+		machines, err = interp.Build(m)
+	}
 	var hole *interp.Hole
 	if errors.As(err, &hole) {
 		return nil, &UnsupportedError{Backend: "backend", Construct: "a machine left without a table by " + describeHole(m, hole.ID),

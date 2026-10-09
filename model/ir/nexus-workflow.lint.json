@@ -6,7 +6,7 @@
       "subjects": [
         "stop"
       ],
-      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "No claim declared by handlerWorker constrains these exact enabled classes' results. This is current claim coverage debt, not a behavior freeze or an assertion that another owner's capabilities cover them."
     },
     {
       "kind": "never-enabled",
@@ -51,7 +51,7 @@
         "reply-operationFailed in started",
         "reply-syncSuccess in started"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of nexusProduct leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "silent-rejection",
@@ -80,7 +80,7 @@
         "reply-syncSuccess",
         "timeout"
       ],
-      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "No claim declared by nexusProduct constrains these exact enabled classes' results. This is current claim coverage debt, not a behavior freeze or an assertion that another owner's capabilities cover them."
     },
     {
       "kind": "unperformed-action",
@@ -112,7 +112,7 @@
         "schedule-unset-unset-expires in scheduled, backingOff, started",
         "schedule-unset-unset-unset in scheduled, backingOff, started"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of nexusSystem leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "silent-rejection",
@@ -121,25 +121,6 @@
         "fault in unscheduled, backingOff, started"
       ],
       "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
-    },
-    {
-      "kind": "unconstrained-result",
-      "owner": "nexusSystem",
-      "subjects": [
-        "backoff",
-        "schedule-expires-expires-expires",
-        "schedule-expires-expires-unset",
-        "schedule-expires-unset-expires",
-        "schedule-expires-unset-unset",
-        "schedule-unset-expires-expires",
-        "schedule-unset-expires-unset",
-        "schedule-unset-unset-expires",
-        "schedule-unset-unset-unset",
-        "scheduleToClose",
-        "fault",
-        "stop"
-      ],
-      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "witness-only",
@@ -153,7 +134,7 @@
         "startToCloseFires",
         "syncSucceeds"
       ],
-      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "This owner's same-step Property is asked only by pinned FINDs: a witness proves one path, not all enabled repetitions or terminal NotFound answers. Free verification requires substantive Property work; exact live assessment expectations remain unchanged."
     },
     {
       "kind": "unconstrained-result",
@@ -163,7 +144,7 @@
         "resume",
         "stop"
       ],
-      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "No claim declared by polling constrains these exact enabled classes' results. This is current claim coverage debt, not a behavior freeze or an assertion that another owner's capabilities cover them."
     },
     {
       "kind": "unconstrained-result",
@@ -171,7 +152,7 @@
       "subjects": [
         "terminate"
       ],
-      "because": "The shared Product adds only the same-action termination carrier proved by both refinements. Its results have no additional same-step claim: extending Product claim coverage remains separate work under fn-112's behavior freeze."
+      "because": "No claim declared by nexusProduct constrains these exact enabled classes' results. This is current claim coverage debt, not a behavior freeze or an assertion that another owner's capabilities cover them."
     },
     {
       "kind": "unproduced",

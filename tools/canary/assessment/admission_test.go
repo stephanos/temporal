@@ -22,6 +22,11 @@ func recorded(t *testing.T) recordedrun.Decoded {
 	return recordedIn(t, "nexus-workflow-syncCompletion-run.json")
 }
 
+func currentRecorded(t *testing.T) recordedrun.Decoded {
+	t.Helper()
+	return recordedIn(t, "nexus-workflow-syncCompletion-current-run.json")
+}
+
 func recordedIn(t *testing.T, name string) recordedrun.Decoded {
 	t.Helper()
 	encoded, err := os.ReadFile(filepath.Join("testdata", name))
@@ -53,7 +58,9 @@ func TestHistoricalClosedRunKeepsAdmissionAndDecision(t *testing.T) {
 	then.CaseIdentity = identity
 	before := proto.CloneOf(fixture.Run)
 
-	subject, err := admit(prior, &then, fixture.Driver, fixture.Run)
+	recordedBytes, err := os.ReadFile(filepath.Join("testdata", "nexus-workflow-syncCompletion-run.json"))
+	require.NoError(t, err)
+	subject, err := evaluation.Admit(prior, recordedBytes, fixture.Driver.Catalog)
 	require.NoError(t, err)
 	require.Equal(t, fixture.Driver, subject.Driver)
 	require.Equal(t, fixture.Case, subject.CaseIdentity)
@@ -68,11 +75,14 @@ func TestHistoricalClosedRunKeepsAdmissionAndDecision(t *testing.T) {
 	require.NoError(t, err)
 	decision := evaluation.Assess(subject, *profile, nil)
 	require.Equal(t, evaluation.DecisionAccepted, decision.Outcome)
-	recordedBytes, err := os.ReadFile(filepath.Join("testdata", "nexus-workflow-syncCompletion-run.json"))
-	require.NoError(t, err)
+	stale, err := admit(prior, &then, fixture.Driver, fixture.Run)
+	require.Nil(t, stale)
+	rejection, ok := evaluation.IsRejection(err)
+	require.True(t, ok, "not a rejection: %v", err)
+	require.Equal(t, evaluation.ReasonStale, rejection.Reason)
 	crossed, err := evaluation.Admit(casebinding.Case(), recordedBytes, fixture.Driver.Catalog)
 	require.Nil(t, crossed)
-	rejection, ok := evaluation.IsRejection(err)
+	rejection, ok = evaluation.IsRejection(err)
 	require.True(t, ok, "not a rejection: %v", err)
 	require.Equal(t, evaluation.ReasonCrossed, rejection.Reason, rejection.Detail)
 }
@@ -152,6 +162,12 @@ func TestThePriorNexusWorkflowRecordRetainsItsCaseAndVerdict(t *testing.T) {
 // tree's catalog is refused: a lost one has no subject at all, and the rest are fn-26 rejections.
 func TestAdmitRefusesEveryIterationItCannotStandBehind(t *testing.T) {
 	canary := committed(t)
+	baseline := currentRecorded(t)
+	subject, err := Admit(canary, baseline.Driver, baseline.Run)
+	require.NoError(t, err)
+	profile, err := LoadProfile(canary.EvaluationProfile)
+	require.NoError(t, err)
+	require.Equal(t, evaluation.DecisionAccepted, evaluation.Assess(subject, *profile, nil).Outcome)
 	for name, test := range map[string]struct {
 		edit   func(canary *policy.Policy, driver *testpilot.DriverIdentity, run *testpilotspb.Run)
 		reason string
@@ -185,7 +201,7 @@ func TestAdmitRefusesEveryIterationItCannotStandBehind(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			edited := *canary
-			fixture := recorded(t)
+			fixture := currentRecorded(t)
 			test.edit(&edited, &fixture.Driver, fixture.Run)
 			subject, err := Admit(&edited, fixture.Driver, fixture.Run)
 			require.Nil(t, subject)
@@ -196,13 +212,13 @@ func TestAdmitRefusesEveryIterationItCannotStandBehind(t *testing.T) {
 	}
 
 	t.Run("a lost iteration", func(t *testing.T) {
-		subject, err := Admit(canary, recorded(t).Driver, nil)
+		subject, err := Admit(canary, currentRecorded(t).Driver, nil)
 		require.Nil(t, subject)
 		require.ErrorIs(t, err, ErrLost)
 		_, rejected := evaluation.IsRejection(err)
 		require.False(t, rejected, "a lost iteration is not a subject to reject; it has none")
 	})
 
-	_, err := Admit(nil, recorded(t).Driver, recorded(t).Run)
+	_, err = Admit(nil, currentRecorded(t).Driver, currentRecorded(t).Run)
 	require.Error(t, err)
 }

@@ -18,12 +18,23 @@ func whyIn(t *testing.T, m *umpirespb.Model, machine, state, class string) *Why 
 	return w
 }
 
+func activityDecisionState(phase string, attempts int64) string {
+	const standalone = "temporal.features.activity.standalone."
+	timeout := Value{Kind: EnumValue, Type: "temporal.features.activity.Timeout", Case: "unset"}
+	return (Value{Kind: RecordValue, Type: standalone + "system.State", Fields: []Value{
+		{Kind: EnumValue, Type: standalone + "system.Phase", Case: phase},
+		{Kind: EnumValue, Type: standalone + "system.Dispatch", Case: "now"},
+		{Kind: IntValue, Int: attempts}, timeout, timeout, timeout, timeout,
+		{Kind: EnumValue, Type: standalone + "MaxAttempts", Case: "unlimited"},
+	}}).Key()
+}
+
 func TestWhyExplainsTheDecisionThatDisabledAPair(t *testing.T) {
 	m := readIR(t, activityIR)
 
-	// A pause of a paused activity fires no rule: each rule of the input-free action is tried on the
+	// A pause of an unstarted activity fires no rule: each rule of the input-free action is tried on the
 	// state, and the last one tried disabled the pair.
-	w := whyIn(t, m, "activitySystem", "paused-1-unset-unset-unset", "pause")
+	w := whyIn(t, m, "activitySystem", activityDecisionState("unstarted", 0), "pause")
 	require.Empty(t, w.Steps)
 	require.Nil(t, w.Hole)
 	last, ok := w.Last()
@@ -38,17 +49,17 @@ func TestWhyExplainsTheDecisionThatDisabledAPair(t *testing.T) {
 		require.True(t, decision.State)
 	}
 
-	// An unstarted activity has nothing to control: no rule's phase holds.
-	w = whyIn(t, m, "activitySystem", "unstarted-0-unset-unset-unset", "pause")
-	last, ok = w.Last()
-	require.True(t, ok)
-	require.False(t, last.Match())
-	require.False(t, last.Then)
-	require.True(t, last.State)
+	// Repeated pause is an explicit rejection, not a disabled pair.
+	w = whyIn(t, m, "activitySystem", activityDecisionState("paused", 1), "pause")
+	require.Len(t, w.Steps, 1)
+	require.Equal(t, "rejected-failedPrecondition", w.Steps[0].Fields[0].Key())
+	require.Equal(t, activityDecisionState("paused", 1), w.Steps[0].Fields[1].Key())
+	require.Empty(t, w.Steps[0].Fields[2].Items)
+	require.Equal(t, "already paused, or a cancellation or reset pending (chasm/lib/activity/model/model.go:232)", w.Steps[0].Fields[3].Text)
 
 	// A terminal phase's notFound row decides through its role-expanded phase guard. Role expansion
 	// leaves no helper call: the decision itself still records the source guard and its result.
-	w = whyIn(t, m, "activitySystem", "completed-1-unset-unset-unset", "pause")
+	w = whyIn(t, m, "activitySystem", activityDecisionState("completed", 1), "pause")
 	require.Len(t, w.Steps, 1)
 	guard := w.Decisions[0]
 	require.Empty(t, guard.Calls)
@@ -60,7 +71,7 @@ func TestWhyExplainsTheDecisionThatDisabledAPair(t *testing.T) {
 func TestWhyTellsAnInputDecisionFromAStateDecision(t *testing.T) {
 	m := readIR(t, activityIR)
 	// A non-retryable failure decides on the input, then on the phase its rule names (`held`).
-	w := whyIn(t, m, "activitySystem", "started-1-unset-unset-unset", "respondFailed-fatal")
+	w := whyIn(t, m, "activitySystem", activityDecisionState("started", 1), "respondFailed-fatal")
 	require.Len(t, w.Steps, 1)
 	var sawInput, sawState bool
 	for _, d := range w.Decisions {
@@ -91,7 +102,7 @@ func TestWhyMarksAWildcardArm(t *testing.T) {
 		rewritten = true
 	}
 	require.True(t, rewritten)
-	w := whyIn(t, m, "activitySystem", "cancelRequested-1-unset-unset-unset", "pause")
+	w := whyIn(t, m, "activitySystem", activityDecisionState("cancelRequested", 1), "pause")
 	last, ok := w.Last()
 	require.True(t, ok)
 	require.True(t, last.Wildcard)
@@ -105,7 +116,7 @@ func TestWhyRefusesAnUnknownStateOrClass(t *testing.T) {
 	in := NewInterpreter(m)
 	_, err = in.Why(machines["activitySystem"], "nowhere", "pause")
 	require.ErrorContains(t, err, "no state nowhere")
-	_, err = in.Why(machines["activitySystem"], "paused-1-unset-unset-unset", "control-nothing")
+	_, err = in.Why(machines["activitySystem"], activityDecisionState("paused", 1), "control-nothing")
 	require.ErrorContains(t, err, "no class control-nothing")
 }
 

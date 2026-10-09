@@ -94,6 +94,9 @@ func TestNexusOperationReceivesTheCapabilityProperties(t *testing.T) {
 		"query nexusSystem nexusSystem.terminateSettles":          Found,
 		"query nexusSystem nexusSystem.cancelIsRequested":         Found,
 	}, kinds(c.report))
+	cancelRequested := admProperty(m, "nexusSystem", "nexusSystem.cancelIsRequested")
+	require.NotNil(t, cancelRequested)
+	require.Nil(t, cancelRequested.GetOrigin())
 	origins := map[string]string{}
 	for _, property := range m.GetProperties() {
 		if property.GetOrigin() != nil {
@@ -105,6 +108,5 @@ func TestNexusOperationReceivesTheCapabilityProperties(t *testing.T) {
 		"nexusSystem.terminalStatesAreFinal":    "temporal.capabilities.Closable.terminalStatesAreFinal",
 		"nexusSystem.closedIsRejectedUniformly": "temporal.capabilities.Closable.closedIsRejectedUniformly",
 		"nexusSystem.terminateSettles":          "temporal.capabilities.Terminable.terminateSettles",
-		"nexusSystem.cancelIsRequested":         "temporal.capabilities.Cancelable.cancelIsRequested",
 	}, origins)
 }

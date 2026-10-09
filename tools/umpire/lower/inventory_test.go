@@ -50,11 +50,16 @@ func declared(t *testing.T, m *umpirespb.Model, r *umpirespb.Realization) [][2]s
 					out = append(out, [2]string{name, binding.GetAnswer()})
 					continue
 				}
+				if binding, ok := element.Interface().(*umpirespb.ActivityResetSettlement); ok {
+					out = append(out, [2]string{name, binding.GetResetRequest()})
+					continue
+				}
 				id := element.Descriptor().Fields().ByName("id")
 				if id == nil {
 					// A required setting is named by its key.
 					id = element.Descriptor().Fields().ByName("key")
 				}
+				require.NotNil(t, id, "%s: repeated %s element %s has no declared identity", r.GetName(), name, element.Descriptor().FullName())
 				out = append(out, [2]string{name, element.Get(id).String()})
 			}
 		case f.Name() == "behavior":

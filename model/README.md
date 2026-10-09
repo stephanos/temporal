@@ -116,8 +116,8 @@ Two IRs sit between the layers, and each has one writer side and one reader side
 
 - The **Umpire IR** is a lifted Model. Scala writes it (the IR generator); Go reads it (the reader,
   lowering, conformance, export and exploration under `tools/umpire`). Its schema is
-  `proto/internal/temporal/server/api/umpire/v1/ir.proto`, and the checked-in files are
-  `model/ir/*.json`. Go never runs Scala code: everything it knows about a Model comes from
+  the nine-file closure rooted at `proto/internal/temporal/server/api/umpire/v1/ir.proto`.
+  The checked-in files are `model/ir/*.json`. Go never runs Scala code: everything it knows about a Model comes from
   this file.
 - The **Testpilot IR** is the Case, Run and Verdict format. Lowering writes Cases; Testpilot, the
   Case runtime, reads them and writes Runs and Verdicts. Its schema is
@@ -134,6 +134,35 @@ Two IRs sit between the layers, and each has one writer side and one reader side
 | Running | Testpilot admits a Case, runs its Program through the Temporal Driver, records the Run and evaluates the Contract into a Verdict | `common/testing/testpilot`, `common/testing/testpilot/temporal` | `make umpire-check-live-tests` (in-process server); `make umpire-run` builds `.build/umpire-run` for any deployment |
 | Assessing | The Run's evidence is compared with the whole Model | `tools/umpire/conformance` | part of the live tests above |
 | Export | The IR is written for Quint, and its answers are compared with Go's | `tools/umpire/export` | `make umpire-check-backends` (needs the tools its README names) |
+
+### Schema ownership
+
+All nine files under `proto/internal/temporal/server/api/umpire/v1` keep the protobuf package
+`temporal.server.api.umpire.v1`, Go package `api/umpire/v1` and JVM package
+`io.temporal.server.api.umpire.v1`. A file owns declarations, not another generated package.
+
+| File | Owns |
+| --- | --- |
+| `ir.proto` | `Model`, the root artifact |
+| `common.proto` | Source positions |
+| `value.proto` | Finite types and values |
+| `expression.proto` | Functions, expressions and patterns |
+| `machine.proto` | Actions, machines, channels, compositions, refinements, monitors, assumptions and holes |
+| `claim.proto` | Properties, Scenarios, Queries, progress and expected Runs |
+| `operand.proto` | Typed realization operands and protobuf data |
+| `script.proto` | Script activations, commands and worker instructions |
+| `realization.proto` | Realizations, roles, evidence, controls and API behavior |
+
+`model/check` discovers the acyclic Umpire import closure from `ir.proto`, generates ScalaPB for
+every file, and hashes the sorted paths and contents with the generator versions. An imported
+schema edit invalidates the IR jar stamp. The linked API jar excludes the whole Umpire closure
+so each IR class has one owner; linked Go descriptor freshness and Make prerequisites cover the
+same files. An unchanged warm build reuses the stamped jars.
+
+The marker arms use `google.protobuf.Empty`. Their containing oneof and field number carry their
+meaning and presence. The descriptor ledger in `tools/umpire/ir/schema_test.go` retires the old local
+`Empty` name and checks the relocated declaration union, historical wire data and every marker arm.
+Testpilot continues to import its own schema only; lowering translates between the two IRs.
 
 ## Running the gate
 
@@ -332,8 +361,8 @@ by id.
   and on which the Property fails or is never evaluated. Each Query's `.expect(...)` names the
   reason by the judge's id (`Reason.explanationsDisagree`, `Reason.neverEvaluated`), whose wording
   is the judge's own (`tools/umpire/conformance/conclude.go`).
-- Of the 264 Queries in the checked-in IR, 16 lower to a Case. 150 are `verify` Queries, which have
-  nothing to run. 95 belong to machines that declare no realization yet. 3 standalone activity
+- Of the 340 Queries in the checked-in IR, 30 lower to a Case. 202 are `verify` Queries, which have
+  nothing to run. 105 belong to machines that declare no realization yet. 3 standalone activity
   Queries are `unsupported`: their path needs something a Case cannot do or record in order yet,
   and the manifest names it at its source line.
 - A Run samples one execution of the server. A satisfied Verdict is evidence about that Run, not a
@@ -438,7 +467,7 @@ The IR generator reads what an author wrote, as written:
   `enum Phase(val status: Fact) extends Recorded[Fact]`, `case started extends
   Phase(Fact.statusStarted)`. The parameter is named `status` and has no default, so a case without
   one does not compile; the enum lifts as the same enum with no fields.
-- **Phase roles** (`umpire/Roles.scala`): a case of a phase enum takes roles in its own extends
+- **Phase roles** (`framework/Roles.scala`): a case of a phase enum takes roles in its own extends
   clause, `case backingOff extends Phase, Retrying`; Scala 3 makes each such case name its enum and
   refuses grouped cases with an extends clause. The roles are `Live`, which `Waiting`, `Held` and
   `Suspended` extend, and `Retrying` extends `Waiting`; and `Closed`, which `Succeeded`, `Failed`,
@@ -516,7 +545,7 @@ The IR generator reads what an author wrote, as written:
   class, a lookup of a fact its table lists twice or not at all, a request-scope line of an `rpc`
   or a `readUntil` that is neither `field(_.x) := v` nor `Assignment.typed(…)`, and evidence that
   records a case of another enum than the facts its machine records.
-- **Sugar** (`umpire/Syntax.scala`, lifted by `irgen/Syntax.scala`): `enter(state, facts*)`,
+- **Sugar** (`framework/Syntax.scala`, lifted by `irgen/Syntax.scala`): `enter(state, facts*)`,
   `stay(s)`, `disabled`, `x.in(a, b, …)`, `a implies b` and `after.records(fact)`. Each is lifted to
   the IR its core form lifts to, and nothing else: `List(Step(accepted, state, List(facts*)))`,
   `List(Step(accepted, s))`, `Nil`, `List(a, b, …).contains(x)`, `!a || b` and
@@ -1017,7 +1046,7 @@ already says: the rules (`Rules` with `on`, `from`, `when`, `where`, `always` an
 `in`, `records`, `enter`, `stay`, `reject`, `disabled`, the claim patterns (`once`,
 `keeps`, `never`, `from`, `stays`, `unless`), the monitor pattern (`sticky`, `stickyAcross`) and
 both spellings of `:=`, named inputs and request
-fields. It lives in the `Syntax.scala` files of the DSL (`umpire/Syntax.scala`), the kit
+fields. It lives in the `Syntax.scala` files of the DSL (`framework/Syntax.scala`), the kit
 (`temporal/realize/Syntax.scala`) and the IR generator (`irgen/Syntax.scala`). Each form is documented
 with `Core form:` and the core spelling it stands for, and an IR generator fixture lifts it beside that
 spelling and requires the same IR. No core file imports sugar, and a sugar word is defined in no

@@ -15,18 +15,20 @@ import (
 	"go.temporal.io/server/tools/umpire/ir"
 )
 
-// What the product machine disables is what the baseline pins by hand: a canceled answer without a
-// cancel request, a worker stop, and a start of a paused activity.
+// The product rejects a canceled answer without a cancel request, and keeps disabled the worker
+// poll of a paused activity, worker stop and terminal timeout.
 func TestActivityDisabledBehaviorIsTheBaselines(t *testing.T) {
 	product := built(t, activityModel(t))["activityProduct"]
 	for _, pair := range [][2]string{
-		{"started", "respondCanceled"},
 		{"paused", "poll"},
 		{"scheduled", "stop"},
 		{"completed", "timeout"},
 	} {
 		require.True(t, disabled(product, pair[0], pair[1]), pair)
 	}
+	require.Equal(t, []interp.Result{{Outcome: "rejected-invalidArgument", State: "started", Facts: []string{},
+		Because: "cancellation was not requested (chasm/lib/activity/model/model.go:171)"}},
+		sideOf(product.Table).Rows[rowIndex(t, product.Table, "started-respondCanceled")].Results)
 	require.False(t, disabled(product, "completed", "terminate"), "a control of an activity that is over is answered notFound, not disabled")
 	require.Equal(t, []interp.Result{{Outcome: "rejected-notFound", State: "completed", Facts: []string{}}},
 		sideOf(product.Table).Rows[rowIndex(t, product.Table, "completed-terminate")].Results)
@@ -70,8 +72,18 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	}
 	// A declaration that states no name is named after its val, which may be a member of an object.
 	// Inside a machine object, `property` and `scenario` name the object they are inherited by.
-	for _, match := range regexp.MustCompile(`(?m)^[ \t]*val (\w+)\s*=\s*\(?\s*(?:(query)\b|(?:\w+\.)?(property|scenario)\b)`).FindAllStringSubmatch(string(source), -1) {
-		declared = append(declared, match[2]+match[3]+" "+match[1])
+	unnamed := regexp.MustCompile(`(?m)^[ \t]*val (\w+)\s*=\s*\(?\s*(?:(query)\b|(?:\w+\.)?(property|scenario)\b)`)
+	for _, match := range unnamed.FindAllStringSubmatchIndex(string(source), -1) {
+		if regexp.MustCompile(`^\s*\(\s*"`).Match(source[match[1]:]) {
+			continue // Explicit constructor names, including overrides, were counted above.
+		}
+		kind := ""
+		for _, index := range []int{4, 6} {
+			if match[index] != -1 {
+				kind = string(source[match[index]:match[index+1]])
+			}
+		}
+		declared = append(declared, kind+" "+string(source[match[2]:match[3]]))
 	}
 	capabilityProperties := map[string][]string{
 		"terminalStatesAreFinal":    {"Closable"},
@@ -95,8 +107,33 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 		require.NotEmpty(t, machine)
 		named := map[string]bool{}
 		body := string(source[section[2]:section[3]])
-		for _, match := range regexp.MustCompile(`val \w+: Capability\s*=\s*(\w+)\(`).FindAllStringSubmatch(body, -1) {
-			named[match[1]] = true
+		bindings := regexp.MustCompile(`(?m)^[ \t]*val (\w+): Capability\s*=\s*(\w+)(?:\[[^\]]+\])?\(`).FindAllStringSubmatchIndex(body, -1)
+		for i, match := range bindings {
+			end := len(body)
+			if i+1 < len(bindings) {
+				end = bindings[i+1][0]
+			}
+			name, kind, parameters := body[match[2]:match[3]], body[match[4]:match[5]], body[match[1]:end]
+			named[kind] = true
+			var properties []string
+			switch kind {
+			case "Closable", "Pausable", "Pollable", "Terminable", "Describable":
+				// These companions are accounted for by the capability sets below.
+			case "Retries":
+				properties = []string{"failureReturnsToWaiting", "failureEndsFailed", "failurePauses", "failureCancels", "attemptCountIsWithinPolicy"}
+			case "Deadline":
+				properties = []string{"firesInWindow", "deadlineTimesOut"}
+				if strings.Contains(parameters, "retryable = true") {
+					properties = append(properties, "deadlineReturnsToWaiting", "deadlinePauses")
+				}
+			default:
+				require.FailNowf(t, "unknown capability binding", "%s: %s", machine, kind)
+			}
+			for _, property := range properties {
+				for _, claim := range []string{"property", "scenario", "query"} {
+					declared = append(declared, claim+" "+machine+"."+name+"."+property)
+				}
+			}
 		}
 		require.NotEmpty(t, named, machine)
 		for property, required := range capabilityProperties {
@@ -147,10 +184,16 @@ func TestActivityTablesAccountForEveryPair(t *testing.T) {
 			require.NoError(t, b.refinement(b.subject(name)).err, name)
 		}
 		got := sideOf(mm.Table)
+		rows := make(map[string]bool, len(mm.Table.Rows))
+		for _, row := range mm.Table.Rows {
+			require.False(t, rows[row.Key], "%s has duplicate row %s", name, row.Key)
+			rows[row.Key] = true
+		}
+		require.Len(t, rows, len(mm.Table.Rows), name)
 		// The interpreter's own account of a disabled pair agrees with the rows.
 		for _, state := range mm.Table.States {
 			for _, class := range mm.Classes {
-				require.Equal(t, !hasRow(mm, state+"-"+class.Key), disabled(mm, state, class.Key), "%s-%s", state, class.Key)
+				require.Equal(t, !rows[state+"-"+class.Key], disabled(mm, state, class.Key), "%s-%s", state, class.Key)
 			}
 		}
 		require.Equal(t, got.StatesTimesClass, got.DisabledPairs+len(got.Rows))

@@ -72,7 +72,7 @@
         "requestCancel-callerWorkflow in open, closed, resetOpen",
         "reset in resetOpen"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of ackByOriginal leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "witness-only",
@@ -91,7 +91,7 @@
         "requestedButUnreceived",
         "routedToSuccessor"
       ],
-      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "This owner's same-step Property is asked only by pinned FINDs: a witness proves one path, not all enabled repetitions or terminal NotFound answers. Free verification requires substantive Property work; exact live assessment expectations remain unchanged."
     },
     {
       "kind": "untaken-choice",
@@ -126,7 +126,7 @@
         "requestCancel-callerWorkflow in open, closed, resetOpen",
         "reset in resetOpen"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of ackByOriginalWithDeadline leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "witness-only",
@@ -136,7 +136,7 @@
         "expiresWithNothingOwed",
         "lateCompletionIsDropped"
       ],
-      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "This owner's same-step Property is asked only by pinned FINDs: a witness proves one path, not all enabled repetitions or terminal NotFound answers. Free verification requires substantive Property work; exact live assessment expectations remain unchanged."
     },
     {
       "kind": "unreachable-value",
@@ -198,7 +198,7 @@
         "requestCancel-callerWorkflow in open, closed, resetOpen",
         "reset in resetOpen"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of forgetsCancelOnReset leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "witness-only",
@@ -217,7 +217,7 @@
         "requestedButUnreceived",
         "routedToSuccessor"
       ],
-      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "This owner's same-step Property is asked only by pinned FINDs: a witness proves one path, not all enabled repetitions or terminal NotFound answers. Free verification requires substantive Property work; exact live assessment expectations remain unchanged."
     },
     {
       "kind": "unreachable-value",
@@ -284,7 +284,7 @@
         "requestCancel-callerWorkflow in open, closed, resetOpen",
         "reset in resetOpen"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of rejectAfterClose leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "witness-only",
@@ -303,7 +303,7 @@
         "requestedButUnreceived",
         "routedToSuccessor"
       ],
-      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "This owner's same-step Property is asked only by pinned FINDs: a witness proves one path, not all enabled repetitions or terminal NotFound answers. Free verification requires substantive Property work; exact live assessment expectations remain unchanged."
     },
     {
       "kind": "unreachable-value",
@@ -347,7 +347,7 @@
         "requestCancel-callerWorkflow in open, closed, resetOpen",
         "reset in resetOpen"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of rejectAfterCloseWithDeadline leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "witness-only",
@@ -357,7 +357,7 @@
         "expiresWithNothingOwed",
         "lateCompletionIsDropped"
       ],
-      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "This owner's same-step Property is asked only by pinned FINDs: a witness proves one path, not all enabled repetitions or terminal NotFound answers. Free verification requires substantive Property work; exact live assessment expectations remain unchanged."
     },
     {
       "kind": "unreachable-value",
@@ -419,7 +419,7 @@
         "requestCancel-callerWorkflow in open, closed, resetOpen",
         "reset in resetOpen"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of retainAndRoute leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "witness-only",
@@ -438,7 +438,7 @@
         "requestedButUnreceived",
         "routedToSuccessor"
       ],
-      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "This owner's same-step Property is asked only by pinned FINDs: a witness proves one path, not all enabled repetitions or terminal NotFound answers. Free verification requires substantive Property work; exact live assessment expectations remain unchanged."
     },
     {
       "kind": "unreachable-value",
@@ -480,7 +480,7 @@
         "requestCancel-callerWorkflow in open, closed, resetOpen",
         "reset in resetOpen"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of retainAndRouteBoundedRetry leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "untaken-choice",
@@ -515,7 +515,7 @@
         "requestCancel-callerWorkflow in open, closed, resetOpen",
         "reset in resetOpen"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of retainAndRouteWithDeadline leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "witness-only",
@@ -525,7 +525,7 @@
         "expiresWithNothingOwed",
         "lateCompletionIsDropped"
       ],
-      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "This owner's same-step Property is asked only by pinned FINDs: a witness proves one path, not all enabled repetitions or terminal NotFound answers. Free verification requires substantive Property work; exact live assessment expectations remain unchanged."
     },
     {
       "kind": "unreachable-value",
@@ -599,7 +599,7 @@
         "requestCancel-callerWorkflow in open, closed, resetOpen",
         "reset in resetOpen"
       ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "The actor rules of truncatesOnReset leave these exact request/worker classes disabled in the listed reachable phases. This records the current answer gap outside their enabled rows; dispatch assumptions do not supply rejection evidence."
     },
     {
       "kind": "witness-only",
@@ -618,7 +618,7 @@
         "requestedButUnreceived",
         "routedToSuccessor"
       ],
-      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+      "because": "This owner's same-step Property is asked only by pinned FINDs: a witness proves one path, not all enabled repetitions or terminal NotFound answers. Free verification requires substantive Property work; exact live assessment expectations remain unchanged."
     }
   ]
 }

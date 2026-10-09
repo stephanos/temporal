@@ -63,6 +63,52 @@ the functional fixtures and the canary.
 | Functional wiring, `tests/testcore/testpilot` | Bind Cases to functional test clusters. | Existing fixture and cluster helper APIs with reviewed fixture identities. | Live Testpilot and Umpire modules; nothing imports this package from runtime/tooling. |
 | Canary, `tools/canary` | Run the policy's pinned Case against a deployment on manual dispatch. | Existing canary entry point and policy contract. | Testpilot runtime/helpers and Temporal binding; no consumer imports from tooling/runtime. |
 
+### Umpire schema declaration owners
+
+The schema rooted at `proto/internal/temporal/server/api/umpire/v1/ir.proto` has nine owners in one
+protobuf package. `ir.proto` owns Model; `common.proto` positions; `value.proto` finite types,
+values; `expression.proto` functions, expressions and patterns; `machine.proto` channels,
+actions, machines, compositions, refinements, monitors, assumptions and holes; `claim.proto` Properties, Scenarios,
+Queries, progress and expected Runs; `operand.proto` typed operands and protobuf data;
+`script.proto` activations and commands; and `realization.proto` realizations, roles, evidence,
+controls and API behavior. Imports are acyclic and point toward their supporting declarations.
+
+Go and JVM message packages remain `api/umpire/v1` and `io.temporal.server.api.umpire.v1`.
+The gate generates and stamps the complete imported Umpire closure, and excludes that closure from
+the linked API jar. Make prerequisites, linked Go descriptor freshness and API-linter exemptions
+cover all nine files. Standard protobuf Empty supplies the marker payloads; containing oneofs
+retain the discriminator. The descriptor ledger retires the old local Empty name across messages
+and enums. No Umpire-to-Testpilot schema import is added.
+
+### Shared leaves decision (fn-145 R6)
+
+Retain separate domain owners. Umpire's `RequiredSetting` in `realization.proto` describes what a
+realization requires; Testpilot's in `program.proto` describes what a Program needs at preparation.
+Both currently carry `key` and `value` at fields 1 and 2. Lowering copies those two fields in
+`tools/umpire/lower/realization.go`, and its inventory checks their values and declaration order.
+`TestTheRequiredSettingsAreTheProgramsAsDeclared` exercises changed values, reordered, missing and
+extra requirements; `TestPrepareChecksRequiredSettingsAgainstTheConfiguration` rejects a missing
+or differently valued Profile setting. These are concrete loss-of-requirement failures at the
+translation boundary, with existing regression coverage. Inspection found no current field or
+enum mismatch that requires a shared schema dependency.
+
+Expected Run disposition and cleanup belong to `claim.proto`; observed Run disposition and cleanup
+belong to Testpilot's `run.proto`. Lowering translates their named values through Testpilot's enum
+descriptors rather than assuming equal wire numbers. `TestManifestRejectsInvalidMetadata` rejects
+unknown disposition and cleanup names, and `TestExpectedRunChecksEachDeclaredValueByEquality`
+detects crossed and unknown observed values. Sharing the enums would couple Model expectations to
+the runtime protocol without removing that semantic check.
+
+fn-144 R17 will extend Testpilot requirements with EQUAL, AT_MOST and AT_LEAST relations, all origins,
+and a symbolic role binding for namespace- or task-queue-scoped settings. Typed key declarations
+and scopes belong to Temporal foundations; lowering owns the union and conflict checks; Testpilot
+preparation resolves bindings and checks the Profile's value. A future adapter that copies only
+`key` and `value` would lose a relation, origin or scope. fn-144 must extend its translation and
+inventory checks together, including conflicting origins and unavailable scoped values. That
+planned risk is not evidence that today's two-field adapter has already failed. Revisit a shared
+leaf only after a demonstrated maintenance failure and an explicit decision naming its schema
+owner and import direction. This evaluation introduces no shared type or dependency.
+
 The standalone activity's executable realizations live in
 `model/temporal/features/activity/standalone/system/Realization.scala`, in the System subjects' level.
 Its root feature file names the typed realization objects directly in the IR exports. A Product

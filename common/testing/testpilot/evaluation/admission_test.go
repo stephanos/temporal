@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	controlCasePath = "../replay/testdata/nexusCallerControl-forgedCompletion-case.json"
-	controlRunPath  = "../replay/testdata/nexusCallerControl-forgedCompletion-run.json"
-	pairCasePath    = "../../../../tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json"
+	controlCasePath       = "../replay/testdata/nexusCallerControl-forgedCompletion-case.json"
+	controlRunPath        = "../replay/testdata/nexusCallerControl-forgedCompletion-run.json"
+	currentControlRunPath = "../replay/testdata/nexusCallerControl-forgedCompletion-current-run.json"
+	pairCasePath          = "../../../../tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json"
 )
 
 type control struct {
@@ -33,9 +34,14 @@ type control struct {
 
 func loadControl(t *testing.T) control {
 	t.Helper()
+	return loadControlRun(t, controlRunPath)
+}
+
+func loadControlRun(t *testing.T, path string) control {
+	t.Helper()
 	caseBytes, err := os.ReadFile(controlCasePath)
 	require.NoError(t, err)
-	recorded, err := os.ReadFile(controlRunPath)
+	recorded, err := os.ReadFile(path)
 	require.NoError(t, err)
 	source, err := testpilot.DecodeCaseProtoJSON(caseBytes)
 	require.NoError(t, err)
@@ -44,9 +50,7 @@ func loadControl(t *testing.T) control {
 	return control{caseBytes: caseBytes, source: source, decoded: decoded, recorded: recorded}
 }
 
-// catalog is the catalog the control Run was recorded under, read from the record so that
-// re-recording it is the only edit a catalog change needs; the tree's static catalog is the same,
-// which TestTheControlRecordIsCurrent pins.
+// catalog is the catalog the control Run was recorded under, not necessarily the tree's current one.
 func (c control) catalog() string { return c.decoded.Driver.Catalog }
 
 // compactCase is a Case in compact ProtoJSON: canonical, with its own identity.
@@ -110,12 +114,29 @@ func TestAdmitTheControlRecord(t *testing.T) {
 	require.Equal(t, AdmissionCaps(), subject.Caps)
 }
 
-// Admission compares the recorded catalog with the one it is given; the command gives the tree's,
-// which is the one the control was recorded under.
+// The fresh companion admits under the current catalog; the historical record remains stale.
 func TestTheControlRecordIsCurrent(t *testing.T) {
 	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	require.Equal(t, loadControl(t).catalog(), catalog.Identity())
+	current := loadControlRun(t, currentControlRunPath)
+	require.Equal(t, "12fa287d45f6e40502f05d1c89643a59d612ddd53e7fde025dc90abfb7c744f6", current.catalog())
+	require.Equal(t, current.catalog(), catalog.Identity())
+	subject, err := Admit(current.caseBytes, current.recorded, catalog.Identity())
+	require.NoError(t, err)
+	require.Equal(t, current.decoded.Driver, subject.Driver)
+	require.Equal(t, recordedrun.Digest(current.recorded), subject.RunIdentity)
+
+	historical := loadControl(t)
+	require.Equal(t, "3364057f225cf6fd6116023ef36573038a9acd29f0d13df2da98c76062e9c3c0", historical.catalog())
+	require.Equal(t, historical.caseBytes, current.caseBytes)
+	require.Equal(t, historical.decoded.Case, current.decoded.Case)
+	subject, err = Admit(historical.caseBytes, historical.recorded, catalog.Identity())
+	require.Nil(t, subject)
+	rejection, ok := IsRejection(err)
+	require.True(t, ok, "not a rejection: %v", err)
+	require.Equal(t, ReasonStale, rejection.Reason)
+	require.Contains(t, rejection.Detail, historical.catalog())
+	require.Contains(t, rejection.Detail, current.catalog())
 }
 
 // Negative subjects that are well formed are admitted: a violated Run whose cleanup failed, a

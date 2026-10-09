@@ -9,9 +9,9 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func TestPerformedOutcomesAreNotTemporalCheckedWithoutRejectionMetadata(t *testing.T) {
@@ -81,7 +81,6 @@ func TestPerformedStepOutcomeMatchesItsRunInstructionResult(t *testing.T) {
 		if query.GetName() == "terminate" {
 			query.GetLimits().Steps += 2
 			query.GetLimits().Actions += 2
-			query.Total = wrapperspb.Int64(1440)
 		}
 	}
 	for _, property := range m.GetProperties() {
@@ -111,6 +110,8 @@ func TestPerformedStepOutcomeMatchesItsRunInstructionResult(t *testing.T) {
 			}}}
 		}
 	}
+	m, err := ir.WithTotals(m)
+	require.NoError(t, err)
 	factory, err := Prepare(m, check.ClaimKey{Family: activityFamily, Owner: activityMachine, Name: "terminate"}, source, generous)
 	require.NoError(t, err)
 

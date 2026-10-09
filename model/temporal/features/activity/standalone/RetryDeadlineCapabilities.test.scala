@@ -404,13 +404,18 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     for (before, action, own, companion, after) <- rows do
       val landings = summon[Finite[activity.Phase]].values.map(p =>
         after.copy(state = after.state.copy(phase = p))
-      ) :+ after.copy(facts = after.facts :+ activity.Fact.statusTimedOut(TimeoutType.startToClose))
+      )
+      val withTimeout =
+        after.copy(facts = after.facts :+ activity.Fact.statusTimedOut(TimeoutType.startToClose))
       if pending(before) then
         assert(holds(own, before, after), s"$action before=$before after=$after")
-        for wrong <- landings if wrong.state != after.state || wrong.facts != after.facts do
+        for wrong <- landings if wrong.state != after.state do
           assert(!holds(own, before, wrong), s"$action before=$before wrong=$wrong")
+        if deadlines.exists((timer, _, _) => timer == action) then
+          assert(!holds(own, before, withTimeout), s"$action before=$before wrong=$withTimeout")
+        else assert(holds(own, before, withTimeout), s"$action before=$before after=$withTimeout")
       else
-        for candidate <- after +: landings do
+        for candidate <- after +: (landings :+ withTimeout) do
           assertEquals(holds(own, before, candidate), holds(companion, before, candidate))
     val resets = rows.filter((before, _, _, _, _) => pending(before))
     assert(resets.nonEmpty)

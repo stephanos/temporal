@@ -42,38 +42,41 @@ class ActivityRetryRegression extends munit.FunSuite:
 
   test("one, two and unlimited retain their policy and exhaust only finite budgets") {
     for policy <- MaxAttempts.values do
-      var state = take(ActivitySystem.init, client.start(maxAttempts := policy)).state
-      assertEquals(state.maxAttempts, policy)
-      for attempt <- 1 to 3 if state.phase == system.Phase.scheduled do
-        state = take(state, worker.poll()).state
-        assertEquals(state.attempts: Int, attempt.min(MaxAttempts.bound))
-        val retryAllowed =
-          policy == MaxAttempts.unlimited || (policy == MaxAttempts.two && attempt < 2)
-        assertEquals(ActivitySystem.states.retriesRemaining(state), retryAllowed)
-        val failed = take(state, worker.respondFailed(Failure.retryable))
-        if policy == MaxAttempts.two then
-          val satisfies = ActivitySystem.properties.retryExhausts.decl.holds.get
-            .asInstanceOf[Step[
-              system.State,
-              Outcome,
-              system.Fact
-            ] => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
-          assert(satisfies(failed))
-          val wrong = if retryAllowed then
-            failed.copy(state = failed.state.copy(attempts = UpTo(2)))
-          else failed.copy(state = failed.state.copy(attempts = UpTo(1)))
-          assert(!satisfies(wrong))
-        assertEquals(
-          failed.state.phase,
-          if retryAllowed then system.Phase.scheduled else system.Phase.failed
-        )
-        assertEquals(failed.state.maxAttempts, policy)
-        if retryAllowed then
-          assertEquals(failed.state.dispatch, system.Dispatch.backoff)
-          state = take(failed.state, timers.backoff()).state
+      val initial = take(ActivitySystem.init, client.start(maxAttempts := policy)).state
+      assertEquals(initial.maxAttempts, policy)
+      (1 to 3).foldLeft(initial) { (state, attempt) =>
+        if state.phase != system.Phase.scheduled then state
         else
-          assertEquals(failed.facts, List(system.Fact.statusFailed))
-          state = failed.state
+          val polled = take(state, worker.poll()).state
+          assertEquals(polled.attempts: Int, attempt.min(MaxAttempts.bound))
+          val retryAllowed =
+            policy == MaxAttempts.unlimited || (policy == MaxAttempts.two && attempt < 2)
+          assertEquals(ActivitySystem.states.retriesRemaining(polled), retryAllowed)
+          val failed = take(polled, worker.respondFailed(Failure.retryable))
+          if policy == MaxAttempts.two then
+            val satisfies = ActivitySystem.properties.retryExhausts.decl.holds.get
+              .asInstanceOf[Step[
+                system.State,
+                Outcome,
+                system.Fact
+              ] => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
+            assert(satisfies(failed))
+            val wrong = if retryAllowed then
+              failed.copy(state = failed.state.copy(attempts = UpTo(2)))
+            else failed.copy(state = failed.state.copy(attempts = UpTo(1)))
+            assert(!satisfies(wrong))
+          assertEquals(
+            failed.state.phase,
+            if retryAllowed then system.Phase.scheduled else system.Phase.failed
+          )
+          assertEquals(failed.state.maxAttempts, policy)
+          if retryAllowed then
+            assertEquals(failed.state.dispatch, system.Dispatch.backoff)
+            take(failed.state, timers.backoff()).state
+          else
+            assertEquals(failed.facts, List(system.Fact.statusFailed))
+            failed.state
+      }
   }
 
   test(

@@ -462,18 +462,19 @@ func TestAssessWithAModelRefusesWhatItCannotAssess(t *testing.T) {
 	lyingCase, lyingRun := unreproducible()
 	for name, probe := range map[string]struct {
 		arguments []string
+		catalog   func() (string, error)
 		status    string
 		detail    string
 	}{
-		"a Case the Model does not lower": {append(flags(notGenerated, notGeneratedRun, ""), "--model", modelRoot), statusModelUnassessable, "not a generated Case"},
-		"no model directory":              {append(flags(controlCasePath, controlRunPath, ""), "--model", resolvedTemp(t)), statusModelUnassessable, "manifest.json"},
-		"a Run that does not read back":   {append(flags(lyingCase, lyingRun, ""), "--model", modelRoot), statusAssessmentUnreproducible, "completed disposition conflicts"},
+		"a Case the Model does not lower": {append(flags(notGenerated, notGeneratedRun, ""), "--model", modelRoot), fixedCatalog, statusModelUnassessable, "not a generated Case"},
+		"no model directory":              {append(flags(controlCasePath, controlRunPath, ""), "--model", resolvedTemp(t)), fixedCatalog, statusModelUnassessable, "manifest.json"},
+		"a Run that does not read back":   {append(flags(lyingCase, lyingRun, ""), "--model", modelRoot), treeCatalog, statusAssessmentUnreproducible, "completed disposition conflicts"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			root := resolvedTemp(t)
 			arguments := slices.Clone(probe.arguments)
 			arguments[slices.Index(arguments, "--receipt-root")+1] = root
-			code, result, _ := run(t, arguments, environment{})
+			code, result, _ := run(t, arguments, environment{Catalog: probe.catalog})
 			require.Equal(t, exitFailed, code)
 			require.Equal(t, probe.status, result.Status)
 			require.Contains(t, result.Detail, probe.detail)

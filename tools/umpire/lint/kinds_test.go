@@ -1,6 +1,7 @@
 package lint
 
 import (
+	"maps"
 	"slices"
 	"sync"
 	"testing"
@@ -75,31 +76,60 @@ func realization(ir *umpirespb.Model, machine string) *umpirespb.Realization {
 	return ir.GetRealizations()[i]
 }
 
+func activityRealizedPopulation(count int) map[string]int {
+	return map[string]int{
+		"activitySystem": count, "byIDCancellation": count, "byIDCompletion": count, "byIDFailure": count,
+		"deferredReset": count, "heartbeatCompletion": count, "heartbeatExhaustion": count,
+		"heartbeatRetry": count, "timeoutRetry": count,
+	}
+}
+
+func activityMachinePopulation(product, system int) map[string]int {
+	counts := activityRealizedPopulation(system)
+	counts["activityProduct"] = product
+	counts["resetKeepingPause"], counts["resetSettlement"] = system, system
+	counts["activityWorker"], counts["polling"] = 2, 2
+	return counts
+}
+
 func TestUnaskedProperties(t *testing.T) {
 	r := run(t, read(t, activityIR), unaskedProperties)
-	require.Equal(t, map[string]int{"activityProduct": 3, "activitySystem": 10, "standaloneActivity": 1}, r.population)
+	want := map[string]int{
+		"activityProduct": 3, "activitySystem": 39, "standaloneActivity": 1,
+		"byIDCancellation": 2, "byIDCompletion": 1, "byIDFailure": 1, "deferredReset": 1,
+		"heartbeatCompletion": 1, "heartbeatExhaustion": 1, "heartbeatRetry": 1,
+		"resetKeepingPause": 1, "resetSettlement": 9, "timeoutRetry": 2,
+	}
+	require.Equal(t, want, r.population)
 	require.Empty(t, r.subjects)
 
 	dropped := read(t, activityIR, func(ir *umpirespb.Model) {
-		ir.Queries = slices.DeleteFunc(ir.Queries, func(q *umpirespb.Query) bool { return q.GetName() == "terminate" })
+		before := len(ir.Queries)
+		ir.Queries = slices.DeleteFunc(ir.Queries, func(q *umpirespb.Query) bool {
+			return q.GetName() == "terminate" && q.GetScenario().GetMachine() == "activitySystem"
+		})
+		require.Equal(t, 1, before-len(ir.Queries))
 	})
 	r = run(t, dropped, unaskedProperties)
 	require.Equal(t, map[string][]string{"activitySystem": {"terminated"}}, r.subjects)
-	require.Equal(t, 10, r.population["activitySystem"])
+	require.Equal(t, want, r.population)
 }
 
 func TestUnfiredVerifies(t *testing.T) {
 	r := run(t, read(t, activityIR), unfiredVerifies)
-	require.Equal(t, map[string]int{"activityProduct": 3, "standaloneActivity": 1}, r.population)
+	require.Equal(t, map[string]int{"activityProduct": 3, "activitySystem": 30, "standaloneActivity": 1}, r.population)
 	require.Empty(t, r.subjects)
 
 	// The product never enables stop, so a Property about its steps alone is read on none.
 	unfired := read(t, activityIR, func(ir *umpirespb.Model) {
+		changed := 0
 		for _, p := range ir.GetProperties() {
 			if p.GetName() == "activityProduct.closedIsRejectedUniformly" {
 				p.When = &umpirespb.Property_WhenAction{WhenAction: "stop"}
+				changed++
 			}
 		}
+		require.Equal(t, 1, changed)
 	})
 	r = run(t, unfired, unfiredVerifies)
 	require.Equal(t, map[string][]string{"activityProduct": {"activityProduct.closedIsRejectedUniformly"}}, r.subjects)
@@ -110,38 +140,73 @@ func TestUnperformedActions(t *testing.T) {
 	r := run(t, read(t, activityIR), unperformedActions)
 	// The worker answers and client controls are one action per RPC; the timers are the system's.
 	// No performance binds poll: the activity script starts with it.
-	require.Equal(t, map[string]int{"activitySystem": 10}, r.population)
-	require.Empty(t, r.subjects)
+	want := map[string][]string{
+		"activitySystem":      {"reset", "recordHeartbeat", "respondCompletedByID", "respondFailedByID", "respondCanceledByID"},
+		"byIDCancellation":    {"pause", "unpause", "terminate", "reset", "recordHeartbeat", "respondCompleted", "respondFailed", "respondCanceled", "respondCompletedByID", "respondFailedByID", "stop"},
+		"byIDCompletion":      {"pause", "unpause", "requestCancel", "terminate", "reset", "poll", "recordHeartbeat", "respondCompleted", "respondFailed", "respondCanceled", "respondFailedByID", "respondCanceledByID", "stop"},
+		"byIDFailure":         {"pause", "unpause", "requestCancel", "terminate", "reset", "recordHeartbeat", "respondCompleted", "respondFailed", "respondCanceled", "respondCompletedByID", "respondCanceledByID", "stop"},
+		"deferredReset":       {"pause", "unpause", "requestCancel", "terminate", "recordHeartbeat", "respondFailed", "respondCanceled", "respondCompletedByID", "respondFailedByID", "respondCanceledByID", "stop"},
+		"heartbeatCompletion": {"pause", "unpause", "requestCancel", "terminate", "reset", "respondFailed", "respondCanceled", "respondCompletedByID", "respondFailedByID", "respondCanceledByID", "stop"},
+		"heartbeatExhaustion": {"pause", "unpause", "requestCancel", "terminate", "reset", "respondFailed", "respondCanceled", "respondCompletedByID", "respondFailedByID", "respondCanceledByID", "stop"},
+		"heartbeatRetry":      {"pause", "unpause", "requestCancel", "terminate", "reset", "respondFailed", "respondCanceled", "respondCompletedByID", "respondFailedByID", "respondCanceledByID", "stop"},
+		"timeoutRetry":        {"pause", "unpause", "requestCancel", "terminate", "reset", "recordHeartbeat", "respondCanceled", "respondCompletedByID", "respondFailedByID", "respondCanceledByID", "stop"},
+	}
+	require.Equal(t, activityRealizedPopulation(15), r.population)
+	require.Equal(t, want, r.subjects)
 
 	unperformed := read(t, activityIR, func(ir *umpirespb.Model) {
+		removed := 0
 		for _, s := range realization(ir, "activitySystem").GetScripts() {
 			s.Items = slices.DeleteFunc(s.Items, func(item *umpirespb.Item) bool {
-				return slices.ContainsFunc(item.GetPerforms(), func(p *umpirespb.Performance) bool {
+				match := slices.ContainsFunc(item.GetPerforms(), func(p *umpirespb.Performance) bool {
 					return p.GetStep().GetAction() == "temporal.actors.worker.worker.stop"
 				})
+				if match {
+					removed++
+				}
+				return match
 			})
 		}
+		require.Equal(t, 1, removed)
 	})
 	r = run(t, unperformed, unperformedActions)
-	require.Equal(t, map[string][]string{"activitySystem": {"stop"}}, r.subjects)
-	require.Equal(t, 10, r.population["activitySystem"])
+	mutant := maps.Clone(want)
+	mutant["activitySystem"] = append(slices.Clone(want["activitySystem"]), "stop")
+	require.Equal(t, mutant, r.subjects)
+	require.Equal(t, activityRealizedPopulation(15), r.population)
 }
 
 func TestUnevidencedFacts(t *testing.T) {
 	r := run(t, read(t, activityIR), unevidencedFacts)
-	require.Equal(t, map[string]int{"activitySystem": 10}, r.population)
-	require.Empty(t, r.subjects)
+	want := map[string][]string{
+		"activitySystem":      {"heartbeatReceived", "heartbeatTimedOut"},
+		"byIDCancellation":    {"statusPaused", "statusCompleted", "statusFailed", "statusTerminated", "statusTimedOut", "heartbeatReceived", "heartbeatTimedOut"},
+		"byIDCompletion":      {"statusStarted", "statusPaused", "statusCancelRequested", "statusFailed", "statusCanceled", "statusTerminated", "statusTimedOut", "attemptCount", "heartbeatReceived", "heartbeatTimedOut"},
+		"byIDFailure":         {"statusPaused", "statusCancelRequested", "statusCompleted", "statusCanceled", "statusTerminated", "statusTimedOut", "heartbeatReceived", "heartbeatTimedOut"},
+		"deferredReset":       {"statusPaused", "statusCancelRequested", "statusFailed", "statusCanceled", "statusTerminated", "statusTimedOut", "heartbeatReceived"},
+		"heartbeatCompletion": {"statusPaused", "statusCancelRequested", "statusFailed", "statusCanceled", "statusTerminated", "statusTimedOut", "heartbeatTimedOut"},
+		"heartbeatExhaustion": {"statusPaused", "statusCancelRequested", "statusCompleted", "statusFailed", "statusCanceled", "statusTerminated"},
+		"heartbeatRetry":      {"statusPaused", "statusCancelRequested", "statusFailed", "statusCanceled", "statusTerminated", "statusTimedOut"},
+		"timeoutRetry":        {"statusPaused", "statusCancelRequested", "statusCanceled", "statusTerminated", "statusTimedOut", "heartbeatReceived", "heartbeatTimedOut"},
+	}
+	require.Equal(t, activityRealizedPopulation(12), r.population)
+	require.Equal(t, want, r.subjects)
 
 	renamed := read(t, activityIR, func(ir *umpirespb.Model) {
+		changed := 0
 		for _, e := range realization(ir, "activitySystem").GetEvidence() {
 			if e.GetRecords() == "statusPaused" {
 				e.Records = "statusPausedElsewhere"
+				changed++
 			}
 		}
+		require.Equal(t, 1, changed)
 	})
 	r = run(t, renamed, unevidencedFacts)
-	require.Equal(t, map[string][]string{"activitySystem": {"statusPaused"}}, r.subjects)
-	require.Equal(t, 10, r.population["activitySystem"])
+	mutant := maps.Clone(want)
+	mutant["activitySystem"] = append([]string{"statusPaused"}, want["activitySystem"]...)
+	require.Equal(t, mutant, r.subjects)
+	require.Equal(t, activityRealizedPopulation(12), r.population)
 
 	// A machine with no realization is not counted, and a fact its evidence function names but no
 	// evidence kind records is.
@@ -174,7 +239,8 @@ func TestUntakenChoices(t *testing.T) {
 	require.Equal(t, map[string][]string{"trustingCaller": {"forged"}}, r.subjects)
 
 	r = run(t, read(t, activityIR), untakenChoices)
-	require.Empty(t, r.population)
+	require.Equal(t, map[string]int{"activityProduct": 17}, r.population)
+	require.Empty(t, r.subjects)
 }
 
 func TestUnreadRefinements(t *testing.T) {
@@ -195,7 +261,9 @@ func TestUnreadRefinements(t *testing.T) {
 
 func TestUnreadObservations(t *testing.T) {
 	r := run(t, read(t, activityIR), unreadObservations)
-	require.Equal(t, map[string]int{"activitySystem": 1}, r.population)
+	want := activityRealizedPopulation(2)
+	want["heartbeatCompletion"], want["heartbeatExhaustion"], want["heartbeatRetry"] = 3, 3, 3
+	require.Equal(t, want, r.population)
 	require.Empty(t, r.subjects)
 
 	// A history read lifts its evidence into history-event.
@@ -210,7 +278,8 @@ func TestUnreadObservations(t *testing.T) {
 		r.Observations = append(r.Observations, spare)
 	})
 	r = run(t, unread, unreadObservations)
-	require.Equal(t, map[string]int{"activitySystem": 2}, r.population)
+	want["activitySystem"] = 3
+	require.Equal(t, want, r.population)
 	require.Equal(t, map[string][]string{"activitySystem": {"spare-evidence"}}, r.subjects)
 }
 
@@ -219,7 +288,9 @@ func TestUnreadObservations(t *testing.T) {
 // declares no behavior derives nothing, so its polls are not counted.
 func TestExplicitWaits(t *testing.T) {
 	r := run(t, read(t, activityIR), explicitWaits)
-	require.Equal(t, map[string]int{"activitySystem": 6}, r.population)
+	want := activityRealizedPopulation(2)
+	want["activitySystem"], want["byIDCancellation"], want["byIDCompletion"] = 6, 3, 1
+	require.Equal(t, want, r.population)
 	require.Empty(t, r.subjects)
 
 	explicit := func(ir *umpirespb.Model) {
@@ -234,7 +305,8 @@ func TestExplicitWaits(t *testing.T) {
 		r := realization(ir, "activitySystem")
 		r.Behavior, r.ServerSteps = nil, nil
 	}), explicitWaits)
-	require.Empty(t, r.population)
+	delete(want, "activitySystem")
+	require.Equal(t, want, r.population)
 }
 
 // commandsNamed is every command of a realization with an id.
@@ -244,7 +316,7 @@ func commandsNamed(r *umpirespb.Realization, id string) []*umpirespb.Command {
 
 func TestUnreachableValues(t *testing.T) {
 	r := run(t, read(t, activityIR), unreachableValues)
-	require.Equal(t, map[string]int{"activityProduct": 9, "activitySystem": 21, "activityWorker": 2, "polling": 2}, r.population)
+	require.Equal(t, activityMachinePopulation(9, 30), r.population)
 	require.Empty(t, r.subjects)
 
 	r = run(t, read(t, capturedIR), unreachableValues)
@@ -255,7 +327,9 @@ func TestUnreachableValues(t *testing.T) {
 
 func TestNeverEnabled(t *testing.T) {
 	r := run(t, read(t, activityIR), neverEnabled)
-	require.Equal(t, map[string]int{"activityProduct": 11, "activitySystem": 22, "activityWorker": 2, "polling": 3}, r.population)
+	want := activityMachinePopulation(115, 119)
+	want["polling"] = 3
+	require.Equal(t, want, r.population)
 	// The product's worker stop is disabled in every state: its stop is the protocol's alone.
 	require.Equal(t, map[string][]string{"activityProduct": {"stop"}}, r.subjects)
 }
@@ -263,7 +337,9 @@ func TestNeverEnabled(t *testing.T) {
 func TestStuckState(t *testing.T) {
 	// The passing fixture: every reachable state of the activity's machines is an end or takes a step.
 	r := run(t, read(t, activityIR), stuckStates)
-	require.Equal(t, map[string]int{"activityProduct": 9, "activitySystem": 238, "activityWorker": 2, "polling": 2, "standaloneActivity": 476}, r.population)
+	want := activityMachinePopulation(9, 1670)
+	want["standaloneActivity"] = 3340
+	require.Equal(t, want, r.population)
 	require.Empty(t, r.subjects)
 
 	// The finding fixture: putOnly is the disk without its flush, an internal step, so the staged disk
@@ -425,13 +501,17 @@ func TestStuckStateWithRefinementMapHole(t *testing.T) {
 
 func TestUnproduced(t *testing.T) {
 	r := run(t, read(t, activityIR), unproduced)
-	require.Equal(t, map[string]int{"activityProduct": 14, "activitySystem": 17, "activityWorker": 5, "polling": 5}, r.population)
-	require.Equal(t, map[string][]string{
-		"activityProduct": {"outcome rejected-alreadyExists", "outcome rejected-failedPrecondition", "outcome rejected-invalidArgument"},
-		"activitySystem":  {"outcome rejected-alreadyExists", "outcome rejected-failedPrecondition", "outcome rejected-invalidArgument"},
-		"activityWorker":  {"outcome rejected-notFound", "outcome rejected-alreadyExists", "outcome rejected-failedPrecondition", "outcome rejected-invalidArgument"},
-		"polling":         {"outcome rejected-notFound", "outcome rejected-alreadyExists", "outcome rejected-failedPrecondition", "outcome rejected-invalidArgument"},
-	}, r.subjects)
+	want := activityMachinePopulation(16, 20)
+	want["activityWorker"], want["polling"] = 5, 5
+	require.Equal(t, want, r.population)
+	subjects := map[string][]string{}
+	for owner := range want {
+		subjects[owner] = []string{"outcome rejected-alreadyExists"}
+	}
+	for _, owner := range []string{"activityWorker", "polling"} {
+		subjects[owner] = []string{"outcome rejected-notFound", "outcome rejected-alreadyExists", "outcome rejected-failedPrecondition", "outcome rejected-invalidArgument"}
+	}
+	require.Equal(t, subjects, r.subjects)
 
 	r = run(t, read(t, capturedIR), unproduced)
 	require.Equal(t, map[string][]string{
@@ -444,8 +524,14 @@ func TestUnproduced(t *testing.T) {
 
 func TestUnrealizedFinds(t *testing.T) {
 	r := run(t, read(t, activityIR), unrealizedFinds)
-	require.Equal(t, map[string]int{"activitySystem": 11}, r.population)
-	require.Empty(t, r.subjects)
+	want := activityRealizedPopulation(1)
+	want["activitySystem"], want["byIDCancellation"], want["timeoutRetry"] = 11, 2, 2
+	want["resetKeepingPause"], want["resetSettlement"] = 1, 9
+	require.Equal(t, want, r.population)
+	require.Equal(t, map[string][]string{
+		"resetKeepingPause": {"keepPausedReset"},
+		"resetSettlement":   {"resetCancellation", "resetCompletion", "resetExhaustion", "resetFatality", "resetKeptPause", "resetOutranksPause", "resetRepeated", "resetScheduleToClose", "resetTimeout"},
+	}, r.subjects)
 
 	r = run(t, read(t, capturedIR), unrealizedFinds)
 	require.Equal(t, map[string]int{"detailedPair": 1, "disk": 1, "store": 1}, r.population)

@@ -34,8 +34,9 @@ class ActivityPrecisionRegression extends munit.FunSuite:
     "cancellation precedence exercises a refused pause, permits legal closure and rejects undo"
   ) {
     val holds = ActivitySystem.properties.cancelIsNotUndone.decl.holds2.get
-      .asInstanceOf[(system.State, Step[system.State, Outcome, system.Fact]) => Boolean]
-    // scalafix:ok DisableSyntax.asInstanceOf
+      .asInstanceOf[
+        (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
+      ] // scalafix:ok DisableSyntax.asInstanceOf
     val started = take(take(ActivitySystem.init, client.start()).state, worker.poll()).state
     val requested = take(started, client.requestCancel()).state
     assertEquals(requested.phase, system.Phase.cancelRequested)

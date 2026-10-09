@@ -201,7 +201,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "forgetfulQueue",
         "Name": "forgetfulQueue.any.committedStays"
       },
@@ -210,7 +210,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "forgetfulQueue",
         "Name": "forgetfulQueue.crashAfterAcknowledgment"
       },
@@ -219,7 +219,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "forgetfulQueue",
         "Name": "forgetfulQueue.crashAfterDelivery"
       },
@@ -228,7 +228,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "forgetfulQueue",
         "Name": "forgetfulQueue.crashAfterInvocation"
       },
@@ -237,7 +237,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "forgetfulQueue",
         "Name": "forgetfulQueue.crashAfterPersistence"
       },
@@ -246,7 +246,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "forgetfulQueue",
         "Name": "forgetfulQueue.crashAfterSyncMatch"
       },
@@ -255,7 +255,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "lossyMatchingQueue",
         "Name": "lossyMatchingQueue.any.committedStays"
       },
@@ -264,7 +264,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "lossyMatchingQueue",
         "Name": "lossyMatchingQueue.crashAfterAcknowledgment"
       },
@@ -273,7 +273,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "lossyMatchingQueue",
         "Name": "lossyMatchingQueue.crashAfterDelivery"
       },
@@ -282,7 +282,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "lossyMatchingQueue",
         "Name": "lossyMatchingQueue.crashAfterInvocation"
       },
@@ -291,7 +291,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "lossyMatchingQueue",
         "Name": "lossyMatchingQueue.crashAfterPersistence"
       },
@@ -300,7 +300,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "lossyMatchingQueue",
         "Name": "lossyMatchingQueue.crashAfterSyncMatch"
       },
@@ -309,7 +309,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "lossyMatchingQueue",
         "Name": "lossyMatchingQueue.storageLoss"
       },
@@ -507,7 +507,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "taskQueueSystem",
         "Name": "taskQueueSystem.any.committedStays"
       },
@@ -516,7 +516,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "taskQueueSystem",
         "Name": "taskQueueSystem.crashAfterAcknowledgment"
       },
@@ -525,7 +525,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "taskQueueSystem",
         "Name": "taskQueueSystem.crashAfterDelivery"
       },
@@ -534,7 +534,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "taskQueueSystem",
         "Name": "taskQueueSystem.crashAfterInvocation"
       },
@@ -543,7 +543,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "taskQueueSystem",
         "Name": "taskQueueSystem.crashAfterPersistence"
       },
@@ -552,7 +552,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "taskQueueSystem",
         "Name": "taskQueueSystem.crashAfterSyncMatch"
       },
@@ -786,7 +786,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "volatileQueue",
         "Name": "volatileQueue.any.committedStays"
       },
@@ -795,7 +795,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "volatileQueue",
         "Name": "volatileQueue.crashAfterAcknowledgment"
       },
@@ -804,7 +804,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "volatileQueue",
         "Name": "volatileQueue.crashAfterDelivery"
       },
@@ -813,7 +813,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "volatileQueue",
         "Name": "volatileQueue.crashAfterInvocation"
       },
@@ -822,7 +822,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "volatileQueue",
         "Name": "volatileQueue.crashAfterPersistence"
       },
@@ -831,7 +831,7 @@
     {
       "model": "activity-standalone-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
+        "Family": "temporal.foundations.taskqueue.system",
         "Owner": "volatileQueue",
         "Name": "volatileQueue.crashAfterSyncMatch"
       },
@@ -868,7 +868,7 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
-        "Owner": "activitySystem",
+        "Owner": "byIDCancellation",
         "Name": "activitySystem.cancelIsRequested"
       },
       "standing": "lowered",
@@ -886,6 +886,204 @@
           }
         ]
       }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.fatalFailure.attemptCountIsWithinPolicy"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.fatalFailure.failureCancels"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.fatalFailure.failureEndsFailed"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.fatalFailure.failurePauses"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.fatalFailure.failureReturnsToWaiting"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.heartbeatDeadline.deadlinePauses"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.heartbeatDeadline.deadlineReturnsToWaiting"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.heartbeatDeadline.deadlineTimesOut"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.heartbeatDeadline.firesInWindow"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.retryableFailure.attemptCountIsWithinPolicy"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.retryableFailure.failureCancels"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.retryableFailure.failureEndsFailed"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.retryableFailure.failurePauses"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.retryableFailure.failureReturnsToWaiting"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.scheduleToCloseDeadline.deadlineTimesOut"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.scheduleToCloseDeadline.firesInWindow"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.scheduleToStartDeadline.deadlineTimesOut"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.scheduleToStartDeadline.firesInWindow"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.startToCloseDeadline.deadlinePauses"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.startToCloseDeadline.deadlineReturnsToWaiting"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.startToCloseDeadline.deadlineTimesOut"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "activitySystem.startToCloseDeadline.firesInWindow"
+      },
+      "standing": "nothing-to-realize"
     },
     {
       "model": "activity-standalone.json",
@@ -951,6 +1149,15 @@
       "query": {
         "Family": "temporal.features.activity.standalone.system",
         "Owner": "activitySystem",
+        "Name": "cancellationKeepsPrecedence"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
         "Name": "completion"
       },
       "standing": "lowered",
@@ -967,6 +1174,185 @@
           }
         ]
       }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "controlsKeepPrecedence"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "deferredReset",
+        "Name": "deferredResetCompletes"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-deferredResetCompletes-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "resetAttemptCompletes",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "delayedAttemptsAreNotDispatched"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "directResetKeepsPaused"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "directResetResumes"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "heartbeatCompletion",
+        "Name": "heartbeatThenCompletes"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-heartbeatThenCompletes-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "heartbeatCompletes",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "heartbeatExhaustion",
+        "Name": "heartbeatTimeoutExhausts"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-heartbeatTimeoutExhausts-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "heartbeatExhausts",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "heartbeatRetry",
+        "Name": "heartbeatTimeoutRetriesThenCompletes"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-heartbeatTimeoutRetriesThenCompletes-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "heartbeatRetryCompletes",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "byIDCancellation",
+        "Name": "heldCanceledByID"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-heldCanceledByID-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "canceledByID",
+            "status": "inconclusive",
+            "reason": "explanations_disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "byIDFailure",
+        "Name": "heldFailedByID"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-heldFailedByID-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "fatalFailureByID",
+            "status": "inconclusive",
+            "reason": "explanations_disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetKeepingPause",
+        "Name": "keepPausedReset"
+      },
+      "standing": "no-realization"
     },
     {
       "model": "activity-standalone.json",
@@ -1016,6 +1402,96 @@
       "model": "activity-standalone.json",
       "query": {
         "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetSettlement",
+        "Name": "resetCancellation"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetSettlement",
+        "Name": "resetCompletion"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetSettlement",
+        "Name": "resetExhaustion"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetSettlement",
+        "Name": "resetFatality"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetSettlement",
+        "Name": "resetKeptPause"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetSettlement",
+        "Name": "resetOutranksPause"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetSettlement",
+        "Name": "resetRepeated"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetSettlement",
+        "Name": "resetScheduleToClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "resetSettlement"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "resetSettlement",
+        "Name": "resetTimeout"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
         "Owner": "activitySystem",
         "Name": "retry"
       },
@@ -1034,6 +1510,61 @@
           }
         ]
       }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "timeoutRetry",
+        "Name": "retryAfterTimeout"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-retryAfterTimeout-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "completesAfterTimeout",
+            "status": "inconclusive",
+            "reason": "explanations_disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "timeoutRetry",
+        "Name": "retryExhaustion"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-retryExhaustion-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "failsAfterTimeout",
+            "status": "inconclusive",
+            "reason": "explanations_disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "retryExhaustionByFailures"
+      },
+      "standing": "nothing-to-realize"
     },
     {
       "model": "activity-standalone.json",
@@ -1063,6 +1594,60 @@
       "query": {
         "Family": "temporal.features.activity.standalone.system",
         "Owner": "activitySystem",
+        "Name": "scheduleToStartWaitsForDispatch"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "byIDCompletion",
+        "Name": "scheduledCompletedByID"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-scheduledCompletedByID-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "completedByID",
+            "status": "inconclusive",
+            "reason": "explanations_disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
+        "Name": "startDelayedCompletion"
+      },
+      "standing": "lowered",
+      "file": "activity-standalone-startDelayedCompletion-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "completes",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-standalone.json",
+      "query": {
+        "Family": "temporal.features.activity.standalone.system",
+        "Owner": "activitySystem",
         "Name": "startToCloseTimeout"
       },
       "standing": "unsupported",
@@ -1070,7 +1655,7 @@
         {
           "Construct": "attempt that gives no answer",
           "ID": "attempts",
-          "Position": "model/temporal/features/activity/standalone/system/Realization.scala:104",
+          "Position": "model/temporal/features/activity/standalone/system/Realization.scala:310",
           "Owner": "none: a recorded limit of the prototype",
           "Why": "the path starts 1 attempts of the activity and answers 0: an activity entrypoint's instructions are answers, and none waits out a deadline"
         }
@@ -2677,6 +3262,141 @@
           }
         ]
       }
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.fatalHandlerError.attemptCountIsWithinPolicy"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.fatalHandlerError.failureEndsFailed"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.fatalHandlerError.failureReturnsToWaiting"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.networkFailure.attemptCountIsWithinPolicy"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.networkFailure.failureEndsFailed"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.networkFailure.failureReturnsToWaiting"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.retryableHandlerError.attemptCountIsWithinPolicy"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.retryableHandlerError.failureEndsFailed"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.retryableHandlerError.failureReturnsToWaiting"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.scheduleToCloseDeadline.deadlineTimesOut"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.scheduleToCloseDeadline.firesInWindow"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.scheduleToStartDeadline.deadlineTimesOut"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.scheduleToStartDeadline.firesInWindow"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.startToCloseDeadline.deadlineTimesOut"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.startToCloseDeadline.firesInWindow"
+      },
+      "standing": "nothing-to-realize"
     },
     {
       "model": "nexus-workflow.json",

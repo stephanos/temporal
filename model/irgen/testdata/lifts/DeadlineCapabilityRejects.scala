@@ -108,7 +108,7 @@ object IncompleteSubtypeBinding extends Derived(DeadlineTimers.restrict(startExp
     )
   object queries:
     capabilities.bound(three)
-
+// The cast supplies a foreign fact whose typed family the lifter must refuse.
 object WrongTypedFamily extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
     val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
@@ -118,7 +118,7 @@ object WrongTypedFamily extends Derived(DeadlineTimers.restrict(startExpired)):
       Seq(
         Fact.timeout(TimeoutType.schedule),
         Fact.timeout(TimeoutType.start),
-        ForeignFact.timeout.asInstanceOf[Fact]
+        ForeignFact.timeout.asInstanceOf[Fact] // scalafix:ok DisableSyntax.asInstanceOf
       )
     )
   object queries:
