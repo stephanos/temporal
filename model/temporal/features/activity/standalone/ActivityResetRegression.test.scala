@@ -27,18 +27,17 @@ class ActivityResetRegression extends munit.FunSuite:
     effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(s, c.values)
       .map(_.copy(because = ""))
 
+  private type Transition = (system.State, ActivityStep) => Boolean
+
   private def holds(property: Property[system.State], before: system.State, after: ActivityStep) =
     property.decl.holds2 match
       case Some(predicate) =>
-        predicate.asInstanceOf[
-          (system.State, ActivityStep) => Boolean
-        ]( // scalafix:ok DisableSyntax.asInstanceOf
-          before,
-          after
-        )
+        val claim = predicate.asInstanceOf[Transition] // scalafix:ok DisableSyntax.asInstanceOf
+        claim(before, after)
       case None =>
-        property.decl.holds.get
-          .asInstanceOf[ActivityStep => Boolean](after) // scalafix:ok DisableSyntax.asInstanceOf
+        val claim = property.decl.holds.get
+          .asInstanceOf[ActivityStep => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
+        claim(after)
 
   private val states = summon[Finite[system.State]].values
   private val resets = List(client.reset(ResetPause.resume), client.reset(ResetPause.keepPaused))
