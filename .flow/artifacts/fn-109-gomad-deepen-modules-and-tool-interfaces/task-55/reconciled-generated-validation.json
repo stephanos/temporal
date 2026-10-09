@@ -1,0 +1,35 @@
+{
+  "command": "make -C tools/gomad3 validate",
+  "shell_command": "cd -- /Users/stephan/Workspace/skunkworks/gomad/temporal && test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal && make -C tools/gomad3 validate",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started_at": "2026-10-09T21:00:42.651584+00:00",
+  "elapsed_seconds": 13.997,
+  "exit_code": 0,
+  "source_before_sha256": "6d6c4da4def556ee2d191eea7d9a832c1a459f2e332e3d349c61178f6cccd660",
+  "source_after_sha256": "6d6c4da4def556ee2d191eea7d9a832c1a459f2e332e3d349c61178f6cccd660",
+  "head": "a2b020a178bd8cae92016d2c8cd4cdca81023d23",
+  "tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "environment": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOPROXY": "file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download",
+    "TMPDIR": "/tmp/fn10955-replay.vrJNNgWw",
+    "GOTMPDIR": "/tmp/fn10955-replay.vrJNNgWw",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "filesystem": "overlayfs e6312165da52bad5",
+  "stdout_sha256": "c23f7a37672e61d3fdf94e08711d867b3b76cdbac1c037c3430495131067355e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "terminal": true,
+  "source_unchanged": true
+}

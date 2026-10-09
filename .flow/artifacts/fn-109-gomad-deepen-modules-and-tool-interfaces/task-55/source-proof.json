@@ -1,0 +1,50 @@
+{
+  "base_commit": "a2b020a178bd8cae92016d2c8cd4cdca81023d23",
+  "production_path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+  "base_sha256": "68b45ed511f6383ccda529ea7a48cc2e2c8d9c2693c57051d899ac00eb92f40a",
+  "candidate_sha256": "a051dab98b7814bdf341668d7f876c6616dbf23d013947f6c7fd11680de99877",
+  "complete_original_bytes_reconstructed": true,
+  "single_check_failed_status": 3,
+  "new_test_sha256": "e3785332eeec69ec2c0a71f692daf40f8210cd2075298bd7f6a630935bcc9db3",
+  "old_tests_and_other_source_preserved_count": 1050,
+  "preserved_source_manifest_sha256": "d4643b7e377d54a00acec306cf060fbef7af1f374ff88934baa98833b66b1081",
+  "protected_turbo_sha256": {
+    ".turbo/plans/gomad3-glossary-update.md": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188",
+    ".turbo/technical-debt.md": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+  },
+  "lint": {
+    "affected": {
+      "before": 2,
+      "after": 1,
+      "removed": 1,
+      "added": 0,
+      "removed_diagnostic": [
+        "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "14",
+        "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+        "\t\tfmt.Fprintf(stdout, \"gomad: verified %s\\n\", result.Artifact.Path)",
+        "\t\t           ^"
+      ],
+      "residual_path_column_message_statement_caret_multiset_preserved": true,
+      "baseline_receipt": "../task-54/affected-configured-lint.json",
+      "candidate_receipt": "affected-configured-lint.json"
+    },
+    "original_base": {
+      "before": 96,
+      "after": 95,
+      "removed": 1,
+      "added": 0,
+      "removed_diagnostic": [
+        "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "14",
+        "Error return value of `fmt.Fprintf` is not checked (errcheck)",
+        "\t\tfmt.Fprintf(stdout, \"gomad: verified %s\\n\", result.Artifact.Path)",
+        "\t\t           ^"
+      ],
+      "residual_path_column_message_statement_caret_multiset_preserved": true,
+      "baseline_receipt": "../task-54/make-gomad-original-base.json",
+      "candidate_receipt": "make-gomad-original-base.json"
+    }
+  },
+  "public_attempt_source_sha256": "8cb96ecc84588079524ba66ec4301b08d298b74002b47322ab2d812a7d7bfd6c"
+}

@@ -1,0 +1,5 @@
+tools/gomad3/cmd/gomad/internal/cli/application.go:187:14: ST1005: error strings should not be capitalized (staticcheck)
+		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
+		           ^
+1 issues:
+* staticcheck: 1

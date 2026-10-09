@@ -278,6 +278,7 @@ CI, PR, or push authority.
 | [fn-109.52](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.52.md) | ✅ Done | Check remaining maintainer diagnostics while preserving primary outcomes |
 | [fn-109.53](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.53.md) | 🚧 In progress | Check CLI diagnostics while preserving primary outcomes |
 | [fn-109.54](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.54.md) | 🚧 In progress | Check doctor reports and classify output failures |
+| [fn-109.55](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.55.md) | 🚧 In progress | Check verify-only replay report delivery |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 

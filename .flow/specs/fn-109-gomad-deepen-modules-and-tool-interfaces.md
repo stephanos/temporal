@@ -972,3 +972,22 @@ casing are excluded. Task21 consumes the correction; task53 acceptance stays
 open on its red source gates, so task54's admission does not require its Done
 status. Reviewed progress is not formal SHIP or Done while required source
 gates remain red. Native deferrals and original acceptance remain unchanged.
+
+### Verify-only replay output correction admission - 2026-10-09
+
+Task55 owns the single verify-only replay stdout success write after task54's
+reviewed source-progress commit `a2b020a178`. The existing CLI output-publication
+classification admits status3 on that write's failure; successful reporting
+retains status0. Literal bytes, one attempt, completed verification, earlier
+statuses and request/callback behavior stay unchanged. Task21 consumes this
+correction. Prior CLI acceptance remains open on its source gates, so admission
+uses committed reviewed progress rather than requiring its Done status. The
+application casing finding and other residuals stay excluded. Native deferrals
+and original first-baseline/preservation/R18/R19 requirements remain unchanged.
+
+The task55 full ordinary command exposed the directly caused old
+TestCharacterizeOutputWriterFailures/replay_verification status0 expectation.
+Root admits only that datum changing to3 and removal of its immediately owning
+obsolete unchecked-write comment. The test invocation and every other fixture,
+assertion and comment stay unchanged. Retain the mismatch receipt and exact
+preimage reconstruction; this admission grants no gate or assertion weakening.

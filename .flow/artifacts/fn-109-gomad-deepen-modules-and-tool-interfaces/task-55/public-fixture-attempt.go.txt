@@ -1,0 +1,180 @@
+package cli
+
+import (
+	"context"
+	"crypto/sha256"
+	"debug/buildinfo"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"reflect"
+	"runtime"
+	"testing"
+
+	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/target"
+)
+
+func TestReplayOutputVerifyOnly(t *testing.T) {
+	for _, failed := range []bool{false, true} {
+		t.Run(map[bool]string{false: "healthy", true: "EBADF"}[failed], func(t *testing.T) {
+			stdout := terminalDiagnostics(t, map[int]bool{1: failed})
+			stderr := terminalDiagnostics(t, nil)
+			installation := newFakeInstallation()
+			calls := 0
+			var observed runner.ReplaySpec
+			dependencies := installation.replayDependencies(func(ctx context.Context, spec runner.ReplaySpec) (runner.ReplayResult, error) {
+				calls++
+				observed = spec
+				if ctx != context.Background() || len(stdout.attempts) != 0 || len(stderr.attempts) != 0 || !reflect.DeepEqual(*installation.requested, []string{"/bundle"}) {
+					t.Fatal("replay callback did not follow installation and precede reporting")
+				}
+				return runner.ReplayResult{Artifact: artifact.Artifact{Path: "/verified artifact/%s"}, Verified: true}, nil
+			})
+			status := runReplayWith([]string{"--toolchain-root=/bundle", "--observed=/observed", "--verify-only", "/requested-artifact"}, stdout, stderr, dependencies)
+			want := runner.ReplaySpec{ArtifactPath: "/requested-artifact", VerifyOnly: true, ToolchainRoot: "/toolchain", ObservedDir: "/observed", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}
+			if calls != 1 || !reflect.DeepEqual(observed, want) {
+				t.Fatalf("replay calls = %d, request = %#v, want %#v", calls, observed, want)
+			}
+			checkTerminalDiagnostics(t, stdout, []string{"gomad: verified /verified artifact/%s\n"})
+			checkTerminalDiagnostics(t, stderr, nil)
+			wantStatus := 0
+			if failed {
+				wantStatus = 3
+			}
+			if status != wantStatus {
+				t.Fatalf("status = %d, want %d after completed verification", status, wantStatus)
+			}
+		})
+	}
+}
+
+func TestReplayOutputPublicStockVerifyOnly(t *testing.T) {
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	binary, err := os.ReadFile(executable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	build, err := buildinfo.ReadFile(executable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if build.GoVersion != "go1.27.1" {
+		t.Fatalf("stock fixture requires go1.27.1, got %s", build.GoVersion)
+	}
+	stock, err := os.ReadFile(filepath.Join(runtime.GOROOT(), "bin", "go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	key := fmt.Sprintf("%x", sha256.Sum256(stock))
+	toolchain := t.TempDir()
+	for _, directory := range []string{"bin", filepath.Join("builds", key, "bin")} {
+		if err := os.MkdirAll(filepath.Join(toolchain, directory), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(toolchain, directory, "go"), stock, 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, directory := range []string{"src", "pkg", "lib"} {
+		if err := os.Symlink(filepath.Join(runtime.GOROOT(), directory), filepath.Join(toolchain, directory)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(toolchain, "build-key"), []byte(key+"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	identity, err := target.ReadToolchainIdentity(toolchain)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if identity.GoVersion != build.GoVersion || identity.TargetGOOS != runtime.GOOS || identity.TargetGOARCH != runtime.GOARCH || identity.BuildKey != key {
+		t.Fatalf("stock identity = %#v", identity)
+	}
+	profile := deterministicio.Default()
+	noneWorld, payloads := record.NoneWorld()
+	exitCode := record.Uint64String(0)
+	empty := record.Stream{FullSHA256: record.HashBytes(nil)}
+	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir(), MaximumBytes: uint64(len(binary)) + 1<<20}, artifact.ArtifactInput{
+		Manifest: record.ExecutionRecord{
+			SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactSuccess, CreatedAt: "2026-10-09T00:00:00Z", CampaignID: "stock-source-verify-only", Seed: 7, ReplayMode: record.ReplayExact,
+			Runner:      record.Runner{RecordContract: record.RecordContract, RunnerBuild: string(record.HashBytes(binary)), HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+			Toolchain:   record.Toolchain{GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH},
+			Target:      record.Target{Kind: "go-test", Source: "stock CLI test executable", SHA256: record.HashBytes(binary), Size: record.Uint64String(len(binary)), Argv: []string{"gomad3-target", "-test.run=^$"}, BuildTags: []string{}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: target.ProjectBuildInfo(build), CapabilityMode: "closure"},
+			IOProfile:   record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()), Transcript: &record.IOTranscript{Schema: "gomad3.io-transcript/v1", SHA256: record.HashBytes(nil)}},
+			Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+			Limits:      record.Limits{ExecutionTimeoutNanos: 1_000_000_000, OverallTimeoutNanos: 2_000_000_000, OutputBytes: 64, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20},
+			World:       noneWorld, Outcome: record.Outcome{Domain: "success", Reason: "completed", Termination: "exit", ExitCode: &exitCode}, Streams: record.Streams{Stdout: empty, Stderr: empty},
+			Host: record.Host{StartedAt: "2026-10-09T00:00:00Z", FinishedAt: "2026-10-09T00:00:01Z", ElapsedNanos: 1_000_000_000},
+		}, TargetPath: executable, World: payloads,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, failed := range []bool{false, true} {
+		t.Run(map[bool]string{false: "healthy", true: "EBADF"}[failed], func(t *testing.T) {
+			stdout := terminalDiagnostics(t, map[int]bool{1: failed})
+			stderr := terminalDiagnostics(t, nil)
+			observed := filepath.Join(t.TempDir(), "must-not-be-created")
+			status := Run([]string{"replay", "--verify-only", "--toolchain-root=" + toolchain, "--observed=" + observed, published.Path}, stdout, stderr)
+			if len(stdout.attempts) != 1 {
+				t.Fatalf("public verification status = %d, stdout = %q, stderr = %q", status, stdout.attempts, stderr.attempts)
+			}
+			checkTerminalDiagnostics(t, stdout, []string{"gomad: verified " + published.Path + "\n"})
+			checkTerminalDiagnostics(t, stderr, nil)
+			if _, err := os.Stat(observed); !os.IsNotExist(err) {
+				t.Fatalf("verify-only wrote observed streams: %v", err)
+			}
+			wantStatus := 0
+			if failed {
+				wantStatus = 3
+			}
+			if status != wantStatus {
+				t.Fatalf("status = %d, want %d after stock artifact verification", status, wantStatus)
+			}
+		})
+	}
+}
+
+func TestReplayOutputEarlierErrors(t *testing.T) {
+	for _, test := range []struct {
+		name       string
+		installErr error
+		replayErr  error
+		status     int
+		calls      int
+		diagnostic string
+	}{
+		{"installation", errFakeInstallation, nil, 3, 0, "resolve Gomad installation: fake installation is unavailable\n"},
+		{"preflight", nil, &runner.ReplayPreflightError{Err: errors.New("toolchain changed")}, 2, 1, "incompatible replay artifact: toolchain changed\n"},
+		{"replay", nil, errors.New("supervisor failed"), 3, 1, "supervisor failed\n"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			stdout := terminalDiagnostics(t, map[int]bool{1: true})
+			stderr := terminalDiagnostics(t, nil)
+			installation := newFakeInstallation().failing(test.installErr)
+			calls := 0
+			dependencies := installation.replayDependencies(func(_ context.Context, spec runner.ReplaySpec) (runner.ReplayResult, error) {
+				calls++
+				want := runner.ReplaySpec{ArtifactPath: "/artifact", VerifyOnly: true, ToolchainRoot: "/toolchain", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}
+				if !reflect.DeepEqual(spec, want) || len(stdout.attempts) != 0 || len(stderr.attempts) != 0 {
+					t.Fatalf("replay request = %#v, want %#v before reporting", spec, want)
+				}
+				return runner.ReplayResult{}, test.replayErr
+			})
+			status := runReplayWith([]string{"--toolchain-root=/bundle", "--verify-only", "/artifact"}, stdout, stderr, dependencies)
+			if status != test.status || calls != test.calls || !reflect.DeepEqual(*installation.requested, []string{"/bundle"}) {
+				t.Fatalf("status = %d, calls = %d, installation requests = %q", status, calls, *installation.requested)
+			}
+			checkTerminalDiagnostics(t, stdout, nil)
+			checkTerminalDiagnostics(t, stderr, []string{test.diagnostic})
+		})
+	}
+}

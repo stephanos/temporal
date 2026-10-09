@@ -1079,7 +1079,9 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		return 3
 	}
 	if *verifyOnly {
-		fmt.Fprintf(stdout, "gomad: verified %s\n", result.Artifact.Path)
+		if _, err := fmt.Fprintf(stdout, "gomad: verified %s\n", result.Artifact.Path); err != nil {
+			return 3
+		}
 		return 0
 	}
 	status, err := reportReplayResult(stdout, result)

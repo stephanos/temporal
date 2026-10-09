@@ -676,10 +676,9 @@ func TestCharacterizeOutputWriterFailures(t *testing.T) {
 		{"replay result", func(stdout, stderr io.Writer) int {
 			return runReplayWith([]string{"/artifact"}, stdout, stderr, replay)
 		}, 3},
-		// Verification-only replay does not check its output write.
 		{"replay verification", func(stdout, stderr io.Writer) int {
 			return runReplayWith([]string{"--verify-only", "/artifact"}, stdout, stderr, replay)
-		}, 0},
+		}, 3},
 		{"execute-shard result", func(stdout, stderr io.Writer) int {
 			return runCampaignShardWith([]string{"--shard=0/1", "/plan"}, stdout, stderr, shard)
 		}, 3},
