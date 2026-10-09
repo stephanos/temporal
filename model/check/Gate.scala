@@ -34,6 +34,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
+import scala.util.matching.Regex
 
 // A check of the gate that failed.
 final class GateError(message: String) extends Exception(message)
@@ -45,6 +46,10 @@ final class Gate(tools: Tools, log: PrintStream):
   private val build = model.resolve("build")
   private val schemaFile = "proto/internal/temporal/server/api/umpire/v1/ir.proto"
   private val schema = root.resolve(schemaFile)
+  // The schema imports the rest of the IR from this directory, under proto/internal.
+  private val schemaDirectory = "temporal/server/api/umpire/"
+  private val schemaImport: Regex =
+    """^\s*import\s+(?:public\s+|weak\s+)?"([^"]+\.proto)"\s*;""".r.unanchored
   private val irJar = build.resolve("ir-scalapb.jar")
   private val apiDescriptor = root.resolve("proto/api.binpb")
   private val apiJar = build.resolve("api-scalapb.jar")
@@ -108,21 +113,48 @@ final class Gate(tools: Tools, log: PrintStream):
   private def scratch(name: String): Path =
     Files.createTempDirectory(Files.createDirectories(build.resolve("history")), s"$name.")
 
+  // The IR schema's files by their paths under proto/internal, sorted: the root,
+  // proto/internal/temporal/server/api/umpire/v1/ir.proto, and every file of the IR it imports,
+  // directly or not. The well-known types it imports are ScalaPB's runtime's, not the IR's.
+  private def schemaClosure(): Seq[String] =
+    if !Files.isRegularFile(schema) then throw GateError(s"the IR schema $schema is missing")
+    val internal = root.resolve("proto/internal")
+    @annotation.tailrec
+    def visit(pending: List[String], seen: Set[String]): Set[String] = pending match
+      case Nil          => seen
+      case file :: rest =>
+        val imported = Files
+          .readAllLines(internal.resolve(file))
+          .asScala
+          .flatMap(line => schemaImport.findFirstMatchIn(line).map(_.group(1)))
+          .filter(name => name.startsWith(schemaDirectory) && !seen.contains(name))
+          .distinct
+          .toList
+        for name <- imported if !Files.isRegularFile(internal.resolve(name)) do
+          throw GateError(s"the IR schema proto/internal/$file imports $name, which is missing")
+        visit(imported ++ rest, seen ++ imported)
+    val rootName = schemaFile.stripPrefix("proto/internal/")
+    visit(List(rootName), Set(rootName)).toSeq.sorted
+
   // Packages the classes the lifter compiles against: model/build/ir-scalapb.jar, the IR's ScalaPB
   // classes, compiled against scalapb-runtime. The IR schema is the file
-  // proto/internal/temporal/server/api/umpire/v1/ir.proto; its Go code is generated with every
-  // other internal proto by `make protoc` into api/umpire/v1.
+  // proto/internal/temporal/server/api/umpire/v1/ir.proto and the files of the IR it imports
+  // (`schemaClosure`); their Go code is generated with every other internal proto by `make protoc`
+  // into api/umpire/v1.
   //
-  // The jar has a stamp beside it, the hash of the schema and the versions of the generator and of
-  // Scala. With `ifStale`, the jar is packaged only when one of those changed since it was packaged.
+  // The jar has a stamp beside it, the hash of the schema's files and the versions of the generator
+  // and of Scala. With `ifStale`, the jar is packaged only when one of those changed since it was
+  // packaged.
   def generateIr(ifStale: Boolean): Unit =
-    if !Files.isRegularFile(schema) then throw GateError(s"the IR schema $schema is missing")
-    val hash =
-      MessageDigest
-        .getInstance("SHA-256")
-        .digest(Files.readAllBytes(schema))
-        .map("%02x".format(_))
-        .mkString
+    val closure = schemaClosure()
+    val digest = MessageDigest.getInstance("SHA-256")
+    // Each file's path and length is hashed before its content, so no two closures hash alike.
+    for name <- closure do
+      val bytes = Files.readAllBytes(root.resolve("proto/internal").resolve(name))
+      digest.update((name + "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8))
+      digest.update(java.nio.ByteBuffer.allocate(8).putLong(bytes.length.toLong).array())
+      digest.update(bytes)
+    val hash = digest.digest().map("%02x".format(_)).mkString
     val stamp = s"$hash scalapb:$scalapb scala:$scala"
     val stampFile = build.resolve("ir.stamp")
     val current = Seq(irJar, stampFile).forall(Files.isRegularFile(_))
@@ -169,9 +201,8 @@ final class Gate(tools: Tools, log: PrintStream):
           Seq(
             s"--plugin=protoc-gen-scala=$scalaPlugin",
             "--proto_path=proto/internal",
-            s"--scala_out=flat_package,scala3_sources:$classes",
-            schemaFile.stripPrefix("proto/internal/")
-          )
+            s"--scala_out=flat_package,scala3_sources:$classes"
+          ) ++ closure
         )
         .orFail()
       tools
@@ -219,7 +250,7 @@ final class Gate(tools: Tools, log: PrintStream):
           .filter(path => Files.isRegularFile(path) && path.toString.endsWith(".proto"))
           .map(root.resolve("proto/internal").relativize(_).toString)
           .toSeq
-          .sorted :+ schemaFile.stripPrefix("proto/internal/")
+          .sorted ++ schemaClosure()
       finally stream.close()
     if internalNames.size < 2 then
       throw GateError("Testpilot proto sources are missing; run make protoc")
@@ -297,6 +328,13 @@ final class Gate(tools: Tools, log: PrintStream):
           ) ++ names
         )
         .orFail()
+      // The IR's classes are ir-scalapb.jar's; the API jar holds none of them as well.
+      val irClasses = classes.resolve("io/temporal/server/api/umpire")
+      if Files.exists(irClasses) then
+        throw GateError(
+          "linked API classes include the IR schema's io.temporal.server.api.umpire classes, which " +
+            "model/build/ir-scalapb.jar holds; cmd/tools/getproto must leave the IR's files out"
+        )
       val packaged = sources.resolve("api-scalapb.jar")
       tools
         .scalaCli(
@@ -397,13 +435,24 @@ final class Gate(tools: Tools, log: PrintStream):
   private def build(update: Boolean): Unit =
     step("generate the IR's classes when their inputs changed"):
       generateIr(ifStale = true)
-      val generated = root.resolve("api/umpire/v1/ir.pb.go")
-      if !Files.isRegularFile(generated)
-        || Files.getLastModifiedTime(generated).compareTo(Files.getLastModifiedTime(schema)) <= 0
-      then
-        throw GateError(
-          s"${root.relativize(generated)} is older than the IR schema $schemaFile; run make protoc"
-        )
+      // Each file of the schema has its Go code beside the others', as `make protoc` writes it.
+      for name <- schemaClosure() do
+        val file = s"proto/internal/$name"
+        val generated =
+          root
+            .resolve("api")
+            .resolve(name.stripPrefix("temporal/server/api/").stripSuffix(".proto") + ".pb.go")
+        if !Files.isRegularFile(generated) then
+          throw GateError(
+            s"${root.relativize(generated)} is missing for the IR schema $file; run make protoc"
+          )
+        if Files
+            .getLastModifiedTime(generated)
+            .compareTo(Files.getLastModifiedTime(root.resolve(file))) <= 0
+        then
+          throw GateError(
+            s"${root.relativize(generated)} is older than the IR schema $file; run make protoc"
+          )
 
     step("generate the linked API's classes when their inputs changed"):
       generateApi(ifStale = true)

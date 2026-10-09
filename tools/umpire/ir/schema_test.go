@@ -1,8 +1,10 @@
 package ir
 
 import (
+	"cmp"
 	"compress/gzip"
 	"crypto/sha256"
+	"fmt"
 	"io"
 	"io/fs"
 	"maps"
@@ -20,7 +22,9 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // The IR schema was renamed once, from the package below to umpire/v1. testdata/schema/before-rename
@@ -29,6 +33,10 @@ import (
 const (
 	schemaPackageBefore = "temporal.server.api.modelir.v1"
 	schemaPackage       = "temporal.server.api.umpire.v1"
+	// The schema's root, which declares Model; every file of the IR it imports is under
+	// schemaDirectory.
+	schemaRoot      = "temporal/server/api/umpire/v1/ir.proto"
+	schemaDirectory = "temporal/server/api/umpire/"
 	// The fields none of the Models lifted at the capture sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
@@ -356,7 +364,7 @@ func schemaBeforeRename(t *testing.T) map[string][]byte {
 func renamedSchema(t *testing.T, before *descriptorpb.FileDescriptorProto) *descriptorpb.FileDescriptorProto {
 	t.Helper()
 	file := proto.CloneOf(before)
-	file.Name = proto.String("temporal/server/api/umpire/v1/ir.proto")
+	file.Name = proto.String(schemaRoot)
 	file.Package = proto.String(schemaPackage)
 	file.Options.GoPackage = proto.String("go.temporal.io/server/api/umpire/v1;umpire")
 	file.Options.JavaPackage = proto.String("io.temporal.server.api.umpire.v1")
@@ -385,7 +393,169 @@ func TestSchemaRenameKeepsTheDescriptor(t *testing.T) {
 	expected := renamedSchema(t, before)
 	require.NotContains(t, prototext.Format(expected), "modelir")
 	addedSinceTheCapture(t, expected)
-	protorequire.ProtoEqual(t, expected, protodesc.ToFileDescriptorProto(umpirespb.File_temporal_server_api_umpire_v1_ir_proto))
+	want, err := schemaDeclarations([]*descriptorpb.FileDescriptorProto{expected})
+	require.NoError(t, err)
+	var files []*descriptorpb.FileDescriptorProto
+	for _, file := range schemaClosure() {
+		files = append(files, protodesc.ToFileDescriptorProto(file))
+	}
+	got, err := schemaDeclarations(files)
+	require.NoError(t, err)
+	// A declaration missing from the schema's files, or new in them, is named before any is compared.
+	require.Equal(t, schemaDeclarationNames(want), schemaDeclarationNames(got))
+	protorequire.ProtoEqual(t, want, got)
+}
+
+// schemaClosure is the schema's root and every file of the IR it imports, directly or not, by path.
+func schemaClosure() []protoreflect.FileDescriptor {
+	seen := map[string]protoreflect.FileDescriptor{}
+	var visit func(protoreflect.FileDescriptor)
+	visit = func(file protoreflect.FileDescriptor) {
+		if _, ok := seen[file.Path()]; ok || !strings.HasPrefix(file.Path(), schemaDirectory) {
+			return
+		}
+		seen[file.Path()] = file
+		for i := range file.Imports().Len() {
+			visit(file.Imports().Get(i).FileDescriptor)
+		}
+	}
+	visit(umpirespb.File_temporal_server_api_umpire_v1_ir_proto)
+	return slices.SortedFunc(maps.Values(seen), func(a, b protoreflect.FileDescriptor) int { return cmp.Compare(a.Path(), b.Path()) })
+}
+
+// schemaDeclarations is the schema's files as the one file they are declared to be: the root's name
+// and options, the files outside the IR they import, and every message and enum they declare, each by
+// name. The files must share one package and one set of options, and declare each name once; where in
+// which file a declaration is, is no part of the schema's meaning.
+func schemaDeclarations(files []*descriptorpb.FileDescriptorProto) (*descriptorpb.FileDescriptorProto, error) {
+	i := slices.IndexFunc(files, func(f *descriptorpb.FileDescriptorProto) bool { return f.GetName() == schemaRoot })
+	if i == -1 {
+		return nil, fmt.Errorf("no root %s", schemaRoot)
+	}
+	root := files[i]
+	union := &descriptorpb.FileDescriptorProto{Name: proto.String(schemaRoot), Package: proto.String(root.GetPackage()),
+		Options: proto.CloneOf(root.GetOptions()), Syntax: proto.String(root.GetSyntax())}
+	declared := map[string]string{}
+	for _, file := range files {
+		switch {
+		case !strings.HasPrefix(file.GetName(), schemaDirectory):
+			return nil, fmt.Errorf("%s is no file of the IR", file.GetName())
+		case file.GetPackage() != root.GetPackage():
+			return nil, fmt.Errorf("%s is in package %s, not %s", file.GetName(), file.GetPackage(), root.GetPackage())
+		case !proto.Equal(file.GetOptions(), root.GetOptions()):
+			return nil, fmt.Errorf("%s has options %v, not the root's %v", file.GetName(), file.GetOptions(), root.GetOptions())
+		case file.GetSyntax() != root.GetSyntax():
+			return nil, fmt.Errorf("%s is %s, not %s", file.GetName(), file.GetSyntax(), root.GetSyntax())
+		case len(file.GetService()) > 0 || len(file.GetExtension()) > 0:
+			return nil, fmt.Errorf("%s declares a service or an extension", file.GetName())
+		}
+		for _, dependency := range file.GetDependency() {
+			if !strings.HasPrefix(dependency, schemaDirectory) && !slices.Contains(union.Dependency, dependency) {
+				union.Dependency = append(union.Dependency, dependency)
+			}
+		}
+		var names []string
+		for _, message := range file.GetMessageType() {
+			names = append(names, message.GetName())
+			union.MessageType = append(union.MessageType, proto.CloneOf(message))
+		}
+		for _, enum := range file.GetEnumType() {
+			names = append(names, enum.GetName())
+			union.EnumType = append(union.EnumType, proto.CloneOf(enum))
+		}
+		for _, name := range names {
+			if other, ok := declared[name]; ok {
+				return nil, fmt.Errorf("%s is declared in %s and in %s", name, other, file.GetName())
+			}
+			declared[name] = file.GetName()
+		}
+	}
+	slices.Sort(union.Dependency)
+	slices.SortFunc(union.MessageType, func(a, b *descriptorpb.DescriptorProto) int { return cmp.Compare(a.GetName(), b.GetName()) })
+	slices.SortFunc(union.EnumType, func(a, b *descriptorpb.EnumDescriptorProto) int { return cmp.Compare(a.GetName(), b.GetName()) })
+	return union, nil
+}
+
+// schemaDeclarationNames is every top-level message and enum schemaDeclarations holds, sorted.
+func schemaDeclarationNames(union *descriptorpb.FileDescriptorProto) []string {
+	var names []string
+	for _, message := range union.GetMessageType() {
+		names = append(names, message.GetName())
+	}
+	for _, enum := range union.GetEnumType() {
+		names = append(names, enum.GetName())
+	}
+	slices.Sort(names)
+	return names
+}
+
+// The schema split into a root and a file of the IR it imports declares what the one file did: the
+// union holds no file the declarations moved to. A declaration the split lost, declared twice, or
+// declared in another package or with other options, is refused or differs.
+func TestSchemaDeclarationsOfASplitSchema(t *testing.T) {
+	whole := protodesc.ToFileDescriptorProto(umpirespb.File_temporal_server_api_umpire_v1_ir_proto)
+	const commonName = schemaDirectory + "v1/common.proto"
+	split := func(moved ...string) []*descriptorpb.FileDescriptorProto {
+		root := proto.CloneOf(whole)
+		common := &descriptorpb.FileDescriptorProto{Name: proto.String(commonName), Package: root.Package, Options: proto.CloneOf(root.Options),
+			Syntax: root.Syntax}
+		root.Dependency = append([]string{commonName}, root.Dependency...)
+		root.MessageType = slices.DeleteFunc(root.MessageType, func(m *descriptorpb.DescriptorProto) bool {
+			if slices.Contains(moved, m.GetName()) {
+				common.MessageType = append(common.MessageType, m)
+				return true
+			}
+			return false
+		})
+		common.EnumType, root.EnumType = root.EnumType, nil
+		return []*descriptorpb.FileDescriptorProto{common, root}
+	}
+	files := split("Position", "Empty")
+	// The split is a schema protoc could have compiled.
+	registry := new(protoregistry.Files)
+	require.NoError(t, registry.RegisterFile(wrapperspb.File_google_protobuf_wrappers_proto))
+	for _, file := range files {
+		descriptor, err := protodesc.NewFile(file, registry)
+		require.NoError(t, err)
+		require.NoError(t, registry.RegisterFile(descriptor))
+	}
+	require.NotEmpty(t, files[0].GetEnumType())
+
+	want, err := schemaDeclarations([]*descriptorpb.FileDescriptorProto{whole})
+	require.NoError(t, err)
+	got, err := schemaDeclarations(files)
+	require.NoError(t, err)
+	require.Equal(t, schemaDeclarationNames(want), schemaDeclarationNames(got))
+	protorequire.ProtoEqual(t, want, got)
+
+	lost := split("Position", "Empty")
+	lost[0].MessageType = lost[0].MessageType[1:]
+	got, err = schemaDeclarations(lost)
+	require.NoError(t, err)
+	require.NotContains(t, schemaDeclarationNames(got), "Position")
+	require.False(t, proto.Equal(want, got))
+
+	twice := split("Position", "Empty")
+	twice[1].MessageType = append(twice[1].MessageType, proto.CloneOf(twice[0].MessageType[0]))
+	_, err = schemaDeclarations(twice)
+	require.ErrorContains(t, err, "Position is declared in "+commonName+" and in "+schemaRoot)
+
+	moved := split("Position", "Empty")
+	moved[0].Package = proto.String("temporal.server.api.umpire.v2")
+	_, err = schemaDeclarations(moved)
+	require.ErrorContains(t, err, commonName+" is in package temporal.server.api.umpire.v2")
+
+	moved = split("Position", "Empty")
+	moved[0].Options.GoPackage = proto.String("go.temporal.io/server/api/umpire/common")
+	_, err = schemaDeclarations(moved)
+	require.ErrorContains(t, err, commonName+" has options")
+
+	changed := split("Position", "Empty")
+	changed[0].MessageType[0].Field[0].Number = proto.Int32(3)
+	got, err = schemaDeclarations(changed)
+	require.NoError(t, err)
+	require.Equal(t, schemaDeclarationNames(want), schemaDeclarationNames(got))
+	require.False(t, proto.Equal(want, got), "a field's number is part of a declaration")
 }
 
 // addedSinceTheCapture adds to the renamed capture what the schema gained after it, and nothing else:
@@ -567,7 +737,9 @@ func schemaFieldsUnset(set map[protoreflect.FullName]bool) []protoreflect.FullNa
 			visit(message.Messages())
 		}
 	}
-	visit(umpirespb.File_temporal_server_api_umpire_v1_ir_proto.Messages())
+	for _, file := range schemaClosure() {
+		visit(file.Messages())
+	}
 	return unset
 }
 

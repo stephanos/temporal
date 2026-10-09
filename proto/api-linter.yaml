@@ -47,9 +47,10 @@
 
 # The Umpire IR is the syntax tree of a lifted Model, not a resource API: its fields are the words a
 # Model declares (`from`, `to`, `with`, a type's name, a timeout in milliseconds), and renaming or
-# retyping one would change the schema the checked-in IR is written in.
+# retyping one would change the schema the checked-in IR is written in. The root ir.proto and every
+# file of the IR it imports are held alike.
 - included_paths:
-    - '**/umpire/v1/ir.proto'
+    - '**/umpire/v1/*.proto'
   disabled_rules:
     - 'core::0122::name-suffix'
     - 'core::0123::resource-annotation'

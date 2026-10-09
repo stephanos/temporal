@@ -695,9 +695,9 @@ MODEL_GATE = $(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_ROO
 # The gate's own tests run it against stand-in tools, so they need no jar and no real tool.
 MODEL_GATE_TEST = $(MODEL_CLI) test --suppress-outdated-dependency-warning $(MODEL_ROOT)/check
 
-# make sees only the schema; after the generator's version changes in the gate, the gate's own run
-# repackages the jar.
-$(MODEL_BUILD)/ir-scalapb.jar: proto/internal/temporal/server/api/umpire/v1/ir.proto
+# make sees only the schema's files, the root ir.proto and the files of the IR beside it; after the
+# generator's version changes in the gate, the gate's own run repackages the jar.
+$(MODEL_BUILD)/ir-scalapb.jar: $(wildcard proto/internal/temporal/server/api/umpire/v1/*.proto)
 	@printf $(COLOR) "Package model IR classes..."
 	@$(MODEL_GATE) --generate-ir
 

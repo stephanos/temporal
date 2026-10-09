@@ -30,6 +30,12 @@ var (
 	importMap map[string]protoreflect.FileDescriptor
 )
 
+const (
+	// The IR schema's root; every file of the IR it imports is under umpireSchemaDirectory.
+	umpireSchemaRoot      = "temporal/server/api/umpire/v1/ir.proto"
+	umpireSchemaDirectory = "temporal/server/api/umpire/"
+)
+
 func fatalIfErr(err error) {
 	if err != nil {
 		log.Fatal(err)
@@ -174,6 +180,16 @@ func checkImports(files map[string]protoreflect.FileDescriptor) {
 }
 
 func linkedModelDescriptors(input string) ([]byte, []string, error) {
+	return linkModelDescriptors(input, protoregistry.GlobalFiles)
+}
+
+// isUmpireSchema reports whether name is a file of the IR schema. Its classes are packaged into
+// ir-scalapb.jar, so none is generated into the API jar too.
+func isUmpireSchema(name string) bool {
+	return strings.HasPrefix(name, umpireSchemaDirectory)
+}
+
+func linkModelDescriptors(input string, registry *protoregistry.Files) ([]byte, []string, error) {
 	data, err := os.ReadFile(input)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%s is missing or unreadable; run make proto/api.binpb: %w", input, err)
@@ -197,14 +213,14 @@ func linkedModelDescriptors(input string) ([]byte, []string, error) {
 			add(imports.Get(i).FileDescriptor)
 		}
 	}
-	service, err := protoregistry.GlobalFiles.FindFileByPath("temporal/api/workflowservice/v1/service.proto")
+	service, err := registry.FindFileByPath("temporal/api/workflowservice/v1/service.proto")
 	if err != nil {
 		return nil, nil, fmt.Errorf("workflow service descriptor: %w", err)
 	}
 	add(service)
-	protoregistry.GlobalFiles.RangeFiles(func(file protoreflect.FileDescriptor) bool {
+	registry.RangeFiles(func(file protoreflect.FileDescriptor) bool {
 		if strings.HasPrefix(file.Path(), "temporal/server/api/testpilot/") ||
-			file.Path() == "temporal/server/api/umpire/v1/ir.proto" {
+			file.Path() == umpireSchemaRoot {
 			add(file)
 		}
 		return true
@@ -215,7 +231,7 @@ func linkedModelDescriptors(input string) ([]byte, []string, error) {
 	generated := make([]string, 0, len(names))
 	for _, name := range names {
 		set.File = append(set.File, files[name])
-		if name != "temporal/server/api/umpire/v1/ir.proto" {
+		if !isUmpireSchema(name) {
 			generated = append(generated, name)
 		}
 	}
@@ -227,8 +243,7 @@ func linkedModelDescriptors(input string) ([]byte, []string, error) {
 }
 
 func isModelInternalDescriptor(name string) bool {
-	return strings.HasPrefix(name, "temporal/server/api/testpilot/") ||
-		name == "temporal/server/api/umpire/v1/ir.proto"
+	return strings.HasPrefix(name, "temporal/server/api/testpilot/") || isUmpireSchema(name)
 }
 
 func checkCurrentInternal(linked []byte, current *descriptorpb.FileDescriptorSet) error {

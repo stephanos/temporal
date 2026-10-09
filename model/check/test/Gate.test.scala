@@ -72,6 +72,27 @@ class GateSuite extends munit.FunSuite:
     def apiStampFile: Path = root.resolve("model/build/api.stamp")
     def apiStamp: String = Files.readString(apiStampFile)
 
+    // Adds a file of the IR to the schema, imported by the file `by`, with its Go code newer than
+    // it; the importer's Go code stays newer than the importer.
+    def importFile(name: String, by: Path = schema): Path =
+      val file = schema.resolveSibling(name)
+      Files.writeString(file, "syntax = \"proto3\";\n")
+      Files.writeString(
+        by,
+        Files.readString(by) + s"import \"temporal/server/api/umpire/v1/$name\";\n"
+      )
+      Seq(file, by).foreach(source =>
+        val go = goCode(source)
+        Files.writeString(go, "package umpire\n")
+        Files.setLastModifiedTime(
+          go,
+          FileTime.fromMillis(Files.getLastModifiedTime(source).toMillis + 1000)
+        )
+      )
+      file
+    def goCode(source: Path): Path =
+      generated.resolveSibling(source.getFileName.toString.stripSuffix(".proto") + ".pb.go")
+
   // As `go test -v -run` of the vocabulary check, go prints what the test's run printed.
   private def vocabulary(printed: String, exit: Int = 0) =
     s"""case " $$* " in *" -run "*) printf '%b\\n' '$printed'; exit $exit;; esac"""
@@ -99,10 +120,11 @@ class GateSuite extends munit.FunSuite:
     val repository = Repository()
     assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
     assert(Files.isRegularFile(repository.jar))
-    // The stamp is the SHA-256 of the schema's content and the versions of the generator and Scala.
+    // The stamp is the SHA-256 of each schema file's path, length and content, and the versions of
+    // the generator and Scala.
     assertEquals(
       repository.stamp,
-      "26695965cd692d9dce08efe0b2e1f745c3be7c19631b56873c8956b8d486cf17 scalapb:0.11.20 scala:3.9.0\n"
+      "254705f639da3db11451ca8602646af612b4400566c4d0647d6515f9dabd7d29 scalapb:0.11.20 scala:3.9.0\n"
     )
     repository.ran match
       case Seq(plugin, protoc, packaged) =>
@@ -242,6 +264,109 @@ class GateSuite extends munit.FunSuite:
       gate(repository.tools, "--generate-ir"),
       Answer(1, "", s"gate: the IR schema ${repository.schema} is missing\n")
     )
+
+  test("every file the IR schema imports is packaged and stamped, and an edit of one repackages"):
+    val repository = Repository()
+    // A well-known type is ScalaPB's runtime's, not a file of the IR.
+    Files.writeString(
+      repository.schema,
+      Files.readString(repository.schema) + "import \"google/protobuf/wrappers.proto\";\n"
+    )
+    val common = repository.importFile("common.proto")
+    val value = repository.importFile("value.proto", by = common)
+    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
+    val protoc = repository.ran.filter(_.startsWith("protoc "))
+    assertEquals(protoc.size, 1)
+    assert(
+      protoc.head.endsWith(
+        " temporal/server/api/umpire/v1/common.proto temporal/server/api/umpire/v1/ir.proto" +
+          " temporal/server/api/umpire/v1/value.proto"
+      ),
+      protoc.head
+    )
+
+    val before = repository.stamp
+    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale"), Answer(0, "", ""))
+    assertEquals(repository.ran.size, 3, "a current jar of an unchanged closure is reused")
+    assertEquals(repository.stamp, before)
+
+    // The root is unchanged; a file it imports through another changed.
+    Files.writeString(value, "syntax = \"proto3\";\nmessage Value {}\n")
+    assertEquals(
+      gate(repository.tools, "--generate-ir", "--if-stale").out,
+      "generated model/build/ir-scalapb.jar\n"
+    )
+    assertEquals(repository.ran.size, 6)
+    assertNotEquals(repository.stamp, before)
+
+  test("a file the IR schema imports that is missing fails with its importer"):
+    val repository = Repository()
+    val common = repository.importFile("common.proto")
+    Files.writeString(
+      common,
+      Files.readString(common) + "import \"temporal/server/api/umpire/v1/value.proto\";\n"
+    )
+    assertEquals(
+      gate(repository.tools, "--generate-ir"),
+      Answer(
+        1,
+        "",
+        "gate: the IR schema proto/internal/temporal/server/api/umpire/v1/common.proto imports " +
+          "temporal/server/api/umpire/v1/value.proto, which is missing\n"
+      )
+    )
+    assertEquals(repository.ran, Nil)
+
+  test("the gate stops when an imported file's Go code is missing or older than it"):
+    val repository = Repository()
+    val common = repository.importFile("common.proto")
+    val generated = repository.goCode(common)
+    Files.delete(generated)
+    assertEquals(
+      gate(repository.tools).err,
+      "gate: api/umpire/v1/common.pb.go is missing for the IR schema " +
+        "proto/internal/temporal/server/api/umpire/v1/common.proto; run make protoc\n"
+    )
+
+    // The root and its Go code are unchanged.
+    Files.writeString(generated, "package umpire\n")
+    Files.setLastModifiedTime(common, FileTime.fromMillis(System.currentTimeMillis() + 60000))
+    assertEquals(
+      gate(repository.tools).err,
+      "gate: api/umpire/v1/common.pb.go is older than the IR schema " +
+        "proto/internal/temporal/server/api/umpire/v1/common.proto; run make protoc\n"
+    )
+
+  test(
+    "the linked API is checked against every file of the IR schema and holds none of its classes"
+  ):
+    val repository = Repository()
+    repository.importFile("common.proto")
+    val initial = gate(repository.tools, "--generate-api", "--if-stale")
+    assertEquals(initial.status, 0, initial.err)
+    val current = repository.ran.find(_.contains("--descriptor_set_out=")).get
+    assert(
+      current.endsWith(
+        " temporal/server/api/testpilot/v1/case.proto" +
+          " temporal/server/api/umpire/v1/common.proto temporal/server/api/umpire/v1/ir.proto"
+      ),
+      current
+    )
+
+    // protoc generates an IR class into the API jar's classes.
+    Files.writeString(
+      repository.root.resolve("bin/protoc"),
+      """
+        |for a in "$@"; do case "$a" in --scala_out=*grpc:*)
+        |  d="${a#*grpc:}/io/temporal/server/api/umpire/v1"; /bin/mkdir -p "$d"; : > "$d/Model.scala";;
+        |esac; done
+        |""".stripMargin,
+      java.nio.file.StandardOpenOption.APPEND
+    )
+    val duplicated = gate(repository.tools, "--generate-api")
+    assertEquals(duplicated.status, 1)
+    assert(duplicated.err.contains("io.temporal.server.api.umpire classes"), duplicated.err)
+    assert(duplicated.err.contains("model/build/ir-scalapb.jar"), duplicated.err)
 
   test("the API jar is built once for descriptors and tools, and survives a Model edit"):
     val repository = Repository()
