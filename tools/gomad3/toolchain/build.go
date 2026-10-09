@@ -337,23 +337,45 @@ func snapshotInputs(config BuildSpec) (inputSnapshot, error) {
 	}
 	patchPath := patch.Name()
 	if err := copyInto(config.Patch, patch); err != nil {
-		patch.Close()
-		os.Remove(patchPath)
-		return inputSnapshot{}, fmt.Errorf("snapshot gomad3 patch: %w", err)
+		closeErr := patch.Close()
+		removeErr := os.Remove(patchPath)
+		retErr := fmt.Errorf("snapshot gomad3 patch: %w", err)
+		if closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+		if removeErr != nil {
+			retErr = errors.Join(retErr, removeErr)
+		}
+		return inputSnapshot{}, retErr
 	}
 	if err := patch.Close(); err != nil {
-		os.Remove(patchPath)
-		return inputSnapshot{}, fmt.Errorf("close patch snapshot: %w", err)
+		removeErr := os.Remove(patchPath)
+		retErr := fmt.Errorf("close patch snapshot: %w", err)
+		if removeErr != nil {
+			retErr = errors.Join(retErr, removeErr)
+		}
+		return inputSnapshot{}, retErr
 	}
 	overlayPath, err := os.MkdirTemp(config.ToolchainRoot, "overlay-*")
 	if err != nil {
-		os.Remove(patchPath)
-		return inputSnapshot{}, fmt.Errorf("create overlay snapshot: %w", err)
+		removeErr := os.Remove(patchPath)
+		retErr := fmt.Errorf("create overlay snapshot: %w", err)
+		if removeErr != nil {
+			retErr = errors.Join(retErr, removeErr)
+		}
+		return inputSnapshot{}, retErr
 	}
 	if err := copyTree(config.Overlay, overlayPath); err != nil {
-		os.Remove(patchPath)
-		os.RemoveAll(overlayPath)
-		return inputSnapshot{}, fmt.Errorf("snapshot gomad3 overlay: %w", err)
+		patchErr := os.Remove(patchPath)
+		overlayErr := os.RemoveAll(overlayPath)
+		retErr := fmt.Errorf("snapshot gomad3 overlay: %w", err)
+		if patchErr != nil {
+			retErr = errors.Join(retErr, patchErr)
+		}
+		if overlayErr != nil {
+			retErr = errors.Join(retErr, overlayErr)
+		}
+		return inputSnapshot{}, retErr
 	}
 	return inputSnapshot{patch: patchPath, overlay: overlayPath}, nil
 }
@@ -531,7 +553,7 @@ func publishBuild(sourceRoot, buildDir string) error {
 	return syncDirectory(filepath.Dir(buildDir))
 }
 
-func publishStable(layout installation.Layout, key string, config BuildSpec) error {
+func publishStable(layout installation.Layout, key string, config BuildSpec) (retErr error) {
 	toolchainRoot := layout.Root()
 	binRoot := layout.Bin()
 	if info, err := os.Lstat(binRoot); err == nil {
@@ -554,15 +576,34 @@ func publishStable(layout installation.Layout, key string, config BuildSpec) err
 	if err != nil {
 		return err
 	}
-	defer os.Remove(launcherTemporary)
+	launcherPublished := false
+	defer func(path string) {
+		if err := os.Remove(path); err != nil && (!launcherPublished || !errors.Is(err, os.ErrNotExist)) {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}(launcherTemporary)
 	stampTemporary, err := temporaryFile(toolchainRoot, ".build-key.next-*", []byte(key+"\n"), 0o644)
 	if err != nil {
 		return err
 	}
-	defer os.Remove(stampTemporary)
+	stampPublished := false
+	defer func(path string) {
+		if err := os.Remove(path); err != nil && (!stampPublished || !errors.Is(err, os.ErrNotExist)) {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}(stampTemporary)
 	if err := os.Rename(stampTemporary, layout.BuildKeyFile()); err != nil {
 		return fmt.Errorf("publish gomad3 build key: %w", err)
 	}
+	stampPublished = true
 	if err := syncDirectory(toolchainRoot); err != nil {
 		return err
 	}
@@ -572,6 +613,7 @@ func publishStable(layout installation.Layout, key string, config BuildSpec) err
 	if err := os.Rename(launcherTemporary, layout.GoCommand()); err != nil {
 		return fmt.Errorf("publish gomad3 launcher: %w", err)
 	}
+	launcherPublished = true
 	if err := syncDirectory(binRoot); err != nil {
 		return err
 	}
@@ -585,22 +627,42 @@ func temporaryFile(root, pattern string, contents []byte, mode os.FileMode) (str
 	}
 	name := file.Name()
 	if err := file.Chmod(mode); err != nil {
-		file.Close()
-		os.Remove(name)
+		closeErr := file.Close()
+		removeErr := os.Remove(name)
+		if closeErr != nil {
+			err = errors.Join(err, closeErr)
+		}
+		if removeErr != nil {
+			err = errors.Join(err, removeErr)
+		}
 		return "", err
 	}
 	if _, err := file.Write(contents); err != nil {
-		file.Close()
-		os.Remove(name)
+		closeErr := file.Close()
+		removeErr := os.Remove(name)
+		if closeErr != nil {
+			err = errors.Join(err, closeErr)
+		}
+		if removeErr != nil {
+			err = errors.Join(err, removeErr)
+		}
 		return "", err
 	}
 	if err := file.Sync(); err != nil {
-		file.Close()
-		os.Remove(name)
+		closeErr := file.Close()
+		removeErr := os.Remove(name)
+		if closeErr != nil {
+			err = errors.Join(err, closeErr)
+		}
+		if removeErr != nil {
+			err = errors.Join(err, removeErr)
+		}
 		return "", err
 	}
 	if err := file.Close(); err != nil {
-		os.Remove(name)
+		if removeErr := os.Remove(name); removeErr != nil {
+			err = errors.Join(err, removeErr)
+		}
 		return "", err
 	}
 	return name, nil

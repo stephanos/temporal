@@ -56,6 +56,12 @@ Root admits exactly the four task-owned soak diagnostic checks and additive adap
 ### Remaining source-gate routing — 2026-10-09
 
 The [continuation audit](../artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/continuation-20261009/handover.md) rebinds nine final gate receipts to committed source `eb82ea59a4`, with six direct predecessors Done. Remaining affected lint has 59 diagnostic writes now owned by [fn-109.52](fn-109-gomad-deepen-modules-and-tool-interfaces.52.md). The original-base integrated lint remains RED204 with errortype unreached, under fn-109 correction owners and task21's reconciliation. Cross-spec task edges are unsupported, so this source prerequisite is referenced here; existing dependency edges are unchanged. Formal task10 review follows green retained source gates. Native fn149/fn128 obligations remain deferred and unverified.
+
+### Current source-gate routing (2026-10-09, builder correction)
+
+Root keeps task10 as the near-complete spec close-out target. The earlier RED204 continuation audit retains its historical source scope. Task52 is Done; tasks53/54/55 retain reviewed source-progress commits. Task56 now measures original-base RED95 to RED80, exactly15 builder cleanup findings removed and zero added, in [its corrected packet](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-56/handover.md). Its configured toolchain lint retains the competing-build test sleep, and original-base integrated errortype remains unreached. This evidence does not complete task10 or transfer any source requirement.
+
+Root admits disjoint correction tasks fn-109.57 (16 test cleanups), fn-109.58 (two production cleanups) and fn-109.59 (two explicit test-switch no-op cases) to reduce the same required source gate. Those repairs are pending; their expected reductions supply no measured result. Isolated worktrees permit concurrent implementation while root serializes shared gates and verifies the integrated target. Formal task10 source review and completion follow green retained source acceptance. Native fn149/fn128 remain deferred and unverified, with no workflow dispatch, PR, push or CI authority.
 ## Acceptance
 
 

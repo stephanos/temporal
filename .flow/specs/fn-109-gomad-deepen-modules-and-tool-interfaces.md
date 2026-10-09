@@ -991,3 +991,17 @@ Root admits only that datum changing to3 and removal of its immediately owning
 obsolete unchecked-write comment. The test invocation and every other fixture,
 assertion and comment stay unchanged. Retain the mismatch receipt and exact
 preimage reconstruction; this admission grants no gate or assertion weakening.
+
+### Builder cleanup correction admission - 2026-10-09
+
+Task56 owns 15 unchecked cleanup results in toolchain/build.go at reviewed
+commit `60ae2649db`. Its snapshotInputs, publishStable and temporaryFile checks
+preserve call/evaluation order, deferred lifetimes, nil-success and original
+primary errors. Genuine cleanup errors return directly or join primary-first.
+Only a temporary's own successful Rename permits ignoring its later ENOENT;
+completed stamp/launcher publications and existing phase hooks stay unchanged.
+Tasks47/48 provide conventions without admitting this file. The competing-build
+test sleep, other cleanup sites and residual policy findings remain excluded.
+Task21 consumes the serial correction. Source-progress review may license a
+commit while required red source gates keep acceptance open. Native transfers
+and original preservation/first-baseline/R18/R19 obligations remain unchanged.

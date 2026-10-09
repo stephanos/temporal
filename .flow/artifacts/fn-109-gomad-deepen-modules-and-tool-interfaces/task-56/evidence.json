@@ -1,0 +1,482 @@
+{
+  "task": "fn-109.56",
+  "status": "in_progress",
+  "base_commit": "60ae2649db11f637b851817cd77c3fc814e33d1b",
+  "branch": "gomad",
+  "commits": [],
+  "prs": [],
+  "commit_owner": "root; worker leaves changes unstaged/uncommitted",
+  "predecessor": "../task-55/reconciled-evidence.json, reconciled-source-proof.json and independent-review.md",
+  "baseline": {
+    "status": "red",
+    "analyzer_receipt_reused": "../task-55/reconciled-make-gomad-original-base.json",
+    "focused": "focused-before-corrected.json",
+    "initial_fixture_failure": "focused-before.json. Existing debris helper labels intentional build-key destination directory temporary; corrected only the new fixture scan."
+  },
+  "tests": [
+    "go test -tags test_dep -count=1 -json -run \"^(TestBuildCleanup|TestBuildPublishesAndReusesImmutableToolchain|TestBuildInjectedFailuresLeaveNoTemporaryState|TestBuildRejectsOverlayCollisionBeforePatching|TestBuildRejectsUnguardedFailureInjection)\" ./toolchain",
+    "go test -tags test_dep -count=1 -json ./toolchain",
+    "go vet -tags test_dep ./toolchain",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./toolchain",
+    "go test -tags test_dep -count=1 -json -run \"^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestDomainModulesDoNotExportWireFraming|TestPublicPackagesDoNotExportForwardingAliases|TestHostPackageVet)$\" .",
+    "go test -tags test_dep -count=1 -json -run \"^TestRunnerExecutionInjectionIsPrivate$\" .",
+    "make -C tools/gomad3 validate",
+    "test -z \"$(gofmt -l tools/gomad3/toolchain/build.go tools/gomad3/toolchain/build_cleanup_test.go)\" && git diff --check",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml ./toolchain",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=60ae2649db11f637b851817cd77c3fc814e33d1b GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "go test -tags test_dep -count=1 -json -run \"^(TestBuildCleanup|TestBuildPublishesAndReusesImmutableToolchain|TestBuildInjectedFailuresLeaveNoTemporaryState|TestBuildRejectsOverlayCollisionBeforePatching|TestBuildRejectsUnguardedFailureInjection)\" ./toolchain",
+    "go vet -tags test_dep ./toolchain",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./toolchain",
+    "go test -tags test_dep -count=1 -json -run \"^TestPackageArchitecture$\" .",
+    "test -z \"$(gofmt -l tools/gomad3/toolchain/build.go tools/gomad3/toolchain/build_cleanup_test.go)\" && git diff --check",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml ./toolchain",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=60ae2649db11f637b851817cd77c3fc814e33d1b GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "gates": [
+    {
+      "receipt": "focused-after.json",
+      "command": "go test -tags test_dep -count=1 -json -run \"^(TestBuildCleanup|TestBuildPublishesAndReusesImmutableToolchain|TestBuildInjectedFailuresLeaveNoTemporaryState|TestBuildRejectsOverlayCollisionBeforePatching|TestBuildRejectsUnguardedFailureInjection)\" ./toolchain",
+      "exit_code": 0,
+      "elapsed_seconds": 3.905,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "full-ordinary-toolchain.json",
+      "command": "go test -tags test_dep -count=1 -json ./toolchain",
+      "exit_code": 0,
+      "elapsed_seconds": 283.751,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "affected-vet.json",
+      "command": "go vet -tags test_dep ./toolchain",
+      "exit_code": 0,
+      "elapsed_seconds": 1.085,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "standalone-errortype.json",
+      "command": "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./toolchain",
+      "exit_code": 0,
+      "elapsed_seconds": 0.681,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "architecture-source-sets.json",
+      "command": "go test -tags test_dep -count=1 -json -run \"^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestDomainModulesDoNotExportWireFraming|TestPublicPackagesDoNotExportForwardingAliases|TestHostPackageVet)$\" .",
+      "exit_code": 0,
+      "elapsed_seconds": 41.409,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "runner-ownership.json",
+      "command": "go test -tags test_dep -count=1 -json -run \"^TestRunnerExecutionInjectionIsPrivate$\" .",
+      "exit_code": 0,
+      "elapsed_seconds": 0.37,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "generated-validation.json",
+      "command": "make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "elapsed_seconds": 4.325,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "format-check.json",
+      "command": "test -z \"$(gofmt -l tools/gomad3/toolchain/build.go tools/gomad3/toolchain/build_cleanup_test.go)\" && git diff --check",
+      "exit_code": 0,
+      "elapsed_seconds": 0.067,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "affected-configured-lint.json",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml ./toolchain",
+      "exit_code": 1,
+      "elapsed_seconds": 3.405,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "make-fast-task-base.json",
+      "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=60ae2649db11f637b851817cd77c3fc814e33d1b GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "exit_code": 2,
+      "elapsed_seconds": 5.224,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "make-gomad-original-base.json",
+      "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "exit_code": 2,
+      "elapsed_seconds": 3.357,
+      "source_before_sha256": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "corrected-focused.json",
+      "command": "go test -tags test_dep -count=1 -json -run \"^(TestBuildCleanup|TestBuildPublishesAndReusesImmutableToolchain|TestBuildInjectedFailuresLeaveNoTemporaryState|TestBuildRejectsOverlayCollisionBeforePatching|TestBuildRejectsUnguardedFailureInjection)\" ./toolchain",
+      "exit_code": 0,
+      "elapsed_seconds": 1.182,
+      "source_before_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "corrected-affected-vet.json",
+      "command": "go vet -tags test_dep ./toolchain",
+      "exit_code": 0,
+      "elapsed_seconds": 0.368,
+      "source_before_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "corrected-standalone-errortype.json",
+      "command": "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./toolchain",
+      "exit_code": 0,
+      "elapsed_seconds": 0.47,
+      "source_before_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "corrected-architecture.json",
+      "command": "go test -tags test_dep -count=1 -json -run \"^TestPackageArchitecture$\" .",
+      "exit_code": 0,
+      "elapsed_seconds": 1.991,
+      "source_before_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "corrected-format-check.json",
+      "command": "test -z \"$(gofmt -l tools/gomad3/toolchain/build.go tools/gomad3/toolchain/build_cleanup_test.go)\" && git diff --check",
+      "exit_code": 0,
+      "elapsed_seconds": 0.033,
+      "source_before_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "corrected-affected-configured-lint.json",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml ./toolchain",
+      "exit_code": 1,
+      "elapsed_seconds": 3.41,
+      "source_before_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "corrected-make-fast-task-base.json",
+      "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=60ae2649db11f637b851817cd77c3fc814e33d1b GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "exit_code": 0,
+      "elapsed_seconds": 6.824,
+      "source_before_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+      "terminal": true,
+      "source_unchanged": true
+    },
+    {
+      "receipt": "corrected-make-gomad-original-base.json",
+      "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "exit_code": 2,
+      "elapsed_seconds": 3.612,
+      "source_before_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+      "terminal": true,
+      "source_unchanged": true
+    }
+  ],
+  "frozen_source_sha256": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+  "tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "environment": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOPROXY": "file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download",
+    "TMPDIR": "/tmp/fn10956-builder.AcyVo7PE",
+    "GOTMPDIR": "/tmp/fn10956-builder.AcyVo7PE",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "initial_candidate_scope": {
+    "fingerprint": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+    "receipts": [
+      "focused-after.json",
+      "full-ordinary-toolchain.json",
+      "affected-vet.json",
+      "standalone-errortype.json",
+      "architecture-source-sets.json",
+      "runner-ownership.json",
+      "generated-validation.json",
+      "format-check.json",
+      "affected-configured-lint.json",
+      "make-fast-task-base.json",
+      "make-gomad-original-base.json"
+    ],
+    "initial_reds": "Affected2, fast1, original81. QF1003 in new conditional fixture was the only introduced diagnostic. Raw receipts retained.",
+    "reuse": "Initial full ordinary, complete static, private-injection and generated-validation receipts stay at initial fingerprint. Root-approved small-review-fix rule uses exact production/all-other-input preservation and fixture branch proof. No candidate-wide green rebinding."
+  },
+  "corrected_candidate_scope": {
+    "fingerprint": "fb52a5afca08c7a582be0bbad3d83e7c7b704f274d5c53b46824f49847806f59",
+    "receipts": [
+      "corrected-focused.json",
+      "corrected-affected-vet.json",
+      "corrected-standalone-errortype.json",
+      "corrected-architecture.json",
+      "corrected-format-check.json",
+      "corrected-affected-configured-lint.json",
+      "corrected-make-fast-task-base.json",
+      "corrected-make-gomad-original-base.json"
+    ]
+  },
+  "gate_runner_sha256": "8d075d9fcd58963a382a62ba3659998b55189d5d09eed63d7848c44d870cb616",
+  "source_proof": "source-proof.json",
+  "lint": {
+    "original_base": {
+      "before": 95,
+      "after": 80,
+      "removed": 15,
+      "added": 0,
+      "baseline_receipt": "../task-55/reconciled-make-gomad-original-base.json",
+      "candidate_receipt": "corrected-make-gomad-original-base.json"
+    },
+    "affected": {
+      "before": 16,
+      "after": 1,
+      "removed": 15,
+      "added": 0,
+      "baseline": "Actual retained original-base RED95 contains 16 toolchain findings; affected baseline is this extracted subset, not a new scoped run.",
+      "candidate_receipt": "corrected-affected-configured-lint.json"
+    },
+    "removed_diagnostics": [
+      [
+        "tools/gomad3/toolchain/build.go",
+        "340",
+        "14",
+        "Error return value of `patch.Close` is not checked (errcheck)",
+        "\t\tpatch.Close()",
+        "\t\t           ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "341",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(patchPath)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "345",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(patchPath)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "350",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(patchPath)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "354",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(patchPath)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "355",
+        "15",
+        "Error return value of `os.RemoveAll` is not checked (errcheck)",
+        "\t\tos.RemoveAll(overlayPath)",
+        "\t\t            ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "557",
+        "17",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\tdefer os.Remove(launcherTemporary)",
+        "\t               ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "562",
+        "17",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\tdefer os.Remove(stampTemporary)",
+        "\t               ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "588",
+        "13",
+        "Error return value of `file.Close` is not checked (errcheck)",
+        "\t\tfile.Close()",
+        "\t\t          ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "589",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(name)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "593",
+        "13",
+        "Error return value of `file.Close` is not checked (errcheck)",
+        "\t\tfile.Close()",
+        "\t\t          ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "594",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(name)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "598",
+        "13",
+        "Error return value of `file.Close` is not checked (errcheck)",
+        "\t\tfile.Close()",
+        "\t\t          ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "599",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(name)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "603",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(name)",
+        "\t\t         ^"
+      ]
+    ],
+    "residual_path_column_message_statement_caret_multiset_preserved": true,
+    "residual_full_diagnostic_blocks_including_line_numbers_preserved": true,
+    "integrated_errortype": "Original-base stage unreached after configured golangci exits 1 and recursive make exits 2. Corrected task-base fast stage reaches and passes its configured errortype recipe; standalone affected errortype passes separately."
+  },
+  "focused": {
+    "counts": {
+      "pass": 26
+    },
+    "top_level_counts": {
+      "pass": 9
+    },
+    "failed_tests": [],
+    "skipped_tests": [],
+    "failure_output": [],
+    "package_results": [
+      {
+        "Package": "go.temporal.io/server/tools/gomad3/toolchain",
+        "Action": "pass",
+        "Elapsed": 0.061
+      }
+    ]
+  },
+  "full_ordinary_toolchain": {
+    "counts": {
+      "pass": 138,
+      "skip": 5
+    },
+    "top_level_counts": {
+      "pass": 55,
+      "skip": 5
+    },
+    "failed_tests": [],
+    "skipped_tests": [
+      "TestPatchedRuntimeHostClockReferencesAreReviewed",
+      "TestPatchedRuntimeClockEntryPointsCheckActivationFirst",
+      "TestPatchedRuntimeDrawReferencesAreReviewed",
+      "TestPatchedRuntimeSeededDrawReferencesAreReviewed",
+      "TestPatchedRuntimeGoroutineCreationsAreReviewed"
+    ],
+    "failure_output": [],
+    "package_results": [
+      {
+        "Package": "go.temporal.io/server/tools/gomad3/toolchain",
+        "Action": "pass",
+        "Elapsed": 282.332
+      }
+    ]
+  },
+  "controls": [
+    "Literal patch/overlay bytes and 0600/0700 modes; independent snapshots after original mutation and removal.",
+    "Missing patch/overlay and nonregular symlink exact errors, zero snapshot and absence of temporary state.",
+    "Temporary literal NUL bytes and 0644/0755 modes; normal file usability; missing destination returns direct PathError and empty path.",
+    "Repeated stable publications bind literal launcher, stamp/key newline, 0755/0644 modes and no temporary state.",
+    "Existing fake dependencies preserve buildFailure/InjectedFailure phases, completed immutable build and stamp/launcher survival; genuine nonempty destination Rename fails with concrete LinkError and retained marker/old launcher."
+  ],
+  "runtime_gaps": [
+    "snapshotInputs genuine patch.Close failure after copy failure, genuine patch Remove at each early path, overlay RemoveAll failure and simultaneous cleanup faults unexecuted.",
+    "snapshotInputs final patch.Close failure and overlay MkdirTemp failure after patch close unexecuted.",
+    "temporaryFile genuine Chmod/Write/Sync/final Close failure after CreateTemp, respective early Close/Remove failures and multiple faults unexecuted; ordinary rename/read/remove usability does not prove descriptor close by itself.",
+    "publishStable genuine deferred Remove failure, unpublished missing-path ENOENT, unrelated post-rename cleanup error and multiple deferred cleanup failures unexecuted.",
+    "publishStable root/bin directory Sync failures and stamp-temporary creation failure after launcher creation unexecuted."
+  ],
+  "review_fixture_correction": {
+    "initial_additive_test_sha256": "998b90f10171decfdf3a0b191ffcef42f1af59f480a812828b65824d85c6144e",
+    "corrected_test_sha256": "2211feb35866908b639bfbea490b0fc55fcbad274081b7704ab82c573b399013",
+    "only_change": "Equivalent tagged string switch retains exact assignment bodies/order; failure is an unchanged loop-local string. All four branches covered by corrected focused run.",
+    "initial_candidate_reconstructed_fingerprint": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+    "initial_BASE_additive_test_reconstructed_fingerprint": "c444559a31d84184e744e03a78a75e58d79d7a76ad845a988d1e2a84fe3fc170",
+    "literal_identical_corrected_test_BASE_execution": "Not run. Initial BASE used the prior conditional fixture; exact branch/body equivalence supplies bounded source-progress proof only.",
+    "source_and_all_other_gated_inputs_unchanged_after_fixture_correction": true
+  },
+  "acceptance": "Open. Required affected and original-base lint red; full ordinary toolchain passed with five existing runtime inventory skips, supplying no full native pass. Original first-baseline/fixed-identity/R18/R19 and other source owners remain required.",
+  "routing": {
+    "tier": "Tier: session (jev-unavailable(no_key))",
+    "implementer_preference": "gpt-6.1-sol at high",
+    "actual_execution_model": "unobserved"
+  },
+  "review": "Root owns fresh independent source-progress review; worker issued no verdict or formal review.",
+  "native": "fn149/fn128 deferred and current candidate unverified. Ordinary helpers and existing fake dependencies run on developmental Linux/arm64; real Build rejects unsupported host. No native pass or publication authority.",
+  "all_handles_terminal": true
+}

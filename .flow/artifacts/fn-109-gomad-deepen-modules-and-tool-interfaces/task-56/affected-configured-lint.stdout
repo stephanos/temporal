@@ -1,0 +1,9 @@
+tools/gomad3/toolchain/build_cleanup_test.go:183:4: QF1003: could use tagged switch on failure (staticcheck)
+			if failure == "stamp-rename" {
+			^
+tools/gomad3/toolchain/build_test.go:97:2: use of `time.Sleep` forbidden because "Please use await.Require / s.Await unless there's no better option" (forbidigo)
+	time.Sleep(25 * time.Millisecond)
+	^
+2 issues:
+* forbidigo: 1
+* staticcheck: 1

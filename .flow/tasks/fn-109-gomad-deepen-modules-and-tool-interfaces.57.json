@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-09T21:18:48.059656Z",
+  "depends_on": [
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.52"
+  ],
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.57",
+  "priority": null,
+  "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.57.md",
+  "status": "todo",
+  "title": "Check test cleanup results without changing resource lifetimes",
+  "updated_at": "2026-10-09T21:18:48.059656Z"
+}

@@ -1,0 +1,261 @@
+Makefile:498: update target 'lint-code-gomad3' due to: target is .PHONY
+go run ./cmd/tools/lintcode -base "951c5516e9e7b3066e7e069adda9565cfd68844c" -tags "disable_grpc_modules,,test_dep," -module tools/gomad3
+Lint module tools/gomad3: 55 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+Makefile:504: update target 'lint-code' due to: target is .PHONY
+printf "\e[1;36m%s\e[0m\n" "Linting code..."
+[1;36mLinting code...[0m
+cd "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3" && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run \
+	--verbose \
+	--build-tags disable_grpc_modules,,test_dep, \
+	--timeout 10m \
+	--fix=false \
+	--new-from-rev=951c5516e9e7b3066e7e069adda9565cfd68844c \
+	--config="/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml" \
+	. ./artifact ./choice ./choice/internal/wire ./cmd/gomad ./cmd/gomad/internal/cli ./cmd/gomadtool ./deterministicio ./deterministicio/internal/wire ./deterministicio/readonlymount ./internal/canonicaljson ./internal/compatibilitypack ./internal/compatibilitypack/authoring ./internal/gomadtool/architecture ./internal/gomadtool/conformance ./internal/gomadtool/generation/boundary ./internal/gomadtool/generation/protocol ./internal/gomadtool/validation ./internal/hostexec ./internal/hostfs ./internal/preparation ./internal/sourceinventory ./qualification ./qualification/analysis ./qualification/comparison ./qualification/set ./qualification/set/manifestgen ./qualification/soak ./qualification/workload ./record ./runner ./runner/internal/campaign ./runner/internal/corpus ./runner/internal/execution ./runner/internal/exploration ./runner/internal/exploration/choice ./runner/internal/exploration/simulation ./runner/internal/exploration/simulationrecord ./runner/internal/minimizer ./target ./target/internal/build ./target/internal/capabilitypolicy ./target/internal/capabilityreview ./target/internal/gocommand ./target/internal/livecap ./target/internal/provenance ./toolchain ./toolchain/installation ./toolchain/version ./upgrade ./upgrade/adapterregen ./upgrade/pinimpact ./world ./world/mailbox ./world/process
+tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("artifact manifest cannot copy a %s field", source.Kind()))
+		^
+tools/gomad3/artifact/publication.go:39:22: ST1005: error strings should not be capitalized (staticcheck)
+		return Artifact{}, errors.New("World payload paths must use the canonical artifact layout")
+		                   ^
+tools/gomad3/choice/diagnostic_test.go:77:21: Error return value of `session.Close` is not checked (errcheck)
+	defer session.Close()
+	                   ^
+tools/gomad3/cmd/gomad/internal/cli/application.go:187:14: ST1005: error strings should not be capitalized (staticcheck)
+		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
+		           ^
+tools/gomad3/deterministicio/profile.go:211:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Errorf("encode deterministic I/O inventory: %w", err))
+		^
+tools/gomad3/internal/compatibilitypack/schema.go:275:10: ST1005: error strings should not be capitalized (staticcheck)
+		return errors.New("Go source inventory is not sorted and unique")
+		       ^
+tools/gomad3/internal/compatibilitypack/schema.go:316:10: ST1005: error strings should not be capitalized (staticcheck)
+		return errors.New("Go source name is invalid")
+		       ^
+tools/gomad3/internal/compatibilitypack/schema.go:319:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("Go source identity is invalid: %w", err)
+		       ^
+tools/gomad3/internal/gomadtool/conformance/driver.go:243:11: Error return value is not checked (errcheck)
+			cleanup()
+			       ^
+tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go:310:5: SA5004: should not have an empty default case in a for+select loop; the loop will spin (staticcheck)
+				default:
+				^
+tools/gomad3/internal/hostfs/open_test.go:55:18: Error return value of `root.Close` is not checked (errcheck)
+	defer root.Close()
+	                ^
+tools/gomad3/runner/campaign.go:11:4: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+			panic("gomad3: duplicate execution completion")
+			^
+tools/gomad3/runner/campaign.go:25:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: execution completion order has an unresolved gap")
+		^
+tools/gomad3/runner/choice_exploration_divergence_test.go:234:5: missing cases in switch of type choice.DivergenceReason: choice.DivergenceAlternativeSet, choice.DivergenceTapeExhausted, choice.DivergenceIdentityMissing, choice.DivergenceIdentityDuplicate, choice.DivergenceAlternativeCapacity, choice.DivergenceObservation (exhaustive)
+				switch reason {
+				^
+tools/gomad3/runner/choice_exploration_divergence_unix_test.go:60:19: Error return value of `input.Close` is not checked (errcheck)
+	defer input.Close()
+	                 ^
+tools/gomad3/runner/completion.go:39:10: ST1005: error strings should not be capitalized (staticcheck)
+			err = fmt.Errorf("World record seed or schema does not match seed %d", seed)
+			      ^
+tools/gomad3/runner/completion_characterization_test.go:95:2: missing cases in switch of type runner.Strategy: runner.StrategySeed (exhaustive)
+	switch strategy {
+	^
+tools/gomad3/runner/diagnostics_test.go:133:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/inspect.go:401:21: Error return value of `opened.Close` is not checked (errcheck)
+		defer opened.Close()
+		                  ^
+tools/gomad3/runner/inspect.go:638:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("unknown validated choice kind %d", kind))
+		^
+tools/gomad3/runner/inspect_test.go:121:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/inspect_test.go:247:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go:15:21: Error return value of `syscall.Close` is not checked (errcheck)
+	defer syscall.Close(descriptors[0])
+	                   ^
+tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go:16:21: Error return value of `syscall.Close` is not checked (errcheck)
+	defer syscall.Close(descriptors[1])
+	                   ^
+tools/gomad3/runner/internal/execution/launch_plan_unix.go:321:2: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+	panic(fmt.Sprintf("unknown descriptor resource %q", resource))
+	^
+tools/gomad3/runner/internal/execution/process.go:152:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World record and transition limits must be positive")
+		       ^
+tools/gomad3/runner/internal/execution/process_test.go:756:24: Error return value of `stdoutHead.Close` is not checked (errcheck)
+	defer stdoutHead.Close()
+	                      ^
+tools/gomad3/runner/internal/execution/process_test.go:761:24: Error return value of `stderrHead.Close` is not checked (errcheck)
+	defer stderrHead.Close()
+	                      ^
+tools/gomad3/runner/internal/execution/process_test.go:958:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(os.Stdout, "target stdout")
+		            ^
+tools/gomad3/runner/internal/execution/process_test.go:986:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(os.Stdout, "post-choice-marker")
+		            ^
+tools/gomad3/runner/internal/execution/process_test.go:1005:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(os.Stdout, "choice tape read-only")
+		            ^
+tools/gomad3/runner/internal/execution/process_test.go:1303:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(os.Stdout, <-results+<-results)
+	            ^
+tools/gomad3/runner/internal/execution/process_test.go:1309:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))
+	            ^
+tools/gomad3/runner/internal/execution/process_test.go:1315:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))
+	            ^
+tools/gomad3/runner/internal/execution/process_test.go:1411:2: SA5002: this loop will spin, using 100% CPU (staticcheck)
+	for {
+	^
+tools/gomad3/runner/internal/execution/process_unix.go:722:18: ST1005: error strings should not be capitalized (staticcheck)
+		return result, fmt.Errorf("World child record exceeded its configured bound")
+		               ^
+tools/gomad3/runner/internal/execution/process_unix_test.go:67:23: Error return value of `resources.close` is not checked (errcheck)
+	defer resources.close()
+	                     ^
+tools/gomad3/runner/internal/execution/watchdog_io_test.go:114:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(os.Stdout, "ready")
+		            ^
+tools/gomad3/runner/internal/execution/worldrecord.go:45:46: ST1005: error strings should not be capitalized (staticcheck)
+		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("World transition count mismatch")
+		                                           ^
+tools/gomad3/runner/internal/execution/worldrecord.go:56:46: ST1005: error strings should not be capitalized (staticcheck)
+		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("World semantic or transition identity mismatch")
+		                                           ^
+tools/gomad3/runner/internal/execution/worldrecord.go:84:20: ST1005: error strings should not be capitalized (staticcheck)
+		return Bundle{}, fmt.Errorf("World transition limit must be positive")
+		                 ^
+tools/gomad3/runner/internal/execution/worldrecord.go:147:20: ST1005: error strings should not be capitalized (staticcheck)
+		return Bundle{}, fmt.Errorf("World transition payload requires %d bytes, limit is %d", len(transitionBytes), transitionLimit)
+		                 ^
+tools/gomad3/runner/internal/execution/worldrecord.go:188:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World quiescence terminal has detail")
+			       ^
+tools/gomad3/runner/internal/execution/worldrecord.go:192:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World error terminal omitted detail")
+			       ^
+tools/gomad3/runner/internal/minimizer/workspace_unix_test.go:377:19: Error return value of `stdin.Close` is not checked (errcheck)
+	defer stdin.Close()
+	                 ^
+tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World seed does not match target seed")
+		            ^
+tools/gomad3/runner/retention_characterization_test.go:750:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/runner.go:1189:33: ST1005: error strings should not be capitalized (staticcheck)
+			return SeedSelection{}, nil, fmt.Errorf("Runner build identity is required for campaign resume")
+			                             ^
+tools/gomad3/runner/runner_test.go:895:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/runner_test.go:2262:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/runner_test.go:2369:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/target/internal/build/context.go:40:21: ST1005: error strings should not be capitalized (staticcheck)
+		return Context{}, fmt.Errorf("Go target package %s is not a directory", source)
+		                  ^
+tools/gomad3/target/internal/build/context.go:59:20: ST1005: error strings should not be capitalized (staticcheck)
+	return Context{}, fmt.Errorf("Go target package %s has no owning go.mod", source)
+	                  ^
+tools/gomad3/toolchain/build_test.go:97:2: use of `time.Sleep` forbidden because "Please use await.Require / s.Await unless there's no better option" (forbidigo)
+	time.Sleep(25 * time.Millisecond)
+	^
+tools/gomad3/world/mailbox/mailbox.go:115:31: ST1005: error strings should not be capitalized (staticcheck)
+			return world.Quiescence{}, fmt.Errorf("World delivered unknown mailbox event %d", delivery.EventID)
+			                           ^
+tools/gomad3/world/mailbox/mailbox.go:132:23: ST1005: error strings should not be capitalized (staticcheck)
+			return Snapshot{}, fmt.Errorf("World contains an incompatible mailbox-owned request %d", request.ID)
+			                   ^
+tools/gomad3/world/process/config.go:28:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World transition limit must be positive")
+		            ^
+tools/gomad3/world/process/session.go:28:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World child session requires a World")
+		            ^
+tools/gomad3/world/process/session.go:40:27: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, errors.Join(fmt.Errorf("World child file descriptors are unavailable"), cleanupErr)
+		                        ^
+tools/gomad3/world/process/session.go:58:27: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, errors.Join(fmt.Errorf("World seed does not match the execution configuration"), output.Close())
+		                        ^
+tools/gomad3/world/process/session.go:108:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World terminal error is required")
+		       ^
+tools/gomad3/world/process/session.go:115:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World child session is invalid")
+		       ^
+tools/gomad3/world/process/session.go:146:22: ST1005: error strings should not be capitalized (staticcheck)
+		return errors.Join(fmt.Errorf("World recording omitted its header"), session.output.Close())
+		                   ^
+tools/gomad3/world/recording.go:64:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World recording is already active")
+		            ^
+tools/gomad3/world/recording.go:80:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World terminal error is required")
+		                    ^
+tools/gomad3/world/recording.go:95:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World error terminal kind is required")
+		                    ^
+tools/gomad3/world/recording.go:102:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World recorder is invalid")
+		                    ^
+tools/gomad3/world/recording.go:107:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World recorder is not active")
+		                    ^
+tools/gomad3/world/recording.go:121:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World recording byte accounting changed")
+		                    ^
+tools/gomad3/world/recording.go:148:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World quiescence terminal has error detail")
+			       ^
+tools/gomad3/world/recording.go:152:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World error terminal omitted detail")
+			       ^
+tools/gomad3/world/recording.go:175:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World terminal has no matching quiescence transition")
+		       ^
+tools/gomad3/world/recording.go:179:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World terminal does not match the final quiescence transition")
+		       ^
+tools/gomad3/world/recording.go:228:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World recording exceeds its size bound")
+		            ^
+tools/gomad3/world/replay.go:62:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World replay plan exceeds its bound")
+		            ^
+tools/gomad3/world/replay.go:69:24: ST1005: error strings should not be capitalized (staticcheck)
+		return ReplayPlan{}, fmt.Errorf("World replay plan exceeds its bound")
+		                     ^
+tools/gomad3/world/replay.go:72:24: ST1005: error strings should not be capitalized (staticcheck)
+		return ReplayPlan{}, fmt.Errorf("World replay plan is not valid UTF-8")
+		                     ^
+tools/gomad3/world/replay.go:94:24: ST1005: error strings should not be capitalized (staticcheck)
+		return ReplayPlan{}, fmt.Errorf("World replay plan is not canonical")
+		                     ^
+tools/gomad3/world/world.go:202:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("invalid request state")
+		^
+tools/gomad3/world/world.go:216:5: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+				panic("queued request has no queued event")
+				^
+80 issues:
+* errcheck: 25
+* exhaustive: 2
+* forbidigo: 9
+* staticcheck: 44
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'

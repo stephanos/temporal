@@ -1,0 +1,179 @@
+{
+  "base_commit": "60ae2649db11f637b851817cd77c3fc814e33d1b",
+  "production_path": "tools/gomad3/toolchain/build.go",
+  "base_sha256": "3702837c2459d3e14f05f1f2c6684a00c0c29ee8b2373d43b49914bf06aab9af",
+  "candidate_sha256": "579b726b7543efbc65ef1b8e90fdbf7e0a299049fa99bcca20428961e010877c",
+  "bytes_outside_three_admitted_functions_preserved": true,
+  "new_test_sha256": "2211feb35866908b639bfbea490b0fc55fcbad274081b7704ab82c573b399013",
+  "other_sources_and_old_tests_preserved_count": 1051,
+  "review_fixture_correction": {
+    "initial_additive_test_sha256": "998b90f10171decfdf3a0b191ffcef42f1af59f480a812828b65824d85c6144e",
+    "corrected_test_sha256": "2211feb35866908b639bfbea490b0fc55fcbad274081b7704ab82c573b399013",
+    "only_change": "Equivalent tagged string switch retains exact assignment bodies/order; failure is an unchanged loop-local string. All four branches covered by corrected focused run.",
+    "initial_candidate_reconstructed_fingerprint": "b2df7c08e9b17b22e0637ec222dea48fc3a18984e31ee8b46d9dcf3e2812159c",
+    "initial_BASE_additive_test_reconstructed_fingerprint": "c444559a31d84184e744e03a78a75e58d79d7a76ad845a988d1e2a84fe3fc170",
+    "literal_identical_corrected_test_BASE_execution": "Not run. Initial BASE used the prior conditional fixture; exact branch/body equivalence supplies bounded source-progress proof only.",
+    "source_and_all_other_gated_inputs_unchanged_after_fixture_correction": true
+  },
+  "preserved_manifest_sha256": "b007aa2e4f27f6c5cbc6d6d202c6197d60cce56041a607acb42d1dc160e680e2",
+  "protected_turbo_sha256": {
+    ".turbo/plans/gomad3-glossary-update.md": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188",
+    ".turbo/technical-debt.md": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+  },
+  "source_order": {
+    "snapshotInputs": "Each early branch saves Close/Remove or Remove/RemoveAll results in original order before the original fmt.Errorf; joins only nonnil failures primary-first; zero snapshot retained.",
+    "temporaryFile": "Chmod/Write/Sync failure saves exactly one Close then Remove; final Close failure removes once; raw err unchanged if cleanup nil; empty path retained.",
+    "publishStable": "Inline defers register immediately after each successful temporaryFile at original sites, with arguments evaluated there. Stamp defer runs first. Independent rename flags set only after successful respective Rename before sync/hook. Each ignores only corresponding post-rename ENOENT; sole cleanup error direct, joins nonnil primary first.",
+    "buildWith": "Complete original bytes preserved, including existing buildFailure and already-checked cleanup boundaries."
+  },
+  "runtime_gaps": [
+    "snapshotInputs genuine patch.Close failure after copy failure, genuine patch Remove at each early path, overlay RemoveAll failure and simultaneous cleanup faults unexecuted.",
+    "snapshotInputs final patch.Close failure and overlay MkdirTemp failure after patch close unexecuted.",
+    "temporaryFile genuine Chmod/Write/Sync/final Close failure after CreateTemp, respective early Close/Remove failures and multiple faults unexecuted; ordinary rename/read/remove usability does not prove descriptor close by itself.",
+    "publishStable genuine deferred Remove failure, unpublished missing-path ENOENT, unrelated post-rename cleanup error and multiple deferred cleanup failures unexecuted.",
+    "publishStable root/bin directory Sync failures and stamp-temporary creation failure after launcher creation unexecuted."
+  ],
+  "lint": {
+    "original_base": {
+      "before": 95,
+      "after": 80,
+      "removed": 15,
+      "added": 0,
+      "baseline_receipt": "../task-55/reconciled-make-gomad-original-base.json",
+      "candidate_receipt": "corrected-make-gomad-original-base.json"
+    },
+    "affected": {
+      "before": 16,
+      "after": 1,
+      "removed": 15,
+      "added": 0,
+      "baseline": "Actual retained original-base RED95 contains 16 toolchain findings; affected baseline is this extracted subset, not a new scoped run.",
+      "candidate_receipt": "corrected-affected-configured-lint.json"
+    },
+    "removed_diagnostics": [
+      [
+        "tools/gomad3/toolchain/build.go",
+        "340",
+        "14",
+        "Error return value of `patch.Close` is not checked (errcheck)",
+        "\t\tpatch.Close()",
+        "\t\t           ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "341",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(patchPath)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "345",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(patchPath)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "350",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(patchPath)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "354",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(patchPath)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "355",
+        "15",
+        "Error return value of `os.RemoveAll` is not checked (errcheck)",
+        "\t\tos.RemoveAll(overlayPath)",
+        "\t\t            ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "557",
+        "17",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\tdefer os.Remove(launcherTemporary)",
+        "\t               ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "562",
+        "17",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\tdefer os.Remove(stampTemporary)",
+        "\t               ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "588",
+        "13",
+        "Error return value of `file.Close` is not checked (errcheck)",
+        "\t\tfile.Close()",
+        "\t\t          ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "589",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(name)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "593",
+        "13",
+        "Error return value of `file.Close` is not checked (errcheck)",
+        "\t\tfile.Close()",
+        "\t\t          ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "594",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(name)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "598",
+        "13",
+        "Error return value of `file.Close` is not checked (errcheck)",
+        "\t\tfile.Close()",
+        "\t\t          ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "599",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(name)",
+        "\t\t         ^"
+      ],
+      [
+        "tools/gomad3/toolchain/build.go",
+        "603",
+        "12",
+        "Error return value of `os.Remove` is not checked (errcheck)",
+        "\t\tos.Remove(name)",
+        "\t\t         ^"
+      ]
+    ],
+    "residual_path_column_message_statement_caret_multiset_preserved": true,
+    "residual_full_diagnostic_blocks_including_line_numbers_preserved": true,
+    "integrated_errortype": "Original-base stage unreached after configured golangci exits 1 and recursive make exits 2. Corrected task-base fast stage reaches and passes its configured errortype recipe; standalone affected errortype passes separately."
+  }
+}
