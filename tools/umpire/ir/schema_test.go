@@ -42,7 +42,9 @@ const (
 		`"externalSettlements":[{"position":{"file":"f"},"carrier":"c","activity":"a","attempt":"1","pending":"p","held":"h","answer":"a","requestCancel":"r",` +
 		`"settlement":"s","cleanup":{"attemptWithheld":{"mode":"WITHHOLDING_MODE_SDK_PENDING","externalSettlement":"s"}}},` +
 		`{"cleanup":{"attemptHeartbeat":{"details":{"fields":[{"name":"d","value":{"messages":{"values":[{"message":"m"}]}}}]}}}},` +
-		`{"cleanup":{"awaitActivityPublication":"p"}}]}]}`
+		`{"cleanup":{"awaitActivityPublication":"p"}}],` +
+		`"resetSettlements":[{"position":{"file":"f"},"carrier":"c","activity":"a","attempt":"1","pending":"p","held":"h","resetRequest":"r",` +
+		`"timer":{"action":"t"},"freshAttempt":"1","settlement":"s","cleanup":{"awaitActivityPublication":"p"}}]}]}`
 )
 
 // schemaAddedField is a field the schema gained after the capture: the message it was added to, by its
@@ -170,6 +172,10 @@ var (
 		{message: "Realization", field: schemaFieldOf("external_settlements", 19, schemaRepeated, schemaMessage, "ActivityExternalSettlement",
 			"externalSettlements")},
 		{message: "Command", before: "closes", field: schemaFieldOf("await_activity_publication", 22, schemaOptional, schemaString, "", "awaitActivityPublication", 0)},
+		// The activity resets a controller defers until the held attempt's pending record is published
+		// (fn-129.3).
+		{message: "Realization", field: schemaFieldOf("reset_settlements", 20, schemaRepeated, schemaMessage, "ActivityResetSettlement",
+			"resetSettlements")},
 	}
 	// An expected Run's reasons, prose at the capture, are the judge's ids since fn-124.5, so the
 	// captured wire bytes no longer encode their expected Runs as the schema now reads them.
@@ -279,6 +285,22 @@ var (
 				schemaFieldOf("request_cancel", 8, schemaOptional, schemaString, "", "requestCancel"),
 				schemaFieldOf("settlement", 9, schemaOptional, schemaString, "", "settlement"),
 				schemaFieldOf("cleanup", 10, schemaOptional, schemaMessage, "Command", "cleanup"),
+			},
+		}},
+		// Realization.reset_settlements' entry (fn-129.3).
+		{after: "ActivityExternalSettlement", message: &descriptorpb.DescriptorProto{Name: proto.String("ActivityResetSettlement"),
+			Field: []*descriptorpb.FieldDescriptorProto{
+				schemaFieldOf("position", 1, schemaOptional, schemaMessage, "Position", "position"),
+				schemaFieldOf("carrier", 2, schemaOptional, schemaString, "", "carrier"),
+				schemaFieldOf("activity", 3, schemaOptional, schemaString, "", "activity"),
+				schemaFieldOf("attempt", 4, schemaOptional, schemaInt64, "", "attempt"),
+				schemaFieldOf("pending", 5, schemaOptional, schemaString, "", "pending"),
+				schemaFieldOf("held", 6, schemaOptional, schemaString, "", "held"),
+				schemaFieldOf("reset_request", 7, schemaOptional, schemaString, "", "resetRequest"),
+				schemaFieldOf("timer", 8, schemaOptional, schemaMessage, "ActionClass", "timer"),
+				schemaFieldOf("fresh_attempt", 9, schemaOptional, schemaInt64, "", "freshAttempt"),
+				schemaFieldOf("settlement", 10, schemaOptional, schemaString, "", "settlement"),
+				schemaFieldOf("cleanup", 11, schemaOptional, schemaMessage, "Command", "cleanup"),
 			},
 		}},
 	}
