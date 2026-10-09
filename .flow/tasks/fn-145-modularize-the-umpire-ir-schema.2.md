@@ -41,9 +41,22 @@ go test -tags test_dep ./tools/umpire/ir/...
 - [ ] `make protoc` and focused Umpire schema tests pass.
 
 ## Done summary
-TBD
+Umpire's IR schema now compiles as nine acyclic responsibility files while preserving all 123 protobuf declarations and the regenerated Go API surface. The schema test compares the complete descriptor closure; Model IR and Case regeneration remain assigned to fn-145.4.
 
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - ran [2026-10-09T04:17:26Z..2026-10-09T04:23:53Z] (codex, SHIP)
+
+Baseline and verification:
+
+- PASS `make protoc` with the repository's Mise-managed protoc 29.5 toolchain.
+- PASS `go test -count=1 -tags test_dep ./tools/umpire/ir -run '^TestSchema'`.
+- PASS `mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check --test-only umpire.check.GateSuite`.
+- PASS `go test -count=1 -tags test_dep ./cmd/tools/getproto -run '^TestLinkedModelDescriptors$'`.
+- EXPECTED BATCH RED `go test -tags test_dep ./tools/umpire/ir/...`. The same 25 stale `umpire.Step` failures occurred before and after this task; fn-145.4 owns production Model IR and Case regeneration.
+- INHERITED RED `make lint-api` and `make lint-protos`. Existing declaration-layout, comment, and zero-enum conventions conflict with the byte-preserving split and remain unchanged.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 86a256162e6297c01f100bb9998b9da28cbc2bb3
+- Tests: make protoc, go test -count=1 -tags test_dep ./tools/umpire/ir -run '^TestSchema', mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check --test-only umpire.check.GateSuite, go test -count=1 -tags test_dep ./cmd/tools/getproto -run '^TestLinkedModelDescriptors$', EXPECTED BATCH RED (fn-145.4 regeneration deferred; identical 25 stale umpire.Step failures pre/post): go test -tags test_dep ./tools/umpire/ir/..., INHERITED RED (byte-preserving declaration conventions unchanged): make lint-api; make lint-protos
 - PRs:
