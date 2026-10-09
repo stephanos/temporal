@@ -95,7 +95,9 @@ func Run(arguments []string, stdout, stderr io.Writer) int {
 
 func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 	if len(arguments) == 0 {
-		fmt.Fprint(stderr, usage)
+		if _, printErr := fmt.Fprint(stderr, usage); printErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if isPrivateMode(arguments[0]) {
@@ -133,7 +135,9 @@ func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 	case "inspect":
 		return runInspect(arguments[1:], stdout, stderr)
 	default:
-		fmt.Fprintf(stderr, "unknown gomad command %q\n%s", arguments[0], usage)
+		if _, printErr := fmt.Fprintf(stderr, "unknown gomad command %q\n%s", arguments[0], usage); printErr != nil {
+			return 2
+		}
 		return 2
 	}
 }
@@ -361,22 +365,30 @@ func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) i
 		return 2
 	}
 	if flags.NArg() != 0 {
-		fmt.Fprint(stderr, usage)
+		if _, printErr := fmt.Fprint(stderr, usage); printErr != nil {
+			return 2
+		}
 		return 2
 	}
 	executable, err := app.executablePath()
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	executable, err = absoluteExecutable(executable)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	artifactRoot, err := filepath.Abs(*artifacts)
 	if err != nil {
-		fmt.Fprintf(stderr, "resolve artifact directory: %v\n", err)
+		if _, printErr := fmt.Fprintf(stderr, "resolve artifact directory: %v\n", err); printErr != nil {
+			return 2
+		}
 		return 2
 	}
 	resolved, err := app.resolveInstallation(executable, *toolchainRoot)
@@ -393,7 +405,9 @@ func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) i
 	if *jsonOutput {
 		encoded, marshalErr := json.Marshal(report)
 		if marshalErr != nil {
-			fmt.Fprintf(stderr, "encode doctor report: %v\n", marshalErr)
+			if _, printErr := fmt.Fprintf(stderr, "encode doctor report: %v\n", marshalErr); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		fmt.Fprintf(stdout, "%s\n", encoded)
@@ -439,7 +453,9 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 		return reportExploreFailure(summary, err, reporter, stderr)
 	}
 	if err := reporter.Result(summary); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	return exploreSummaryStatus(summary)
@@ -474,7 +490,9 @@ func runPlanWith(arguments []string, stdout, stderr io.Writer, dependencies expl
 	reporter := request.reporter
 	if request.output == "" {
 		if writeErr := reporter.Error("invalid_input", errors.New("gomad plan requires --output FILE")); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		return 2
@@ -483,7 +501,9 @@ func runPlanWith(arguments []string, stdout, stderr io.Writer, dependencies expl
 	if err != nil {
 		classification := classifyExploreError(err)
 		if writeErr := reporter.Error(classification, err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		return exploreErrorStatus(classification)
@@ -491,7 +511,9 @@ func runPlanWith(arguments []string, stdout, stderr io.Writer, dependencies expl
 	if request.json {
 		encoded, err := json.Marshal(planned)
 		if err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
@@ -596,7 +618,9 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		if !*jsonOutput {
@@ -608,7 +632,9 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 	if operation != planCampaign && *planOutput != "" {
 		if writeErr := reporter.Error("invalid_input", errors.New("--output is only valid with gomad plan")); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		return campaignRequest{}, 2, false
@@ -616,7 +642,9 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	resolvedCapabilityMode, err := parseCapabilityMode(*capabilityMode)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		return campaignRequest{}, 2, false
@@ -674,7 +702,9 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	})
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		return campaignRequest{}, 2, false
@@ -682,14 +712,18 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	resolvedSeeds, err := resolveExploreSeeds(*seeds, *count, seedsSet, countSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		return campaignRequest{}, 2, false
 	}
 	if *guideRegression && !*guide {
 		if err := reporter.Error("invalid_input", errors.New("--guide-regression requires --guide")); err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		return campaignRequest{}, 2, false
@@ -697,7 +731,9 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	resolvedCoverage, err := resolveExploreGuidance(*guide, *corpus, *coverage, coverageSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		return campaignRequest{}, 2, false
@@ -705,7 +741,9 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	coverageMode, err := resolveExploreCoverage(resolvedCoverage, requiredSemanticProbes)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		return campaignRequest{}, 2, false
@@ -719,7 +757,9 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	resolvedChoiceLimit, err := resolveChoiceTrace(resolvedChoices, choiceLimit, choiceLimitSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		return campaignRequest{}, 2, false
@@ -736,7 +776,9 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	parsedTarget, err := parseTarget(flags.Args())
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 			return campaignRequest{}, 3, false
 		}
 		return campaignRequest{}, 2, false
@@ -746,20 +788,26 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		var invalid invalidWorkingDirectoryError
 		if errors.As(err, &invalid) {
 			if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-				fmt.Fprintln(stderr, writeErr)
+				if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+					return campaignRequest{}, 3, false
+				}
 				return campaignRequest{}, 3, false
 			}
 			return campaignRequest{}, 2, false
 		}
 		if writeErr := reporter.Error("runner_failure", fmt.Errorf("resolve working directory: %w", err)); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 		}
 		return campaignRequest{}, 3, false
 	}
 	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return campaignRequest{}, 3, false
+			}
 		}
 		return campaignRequest{}, 3, false
 	}
@@ -996,12 +1044,16 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		return 2
 	}
 	if flags.NArg() != 1 {
-		fmt.Fprint(stderr, usage)
+		if _, printErr := fmt.Fprint(stderr, usage); printErr != nil {
+			return 2
+		}
 		return 2
 	}
 	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	result, err := dependencies.replay(context.Background(), runner.ReplaySpec{
@@ -1010,10 +1062,14 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	if err != nil {
 		var preflightError *runner.ReplayPreflightError
 		if errors.As(err, &preflightError) {
-			fmt.Fprintln(stderr, err)
+			if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+				return 2
+			}
 			return 2
 		}
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	if *verifyOnly {
@@ -1022,7 +1078,9 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	}
 	status, err := reportReplayResult(stdout, result)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	return status

@@ -85,7 +85,9 @@ func isPrivateMode(mode string) bool {
 
 func (app application) runPrivateMode(mode string, stderr io.Writer) int {
 	if err := app.dispatch(mode, app.privateInput, app.privateOutput); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	return 0

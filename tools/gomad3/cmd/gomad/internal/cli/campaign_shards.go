@@ -33,17 +33,23 @@ func runCampaignShardWith(arguments []string, stdout, stderr io.Writer, dependen
 		return 2
 	}
 	if flags.NArg() != 1 {
-		fmt.Fprint(stderr, usage)
+		if _, printErr := fmt.Fprint(stderr, usage); printErr != nil {
+			return 2
+		}
 		return 2
 	}
 	shard, err := parseCampaignShard(*shardValue)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 2
+		}
 		return 2
 	}
 	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
@@ -54,13 +60,17 @@ func runCampaignShardWith(arguments []string, stdout, stderr io.Writer, dependen
 	if err != nil {
 		classification := classifyExploreError(err)
 		if writeErr := reporter.Error(classification, err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		return exploreErrorStatus(classification)
 	}
 	if err := reporter.Result(result); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	if result.Failures != 0 {
@@ -106,7 +116,9 @@ func runMergeCampaigns(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if *output == "" || flags.NArg() < 2 {
-		fmt.Fprint(stderr, usage)
+		if _, printErr := fmt.Fprint(stderr, usage); printErr != nil {
+			return 2
+		}
 		return 2
 	}
 	result, err := runner.MergeCampaignShards(context.Background(), runner.CampaignMergeSpec{
@@ -114,13 +126,17 @@ func runMergeCampaigns(arguments []string, stdout, stderr io.Writer) int {
 	})
 	if err != nil {
 		classification := classifyExploreError(err)
-		fmt.Fprintf(stderr, "gomad: %s: merge campaign shards: %v\n", classification, err)
+		if _, printErr := fmt.Fprintf(stderr, "gomad: %s: merge campaign shards: %v\n", classification, err); printErr != nil {
+			return exploreErrorStatus(classification)
+		}
 		return exploreErrorStatus(classification)
 	}
 	if *jsonOutput {
 		encoded, err := json.Marshal(result)
 		if err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {

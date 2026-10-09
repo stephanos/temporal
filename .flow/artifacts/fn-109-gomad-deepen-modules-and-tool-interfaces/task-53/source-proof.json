@@ -1,0 +1,454 @@
+{
+  "base_commit": "ee949b90cf203c7873557fa94978c6a5045c273f",
+  "production_files": [
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+      "base_sha256": "a9a94d5832e597babd74d331ed1a379e8a310c8db38fede6bcda7cc215f57a72",
+      "candidate_sha256": "76845acd589505a1023a575416e2eb0e67ec4f56e7512b76ce14b73fb0e46d51",
+      "admitted_checks": 1,
+      "complete_original_bytes_reconstructed": true,
+      "all_nonadmitted_bytes_including_comments_and_stdout_preserved": true,
+      "sites": [
+        {
+          "original_line": 88,
+          "candidate_line": 88,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsPrivateDispatch",
+          "runtime_gap": null
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "base_sha256": "e66953cabcb828e9c6f813705754ba09775d8edb33b8e1fae32aa0f45f84e8c6",
+      "candidate_sha256": "dd1ad6b57602364036e0d91732fddc828b74aeab1db791a91796a0e22c614b55",
+      "admitted_checks": 8,
+      "complete_original_bytes_reconstructed": true,
+      "all_nonadmitted_bytes_including_comments_and_stdout_preserved": true,
+      "sites": [
+        {
+          "original_line": 36,
+          "candidate_line": 36,
+          "expression": "fmt.Fprint(stderr, usage)",
+          "failed_write_return": "return 2",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/shard usage",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 41,
+          "candidate_line": 43,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 2",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/shard syntax",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 46,
+          "candidate_line": 50,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/shard installation",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 57,
+          "candidate_line": 63,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "Classified operation error with reporter delivery failure: existing fake-dependency ordinary characterization; individual actual EBADF control not run. Real shard execution needs supported native Runner under fn149/fn128."
+        },
+        {
+          "original_line": 63,
+          "candidate_line": 71,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsCompletedOperations/execute-shard",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 109,
+          "candidate_line": 119,
+          "expression": "fmt.Fprint(stderr, usage)",
+          "failed_write_return": "return 2",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/merge usage",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 117,
+          "candidate_line": 129,
+          "expression": "fmt.Fprintf(stderr, \"gomad: %s: merge campaign shards: %v\\n\", classification, err)",
+          "failed_write_return": "return exploreErrorStatus(classification)",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/merge invalid plan",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 123,
+          "candidate_line": 137,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "encoding/json failure for concrete CampaignMergeResult: no reachable malformed value is supplied by the validated public merge operation; no marshal seam added."
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "base_sha256": "ae0100d3bb6b150ac1b5f7b59d2649a987c3b7d603ca7b608deef90299571511",
+      "candidate_sha256": "c8b17160c1803861b93ccb526845c719168740aae1f678b34e6c299569cc5fbf",
+      "admitted_checks": 29,
+      "complete_original_bytes_reconstructed": true,
+      "all_nonadmitted_bytes_including_comments_and_stdout_preserved": true,
+      "sites": [
+        {
+          "original_line": 98,
+          "candidate_line": 98,
+          "expression": "fmt.Fprint(stderr, usage)",
+          "failed_write_return": "return 2",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/usage",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 136,
+          "candidate_line": 138,
+          "expression": "fmt.Fprintf(stderr, \"unknown gomad command %q\\n%s\", arguments[0], usage)",
+          "failed_write_return": "return 2",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/unknown",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 364,
+          "candidate_line": 368,
+          "expression": "fmt.Fprint(stderr, usage)",
+          "failed_write_return": "return 2",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/doctor usage",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 369,
+          "candidate_line": 375,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "os.Executable failure: existing application dependency failure coverage, no individual actual EBADF control here."
+        },
+        {
+          "original_line": 374,
+          "candidate_line": 382,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "Absolute executable resolution failure needs a relative executable plus genuine Getwd failure; no global cwd mutation or production seam added."
+        },
+        {
+          "original_line": 379,
+          "candidate_line": 389,
+          "expression": "fmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)",
+          "failed_write_return": "return 2",
+          "runtime_control": null,
+          "runtime_gap": "Absolute artifact resolution failure needs genuine Getwd failure after executable resolution; no global cwd mutation added."
+        },
+        {
+          "original_line": 396,
+          "candidate_line": 408,
+          "expression": "fmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "encoding/json failure for concrete Doctor Report: normal validated detached report contains only supported values; no marshal seam added."
+        },
+        {
+          "original_line": 442,
+          "candidate_line": 456,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsCompletedOperations/explore",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 477,
+          "candidate_line": 493,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "Missing plan output after successful installation: existing fake-dependency ordinary characterization covers failure delivery; individual actual EBADF control not run."
+        },
+        {
+          "original_line": 486,
+          "candidate_line": 504,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "Classified plan operation error: existing fake-dependency ordinary characterization covers failure delivery; real portable preparation needs supported native toolchain under fn149/fn128."
+        },
+        {
+          "original_line": 494,
+          "candidate_line": 514,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "encoding/json failure for concrete CampaignPlanResult: validated public plan supplies supported detached values; no marshal seam added."
+        },
+        {
+          "original_line": 599,
+          "candidate_line": 621,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": null,
+          "runtime_gap": "Flag parse error plus failed reporter: existing ordinary characterization; no individual actual EBADF flag-error control run (flag Usage writes remain unchanged)."
+        },
+        {
+          "original_line": 611,
+          "candidate_line": 635,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore output",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 619,
+          "candidate_line": 645,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore capability",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 677,
+          "candidate_line": 705,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore strategy",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 685,
+          "candidate_line": 715,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore seeds",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 692,
+          "candidate_line": 724,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore regression",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 700,
+          "candidate_line": 734,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore guidance",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 708,
+          "candidate_line": 744,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore coverage",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 722,
+          "candidate_line": 760,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore choices",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 739,
+          "candidate_line": 779,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore target",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 749,
+          "candidate_line": 791,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore working directory",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 755,
+          "candidate_line": 799,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": null,
+          "runtime_gap": "Ambient Getwd failure: no global cwd mutation or production seam added; existing private working-directory seam and ordinary tests unchanged."
+        },
+        {
+          "original_line": 762,
+          "candidate_line": 808,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return campaignRequest{}, 3, false",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/explore installation",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 999,
+          "candidate_line": 1047,
+          "expression": "fmt.Fprint(stderr, usage)",
+          "failed_write_return": "return 2",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/replay usage",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 1004,
+          "candidate_line": 1054,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/replay installation",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 1013,
+          "candidate_line": 1065,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 2",
+          "runtime_control": "TestTerminalDiagnosticsReplayClassifications/preflight",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 1016,
+          "candidate_line": 1070,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsReplayClassifications/host",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 1025,
+          "candidate_line": 1081,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsCompletedOperations/replay",
+          "runtime_gap": null
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+      "base_sha256": "5341cd12a9d71003f7cf68a60dc66f3ac0b29285bf9638a47b430ca6ba974939",
+      "candidate_sha256": "50e19b474b2dd0de6ba46a28f0c1745294543075e09221515b2a11dd8da8ea14",
+      "admitted_checks": 3,
+      "complete_original_bytes_reconstructed": true,
+      "all_nonadmitted_bytes_including_comments_and_stdout_preserved": true,
+      "sites": [
+        {
+          "original_line": 83,
+          "candidate_line": 83,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "Flag parse error plus failed reporter: existing ordinary characterization; no individual actual EBADF flag-error control run (flag Usage writes remain unchanged)."
+        },
+        {
+          "original_line": 181,
+          "candidate_line": 183,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsCompletedOperations/qualify",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 193,
+          "candidate_line": 197,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/qualify input and installation",
+          "runtime_gap": null
+        }
+      ]
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+      "base_sha256": "a436920f858980998e273d7f01df5759857ddf7cef1e01062e31d3801299d031",
+      "candidate_sha256": "e208de0d0d18859d892dee579b026e0d2b43b2a3ae00caf7aa5a8105e67c6e6d",
+      "admitted_checks": 5,
+      "complete_original_bytes_reconstructed": true,
+      "all_nonadmitted_bytes_including_comments_and_stdout_preserved": true,
+      "sites": [
+        {
+          "original_line": 32,
+          "candidate_line": 32,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "Flag parse error plus failed reporter: existing ordinary characterization; no individual actual EBADF flag-error control run (flag Usage writes remain unchanged)."
+        },
+        {
+          "original_line": 44,
+          "candidate_line": 46,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/resume input",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 52,
+          "candidate_line": 56,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsPublicFailures/resume installation",
+          "runtime_gap": null
+        },
+        {
+          "original_line": 70,
+          "candidate_line": 76,
+          "expression": "fmt.Fprintln(stderr, writeErr)",
+          "failed_write_return": "return 3",
+          "runtime_control": null,
+          "runtime_gap": "Classified Resume operation error plus failed reporter: existing fake-dependency ordinary characterization; actual interrupted native campaign belongs to fn149/fn128."
+        },
+        {
+          "original_line": 76,
+          "candidate_line": 84,
+          "expression": "fmt.Fprintln(stderr, err)",
+          "failed_write_return": "return 3",
+          "runtime_control": "TestTerminalDiagnosticsCompletedOperations/resume",
+          "runtime_gap": null
+        }
+      ]
+    }
+  ],
+  "original_tests_unchanged": {
+    "tools/gomad3/cmd/gomad/internal/cli/analyze_source_test.go": "7a9a62f86a0c3196d48e7f326c23b52e04be11ede93aa2cfa4b960511a0cbdb3",
+    "tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go": "291f91dabf576abf8797331c2e0aa2a215dd7ec2624ccccd6394a93f81948f89",
+    "tools/gomad3/cmd/gomad/internal/cli/application_test.go": "41c57c318387be7f32d1bc6cf61845d9428e225a869ce1e99e823205acd91792",
+    "tools/gomad3/cmd/gomad/internal/cli/campaign_semantics_ownership_test.go": "c5798ca275c7a563e3e0530abe30b63838cdce2570efc20d7e4c56f38a2117dc",
+    "tools/gomad3/cmd/gomad/internal/cli/campaign_shards_test.go": "d380cecbcfb99e10c1458eed3d6ca118b8d39033328496da8743daf57430da28",
+    "tools/gomad3/cmd/gomad/internal/cli/characterization_support_test.go": "fa5764deab0e65979f549328dcc97e9dc9057462512d2e1e9d7151b313a26393",
+    "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go": "cd34cd65054126f2d1311db44395354355b45766abdd707210eb8b8ef6dd7c02",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": "46525ba481d226cddf2a7723d825c09f18116fe94906920aac434666c9cdb0f3",
+    "tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go": "698367760ba5b321cdc4b0b7d6d7137a70c97918588d2e40bc70635efb909aee",
+    "tools/gomad3/cmd/gomad/internal/cli/doctor_test.go": "3243eebce07a40e2f9e49f2a6a0a8596c453a967c846945eb1bc791e9b8a3e3e",
+    "tools/gomad3/cmd/gomad/internal/cli/exploration_divergence_test.go": "803f96f7910d61f700cfe46f7399e9918ae72248ed6a1783ba0d3d26adede6ae",
+    "tools/gomad3/cmd/gomad/internal/cli/explore_failure_writer_test.go": "acbb80d5f697fc3d2040fad6dbb6d401e860c2cf56d84f9caaa9ea985f9ebc54",
+    "tools/gomad3/cmd/gomad/internal/cli/guidance_test.go": "6c85c77e52c0816caa8c0fbb24b31bb52f41d4b41aeab52cce689dbaab348b2e",
+    "tools/gomad3/cmd/gomad/internal/cli/inspect_target_sharing_test.go": "7dc5eec262377f73b17f2b4bde11dbb4e2db662fa32a27086909def4c69cf3b1",
+    "tools/gomad3/cmd/gomad/internal/cli/plan_characterization_test.go": "070910dee91b24ffc4e0d61c8a4d4861805aa80a7812f50565ea28e9969a0c08",
+    "tools/gomad3/cmd/gomad/internal/cli/quote_test.go": "de6277d9e2a9c710b786c5c1f3aca9fedbef46384bde2e0d9974bb24f38f2b02",
+    "tools/gomad3/cmd/gomad/internal/cli/working_directory_test.go": "a38d27b28eb109b3a97fa148bf4df2a9ac8f8b6c0b105d70c5bf5b6e1cc46f03"
+  },
+  "protected_turbo_sha256": {
+    ".turbo/plans/gomad3-glossary-update.md": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188",
+    ".turbo/technical-debt.md": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+  },
+  "lint": {
+    "before": 145,
+    "after": 99,
+    "removed": 46,
+    "added": 0,
+    "comparison": "Exact original diagnostic path/message/statement multiset. Shifted original source lines mapped through admitted insertions; residual source statement/message bytes unchanged."
+  },
+  "runtime_scope": "Public failures use Run; private-mode dispatch uses existing application entry. Replay and completed-operation controls use existing private dependencies; completed marker files prove command reporting does not roll back those completed callback operations, not native artifact publication or target execution."
+}

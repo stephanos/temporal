@@ -29,7 +29,9 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		if !*jsonOutput {
@@ -41,7 +43,9 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 	if flags.NArg() != 1 || flags.Arg(0) == "" {
 		if err := reporter.Error("invalid_input", errors.New("resume requires one interrupted campaign path")); err != nil {
-			fmt.Fprintln(stderr, err)
+			if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		return 2
@@ -49,7 +53,9 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return 3
+			}
 		}
 		return 3
 	}
@@ -67,13 +73,17 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	if err != nil {
 		classification := classifyResumeError(err)
 		if writeErr := reporter.Error(classification, err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		return exploreErrorStatus(classification)
 	}
 	if err := reporter.Result(summary); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	return exploreSummaryStatus(summary)

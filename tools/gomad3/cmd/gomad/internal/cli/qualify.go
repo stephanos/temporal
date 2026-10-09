@@ -80,7 +80,9 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newQualifyReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
+			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+				return 3
+			}
 			return 3
 		}
 		if !*jsonOutput {
@@ -178,7 +180,9 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		}
 	}
 	if err := reporter.Result(result.Report, result.ReportPath); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	return qualification.ExitStatus(qualification.ClassifyQualification(result.Report))
@@ -190,7 +194,9 @@ func reportQualifyInputError(reporter *qualifyReporter, stderr io.Writer, err er
 
 func reportQualifyUnretainedError(reporter *qualifyReporter, stderr io.Writer, classification string, err error, status int) int {
 	if writeErr := reporter.Error(classification, err); writeErr != nil {
-		fmt.Fprintln(stderr, writeErr)
+		if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+			return 3
+		}
 		return 3
 	}
 	return status

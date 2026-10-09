@@ -945,3 +945,17 @@ waived; unrelated integrated lint findings retain their correction owners.
 Native qualification stays deferred under fn149/fn128 with no CI or publication
 authority. Root admits and integrates this serial task on the existing gomad
 branch to unblock fn112.10's source gate.
+
+### CLI diagnostic source admission — 2026-10-09
+
+Task53 owns exactly the 46 unchecked CLI stderr writes remaining in task52's
+actual original-base RED145 at `ee949b90cf`: application1, campaign_shards8,
+cli29, qualify3 and resume5. It preserves diagnostic bytes, primary/classified
+statuses, report attempts and ordering, callbacks, operations and publication.
+The three doctor stdout findings, replay's stdout success report and application
+error casing are excluded and require separate owners. The initial 47 count
+included that replay stdout call and was corrected before implementation.
+Task21 consumes this serial correction's evidence
+and independent review. Required affected/integrated source-gate gaps remain
+open; a reviewed progress commit is not formal SHIP or Done on red acceptance.
+Original preservation and native fn149/fn128 ownership remain unchanged.
