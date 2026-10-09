@@ -143,7 +143,7 @@ paths and positions.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-142.1 | 🔄 in progress | Isolated move and equivalence checks passed; preserve worktree and serially rerun from the closed activity batch after the join dry-run found a milestones-file conflict; integrated review/gates at the batch close |
+| fn-142.1 | ✅ done | Layout-only move and scratch equivalence passed; production IR/Case regeneration, the full Go suite and integrated batch review remain at fn-145.4 |
 
 #### fn-143: Rename `model/umpire` to `model/framework`
 

@@ -1,4 +1,4 @@
-package temporal
+package temporal.actors.client
 
 import umpire.Actor
 

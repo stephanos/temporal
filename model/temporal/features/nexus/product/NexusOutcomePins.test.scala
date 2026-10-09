@@ -6,7 +6,7 @@ import temporal.features.nexus.product
 import temporal.features.nexus.standalone
 import temporal.features.nexus.workflow
 import temporal.features.nexus.workflow.system.given
-import temporal.shared.worker as sharedWorker
+import temporal.actors.worker as sharedWorker
 import umpire.outcomes.Outcome
 
 class NexusOutcomePins extends munit.FunSuite:

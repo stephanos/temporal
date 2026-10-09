@@ -41,8 +41,8 @@ import scala.collection.mutable
 // `-Ysafe-init-global`, which checks objects, stops the compiler on a read of a ScalaPB gRPC method
 // descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization makes (through 3.10.0-RC3).
 //
-// A feature file is a source named after its folder, case aside, in a package under `features` or
-// `shared`, as every Model's is: `features/activity/standalone/Standalone.scala`. A file of a
+// A feature file is a source named after its folder, case aside, in a package under `features`,
+// `foundations` or `actors`, as every Model's is: `features/activity/standalone/Standalone.scala`. A file of a
 // level folder, `product/` or `system/` (fn-126 R20), reads as one too, the level's own file and each
 // subject's beside it, without `object exports`, which only the root feature file holds; only the
 // root feature file has siblings that declare no Model, such as `Realization.scala`. A file of
@@ -390,7 +390,7 @@ final private[irgen] class Order(index: Index):
     case c: ClassDef if c.symbol.flags.is(Flags.Module) => Some(c)
     case _                                              => None
 
-  // Whether a source's package is a Model's, one under `features` or `shared`.
+  // Whether a source's package is a Model's, one under `features`, `foundations` or `actors`.
   private def modelPackage(trees: List[Tree]): Boolean =
     val pkg = topLevel(trees).headOption.fold("")(d =>
       Iterator
@@ -399,7 +399,7 @@ final private[irgen] class Order(index: Index):
         .filter(_.isPackageDef)
         .fold("")(_.fullName)
     )
-    pkg.split('.').exists(Set("features", "shared"))
+    pkg.split('.').exists(Set("features", "foundations", "actors"))
 
   private def featureFile(path: String, trees: List[Tree]): Boolean =
     val parts = path.split('/')

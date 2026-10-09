@@ -3,7 +3,7 @@
 // TaskQueueProductUnderStorageLoss; system/System.scala refines it. The two package clauses read the
 // queue's package as well as this one, so its types and signature are in scope.
 package temporal
-package shared.taskqueue
+package foundations.taskqueue
 package product
 
 import scala.annotation.unused

@@ -5,7 +5,7 @@ import temporal.features.activity.{failure, Failure}
 import temporal.features.activity.standalone.{activity, client, service, system, worker, ResetPause}
 import temporal.features.activity.{deadline, timers, Timeout, TimeoutType}
 import temporal.features.activity.standalone.product
-import temporal.shared.worker.worker as process
+import temporal.actors.worker.worker as process
 import umpire.outcomes.Outcome
 import system.*
 
@@ -1111,7 +1111,7 @@ class StandaloneActivityPins extends munit.FunSuite:
     )
     assertEquals(choices.map(_.state.lossAvailable), List(false, false))
     val loss = LostStartAnswer.bindings
-      .find(_.decl == temporal.shared.taskqueue.fault.ackLoss.decl)
+      .find(_.decl == temporal.foundations.taskqueue.fault.ackLoss.decl)
       .get
       .function
       .asInstanceOf[Loss] // scalafix:ok DisableSyntax.asInstanceOf

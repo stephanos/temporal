@@ -2284,15 +2284,15 @@ class Fixtures extends munit.FunSuite:
     assert(model.path("properties").size() > 0)
 
   // fn-112.12: an independent consumer of the shared task queue (lifts/TaskQueue.scala).
-  test("a consumer of temporal/shared/taskqueue lifts the queue and nothing of the activity"):
+  test("a consumer of temporal/foundations/taskqueue lifts the queue and nothing of the activity"):
     import com.fasterxml.jackson.databind.JsonNode
     val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("taskqueue"))
     def all(kind: String) = model.path(kind).elements().asScala.toList
     def named(kind: String, name: String) =
       all(kind).find(_.path("name").asText() == name).getOrElse(fail(s"no $kind $name"))
     def names(n: JsonNode, field: String) = n.elements().asScala.map(_.path(field).asText()).toList
-    // The queue's declarations are named where they are declared, temporal/shared/taskqueue.
-    val queue = "temporal.shared.taskqueue."
+    // The queue's declarations are named where they are declared, temporal/foundations/taskqueue.
+    val queue = "temporal.foundations.taskqueue."
     assertEquals(named("machines", "taskQueueProduct").path("entity").asText(), "taskQueue")
     assertEquals(named("machines", "taskQueueProduct").path("family").asText(), queue + "product")
     assertEquals(named("actions", "enqueue").path("id").asText(), queue + "queue.enqueue")
@@ -3249,7 +3249,7 @@ class Fixtures extends munit.FunSuite:
       for file <- stream.iterator.asScala.toList if Files.isRegularFile(file) do
         Files.writeString(
           file,
-          Files.readString(file).replace("fixture.features.nexus", "fixture.shared.nexus")
+          Files.readString(file).replace("fixture.features.nexus", "fixture.foundations.nexus")
         )
     finally stream.close()
     val jar = packaged("shared-forms", tree, Seq("--server=false"))

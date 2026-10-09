@@ -1,5 +1,5 @@
 // A shared feature: its root feature file may name no IR file.
-package fixture.shared.pump
+package fixture.foundations.pump
 
 import umpire.*
 

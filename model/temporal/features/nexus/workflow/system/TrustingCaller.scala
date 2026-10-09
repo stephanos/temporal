@@ -13,7 +13,7 @@ import umpire.*
 import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
 import umpire.realize.{PropertyOutcome, RunExpectation, Variation}
-import temporal.shared.worker.worker
+import temporal.actors.worker.worker
 
 // ### Signature
 

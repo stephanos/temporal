@@ -366,7 +366,7 @@ object Standalone
   // start's answer, and releases it only after the unpause.
   object controller
       extends Controller(
-        perform(shared.worker.worker.stop -> stopWorker),
+        perform(actors.worker.worker.stop -> stopWorker),
         // Every class of the start, each setting the deadlines it expires; a schedule-to-close
         // deadline no start sets, so a class that expires one is unrealizable.
         deadlines[StartActivityExecutionRequest](
@@ -1121,7 +1121,7 @@ object LostAdmissionResponse
       extends Controller(
         everyCase(startUnreached),
         perform(history.dispatch -> holdDispatch),
-        perform(shared.taskqueue.fault.ackLoss -> loseAdmissionResponse),
+        perform(foundations.taskqueue.fault.ackLoss -> loseAdmissionResponse),
         everyCase(readAttemptCount)
       )
   object evidence

@@ -7,7 +7,7 @@ import scala.jdk.CollectionConverters.*
 // The structure lint (fn-126 R20), a sibling pass of the declaration-order lint (Order.scala), which
 // runs it over the same sources and reports its refusals with its own. It holds a feature's folders
 // and its machine objects' sections to the layout model/irgen/testdata/layout/lamp shows, the
-// template a new feature copies. A feature is a package under `features` or `shared` and its
+// template a new feature copies. A feature is a package under `features`, `foundations` or `actors` and its
 // subpackages, `temporal.features.activity.standalone.*`; its root folder holds the files of the
 // package itself. It refuses, each at its line:
 //
@@ -29,7 +29,7 @@ import scala.jdk.CollectionConverters.*
 //     objects and the objects that group its actions, at the top level of a file, are named
 //     freely. And an
 //     `object exports` anywhere but the root feature file; under `features`, a root feature file
-//     without one (under `shared`, a feature has at most one).
+//     without one (under `foundations` or `actors`, a feature has at most one).
 //   - (b) is fn-126.8's, after the R18 renames: `product/Product.scala` declares `<P>Product`,
 //     which refines nothing, and `system/System.scala` one `<P>System` whose `object refinement`
 //     refines it. Each level owns its `Phase`, `State` and `Fact` types; the root feature file may
@@ -41,7 +41,7 @@ import scala.jdk.CollectionConverters.*
 // holds no machine; its optional Product needs no
 // kind System or exports. A form may refine that Product, never one outside its kind. Empty
 // package-only general headers are checked at the configured source root because they emit no
-// TASTy. Kind admission does not change the flat `shared` layout.
+// TASTy. Kind admission does not change the flat `foundations` and `actors` layouts.
 //
 // Every feature of the Temporal Models (model/temporal/) is held to these rules, whatever its
 // folders. The lifter's fixtures, single-file features of their own rules, are held only where they
@@ -119,7 +119,7 @@ final private[irgen] class Structure(index: Index):
       .orElse(trees.flatMap(declared).headOption)
       .getOrElse("")
       .split('.')
-    val at = pkg.indexWhere(Set("features", "shared"))
+    val at = pkg.indexWhere(Set("features", "foundations", "actors"))
     Option.when(at >= 0 && pkg.length > at + 1)(
       Source(path, pkg.take(at + 2).mkString("."), pkg.drop(at + 2).toList, top)
     )
@@ -278,7 +278,7 @@ final private[irgen] class Structure(index: Index):
   ): Option[(Source, ClassDef)] =
     val pkg = sources.head.feature
     val name = pkg.split('.').last
-    val shared = general || pkg.split('.').reverse(1) == "shared"
+    val shared = general || Set("foundations", "actors")(pkg.split('.').reverse(1))
     // The root folder: a source's folder less the folders of its subpackage.
     val root = rootOf(sources)
     val rootFile =
@@ -495,9 +495,9 @@ final private[irgen] class Structure(index: Index):
       // Distinct Product and System state/fact types make the vocabulary level-owned rather than
       // genuinely shared. Each canonical level file must then declare the complete local trio.
       // Taskqueue deliberately keeps its cross-level QueueView/QueueDetail vocabulary in its root;
-      // that named exception does not exempt another two-level feature under `shared`.
+      // that named exception does not exempt another two-level feature under `foundations` or `actors`.
       val levelOwned =
-        pkg != "temporal.shared.taskqueue" && (general || (for
+        pkg != "temporal.foundations.taskqueue" && (general || (for
           product <- productDef
           system <- systemDef
         yield

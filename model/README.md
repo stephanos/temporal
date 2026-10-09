@@ -345,7 +345,7 @@ by id.
 | Path | What it holds |
 | --- | --- |
 | `model/umpire` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `umpire/realize` |
-| `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
+| `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `foundations/taskqueue`, the task queue features compose; `actors`, the shared worker and client; `Bounds.scala`, shared Query bounds; `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
 | `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
 | `model/cases` | The checked-in Cases and `manifest.json` |
@@ -671,8 +671,8 @@ features/
       Realization.scala
       system/
         System.scala           System Phase, State and Fact; NexusSystem and its shared-Product refinement
-shared/
-  Bounds.scala                 the bounds more than one folder's Queries run under
+Bounds.scala                   the bounds more than one folder's Queries run under
+foundations/
   taskqueue/
     TaskQueue.scala            types, signature (the queue's actions, its faults, the storage-loss assumption)
     product/
@@ -680,6 +680,9 @@ shared/
     system/
       System.scala             TaskQueueSystem, the provider that refines it, and the lossy, forgetful and
                                volatile providers
+actors/
+  client/
+    Client.scala               the caller of Temporal's public API
   worker/
     Worker.scala               Polling
 ```
@@ -705,7 +708,7 @@ derived defaults are checked against that machine.
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
 `Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/ir`
 fails on one, and on a live file that names one. A bound that two folders run their Queries under
-is declared once, in `shared/Bounds.scala`, and keeps its name, which a Query's receipt reads; a
+is declared once, in `Bounds.scala`, and keeps its name, which a Query's receipt reads; a
 bound whose name another folder gives another budget stays in its own feature file.
 
 A feature file reads in this order:
@@ -855,7 +858,7 @@ the actor `fault`'s, `object fault extends Actor`. Steps no actor of the feature
 plain objects: `timers`, `deadline`, `history` for internal steps and `queue`. Actions a feature adds
 to an actor another declares sit in an object that names the actor: the standalone activity's poll
 and answer are its `object worker`, taken by the shared worker it imports as `process` (`import
-shared.worker.{worker as process}`), whose own actions read `process.stop`; the close policy's
+actors.worker.{worker as process}`), whose own actions read `process.stop`; the close policy's
 designs add `callerSide` and `handlerSide` to the Nexus caller's `caller` and `handler`. An object is
 not named like a type of its package but for the case, since the two would compile to class files
 whose names differ only in case, which a case-insensitive file system cannot hold: beside the close
@@ -864,7 +867,7 @@ action declares by token sit at the top level, apart from one named like an acti
 that takes it, which `object Inputs` holds (`Inputs.control`, since inside `object client` the name
 `control` is the action).
 
-The Temporal kit declares `trait Client extends Actor`, a caller of Temporal's public API through
+The Temporal kit declares `trait Client extends Actor` in `actors/client/Client.scala`, a caller of Temporal's public API through
 the frontend. Standalone API features put their actions on `object client extends Client`; Nexus
 caller keeps the domain roles `caller` and `handler`.
 
@@ -947,7 +950,7 @@ arguments share one parameter list: Scala infers the composed state from where t
 passed only then. `through` is core, not sugar: no def of the lifted sources says which member a
 Property reads.
 
-The queue in that example is the task queue, `model/temporal/shared/taskqueue`: a shared entity
+The queue in that example is the task queue, `model/temporal/foundations/taskqueue`: a shared entity
 (`taskQueue`, keyed by the queue's name) that a feature composes by synchronizing its own actions
 with `enqueue`, `deliver` and `acknowledge`, and that imports nothing of any feature. It owns the
 opaque contract `TaskQueueProduct` and its storage-loss variant, the providers that refine it
@@ -957,7 +960,7 @@ A feature keeps its own syncs and its cross-entity claims, as the standalone act
 `system/WithTaskQueue.scala` does. The queue is a bounded abstraction, not a general queue: one message at a
 time, delivered at most twice before its acknowledgment. The detailed provider's table, and a
 design composed with it, has depth ten, so its free Queries run within `twelve`. Its declarations
-are named where they are declared, in `temporal.shared.taskqueue` and its `product` and `system`
+are named where they are declared, in `temporal.foundations.taskqueue` and its `product` and `system`
 packages.
 
 A claim over several designs is one function over `Declares[S]` whose state-dependent parts are
@@ -1097,7 +1100,7 @@ A read inside a `def`, a lambda, a by-name argument or a lazy `val`, and an obje
 read while another initializes, initializes nothing and is not refused; a context function the DSL
 applies at once is read where it is written, and so are a rule heading's rules and guard. The lint follows no call: a
 `def` called during initialization that reads a later `val` is not caught. A feature file is a
-source named after its folder in a package under `features` or `shared`; the other files of a
+source named after its folder in a package under `features`, `foundations` or `actors`; the other files of a
 feature folder, its `Realization.scala` and tests, and the kit's files answer to (a) and (b) only. The lifter's refusal specimens (`*Rejects.scala` among its fixtures),
 which read a `val` before it is declared on purpose, are left to the refusals they are specimens of. Each
 kind has its refusal fixture, `model/irgen/testdata/initOrder/` and, for the sections,

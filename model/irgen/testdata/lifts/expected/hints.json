@@ -47,7 +47,7 @@
     "name": "temporal.features.activity.standalone.MaxAttempts",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 41
+      "line": 42
     },
     "enum": {
       "cases": [ {
@@ -62,7 +62,7 @@
     "name": "temporal.features.activity.standalone.ResetPause",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 49
+      "line": 50
     },
     "enum": {
       "cases": [ {
@@ -23993,7 +23993,7 @@
               "right": {
                 "position": {
                   "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                  "line": 46
+                  "line": 47
                 },
                 "literal": {
                   "int": "2"
@@ -24059,7 +24059,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 46
+                "line": 47
               },
               "literal": {
                 "int": "2"
@@ -24095,7 +24095,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/activity/standalone/Standalone.scala",
-            "line": 46
+            "line": 47
           },
           "literal": {
             "int": "2"
@@ -24105,6 +24105,14 @@
     }
   } ],
   "actions": [ {
+    "id": "temporal.actors.worker.worker.stop",
+    "name": "stop",
+    "position": {
+      "file": "model/temporal/actors/worker/Worker.scala",
+      "line": 44
+    },
+    "actor": "worker"
+  }, {
     "id": "temporal.features.activity.deadline.heartbeat",
     "name": "heartbeat",
     "position": {
@@ -24145,7 +24153,7 @@
     "name": "pause",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 80
+      "line": 81
     },
     "actor": "client",
     "on": "activity",
@@ -24155,7 +24163,7 @@
     "name": "requestCancel",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 82
+      "line": 83
     },
     "actor": "client",
     "on": "activity",
@@ -24165,7 +24173,7 @@
     "name": "reset",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 84
+      "line": 85
     },
     "actor": "client",
     "inputs": [ {
@@ -24181,7 +24189,7 @@
     "name": "start",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 69
+      "line": 70
     },
     "actor": "client",
     "inputs": [ {
@@ -24221,7 +24229,7 @@
     "name": "terminate",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 83
+      "line": 84
     },
     "actor": "client",
     "on": "activity",
@@ -24231,7 +24239,7 @@
     "name": "unpause",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 81
+      "line": 82
     },
     "actor": "client",
     "on": "activity",
@@ -24241,7 +24249,7 @@
     "name": "respondCanceledByID",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 93
+      "line": 94
     },
     "actor": "service",
     "on": "activity"
@@ -24250,7 +24258,7 @@
     "name": "respondCompletedByID",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 87
+      "line": 88
     },
     "actor": "service",
     "on": "activity"
@@ -24259,7 +24267,7 @@
     "name": "respondFailedByID",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 88
+      "line": 89
     },
     "actor": "service",
     "inputs": [ {
@@ -24381,14 +24389,6 @@
       },
       "example": "ApplicationFailureRetryable"
     } ]
-  }, {
-    "id": "temporal.shared.worker.worker.stop",
-    "name": "stop",
-    "position": {
-      "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 44
-    },
-    "actor": "worker"
   } ],
   "machines": [ {
     "family": "temporal.features.activity.standalone.product",
@@ -24624,7 +24624,7 @@
         "line": 237
       }
     }, {
-      "action": "temporal.shared.worker.worker.stop",
+      "action": "temporal.actors.worker.worker.stop",
       "function": "activityProduct.rules.stop",
       "position": {
         "file": "model/temporal/features/activity/standalone/product/Product.scala",
@@ -24954,7 +24954,7 @@
         "line": 432
       }
     }, {
-      "action": "temporal.shared.worker.worker.stop",
+      "action": "temporal.actors.worker.worker.stop",
       "function": "activitySystem.rules.stop",
       "position": {
         "file": "model/temporal/features/activity/standalone/system/System.scala",

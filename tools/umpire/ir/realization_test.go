@@ -182,8 +182,8 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		}, "realization asyncNexus: control held holds what a step of no class dispatches"},
 		{"a control that holds the dispatch of a class the machine does not bind", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Controls = append(r.Controls, &umpirespb.Control{Id: "held", Role: "temporal.task-queue",
-				Kind: &umpirespb.Control_HoldDispatched{HoldDispatched: &umpirespb.HoldDispatched{Step: &umpirespb.ActionClass{Action: "temporal.shared.worker.worker.resume"}}}})
-		}, "realization asyncNexus: control held: nexusSystem binds no action temporal.shared.worker.worker.resume"},
+				Kind: &umpirespb.Control_HoldDispatched{HoldDispatched: &umpirespb.HoldDispatched{Step: &umpirespb.ActionClass{Action: "temporal.actors.worker.worker.resume"}}}})
+		}, "realization asyncNexus: control held: nexusSystem binds no action temporal.actors.worker.worker.resume"},
 		{"a control that holds the deliveries of no task queue", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			step := admScript(t, r, "handler").GetItems()[0].GetPerforms()[0].GetStep()
 			r.Controls = append(r.Controls, &umpirespb.Control{Id: "held", Role: "temporal.workflow-service",

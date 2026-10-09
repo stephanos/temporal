@@ -32,6 +32,7 @@ package temporal
 package features.activity
 package standalone
 
+import temporal.actors.client.Client
 import umpire.*
 import product.ActivityProduct
 import system.{ActivitySystem, StandaloneActivity}
@@ -106,7 +107,7 @@ object worker:
 val attemptCount = Observation(on = activity, read = "attempt")
 val heartbeatDetails = Observation(on = activity, read = "heartbeatDetails")
 
-// The bounds of the levels' Queries and the history record's, beside three and four (shared.Bounds).
+// The bounds of the levels' Queries and the history record's, beside three and four (Bounds).
 val five = Limits(steps = 5, actions = 5, search = 65536)
 val six = Limits(steps = 6, actions = 6, search = 262144)
 val eight = Limits(steps = 8, actions = 8, search = 262144)
@@ -149,10 +150,10 @@ object exports:
   val activityStandaloneRecord = irFile("activity-standalone-record")(
     system.ActivityRecord.queries,
     system.TrustingActivityRecord.queries,
-    shared.taskqueue.system.TaskQueueSystem.queries,
-    shared.taskqueue.system.ForgetfulQueue.queries,
-    shared.taskqueue.system.VolatileQueue.queries,
-    shared.taskqueue.system.LossyMatchingQueue.queries,
+    foundations.taskqueue.system.TaskQueueSystem.queries,
+    foundations.taskqueue.system.ForgetfulQueue.queries,
+    foundations.taskqueue.system.VolatileQueue.queries,
+    foundations.taskqueue.system.LossyMatchingQueue.queries,
     system.RecordOverQueue.queries,
     system.TrustingRecordOverQueue.queries,
     system.RecordOverMatching.queries,

@@ -25,7 +25,7 @@ import umpire.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, Pr
 import umpire.realize.{Reason, RunExpectation}
 import temporal.capabilities.*
 import temporal.realize.satisfied
-import shared.Bounds.{four, three}
+import Bounds.{four, three}
 import product.ActivityProduct
 import product.ActivityProduct.phased
 
@@ -506,20 +506,20 @@ object LostStartAnswer
     on(history.dispatch) {
       where(_.lossAvailable) ~> effects.sendDispatch
     }
-    on(shared.taskqueue.fault.ackLoss) {
+    on(foundations.taskqueue.fault.ackLoss) {
       where(_.lossAvailable) ~> effects.loseResponse
     }
 
   object properties:
     // A lost response still leaves the attempt admitted when the update committed.
     val committedDespiteLostResponse =
-      property when shared.taskqueue.fault.ackLoss holds (after =>
+      property when foundations.taskqueue.fault.ackLoss holds (after =>
         after.records(AdmissionResponseFact.attemptAdmitted)
       )
 
   // The lost response, as a server's Run is checked.
   object queries:
-    val oneLostResponse = scenario.actions(history.dispatch, shared.taskqueue.fault.ackLoss)
+    val oneLostResponse = scenario.actions(history.dispatch, foundations.taskqueue.fault.ackLoss)
     val lostAdmissionResponseQuery =
       (query("lostStartAnswer.committed") find properties.committedDespiteLostResponse in
         oneLostResponse limits three)

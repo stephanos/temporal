@@ -182,8 +182,8 @@ class ActivityByIDRegression extends munit.FunSuite:
       assert(!holds(after.copy(state = after.state.copy(phase = system.Phase.scheduled))))
     assertEquals(
       witnesses.head._1.scenario.actions.count {
-        case a: Action[EmptyTuple] => a.decl.actor == temporal.shared.worker.worker
-        case c: Class              => c.decl.actor == temporal.shared.worker.worker
+        case a: Action[EmptyTuple] => a.decl.actor == temporal.actors.worker.worker
+        case c: Class              => c.decl.actor == temporal.actors.worker.worker
         case _: Composed           => false
       },
       0

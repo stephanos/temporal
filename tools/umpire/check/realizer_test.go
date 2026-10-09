@@ -149,8 +149,8 @@ func TestARealizerGivesOnlyTheQueriesOfAnAdmittedModel(t *testing.T) {
 		{"another machine", ClaimKey{Family: key.Family, Owner: "nexusProduct", Name: key.Name},
 			"query syncCompletion runs on nexusSystem of temporal.features.nexus.workflow.system, not on nexusProduct of temporal.features.nexus.workflow.system",
 			"model/temporal/features/nexus/workflow/system/System.scala:"},
-		{"another family", ClaimKey{Family: "temporal.shared.worker", Owner: key.Owner, Name: key.Name},
-			"query syncCompletion runs on nexusSystem of temporal.features.nexus.workflow.system, not on nexusSystem of temporal.shared.worker",
+		{"another family", ClaimKey{Family: "temporal.actors.worker", Owner: key.Owner, Name: key.Name},
+			"query syncCompletion runs on nexusSystem of temporal.features.nexus.workflow.system, not on nexusSystem of temporal.actors.worker",
 			"model/temporal/features/nexus/workflow/system/System.scala:"},
 		{"no name", ClaimKey{Family: key.Family, Owner: key.Owner}, "no Query ", m.GetSource()},
 	} {

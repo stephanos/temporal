@@ -2,7 +2,8 @@ package ir
 
 // model/'s folders say what they hold (fn-114.9): the IR generator is model/irgen, the model check
 // model/check, the check's build cache model/build, and the Temporal Models are grouped into
-// model/temporal/features and model/temporal/shared. The folders they replaced must not come back:
+// model/temporal/features, model/temporal/foundations and model/temporal/actors. The folders they
+// replaced must not come back:
 // neither as a directory with sources nor as a path, package or target a live file names. Nor may
 // the per-kind files fn-126 folded into one feature file per folder: no Model folder holds one, and
 // no live file names one. Nor may the zoom-in folders fn-126 flattened into a feature's level
@@ -51,6 +52,19 @@ func TestNexusFormsLayout(t *testing.T) {
 		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features", name))
 		require.ErrorIs(t, err, os.ErrNotExist, name)
 	}
+}
+
+func TestFoundationsAndActorsLayout(t *testing.T) {
+	for _, path := range []string{
+		"foundations/taskqueue/TaskQueue.scala", "foundations/taskqueue/product/Product.scala",
+		"foundations/taskqueue/system/System.scala", "actors/worker/Worker.scala",
+		"actors/client/Client.scala", "Bounds.scala",
+	} {
+		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal", path))
+		require.NoError(t, err, path)
+	}
+	require.NoDirExists(t, filepath.Join(repoRoot, "model", "temporal", "shared"))
+	require.NoFileExists(t, filepath.Join(repoRoot, "model/temporal", "Client.scala"))
 }
 
 func TestKindGeneralFilesAndForms(t *testing.T) {
@@ -139,14 +153,14 @@ var retiredFeatureFileNames = []string{"Model.scala", "Properties.scala", "Queri
 
 // modelFolderRoots hold the Model folders. The kit's model/temporal/capabilities/Capabilities.scala
 // is no Model folder's file, and the IR generator's fixtures name their files as they like.
-var modelFolderRoots = []string{"model/temporal/features", "model/temporal/shared"}
+var modelFolderRoots = []string{"model/temporal/features", "model/temporal/foundations", "model/temporal/actors"}
 
 // retiredFeatureFilePaths matches a retired per-kind file of a Model folder named by its path: from
-// features/ or shared/, from a Model folder's name (`worker/Model.scala`) or a level folder's
+// features/, foundations/ or actors/, from a Model folder's name (`worker/Model.scala`) or a level folder's
 // (`system/Model.scala`), or joined from its parts.
 var retiredFeatureFilePaths = regexp.MustCompile(strings.Join([]string{
-	`\b(?:features|shared|standaloneactivity|record|withTaskQueue|admission|compositions|nexuscaller|closepolicy|nexusoperation|taskqueue|worker|product|system)/(?:[\w-]+/)*(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala\b`,
-	`"(?:features|shared)"(?:, "[\w-]+")*, "(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala"`,
+	`\b(?:features|foundations|actors|standaloneactivity|record|withTaskQueue|admission|compositions|nexuscaller|closepolicy|nexusoperation|taskqueue|worker|product|system)/(?:[\w-]+/)*(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala\b`,
+	`"(?:features|foundations|actors)"(?:, "[\w-]+")*, "(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala"`,
 }, "|"))
 
 // retiredFeatureFileProse matches a retired per-kind file named bare in prose, the way a Model
@@ -398,7 +412,7 @@ func TestRetiredModelPathsStayRetired(t *testing.T) {
 			require.NoError(t, err)
 		}
 	}
-	require.Empty(t, present, "these folders moved (fn-114.9): model/irgen, model/check and model/temporal/{features,shared} hold them")
+	require.Empty(t, present, "these folders moved: model/irgen, model/check and model/temporal/{features,foundations,actors} hold them")
 	retired, err := retiredFeatureFiles(repoRoot)
 	require.NoError(t, err)
 	require.Empty(t, retired, "a Model folder holds one feature file named after it (fn-126), not per-kind files")
@@ -443,7 +457,7 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"a retired target":                      {"make lint-model-lifts", true},
 		"a path joined from its parts":          {`filepath.Join("..", "model", "temporal", "worker")`, true},
 		"the new folders":                       {"model/irgen, model/check, model/build, model/temporal/features/nexus/workflow", false},
-		"a shared part's new folder":            {"model/temporal/shared/taskqueue", false},
+		"a shared part's new folder":            {"model/temporal/foundations/taskqueue", false},
 		"the new packages":                      {"package umpire.irgen\nimport temporal.features.activity.standalone.*", false},
 		"the retired activity package":          {"package features.standaloneactivity", true},
 		"the retired activity import":           {"import temporal.features.standaloneactivity.system.*", true},
@@ -454,7 +468,7 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"a relative import of a moved package":  {"import worker.Phase as WorkerPhase", true},
 		"a retired Model.scala":                 {"model/temporal/features/nexus/workflow/Model.scala:424", true},
 		"a retired Properties.scala":            {"see `nexuscaller/Properties.scala`, line 22", true},
-		"a retired Queries.scala":               {"model/temporal/shared/taskqueue/Queries.scala", true},
+		"a retired Queries.scala":               {"model/temporal/foundations/taskqueue/Queries.scala", true},
 		"a retired Capabilities.scala":          {"its folder's features/nexus/standalone/Capabilities.scala", true},
 		"a retired IrFiles.scala":               {"closepolicy/IrFiles.scala", true},
 		"a retired file from its folder":        {"from worker/Model.scala", true},

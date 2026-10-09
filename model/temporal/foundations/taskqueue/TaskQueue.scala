@@ -1,5 +1,5 @@
 // The task queue: the durable queue between history's dispatch and a worker's poll, as a reusable
-// entity of its own, beside shared/worker. Its opaque contract is what a feature may rely on; the
+// entity of its own, beside actors/worker. Its opaque contract is what a feature may rely on; the
 // matching provider is the route one message takes through history and matching, which refines it;
 // and the forgetful and volatile providers are deliberately violating controls. Grounded in
 // chasm/lib/activity/tasks.go (the dispatch task) and service/matching (AddActivityTask, sync match,
@@ -30,7 +30,7 @@
 // refinement, effects, monitors, rules, properties and queries. The queue declares no IR file of
 // its own: the features that compose it export it.
 package temporal
-package shared.taskqueue
+package foundations.taskqueue
 
 import umpire.*
 

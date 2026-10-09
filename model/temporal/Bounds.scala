@@ -4,7 +4,6 @@
 // whose name another folder gives a different budget: the close policy's `four`, `five` and
 // `twelve` search further than the activity's and the task queue's of the same names.
 package temporal
-package shared
 
 import umpire.*
 

@@ -28,7 +28,7 @@ import io.temporal.api.enums.v1.{
   NexusHandlerErrorRetryBehavior
 }
 import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
-import temporal.shared.worker.worker
+import temporal.actors.worker.worker
 
 import system.{NexusSystem, TrustingCaller}
 

@@ -117,7 +117,7 @@ func TestUnperformedActions(t *testing.T) {
 		for _, s := range realization(ir, "activitySystem").GetScripts() {
 			s.Items = slices.DeleteFunc(s.Items, func(item *umpirespb.Item) bool {
 				return slices.ContainsFunc(item.GetPerforms(), func(p *umpirespb.Performance) bool {
-					return p.GetStep().GetAction() == "temporal.shared.worker.worker.stop"
+					return p.GetStep().GetAction() == "temporal.actors.worker.worker.stop"
 				})
 			})
 		}

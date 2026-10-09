@@ -158,8 +158,8 @@ func TestARealizationsBehaviorIsAdmittedBeforeItIsLowered(t *testing.T) {
 		{"a server step of no class", func(_ *testing.T, r *umpirespb.Realization) { r.ServerSteps[0].Step = nil },
 			admBehaviorAt + ":60: realization asyncNexus: a server step is of no class"},
 		{"a server step of a class the machine does not bind", func(_ *testing.T, r *umpirespb.Realization) {
-			r.ServerSteps[0].Step = &umpirespb.ActionClass{Action: "temporal.shared.worker.worker.resume"}
-		}, admBehaviorAt + ":60: realization asyncNexus: a server step: nexusSystem binds no action temporal.shared.worker.worker.resume"},
+			r.ServerSteps[0].Step = &umpirespb.ActionClass{Action: "temporal.actors.worker.worker.resume"}
+		}, admBehaviorAt + ":60: realization asyncNexus: a server step: nexusSystem binds no action temporal.actors.worker.worker.resume"},
 		{"a server step declared twice", func(_ *testing.T, r *umpirespb.Realization) { r.ServerSteps[2].Step = admTimeout("scheduleToClose") },
 			admBehaviorAt + ":62: realization asyncNexus: server step scheduleToClose is declared twice"},
 		{"a server step some command performs", func(t *testing.T, r *umpirespb.Realization) {

@@ -11,8 +11,8 @@ import scala.annotation.unused
 import umpire.*
 import umpire.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
-import shared.Bounds.three
-import shared.worker.worker as process
+import Bounds.three
+import actors.worker.worker as process
 
 // What DescribeActivityExecution shows. Each case declares the status fact a step that enters it
 // records.

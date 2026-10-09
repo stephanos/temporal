@@ -14,8 +14,8 @@ import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.Reason
 import temporal.capabilities.*
 import temporal.realize.{inconclusive, satisfied}
-import shared.Bounds.{four, three}
-import shared.worker.{worker as process, Phase as WorkerPhase, State as WorkerState}
+import Bounds.{four, three}
+import actors.worker.{worker as process, Phase as WorkerPhase, State as WorkerState}
 import product.ActivityProduct
 import Timeout.expires
 
@@ -1350,7 +1350,7 @@ object DeferredReset extends Derived(ActivitySystem.unmonitored):
 
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 
-object ActivityWorker extends Derived(shared.worker.Polling.restrict(process.stop, process.serve))
+object ActivityWorker extends Derived(actors.worker.Polling.restrict(process.stop, process.serve))
 
 // ### With the worker of its task queue, the stop is the worker's own phase change and every
 // attempt start is the worker serving, so an attempt has a row only while the worker polls.
@@ -1375,7 +1375,7 @@ object StandaloneActivity
     // The cross-entity claim, over the path on which a stopped worker never takes the retry: the
     // first attempt fails retryably and backs off, then the worker stops, so the retry is never
     // dispatched; the attempt start makes the verification exercise the claim. The start is stated:
-    // a default would take the worker's from shared/worker/Worker.scala; fn-115's golden compares
+    // a default would take the worker's from actors/worker/Worker.scala; fn-115's golden compares
     // positions.
     val stoppedBeforeRetry = scenario
       .starts(StandaloneActivityState(ActivitySystem.init, WorkerState(WorkerPhase.polling)))

@@ -13,7 +13,7 @@
 // Read top to bottom: the types; the signature (the entity, and the worker actor with its
 // actions); then Polling, the worker's one machine object.
 package temporal
-package shared.worker
+package actors.worker
 
 import scala.annotation.unused
 import umpire.*
@@ -39,7 +39,7 @@ val entity = Entity("worker", key = "taskQueue")
 // The worker, which stops and resumes, and serves its queue. Its stop and resume name no entity, as
 // the outage machine spells them. The serve action is the worker's own and takes no input, so a
 // composition may synchronize it with an action of any class. A feature with actions of its own
-// that this actor takes imports it under another name (`import shared.worker.{worker as process}`).
+// that this actor takes imports it under another name (`import actors.worker.{worker as process}`).
 object worker extends Actor:
   val stop = action(this)
   val resume = action(this)

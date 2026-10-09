@@ -1,4 +1,4 @@
-// The admission designs composed with the task queue (temporal/shared/taskqueue), over its opaque
+// The admission designs composed with the task queue (temporal/foundations/taskqueue), over its opaque
 // contract and over the matching, violating and storage-loss providers that replace it. The queue
 // and its providers are the queue's; this file adds how the activity's dispatch, admission and
 // answer synchronize with it, and what the activity promises across both: the record's
@@ -20,10 +20,15 @@ package system
 import umpire.*
 import umpire.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
-import shared.Bounds.three
-import shared.taskqueue.{fault, queue, seven, twelve, Outstanding, QueueDetail, QueueView}
-import shared.taskqueue.product.TaskQueueProduct
-import shared.taskqueue.system.{ForgetfulQueue, LossyMatchingQueue, TaskQueueSystem, VolatileQueue}
+import Bounds.three
+import foundations.taskqueue.{fault, queue, seven, twelve, Outstanding, QueueDetail, QueueView}
+import foundations.taskqueue.product.TaskQueueProduct
+import foundations.taskqueue.system.{
+  ForgetfulQueue,
+  LossyMatchingQueue,
+  TaskQueueSystem,
+  VolatileQueue
+}
 
 // ### Types
 

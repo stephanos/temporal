@@ -3,7 +3,7 @@
 // refinement says what the opaque contract (product/Product.scala) reads of it, and the providers
 // derived from it, LossyMatchingQueue, ForgetfulQueue and VolatileQueue.
 package temporal
-package shared.taskqueue
+package foundations.taskqueue
 package system
 
 import scala.annotation.unused

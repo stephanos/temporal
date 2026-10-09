@@ -14,8 +14,8 @@ import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.{Alternative, Exploration, Reason, Variation}
 import temporal.capabilities.*
 import temporal.realize.{inconclusive, satisfied}
-import temporal.shared.Bounds.{four, three}
-import temporal.shared.worker.{worker, Phase as WorkerPhase, State as WorkerState}
+import temporal.Bounds.{four, three}
+import temporal.actors.worker.{worker, Phase as WorkerPhase, State as WorkerState}
 import product.NexusProduct
 import Timeout.expires
 
@@ -479,7 +479,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
 // reply; the operation's timers settle every state a stop leaves.
 
 object HandlerWorker
-    extends Derived(temporal.shared.worker.Polling.restrict(worker.stop, worker.serve))
+    extends Derived(temporal.actors.worker.Polling.restrict(worker.stop, worker.serve))
 
 // ### The operation and the handler's worker
 //
@@ -510,7 +510,7 @@ object NexusCaller
     // The cross-entity claim, verified over the path on which a retryable reply backs the operation
     // off; the handler's worker then stops, so the retried attempt is never answered and the
     // schedule-to-start deadline fires. The start is stated: a default would take the worker's from
-    // shared/worker/Worker.scala.
+    // actors/worker/Worker.scala.
     val repliedThenStopped = scenario
       .starts(NexusCallerState(NexusSystem.init, WorkerState(WorkerPhase.polling)))
       .actions(

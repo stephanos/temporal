@@ -1,4 +1,4 @@
-package fixture.shared.pump
+package fixture.foundations.pump
 package system
 
 import umpire.*

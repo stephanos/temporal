@@ -9,7 +9,7 @@ import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.Reason
 import temporal.capabilities.*
 import temporal.realize.inconclusive
-import temporal.shared.Bounds.three
+import temporal.Bounds.three
 
 // The statuses DescribeNexusOperationExecution reports: scheduled and started read RUNNING.
 enum Phase derives Finite:

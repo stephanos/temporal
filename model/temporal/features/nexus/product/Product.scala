@@ -8,7 +8,7 @@ package product
 
 import umpire.*
 import umpire.outcomes.{Outcome, Rejection}
-import temporal.shared.worker.worker
+import temporal.actors.worker.worker
 
 // What an operation does.
 enum Phase derives Finite:

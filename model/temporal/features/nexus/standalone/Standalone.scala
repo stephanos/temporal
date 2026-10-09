@@ -18,7 +18,7 @@ package features.nexus
 package standalone
 
 import umpire.*
-import temporal.Client
+import temporal.actors.client.Client
 import system.NexusSystem
 
 // ### Signature

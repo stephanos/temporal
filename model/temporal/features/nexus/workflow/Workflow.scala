@@ -100,7 +100,7 @@ object deadline:
   val scheduleToStart = timer
   val startToClose = timer
 
-// The bounds of the Queries, beside three and four (temporal.shared.Bounds). Nine actions are enabled before
+// The bounds of the Queries, beside three and four (temporal.Bounds). Nine actions are enabled before
 // the operation is scheduled and eleven once it is, so an exact sequence of two is found among
 // ninety-nine candidates, one of three among about a thousand and one of four among about ten
 // thousand.
@@ -119,7 +119,7 @@ object exports:
     NexusSystem,
     HandlerWorker,
     NexusCaller,
-    temporal.shared.worker.Polling,
+    temporal.actors.worker.Polling,
     NexusSystem.queries,
     NexusCaller.queries,
     AsyncNexus,

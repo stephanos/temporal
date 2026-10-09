@@ -5,6 +5,7 @@ package temporal
 
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
+import temporal.actors.client.Client
 import umpire.IrFile
 
 class IrFilesTest extends munit.FunSuite:
@@ -77,9 +78,9 @@ class IrFilesTest extends munit.FunSuite:
       nexusWorkflow.TrustingCaller,
       nexusWorkflow.RejectAfterClose,
       nexusWorkflow.NexusCaller,
-      shared.worker.Polling,
-      shared.taskqueue.product.TaskQueueProduct,
-      shared.taskqueue.system.TaskQueueSystem
+      actors.worker.Polling,
+      foundations.taskqueue.product.TaskQueueProduct,
+      foundations.taskqueue.system.TaskQueueSystem
     )
     for model <- projected do
       model match
