@@ -591,6 +591,9 @@ func TestSchemaDeclarationsOfASplitSchema(t *testing.T) {
 // none of it was in the capture.
 func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) {
 	t.Helper()
+	current, err := schemaDeclarations(schemaFiles())
+	require.NoError(t, err)
+	currentNames := schemaDeclarationNames(current)
 	for _, dependency := range schemaAddedDependencies {
 		require.NotContains(t, file.GetDependency(), dependency)
 		file.Dependency = append(file.Dependency, dependency)
@@ -598,8 +601,7 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 	for _, retired := range schemaRetiredMessages {
 		i := slices.IndexFunc(file.GetMessageType(), func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == retired.name })
 		require.NotEqual(t, -1, i, "%s was not captured", retired.name)
-		require.False(t, slices.ContainsFunc(schemaAddedMessages, func(a schemaAddedMessage) bool { return a.message.GetName() == retired.name }),
-			"the retired %s is declared again", retired.name)
+		require.NotContains(t, currentNames, retired.name, "the retired %s is declared again", retired.name)
 		file.MessageType = slices.Delete(file.MessageType, i, i+1)
 		retyped := 0
 		var retype func([]*descriptorpb.DescriptorProto)
