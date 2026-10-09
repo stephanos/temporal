@@ -33,7 +33,8 @@ def bindings():
     paths = subprocess.check_output([
         'git', 'ls-files', '-z', 'tools/gomad3', 'tools/gomad3integration',
         '.github/workflows/gomad3.yml', '.github/.golangci.yml',
-        'Makefile', 'AGENTS.md', 'MILESTONES.md', 'cmd/tools/lintcode',
+        'Makefile', 'AGENTS.md', 'MILESTONES.md', 'go.mod', 'go.sum',
+        'tests/mixedbrain/go.mod', 'tests/mixedbrain/go.sum', 'cmd/tools/lintcode',
     ], cwd=ROOT).split(b'\0')
     files = {os.fsdecode(path): digest(ROOT / os.fsdecode(path)) for path in paths if path}
     fingerprint = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
