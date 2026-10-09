@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-09T20:38:31.495022Z",
+  "depends_on": [],
+  "id": "fn-150-compile-temporal-server-to-wasi.5",
+  "priority": null,
+  "spec": "fn-150-compile-temporal-server-to-wasi",
+  "spec_path": ".flow/tasks/fn-150-compile-temporal-server-to-wasi.5.md",
+  "status": "todo",
+  "title": "Align nested mixedbrain dependencies after SQLite driver replacement",
+  "updated_at": "2026-10-09T20:38:31.495022Z"
+}
