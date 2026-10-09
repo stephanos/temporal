@@ -35,9 +35,10 @@ Apply these instructions when implementing the milestones:
   current local branch's history. Publishing or landing on origin is not required. Uncommitted
   closures and work on unmerged branches do not count; dependent work starts from the integrated
   local baseline. Publishing is a separate, explicitly authorized action.
-- If a particular gate remains stuck for roughly an hour, including repeated attempts, mark it
-  deferred in Flow and this page. Record its command, failure evidence and condition for revisiting
-  it, then focus on work that can be verified and delivered in the meantime. Preserve the failed
+- If a validation remains stuck for more than one hour, including repeated attempts, mark it
+  deferred in Flow and this page and move to work that can be verified and delivered. Continue
+  beyond that limit only when the validation blocks every other available work path. Record its
+  command, elapsed time, failure evidence and condition for revisiting it. Preserve the failed
   result and follow-up obligation; deferral is not a passing gate.
 - Reuse the previous task's passing baseline when its commands, source scope, fixtures and
   environment still apply. Inspect its recorded evidence; a new task or agent is not a reason to
