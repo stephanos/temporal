@@ -254,7 +254,7 @@ CI, PR, or push authority.
 | [fn-109.37](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md) | ⬜ Todo | Qualification cleanup and import lint clean; original qualification open |
 | [fn-109.38](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md) | ⬜ Todo | Target and pure-policy lint clean; original qualification remains open |
 | [fn-109.39](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md) | ⬜ Todo | Cleanup lint repaired; fault, pin and original qualification remain open |
-| [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | ⬜ Todo | Bounded commands and cleanup reviewed; lint clean, original qualification open |
+| [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | 🚧 In progress | Command-test readiness repaired; retained mechanism acceptance remains open |
 | [fn-109.41](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md) | ⬜ Todo | Canonical JSON exhaustive lint repaired; original qualification remains open |
 | [fn-109.42](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md) | ⬜ Todo | Exact-pack exhaustive lint repaired; original qualification remains open |
 | [fn-109.43](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.43.md) | ⬜ Todo | Five-import admission repaired; original qualification remains open |

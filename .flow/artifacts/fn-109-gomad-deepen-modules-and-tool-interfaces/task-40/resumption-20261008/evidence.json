@@ -1,0 +1,548 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.40",
+  "scope": "bounded test-readiness repair only",
+  "base_commit": "4ce2d847afd8762728f30d153d725fd1c073ecb0",
+  "current_head": "4ce2d847afd8762728f30d153d725fd1c073ecb0",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet|TestInspectionSourceOwnershipDelegation|TestExactModuleEdges|TestDomainModulesDoNotExportWireFraming'",
+    "cd tools/gomad3 && go test -count=1 -tags test_dep -json ./target/internal/gocommand ./internal/hostexec",
+    "cd tools/gomad3 && go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./target/... ./internal/hostexec",
+    "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/format-gate.sh gofmt -l tools/gomad3/target/internal/gocommand/command_test.go && git diff --check",
+    "GOFLAGS=-tags=test_dep make -C tools/gomad3 validate",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=4ce2d847af",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/resumption-20261008/preservation.mjs",
+    "cd tools/gomad3 && go test -count=1 -tags test_dep -json ./target/internal/gocommand -run '^(TestCommandAcknowledgementRequiresCompletePID|TestStructuredCancellationRemovesDescendant|TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants)$'",
+    "cd tools/gomad3 && go test -count=10 -tags test_dep -json ./target/internal/gocommand -run '^(TestCommandAcknowledgementRequiresCompletePID|TestStructuredCancellationRemovesDescendant|TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants)$/^cancel'",
+    "cd tools/gomad3 && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go list -json -tags test_dep ./target/... ./internal/hostexec",
+    "cd tools/gomad3 && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go list -json -tags test_dep ./target/... ./internal/hostexec",
+    "cd tools/gomad3 && go test -count=1 -tags test_dep -json ./target/internal/gocommand -run '^TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants$/^watchdog$'"
+  ],
+  "candidate_source_manifest": "source-1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1.json",
+  "candidate_source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+  "tools_sha256": "73c86870edf2cdafb4bebf6fc17c6ca3c0ba258bfc8c4316eeafc63f18ad4c55",
+  "host": "developmental linux/arm64 stock Go1.27.1",
+  "model": {
+    "requested": "gpt-6.1-sol/high",
+    "actual_telemetry": "unavailable",
+    "judge": "session (jev-unavailable(no_key))"
+  },
+  "admission": "admission.md",
+  "gates": [
+    {
+      "name": "task40-architecture",
+      "receipt": "task40-architecture-receipt.json",
+      "receipt_sha256": "3ebb24784dae467437657f1d8b0b82d7ec6f9f8a643c4dfef42596c37f856f1a",
+      "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet|TestInspectionSourceOwnershipDelegation|TestExactModuleEdges|TestDomainModulesDoNotExportWireFraming'",
+      "exit_code": 0,
+      "elapsed_seconds": 33.337392557,
+      "counts": {
+        "pass": 14,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:15:48.297Z",
+      "ended": "2026-10-09T02:16:21.634Z",
+      "terminal_outer_session": 19724,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "8c9795514fd388a712a84b56083b26e6a708e086a43ccae4c3e9378fd717edf0",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": true
+    },
+    {
+      "name": "task40-architecture-serialized",
+      "receipt": "task40-architecture-serialized-receipt.json",
+      "receipt_sha256": "818a5edbcd153756d932ce32ae685c7ccdced2a2fbb9368c2c6e2d6d48ce2156",
+      "command": "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet|TestInspectionSourceOwnershipDelegation|TestExactModuleEdges|TestDomainModulesDoNotExportWireFraming'",
+      "exit_code": 0,
+      "elapsed_seconds": 33.164013516,
+      "counts": {
+        "pass": 14,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:16:53.285Z",
+      "ended": "2026-10-09T02:17:26.449Z",
+      "terminal_outer_session": 43781,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "8c9795514fd388a712a84b56083b26e6a708e086a43ccae4c3e9378fd717edf0",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-defaults",
+      "receipt": "task40-defaults-receipt.json",
+      "receipt_sha256": "d30e494587d74d70caee95ca12fb9d30e8b2fdf1aa35b2d7e12063abbbd9a0e2",
+      "command": "cd tools/gomad3 && go test -count=1 -tags test_dep -json ./target/internal/gocommand ./internal/hostexec",
+      "exit_code": 0,
+      "elapsed_seconds": 12.463872255,
+      "counts": {
+        "pass": 92,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:14:39.193Z",
+      "ended": "2026-10-09T02:14:51.657Z",
+      "terminal_outer_session": 4522,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "8c9795514fd388a712a84b56083b26e6a708e086a43ccae4c3e9378fd717edf0",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-errortype",
+      "receipt": "task40-errortype-receipt.json",
+      "receipt_sha256": "b64d692ee47198ba87a022d32d06297fa8bc6e1cd004193d0aef12884fb34c17",
+      "command": "cd tools/gomad3 && go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./target/... ./internal/hostexec",
+      "exit_code": 0,
+      "elapsed_seconds": 0.506595626,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:16:36.927Z",
+      "ended": "2026-10-09T02:16:37.434Z",
+      "terminal_outer_session": 52371,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "8c9795514fd388a712a84b56083b26e6a708e086a43ccae4c3e9378fd717edf0",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-format",
+      "receipt": "task40-format-receipt.json",
+      "receipt_sha256": "8e0b962834ff651e2ca368824612ca28fa88dedc8b1d89149a5cb64ef30666d4",
+      "command": "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/format-gate.sh gofmt -l tools/gomad3/target/internal/gocommand/command_test.go && git diff --check",
+      "exit_code": 0,
+      "elapsed_seconds": 0.10454566700000004,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:18:03.202Z",
+      "ended": "2026-10-09T02:18:03.307Z",
+      "terminal_outer_session": 15923,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "91573c6b96e66884dc60e5d72aad860cced6cc06b0a79b9227bc4971d8764fe7",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-generated",
+      "receipt": "task40-generated-receipt.json",
+      "receipt_sha256": "8adc4dc9e3b81b5fbe86ee4bee8948e81882de044ecc3ca217105ea83479a8ba",
+      "command": "GOFLAGS=-tags=test_dep make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "elapsed_seconds": 4.235681252,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:16:13.767Z",
+      "ended": "2026-10-09T02:16:18.003Z",
+      "terminal_outer_session": 52472,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "8c9795514fd388a712a84b56083b26e6a708e086a43ccae4c3e9378fd717edf0",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": true
+    },
+    {
+      "name": "task40-generated-serialized",
+      "receipt": "task40-generated-serialized-receipt.json",
+      "receipt_sha256": "be8f2c529ba009f7fba5bc8f809ba457ea65aea8c58f667f43e3ab38a7b1944e",
+      "command": "GOFLAGS=-tags=test_dep make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "elapsed_seconds": 2.620804376,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:17:58.546Z",
+      "ended": "2026-10-09T02:18:01.168Z",
+      "terminal_outer_session": 15923,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "91573c6b96e66884dc60e5d72aad860cced6cc06b0a79b9227bc4971d8764fe7",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-lint-fast",
+      "receipt": "task40-lint-fast-receipt.json",
+      "receipt_sha256": "bdeb55cc5b025e1f84de7280fcad79043b0f5e4e063027903465af974d6004c6",
+      "command": "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=4ce2d847af",
+      "exit_code": 0,
+      "elapsed_seconds": 2.416696209,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:18:10.823Z",
+      "ended": "2026-10-09T02:18:13.240Z",
+      "terminal_outer_session": 15923,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "91573c6b96e66884dc60e5d72aad860cced6cc06b0a79b9227bc4971d8764fe7",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-lint-integrated",
+      "receipt": "task40-lint-integrated-receipt.json",
+      "receipt_sha256": "590bb6116b44199ca7412c61d0e61daa6e71a91ff4561be5e511ac6138886d32",
+      "command": "make lint-code-gomad3 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_BASE_REV=d635e23f00d926a43b942f25a9d05bd0ccb72025",
+      "exit_code": 2,
+      "elapsed_seconds": 3.43636646,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:18:06.770Z",
+      "ended": "2026-10-09T02:18:10.207Z",
+      "terminal_outer_session": 15923,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "91573c6b96e66884dc60e5d72aad860cced6cc06b0a79b9227bc4971d8764fe7",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-lint-scoped",
+      "receipt": "task40-lint-scoped-receipt.json",
+      "receipt_sha256": "9a14a965a561305273e8095ab2f127e5d042e7316c907e17afd84ef2246628a4",
+      "command": "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+      "exit_code": 0,
+      "elapsed_seconds": 1.310660459,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:18:03.974Z",
+      "ended": "2026-10-09T02:18:05.285Z",
+      "terminal_outer_session": 15923,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "91573c6b96e66884dc60e5d72aad860cced6cc06b0a79b9227bc4971d8764fe7",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-lint-task9-scope",
+      "receipt": "task40-lint-task9-scope-receipt.json",
+      "receipt_sha256": "c50f0cd16c0534966e3e59152ef976d6edc4d0acad59f7dcd9017daa06014b43",
+      "command": "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./target/... ./internal/hostexec",
+      "exit_code": 1,
+      "elapsed_seconds": 0.404252625,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:18:05.834Z",
+      "ended": "2026-10-09T02:18:06.239Z",
+      "terminal_outer_session": 15923,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "91573c6b96e66884dc60e5d72aad860cced6cc06b0a79b9227bc4971d8764fe7",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-preservation",
+      "receipt": "task40-preservation-receipt.json",
+      "receipt_sha256": "0c1c6655d826d9c1c7fff37891f9789a53a029c5537f61ef564479b5305dfb76",
+      "command": "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/resumption-20261008/preservation.mjs",
+      "exit_code": 0,
+      "elapsed_seconds": 0.21133725099999992,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:19:22.076Z",
+      "ended": "2026-10-09T02:19:22.288Z",
+      "terminal_outer_session": 38879,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "622a948c6b16a1f50a8b029418875196190ae241b4ce26ec77d1ab3b92b1b549",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-readiness-green",
+      "receipt": "task40-readiness-green-receipt.json",
+      "receipt_sha256": "de62011dfef1dfb387a8b2726c1f05885e83022a5bb4ed013d86296b6ece29f9",
+      "command": "cd tools/gomad3 && go test -count=1 -tags test_dep -json ./target/internal/gocommand -run '^(TestCommandAcknowledgementRequiresCompletePID|TestStructuredCancellationRemovesDescendant|TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants)$'",
+      "exit_code": 0,
+      "elapsed_seconds": 12.987109256,
+      "counts": {
+        "pass": 8,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:14:02.009Z",
+      "ended": "2026-10-09T02:14:14.997Z",
+      "terminal_outer_session": 61586,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "6be67999ac36830d4963d0c2aac23e5bed46af33b10cbf19ea946d4257276d1a",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-readiness-red",
+      "receipt": "task40-readiness-red-receipt.json",
+      "receipt_sha256": "7b941c62da7d766bcffaf7f2a487978f093e3056c34ee4afe26e8c818d96f447",
+      "command": "cd tools/gomad3 && go test -count=1 -tags test_dep -json ./target/internal/gocommand -run '^(TestCommandAcknowledgementRequiresCompletePID|TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants/watchdog)$'",
+      "exit_code": 1,
+      "elapsed_seconds": 2.8288550850000003,
+      "counts": {
+        "pass": 0,
+        "fail": 1,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:12:34.337Z",
+      "ended": "2026-10-09T02:12:37.208Z",
+      "terminal_outer_session": 40316,
+      "terminal_outer_exit": 1,
+      "source_sha256": "747895017e61c9305700de9d1733c887dd09279799da76cbd1805c25343ae369",
+      "controls_sha256": "6be67999ac36830d4963d0c2aac23e5bed46af33b10cbf19ea946d4257276d1a",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-readiness-repeat",
+      "receipt": "task40-readiness-repeat-receipt.json",
+      "receipt_sha256": "6d4fe4309535231f8892ea12e83cd74b8f54df45c41eca6da101a163f43891ae",
+      "command": "cd tools/gomad3 && go test -count=10 -tags test_dep -json ./target/internal/gocommand -run '^(TestCommandAcknowledgementRequiresCompletePID|TestStructuredCancellationRemovesDescendant|TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants)$/^cancel'",
+      "exit_code": 0,
+      "elapsed_seconds": 3.8301088349999994,
+      "counts": {
+        "pass": 60,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:15:31.050Z",
+      "ended": "2026-10-09T02:15:34.881Z",
+      "terminal_outer_session": 16603,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "8c9795514fd388a712a84b56083b26e6a708e086a43ccae4c3e9378fd717edf0",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-source-darwin",
+      "receipt": "task40-source-darwin-receipt.json",
+      "receipt_sha256": "b7db5a52b4ea0424590db3d51880c1f18f66bac02f77c9cb3ab424974b7e19fc",
+      "command": "cd tools/gomad3 && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go list -json -tags test_dep ./target/... ./internal/hostexec",
+      "exit_code": 0,
+      "elapsed_seconds": 0.10346425,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:18:02.513Z",
+      "ended": "2026-10-09T02:18:02.616Z",
+      "terminal_outer_session": 15923,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "91573c6b96e66884dc60e5d72aad860cced6cc06b0a79b9227bc4971d8764fe7",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-source-linux",
+      "receipt": "task40-source-linux-receipt.json",
+      "receipt_sha256": "f68ffa9c406228528e028bc283407e82c171726a8ab87e14e20f5b51dbb0309a",
+      "command": "cd tools/gomad3 && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go list -json -tags test_dep ./target/... ./internal/hostexec",
+      "exit_code": 0,
+      "elapsed_seconds": 0.105067792,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:18:01.754Z",
+      "ended": "2026-10-09T02:18:01.859Z",
+      "terminal_outer_session": 15923,
+      "terminal_outer_exit": 0,
+      "source_sha256": "1f4c3da2976f69a2ac13ea2ec3218b5594e139fe95cd18de54eae823abc509a1",
+      "controls_sha256": "91573c6b96e66884dc60e5d72aad860cced6cc06b0a79b9227bc4971d8764fe7",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    },
+    {
+      "name": "task40-watchdog-before",
+      "receipt": "task40-watchdog-before-receipt.json",
+      "receipt_sha256": "f92920c0fef1a745b5dea14388aa49b0bc131a307e6a9735b0e70a62301d5f47",
+      "command": "cd tools/gomad3 && go test -count=1 -tags test_dep -json ./target/internal/gocommand -run '^TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants$/^watchdog$'",
+      "exit_code": 0,
+      "elapsed_seconds": 2.3271927509999997,
+      "counts": {
+        "pass": 2,
+        "fail": 0,
+        "skip": 0
+      },
+      "started": "2026-10-09T02:12:49.249Z",
+      "ended": "2026-10-09T02:12:51.578Z",
+      "terminal_outer_session": 80904,
+      "terminal_outer_exit": 0,
+      "source_sha256": "747895017e61c9305700de9d1733c887dd09279799da76cbd1805c25343ae369",
+      "controls_sha256": "6be67999ac36830d4963d0c2aac23e5bed46af33b10cbf19ea946d4257276d1a",
+      "bindings_unchanged": true,
+      "supplementary_overlapped_gate": false
+    }
+  ],
+  "preservation": {
+    "receipt": "task40-preservation-receipt.json",
+    "raw_details": "task40-preservation.stdout",
+    "source_file": {
+      "path": "tools/gomad3/target/internal/gocommand/command_test.go",
+      "baseline_sha256": "d6b4eac8ebbbb224171516ca62203e436dd51c5a54f6eb82b4b88d9ec846c435",
+      "current_sha256": "84364a221242b142729ec1c31d17a8a199ab0df52f39ec7ce6861d6ebe3e4a63"
+    },
+    "original_function_count": 17,
+    "preserved_original_functions": 15,
+    "admitted_fixture_exceptions": [
+      "TestStructuredCancellationRemovesDescendant",
+      "TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants"
+    ],
+    "original_comments_preserved": true,
+    "protected_files": [
+      {
+        "path": "tools/gomad3/internal/hostexec/command.go",
+        "baseline_sha256": "ef0bee20488186a114788b77ff2bc392a8d8fa6561069d358be01c486a0bc999",
+        "current_sha256": "ef0bee20488186a114788b77ff2bc392a8d8fa6561069d358be01c486a0bc999",
+        "preserved": true
+      },
+      {
+        "path": "tools/gomad3/internal/hostexec/command_unix.go",
+        "baseline_sha256": "e12a21cbbb56bb634db7dea821a7696a295ab3e2c1591aba9c0e09557202ff7e",
+        "current_sha256": "e12a21cbbb56bb634db7dea821a7696a295ab3e2c1591aba9c0e09557202ff7e",
+        "preserved": true
+      },
+      {
+        "path": "tools/gomad3/internal/hostexec/command_unix_test.go",
+        "baseline_sha256": "91e2953e5cd3f13212584e60e31208508c77d3063532e7be95482b4df0227fb0",
+        "current_sha256": "91e2953e5cd3f13212584e60e31208508c77d3063532e7be95482b4df0227fb0",
+        "preserved": true
+      },
+      {
+        "path": "tools/gomad3/target/internal/gocommand/command.go",
+        "baseline_sha256": "c6a742c6bd64294273128a2079138d6f095b5526f907f99b6878b9719d169e58",
+        "current_sha256": "c6a742c6bd64294273128a2079138d6f095b5526f907f99b6878b9719d169e58",
+        "preserved": true
+      }
+    ],
+    "additions": [
+      "commandAcknowledgement",
+      "waitCommandAcknowledgement",
+      "TestCommandAcknowledgementRequiresCompletePID"
+    ]
+  },
+  "source_sets": [
+    {
+      "platform": "linux",
+      "packages": 8,
+      "test_source_included": true,
+      "claim": "source-set inventory only; no native execution or full both-platform type-check claim"
+    },
+    {
+      "platform": "darwin",
+      "packages": 8,
+      "test_source_included": true,
+      "claim": "source-set inventory only; no native execution or full both-platform type-check claim"
+    }
+  ],
+  "lane": {
+    "terminal": true,
+    "free": true,
+    "overlap": {
+      "handles": [
+        19724,
+        52472
+      ],
+      "started": "2026-10-09T02:16:13.767Z",
+      "ended": "2026-10-09T02:16:18.003Z",
+      "disposition": "supplementary originals retained; architecture-serialized and generated-serialized supply sequential replacements"
+    },
+    "batch_driver_handle": 15923,
+    "batch_driver_exit": 0
+  },
+  "lint": {
+    "task40_scope": {
+      "exit": 0,
+      "issues": 0
+    },
+    "task9_scope": {
+      "exit": 1,
+      "issues": 2,
+      "kind": "inherited build/context.go ST1005"
+    },
+    "integrated": {
+      "exit": 2,
+      "issues": 24,
+      "kinds": {
+        "errcheck": 20,
+        "forbidigo": 1,
+        "staticcheck": 3
+      }
+    },
+    "fast": {
+      "exit": 0,
+      "issues": 0
+    },
+    "policy_changes": false
+  },
+  "reused_evidence": [
+    {
+      "receipt": "../../task-9/source-acceptance-20261008/resume-upgrade-tmp-diagnostic-receipt.json",
+      "source_sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a",
+      "pass": 31,
+      "changed_source_files": [
+        "tools/gomad3/target/internal/gocommand/command_test.go"
+      ],
+      "claim": "same production files; original upgrade ENOENT remains unresolved, no new full-candidate qualification"
+    },
+    {
+      "receipt": "../../task-9/source-acceptance-20261008/resume-upgrade-workspace-diagnostic-receipt.json",
+      "source_sha256": "7303aa7e32e0a28b895dd97156a08a6f6b2c5f2c5dd0cb5eff3c952401cc9f5a",
+      "pass": 31,
+      "changed_source_files": [
+        "tools/gomad3/target/internal/gocommand/command_test.go"
+      ],
+      "claim": "same production files; no new full-candidate qualification"
+    }
+  ],
+  "review": "pending root-coordinated independent review; worker supplies no formal verdict",
+  "remaining_acceptance": [
+    "Genuine deferred and simultaneous pipe-close faults remain unexecuted; admission grants no waiver.",
+    "Original predecessor/matched-first-baseline preservation and complete original source-owned full/functional/affected-consumer gates remain open wherever unproved.",
+    "Broader unfiltered scoped/integrated lint remains red; no new policy, suppression or residual subtraction.",
+    "Both-platform source inventories pass; complete static/type-check requirements remain open wherever not covered by retained evidence.",
+    "Native fn128/fn149 qualification deferred/unverified; no native full-host pass, patched-runtime qualification or soak bound.",
+    "Independent source review and formal task acceptance remain root-owned and pending."
+  ],
+  "authorization": {
+    "production_change": false,
+    "task_or_goal_status_change": false,
+    "stage_commit_push_pr_ci": false
+  }
+}

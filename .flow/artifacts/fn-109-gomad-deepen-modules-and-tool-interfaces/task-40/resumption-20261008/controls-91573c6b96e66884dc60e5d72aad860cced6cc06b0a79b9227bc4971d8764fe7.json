@@ -1,0 +1,46 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/conductor-preparation-20261008/findings.md",
+    "sha256": "fb8e20d598d6d4925c476a955f652b57e800cb8734e501e8344a2c01d1bd05ae"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/resumption-20261008/admission.md",
+    "sha256": "4ebffa19a6860fc820e084b032d208e5b45791da7f42f090f03b0758cf33eb7e"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/resumption-20261008/controls.json",
+    "sha256": "00c84dac0166dc9a6db65ccd0e860e25a97496ca1398157b78065091fc0fddcf"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/resumption-20261008/gates.mjs",
+    "sha256": "c375fef6a76bf8f43782d838fc8bb768172468525b29b7d95c0ad77ad41812bb"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/resumption-20261008/run.mjs",
+    "sha256": "30bb3b1c1c1967f9ec63e881daac862448058e4d5743c88b80a7473cfeae2d35"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/format-gate.sh",
+    "sha256": "63986a720e5e165e344bc11882458f8f8ef585d6a58034b3eb7d7538a61fb4e0"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/AGENTS.md",
+    "sha256": "8d634df5cbbbffd7dbada06e32b4d20d879707273f8be07bdf253b387211e6f3"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/MILESTONES.md",
+    "sha256": "51d138063f9ae25e80d01651022657d961bc3a6e7bc755dc296a7a87b60cae24"
+  },
+  {
+    "path": "/home/agent/.agents/skills/systematic-debugging/SKILL.md",
+    "sha256": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787"
+  },
+  {
+    "path": "/home/agent/.agents/skills/test-driven-development/SKILL.md",
+    "sha256": "bf1b8216e523851a411e91d429a7c1c2a173e79d88957bc78e348218d50edd54"
+  },
+  {
+    "path": "/home/agent/.agents/skills/test-driven-development/writing-good-tests.md",
+    "sha256": "51471c853306ff92ca8bb41dcaea05f31c0e46b03651f8f3c99754b7172f4ae1"
+  }
+]

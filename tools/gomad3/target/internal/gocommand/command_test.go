@@ -262,27 +262,21 @@ func TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants(t *testing.T) {
 			if mode == "cancel-stderr-overflow" {
 				stdout = "{}"
 			}
-			command := shell(t, "(trap '' TERM; exec sleep 1000) & child=$!; printf 'diagnostic' >&2; printf '"+stdout+"'; printf '%s' \"$child\" > \"$1\"; wait")
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			command := shell(t, "(trap '' TERM; exec sleep 1000) & child=$!; printf 'diagnostic' >&2; printf '"+stdout+"'; printf '%s\\n' \"$child\" > \"$1\"; wait")
+			ctx, cancel := context.WithCancel(context.Background())
+			if mode == "deadline" {
+				cancel()
+				ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+			}
 			defer cancel()
+			readyCtx, stopReadiness := context.WithTimeout(ctx, 5*time.Second)
+			defer stopReadiness()
 			ack := make(chan string, 1)
 			go func() {
-				ticker := time.NewTicker(time.Millisecond)
-				defer ticker.Stop()
-				for {
-					if data, err := os.ReadFile(marker); err == nil && len(data) > 0 {
-						ack <- string(data)
-						if mode == "cancel" || mode == "cancel-overflow" || mode == "cancel-stderr-overflow" {
-							cancel()
-						}
-						return
-					}
-					select {
-					case <-ctx.Done():
-						ack <- ""
-						return
-					case <-ticker.C:
-					}
+				pid := waitCommandAcknowledgement(readyCtx, marker)
+				ack <- pid
+				if pid == "" || mode == "cancel" || mode == "cancel-overflow" || mode == "cancel-stderr-overflow" {
+					cancel()
 				}
 			}()
 			var raw hostexec.Result
@@ -298,8 +292,13 @@ func TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants(t *testing.T) {
 			if mode == "cancel-overflow" || mode == "cancel-stderr-overflow" {
 				request.OutputLimit = 8
 			}
+			started := time.Now()
 			result, err := runner.Compatibility(ctx, request)
+			t.Logf("lifetime event: mode=%s elapsed=%s caller=%v cancelled=%t watchdog=%t pid=%d groupGone=%t stdout=%d stderr=%d raw=%T %v projected=%T %v", mode, time.Since(started), ctx.Err(), raw.Cancelled, raw.WatchdogTimeout, raw.PID, raw.GroupGone, raw.Stdout.TotalBytes, raw.Stderr.TotalBytes, raw.CommandError, raw.CommandError, err, err)
 			pid := <-ack
+			if pid == "" || raw.Stdout.TotalBytes != uint64(len(stdout)) || raw.Stderr.TotalBytes != uint64(len("diagnostic")) {
+				t.Fatalf("startup acknowledgement incomplete: child %q, stdout %d, stderr %d, caller %v, readiness %v", pid, raw.Stdout.TotalBytes, raw.Stderr.TotalBytes, ctx.Err(), readyCtx.Err())
+			}
 			if pid == "" || processAlive(pid) || !raw.GroupGone || len(result.Stdout) != 0 {
 				t.Fatalf("termination evidence = %#v, %v, child %s", raw, err, pid)
 			}
@@ -325,9 +324,15 @@ func TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants(t *testing.T) {
 					if !errors.As(err, &watchdog) || !raw.WatchdogTimeout || watchdog.Cause != raw.CommandError {
 						t.Fatalf("watchdog = %v", err)
 					}
+					if ctx.Err() != nil || raw.Cancelled {
+						t.Fatalf("watchdog competed with caller cancellation: caller %v, raw %#v", ctx.Err(), raw)
+					}
 				} else if err != raw.CommandError || raw.WatchdogTimeout {
 					t.Fatalf("caller cancellation replaced raw error: %v", err)
 				}
+			}
+			if mode == "deadline" && ctx.Err() != context.DeadlineExceeded {
+				t.Fatalf("caller deadline = %v, want deadline exceeded", ctx.Err())
 			}
 		})
 	}
@@ -402,23 +407,21 @@ func TestDiagnosticBoundsLongOutputAndKeepsFullHashes(t *testing.T) {
 
 func TestStructuredCancellationRemovesDescendant(t *testing.T) {
 	pidFile := filepath.Join(t.TempDir(), "child.pid")
-	command := shell(t, "sleep 1000 & child=$!; printf '%s' \"$child\" > \"$1\"; wait")
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	command := shell(t, "sleep 1000 & child=$!; printf '%s\\n' \"$child\" > \"$1\"; wait")
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	readyCtx, stopReadiness := context.WithTimeout(ctx, 5*time.Second)
+	defer stopReadiness()
+	ack := make(chan string, 1)
 	go func() {
-		for {
-			if _, err := os.Stat(pidFile); err == nil {
-				cancel()
-				return
-			}
-			select {
-			case <-ctx.Done():
-				return
-			case <-time.After(time.Millisecond):
-			}
-		}
+		ack <- waitCommandAcknowledgement(readyCtx, pidFile)
+		cancel()
 	}()
 	_, err := Default().Structured(ctx, Request{Command: []string{command, pidFile}, Dir: t.TempDir(), OutputLimit: 1024})
+	pid := <-ack
+	if pid == "" {
+		t.Fatalf("startup acknowledgement incomplete: caller %v, readiness %v, command %v", ctx.Err(), readyCtx.Err(), err)
+	}
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("Structured() error = %v, want cancellation", err)
 	}
@@ -426,7 +429,10 @@ func TestStructuredCancellationRemovesDescendant(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if processAlive(string(data)) {
+	if string(data) != pid+"\n" {
+		t.Fatalf("PID acknowledgement changed: got %q, want %q", data, pid+"\n")
+	}
+	if processAlive(pid) {
 		t.Fatalf("descendant %s survived cancellation", data)
 	}
 }
@@ -465,4 +471,45 @@ func processAlive(text string) bool {
 		return true
 	}
 	return !errors.Is(syscall.Kill(pid, 0), syscall.ESRCH)
+}
+
+func commandAcknowledgement(path string) (string, bool) {
+	data, err := os.ReadFile(path)
+	if err != nil || !strings.HasSuffix(string(data), "\n") {
+		return "", false
+	}
+	pid := strings.TrimSuffix(string(data), "\n")
+	value, err := strconv.Atoi(pid)
+	if err != nil || value <= 0 {
+		return "", false
+	}
+	return pid, true
+}
+
+func waitCommandAcknowledgement(ctx context.Context, path string) string {
+	ticker := time.NewTicker(time.Millisecond)
+	defer ticker.Stop()
+	for {
+		if pid, ready := commandAcknowledgement(path); ready {
+			return pid
+		}
+		select {
+		case <-ctx.Done():
+			return ""
+		case <-ticker.C:
+		}
+	}
+}
+
+func TestCommandAcknowledgementRequiresCompletePID(t *testing.T) {
+	marker := filepath.Join(t.TempDir(), "ready")
+	for _, data := range []string{"", "12", "invalid\n", "0\n", "-1\n", "123\n"} {
+		if err := os.WriteFile(marker, []byte(data), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		pid, ready := commandAcknowledgement(marker)
+		if ready != (data == "123\n") || ready && pid != "123" {
+			t.Fatalf("acknowledgement %q = %q, %t; want complete positive PID only", data, pid, ready)
+		}
+	}
 }

@@ -1,0 +1,9 @@
+{"Time":"2026-10-09T02:12:36.966454951Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand"}
+{"Time":"2026-10-09T02:12:36.991629285Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestCommandAcknowledgementRequiresCompletePID"}
+{"Time":"2026-10-09T02:12:36.991778743Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestCommandAcknowledgementRequiresCompletePID","Output":"=== RUN   TestCommandAcknowledgementRequiresCompletePID\n","OutputType":"frame"}
+{"Time":"2026-10-09T02:12:36.998008285Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestCommandAcknowledgementRequiresCompletePID","Output":"    command_test.go:485: acknowledgement \"\" = \"\", true; want complete positive PID only\n","OutputType":"error"}
+{"Time":"2026-10-09T02:12:36.99913641Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestCommandAcknowledgementRequiresCompletePID","Output":"--- FAIL: TestCommandAcknowledgementRequiresCompletePID (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-09T02:12:36.999223285Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestCommandAcknowledgementRequiresCompletePID","Elapsed":0.01}
+{"Time":"2026-10-09T02:12:36.99928741Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-10-09T02:12:37.002166868Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/target/internal/gocommand\t0.033s\n","OutputType":"frame"}
+{"Time":"2026-10-09T02:12:37.002229326Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Elapsed":0.036}

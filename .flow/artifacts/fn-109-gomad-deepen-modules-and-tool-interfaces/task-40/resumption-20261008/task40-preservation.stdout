@@ -1,0 +1,169 @@
+{
+  "baseline": "4ce2d847afd8762728f30d153d725fd1c073ecb0",
+  "current_head": "4ce2d847afd8762728f30d153d725fd1c073ecb0",
+  "changed_go_scope": [
+    "tools/gomad3/target/internal/gocommand/command_test.go"
+  ],
+  "admitted_fixture_exceptions": [
+    "TestStructuredCancellationRemovesDescendant",
+    "TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants"
+  ],
+  "original_functions": [
+    {
+      "name": "Read",
+      "admitted_exception": false,
+      "baseline_sha256": "76685fe31af9d8914a4d3575950b1708465ce9098ac4d9d9af0984589a6a9961",
+      "current_sha256": "76685fe31af9d8914a4d3575950b1708465ce9098ac4d9d9af0984589a6a9961",
+      "preserved": true
+    },
+    {
+      "name": "TestCompatibilityInfrastructureFailurePreservesBoundedStderr",
+      "admitted_exception": false,
+      "baseline_sha256": "855a5103f595faef98f97692cf4a11574b3a4625be2002c0d5bfb8be6bb51758",
+      "current_sha256": "855a5103f595faef98f97692cf4a11574b3a4625be2002c0d5bfb8be6bb51758",
+      "preserved": true
+    },
+    {
+      "name": "TestCompatibilityStdinFailureWinsOverRealOverflow",
+      "admitted_exception": false,
+      "baseline_sha256": "1cc457a449b96ee01e9eec77f2e767b5fa3c54e1103e125cf3d4e36b3c960b85",
+      "current_sha256": "1cc457a449b96ee01e9eec77f2e767b5fa3c54e1103e125cf3d4e36b3c960b85",
+      "preserved": true
+    },
+    {
+      "name": "TestCompatibilityCompletedExitSurvivesWatchdogWhileStdinCopyIsBlocked",
+      "admitted_exception": false,
+      "baseline_sha256": "ad7ca3dc2ff69952c2a91b1f658c2d47d5c3add622ca45ec950a9f07ca596730",
+      "current_sha256": "ad7ca3dc2ff69952c2a91b1f658c2d47d5c3add622ca45ec950a9f07ca596730",
+      "preserved": true
+    },
+    {
+      "name": "TestCompatibilityPreservesRawExitAndRejectsFailedStdout",
+      "admitted_exception": false,
+      "baseline_sha256": "23e55ff588ba8ae3153cf04664cc15264bbb78e4da4522e555f444b928be91fd",
+      "current_sha256": "23e55ff588ba8ae3153cf04664cc15264bbb78e4da4522e555f444b928be91fd",
+      "preserved": true
+    },
+    {
+      "name": "TestCompatibilityPreservesLegacyStartupPrecedence",
+      "admitted_exception": false,
+      "baseline_sha256": "5fb53b74803976336220db3a4921ae34d51f428471d599e2af82bd2a0d68f5d6",
+      "current_sha256": "5fb53b74803976336220db3a4921ae34d51f428471d599e2af82bd2a0d68f5d6",
+      "preserved": true
+    },
+    {
+      "name": "TestCompatibilityStartupErrorsAndDirectories",
+      "admitted_exception": false,
+      "baseline_sha256": "6457a0516b90ce94641f459f85a85079a917740bdb3b92ef4c4650a55949ec2a",
+      "current_sha256": "6457a0516b90ce94641f459f85a85079a917740bdb3b92ef4c4650a55949ec2a",
+      "preserved": true
+    },
+    {
+      "name": "TestCompatibilityBoundsRealStreamsBeforeRawOutcome",
+      "admitted_exception": false,
+      "baseline_sha256": "d9989993f82d2a68986714378f214e2722c1ae3c53f46a388cd51841b085b538",
+      "current_sha256": "d9989993f82d2a68986714378f214e2722c1ae3c53f46a388cd51841b085b538",
+      "preserved": true
+    },
+    {
+      "name": "TestCompatibilityCallerLifetimeKillsLeaderBeforeDescendants",
+      "admitted_exception": true,
+      "baseline_sha256": "6579e7b4ecd1f2e78656570b9d586aceeee21a939404f242b22900d3d9c2514f",
+      "current_sha256": "cecb264f4237deb3b15f52b1de0f210eb9558fbc7a0c37b6f48f00769abc3e1a",
+      "preserved": false
+    },
+    {
+      "name": "TestCompatibilityKeepsCompletedOutcomeAndCleanupPrecedence",
+      "admitted_exception": false,
+      "baseline_sha256": "2c5f697e66802d6f941febbae66d64f535be84ee28a9c866e03ed2552e6ee16f",
+      "current_sha256": "2c5f697e66802d6f941febbae66d64f535be84ee28a9c866e03ed2552e6ee16f",
+      "preserved": true
+    },
+    {
+      "name": "TestCompatibilityUsesFiniteDefaultWatchdogAndPositiveCapacity",
+      "admitted_exception": false,
+      "baseline_sha256": "c20f4d84e1716f550fb10435013cfa1b05ee27a3ddee467eb660b78e4d633007",
+      "current_sha256": "c20f4d84e1716f550fb10435013cfa1b05ee27a3ddee467eb660b78e4d633007",
+      "preserved": true
+    },
+    {
+      "name": "TestStructuredRejectsOverflowBeforeReturningData",
+      "admitted_exception": false,
+      "baseline_sha256": "3af773e18ad9bbec7c06a90b2baac7d9d70236e1d8761d843c2586775751f5fc",
+      "current_sha256": "3af773e18ad9bbec7c06a90b2baac7d9d70236e1d8761d843c2586775751f5fc",
+      "preserved": true
+    },
+    {
+      "name": "TestDiagnosticBoundsLongOutputAndKeepsFullHashes",
+      "admitted_exception": false,
+      "baseline_sha256": "8eee424374c0620f690258b0d4f6803c7a60bad70d6b5744eec467c3098760fa",
+      "current_sha256": "8eee424374c0620f690258b0d4f6803c7a60bad70d6b5744eec467c3098760fa",
+      "preserved": true
+    },
+    {
+      "name": "TestStructuredCancellationRemovesDescendant",
+      "admitted_exception": true,
+      "baseline_sha256": "d0ba1039a45408b49c557562df51322d0eea5e692a9c4eb589f072e3932411f1",
+      "current_sha256": "3f983e086c203ae36df9d710b64a67a60c78d4a23451702b1809b3035e864b98",
+      "preserved": false
+    },
+    {
+      "name": "TestDiagnosticRetainsOutputOnWatchdogAndPropagatesCleanupFailure",
+      "admitted_exception": false,
+      "baseline_sha256": "cdcab85f8f4f9ed833c135b778beac78b40124151af1ac4509a58953599ae8dd",
+      "current_sha256": "cdcab85f8f4f9ed833c135b778beac78b40124151af1ac4509a58953599ae8dd",
+      "preserved": true
+    },
+    {
+      "name": "shell",
+      "admitted_exception": false,
+      "baseline_sha256": "b259c9e5dbddcafb1bfc948ada4e874ca4fd44209986eebb5b6118eb9f27c118",
+      "current_sha256": "b259c9e5dbddcafb1bfc948ada4e874ca4fd44209986eebb5b6118eb9f27c118",
+      "preserved": true
+    },
+    {
+      "name": "processAlive",
+      "admitted_exception": false,
+      "baseline_sha256": "b8a8a083fd522e872d5cd205019bc04547b98812f2b888d1456abeff6e2428f4",
+      "current_sha256": "b8a8a083fd522e872d5cd205019bc04547b98812f2b888d1456abeff6e2428f4",
+      "preserved": true
+    }
+  ],
+  "original_comments_preserved": true,
+  "protected_files": [
+    {
+      "path": "tools/gomad3/internal/hostexec/command.go",
+      "baseline_sha256": "ef0bee20488186a114788b77ff2bc392a8d8fa6561069d358be01c486a0bc999",
+      "current_sha256": "ef0bee20488186a114788b77ff2bc392a8d8fa6561069d358be01c486a0bc999",
+      "preserved": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostexec/command_unix.go",
+      "baseline_sha256": "e12a21cbbb56bb634db7dea821a7696a295ab3e2c1591aba9c0e09557202ff7e",
+      "current_sha256": "e12a21cbbb56bb634db7dea821a7696a295ab3e2c1591aba9c0e09557202ff7e",
+      "preserved": true
+    },
+    {
+      "path": "tools/gomad3/internal/hostexec/command_unix_test.go",
+      "baseline_sha256": "91e2953e5cd3f13212584e60e31208508c77d3063532e7be95482b4df0227fb0",
+      "current_sha256": "91e2953e5cd3f13212584e60e31208508c77d3063532e7be95482b4df0227fb0",
+      "preserved": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/gocommand/command.go",
+      "baseline_sha256": "c6a742c6bd64294273128a2079138d6f095b5526f907f99b6878b9719d169e58",
+      "current_sha256": "c6a742c6bd64294273128a2079138d6f095b5526f907f99b6878b9719d169e58",
+      "preserved": true
+    }
+  ],
+  "additions": [
+    "commandAcknowledgement",
+    "waitCommandAcknowledgement",
+    "TestCommandAcknowledgementRequiresCompletePID"
+  ],
+  "source_file": {
+    "path": "tools/gomad3/target/internal/gocommand/command_test.go",
+    "baseline_sha256": "d6b4eac8ebbbb224171516ca62203e436dd51c5a54f6eb82b4b88d9ec846c435",
+    "current_sha256": "84364a221242b142729ec1c31d17a8a199ab0df52f39ec7ce6861d6ebe3e4a63"
+  }
+}
