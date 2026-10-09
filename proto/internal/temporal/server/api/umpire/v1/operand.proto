@@ -8,6 +8,7 @@ option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
 option java_multiple_files = true;
 option java_package = "io.temporal.server.api.umpire.v1";
 
+import "google/protobuf/empty.proto";
 import "temporal/server/api/umpire/v1/common.proto";
 
 // A text a Case gets its own copy of: the prefix, then the Case's fixture name when `fixture` is
@@ -26,11 +27,11 @@ message Operand {
     // An environment binding's value.
     string environment = 3;
     // The run's own id.
-    Empty run = 4;
+    google.protobuf.Empty run = 4;
     // A learned value, by id.
     string learned_value = 5;
     // The value a poll is looking at, or the payload a Run Event's guard and key read.
-    Empty projected = 6;
+    google.protobuf.Empty projected = 6;
     PathOf path = 7;
     Present present = 8;
     Equal equal = 9;

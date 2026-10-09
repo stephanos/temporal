@@ -1,5 +1,6 @@
 package umpire.irgen
 
+import com.google.protobuf.empty.Empty
 import io.temporal.server.api.umpire.v1 as ir
 import io.temporal.server.api.umpire.v1.Expr.Kind as E
 import scala.collection.mutable
@@ -862,7 +863,7 @@ private[irgen] trait Syntax:
   def stickyMonitor(t: Term, id: String): Option[ir.Monitor] = sugarCall(t) match
     case Some((word @ ("sticky" | "stickyAcross"), List(List(promise)))) =>
       val state = typeArgs(t).head
-      val bool = ir.TypeRef(ir.TypeRef.Ref.Bool(ir.Empty()))
+      val bool = ir.TypeRef(ir.TypeRef.Ref.Bool(Empty()))
       def variable(n: String) = expr(t)(E.Var(n))
       // The author's predicate, by the def it names, or as a function of its own named after the word.
       val kept = stepFunction(promise, id, word)
@@ -897,7 +898,7 @@ private[irgen] trait Syntax:
           initial = Some(lit(ir.Value.Kind.Bool(false), t)),
           next = next,
           violated = violated,
-          evaluate = ir.Monitor.Evaluate.EveryStep(ir.Empty())
+          evaluate = ir.Monitor.Evaluate.EveryStep(Empty())
         )
       )
     case _ => None

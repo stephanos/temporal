@@ -1,5 +1,6 @@
 package umpire.irgen
 
+import com.google.protobuf.empty.Empty
 import io.temporal.server.api.umpire.v1 as ir
 import io.temporal.server.api.umpire.v1.Expr.Kind as E
 import io.temporal.server.api.umpire.v1.Pattern.Kind as P
@@ -837,7 +838,7 @@ private[irgen] trait Expressions:
     expr(at)(E.Copy(ir.Copy(Some(b), updates)))
 
   def pattern(p: Tree, scrutinee: TypeRepr): ir.Pattern = ir.Pattern(p match
-    case Wildcard()        => P.Wildcard(ir.Empty())
+    case Wildcard()        => P.Wildcard(Empty())
     case Bind(name, inner) => P.Bind(ir.Bind(name, Some(pattern(inner, scrutinee))))
     case Alternatives(ps)  => P.Alternatives(ir.Alternatives(ps.map(pattern(_, scrutinee))))
     case Literal(BooleanConstant(b))      => P.Literal(ir.Value(ir.Value.Kind.Bool(b)))

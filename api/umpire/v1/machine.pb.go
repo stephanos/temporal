@@ -17,6 +17,7 @@ import (
 
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -819,7 +820,7 @@ func (x *Monitor) GetEvaluate() isMonitor_Evaluate {
 	return nil
 }
 
-func (x *Monitor) GetEveryStep() *Empty {
+func (x *Monitor) GetEveryStep() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Evaluate.(*Monitor_EveryStep); ok {
 			return x.EveryStep
@@ -828,7 +829,7 @@ func (x *Monitor) GetEveryStep() *Empty {
 	return nil
 }
 
-func (x *Monitor) GetAtEnds() *Empty {
+func (x *Monitor) GetAtEnds() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Evaluate.(*Monitor_AtEnds); ok {
 			return x.AtEnds
@@ -852,12 +853,12 @@ type isMonitor_Evaluate interface {
 
 type Monitor_EveryStep struct {
 	// After every step.
-	EveryStep *Empty `protobuf:"bytes,8,opt,name=every_step,json=everyStep,proto3,oneof"`
+	EveryStep *emptypb.Empty `protobuf:"bytes,8,opt,name=every_step,json=everyStep,proto3,oneof"`
 }
 
 type Monitor_AtEnds struct {
 	// At the end of a path, in a state the machine may end in.
-	AtEnds *Empty `protobuf:"bytes,9,opt,name=at_ends,json=atEnds,proto3,oneof"`
+	AtEnds *emptypb.Empty `protobuf:"bytes,9,opt,name=at_ends,json=atEnds,proto3,oneof"`
 }
 
 type Monitor_After struct {
@@ -1336,7 +1337,7 @@ var File_temporal_server_api_umpire_v1_machine_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_umpire_v1_machine_proto_rawDesc = "" +
 	"\n" +
-	"+temporal/server/api/umpire/v1/machine.proto\x12\x1dtemporal.server.api.umpire.v1\x1a*temporal/server/api/umpire/v1/common.proto\x1a.temporal/server/api/umpire/v1/expression.proto\x1a)temporal/server/api/umpire/v1/value.proto\"\xcb\x03\n" +
+	"+temporal/server/api/umpire/v1/machine.proto\x12\x1dtemporal.server.api.umpire.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a*temporal/server/api/umpire/v1/common.proto\x1a.temporal/server/api/umpire/v1/expression.proto\x1a)temporal/server/api/umpire/v1/value.proto\"\xcb\x03\n" +
 	"\x06Action\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12C\n" +
@@ -1399,7 +1400,7 @@ const file_temporal_server_api_umpire_v1_machine_proto_rawDesc = "" +
 	"\x11ORDER_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
 	"ORDER_FIFO\x10\x01\x12\x13\n" +
-	"\x0fORDER_UNORDERED\x10\x02\"\xcb\x03\n" +
+	"\x0fORDER_UNORDERED\x10\x02\"\xaf\x03\n" +
 	"\aMonitor\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12C\n" +
@@ -1407,10 +1408,10 @@ const file_temporal_server_api_umpire_v1_machine_proto_rawDesc = "" +
 	"\x05state\x18\x04 \x01(\v2&.temporal.server.api.umpire.v1.TypeRefR\x05state\x12=\n" +
 	"\ainitial\x18\x05 \x01(\v2#.temporal.server.api.umpire.v1.ExprR\ainitial\x12\x12\n" +
 	"\x04next\x18\x06 \x01(\tR\x04next\x12\x1a\n" +
-	"\bviolated\x18\a \x01(\tR\bviolated\x12E\n" +
+	"\bviolated\x18\a \x01(\tR\bviolated\x127\n" +
 	"\n" +
-	"every_step\x18\b \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\teveryStep\x12?\n" +
-	"\aat_ends\x18\t \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\x06atEnds\x12\x16\n" +
+	"every_step\x18\b \x01(\v2\x16.google.protobuf.EmptyH\x00R\teveryStep\x121\n" +
+	"\aat_ends\x18\t \x01(\v2\x16.google.protobuf.EmptyH\x00R\x06atEnds\x12\x16\n" +
 	"\x05after\x18\n" +
 	" \x01(\tH\x00R\x05afterB\n" +
 	"\n" +
@@ -1465,27 +1466,27 @@ func file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP() []byte {
 var file_temporal_server_api_umpire_v1_machine_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_temporal_server_api_umpire_v1_machine_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_temporal_server_api_umpire_v1_machine_proto_goTypes = []any{
-	(Channel_Order)(0),  // 0: temporal.server.api.umpire.v1.Channel.Order
-	(*Action)(nil),      // 1: temporal.server.api.umpire.v1.Action
-	(*Example)(nil),     // 2: temporal.server.api.umpire.v1.Example
-	(*Machine)(nil),     // 3: temporal.server.api.umpire.v1.Machine
-	(*StepBinding)(nil), // 4: temporal.server.api.umpire.v1.StepBinding
-	(*Refinement)(nil),  // 5: temporal.server.api.umpire.v1.Refinement
-	(*Channel)(nil),     // 6: temporal.server.api.umpire.v1.Channel
-	(*Monitor)(nil),     // 7: temporal.server.api.umpire.v1.Monitor
-	(*Assumption)(nil),  // 8: temporal.server.api.umpire.v1.Assumption
-	(*Hole)(nil),        // 9: temporal.server.api.umpire.v1.Hole
-	(*Composition)(nil), // 10: temporal.server.api.umpire.v1.Composition
-	(*Member)(nil),      // 11: temporal.server.api.umpire.v1.Member
-	(*Sync)(nil),        // 12: temporal.server.api.umpire.v1.Sync
-	(*SyncMove)(nil),    // 13: temporal.server.api.umpire.v1.SyncMove
-	(*ActionClass)(nil), // 14: temporal.server.api.umpire.v1.ActionClass
-	(*Position)(nil),    // 15: temporal.server.api.umpire.v1.Position
-	(*Param)(nil),       // 16: temporal.server.api.umpire.v1.Param
-	(*Value)(nil),       // 17: temporal.server.api.umpire.v1.Value
-	(*Expr)(nil),        // 18: temporal.server.api.umpire.v1.Expr
-	(*TypeRef)(nil),     // 19: temporal.server.api.umpire.v1.TypeRef
-	(*Empty)(nil),       // 20: temporal.server.api.umpire.v1.Empty
+	(Channel_Order)(0),    // 0: temporal.server.api.umpire.v1.Channel.Order
+	(*Action)(nil),        // 1: temporal.server.api.umpire.v1.Action
+	(*Example)(nil),       // 2: temporal.server.api.umpire.v1.Example
+	(*Machine)(nil),       // 3: temporal.server.api.umpire.v1.Machine
+	(*StepBinding)(nil),   // 4: temporal.server.api.umpire.v1.StepBinding
+	(*Refinement)(nil),    // 5: temporal.server.api.umpire.v1.Refinement
+	(*Channel)(nil),       // 6: temporal.server.api.umpire.v1.Channel
+	(*Monitor)(nil),       // 7: temporal.server.api.umpire.v1.Monitor
+	(*Assumption)(nil),    // 8: temporal.server.api.umpire.v1.Assumption
+	(*Hole)(nil),          // 9: temporal.server.api.umpire.v1.Hole
+	(*Composition)(nil),   // 10: temporal.server.api.umpire.v1.Composition
+	(*Member)(nil),        // 11: temporal.server.api.umpire.v1.Member
+	(*Sync)(nil),          // 12: temporal.server.api.umpire.v1.Sync
+	(*SyncMove)(nil),      // 13: temporal.server.api.umpire.v1.SyncMove
+	(*ActionClass)(nil),   // 14: temporal.server.api.umpire.v1.ActionClass
+	(*Position)(nil),      // 15: temporal.server.api.umpire.v1.Position
+	(*Param)(nil),         // 16: temporal.server.api.umpire.v1.Param
+	(*Value)(nil),         // 17: temporal.server.api.umpire.v1.Value
+	(*Expr)(nil),          // 18: temporal.server.api.umpire.v1.Expr
+	(*TypeRef)(nil),       // 19: temporal.server.api.umpire.v1.TypeRef
+	(*emptypb.Empty)(nil), // 20: google.protobuf.Empty
 }
 var file_temporal_server_api_umpire_v1_machine_proto_depIdxs = []int32{
 	15, // 0: temporal.server.api.umpire.v1.Action.position:type_name -> temporal.server.api.umpire.v1.Position
@@ -1504,8 +1505,8 @@ var file_temporal_server_api_umpire_v1_machine_proto_depIdxs = []int32{
 	15, // 13: temporal.server.api.umpire.v1.Monitor.position:type_name -> temporal.server.api.umpire.v1.Position
 	19, // 14: temporal.server.api.umpire.v1.Monitor.state:type_name -> temporal.server.api.umpire.v1.TypeRef
 	18, // 15: temporal.server.api.umpire.v1.Monitor.initial:type_name -> temporal.server.api.umpire.v1.Expr
-	20, // 16: temporal.server.api.umpire.v1.Monitor.every_step:type_name -> temporal.server.api.umpire.v1.Empty
-	20, // 17: temporal.server.api.umpire.v1.Monitor.at_ends:type_name -> temporal.server.api.umpire.v1.Empty
+	20, // 16: temporal.server.api.umpire.v1.Monitor.every_step:type_name -> google.protobuf.Empty
+	20, // 17: temporal.server.api.umpire.v1.Monitor.at_ends:type_name -> google.protobuf.Empty
 	15, // 18: temporal.server.api.umpire.v1.Assumption.position:type_name -> temporal.server.api.umpire.v1.Position
 	15, // 19: temporal.server.api.umpire.v1.Hole.position:type_name -> temporal.server.api.umpire.v1.Position
 	15, // 20: temporal.server.api.umpire.v1.Composition.position:type_name -> temporal.server.api.umpire.v1.Position

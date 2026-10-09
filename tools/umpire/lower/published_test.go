@@ -15,6 +15,7 @@ import (
 	"go.temporal.io/server/tools/umpire/interp"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // The rule, on paths written out: each kind with the place of the last step it confirms, a record
@@ -108,7 +109,7 @@ func TestARecordIsLateByTheAttemptItIsDeclaredOf(t *testing.T) {
 		Source: "temporal.features.activity.standalone.system.source.again", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
 		Confirms: []*umpirespb.Taking{{Step: evidenceOf(t, m, "statusStarted").GetConfirms()[0].GetStep(), Occurrence: 2}},
 		From: &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
-			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}})
+			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}}}})
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	l, err := p.Lower("retry", activityIdentity("retry"))
@@ -136,7 +137,7 @@ func TestARecordIsEarlyByTheAttemptItIsDeclaredOf(t *testing.T) {
 		Source: "temporal.features.activity.standalone.system.source.failed", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
 		Confirms: []*umpirespb.Taking{failure},
 		From: &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
-			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}})
+			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}}}})
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	l, err := p.Lower("retry", activityIdentity("retry"))

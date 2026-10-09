@@ -17,6 +17,7 @@ import (
 
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -1317,7 +1318,7 @@ func (x *Pattern) GetKind() isPattern_Kind {
 	return nil
 }
 
-func (x *Pattern) GetWildcard() *Empty {
+func (x *Pattern) GetWildcard() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Kind.(*Pattern_Wildcard); ok {
 			return x.Wildcard
@@ -1367,7 +1368,7 @@ type isPattern_Kind interface {
 }
 
 type Pattern_Wildcard struct {
-	Wildcard *Empty `protobuf:"bytes,1,opt,name=wildcard,proto3,oneof"`
+	Wildcard *emptypb.Empty `protobuf:"bytes,1,opt,name=wildcard,proto3,oneof"`
 }
 
 type Pattern_Bind struct {
@@ -1787,7 +1788,7 @@ var File_temporal_server_api_umpire_v1_expression_proto protoreflect.FileDescrip
 
 const file_temporal_server_api_umpire_v1_expression_proto_rawDesc = "" +
 	"\n" +
-	".temporal/server/api/umpire/v1/expression.proto\x12\x1dtemporal.server.api.umpire.v1\x1a*temporal/server/api/umpire/v1/common.proto\x1a)temporal/server/api/umpire/v1/value.proto\"\x9b\x02\n" +
+	".temporal/server/api/umpire/v1/expression.proto\x12\x1dtemporal.server.api.umpire.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a*temporal/server/api/umpire/v1/common.proto\x1a)temporal/server/api/umpire/v1/value.proto\"\x9b\x02\n" +
 	"\bFunction\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12C\n" +
 	"\bposition\x18\x02 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12<\n" +
@@ -1874,9 +1875,9 @@ const file_temporal_server_api_umpire_v1_expression_proto_rawDesc = "" +
 	"\tMatchCase\x12@\n" +
 	"\apattern\x18\x01 \x01(\v2&.temporal.server.api.umpire.v1.PatternR\apattern\x129\n" +
 	"\x05guard\x18\x02 \x01(\v2#.temporal.server.api.umpire.v1.ExprR\x05guard\x127\n" +
-	"\x04body\x18\x03 \x01(\v2#.temporal.server.api.umpire.v1.ExprR\x04body\"\xe7\x02\n" +
-	"\aPattern\x12B\n" +
-	"\bwildcard\x18\x01 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\bwildcard\x129\n" +
+	"\x04body\x18\x03 \x01(\v2#.temporal.server.api.umpire.v1.ExprR\x04body\"\xd9\x02\n" +
+	"\aPattern\x124\n" +
+	"\bwildcard\x18\x01 \x01(\v2\x16.google.protobuf.EmptyH\x00R\bwildcard\x129\n" +
 	"\x04bind\x18\x02 \x01(\v2#.temporal.server.api.umpire.v1.BindH\x00R\x04bind\x12@\n" +
 	"\aliteral\x18\x03 \x01(\v2$.temporal.server.api.umpire.v1.ValueH\x00R\aliteral\x12@\n" +
 	"\x04case\x18\x04 \x01(\v2*.temporal.server.api.umpire.v1.CasePatternH\x00R\x04case\x12Q\n" +
@@ -1928,34 +1929,34 @@ func file_temporal_server_api_umpire_v1_expression_proto_rawDescGZIP() []byte {
 var file_temporal_server_api_umpire_v1_expression_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_temporal_server_api_umpire_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_temporal_server_api_umpire_v1_expression_proto_goTypes = []any{
-	(Unary_Op)(0),        // 0: temporal.server.api.umpire.v1.Unary.Op
-	(Binary_Op)(0),       // 1: temporal.server.api.umpire.v1.Binary.Op
-	(Inbox_Op)(0),        // 2: temporal.server.api.umpire.v1.Inbox.Op
-	(*Function)(nil),     // 3: temporal.server.api.umpire.v1.Function
-	(*Param)(nil),        // 4: temporal.server.api.umpire.v1.Param
-	(*Expr)(nil),         // 5: temporal.server.api.umpire.v1.Expr
-	(*FieldAccess)(nil),  // 6: temporal.server.api.umpire.v1.FieldAccess
-	(*Call)(nil),         // 7: temporal.server.api.umpire.v1.Call
-	(*Construct)(nil),    // 8: temporal.server.api.umpire.v1.Construct
-	(*Copy)(nil),         // 9: temporal.server.api.umpire.v1.Copy
-	(*NamedExpr)(nil),    // 10: temporal.server.api.umpire.v1.NamedExpr
-	(*Unary)(nil),        // 11: temporal.server.api.umpire.v1.Unary
-	(*Binary)(nil),       // 12: temporal.server.api.umpire.v1.Binary
-	(*If)(nil),           // 13: temporal.server.api.umpire.v1.If
-	(*Match)(nil),        // 14: temporal.server.api.umpire.v1.Match
-	(*MatchCase)(nil),    // 15: temporal.server.api.umpire.v1.MatchCase
-	(*Pattern)(nil),      // 16: temporal.server.api.umpire.v1.Pattern
-	(*Bind)(nil),         // 17: temporal.server.api.umpire.v1.Bind
-	(*CasePattern)(nil),  // 18: temporal.server.api.umpire.v1.CasePattern
-	(*Alternatives)(nil), // 19: temporal.server.api.umpire.v1.Alternatives
-	(*Let)(nil),          // 20: temporal.server.api.umpire.v1.Let
-	(*ListOf)(nil),       // 21: temporal.server.api.umpire.v1.ListOf
-	(*Inbox)(nil),        // 22: temporal.server.api.umpire.v1.Inbox
-	(*Lambda)(nil),       // 23: temporal.server.api.umpire.v1.Lambda
-	(*Position)(nil),     // 24: temporal.server.api.umpire.v1.Position
-	(*TypeRef)(nil),      // 25: temporal.server.api.umpire.v1.TypeRef
-	(*Value)(nil),        // 26: temporal.server.api.umpire.v1.Value
-	(*Empty)(nil),        // 27: temporal.server.api.umpire.v1.Empty
+	(Unary_Op)(0),         // 0: temporal.server.api.umpire.v1.Unary.Op
+	(Binary_Op)(0),        // 1: temporal.server.api.umpire.v1.Binary.Op
+	(Inbox_Op)(0),         // 2: temporal.server.api.umpire.v1.Inbox.Op
+	(*Function)(nil),      // 3: temporal.server.api.umpire.v1.Function
+	(*Param)(nil),         // 4: temporal.server.api.umpire.v1.Param
+	(*Expr)(nil),          // 5: temporal.server.api.umpire.v1.Expr
+	(*FieldAccess)(nil),   // 6: temporal.server.api.umpire.v1.FieldAccess
+	(*Call)(nil),          // 7: temporal.server.api.umpire.v1.Call
+	(*Construct)(nil),     // 8: temporal.server.api.umpire.v1.Construct
+	(*Copy)(nil),          // 9: temporal.server.api.umpire.v1.Copy
+	(*NamedExpr)(nil),     // 10: temporal.server.api.umpire.v1.NamedExpr
+	(*Unary)(nil),         // 11: temporal.server.api.umpire.v1.Unary
+	(*Binary)(nil),        // 12: temporal.server.api.umpire.v1.Binary
+	(*If)(nil),            // 13: temporal.server.api.umpire.v1.If
+	(*Match)(nil),         // 14: temporal.server.api.umpire.v1.Match
+	(*MatchCase)(nil),     // 15: temporal.server.api.umpire.v1.MatchCase
+	(*Pattern)(nil),       // 16: temporal.server.api.umpire.v1.Pattern
+	(*Bind)(nil),          // 17: temporal.server.api.umpire.v1.Bind
+	(*CasePattern)(nil),   // 18: temporal.server.api.umpire.v1.CasePattern
+	(*Alternatives)(nil),  // 19: temporal.server.api.umpire.v1.Alternatives
+	(*Let)(nil),           // 20: temporal.server.api.umpire.v1.Let
+	(*ListOf)(nil),        // 21: temporal.server.api.umpire.v1.ListOf
+	(*Inbox)(nil),         // 22: temporal.server.api.umpire.v1.Inbox
+	(*Lambda)(nil),        // 23: temporal.server.api.umpire.v1.Lambda
+	(*Position)(nil),      // 24: temporal.server.api.umpire.v1.Position
+	(*TypeRef)(nil),       // 25: temporal.server.api.umpire.v1.TypeRef
+	(*Value)(nil),         // 26: temporal.server.api.umpire.v1.Value
+	(*emptypb.Empty)(nil), // 27: google.protobuf.Empty
 }
 var file_temporal_server_api_umpire_v1_expression_proto_depIdxs = []int32{
 	24, // 0: temporal.server.api.umpire.v1.Function.position:type_name -> temporal.server.api.umpire.v1.Position
@@ -1996,7 +1997,7 @@ var file_temporal_server_api_umpire_v1_expression_proto_depIdxs = []int32{
 	16, // 35: temporal.server.api.umpire.v1.MatchCase.pattern:type_name -> temporal.server.api.umpire.v1.Pattern
 	5,  // 36: temporal.server.api.umpire.v1.MatchCase.guard:type_name -> temporal.server.api.umpire.v1.Expr
 	5,  // 37: temporal.server.api.umpire.v1.MatchCase.body:type_name -> temporal.server.api.umpire.v1.Expr
-	27, // 38: temporal.server.api.umpire.v1.Pattern.wildcard:type_name -> temporal.server.api.umpire.v1.Empty
+	27, // 38: temporal.server.api.umpire.v1.Pattern.wildcard:type_name -> google.protobuf.Empty
 	17, // 39: temporal.server.api.umpire.v1.Pattern.bind:type_name -> temporal.server.api.umpire.v1.Bind
 	26, // 40: temporal.server.api.umpire.v1.Pattern.literal:type_name -> temporal.server.api.umpire.v1.Value
 	18, // 41: temporal.server.api.umpire.v1.Pattern.case:type_name -> temporal.server.api.umpire.v1.CasePattern

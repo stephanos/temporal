@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func TestPayloadFieldsNamesTheFieldsOfAPath(t *testing.T) {
@@ -88,7 +89,7 @@ func TestGuardProblemTypesAGuardAgainstThePayload(t *testing.T) {
 		"an enum value the enum lacks":     {opEqual(admPayload("commitment"), enumName("NOPE")), evidence, fmt.Sprintf("compares a value of %s with NOPE, which it does not have", commitment.FullName())},
 		"a field of a kind no guard reads": {present(admPayload("version")), model, fmt.Sprintf("reads %s, which is of kind uint32", model.Fields().ByName("version").FullName())},
 		"a field the payload lacks":        {present(admPayload("nope")), evidence, fmt.Sprintf("reads nope, and %s has no field nope", evidence.FullName())},
-		"the run's id":                     {present(&umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}), evidence, "reads the run's id; a Run Event's guard reads the event's payload alone"},
+		"the run's id":                     {present(&umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}), evidence, "reads the run's id; a Run Event's guard reads the event's payload alone"},
 		"a conjunction of nothing":         {opAll(), evidence, "is a conjunction of no operand"},
 	} {
 		t.Run(name, func(t *testing.T) {

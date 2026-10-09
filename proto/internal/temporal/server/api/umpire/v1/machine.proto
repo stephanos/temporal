@@ -8,6 +8,7 @@ option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
 option java_multiple_files = true;
 option java_package = "io.temporal.server.api.umpire.v1";
 
+import "google/protobuf/empty.proto";
 import "temporal/server/api/umpire/v1/common.proto";
 import "temporal/server/api/umpire/v1/expression.proto";
 import "temporal/server/api/umpire/v1/value.proto";
@@ -135,9 +136,9 @@ message Monitor {
   // Where the verdict is read.
   oneof evaluate {
     // After every step.
-    Empty every_step = 8;
+    google.protobuf.Empty every_step = 8;
     // At the end of a path, in a state the machine may end in.
-    Empty at_ends = 9;
+    google.protobuf.Empty at_ends = 9;
     // After the steps a Function from the step record to a Boolean accepts.
     string after = 10;
   }

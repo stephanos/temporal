@@ -17,6 +17,7 @@ import (
 
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -273,7 +274,7 @@ func (x *Script) GetActivation() isScript_Activation {
 	return nil
 }
 
-func (x *Script) GetController() *Empty {
+func (x *Script) GetController() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Activation.(*Script_Controller); ok {
 			return x.Controller
@@ -321,7 +322,7 @@ type isScript_Activation interface {
 }
 
 type Script_Controller struct {
-	Controller *Empty `protobuf:"bytes,3,opt,name=controller,proto3,oneof"`
+	Controller *emptypb.Empty `protobuf:"bytes,3,opt,name=controller,proto3,oneof"`
 }
 
 type Script_Workflow struct {
@@ -892,7 +893,7 @@ func (x *Command) GetAttemptFailure() *AttemptFailure {
 	return nil
 }
 
-func (x *Command) GetAttemptCanceled() *Empty {
+func (x *Command) GetAttemptCanceled() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Instruction.(*Command_AttemptCanceled); ok {
 			return x.AttemptCanceled
@@ -992,7 +993,7 @@ type Command_AttemptFailure struct {
 
 type Command_AttemptCanceled struct {
 	// Answers the attempt an activity script's command runs in as canceled.
-	AttemptCanceled *Empty `protobuf:"bytes,19,opt,name=attempt_canceled,json=attemptCanceled,proto3,oneof"`
+	AttemptCanceled *emptypb.Empty `protobuf:"bytes,19,opt,name=attempt_canceled,json=attemptCanceled,proto3,oneof"`
 }
 
 type Command_AttemptWithheld struct {
@@ -1848,12 +1849,12 @@ var File_temporal_server_api_umpire_v1_script_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_umpire_v1_script_proto_rawDesc = "" +
 	"\n" +
-	"*temporal/server/api/umpire/v1/script.proto\x12\x1dtemporal.server.api.umpire.v1\x1a*temporal/server/api/umpire/v1/common.proto\x1a+temporal/server/api/umpire/v1/machine.proto\x1a+temporal/server/api/umpire/v1/operand.proto\"\xee\x03\n" +
+	"*temporal/server/api/umpire/v1/script.proto\x12\x1dtemporal.server.api.umpire.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a*temporal/server/api/umpire/v1/common.proto\x1a+temporal/server/api/umpire/v1/machine.proto\x1a+temporal/server/api/umpire/v1/operand.proto\"\xe0\x03\n" +
 	"\x06Script\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12C\n" +
-	"\bposition\x18\x02 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12F\n" +
+	"\bposition\x18\x02 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x128\n" +
 	"\n" +
-	"controller\x18\x03 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\n" +
+	"controller\x18\x03 \x01(\v2\x16.google.protobuf.EmptyH\x00R\n" +
 	"controller\x12O\n" +
 	"\bworkflow\x18\x04 \x01(\v21.temporal.server.api.umpire.v1.WorkflowActivationH\x00R\bworkflow\x12\\\n" +
 	"\rnexus_handler\x18\x05 \x01(\v25.temporal.server.api.umpire.v1.NexusHandlerActivationH\x00R\fnexusHandler\x12O\n" +
@@ -1886,7 +1887,7 @@ const file_temporal_server_api_umpire_v1_script_proto_rawDesc = "" +
 	"\vPerformance\x12C\n" +
 	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12>\n" +
 	"\x04step\x18\x02 \x01(\v2*.temporal.server.api.umpire.v1.ActionClassR\x04step\x12@\n" +
-	"\acommand\x18\x03 \x01(\v2&.temporal.server.api.umpire.v1.CommandR\acommand\"\xa4\n" +
+	"\acommand\x18\x03 \x01(\v2&.temporal.server.api.umpire.v1.CommandR\acommand\"\x96\n" +
 	"\n" +
 	"\aCommand\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12C\n" +
@@ -1910,8 +1911,8 @@ const file_temporal_server_api_umpire_v1_script_proto_rawDesc = "" +
 	"\x10nexus_completion\x18\x0e \x01(\v2..temporal.server.api.umpire.v1.NexusCompletionH\x00R\x0fnexusCompletion\x12\x14\n" +
 	"\x04hold\x18\x0f \x01(\tH\x00R\x04hold\x12\x1a\n" +
 	"\arelease\x18\x10 \x01(\tH\x00R\arelease\x12X\n" +
-	"\x0fattempt_failure\x18\x11 \x01(\v2-.temporal.server.api.umpire.v1.AttemptFailureH\x00R\x0eattemptFailure\x12Q\n" +
-	"\x10attempt_canceled\x18\x13 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\x0fattemptCanceled\x12[\n" +
+	"\x0fattempt_failure\x18\x11 \x01(\v2-.temporal.server.api.umpire.v1.AttemptFailureH\x00R\x0eattemptFailure\x12C\n" +
+	"\x10attempt_canceled\x18\x13 \x01(\v2\x16.google.protobuf.EmptyH\x00R\x0fattemptCanceled\x12[\n" +
 	"\x10attempt_withheld\x18\x14 \x01(\v2..temporal.server.api.umpire.v1.AttemptWithheldH\x00R\x0fattemptWithheld\x12^\n" +
 	"\x11attempt_heartbeat\x18\x15 \x01(\v2/.temporal.server.api.umpire.v1.AttemptHeartbeatH\x00R\x10attemptHeartbeat\x12>\n" +
 	"\x1aawait_activity_publication\x18\x16 \x01(\tH\x00R\x18awaitActivityPublication\x12\x16\n" +
@@ -2019,7 +2020,7 @@ var file_temporal_server_api_umpire_v1_script_proto_goTypes = []any{
 	(*NexusReply)(nil),             // 22: temporal.server.api.umpire.v1.NexusReply
 	(*NexusCompletion)(nil),        // 23: temporal.server.api.umpire.v1.NexusCompletion
 	(*Position)(nil),               // 24: temporal.server.api.umpire.v1.Position
-	(*Empty)(nil),                  // 25: temporal.server.api.umpire.v1.Empty
+	(*emptypb.Empty)(nil),          // 25: google.protobuf.Empty
 	(*Name)(nil),                   // 26: temporal.server.api.umpire.v1.Name
 	(*ActionClass)(nil),            // 27: temporal.server.api.umpire.v1.ActionClass
 	(*Proto)(nil),                  // 28: temporal.server.api.umpire.v1.Proto
@@ -2027,7 +2028,7 @@ var file_temporal_server_api_umpire_v1_script_proto_goTypes = []any{
 }
 var file_temporal_server_api_umpire_v1_script_proto_depIdxs = []int32{
 	24, // 0: temporal.server.api.umpire.v1.Script.position:type_name -> temporal.server.api.umpire.v1.Position
-	25, // 1: temporal.server.api.umpire.v1.Script.controller:type_name -> temporal.server.api.umpire.v1.Empty
+	25, // 1: temporal.server.api.umpire.v1.Script.controller:type_name -> google.protobuf.Empty
 	4,  // 2: temporal.server.api.umpire.v1.Script.workflow:type_name -> temporal.server.api.umpire.v1.WorkflowActivation
 	5,  // 3: temporal.server.api.umpire.v1.Script.nexus_handler:type_name -> temporal.server.api.umpire.v1.NexusHandlerActivation
 	6,  // 4: temporal.server.api.umpire.v1.Script.activity:type_name -> temporal.server.api.umpire.v1.ActivityActivation
@@ -2052,7 +2053,7 @@ var file_temporal_server_api_umpire_v1_script_proto_depIdxs = []int32{
 	22, // 23: temporal.server.api.umpire.v1.Command.nexus_reply:type_name -> temporal.server.api.umpire.v1.NexusReply
 	23, // 24: temporal.server.api.umpire.v1.Command.nexus_completion:type_name -> temporal.server.api.umpire.v1.NexusCompletion
 	19, // 25: temporal.server.api.umpire.v1.Command.attempt_failure:type_name -> temporal.server.api.umpire.v1.AttemptFailure
-	25, // 26: temporal.server.api.umpire.v1.Command.attempt_canceled:type_name -> temporal.server.api.umpire.v1.Empty
+	25, // 26: temporal.server.api.umpire.v1.Command.attempt_canceled:type_name -> google.protobuf.Empty
 	11, // 27: temporal.server.api.umpire.v1.Command.attempt_withheld:type_name -> temporal.server.api.umpire.v1.AttemptWithheld
 	10, // 28: temporal.server.api.umpire.v1.Command.attempt_heartbeat:type_name -> temporal.server.api.umpire.v1.AttemptHeartbeat
 	28, // 29: temporal.server.api.umpire.v1.AttemptHeartbeat.details:type_name -> temporal.server.api.umpire.v1.Proto

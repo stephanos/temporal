@@ -8,6 +8,7 @@ option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
 option java_multiple_files = true;
 option java_package = "io.temporal.server.api.umpire.v1";
 
+import "google/protobuf/empty.proto";
 import "temporal/server/api/umpire/v1/common.proto";
 import "temporal/server/api/umpire/v1/machine.proto";
 import "temporal/server/api/umpire/v1/operand.proto";
@@ -18,7 +19,7 @@ message Script {
   string id = 1;
   Position position = 2;
   oneof activation {
-    Empty controller = 3;
+    google.protobuf.Empty controller = 3;
     WorkflowActivation workflow = 4;
     NexusHandlerActivation nexus_handler = 5;
     ActivityActivation activity = 6;
@@ -93,7 +94,7 @@ message Command {
     string release = 16;
     AttemptFailure attempt_failure = 17;
     // Answers the attempt an activity script's command runs in as canceled.
-    Empty attempt_canceled = 19;
+    google.protobuf.Empty attempt_canceled = 19;
     // Withholds an activity attempt's answer until its armed server deadline ends it.
     // Used only in an activity script's on-path item naming one bounded timer, never a performance.
     AttemptWithheld attempt_withheld = 20;

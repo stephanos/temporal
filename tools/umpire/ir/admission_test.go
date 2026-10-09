@@ -12,6 +12,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/interp"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -341,7 +342,7 @@ func TestAdmissionRejectsCrossedTypes(t *testing.T) {
 			admMachine(m, "relay").GetSteps()[0].Function = admChannelsPkg + "flashStep"
 		}, admChannelsAt + "59: " + admChannelsPkg + "flashStep steps talk, so its parameter s takes fixture.channels.Note, not fixture.channels.Signal"},
 		{"step input of a range", "channels", func(m *umpirespb.Model) {
-			function(m, "counted").GetParams()[1].Type = &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &umpirespb.Empty{}}}
+			function(m, "counted").GetParams()[1].Type = &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &emptypb.Empty{}}}
 		}, admChannelsAt + "90: " + admChannelsPkg + "counted steps tallyDelivery, so its parameter n takes 0..2, not Boolean"},
 		{"watched state", "declarations", func(m *umpirespb.Model) {
 			admMachine(m, "store").Monitors = []string{admDeclaredID + "storedOnce"}
@@ -435,7 +436,7 @@ func TestAdmissionRejectsDuplicates(t *testing.T) {
 }
 
 func admInt() *umpirespb.TypeRef {
-	return &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Int{Int: &umpirespb.Empty{}}}
+	return &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Int{Int: &emptypb.Empty{}}}
 }
 
 func admList(of string) *umpirespb.TypeRef {

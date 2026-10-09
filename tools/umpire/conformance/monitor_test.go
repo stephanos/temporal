@@ -11,6 +11,7 @@ import (
 	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // counted is the store with a monitor over the largest catalog a Model is admitted with, 65,536
@@ -34,7 +35,7 @@ func counted(t testing.TB, initial, target int) *umpirespb.Model {
 		State:   &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_IntRange{IntRange: &umpirespb.IntRange{Low: 0, High: 65535}}},
 		Initial: &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Int{Int: int64(initial)}}}},
 		Next:    "test.counter.next", Violated: "test.counter.violated",
-		Evaluate: &umpirespb.Monitor_EveryStep{EveryStep: &umpirespb.Empty{}}})
+		Evaluate: &umpirespb.Monitor_EveryStep{EveryStep: &emptypb.Empty{}}})
 	for _, machine := range m.GetMachines() {
 		if machine.GetName() == store {
 			machine.Monitors = append(machine.Monitors, "test.counter")

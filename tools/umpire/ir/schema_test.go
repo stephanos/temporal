@@ -19,11 +19,13 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -101,6 +103,14 @@ type schemaRenamedField struct {
 	to      string
 }
 
+// schemaRetiredMessage is a captured top-level message the schema retired after the capture for the
+// message replacement names: every field of its type is of the replacement's, with its number and its
+// oneof, and no declaration of the schema takes its name again.
+type schemaRetiredMessage struct {
+	name        string
+	replacement string
+}
+
 // schemaEnumOf is the descriptor protoc gives an enum, its values numbered from 0 in order.
 func schemaEnumOf(name string, values ...string) *descriptorpb.EnumDescriptorProto {
 	enum := &descriptorpb.EnumDescriptorProto{Name: proto.String(name)}
@@ -142,6 +152,13 @@ var (
 	schemaAddedDependencies = []string{
 		// Query.total's wrapper.
 		"google/protobuf/wrappers.proto",
+		// The empty message of schemaRetiredMessages (fn-145.3).
+		"google/protobuf/empty.proto",
+	}
+	schemaRetiredMessages = []schemaRetiredMessage{
+		// The local empty marker, for the standard one (fn-145.3). Choosing a oneof's arm is still all
+		// an arm of it says, and its bytes are the same.
+		{name: "Empty", replacement: ".google.protobuf.Empty"},
 	}
 	schemaAddedFields = []schemaAddedField{
 		// The author's static combination count (model/SEMANTICS.md, Query totals).
@@ -521,10 +538,11 @@ func TestSchemaDeclarationsOfASplitSchema(t *testing.T) {
 		common.EnumType, root.EnumType = root.EnumType, nil
 		return []*descriptorpb.FileDescriptorProto{common, root}
 	}
-	files := split("Position", "Empty")
+	files := split("Position")
 	// The split is a schema protoc could have compiled.
 	registry := new(protoregistry.Files)
 	require.NoError(t, registry.RegisterFile(wrapperspb.File_google_protobuf_wrappers_proto))
+	require.NoError(t, registry.RegisterFile(emptypb.File_google_protobuf_empty_proto))
 	for _, file := range files {
 		descriptor, err := protodesc.NewFile(file, registry)
 		require.NoError(t, err)
@@ -539,29 +557,29 @@ func TestSchemaDeclarationsOfASplitSchema(t *testing.T) {
 	require.Equal(t, schemaDeclarationNames(want), schemaDeclarationNames(got))
 	protorequire.ProtoEqual(t, want, got)
 
-	lost := split("Position", "Empty")
+	lost := split("Position")
 	lost[0].MessageType = slices.Delete(lost[0].MessageType, position(lost[0]), position(lost[0])+1)
 	got, err = schemaDeclarations(lost)
 	require.NoError(t, err)
 	require.NotContains(t, schemaDeclarationNames(got), "Position")
 	require.False(t, proto.Equal(want, got))
 
-	twice := split("Position", "Empty")
+	twice := split("Position")
 	twice[1].MessageType = append(twice[1].MessageType, proto.CloneOf(twice[0].MessageType[position(twice[0])]))
 	_, err = schemaDeclarations(twice)
 	require.ErrorContains(t, err, "Position is declared in "+commonName+" and in "+schemaRoot)
 
-	moved := split("Position", "Empty")
+	moved := split("Position")
 	moved[0].Package = proto.String("temporal.server.api.umpire.v2")
 	_, err = schemaDeclarations(moved)
 	require.ErrorContains(t, err, commonName+" is in package temporal.server.api.umpire.v2")
 
-	moved = split("Position", "Empty")
+	moved = split("Position")
 	moved[0].Options.GoPackage = proto.String("go.temporal.io/server/api/umpire/common")
 	_, err = schemaDeclarations(moved)
 	require.ErrorContains(t, err, commonName+" has options")
 
-	changed := split("Position", "Empty")
+	changed := split("Position")
 	changed[0].MessageType[position(changed[0])].Field[0].Number = proto.Int32(3)
 	got, err = schemaDeclarations(changed)
 	require.NoError(t, err)
@@ -576,6 +594,28 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 	for _, dependency := range schemaAddedDependencies {
 		require.NotContains(t, file.GetDependency(), dependency)
 		file.Dependency = append(file.Dependency, dependency)
+	}
+	for _, retired := range schemaRetiredMessages {
+		i := slices.IndexFunc(file.GetMessageType(), func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == retired.name })
+		require.NotEqual(t, -1, i, "%s was not captured", retired.name)
+		require.False(t, slices.ContainsFunc(schemaAddedMessages, func(a schemaAddedMessage) bool { return a.message.GetName() == retired.name }),
+			"the retired %s is declared again", retired.name)
+		file.MessageType = slices.Delete(file.MessageType, i, i+1)
+		retyped := 0
+		var retype func([]*descriptorpb.DescriptorProto)
+		retype = func(messages []*descriptorpb.DescriptorProto) {
+			for _, message := range messages {
+				for _, field := range message.GetField() {
+					if field.GetTypeName() == "."+schemaPackage+"."+retired.name {
+						field.TypeName = proto.String(retired.replacement)
+						retyped++
+					}
+				}
+				retype(message.GetNestedType())
+			}
+		}
+		retype(file.GetMessageType())
+		require.NotZero(t, retyped, "no field was of the retired %s", retired.name)
 	}
 	for _, added := range schemaAddedMessages {
 		messages := file.GetMessageType()
@@ -768,4 +808,53 @@ func schemaFieldsSet(m protoreflect.Message, set map[protoreflect.FullName]bool)
 		}
 		return true
 	})
+}
+
+// Every field of the schema that holds google.protobuf.Empty is a oneof's arm, and choosing it is all
+// it says: set, it is the arm its oneof chose, its wire bytes are its tag and an empty length, and its
+// ProtoJSON is its name and {}, as they were with the retired local marker.
+func TestSchemaEmptyArmsKeepTheirBytes(t *testing.T) {
+	var arms []string
+	for _, file := range schemaClosure() {
+		var visit func(protoreflect.MessageDescriptors)
+		visit = func(messages protoreflect.MessageDescriptors) {
+			for i := range messages.Len() {
+				message := messages.Get(i)
+				for j := range message.Fields().Len() {
+					field := message.Fields().Get(j)
+					if field.Message() == nil || field.Message().FullName() != "google.protobuf.Empty" {
+						continue
+					}
+					arms = append(arms, string(field.FullName()))
+					require.NotNil(t, field.ContainingOneof(), "%s is no oneof's arm", field.FullName())
+					set := schemaMessageOf(t, message)
+					set.Set(field, protoreflect.ValueOfMessage((&emptypb.Empty{}).ProtoReflect()))
+					wire, err := proto.MarshalOptions{Deterministic: true}.Marshal(set.Interface())
+					require.NoError(t, err)
+					require.Equal(t, protowire.AppendBytes(protowire.AppendTag(nil, field.Number(), protowire.BytesType), nil), wire, field.FullName())
+					decoded := schemaMessageOf(t, message)
+					require.NoError(t, proto.Unmarshal(wire, decoded.Interface()))
+					require.Equal(t, field, decoded.WhichOneof(field.ContainingOneof()), field.FullName())
+					json, err := protojson.Marshal(set.Interface())
+					require.NoError(t, err)
+					require.JSONEq(t, `{"`+field.JSONName()+`":{}}`, string(json), field.FullName())
+				}
+				visit(message.Messages())
+			}
+		}
+		visit(file.Messages())
+	}
+	require.ElementsMatch(t, []string{
+		schemaPackage + ".TypeRef.bool", schemaPackage + ".TypeRef.int", schemaPackage + ".Pattern.wildcard",
+		schemaPackage + ".Monitor.every_step", schemaPackage + ".Monitor.at_ends", schemaPackage + ".Script.controller",
+		schemaPackage + ".Command.attempt_canceled", schemaPackage + ".Operand.run", schemaPackage + ".Operand.projected",
+	}, arms)
+}
+
+// schemaMessageOf is an empty message of the generated type the descriptor describes.
+func schemaMessageOf(t *testing.T, descriptor protoreflect.MessageDescriptor) protoreflect.Message {
+	t.Helper()
+	messageType, err := protoregistry.GlobalTypes.FindMessageByName(descriptor.FullName())
+	require.NoError(t, err)
+	return messageType.New()
 }

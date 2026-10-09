@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func opLiteral(value *umpirespb.ProtoValue) *umpirespb.Operand {
@@ -27,7 +28,7 @@ var (
 	opNumber   = admWritten(&umpirespb.ProtoValue_Number{Number: 1})
 	opFlag     = opLiteral(&umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Flag{Flag: true}})
 	opEnumName = opLiteral(&umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_EnumName{EnumName: "COMMITMENT_DURABLE"}})
-	opPayload  = &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
+	opPayload  = &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}
 )
 
 func TestTypeOfShapesWhatAnOperandComputes(t *testing.T) {
@@ -43,7 +44,7 @@ func TestTypeOfShapesWhatAnOperandComputes(t *testing.T) {
 		"an enum value written":    {opEnumName, Typed{Shape: EnumShape, Name: "COMMITMENT_DURABLE"}},
 		"a value of no kind":       {opLiteral(&umpirespb.ProtoValue{}), Typed{Shape: OtherShape}},
 		"an environment binding":   {&umpirespb.Operand{Kind: &umpirespb.Operand_Environment{Environment: "namespace"}}, Typed{Shape: TextShape}},
-		"the run's id":             {&umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}, Typed{Shape: TextShape}},
+		"the run's id":             {&umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}, Typed{Shape: TextShape}},
 		"a learned value":          {&umpirespb.Operand{Kind: &umpirespb.Operand_LearnedValue{LearnedValue: "id"}}, Typed{Shape: TextShape}},
 		"the projected value":      {opPayload, Typed{Shape: MessageShape, Message: evidence}},
 		"a path, with no paths":    {admPayload("id"), Typed{}},

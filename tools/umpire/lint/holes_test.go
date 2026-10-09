@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // holesOf reads the hole kinds and tables of the activity IR after the mutations.
@@ -80,7 +81,7 @@ var pauseOfCancelRequestedByDefault = rewrite("activitySystem.rules.pause", nil,
 	byDefault := &umpirespb.Expr{Position: x.GetElse().GetPosition(), Kind: &umpirespb.Expr_Match{Match: &umpirespb.Match{
 		Scrutinee: phase(),
 		Cases: []*umpirespb.MatchCase{{
-			Pattern: &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &umpirespb.Empty{}}},
+			Pattern: &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &emptypb.Empty{}}},
 			Body:    none,
 		}},
 	}}}

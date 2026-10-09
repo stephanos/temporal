@@ -21,6 +21,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // The Runs these tests assess are of three kinds, and no lowered Case has run against a server:
@@ -119,7 +120,7 @@ func realizedWith(t testing.TB, m *umpirespb.Model, machine string, kinds []kind
 	}
 	if len(closing.GetCloses()) > 0 {
 		r.Roles = []*umpirespb.Role{{Id: sourceRole, Kind: umpirespb.Role_KIND_ENDPOINT}}
-		r.Scripts = []*umpirespb.Script{{Id: "controller", Activation: &umpirespb.Script_Controller{Controller: &umpirespb.Empty{}},
+		r.Scripts = []*umpirespb.Script{{Id: "controller", Activation: &umpirespb.Script_Controller{Controller: &emptypb.Empty{}},
 			Items: []*umpirespb.Item{{Command: closing}}}}
 	}
 	out.Realizations = append(out.Realizations, r)

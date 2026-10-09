@@ -8,6 +8,7 @@ option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
 option java_multiple_files = true;
 option java_package = "io.temporal.server.api.umpire.v1";
 
+import "google/protobuf/empty.proto";
 import "temporal/server/api/umpire/v1/common.proto";
 
 // A finite type, with its members in catalog order.
@@ -45,12 +46,12 @@ message Field {
 message TypeRef {
   oneof ref {
     string named = 1;
-    Empty bool = 2;
+    google.protobuf.Empty bool = 2;
     IntRange int_range = 3;
     // A list of values, for a step's facts and a function's results; not a state field.
     TypeRef list = 4;
     // An integer with no declared range: a function parameter, never a state field.
-    Empty int = 5;
+    google.protobuf.Empty int = 5;
     // What a declared channel holds, named by the channel's id: a state field's bounded collection.
     string channel = 6;
   }

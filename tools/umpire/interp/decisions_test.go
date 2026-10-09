@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func whyIn(t *testing.T, m *umpirespb.Model, machine, state, class string) *Why {
@@ -83,7 +84,7 @@ func TestWhyMarksAWildcardArm(t *testing.T) {
 			Scrutinee: &umpirespb.Expr{Kind: &umpirespb.Expr_Field{Field: &umpirespb.FieldAccess{
 				Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "s"}}, Field: "phase"}}},
 			Cases: []*umpirespb.MatchCase{{
-				Pattern: &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &umpirespb.Empty{}}},
+				Pattern: &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &emptypb.Empty{}}},
 				Body:    &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}},
 			}},
 		}}}

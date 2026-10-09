@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const admRealizationAt = "model/temporal/features/nexus/workflow/Realization.scala:"
@@ -115,7 +116,7 @@ func admWritten(kind any) *umpirespb.Operand {
 // admPayload reads a path of the value a poll is looking at, or of a Run Event's payload.
 func admPayload(path string) *umpirespb.Operand {
 	return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: path,
-		Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
+		Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}}}}
 }
 
 func admGreater(left, right *umpirespb.Operand) *umpirespb.Operand {
@@ -131,7 +132,7 @@ func admNot(of *umpirespb.Operand) *umpirespb.Operand {
 func runEvent(r *umpirespb.Realization, change func(*umpirespb.RunEventSource)) {
 	unclosed(r)
 	source := &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED, Script: "controller", Command: "start-workflow",
-		Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}
+		Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}}
 	change(source)
 	r.Evidence[1].Operation = ""
 	r.Evidence[1].From = &umpirespb.Evidence_RunEvent{RunEvent: source}
@@ -142,7 +143,7 @@ func runEvent(r *umpirespb.Realization, change func(*umpirespb.RunEventSource)) 
 // an attempt alone (TestTheAttemptARunEventRecordsIsOfAnActivitysScript).
 func TestARunEventSourceIsAdmitted(t *testing.T) {
 	m := proto.Clone(load(t)).(*umpirespb.Model)
-	projected := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
+	projected := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}
 	path := func(p string) *umpirespb.Operand {
 		return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Of: projected, Path: p}}}
 	}
@@ -530,12 +531,12 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		}, `evidence temporal.features.nexus.workflow.evidence.started: its guard reads "activity_attempt[*]" of the path activity_attempt[*], and a guard reads a field or oneof<member>`},
 		{"a Run Event whose guard negates the payload", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
-				e.Guard = admNot(&umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}})
+				e.Guard = admNot(&umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}})
 			})
 		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard negates a message, and only a condition is negated"},
 
 		{"a canceled answer outside an activity", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
-			admCommand(t, admScript(t, r, "handler"), "respond-sync").Instruction = &umpirespb.Command_AttemptCanceled{AttemptCanceled: &umpirespb.Empty{}}
+			admCommand(t, admScript(t, r, "handler"), "respond-sync").Instruction = &umpirespb.Command_AttemptCanceled{AttemptCanceled: &emptypb.Empty{}}
 		}, "command respond-sync of script handler cancels an attempt, and script handler is no activity's"},
 
 		// Evidence the Run itself records.
@@ -565,7 +566,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		{"a Run Event whose guard reads the run", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				e.Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{
-					Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}}
+					Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}}}}
 			})
 		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard reads the run's id; a Run Event's guard reads the event's payload alone"},
 		{"a Run Event whose guard is of no kind", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
@@ -578,7 +579,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		{"a poll of a Run Event", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Operation = ""
 			r.Evidence[6].From = &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED,
-				Script: "controller", Command: "start-workflow", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}
+				Script: "controller", Command: "start-workflow", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}}}
 		}, "command pending-attempts of script controller: evidence temporal.features.nexus.workflow.evidence.pendingAttempts is a Run Event, which a poll does not read"},
 
 		// A required setting names its key and its value, and no key twice, whatever its case.

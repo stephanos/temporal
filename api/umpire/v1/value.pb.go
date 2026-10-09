@@ -16,6 +16,7 @@ import (
 
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -381,7 +382,7 @@ func (x *TypeRef) GetNamed() string {
 	return ""
 }
 
-func (x *TypeRef) GetBool() *Empty {
+func (x *TypeRef) GetBool() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Ref.(*TypeRef_Bool); ok {
 			return x.Bool
@@ -408,7 +409,7 @@ func (x *TypeRef) GetList() *TypeRef {
 	return nil
 }
 
-func (x *TypeRef) GetInt() *Empty {
+func (x *TypeRef) GetInt() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Ref.(*TypeRef_Int); ok {
 			return x.Int
@@ -435,7 +436,7 @@ type TypeRef_Named struct {
 }
 
 type TypeRef_Bool struct {
-	Bool *Empty `protobuf:"bytes,2,opt,name=bool,proto3,oneof"`
+	Bool *emptypb.Empty `protobuf:"bytes,2,opt,name=bool,proto3,oneof"`
 }
 
 type TypeRef_IntRange struct {
@@ -449,7 +450,7 @@ type TypeRef_List struct {
 
 type TypeRef_Int struct {
 	// An integer with no declared range: a function parameter, never a state field.
-	Int *Empty `protobuf:"bytes,5,opt,name=int,proto3,oneof"`
+	Int *emptypb.Empty `protobuf:"bytes,5,opt,name=int,proto3,oneof"`
 }
 
 type TypeRef_Channel struct {
@@ -828,7 +829,7 @@ var File_temporal_server_api_umpire_v1_value_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_umpire_v1_value_proto_rawDesc = "" +
 	"\n" +
-	")temporal/server/api/umpire/v1/value.proto\x12\x1dtemporal.server.api.umpire.v1\x1a*temporal/server/api/umpire/v1/common.proto\"\xe4\x01\n" +
+	")temporal/server/api/umpire/v1/value.proto\x12\x1dtemporal.server.api.umpire.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a*temporal/server/api/umpire/v1/common.proto\"\xe4\x01\n" +
 	"\x04Type\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12C\n" +
 	"\bposition\x18\x02 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x129\n" +
@@ -844,13 +845,13 @@ const file_temporal_server_api_umpire_v1_value_proto_rawDesc = "" +
 	"\x06fields\x18\x01 \x03(\v2$.temporal.server.api.umpire.v1.FieldR\x06fields\"W\n" +
 	"\x05Field\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12:\n" +
-	"\x04type\x18\x02 \x01(\v2&.temporal.server.api.umpire.v1.TypeRefR\x04type\"\xc0\x02\n" +
+	"\x04type\x18\x02 \x01(\v2&.temporal.server.api.umpire.v1.TypeRefR\x04type\"\xa4\x02\n" +
 	"\aTypeRef\x12\x16\n" +
-	"\x05named\x18\x01 \x01(\tH\x00R\x05named\x12:\n" +
-	"\x04bool\x18\x02 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\x04bool\x12F\n" +
+	"\x05named\x18\x01 \x01(\tH\x00R\x05named\x12,\n" +
+	"\x04bool\x18\x02 \x01(\v2\x16.google.protobuf.EmptyH\x00R\x04bool\x12F\n" +
 	"\tint_range\x18\x03 \x01(\v2'.temporal.server.api.umpire.v1.IntRangeH\x00R\bintRange\x12<\n" +
-	"\x04list\x18\x04 \x01(\v2&.temporal.server.api.umpire.v1.TypeRefH\x00R\x04list\x128\n" +
-	"\x03int\x18\x05 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\x03int\x12\x1a\n" +
+	"\x04list\x18\x04 \x01(\v2&.temporal.server.api.umpire.v1.TypeRefH\x00R\x04list\x12*\n" +
+	"\x03int\x18\x05 \x01(\v2\x16.google.protobuf.EmptyH\x00R\x03int\x12\x1a\n" +
 	"\achannel\x18\x06 \x01(\tH\x00R\achannelB\x05\n" +
 	"\x03ref\"0\n" +
 	"\bIntRange\x12\x10\n" +
@@ -889,19 +890,19 @@ func file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP() []byte {
 
 var file_temporal_server_api_umpire_v1_value_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_temporal_server_api_umpire_v1_value_proto_goTypes = []any{
-	(*Type)(nil),        // 0: temporal.server.api.umpire.v1.Type
-	(*Enum)(nil),        // 1: temporal.server.api.umpire.v1.Enum
-	(*Case)(nil),        // 2: temporal.server.api.umpire.v1.Case
-	(*Record)(nil),      // 3: temporal.server.api.umpire.v1.Record
-	(*Field)(nil),       // 4: temporal.server.api.umpire.v1.Field
-	(*TypeRef)(nil),     // 5: temporal.server.api.umpire.v1.TypeRef
-	(*IntRange)(nil),    // 6: temporal.server.api.umpire.v1.IntRange
-	(*Value)(nil),       // 7: temporal.server.api.umpire.v1.Value
-	(*EnumValue)(nil),   // 8: temporal.server.api.umpire.v1.EnumValue
-	(*RecordValue)(nil), // 9: temporal.server.api.umpire.v1.RecordValue
-	(*ListValue)(nil),   // 10: temporal.server.api.umpire.v1.ListValue
-	(*Position)(nil),    // 11: temporal.server.api.umpire.v1.Position
-	(*Empty)(nil),       // 12: temporal.server.api.umpire.v1.Empty
+	(*Type)(nil),          // 0: temporal.server.api.umpire.v1.Type
+	(*Enum)(nil),          // 1: temporal.server.api.umpire.v1.Enum
+	(*Case)(nil),          // 2: temporal.server.api.umpire.v1.Case
+	(*Record)(nil),        // 3: temporal.server.api.umpire.v1.Record
+	(*Field)(nil),         // 4: temporal.server.api.umpire.v1.Field
+	(*TypeRef)(nil),       // 5: temporal.server.api.umpire.v1.TypeRef
+	(*IntRange)(nil),      // 6: temporal.server.api.umpire.v1.IntRange
+	(*Value)(nil),         // 7: temporal.server.api.umpire.v1.Value
+	(*EnumValue)(nil),     // 8: temporal.server.api.umpire.v1.EnumValue
+	(*RecordValue)(nil),   // 9: temporal.server.api.umpire.v1.RecordValue
+	(*ListValue)(nil),     // 10: temporal.server.api.umpire.v1.ListValue
+	(*Position)(nil),      // 11: temporal.server.api.umpire.v1.Position
+	(*emptypb.Empty)(nil), // 12: google.protobuf.Empty
 }
 var file_temporal_server_api_umpire_v1_value_proto_depIdxs = []int32{
 	11, // 0: temporal.server.api.umpire.v1.Type.position:type_name -> temporal.server.api.umpire.v1.Position
@@ -911,10 +912,10 @@ var file_temporal_server_api_umpire_v1_value_proto_depIdxs = []int32{
 	4,  // 4: temporal.server.api.umpire.v1.Case.fields:type_name -> temporal.server.api.umpire.v1.Field
 	4,  // 5: temporal.server.api.umpire.v1.Record.fields:type_name -> temporal.server.api.umpire.v1.Field
 	5,  // 6: temporal.server.api.umpire.v1.Field.type:type_name -> temporal.server.api.umpire.v1.TypeRef
-	12, // 7: temporal.server.api.umpire.v1.TypeRef.bool:type_name -> temporal.server.api.umpire.v1.Empty
+	12, // 7: temporal.server.api.umpire.v1.TypeRef.bool:type_name -> google.protobuf.Empty
 	6,  // 8: temporal.server.api.umpire.v1.TypeRef.int_range:type_name -> temporal.server.api.umpire.v1.IntRange
 	5,  // 9: temporal.server.api.umpire.v1.TypeRef.list:type_name -> temporal.server.api.umpire.v1.TypeRef
-	12, // 10: temporal.server.api.umpire.v1.TypeRef.int:type_name -> temporal.server.api.umpire.v1.Empty
+	12, // 10: temporal.server.api.umpire.v1.TypeRef.int:type_name -> google.protobuf.Empty
 	8,  // 11: temporal.server.api.umpire.v1.Value.enum:type_name -> temporal.server.api.umpire.v1.EnumValue
 	9,  // 12: temporal.server.api.umpire.v1.Value.record:type_name -> temporal.server.api.umpire.v1.RecordValue
 	10, // 13: temporal.server.api.umpire.v1.Value.list:type_name -> temporal.server.api.umpire.v1.ListValue

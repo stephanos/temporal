@@ -1,5 +1,5 @@
-// The Umpire IR's common leaves: where a declaration was written, and the empty message a oneof
-// arm holds when choosing the arm is all it says. A file of the IR schema rooted at ir.proto.
+// The Umpire IR's common leaves: where a declaration was written. A file of the IR schema rooted at
+// ir.proto.
 syntax = "proto3";
 
 package temporal.server.api.umpire.v1;
@@ -15,5 +15,3 @@ message Position {
   string file = 1;
   int32 line = 2;
 }
-
-message Empty {}

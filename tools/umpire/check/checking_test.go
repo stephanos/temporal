@@ -16,6 +16,7 @@ import (
 	"go.temporal.io/server/tools/umpire/interp"
 	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func checked(t *testing.T, m *umpirespb.Model) *Report {
@@ -1721,7 +1722,7 @@ func (c counter) model() *umpirespb.Model {
 		m.Properties, m.Scenarios, m.Queries = m.Properties[:2], m.Scenarios[:1], m.Queries[:1]
 	}
 	if c.monitor {
-		flag := &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &umpirespb.Empty{}}}
+		flag := &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &emptypb.Empty{}}}
 		violated := expr(boolValue(false))
 		if c.violatedOnceSeen {
 			violated = expr("seen")
@@ -1731,7 +1732,7 @@ func (c counter) model() *umpirespb.Model {
 				{Name: "after", Type: interp.Named(stepType)}}, binary(umpirespb.Binary_OP_OR, expr("seen"), skipped)),
 			fn("generic.sawSkip.violated", []*umpirespb.Param{{Name: "seen", Type: flag}}, violated))
 		m.Monitors = []*umpirespb.Monitor{{Id: "generic.sawSkip", Name: "sawSkip", Position: at(90), State: flag, Initial: expr(boolValue(false)),
-			Next: "generic.sawSkip.next", Violated: "generic.sawSkip.violated", Evaluate: &umpirespb.Monitor_EveryStep{EveryStep: &umpirespb.Empty{}}}}
+			Next: "generic.sawSkip.next", Violated: "generic.sawSkip.violated", Evaluate: &umpirespb.Monitor_EveryStep{EveryStep: &emptypb.Empty{}}}}
 		m.Machines[0].Monitors = []string{"generic.sawSkip"}
 	}
 	return m

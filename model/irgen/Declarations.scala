@@ -1,6 +1,7 @@
 package umpire.irgen
 
 import scala.collection.mutable
+import com.google.protobuf.empty.Empty
 import io.temporal.server.api.umpire.v1 as ir
 import io.temporal.server.api.umpire.v1.Expr.Kind as E
 
@@ -1467,10 +1468,10 @@ private[irgen] trait Declarations:
           initial = Some(lift(initial, Some(m.tpe))),
           next = stepFunction(next, id, "next"),
           violated = stepFunction(violated, id, "violated"),
-          evaluate = ir.Monitor.Evaluate.EveryStep(ir.Empty())
+          evaluate = ir.Monitor.Evaluate.EveryStep(Empty())
         )
       def walk(t: Term): ir.Monitor = t match
-        case Select(inner, "readAtEnds")                => walk(inner).withAtEnds(ir.Empty())
+        case Select(inner, "readAtEnds")                => walk(inner).withAtEnds(Empty())
         case Apply(Select(inner, "readAfter"), List(f)) =>
           walk(inner).withAfter(stepFunction(f, id, "after"))
         case Apply(

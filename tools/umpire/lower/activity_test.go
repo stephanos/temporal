@@ -26,6 +26,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const activityRealizationAt = "model/temporal/features/activity/standalone/system/Realization.scala"
@@ -221,7 +222,7 @@ func TestAnActivityScriptAnswersItsAttempts(t *testing.T) {
 		}, "scenario retriedOnce takes deliver, a step of runner, and no script of realization errandRealization performs it"},
 		{"a poll whose condition reads the run", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
-			poll.GetUntil().GetEqual().Right = &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}
+			poll.GetUntil().GetEqual().Right = &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}
 		}, "command await-closed polls until a condition that reads the run's id; a poll's condition reads only the value the poll is looking at"},
 		{"a poll whose condition orders an enum value", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
@@ -230,20 +231,20 @@ func TestAnActivityScriptAnswersItsAttempts(t *testing.T) {
 		}, "command await-closed polls until a condition that orders an enum value, and only numbers are ordered"},
 		{"a poll whose condition reads a path of a path, the outer misspelled", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
-			element := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
+			element := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}
 			poll.Until = &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Path{
 				Path: &umpirespb.PathOf{Path: "secnods", Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "schedule_time", Of: element}}}}}}}}}
 		}, "google.protobuf.Timestamp has no field secnods"},
 		{"a poll whose condition reads a path of a text", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
-			element := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
+			element := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}
 			poll.Until = &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Path{
 				Path: &umpirespb.PathOf{Path: "length", Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "activity_id", Of: element}}}}}}}}}
 		}, "command await-closed polls until a condition that reads length of a text, which is no message"},
 		{"a poll until a text of the element", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
 			poll.Until = &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "activity_id",
-				Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
+				Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}}}}
 		}, "command await-closed polls until a text, and a poll's condition is a condition"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -347,7 +348,7 @@ func TestTheFieldsAndTheSingleReadOfEvidenceAreCheckedAgainstTheirDescriptors(t 
 	const opened = "evidence fixture.realizations.tally.evidence.opened"
 	payload := func(path string) *umpirespb.Operand {
 		return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: path,
-			Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
+			Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}}}}
 	}
 	// enumName is an enum value written out by its name.
 	type enumName string
@@ -526,14 +527,14 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 	// record the first attempt start; the second attempt's the failure the server retried and the second
 	// attempt start; and the release's answer the release, which schedules the activity as the start
 	// does.
-	projected := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
+	projected := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}
 	path := func(p string) *umpirespb.Operand {
 		return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Of: projected, Path: p}}}
 	}
 	present := func(p string) *umpirespb.Operand {
 		return &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: path(p)}}}
 	}
-	run := &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}
+	run := &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}
 	accepted := func(command string) *umpirespb.RunEventSource {
 		return &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED, Script: "controller", Command: command, Key: run,
 			Guard: &umpirespb.Operand{Kind: &umpirespb.Operand_Equal{Equal: &umpirespb.Equal{Left: path("status"),

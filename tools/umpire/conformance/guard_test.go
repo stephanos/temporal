@@ -10,6 +10,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // activitySource is the Run Event source of one kind of evidence of the standalone activity Model's
@@ -156,7 +157,7 @@ type protoName string
 
 func guardPath(path string) *umpirespb.Operand {
 	return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: path,
-		Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
+		Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}}}}
 }
 
 // guardNested is a path of a path of the payload.
@@ -249,7 +250,7 @@ func TestAGuardIsEvaluatedOverTypedValues(t *testing.T) {
 func TestAGuardThatCannotBeEvaluatedIsAnError(t *testing.T) {
 	delivered := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", attemptOf(1, "token-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED))
 	plain := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED})
-	run := &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}
+	run := &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}
 	for name, test := range map[string]struct {
 		guard *umpirespb.Operand
 		event *testpilotspb.RunEvent

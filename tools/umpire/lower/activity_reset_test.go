@@ -7,6 +7,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // A reset settlement lowers to the Program's declaration of the held reservation, the typed reset
@@ -18,7 +19,7 @@ func TestActivityResetSettlementLowersTheDeclaredFreshReservation(t *testing.T) 
 		Settlement: "await-reset-completed", Cleanup: &umpirespb.Command{Id: "external-cleanup"},
 	}
 	a := &adapter{r: &umpirespb.Realization{Cleanup: "cleanup", ResetSettlements: []*umpirespb.ActivityResetSettlement{declared},
-		Scripts: []*umpirespb.Script{{Id: "controller", Activation: &umpirespb.Script_Controller{Controller: &umpirespb.Empty{}}}}}}
+		Scripts: []*umpirespb.Script{{Id: "controller", Activation: &umpirespb.Script_Controller{Controller: &emptypb.Empty{}}}}}}
 	got, err := a.resetSettlement(declared)
 	require.NoError(t, err)
 	ref := func(id string) *testpilotspb.InstructionReference {

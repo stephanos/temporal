@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type externalAdmitter struct{ rejectionAdmitter }
@@ -26,7 +27,7 @@ func externalRealization(method string) *umpirespb.Realization {
 	carrier.GetRpc().Reads = []*umpirespb.ResponseRead{{Path: "run_id", Cardinality: umpirespb.ResponseRead_CARDINALITY_ONE, Targets: []*umpirespb.Target{{Target: &umpirespb.Target_Bind{Bind: "execution-run"}}}}}
 	pub := &umpirespb.Command{Id: "await-pending", Instruction: &umpirespb.Command_AwaitActivityPublication{AwaitActivityPublication: "pending"}}
 	path := func(name string) *umpirespb.Operand {
-		return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: name, Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
+		return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: name, Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}}}}
 	}
 	equal := func(name string, value *umpirespb.Operand) *umpirespb.Operand {
 		return &umpirespb.Operand{Kind: &umpirespb.Operand_Equal{Equal: &umpirespb.Equal{Left: path(name), Right: value}}}
@@ -69,7 +70,7 @@ func externalRealization(method string) *umpirespb.Realization {
 		commands = []*umpirespb.Command{carrier, answer, poll("settled")}
 		e.Activity, e.Pending, e.Held, e.Attempt = "", "", "", 0
 	}
-	controller := &umpirespb.Script{Id: "controller", Activation: &umpirespb.Script_Controller{Controller: &umpirespb.Empty{}}}
+	controller := &umpirespb.Script{Id: "controller", Activation: &umpirespb.Script_Controller{Controller: &emptypb.Empty{}}}
 	for _, c := range commands {
 		item := &umpirespb.Item{Command: c}
 		if c == answer {

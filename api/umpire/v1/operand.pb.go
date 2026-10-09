@@ -16,6 +16,7 @@ import (
 
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -171,7 +172,7 @@ func (x *Operand) GetEnvironment() string {
 	return ""
 }
 
-func (x *Operand) GetRun() *Empty {
+func (x *Operand) GetRun() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Kind.(*Operand_Run); ok {
 			return x.Run
@@ -189,7 +190,7 @@ func (x *Operand) GetLearnedValue() string {
 	return ""
 }
 
-func (x *Operand) GetProjected() *Empty {
+func (x *Operand) GetProjected() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Kind.(*Operand_Projected); ok {
 			return x.Projected
@@ -267,7 +268,7 @@ type Operand_Environment struct {
 
 type Operand_Run struct {
 	// The run's own id.
-	Run *Empty `protobuf:"bytes,4,opt,name=run,proto3,oneof"`
+	Run *emptypb.Empty `protobuf:"bytes,4,opt,name=run,proto3,oneof"`
 }
 
 type Operand_LearnedValue struct {
@@ -277,7 +278,7 @@ type Operand_LearnedValue struct {
 
 type Operand_Projected struct {
 	// The value a poll is looking at, or the payload a Run Event's guard and key read.
-	Projected *Empty `protobuf:"bytes,6,opt,name=projected,proto3,oneof"`
+	Projected *emptypb.Empty `protobuf:"bytes,6,opt,name=projected,proto3,oneof"`
 }
 
 type Operand_Path struct {
@@ -1090,18 +1091,18 @@ var File_temporal_server_api_umpire_v1_operand_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_umpire_v1_operand_proto_rawDesc = "" +
 	"\n" +
-	"+temporal/server/api/umpire/v1/operand.proto\x12\x1dtemporal.server.api.umpire.v1\x1a*temporal/server/api/umpire/v1/common.proto\"P\n" +
+	"+temporal/server/api/umpire/v1/operand.proto\x12\x1dtemporal.server.api.umpire.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a*temporal/server/api/umpire/v1/common.proto\"P\n" +
 	"\x04Name\x12\x16\n" +
 	"\x06prefix\x18\x01 \x01(\tR\x06prefix\x12\x18\n" +
 	"\afixture\x18\x02 \x01(\bR\afixture\x12\x16\n" +
-	"\x06suffix\x18\x03 \x01(\tR\x06suffix\"\xdb\x05\n" +
+	"\x06suffix\x18\x03 \x01(\tR\x06suffix\"\xbf\x05\n" +
 	"\aOperand\x12C\n" +
 	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12E\n" +
 	"\aliteral\x18\x02 \x01(\v2).temporal.server.api.umpire.v1.ProtoValueH\x00R\aliteral\x12\"\n" +
-	"\venvironment\x18\x03 \x01(\tH\x00R\venvironment\x128\n" +
-	"\x03run\x18\x04 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\x03run\x12%\n" +
-	"\rlearned_value\x18\x05 \x01(\tH\x00R\flearnedValue\x12D\n" +
-	"\tprojected\x18\x06 \x01(\v2$.temporal.server.api.umpire.v1.EmptyH\x00R\tprojected\x12;\n" +
+	"\venvironment\x18\x03 \x01(\tH\x00R\venvironment\x12*\n" +
+	"\x03run\x18\x04 \x01(\v2\x16.google.protobuf.EmptyH\x00R\x03run\x12%\n" +
+	"\rlearned_value\x18\x05 \x01(\tH\x00R\flearnedValue\x126\n" +
+	"\tprojected\x18\x06 \x01(\v2\x16.google.protobuf.EmptyH\x00R\tprojected\x12;\n" +
 	"\x04path\x18\a \x01(\v2%.temporal.server.api.umpire.v1.PathOfH\x00R\x04path\x12B\n" +
 	"\apresent\x18\b \x01(\v2&.temporal.server.api.umpire.v1.PresentH\x00R\apresent\x12<\n" +
 	"\x05equal\x18\t \x01(\v2$.temporal.server.api.umpire.v1.EqualH\x00R\x05equal\x126\n" +
@@ -1186,13 +1187,13 @@ var file_temporal_server_api_umpire_v1_operand_proto_goTypes = []any{
 	(*ProtoMap)(nil),      // 12: temporal.server.api.umpire.v1.ProtoMap
 	(*ProtoEntry)(nil),    // 13: temporal.server.api.umpire.v1.ProtoEntry
 	(*Position)(nil),      // 14: temporal.server.api.umpire.v1.Position
-	(*Empty)(nil),         // 15: temporal.server.api.umpire.v1.Empty
+	(*emptypb.Empty)(nil), // 15: google.protobuf.Empty
 }
 var file_temporal_server_api_umpire_v1_operand_proto_depIdxs = []int32{
 	14, // 0: temporal.server.api.umpire.v1.Operand.position:type_name -> temporal.server.api.umpire.v1.Position
 	10, // 1: temporal.server.api.umpire.v1.Operand.literal:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	15, // 2: temporal.server.api.umpire.v1.Operand.run:type_name -> temporal.server.api.umpire.v1.Empty
-	15, // 3: temporal.server.api.umpire.v1.Operand.projected:type_name -> temporal.server.api.umpire.v1.Empty
+	15, // 2: temporal.server.api.umpire.v1.Operand.run:type_name -> google.protobuf.Empty
+	15, // 3: temporal.server.api.umpire.v1.Operand.projected:type_name -> google.protobuf.Empty
 	2,  // 4: temporal.server.api.umpire.v1.Operand.path:type_name -> temporal.server.api.umpire.v1.PathOf
 	3,  // 5: temporal.server.api.umpire.v1.Operand.present:type_name -> temporal.server.api.umpire.v1.Present
 	4,  // 6: temporal.server.api.umpire.v1.Operand.equal:type_name -> temporal.server.api.umpire.v1.Equal

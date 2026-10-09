@@ -17,6 +17,7 @@ import (
 	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // slices of the lifted IR the backends are gated on, by file.
@@ -261,7 +262,7 @@ func TestQuintExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 		}, "the hole unknownPolicy"},
 		"a channel": {"", func(m *umpirespb.Model) {
 			m.Channels = append(m.Channels, &umpirespb.Channel{Id: "c", Name: "tasks", Capacity: 1, Order: umpirespb.Channel_ORDER_FIFO,
-				Message: &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &umpirespb.Empty{}}}})
+				Message: &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &emptypb.Empty{}}}})
 		}, "channel tasks"},
 		"an anonymous function as a value": {"", func(m *umpirespb.Model) {
 			f := stepFunction(m, "activityWorker")

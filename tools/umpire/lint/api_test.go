@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const apiActivityStatus = "temporal.api.activity.v1.ActivityExecutionInfo.status"
@@ -169,7 +170,7 @@ func apiCommands(r *umpirespb.Realization) []*umpirespb.Command {
 
 func apiProjected(path string) *umpirespb.Operand {
 	return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{
-		Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}, Path: path}}}
+		Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}, Path: path}}}
 }
 
 func apiEnum(name string) *umpirespb.Operand {

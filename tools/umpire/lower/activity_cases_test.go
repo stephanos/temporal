@@ -22,6 +22,7 @@ import (
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -629,7 +630,7 @@ func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *
 
 	l, err = changed(func(source *umpirespb.RunEventSource) {
 		source.Key = &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "protocol_code",
-			Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
+			Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}}}}
 	}).Lower("completion", activityIdentity("completion"))
 	require.NoError(t, err)
 	require.Equal(t, Lowered, l.Standing, "%v", l.Unsupported)

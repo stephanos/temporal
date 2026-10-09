@@ -8,6 +8,7 @@ option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
 option java_multiple_files = true;
 option java_package = "io.temporal.server.api.umpire.v1";
 
+import "google/protobuf/empty.proto";
 import "temporal/server/api/umpire/v1/common.proto";
 import "temporal/server/api/umpire/v1/value.proto";
 
@@ -141,7 +142,7 @@ message MatchCase {
 
 message Pattern {
   oneof kind {
-    Empty wildcard = 1;
+    google.protobuf.Empty wildcard = 1;
     // Binds the value to a name, and matches it against the inner pattern.
     Bind bind = 2;
     // A value: an enum case without fields, a Boolean, an integer.

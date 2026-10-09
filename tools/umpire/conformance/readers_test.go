@@ -11,6 +11,7 @@ import (
 	"go.temporal.io/server/tools/umpire/ir"
 	lowering "go.temporal.io/server/tools/umpire/lower"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // firstReader is the first reader of a guard that can know what is wrong with it.
@@ -45,8 +46,8 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 		unknown = "writes out a value that is no text, flag, number or enum value"
 		v1      = "temporal.server.api.testpilot.v1."
 	)
-	projected := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
-	run := &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}
+	projected := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &emptypb.Empty{}}}
+	run := &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &emptypb.Empty{}}}
 	environment := &umpirespb.Operand{Kind: &umpirespb.Operand_Environment{Environment: "namespace"}}
 	learned := &umpirespb.Operand{Kind: &umpirespb.Operand_LearnedValue{LearnedValue: "handle"}}
 	attempt, number, delivery := guardPath("activity_attempt"), guardPath("activity_attempt.sdk_attempt"), guardPath("activity_attempt.delivery_id")

@@ -1,5 +1,6 @@
 package umpire.irgen
 
+import com.google.protobuf.empty.Empty
 import io.temporal.server.api.umpire.v1 as ir
 
 private[irgen] trait Types:
@@ -44,8 +45,8 @@ private[irgen] trait Types:
     else
       val t = tpe.dealias.widen
       val sym = t.typeSymbol
-      if sym == defn.BooleanClass then ir.TypeRef(ir.TypeRef.Ref.Bool(ir.Empty()))
-      else if sym == defn.IntClass && owner.isEmpty then ir.TypeRef(ir.TypeRef.Ref.Int(ir.Empty()))
+      if sym == defn.BooleanClass then ir.TypeRef(ir.TypeRef.Ref.Bool(Empty()))
+      else if sym == defn.IntClass && owner.isEmpty then ir.TypeRef(ir.TypeRef.Ref.Int(Empty()))
       else if sym == defn.IntClass then
         val (lo, hi) = intRanges.getOrElse(
           owner,
