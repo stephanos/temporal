@@ -142,12 +142,16 @@ func TestRunMaintainerOutputAuthoring(t *testing.T) {
 func TestRunMaintainerOutputPrimaryFailures(t *testing.T) {
 	missing := t.TempDir()
 	for _, command := range []string{"build-key", "patch-validate", "script-validate", "patch-materialize", "patch-regenerate", "test", "toolchain-build", "boundary-generate", "compatibility-pack", "upgrade-dossier"} {
+		invalidStatus := 2
+		if command == "compatibility-pack" {
+			invalidStatus = 1
+		}
 		for _, test := range []struct {
 			name      string
 			arguments []string
 			status    int
 		}{
-			{"invalid", []string{command, "--not-a-flag"}, 2},
+			{"invalid", []string{command, "--not-a-flag"}, invalidStatus},
 			{"operation", []string{command, "--root=" + missing}, 1},
 		} {
 			if test.name == "operation" && (command != "patch-validate" && command != "script-validate" && command != "boundary-generate") {

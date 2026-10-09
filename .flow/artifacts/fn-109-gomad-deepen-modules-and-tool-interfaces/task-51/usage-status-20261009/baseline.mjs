@@ -1,0 +1,11 @@
+import {run, lint, errortype, base, original, out} from './run.mjs';
+run('tool-provenance', 'go version && go env GOOS GOARCH GOROOT GOMODCACHE && git --version && ' + lint + ' version');
+run('fixture-red', "go -C tools/gomad3 test -json -tags test_dep -count=1 ./cmd/gomadtool -run '^Test(RunMaintainerOutputPrimaryFailures|CompatibilityPackSourceUsagePreservesBytesAndWriteFailure|RunCompatibilityPackUsageStatusPreservation)$'");
+run('controls-existing-baseline', "go -C tools/gomad3 test -json -tags test_dep -count=1 ./cmd/gomadtool -run 'TestRunMaintainerOutput|TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure|TestRunCompatibilityPackUsageStatusPreservation|TestRunGeneratorDiagnosticOutput'");
+run('ordinary-package-baseline', 'go -C tools/gomad3 test -json -tags test_dep -count=1 ./cmd/gomadtool', {GIT_TRACE2_EVENT: out + '/ordinary-package-baseline-git-trace.jsonl'});
+run('vet-baseline', 'go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool');
+run('architecture-baseline', "go -C tools/gomad3 test -json -tags test_dep -count=1 -run '^Test(PackageArchitecture|PureModulesHaveNoHostEffects|ExactModuleEdges|PublicPackagesDoNotExportTypeAliases|DomainModulesDoNotExportWireFraming|RunnerExecutionInjectionIsPrivate|HostPackageVet)$' .");
+run('validate-baseline', 'GOFLAGS=-tags=test_dep make -C tools/gomad3 validate');
+run('scoped-baseline', 'cd tools/gomad3 && ' + lint + ' run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomadtool');
+run('fast-baseline', 'make lint-code-fast GOLANGCI_LINT_BASE_REV=' + base + ' GOLANGCI_LINT_FIX=false GOLANGCI_LINT=' + lint + ' ERRORTYPE=' + errortype);
+run('integrated-baseline', 'make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=' + original + ' GOLANGCI_LINT_FIX=false GOLANGCI_LINT=' + lint + ' ERRORTYPE=' + errortype);

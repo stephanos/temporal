@@ -1,0 +1,15 @@
+import {run, lint, errortype, base, original, out} from './run.mjs';
+run('fixture-green', "go -C tools/gomad3 test -json -tags test_dep -count=1 ./cmd/gomadtool -run '^Test(RunMaintainerOutputPrimaryFailures|CompatibilityPackSourceUsagePreservesBytesAndWriteFailure|RunCompatibilityPackUsageStatusPreservation)$'");
+run('preservation-after', "go -C tools/gomad3 test -json -tags test_dep -count=1 ./cmd/gomadtool -run '^Test(CompatibilityPackSourceUsagePreservesBytesAndWriteFailure|RunCompatibilityPackUsageStatusPreservation)$'");
+run('task46-task50-final', "go -C tools/gomad3 test -json -tags test_dep -count=1 ./cmd/gomadtool -run 'TestRunMaintainerOutput|TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure|TestRunCompatibilityPackUsageStatusPreservation|TestRunGeneratorDiagnosticOutput'");
+run('ordinary-package-final', 'go -C tools/gomad3 test -json -tags test_dep -count=1 ./cmd/gomadtool', {GIT_TRACE2_EVENT: out + '/ordinary-package-final-git-trace.jsonl'});
+run('vet-final', 'go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool');
+run('errortype-final', 'cd tools/gomad3 && GOFLAGS=-tags=test_dep ' + errortype + ' -test=true ./cmd/gomadtool');
+run('architecture-final', "go -C tools/gomad3 test -json -tags test_dep -count=1 -run '^Test(PackageArchitecture|PureModulesHaveNoHostEffects|ExactModuleEdges|PublicPackagesDoNotExportTypeAliases|DomainModulesDoNotExportWireFraming|RunnerExecutionInjectionIsPrivate|HostPackageVet)$' .");
+run('source-darwin-final', 'GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go -C tools/gomad3 list -json -tags test_dep ./cmd/gomadtool');
+run('source-linux-final', 'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go -C tools/gomad3 list -json -tags test_dep ./cmd/gomadtool');
+run('validate-final', 'GOFLAGS=-tags=test_dep make -C tools/gomad3 validate');
+run('scoped-final', 'cd tools/gomad3 && ' + lint + ' run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomadtool');
+run('fast-final', 'make lint-code-fast GOLANGCI_LINT_BASE_REV=' + base + ' GOLANGCI_LINT_FIX=false GOLANGCI_LINT=' + lint + ' ERRORTYPE=' + errortype);
+run('integrated-final', 'make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=' + original + ' GOLANGCI_LINT_FIX=false GOLANGCI_LINT=' + lint + ' ERRORTYPE=' + errortype);
+run('format-final', "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/format-gate.sh gofmt -l tools/gomad3/cmd/gomadtool/maintainer_output_test.go tools/gomad3/cmd/gomadtool/usage_status_preservation_test.go && git diff --check");

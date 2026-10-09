@@ -143,3 +143,8 @@ Linux ownership amendment (2026-10-04): all native Linux execution obligations m
 ## Generator stderr correction owner — 2026-10-09
 
 Task50 is a direct dependency and supplies five terminal generator stderr checked-result corrections plus source-bound preservation/analyzer evidence. Task21 consumes that evidence and implements nothing. Task46 retains its separate stdout scope. Original dependency, first-baseline, full/default/affected/functional, formal-review and native-transfer obligations remain unchanged. No source-progress receipt alone completes this task.
+
+
+## Usage-status reconciliation consumer — 2026-10-09
+
+Task21 directly depends on task51’s bounded test-only correction from reviewed source-progress commit e09187751326abf393011052dd08fdfc9af61900. The parent and task-51/usage-status-20261009/admission.md admit only the later fixture’s compatibility-pack invalid-input failed-stderr expected status 2→1; task8’s original production status is preserved. Task21 implements nothing. All original acceptance, dependencies, histories, red gates and native transfers remain unchanged.

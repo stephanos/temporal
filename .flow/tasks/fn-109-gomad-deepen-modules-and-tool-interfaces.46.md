@@ -92,3 +92,8 @@ Tracker sync: n/a (bridge inactive)
 - Commits:
 - Tests:
 - PRs:
+
+
+## Bounded fixture preservation amendment — 2026-10-09
+
+Task51 owns only reconciliation of the compatibility-pack invalid-input failed-stderr expected status 2→1 with task8’s original checked-usage contract. See task-51/usage-status-20261009/admission.md and the parent’s dated decision. Production and all other assertions remain unchanged; historical task46 status-2 passes remain valid for their original source. All other acceptance, stdout report and authoring owners remain unchanged.

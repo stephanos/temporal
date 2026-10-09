@@ -1,0 +1,11 @@
+file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-51/usage-status-20261009/mutation.mjs:29
+  if (receipt.child_exit_code !== 1 || JSON.stringify(failedLeaves) !== JSON.stringify(expectedLeaves)) throw Error('mutation rejected on unexpected surface');
+                                                                                                              ^
+
+Error: mutation rejected on unexpected surface
+    at file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-51/usage-status-20261009/mutation.mjs:29:111
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.1

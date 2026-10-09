@@ -1,0 +1,31 @@
+{
+  "production": {
+    "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+    "sha256": "1372ebdc6d80efa644040d89a2c42c1302fc15660cbab79b94d78c1308eef7bd"
+  },
+  "original": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/task51-usage-mutant-NNRgxr/original.go",
+    "sha256": "1372ebdc6d80efa644040d89a2c42c1302fc15660cbab79b94d78c1308eef7bd"
+  },
+  "mutant": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/task51-usage-mutant-NNRgxr/mutant.go",
+    "sha256": "24c488f31a751065df982a12e3c4e626d6307199331593b4b3d70da5a6adfa33"
+  },
+  "overlay": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/task51-usage-mutant-NNRgxr/overlay.json",
+    "sha256": "2b5bb6ec622da7f3ec65ec002dfbf25914eae222ca05c0008107e4b6d3a288fa"
+  },
+  "replacement_occurrences": [
+    {
+      "byte_offset": 441,
+      "return_line": 25
+    },
+    {
+      "byte_offset": 1156,
+      "return_line": 44
+    }
+  ],
+  "original_block": "\t\tif _, err := fmt.Fprintln(stderr, \"usage: gomadtool compatibility-pack discover|review|refresh|generate|check|qualify [flags]\"); err != nil {\n\t\t\treturn 1\n\t\t}",
+  "replacement_block": "\t\tif _, err := fmt.Fprintln(stderr, \"usage: gomadtool compatibility-pack discover|review|refresh|generate|check|qualify [flags]\"); err != nil {\n\t\t\treturn 2\n\t\t}",
+  "replacement_count": 2
+}
