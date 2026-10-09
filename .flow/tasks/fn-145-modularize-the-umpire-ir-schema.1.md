@@ -42,9 +42,27 @@ go test -tags test_dep ./tools/umpire/ir/... ./cmd/tools/getproto/...
 - [ ] A real multi-file fixture generates compilable imported Scala declarations; imported edits and missing outputs fail the correct gates.
 - [ ] Stale imported linked descriptors fail even when the root is unchanged; the two Scala jars contain no duplicate IR closure classes.
 ## Done summary
-TBD
+Generation, hashing, freshness checks, linked descriptors, API-jar exclusions, and schema declaration ledgers now cover the complete owned Umpire IR proto closure. Focused regression coverage includes a real two-file ScalaPB generation and Scala compilation proof for an imported declaration.
 
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - ran [2026-10-09T04:01:18Z..2026-10-09T04:03:41Z] (codex: NEEDS_WORK -> SHIP)
+
+Baseline: red (`go test -tags test_dep ./tools/umpire/ir/... ./cmd/tools/getproto/...` failed before edits because Batch 1's intentionally stale checked-in IR still names `umpire.Step`; production IR/Case regeneration is deferred to fn-145.4).
+
+Verification:
+
+- PASS: `mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check --test-only umpire.check.GateSuite`
+- PASS: `go test -tags test_dep ./cmd/tools/getproto -run 'TestLinkedModelDescriptors'`
+- PASS: `go test -tags test_dep ./tools/umpire/ir -run 'TestSchema(Rename|Declarations)'`
+- PASS: `mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check`
+- PASS: `mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/check/Gate.scala model/check/test/Gate.test.scala`
+- PASS: `gofmt -d cmd/tools/getproto/main.go cmd/tools/getproto/linked_test.go tools/umpire/ir/schema_test.go` (empty diff)
+- EXPECTED BATCH RED: `go test -tags test_dep ./tools/umpire/ir/... ./cmd/tools/getproto/...` reproduced the unchanged pre-edit `umpire.Step` admission failures; `cmd/tools/getproto` passed. The Batch 1 contract defers regeneration and full batch gates to fn-145.4.
+- INCONCLUSIVE: `make lint-model-check` returned zero but Scalafix emitted a JDK 27 `NoSuchFieldException: path`, so it is not counted as green.
+- INHERITED RED: `make lint-code-fast` reported 741 branch-wide findings outside this task's touched paths; its incidental formatter changes were restored to the clean base before commit.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7a5ac5ed51b79e6410fd950e06ba617fbf36ada4, d2b174271d2832484181a637ad794b154b92878f
+- Tests: mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check --test-only umpire.check.GateSuite, go test -tags test_dep ./cmd/tools/getproto -run 'TestLinkedModelDescriptors', go test -tags test_dep ./tools/umpire/ir -run 'TestSchema(Rename|Declarations)', mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/check/Gate.scala model/check/test/Gate.test.scala, EXPECTED BATCH RED (fn-145.4 regeneration deferred): go test -tags test_dep ./tools/umpire/ir/... ./cmd/tools/getproto/...
 - PRs:
