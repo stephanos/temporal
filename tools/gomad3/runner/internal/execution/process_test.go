@@ -963,8 +963,11 @@ func TestTargetHelper(t *testing.T) {
 	helper, helperArgs := targetHelper()
 	switch helper {
 	case "output":
-		fmt.Fprintln(os.Stdout, "target stdout")
+		_, stdoutErr := fmt.Fprintln(os.Stdout, "target stdout")
 		fmt.Fprintln(os.Stderr, "target stderr")
+		if stdoutErr != nil {
+			os.Exit(7)
+		}
 		os.Exit(7)
 	case "flood":
 		if _, err := os.Stdout.Write(make([]byte, 1<<20)); err != nil {
@@ -991,7 +994,9 @@ func TestTargetHelper(t *testing.T) {
 		os.Exit(0)
 	case "choice-marker":
 		runChoiceRunnableTarget()
-		fmt.Fprintln(os.Stdout, "post-choice-marker")
+		if _, err := fmt.Fprintln(os.Stdout, "post-choice-marker"); err != nil {
+			os.Exit(0)
+		}
 		os.Exit(0)
 	case "choice-reorder":
 		runChoiceReorderTarget(helperArgs)
@@ -1010,7 +1015,9 @@ func TestTargetHelper(t *testing.T) {
 		if err := syscall.Ftruncate(descriptor, 1); err == nil {
 			os.Exit(35)
 		}
-		fmt.Fprintln(os.Stdout, "choice tape read-only")
+		if _, err := fmt.Fprintln(os.Stdout, "choice tape read-only"); err != nil {
+			os.Exit(0)
+		}
 		os.Exit(0)
 	case "io-ro-mount":
 		request := os.NewFile(9, "gomad3-io-ro-mount-request")
@@ -1308,19 +1315,25 @@ func runChoiceReorderTarget(arguments []string) {
 		close(secondStart)
 	}
 	close(sentinelStart)
-	fmt.Fprintln(os.Stdout, <-results+<-results)
+	if _, err := fmt.Fprintln(os.Stdout, <-results+<-results); err != nil {
+		return
+	}
 }
 
 func runChoiceSelectTarget() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
-	fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))
+	if _, err := fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8)); err != nil {
+		return
+	}
 }
 
 func runChoicePrefixRNGTarget() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
-	fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))
+	if _, err := fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8)); err != nil {
+		return
+	}
 }
 
 func runChoiceSelectSequence(iterations int) string {

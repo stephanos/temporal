@@ -1,0 +1,59 @@
+{
+  "candidate_sha256": "4a94563b09e82dec418088309cc4ae01f49f7899389f4c0d184ecb0e6579bb59",
+  "mutations": [
+    {
+      "name": "output",
+      "source": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-output.go",
+      "source_sha256": "7a8587598add3e477e4eddf50ecd00d1051f2294cae92aacb9da14560c938fff",
+      "overlay": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-output.json",
+      "overlay_sha256": "52c23da810311ffe10cd01479378abd7c1b18eeebe9b4ce1dadad1ffed843c8a",
+      "exit_code": 1,
+      "inputs_unchanged": true
+    },
+    {
+      "name": "choice-marker",
+      "source": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-marker.go",
+      "source_sha256": "ba8d4bc7a6d2cb18e2cb1aaf99658244928213d8f3f3c5a485897229b03d0f34",
+      "overlay": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-marker.json",
+      "overlay_sha256": "fd9315e09ec22252ccdd1309fb21d527a9366037eaa9a252542469d93dccbe2e",
+      "exit_code": 1,
+      "inputs_unchanged": true
+    },
+    {
+      "name": "choice-tape-readonly",
+      "source": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-tape-readonly.go",
+      "source_sha256": "79078d2edb9880aab87fb5ba076c08cb94fac37b9b2095469e02ebf7324be27a",
+      "overlay": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-tape-readonly.json",
+      "overlay_sha256": "fc6f92c9682ca0bc5a91106057785c478a0c42bdcd3425e68b380b3a45ee8b40",
+      "exit_code": 1,
+      "inputs_unchanged": true
+    },
+    {
+      "name": "choice-reorder",
+      "source": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-reorder.go",
+      "source_sha256": "f2998b3f682931b13aa541b7528e8ac16bb5950626c615d77ce77092d0c07141",
+      "overlay": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-reorder.json",
+      "overlay_sha256": "3ff32c614c5def108605d4128160554570852df344be7c1969c754395e8d22d5",
+      "exit_code": 1,
+      "inputs_unchanged": true
+    },
+    {
+      "name": "choice-select",
+      "source": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-select.go",
+      "source_sha256": "a72650eab71153b2ec56fd1b8d7d6149d22941e129bf2729816522d087b712f6",
+      "overlay": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-select.json",
+      "overlay_sha256": "b1673b5932b995ae96098365ced8c447447dbfe37f098e2639cd205f060a41aa",
+      "exit_code": 1,
+      "inputs_unchanged": true
+    },
+    {
+      "name": "choice-prefix-rng",
+      "source": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-prefix-rng.go",
+      "source_sha256": "24a719734a757a6f5dde50cbb97076161bd2980b775635888dc66da1767e3ae5",
+      "overlay": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task60-tmp/mutant-choice-prefix-rng.json",
+      "overlay_sha256": "ee11f6121ebe7800ffd5280b9d76563f91eb689c34810fbb353cab8e67116923",
+      "exit_code": 1,
+      "inputs_unchanged": true
+    }
+  ]
+}
