@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-09T23:51:19.395291Z",
+  "depends_on": [
+    "fn-156-let-the-scala-compiler-and-lint-enforce.1"
+  ],
+  "id": "fn-156-let-the-scala-compiler-and-lint-enforce.2",
+  "priority": null,
+  "spec": "fn-156-let-the-scala-compiler-and-lint-enforce",
+  "spec_path": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.2.md",
+  "status": "todo",
+  "title": "Activate strict equality across authoring and lift builds",
+  "updated_at": "2026-10-09T23:51:19.395291Z"
+}

@@ -50,7 +50,11 @@ They apply to the framework, the Temporal Models, irgen and the lift fixtures' b
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
+- **Scheduling.** The owner schedules this spec immediately after fn-155 closes on the integrated local baseline and before the authoring batch. Its only prerequisite is fn-155. Re-anchor names, files and proof inputs to that committed closure before implementation. The conductor records the authoring batch's reverse dependencies and owns milestone scheduling.
 - **No meaning change.** Flags, lint rules and tests change no Model meaning. A regeneration after this spec is byte-identical in `model/ir` and `model/cases`. A `CanEqual` given must not alter what irgen lifts.
+- **Exact bytes include positions.** Preserve declaration source locations during mechanical edits. Neither position stripping nor fn-155's mapped-identity projection satisfies this spec. Unexpected byte drift stops the comparison and remains an unresolved acceptance failure.
+- **Discovered laws.** The subject universe comes from initialized exports and their complete root closure, independently cross-checked against lifted machine identities. Include machines reached through derivations, refinements, compositions, Queries, capabilities and realizations. Determinism means repeatable ordered results for the same state and class, preserving declared alternatives. Single-successor assumptions must not reject named choices. List each inapplicable or failing law with its machine and reason; never silently exclude one.
+- **Verification inheritance.** Reuse predecessor evidence only when commands, source scope, fixtures and environment still apply. Strict compiler and lint changes invalidate affected Scala checks. Full native Model, Go and Case generator failures from resource exhaustion remain recorded under deferred fn-157; Quint resource work remains fn-154, and Activity semantic failures remain the Activity batch's obligations. These dispositions supply no passing credit for R9.
 - **Lift fixtures.** irgen's refusal fixtures (`unsupported`, `werror`, `crossed`) must keep failing for the reason they test, not because of a new flag.
 - **Scalafix toolchain.** Scalafix runs under JDK 25 because of a JDK 27 incompatibility. New rules must run in that setup or document a workaround.
 - **Shared files.** This spec touches every model file mechanically, so it serializes with any spec editing model sources at the same time.
@@ -68,6 +72,10 @@ They apply to the framework, the Temporal Models, irgen and the lift fixtures' b
 - **R8:** A capture-checking spike, time-boxed to two days, reports whether `Draft` confinement can be proved under the compiler in use, and what it would cost. No merged source change. No error surface beyond the report.
 - **R9:** `make umpire-gen-model` produces a byte-identical `model/ir` and `model/cases`. The model gate, `make lint-model` and the irgen fixture build pass.
 
+## Early proof point
+
+Task fn-156-let-the-scala-compiler-and-lint-enforce.1 proves that `Finite` can provide same-type equality evidence without admitting unrelated model types or changing lifted bytes. If that proof fails, revise the evidence placement and mechanical migration approach before continuing with the equality rollout in task .2.
+
 ## Quick commands
 
 ```bash
@@ -83,6 +91,7 @@ make umpire-check-cases
 - **Out:** mutation testing and Stainless.
 - **No renaming of `Phase`, `Fact` or `State` types:** that would change IR identities.
 - **No Model meaning change and no Go change.**
+- Broad generated API drift verification and new CI coverage remain outside this spec, consistent with the project's declined-concept record. Existing full gates and focused negative fixtures remain required.
 
 ## Decision Context
 <!-- scope: both -->
@@ -90,7 +99,21 @@ make umpire-check-cases
 - **Why `CanEqual` comes from `Finite`:** the cheapest route to strict equality. Nearly all model types already derive `Finite`, so one given replaces hundreds of `derives CanEqual` edits.
 - **Rejected: renaming per-level types.** It would churn IR identities across every downstream spec. The import-ban lint gives most of the safety at no identity cost.
 - **Capture checking stays a spike:** it is experimental in the compiler, and the owner wants the finding before any adoption.
+- **Reuse section-order checks.** Extend the existing machine and composition declaration checks rather than introduce a second interpretation of their order. The later lifter refactor carries these checks and their located diagnostics with its lint extraction.
+- **Equality lint policy.** Keep `noUniversalEquality` enabled and prove its interaction with native typed `==` in the compiler proof. Prefer existing precise line-scoped rule suppression for compiler-checked model comparisons if the built-in rule is syntactic. Any exemption names its reason and keeps unrelated-type compile failures; broad file or project disabling is not accepted.
+- **Stakeholders.** Model authors get compiler and lint diagnostics, reviewers get discovered law coverage, and the gate's operators keep their current entry points and explicit failure statuses. Runtime behavior and deployment configuration do not change.
+- **Short research scope.** Codebase, dependency, memory and gap analysis ground this plan. External research scouts are skipped at short depth. Implementers consult the compiler and Scalafix's official documentation for the pinned toolchain when testing equality evidence, nulls and capture checking.
 
-## Parked unknowns
+## Requirement coverage
 
-- **Scheduling slot.** The spec touches every model file. It fits between batches, for example after fn-155 and before batch 2, or after batch 4. Owner decision.
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | The model build passes `-Wunused:all -Wvalue-discard -Wnonunit-statement -Wsafe-init -Wimplausible-patterns` under `-Werror`, with the one current finding fixed. Errors: a lift fixture that must not compile keeps failing for its tested reason. A new warning in irgen or the fixtures is fixed or exempted with a reason. | fn-156-let-the-scala-compiler-and-lint-enforce.1, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
+| R2 | `-language:strictEquality` is on and scalafix `noUniversalEquality` is enabled. `Finite` supplies `CanEqual`, and the remaining types declare it. Comparing two unrelated model types with `==` fails to compile, shown by a negative compile test. Errors: a regeneration differs from the baseline in any byte. | fn-156-let-the-scala-compiler-and-lint-enforce.1, fn-156-let-the-scala-compiler-and-lint-enforce.2, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
+| R3 | `-Yexplicit-nulls` is either on, with its findings fixed, or recorded as dropped with its finding count and reason. No error surface beyond the compile. | fn-156-let-the-scala-compiler-and-lint-enforce.6, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
+| R4 | Lint rules enforce machine and composition section order, dotted `in(...)`, the module map's permitted Scala imports, and no wildcard case on model enums and states. Each rule fails on a seeded negative example and passes on the current tree after fixes. Errors: a rule that cannot run under the JDK 25 scalafix setup is implemented as an irgen check, or the gap is recorded. | fn-156-let-the-scala-compiler-and-lint-enforce.3, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
+| R5 | A lint rule bans unqualified cross-level imports of `Phase`, `Fact` and `State`, and fails on a seeded negative example. No renaming of the types is done. | fn-156-let-the-scala-compiler-and-lint-enforce.3, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
+| R6 | The generic law tests discover every machine through the `irFile` exports. Adding a machine to an export, without editing any test, puts it under refinement totality, closedness, determinism and binding-order checks. Errors: a machine that cannot satisfy a law is listed with its reason, never silently skipped. | fn-156-let-the-scala-compiler-and-lint-enforce.4, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
+| R7 | Tests whose subject is a `Finite` domain iterate it fully. The step-table pin covers every activity and Nexus machine through interpreter-built tables. Errors: a domain too large to iterate within the test's time bound is recorded, with its size and the chosen sample. | fn-156-let-the-scala-compiler-and-lint-enforce.5, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
+| R8 | A capture-checking spike, time-boxed to two days, reports whether `Draft` confinement can be proved under the compiler in use, and what it would cost. No merged source change. No error surface beyond the report. | fn-156-let-the-scala-compiler-and-lint-enforce.6, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
+| R9 | `make umpire-gen-model` produces a byte-identical `model/ir` and `model/cases`. The model gate, `make lint-model` and the irgen fixture build pass. | fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
