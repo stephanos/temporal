@@ -5,6 +5,7 @@ and experimental proposals. They do not define current support or task state.
 
 | Report | Assessment date | Question |
 | --- | --- | --- |
+| [Temporal server WASI compilation](2026-10-09-wasi-compilation.md) | 2026-10-09 | Can the existing server entrypoint link as a WASI executable with SQLite and Prometheus included? |
 | [Loom and deterministic simulation testing](GOMAD_CMPv2.md) | 2026-09-27 | Which oracle, workload-generation, search, and debugging ideas could improve Gomad? |
 | [System-level determinism](GOMAD3_OS.md) | 2026-08-15 | What would a Linux/arm64 escape firewall or mixed-language QEMU replay experiment require? |
 | [Host-clock escapes](GOMAD_HOST_CLOCK_ESCAPES.md) | 2026-09-30 | Which host-clock values reach a target, do they affect replay, and what remedies fit the patch policy? |
