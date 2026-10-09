@@ -982,7 +982,8 @@ object ResetAfterHeartbeat
   object controller
       extends Controller(
         perform(
-          client.start(heartbeat := Timeout.expires, maxAttempts := MaxAttempts.one) -> startResetOne
+          client
+            .start(heartbeat := Timeout.expires, maxAttempts := MaxAttempts.one) -> startResetOne
         ),
         everyCase(awaitResetPublication),
         everyCase(awaitResetHeld),

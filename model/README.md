@@ -1298,6 +1298,13 @@ operation answers a repeated request id OK after it closed, so its `capabilities
 `overriding(closedIsRejectedUniformly -> closedRejectsOrRepeats, because = repeatedRequestsAnswer)`.
 Both are protected members of `Capabilities`, so only the section's own body, including a shared
 capabilities base class, waives a Property.
+A Property several declared capabilities bring, such as Retries' `failureEndsFailed` of two failure
+instances, is overridden only by naming the instances: `overriding(Retries.failureEndsFailed[State,
+Phase] -> properties.resetFailureEndsFailed, because = …, of = Seq(retryableFailure, fatalFailure))`
+replaces those two, each under its own bindings, origin and bounds, and an instance `of` does not
+name keeps the companion's Property. The waiver metadata names each replaced instance. The
+standalone activity overrides its failure and per-attempt deadline laws this way so a pending reset
+applies first, and keeps schedule-to-close's terminal law.
 
 The lifter writes current waiver metadata to `<file>.waivers.json`; the gate maintains matching
 `capability-waiver` entries in `<file>.lint.json`. Those entries preserve the source-owned reason,

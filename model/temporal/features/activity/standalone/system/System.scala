@@ -856,6 +856,42 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       pendingPause = Some(states.pendingPause),
       pendingCancel = Some(states.pendingCancel)
     )
+    // A pending reset applies as a failure or the attempt's own deadline ends it, before its
+    // retryability or the policy is read (attempt.go:201-216, statemachine.go:317-345); the
+    // schedule-to-close deadline keeps its terminal law.
+    overriding(
+      Retries.failureReturnsToWaiting[State, Phase] -> properties.resetFailureReturnsToWaiting,
+      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      of = Seq(retryableFailure, fatalFailure)
+    )
+    overriding(
+      Retries.failureEndsFailed[State, Phase] -> properties.resetFailureEndsFailed,
+      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      of = Seq(retryableFailure, fatalFailure)
+    )
+    overriding(
+      Retries.failurePauses[State, Phase] -> properties.resetFailurePauses,
+      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      of = Seq(retryableFailure, fatalFailure)
+    )
+    overriding(
+      (Deadline.deadlineTimesOut[State, Phase]: AnyRef) ->
+        (properties.resetDeadlineTimesOut: AnyRef),
+      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      of = Seq(startToCloseDeadline, heartbeatDeadline)
+    )
+    overriding(
+      (Deadline.deadlineReturnsToWaiting[State, Phase]: AnyRef) ->
+        (properties.resetDeadlineReturnsToWaiting: AnyRef),
+      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      of = Seq(startToCloseDeadline, heartbeatDeadline)
+    )
+    overriding(
+      (Deadline.deadlinePauses[State, Phase]: AnyRef) ->
+        (properties.resetDeadlinePauses: AnyRef),
+      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      of = Seq(startToCloseDeadline, heartbeatDeadline)
+    )
 
   // The paths, then one functional Query per side effect that settles the activity, and the Queries
   // that carry the other promises into the lifted Model. Each path starts before the activity exists;
