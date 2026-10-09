@@ -260,7 +260,7 @@ func TestEvidenceOfTheRunsRecordIsReadOnlyFromAnEventItsSourceTakes(t *testing.T
 		// attempt, which is an error at that event, and not a guard that does not hold.
 		"a guard that cannot be evaluated on the event": {
 			model: func(m *umpirespb.Model) {
-				for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
+				for _, e := range realizationNamed(t, m, "completionExecution").GetEvidence() {
 					if e.GetId() == started {
 						e.GetRunEvent().Kind, e.GetRunEvent().Attempt = umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED, nil
 						all := e.GetRunEvent().GetGuard().GetAll()
