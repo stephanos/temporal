@@ -66,6 +66,10 @@ Root admits disjoint correction tasks fn-109.57 (16 test cleanups), fn-109.58 (t
 ### Combined source verification (2026-10-09)
 
 Tasks57-59 are separately reviewed and integrated through a7657365281dccbdcac27ffd9b2c34e54a36d3ea. Root frozen combined fingerprint4287cc794ab0a4e55f2262ebd600052bf6b7a641655c7ba7ac2b6383477c5575 binds11 terminal receipts. Actual original-base lint80 to60 removes18 errcheck and2 exhaustive findings, zero introduced, with every residual full block preserved after line mapping. Required lint remains RED60, affected configured lint RED24, integrated errortype unreached. Focused observations12pass/88fail/0skip retain inherited failures. Static/boundary/private/validate/format/vet/standalone-errortype pass. Full ordinary Runner was attempted once but explicitly diagnostic-aborted at its unchanged unbounded executor.started receive;274pass/226fail/6skip are partial observations, not complete coverage. This source-owned hang and later unexecuted tests remain acceptance gaps. See [combined source-progress](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-57-59/source-progress.md) and hang-diagnostic.md. Fresh combined source-progress review accepted the bounded integration with no introduced findings; see the combined independent-review artifact. Tasks remain in_progress; no formal SHIP/Done or native qualification. Retain all first-baseline/fixed-identity/R18/R19/source obligations and deferred fn149/fn128.
+
+### Next bounded source corrections (2026-10-09)
+
+Root admits fn109.60 (six child-fixture outputs), fn109.61 (observed build contention) and fn109.62 (bounded progress-test startup) under the next-source-corrections admission artifact. Declared product scopes are disjoint; source editing uses isolated worktrees and all shared gates stay serialized. Required lint remains measured RED60 until actual candidate evidence changes it. Removing the startup hang does not turn inherited unsupported-host failures into green coverage. Original source acceptance and all native deferrals remain unchanged; no formal task10 review or completion before its retained source gates pass.
 ## Acceptance
 
 

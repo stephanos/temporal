@@ -283,6 +283,9 @@ CI, PR, or push authority.
 | [fn-109.57](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.57.md) | 🚧 In progress | Check test cleanup results without changing resource lifetimes |
 | [fn-109.58](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.58.md) | 🚧 In progress | Check inspection and invalid compiler-fixture cleanup |
 | [fn-109.59](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.59.md) | 🚧 In progress | Make preserved test-switch no-op cases explicit |
+| [fn-109.60](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.60.md) | 🚧 In progress | Check six child-fixture outputs without changing process outcomes |
+| [fn-109.61](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.61.md) | 🚧 In progress | Observe competing-build lock contention instead of sleeping |
+| [fn-109.62](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.62.md) | 🚧 In progress | Bound progress-test startup and observe early completion |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 

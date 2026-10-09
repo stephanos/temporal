@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-09T23:13:15.961075Z",
+  "depends_on": [],
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.62",
+  "priority": null,
+  "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.62.md",
+  "status": "todo",
+  "title": "Bound periodic-progress fixture startup and observe early completion",
+  "updated_at": "2026-10-09T23:14:19.477268Z"
+}
