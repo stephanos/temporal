@@ -1,4 +1,4 @@
-package framework.check
+package umpire.check
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
@@ -107,7 +107,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
 
   test("the lifter's Syntax trait documents its public members, not its private ones"):
     val source =
-      """package framework.irgen
+      """package umpire.irgen
         |
         |// The lifting of the sugar.
         |private[irgen] trait Syntax:
@@ -151,7 +151,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |private def sticky(p: Boolean): Boolean = p
         |""".stripMargin
     val lifter =
-      """package framework.irgen
+      """package umpire.irgen
         |
         |object Matching:
         |  object Inner:
@@ -165,19 +165,23 @@ class SyntaxRuleSuite extends munit.FunSuite:
     assertEquals(
       found.map(_.takeWhile(_ != ' ')),
       Vector(
-        "model/irgen/Matching.scala:5:",
-        "model/temporal/features/activity/standalone/Standalone.scala:5:",
-        "model/temporal/features/activity/standalone/Standalone.scala:6:",
-        "model/temporal/features/activity/standalone/Standalone.scala:8:",
         "model/framework/Steps.scala:3:",
         "model/framework/Steps.scala:7:",
         "model/framework/Steps.scala:8:",
-        "model/framework/Steps.scala:10:"
+        "model/framework/Steps.scala:10:",
+        "model/irgen/Matching.scala:5:",
+        "model/temporal/features/activity/standalone/Standalone.scala:5:",
+        "model/temporal/features/activity/standalone/Standalone.scala:6:",
+        "model/temporal/features/activity/standalone/Standalone.scala:8:"
       )
     )
-    assert(found.head.contains("move it into model/irgen/Syntax.scala"), found.head)
-    assert(found(1).contains("move it into model/temporal/realize/Syntax.scala"), found(1))
-    assert(found(4).contains("`implies` is a sugar name defined outside a Syntax.scala"), found(4))
+    assert(found.head.contains("move it into model/framework/Syntax.scala"), found.head)
+    assert(found(4).contains("move it into model/irgen/Syntax.scala"), found(4))
+    assert(found(5).contains("move it into model/temporal/realize/Syntax.scala"), found(5))
+    assert(
+      found.head.contains("`implies` is a sugar name defined outside a Syntax.scala"),
+      found.head
+    )
 
   test("class members, constructor parameters, locals and comments are not sugar"):
     val claims =
@@ -228,7 +232,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
 
   test("a core file that imports a Syntax module or a name of its sugar fails"):
     val lifter =
-      """package framework.irgen
+      """package umpire.irgen
         |
         |import scala.collection.mutable
         |import umpire.irgen.Syntax
@@ -238,7 +242,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |  def lifted(t: Term) = if sugared(t) then sugar(t) else plain(t)
         |""".stripMargin
     val lifterSyntax =
-      """package framework.irgen
+      """package umpire.irgen
         |
         |// The lifting of the sugar.
         |private[irgen] trait Syntax:
@@ -268,12 +272,12 @@ class SyntaxRuleSuite extends munit.FunSuite:
     assertEquals(
       found,
       Vector(
-        "model/irgen/Lifting.scala:4: syntax rule: a core file imports the sugar of " +
-          "model/irgen/Syntax.scala (`Syntax`): remove the import and write the core form",
         "model/framework/Core.scala:3: syntax rule: a core file imports the sugar of " +
           "model/framework/Syntax.scala (`enter`): remove the import and write the core form",
         "model/framework/Core.scala:7: syntax rule: a core file imports the sugar of " +
-          "model/framework/Syntax.scala (`Syntax$package`): remove the import and write the core form"
+          "model/framework/Syntax.scala (`Syntax$package`): remove the import and write the core form",
+        "model/irgen/Lifting.scala:4: syntax rule: a core file imports the sugar of " +
+          "model/irgen/Syntax.scala (`Syntax`): remove the import and write the core form"
       )
     )
 
@@ -307,7 +311,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
 
   test("the lifter's core may name its Syntax trait's hooks"):
     val lifterSyntax =
-      """package framework.irgen
+      """package umpire.irgen
         |
         |// The lifting of the sugar.
         |private[irgen] trait Syntax:
@@ -315,7 +319,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |  def sugared(t: Term): Boolean = true
         |""".stripMargin
     val core =
-      """package framework.irgen
+      """package umpire.irgen
         |
         |trait Lifting extends Syntax:
         |  def lifted(t: Term): Boolean = sugared(t)

@@ -1,4 +1,4 @@
-package framework.check
+package umpire.check
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
@@ -61,7 +61,7 @@ class CommentRuleSuite extends munit.FunSuite:
     assertEquals(failed, 1)
     assertEquals(
       printed.linesIterator.map(_.takeWhile(_ != ' ')).toVector,
-      Vector("model/irgen/testdata/lifts/Fixture.scala:1:", "model/framework/Machine.scala:3:")
+      Vector("model/framework/Machine.scala:3:", "model/irgen/testdata/lifts/Fixture.scala:1:")
     )
     assert(printed.contains("comment rule: write the comment as // lines"), printed)
     assertEquals(
