@@ -51,7 +51,7 @@ func TestScenarioChooseIsDomainSeparatedAndReplayable(t *testing.T) {
 	require.Less(t, first.decisions[0].Selected, uint64(len(options)))
 
 	seen := map[uint64]struct{}{}
-	for seed := uint64(0); seed < 64; seed++ {
+	for seed := range uint64(64) {
 		seen[selectScenarioAlternative(seed, 0, "pick-worker", uint64(len(options)))] = struct{}{}
 	}
 	require.Greater(t, len(seen), 1)
@@ -65,7 +65,6 @@ func TestScenarioBoundedParallelHonorsLimitAndReturnsStableFirstError(t *testing
 	started := make(chan struct{}, 2)
 	steps := make([]ScenarioStep, 4)
 	for index := range steps {
-		index := index
 		step, err := NewScenarioStep("worker-"+string(rune('a'+index)), func(context.Context, Cluster) error {
 			current := active.Add(1)
 			for {

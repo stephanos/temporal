@@ -3,8 +3,8 @@ package consumer
 import (
 	"context"
 	"encoding/json"
-	"encoding/json/jsontext"
 
+	"encoding/json/jsontext"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/upgrade/pinimpact"

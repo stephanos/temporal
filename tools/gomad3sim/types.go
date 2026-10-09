@@ -196,8 +196,8 @@ type NetworkEndpoint struct {
 type NetworkTransition struct {
 	Ordinal       uint64                `json:"ordinal"`
 	Kind          NetworkTransitionKind `json:"kind"`
-	Source        NetworkEndpoint       `json:"source,omitempty"`
-	Destination   NetworkEndpoint       `json:"destination,omitempty"`
+	Source        NetworkEndpoint       `json:"source"`
+	Destination   NetworkEndpoint       `json:"destination"`
 	Connection    uint64                `json:"connection,omitempty"`
 	Delivery      uint64                `json:"delivery,omitempty"`
 	Bytes         uint64                `json:"bytes,omitempty"`
@@ -370,7 +370,7 @@ type FaultRealization struct {
 	Ordinal  uint64      `json:"ordinal"`
 	Action   FaultAction `json:"action"`
 	Matched  FaultMatch  `json:"matched"`
-	Target   NodeHandle  `json:"target,omitempty"`
+	Target   NodeHandle  `json:"target"`
 	Identity string      `json:"identity"`
 }
 
@@ -378,7 +378,7 @@ type Observation struct {
 	Ordinal    uint64     `json:"ordinal"`
 	ID         string     `json:"id"`
 	Kind       string     `json:"kind"`
-	Handle     NodeHandle `json:"handle,omitempty"`
+	Handle     NodeHandle `json:"handle"`
 	Value      []byte     `json:"value"`
 	FullSHA256 string     `json:"full_sha256"`
 	Identity   string     `json:"identity"`

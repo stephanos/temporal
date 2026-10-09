@@ -146,10 +146,10 @@ func TestDecodeSpecAllowsMaximumMountShape(t *testing.T) {
 		Fidelity: FidelitySimulationModel,
 		Limits:   DefaultLimits(),
 	}
-	for index := uint64(0); index < MaximumVolumes; index++ {
+	for index := range MaximumVolumes {
 		spec.Volumes = append(spec.Volumes, VolumeSpec{ID: VolumeID(fmt.Sprintf("volume-%02d", index)), CapacityBytes: 1})
 	}
-	for nodeIndex := uint64(0); nodeIndex < MaximumNodes; nodeIndex++ {
+	for nodeIndex := range MaximumNodes {
 		node := NodeSpec{
 			ID:      NodeID(fmt.Sprintf("node-%02d", nodeIndex)),
 			Boot:    BootID(fmt.Sprintf("boot-%02d", nodeIndex)),

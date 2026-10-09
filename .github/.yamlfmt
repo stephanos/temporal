@@ -5,6 +5,7 @@
 gitignore_excludes: true
 
 exclude:
+  - .flow/artifacts
   # Go template files
   - common/config/config_template_embedded.yaml
   - config/docker.yaml

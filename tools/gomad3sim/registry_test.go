@@ -35,7 +35,7 @@ func TestBootRegistryConcurrentRegistration(t *testing.T) {
 	prefix := uniqueBootID("concurrent")
 	var waitGroup sync.WaitGroup
 	errors := make(chan error, registrations)
-	for index := 0; index < registrations; index++ {
+	for index := range registrations {
 		waitGroup.Add(1)
 		go func(index int) {
 			defer waitGroup.Done()
@@ -51,7 +51,7 @@ func TestBootRegistryConcurrentRegistration(t *testing.T) {
 	}
 	ids := RegisteredBootIDs()
 	require.True(t, slices.IsSorted(ids))
-	for index := 0; index < registrations; index++ {
+	for index := range registrations {
 		_, ok := RegisteredBoot(BootID(fmt.Sprintf("%s-%02d", prefix, index)))
 		require.True(t, ok)
 	}
