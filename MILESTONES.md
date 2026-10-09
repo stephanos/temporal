@@ -352,9 +352,13 @@ Activity-batch regressions found while preparing the structural moves (schema le
 stale lifter fixtures, the one-bringer Cancelable capability) are fixed on `umpire`; Cancelable is retired
 and `cancelIsRequested` is Nexus's own claim. Until the batch regeneration, the carriers and source-position
 checks fail on stale production IR.
-Current-source replay also exposes two inherited failures that must be resolved before batch
-closure: the non-retryable failure claim's visibility ambiguity and pause/resume's correlated
-per-event work ceiling. Neither is waived or counted as passing source-batch evidence.
+Current-source replay exposes three inherited assessment failures that must be resolved before
+closure: ordinary worker completion is observationally ambiguous with by-ID completion
+(`completes` is `inconclusive(never_evaluated)`), the non-retryable failure claim has a visibility
+ambiguity, and pause/resume exceeds its correlated per-event work ceiling. Batch 1's full Go gate
+reproduces all three; its structural equivalence proof does not discharge them. None is waived or
+counted as passing evidence. Tasks fn-128.7 and .8 own the latter two corrections; the completion
+ambiguity has no scheduled correction yet.
 The independently reviewed correction plan seals fn-138's original/adopted R3 comparison before
 fn-129 changes Source, then runs fn-128.7 and .8 as disjoint parallel candidates after fn-129.4.
 The close checks every authored expected status/reason exactly, including the retained retry
