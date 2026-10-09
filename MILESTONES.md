@@ -88,7 +88,8 @@ equivalence proof that later work builds on, and at a format activation.
   without spec-close dependencies inside a batch.
 - Batches run serially; Flow records that as each spec depending on every spec of the previous
   batch. The owner prioritized the Activity subject split (fn-151) immediately after batch 1,
-  followed by naming the Activity's repeated patterns (fn-155); authoring batch 2 waits on both.
+  followed by naming the Activity's repeated patterns (fn-155), then compiler and lint enforcement
+  (fn-156); authoring batch 2 waits on all three.
   The structural baseline is closed; batch 5 waits on batch 4.
   The next batch's preparation may run in isolated worktrees alongside the
   current one, but joins serially onto the closed baseline.
@@ -96,6 +97,7 @@ equivalence proof that later work builds on, and at a format activation.
 | # | Batch | Specs | Nature | Shared close | Live run |
 | --- | --- | --- | --- | --- | --- |
 | 1b | Activity abstractions | fn-155 (named repeated patterns) | meaning-preserving, mapped identities | fn-155.6 | none |
+| 1c | Compiler and lint | fn-156 | byte-identical | fn-156 final task (planning underway) | none |
 | 2 | Authoring | fn-140 → fn-123 | equivalence sealed, then meaning | fn-140.6, fn-123.8 | once |
 | 3 | Testpilot format | fn-146 → fn-147 → fn-148 | breaking format | fn-146.7, fn-147.4, fn-148.7 | once |
 | 4 | Lifter | fn-141 | byte-identical | fn-141.14 | none |
@@ -113,8 +115,8 @@ The DSL framework (`model/framework`) stays Temporal-agnostic as far as is reali
 vocabulary, properties, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
 are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
 
-Next, name the split standalone Activity's repeated patterns; then continue the Scala
-authoring and format work before completing Activity coverage.
+Next, name the split standalone Activity's repeated patterns, then complete compiler and lint
+enforcement; continue the Scala authoring and format work before completing Activity coverage.
 
 ## Specs
 
@@ -152,10 +154,31 @@ and the pending-control remodel.
 | fn-155.5 | ⬜ todo | Realization evidence builders: attempt record, Describe read, conditions, activation, run-scoped base |
 | fn-155.6 | ⬜ todo | Regenerate, projection proof, Go test and fixture updates, gates, review; mapping handed to fn-140 and fn-129.3 |
 
+### Batch 1c, compiler and lint: fn-156
+
+#### fn-156: Let the Scala compiler and lint enforce Model correctness
+
+[Spec](.flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md) is scheduled immediately
+after fn-155, before batch 2, by the owner's instruction on 2026-10-09. Its task breakdown and
+independent plan review are underway; implementation starts from fn-155's committed closure.
+- **Stricter compiler flags.** `-Wunused:all`, `-Wvalue-discard`, `-Wnonunit-statement`,
+  `-Wsafe-init` and `-Wimplausible-patterns` produced one finding in a scratch compile.
+- **Strict equality.** `-language:strictEquality`, with `Finite` supplying `CanEqual`, which clears
+  nearly all of its 351 scratch errors.
+- **A trial of explicit nulls.**
+- **Lint rules.** Section order, dotted `in`, module-map imports, no wildcard case on model enums,
+  and no unqualified cross-level `Phase`/`Fact`/`State` imports.
+- **Law tests that find every exported machine**, with exhaustive `Finite` iteration and a
+  step-table pin for every machine.
+- **A two-day capture-checking spike.**
+
+It changes no IR or Case and serializes with other Model source work. The compile-versus-lift
+items from the same review remain notes on fn-141.
+
 ### Batch 2, authoring: fn-140 → fn-123
 
-Starts from fn-155's closed baseline, with task paths re-anchored to the completed moves,
-Activity subject split and abstractions. Both specs
+Starts from fn-156's closed baseline, with task paths re-anchored to the completed moves,
+Activity subject split, abstractions and compiler/lint enforcement. Both specs
 rewrite Model declarations, so they share one production regeneration, one full gate, one review and
 one live run at fn-123.8. fn-140 is meaning-preserving apart from its declared renames: fn-140.6
 seals its assessment-equivalence comparison before fn-123 changes meaning, so a fault change can
@@ -369,6 +392,10 @@ closes the shared batch after both corrections and all activity sources.
 
 #### fn-138: Retries and Deadline capabilities
 
+Implementation complete (3/3 tasks); whole-spec review and shared Batch 5 closure pending.
+The done source tasks do not replace the production equivalence, full gates or live-run evidence
+reserved for that boundary, so this spec remains listed until closure.
+
 Runs after fn-128.5: fn-128.1 replaces the `backingOff` phase and fn-128.3 adds the retry policy,
 both of which Retries reads. The approved recommendations resolve the earlier owner questions;
 the refreshed plan passed independent review on 2026-10-08.
@@ -400,25 +427,6 @@ Runs after fn-138. Tasks run in order.
 | fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
 
 ## Planned, not yet scheduled
-
-### fn-156: Let the Scala compiler and lint enforce Model correctness
-
-[Spec](.flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md) captured 2026-10-09, not yet
-planned into tasks.
-- **Stricter compiler flags.** `-Wunused:all`, `-Wvalue-discard`, `-Wnonunit-statement`,
-  `-Wsafe-init` and `-Wimplausible-patterns` produced one finding in a scratch compile.
-- **Strict equality.** `-language:strictEquality`, with `Finite` supplying `CanEqual`, which clears
-  nearly all of its 351 scratch errors.
-- **A trial of explicit nulls.**
-- **Lint rules.** Section order, dotted `in`, module-map imports, no wildcard case on model enums,
-  and no unqualified cross-level `Phase`/`Fact`/`State` imports.
-- **Law tests that find every exported machine**, with exhaustive `Finite` iteration and a
-  step-table pin for every machine.
-- **A two-day capture-checking spike.**
-
-It changes no IR or Case. The compile-versus-lift items from the same review are notes on fn-141.
-Open for the owner: the scheduling slot. The spec touches every model file, so it fits between
-batches, for example after fn-155 or after batch 4.
 
 ### fn-149: Safety and liveness groups for object properties
 

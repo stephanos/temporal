@@ -12,7 +12,8 @@
     "fn-142-split-modeltemporalshared-into",
     "fn-145-modularize-the-umpire-ir-schema",
     "fn-151-split-standalone-activity-into-smaller",
-    "fn-155-name-the-standalone-activitys-repeated"
+    "fn-155-name-the-standalone-activitys-repeated",
+    "fn-156-let-the-scala-compiler-and-lint-enforce"
   ],
   "id": "fn-140-one-sentence-witness-queries-with",
   "impl_review_rounds": {},
@@ -135,5 +136,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T18:44:36.997391Z"
+  "updated_at": "2026-10-09T23:45:44.421580Z"
 }
