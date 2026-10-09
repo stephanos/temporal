@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-09T18:59:24.636954Z",
+  "depends_on": [
+    "fn-155-name-the-standalone-activitys-repeated.2",
+    "fn-155-name-the-standalone-activitys-repeated.3",
+    "fn-155-name-the-standalone-activitys-repeated.4",
+    "fn-155-name-the-standalone-activitys-repeated.5"
+  ],
+  "id": "fn-155-name-the-standalone-activitys-repeated.6",
+  "priority": null,
+  "spec": "fn-155-name-the-standalone-activitys-repeated",
+  "spec_path": ".flow/tasks/fn-155-name-the-standalone-activitys-repeated.6.md",
+  "status": "todo",
+  "title": "Regenerate, prove the mapping and close fn-155",
+  "updated_at": "2026-10-09T23:15:42.941943Z"
+}
