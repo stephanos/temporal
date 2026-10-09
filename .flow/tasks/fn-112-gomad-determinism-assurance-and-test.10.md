@@ -16,7 +16,7 @@ The soak gate (R6) and final documentation (R11). Combined because the docs repo
 
 **Size:** M
 **Files:** `Makefile` (root), `tools/gomad3integration/qualification/` (a soak manifest), `.github/workflows/gomad3.yml`, `tools/gomad3integration/README.md`, `tools/gomad3/README.md`, `SPEC.md`, `ARCHITECTURE.md`, `TUTORIAL.md`, `MILESTONES.md`
-**Touches:** [Makefile, tools/gomad3integration/**, .github/workflows/gomad3.yml, tools/gomad3/*.md, MILESTONES.md, AGENTS.md, tools/gomad3/qualification/**]
+**Touches:** [Makefile, tools/gomad3integration/**, .github/workflows/gomad3.yml, tools/gomad3/*.md, MILESTONES.md, AGENTS.md, tools/gomad3/qualification/**, tools/gomad3/cmd/gomadtool/soak.go, tools/gomad3/cmd/gomadtool/soak_test.go]
 
 ### Approach
 - Soak selection: the smoke suites plus one guarded-mode workload, seeds 11 and 17, choice tracing and diagnostics on, with unrelated CPU load from the existing load helper or an equivalent host-side loader.
@@ -48,6 +48,10 @@ The soak gate (R6) and final documentation (R11). Combined because the docs repo
 ### Source acceptance admission (2026-10-09)
 
 The owner prioritized near-complete specs. Resume task 10 at committed source base `15f56644664f3d3749bab2387aa97936a1cac6dd` under [the root admission](../artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/admission.md). Existing acceptance, scope, dependency edges and historical evidence remain unchanged. Native obligations stay deferred under fn-149/fn-128. Root owns lifecycle, independent review and commits. Current source gates must pass before Done; documentation-only gaps do not license weakening tests or retrying unchanged failures.
+
+### Diagnostic-write continuation admission (2026-10-09)
+
+Root admits exactly the four task-owned soak diagnostic checks and additive adapter controls under [the bounded admission](../artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/diagnostic-writes-20261009/admission.md), at base `4de2ba7892570a865c27a178b681e31f28fca79b`. This corrects the adapter omission in Touches without changing acceptance, dependency edges or semantics; all other command adapters remain outside this repair. Existing source/native requirements and historical evidence stay in force.
 ## Acceptance
 
 

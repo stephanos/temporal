@@ -1,0 +1,1 @@
+{"gates": 16, "scoped_lint": 59, "original_lint": 204, "head": "4de2ba7892570a865c27a178b681e31f28fca79b", "changed_product_paths": ["tools/gomad3/cmd/gomadtool/soak.go", "tools/gomad3/cmd/gomadtool/soak_test.go"], "all_handles_terminal": true}

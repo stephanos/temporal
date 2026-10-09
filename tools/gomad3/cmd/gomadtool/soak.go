@@ -34,7 +34,9 @@ func runSoak(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if flags.NArg() != 0 {
-		fmt.Fprintln(stderr, "usage: gomadtool soak --manifest=FILE --gomad=FILE --work=DIR --ledger=DIR --output=DIR [flags]")
+		if _, err := fmt.Fprintln(stderr, "usage: gomadtool soak --manifest=FILE --gomad=FILE --work=DIR --ledger=DIR --output=DIR [flags]"); err != nil {
+			return 2
+		}
 		return 2
 	}
 	if *workload != "" {
@@ -44,7 +46,9 @@ func runSoak(arguments []string, stdout, stderr io.Writer) int {
 		for _, value := range strings.Split(*seeds, ",") {
 			seed, err := strconv.ParseUint(value, 10, 64)
 			if err != nil {
-				fmt.Fprintf(stderr, "invalid --seed %q\n", value)
+				if _, err := fmt.Fprintf(stderr, "invalid --seed %q\n", value); err != nil {
+					return 2
+				}
 				return 2
 			}
 			spec.Seeds = append(spec.Seeds, seed)
@@ -52,14 +56,21 @@ func runSoak(arguments []string, stdout, stderr io.Writer) int {
 	}
 	report, err := soak.Run(context.Background(), spec)
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			if report.Schema == "" {
+				return 2
+			}
+			return 3
+		}
 		if report.Schema == "" {
 			return 2
 		}
 		return 3
 	}
 	if _, err := io.WriteString(stdout, soak.Summary(report)); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 3
+		}
 		return 3
 	}
 	return soak.ExitStatus(report)

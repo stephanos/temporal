@@ -1,0 +1,164 @@
+{
+  "command": "go test -tags test_dep -count=1 -json -run \"^(TestSoakDiagnosticWritesPreserveStatus|TestSoakRejectsInvalidInvocationsAsInvalidInput)$\" ./cmd/gomadtool",
+  "shell_command": "cd -- /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 && test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 && go test -tags test_dep -count=1 -json -run \"^(TestSoakDiagnosticWritesPreserveStatus|TestSoakRejectsInvalidInvocationsAsInvalidInput)$\" ./cmd/gomadtool",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-09T19:22:13.783749+00:00",
+  "ended_at": "2026-10-09T19:22:16.355253+00:00",
+  "elapsed_seconds": 2.571,
+  "exit_code": 1,
+  "source_before_sha256": "2fd53248aedf65570331319c36cb02250bf660e5a76e732e91b081bd72d08d7a",
+  "source_after_sha256": "2fd53248aedf65570331319c36cb02250bf660e5a76e732e91b081bd72d08d7a",
+  "source_unchanged": true,
+  "head": "4de2ba7892570a865c27a178b681e31f28fca79b",
+  "tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/diagnostic-writes-20261009/run_gate.py": "9b0d2d54a95b1ca771daf8f105d01efeed0576ff6d354e6ba222cd3b52323c98"
+  },
+  "environment": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "TMPDIR": "/tmp/fn11210-diagnostic.dzr2T3sO",
+    "GOTMPDIR": "/tmp/fn11210-diagnostic.dzr2T3sO",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOPROXY": "file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "filesystem": "overlayfs e6312165da52bad5",
+  "stdout_sha256": "7d490542c5d2b58882a4e50f99e81786c8d2619c7c32911271415bc1587631aa",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "test_events": [
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakRejectsInvalidInvocationsAsInvalidInput/invalid_seed"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_directories"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_manifest"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakRejectsInvalidInvocationsAsInvalidInput/positional_argument"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakRejectsInvalidInvocationsAsInvalidInput"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/positional_argument/healthy_stderr"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/positional_argument/EBADF_stderr"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/positional_argument"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/invalid_seed/healthy_stderr"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/invalid_seed/EBADF_stderr"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/invalid_seed"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/invalid_input/healthy_stderr"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/invalid_input/EBADF_stderr"
+    },
+    {
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/invalid_input"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/report_publication/healthy_stderr"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/report_publication/EBADF_stderr"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/report_publication"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/summary_output/healthy_stderr"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/summary_output/EBADF_stderr"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/summary_output"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/healthy_summary/healthy_stderr"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/healthy_summary/EBADF_stderr"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus/healthy_summary"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestSoakDiagnosticWritesPreserveStatus"
+    },
+    {
+      "Action": "fail",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool"
+    }
+  ],
+  "terminal": true,
+  "pid": 615119
+}
