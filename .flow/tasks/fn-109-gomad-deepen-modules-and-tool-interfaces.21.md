@@ -138,3 +138,8 @@ stage: plan-sync - skipped(config: disabled; task remains blocked)
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
+
+
+## Generator stderr correction owner — 2026-10-09
+
+Task50 is a direct dependency and supplies five terminal generator stderr checked-result corrections plus source-bound preservation/analyzer evidence. Task21 consumes that evidence and implements nothing. Task46 retains its separate stdout scope. Original dependency, first-baseline, full/default/affected/functional, formal-review and native-transfer obligations remain unchanged. No source-progress receipt alone completes this task.

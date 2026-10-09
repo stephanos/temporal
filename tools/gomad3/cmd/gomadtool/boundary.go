@@ -52,7 +52,9 @@ func runBoundaryGenerate(arguments []string, stdout, stderr io.Writer) int {
 		err = boundary.Generate(*root, *check)
 	}
 	if err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	if outputErr != nil {

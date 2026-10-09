@@ -1,0 +1,14 @@
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-boundary.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-protocol.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-qualification_manifest.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-version.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/control-24de6a735c1605e39b6381e6962787faa5c59adab896fb66dbc1ac8b6afcb297.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/control-4e9bfd0121b3d057f1902bf12026952bd2bf791dac050d9580ef24da73d8e26e.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/control-a83b4ff7b2c4fea0d45f0a772f115bedf6234b32b99f80683e2eff0476777b15.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/control-baa5596b36197f6c8cd14e76e1699d71b8089055dc8261459040446c4c509878.go
+retained evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/control-fe49214ec095124df9f29e422212817bea074e92016fb9fd902a2287b9435ff4.go
+Lint module tools/gomad3: 55 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mLinting code...[0m
+0 issues.
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'

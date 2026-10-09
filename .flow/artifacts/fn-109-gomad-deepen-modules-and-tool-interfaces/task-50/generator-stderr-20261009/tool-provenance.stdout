@@ -1,0 +1,6 @@
+go version go1.27.1 linux/arm64
+linux
+arm64
+/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64
+aarch64
+golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: "h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=") on (unknown)

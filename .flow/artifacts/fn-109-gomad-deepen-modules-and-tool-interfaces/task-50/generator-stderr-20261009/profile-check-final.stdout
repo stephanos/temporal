@@ -1,0 +1,9 @@
+{"Time":"2026-10-09T03:31:50.306749263Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"}
+{"Time":"2026-10-09T03:31:50.312686555Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack","Test":"TestHostPacksBindCurrentProfile"}
+{"Time":"2026-10-09T03:31:50.312750888Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack","Test":"TestHostPacksBindCurrentProfile","Output":"=== RUN   TestHostPacksBindCurrentProfile\n","OutputType":"frame"}
+{"Time":"2026-10-09T03:31:50.312822346Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack","Test":"TestHostPacksBindCurrentProfile","Output":"    profile_binding_test.go:50: no deterministic profile for linux/arm64\n"}
+{"Time":"2026-10-09T03:31:50.312858055Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack","Test":"TestHostPacksBindCurrentProfile","Output":"--- SKIP: TestHostPacksBindCurrentProfile (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-09T03:31:50.312875638Z","Action":"skip","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack","Test":"TestHostPacksBindCurrentProfile","Elapsed":0}
+{"Time":"2026-10-09T03:31:50.312910138Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-09T03:31:50.312952721Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack","Output":"ok  \tgo.temporal.io/server/tools/gomad3/internal/compatibilitypack\t0.006s\n"}
+{"Time":"2026-10-09T03:31:50.31301018Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/internal/compatibilitypack","Elapsed":0.006}

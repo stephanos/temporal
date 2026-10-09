@@ -1,0 +1,102 @@
+[
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+    "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/pkg/tool/linux_arm64/compile",
+    "sha256": "3f69d2da22ae2662716a74e50e64072f077d72af0f3dfa53a3e19de2729e6ed0"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/pkg/tool/linux_arm64/link",
+    "sha256": "84fe1177cbfaaeb89f3e054650c6a98fb90539205486150c251e1fefc5e856f1"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/pkg/tool/linux_arm64/asm",
+    "sha256": "b225c0783859142d19e5fe5a7df29f37c52ee7b2404b03da4401d1fcff3f3489"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/pkg/tool/linux_arm64/vet",
+    "sha256": "0f52dcce5f46f31ab882b6bf49358fe162e9814872de15ccb1d696cd22f84c51"
+  },
+  {
+    "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+  },
+  {
+    "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  {
+    "path": "/usr/bin/node",
+    "sha256": "7142be834142d58bca93f8acac61e3bdf4ed8c7b40392f2e99fd9f685fa5f90a"
+  },
+  {
+    "path": "/usr/bin/bash",
+    "sha256": "01c006568543d6b6ab9f0a57dd44b9d779d1edc437a5f5d2db0215887c19dbeb"
+  },
+  {
+    "path": "/usr/bin/timeout",
+    "sha256": "956b53a693650d61b2b4d3f035237de469b28522df27c58f7628d7d731e7f1e1"
+  },
+  {
+    "path": "/usr/bin/git",
+    "sha256": "89fbabe92d1e190036a9b15e8e30efc16643beb7562329592855e622c59c3e00"
+  },
+  {
+    "path": "/usr/bin/tar",
+    "sha256": "0e854852a227a61be4a717674e5b5902188bfa6b92332c7ba22e85edf48f8de9"
+  },
+  {
+    "path": "/usr/bin/make",
+    "sha256": "b12eeb672d64e798b84f297c116651ccbb3ca726a108c74ffe9a60d85547315d"
+  },
+  {
+    "path": "/usr/bin/patch",
+    "sha256": "a1a8ab480b81e94d9658103065d8936841a73220c87a08abb1285dc261e86c8f"
+  },
+  {
+    "path": "/usr/bin/unzip",
+    "sha256": "903d907c5ed62869b64cf69805f3ce862ef0769ee4fc65003e8a2177cb8480f8"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download/github.com/!masterminds/sprig/v3/@v/v3.2.3.mod",
+    "sha256": "06d6fcfefd11fbdf9acf88f0b4960c337546f0690968ca817bb999243570d981"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download/github.com/!masterminds/sprig/v3/@v/v3.2.3.info",
+    "sha256": "b580152356043b2aeb8d9f41b39941de576b16e39d951211a4da83d2dc796328"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download/github.com/!masterminds/sprig/v3/@v/v3.2.3.zip",
+    "sha256": "2c533a1f9e700498bff05b051656e1024ffade38fe9a3e8bdfc439ee51d4821b"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download/github.com/!masterminds/sprig/v3/@v/v3.2.3.ziphash",
+    "sha256": "624c771c1324d0e6ef726137b01a09e0177caa41dd03de57040e9930dbda22d6"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download/github.com/!masterminds/sprig/v3/@v/v3.3.0.mod",
+    "sha256": "e05abb962d0f1db4f2b9f0fb28851b7fa8823339d5872d7793f718725ce3f83c"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download/github.com/!masterminds/sprig/v3/@v/v3.3.0.info",
+    "sha256": "f8f5d62681d8e2576e8c84651e6cf66d67ec1a0698e4336a1ff420ef510526f2"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download/github.com/!masterminds/sprig/v3/@v/v3.3.0.zip",
+    "sha256": "c731370f7601711d1df9b4b0c9bb8488fc381b32fd3e7de97a03673e8287b719"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download/github.com/!masterminds/sprig/v3/@v/v3.3.0.ziphash",
+    "sha256": "77b628ad6074f01bbb213dd4d40e287137faa90ddabf37266fb0ce3dc3a6c8d9"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download/github.com/!masterminds/sprig/v3/@v/list",
+    "sha256": "5372445de63b2fb716d43aa42dae7cf0a75e7fe7b6ba3df2c1e5518efc5773c8"
+  }
+]

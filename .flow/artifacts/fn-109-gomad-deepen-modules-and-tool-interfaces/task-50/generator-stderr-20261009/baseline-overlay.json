@@ -1,0 +1,8 @@
+{
+  "Replace": {
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/qualification_manifest.go": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-qualification_manifest.go",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/protocol.go": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-protocol.go",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/version.go": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-version.go",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/boundary.go": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-boundary.go"
+  }
+}

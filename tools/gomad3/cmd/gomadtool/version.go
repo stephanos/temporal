@@ -17,7 +17,9 @@ func runVersionGenerate(arguments []string, stderr io.Writer) int {
 		return 2
 	}
 	if err := version.Generate(*root, *check); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	return 0

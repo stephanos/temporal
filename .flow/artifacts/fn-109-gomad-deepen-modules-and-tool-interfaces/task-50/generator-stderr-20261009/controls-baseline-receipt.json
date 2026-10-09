@@ -1,0 +1,325 @@
+{
+  "name": "controls-baseline",
+  "command": "go -C tools/gomad3 test -json -count=1 -tags test_dep ./cmd/gomadtool -run '^TestRunGeneratorDiagnosticOutputPreservesStatus$'",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "go -C tools/gomad3 test -json -count=1 -tags test_dep ./cmd/gomadtool -run '^TestRunGeneratorDiagnosticOutputPreservesStatus$'"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-09T03:13:51.866Z",
+  "ended": "2026-10-09T03:13:53.588Z",
+  "elapsed_seconds": 1.7214290010000002,
+  "child_exit_code": 0,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync returned a numeric child status",
+  "base": "96b3974997fed4234e62786bf5717dcb863ea46e",
+  "original_baseline": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+  "head": "96b3974997fed4234e62786bf5717dcb863ea46e",
+  "source": {
+    "manifest": "source-aa0aa431c43e093df2800a05f464c16aed905cdd44b099cc574f2a5553c95672.json",
+    "sha256": "aa0aa431c43e093df2800a05f464c16aed905cdd44b099cc574f2a5553c95672"
+  },
+  "tools": {
+    "manifest": "tools-9974c06bffa0afd614da87a437fcb284768cb987122cc3319ed0cfac6dd53a65.json",
+    "sha256": "9974c06bffa0afd614da87a437fcb284768cb987122cc3319ed0cfac6dd53a65"
+  },
+  "controls": {
+    "manifest": "controls-38a63d5350e0d102039c34118fdf4c6a5f76c0786f9598d33c3357b0d0b3579f.json",
+    "sha256": "38a63d5350e0d102039c34118fdf4c6a5f76c0786f9598d33c3357b0d0b3579f"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "stdout": {
+    "path": "controls-baseline.stdout",
+    "sha256": "6e72b36d1d6ca3a77a254d7b1d724c42554cead37d6d0d2e4b046981e8dc8fe5"
+  },
+  "stderr": {
+    "path": "controls-baseline.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task50-generator-telemetry"
+  },
+  "environment_sha256": "6c351fcb78eff9c608f4d9588c585d7eb385455d3aa89dcc8cd6b7b6eb1d614d",
+  "counts": {
+    "pass": 36,
+    "fail": 0,
+    "skip": 0
+  },
+  "top_level_counts": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": [
+    {
+      "Time": "2026-10-09T03:13:53.432565717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/missing_manifest_flags/absent_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.433437342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/missing_manifest_flags/absent_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.433608717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/missing_manifest_flags/absent_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.434876092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/missing_manifest_flags/existing_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.435935217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/missing_manifest_flags/existing_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.436280508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/missing_manifest_flags/existing_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.4363223Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/missing_manifest_flags",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T03:13:53.437909258Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/manifest_failure/absent_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.438805925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/manifest_failure/absent_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.439056008Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/manifest_failure/absent_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.4407698Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/manifest_failure/existing_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.441770717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/manifest_failure/existing_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.442049592Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/manifest_failure/existing_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.442071342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/manifest_failure",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T03:13:53.443533717Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/protocol_failure/absent_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.444809675Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/protocol_failure/absent_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.44515255Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/protocol_failure/absent_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.447298633Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/protocol_failure/existing_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.4484888Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/protocol_failure/existing_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.448857508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/protocol_failure/existing_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.448894675Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/protocol_failure",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T03:13:53.45047805Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/version_failure/absent_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.451659508Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/version_failure/absent_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.451941633Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/version_failure/absent_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.453718008Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/version_failure/existing_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.454906425Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/version_failure/existing_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.455351217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/version_failure/existing_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.4554278Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/version_failure",
+      "Elapsed": 0.01
+    },
+    {
+      "Time": "2026-10-09T03:13:53.456142925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/boundary_failure/absent_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.45685505Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/boundary_failure/absent_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.457187092Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/boundary_failure/absent_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.458078925Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/boundary_failure/existing_output/healthy_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.459031217Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/boundary_failure/existing_output/EBADF_stderr",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.459235342Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/boundary_failure/existing_output",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.459346008Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus/boundary_failure",
+      "Elapsed": 0
+    },
+    {
+      "Time": "2026-10-09T03:13:53.45937705Z",
+      "Action": "pass",
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Test": "TestRunGeneratorDiagnosticOutputPreservesStatus",
+      "Elapsed": 0.03
+    }
+  ]
+}

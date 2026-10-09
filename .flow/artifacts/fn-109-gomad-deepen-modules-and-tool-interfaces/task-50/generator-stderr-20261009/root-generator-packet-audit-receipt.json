@@ -1,0 +1,73 @@
+{
+  "name": "root-generator-packet-audit",
+  "command": "node --input-type=module -e \"import fs from 'node:fs';import crypto from 'node:crypto';import path from 'node:path';\\nconst p='.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009';\\nconst b=n=>fs.readFileSync(path.join(p,n)),h=v=>crypto.createHash('sha256').update(v).digest('hex');\\nconst e=JSON.parse(b('evidence.json')),seal=JSON.parse(b('packet-seal-receipt.json'));let streams=0,bindings=0,receipts=0;\\nfor(const n of fs.readdirSync(p).filter(n=>n.endsWith('-receipt.json'))){const r=JSON.parse(b(n));receipts++;\\nif(!Number.isInteger(r.child_exit_code)||r.signal||r.error||!r.source_unchanged||!r.tools_unchanged||!r.controls_unchanged)throw Error('receipt stability '+n);\\nfor(const k of ['source','tools','controls']){if(h(b(r[k].manifest))!==r[k].sha256)throw Error('manifest '+n);bindings++;}\\nfor(const k of ['stdout','stderr']){if(h(b(r[k].path))!==r[k].sha256)throw Error('stream '+n);streams++;}\\nconst records=b(r.stdout.path).toString().split('\\\\n').filter(s=>s.startsWith('{')).flatMap(s=>{try{return[JSON.parse(s)];}catch{return[];}});\\nfor(const a of ['pass','fail','skip'])if(records.filter(x=>x.Action===a&&x.Test).length!==r.counts[a])throw Error('counts '+n);\\nfor(const ent of JSON.parse(b(r.controls.manifest)).filter(x=>/\\\\.(mjs|md|sh|json|go)$/.test(x.path))){if(h(b('control-'+ent.sha256+path.extname(ent.path)))!==ent.sha256)throw Error('control archive '+n);}}\\nfor(const ent of e.receipts)if(h(b(ent.receipt))!==ent.sha256)throw Error('worker receipt hash');\\nfor(const k of ['source','tools','controls'])for(const ent of JSON.parse(b(seal[k].manifest)))if(h(fs.readFileSync(ent.path))!==ent.sha256)throw Error('current sealed input '+ent.path);\\nfor(const [r,w] of [['root-generator-scoped-lint','scoped-analyzer-final'],['root-generator-integrated-lint','integrated-original-final']])if(!b(r+'.stdout').equals(b(w+'.stdout')))throw Error('root lint differs');\\nconst errors=n=>b(n+'.stdout').toString().trim().split('\\\\n').map(s=>JSON.parse(s)).filter(x=>x.OutputType?.startsWith('error')).map(x=>({test:x.Test,output:x.Output}));\\nif(JSON.stringify(errors('ordinary-package-final-offline-proxy'))!==JSON.stringify(errors('ordinary-package-baseline-offline-proxy')))throw Error('worker full diagnostic bytes differ');\\nconsole.log(JSON.stringify({receipts,streams,bindings,sealed_worker_receipts:e.receipts.length+1,source_inputs:JSON.parse(b(seal.source.manifest)).length,tools:JSON.parse(b(seal.tools.manifest)).length,controls:JSON.parse(b(seal.controls.manifest)).length,root_lint_byte_equal:true,root_full_package_errors:errors('root-generator-ordinary-package'),historical_proof_controls:e.final_proof_controls.sha256,current_sealing_controls:seal.controls.sha256}));\"",
+  "argv": [
+    "timeout",
+    "600",
+    "bash",
+    "-c",
+    "node --input-type=module -e \"import fs from 'node:fs';import crypto from 'node:crypto';import path from 'node:path';\\nconst p='.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009';\\nconst b=n=>fs.readFileSync(path.join(p,n)),h=v=>crypto.createHash('sha256').update(v).digest('hex');\\nconst e=JSON.parse(b('evidence.json')),seal=JSON.parse(b('packet-seal-receipt.json'));let streams=0,bindings=0,receipts=0;\\nfor(const n of fs.readdirSync(p).filter(n=>n.endsWith('-receipt.json'))){const r=JSON.parse(b(n));receipts++;\\nif(!Number.isInteger(r.child_exit_code)||r.signal||r.error||!r.source_unchanged||!r.tools_unchanged||!r.controls_unchanged)throw Error('receipt stability '+n);\\nfor(const k of ['source','tools','controls']){if(h(b(r[k].manifest))!==r[k].sha256)throw Error('manifest '+n);bindings++;}\\nfor(const k of ['stdout','stderr']){if(h(b(r[k].path))!==r[k].sha256)throw Error('stream '+n);streams++;}\\nconst records=b(r.stdout.path).toString().split('\\\\n').filter(s=>s.startsWith('{')).flatMap(s=>{try{return[JSON.parse(s)];}catch{return[];}});\\nfor(const a of ['pass','fail','skip'])if(records.filter(x=>x.Action===a&&x.Test).length!==r.counts[a])throw Error('counts '+n);\\nfor(const ent of JSON.parse(b(r.controls.manifest)).filter(x=>/\\\\.(mjs|md|sh|json|go)$/.test(x.path))){if(h(b('control-'+ent.sha256+path.extname(ent.path)))!==ent.sha256)throw Error('control archive '+n);}}\\nfor(const ent of e.receipts)if(h(b(ent.receipt))!==ent.sha256)throw Error('worker receipt hash');\\nfor(const k of ['source','tools','controls'])for(const ent of JSON.parse(b(seal[k].manifest)))if(h(fs.readFileSync(ent.path))!==ent.sha256)throw Error('current sealed input '+ent.path);\\nfor(const [r,w] of [['root-generator-scoped-lint','scoped-analyzer-final'],['root-generator-integrated-lint','integrated-original-final']])if(!b(r+'.stdout').equals(b(w+'.stdout')))throw Error('root lint differs');\\nconst errors=n=>b(n+'.stdout').toString().trim().split('\\\\n').map(s=>JSON.parse(s)).filter(x=>x.OutputType?.startsWith('error')).map(x=>({test:x.Test,output:x.Output}));\\nif(JSON.stringify(errors('ordinary-package-final-offline-proxy'))!==JSON.stringify(errors('ordinary-package-baseline-offline-proxy')))throw Error('worker full diagnostic bytes differ');\\nconsole.log(JSON.stringify({receipts,streams,bindings,sealed_worker_receipts:e.receipts.length+1,source_inputs:JSON.parse(b(seal.source.manifest)).length,tools:JSON.parse(b(seal.tools.manifest)).length,controls:JSON.parse(b(seal.controls.manifest)).length,root_lint_byte_equal:true,root_full_package_errors:errors('root-generator-ordinary-package'),historical_proof_controls:e.final_proof_controls.sha256,current_sealing_controls:seal.controls.sha256}));\""
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-09T03:41:08.223Z",
+  "ended": "2026-10-09T03:41:08.330Z",
+  "elapsed_seconds": 0.10438495800000004,
+  "child_exit_code": 1,
+  "signal": null,
+  "error": null,
+  "terminal_handle": "foreground spawnSync returned a numeric child status",
+  "base": "96b3974997fed4234e62786bf5717dcb863ea46e",
+  "original_baseline": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+  "head": "96b3974997fed4234e62786bf5717dcb863ea46e",
+  "source": {
+    "manifest": "source-d11d5b9700d75b6cbd0d02d1d44bbaedd832fd1e34f2f02bc534af0abf31204c.json",
+    "sha256": "d11d5b9700d75b6cbd0d02d1d44bbaedd832fd1e34f2f02bc534af0abf31204c"
+  },
+  "tools": {
+    "manifest": "tools-8f2aef1b9b27c90165396c6a2f15e92947df84bf05f853aec877a2ffce3a266a.json",
+    "sha256": "8f2aef1b9b27c90165396c6a2f15e92947df84bf05f853aec877a2ffce3a266a"
+  },
+  "controls": {
+    "manifest": "controls-4f62e7606d881650ab15ec2fe35f1578c008f7b9af639bee8177bf9fcc6c1f07.json",
+    "sha256": "4f62e7606d881650ab15ec2fe35f1578c008f7b9af639bee8177bf9fcc6c1f07"
+  },
+  "source_unchanged": true,
+  "tools_unchanged": true,
+  "controls_unchanged": true,
+  "stdout": {
+    "path": "root-generator-packet-audit.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "root-generator-packet-audit.stderr",
+    "sha256": "79167d0787387623dc2bcd98f60c2098bd4ea1abf2e45319b9259f98161344e6"
+  },
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/.lint-cache",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "TEST_TELEMETRY_DIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/task50-generator-telemetry"
+  },
+  "environment_overrides": {},
+  "environment_sha256": "c845a71d010805fae8faacba02b145a0cd26c6957bca1020ee6337aa2fdd48d7",
+  "counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "top_level_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "observations": []
+}

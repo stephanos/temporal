@@ -1,0 +1,62 @@
+[
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+    "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/pkg/tool/linux_arm64/compile",
+    "sha256": "3f69d2da22ae2662716a74e50e64072f077d72af0f3dfa53a3e19de2729e6ed0"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/pkg/tool/linux_arm64/link",
+    "sha256": "84fe1177cbfaaeb89f3e054650c6a98fb90539205486150c251e1fefc5e856f1"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/pkg/tool/linux_arm64/asm",
+    "sha256": "b225c0783859142d19e5fe5a7df29f37c52ee7b2404b03da4401d1fcff3f3489"
+  },
+  {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/pkg/tool/linux_arm64/vet",
+    "sha256": "0f52dcce5f46f31ab882b6bf49358fe162e9814872de15ccb1d696cd22f84c51"
+  },
+  {
+    "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+  },
+  {
+    "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  {
+    "path": "/usr/bin/node",
+    "sha256": "7142be834142d58bca93f8acac61e3bdf4ed8c7b40392f2e99fd9f685fa5f90a"
+  },
+  {
+    "path": "/usr/bin/bash",
+    "sha256": "01c006568543d6b6ab9f0a57dd44b9d779d1edc437a5f5d2db0215887c19dbeb"
+  },
+  {
+    "path": "/usr/bin/timeout",
+    "sha256": "956b53a693650d61b2b4d3f035237de469b28522df27c58f7628d7d731e7f1e1"
+  },
+  {
+    "path": "/usr/bin/git",
+    "sha256": "89fbabe92d1e190036a9b15e8e30efc16643beb7562329592855e622c59c3e00"
+  },
+  {
+    "path": "/usr/bin/tar",
+    "sha256": "0e854852a227a61be4a717674e5b5902188bfa6b92332c7ba22e85edf48f8de9"
+  },
+  {
+    "path": "/usr/bin/make",
+    "sha256": "b12eeb672d64e798b84f297c116651ccbb3ca726a108c74ffe9a60d85547315d"
+  },
+  {
+    "path": "/usr/bin/patch",
+    "sha256": "a1a8ab480b81e94d9658103065d8936841a73220c87a08abb1285dc261e86c8f"
+  }
+]

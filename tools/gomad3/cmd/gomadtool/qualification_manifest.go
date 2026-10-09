@@ -19,11 +19,15 @@ func runQualificationManifestGenerate(arguments []string, stderr io.Writer) int 
 		return 2
 	}
 	if *spec == "" || *output == "" {
-		fmt.Fprintln(stderr, "qualification-manifest-generate requires --spec and --output")
+		if _, writeErr := fmt.Fprintln(stderr, "qualification-manifest-generate requires --spec and --output"); writeErr != nil {
+			return 2
+		}
 		return 2
 	}
 	if err := manifestgen.Run(manifestgen.Config{Root: *root, Spec: *spec, Output: *output, Check: *check}); err != nil {
-		fmt.Fprintln(stderr, err)
+		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	return 0

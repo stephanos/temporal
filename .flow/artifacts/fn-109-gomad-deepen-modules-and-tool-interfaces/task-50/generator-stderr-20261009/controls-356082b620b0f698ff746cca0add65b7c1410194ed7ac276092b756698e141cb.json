@@ -1,0 +1,90 @@
+[
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/golang.org/x/mod@v0.37.0/sumdb/dirhash/hash.go",
+    "sha256": "24de6a735c1605e39b6381e6962787faa5c59adab896fb66dbc1ac8b6afcb297"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/admission.md",
+    "sha256": "13ffcf8a57eb8aa8ffc6c1ae5d099175273df2796e909c01f2fd344a2579c221"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-boundary.go",
+    "sha256": "a83b4ff7b2c4fea0d45f0a772f115bedf6234b32b99f80683e2eff0476777b15"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-overlay.json",
+    "sha256": "8476f178e6501eaf0c928df581f3981a0bcf422f85607f2528d1ae2e655073c1"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-protocol.go",
+    "sha256": "4e9bfd0121b3d057f1902bf12026952bd2bf791dac050d9580ef24da73d8e26e"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-qualification_manifest.go",
+    "sha256": "fe49214ec095124df9f29e422212817bea074e92016fb9fd902a2287b9435ff4"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline-version.go",
+    "sha256": "baa5596b36197f6c8cd14e76e1699d71b8089055dc8261459040446c4c509878"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/baseline.mjs",
+    "sha256": "e31f39da68f463ee9d596a12df65b668f80f0a99a1103a4ad7bbd568c3cca139"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/gates.mjs",
+    "sha256": "4cbc0d1ba18a2144a03320d7f06011dbee98947dc5897299ac51ea01ce2f24c2"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/inventory.mjs",
+    "sha256": "6d64bf6e3ea48a48990004d6517b77c92f7441ae74437dc793585d94ee9d7ce1"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/prepare-overlay.mjs",
+    "sha256": "a14c01e5dae941079986528ee58d26ffd762e038073f5f7f38399d1b43edd6bb"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/proof.mjs",
+    "sha256": "8a2446f9822b577e821f441831ca308208fb0ccc53b682779ed6dd4ac20ebff7"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/proxy-archive-proof.mjs",
+    "sha256": "34a19d482264056085bf2fe0d92f5aac4b53444a9961e7e6b4d3071ccab09462"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/proxy-successor.mjs",
+    "sha256": "c423549ad464ca458878a17fc92bc209a64675cf4b516c690a56e7264af7bcb1"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/run.mjs",
+    "sha256": "11029319a8178f9567db3e60f49cae9b9fd68c24834dd018fef96573f3d34ba2"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-50/generator-stderr-20261009/successor.mjs",
+    "sha256": "ce1908ec40171622d1abe5573d5a19205d2418182959667843cd0abe3443ef7c"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/source-acceptance-20261008/format-gate.sh",
+    "sha256": "63986a720e5e165e344bc11882458f8f8ef585d6a58034b3eb7d7538a61fb4e0"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/fixture-qualification-evidence.json",
+    "sha256": "4f8e7bbb55161593381b4a99807a44cb6fa9c6aa47a1c32f2d877f28f316ede5"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+    "sha256": "59a6766d537ecc259d1658e51f41171944ac9e7dcde3d73f59bc4a88a655ffa9"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.50.md",
+    "sha256": "7fad066e2983a66e0710a6b8f14485d9c2b1006db7fe315d5a75d5dd83482b93"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/AGENTS.md",
+    "sha256": "8d634df5cbbbffd7dbada06e32b4d20d879707273f8be07bdf253b387211e6f3"
+  },
+  {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/MILESTONES.md",
+    "sha256": "2993beecbd062bbed5cb978d25a64c69c5f2c9272858a2d4739b065111066931"
+  }
+]
