@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
@@ -17,7 +17,7 @@ extension [S, O, F](steps: List[Step[S, O, F]])
 // The name of one alternative of a step that can go more than one way, declared once by the val that
 // names it, `val committed = choice`; the lifter names it after that val. A token is compared by
 // identity, so two tokens are two names, as two input tokens are two inputs.
-final class Choice private[umpire] ()
+final class Choice private[framework] ()
 
 // A new choice token: `val committed = choice`.
 def choice: Choice = Choice()
@@ -46,7 +46,7 @@ trait Model:
   def name: String
 
 // The name an object form takes from its object: `object OrderProduct` is `orderProduct`.
-private[umpire] def objectName(of: AnyRef): String =
+private[framework] def objectName(of: AnyRef): String =
   val n = of.getClass.getSimpleName.stripSuffix("$")
   n.take(1).toLowerCase + n.drop(1)
 
@@ -65,8 +65,8 @@ trait Declares[S] extends Model:
   type State = S
 
   // Whether the object mixes in its own phase projection, `Phased[State, Phase](_.phase)`
-  // (model/umpire/Syntax.scala), which a derived machine or derived composition may not.
-  private[umpire] def declaresPhase: Boolean = false
+  // (model/framework/Syntax.scala), which a derived machine or derived composition may not.
+  private[framework] def declaresPhase: Boolean = false
 
   // A Property or a Scenario is named after the `val` that declares it (`val completes =
   // orderProduct.property holds ...`), or by the name it is given where it is declared without
@@ -80,17 +80,17 @@ trait Declares[S] extends Model:
   def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, this, None)
 
 // What a derivation binds in its source's place: one action's step function, `action ~> f`, or the
-// rules of one action, `on(action) { where(g) ~> effect }` (model/umpire/Syntax.scala).
+// rules of one action, `on(action) { where(g) ~> effect }` (model/framework/Syntax.scala).
 sealed trait Rebinding[S, O, F]
 
 // An action bound to its step function.
 final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef) extends Rebinding[S, O, F]
 
-// One rule of a machine's `rules` (model/umpire/Syntax.scala): the action, or one class of it, it
+// One rule of a machine's `rules` (model/framework/Syntax.scala): the action, or one class of it, it
 // fires, the condition under which it fires, and its effect, over the state and the class's inputs
 // in declaration order. `index` is its place among its machine's rules, from 1, and `heading` and
 // `action` are how a refusal names it and its action.
-final case class Rule[S, O, F] private[umpire] (
+final case class Rule[S, O, F] private[framework] (
     index: Int,
     heading: String,
     action: String,
@@ -103,11 +103,11 @@ final case class Rule[S, O, F] private[umpire] (
   def fires(inputs: List[Any]): Boolean = values.forall(_ == inputs)
 
 // The rules of one `on` block, which a derivation binds in its source's place.
-final case class RuleGroup[S, O, F] private[umpire] (rules: Vector[Rule[S, O, F]])
+final case class RuleGroup[S, O, F] private[framework] (rules: Vector[Rule[S, O, F]])
     extends Rebinding[S, O, F]
 
 // What a machine binds one action to: a step function, or the rules that lower to one.
-private[umpire] enum Bound[S, O, F]:
+private[framework] enum Bound[S, O, F]:
   case Function(f: AnyRef)
   case Ruled(rules: Vector[Rule[S, O, F]])
   case Disabled()
@@ -140,13 +140,13 @@ extension [A, B, C, D, E, G](a: Action[(A, B, C, D, E, G)])
 // The owner of a machine's sections, which its `rules` read the machine's types from:
 // `object rules extends Rules:` in `object OrderProduct extends Machine[...], Phased[...](_.phase)`,
 // whose rules read the phase projection from the machine's `Phasing`.
-final class Owner[S, O, F] private[umpire] (val machine: Machine[S, O, F])
+final class Owner[S, O, F] private[framework] (val machine: Machine[S, O, F])
 
 // The projection of a machine's or composition's state onto its phase, which its sections read as a
 // given: `when(placed)` in its `rules` tests it. The object's `Phased[State, Phase](_.phase)`
-// (model/umpire/Syntax.scala) gives it, and a derived machine gives its source's, with the source's
+// (model/framework/Syntax.scala) gives it, and a derived machine gives its source's, with the source's
 // phase type.
-final class Phasing[S, P] private[umpire] (private[umpire] val projection: S => P):
+final class Phasing[S, P] private[framework] (private[framework] val projection: S => P):
   // Reads the phase a lifecycle reader tests, including a phase nested in a composed state.
   def phase(state: S): P = projection(state)
 
@@ -157,7 +157,11 @@ final class Phasing[S, P] private[umpire] (private[umpire] val projection: S => 
       phaseType: ClassTag[P],
       role: ClassTag[R]
   ): IndexedSeq[P] =
-    umpire.roleCases[P, R](owner, role.runtimeClass.getSimpleName)(using finite, witness, phaseType)
+    framework.roleCases[P, R](owner, role.runtimeClass.getSimpleName)(using
+      finite,
+      witness,
+      phaseType
+    )
 
 object Phasing:
   // The phasing of an object that declares no phase: its phase type is `Nothing`, so `when(...)` of
@@ -168,14 +172,14 @@ object Phasing:
 // What a machine a derivation makes is made from: `m.rebind(...)` is made from `m`. Its static type
 // keeps the source's object type, so a derived machine reads its source's phase.
 trait DerivedFrom[+M]:
-  private[umpire] def source: M
+  private[framework] def source: M
 
 // Evidence that `T`, the source of a derivation, projects its state `S` onto the phase type `P`:
 // through its own `Phased` (whose companion gives that evidence), through the source it is derived
 // from in turn, or, where it declares no phase, onto `Nothing`.
-final class Inherited[-T, S, P] private[umpire] (
-    private[umpire] val projection: T => S => P,
-    private[umpire] val end: T => S => Boolean
+final class Inherited[-T, S, P] private[framework] (
+    private[framework] val projection: T => S => P,
+    private[framework] val end: T => S => Boolean
 )
 
 object Inherited extends Inherited.Unphased:
@@ -204,13 +208,13 @@ object Inherited extends Inherited.Unphased:
 
 // What a `capabilities` section declares the capabilities of: the machine or
 // composition whose object it sits in, with the outcomes and facts its steps answer and record.
-final class Declaring[S, O, F] private[umpire] (val model: Declares[S])
+final class Declaring[S, O, F] private[framework] (val model: Declares[S])
 
 // What a machine binds each action to, in the order the first binding of each names it: a step
-// function, rules, or nothing. A machine's `rules` (model/umpire/Syntax.scala) is the one a Model
+// function, rules, or nothing. A machine's `rules` (model/framework/Syntax.scala) is the one a Model
 // writes; a derivation keeps what it makes as built, and the core `Bindings` binds step functions.
 abstract class RuleBook[S, O, F]:
-  private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])]
+  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])]
 
 // A machine's rules in the core: one step function per action, bound by hand,
 // `object rules extends Bindings(clerk.ship ~> shipStep, courier.strike ~> (_ => Nil))`, which is
@@ -220,12 +224,12 @@ abstract class RuleBook[S, O, F]:
 abstract class Bindings[S, O, F](using @unused owner: Owner[S, O, F])(
     bindings: StepBinding[S, O, F]*
 ) extends RuleBook[S, O, F]:
-  private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] =
+  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function))
 
 // A step function's results for the state and one class's inputs in declaration order, whatever
 // the function's arity: `f(s, inputs*)`, the function `action ~> f` binds.
-private[umpire] def effectOf[S, O, F](
+private[framework] def effectOf[S, O, F](
     decl: ActionDecl,
     f: AnyRef
 ): (S, List[Any]) => List[Step[S, O, F]] =
@@ -257,7 +261,7 @@ private[umpire] def effectOf[S, O, F](
 // The step function an action's binding lowers to, of the action's arity: its own, or for rules the
 // effect of the first rule that fires, as `if g1(s) then e1(s) else if g2(s) then e2(s) else Nil`
 // lifts, or none where it is disabled.
-private[umpire] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O, F]): AnyRef =
+private[framework] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O, F]): AnyRef =
   def run(s: S, inputs: List[Any]): List[Step[S, O, F]] = bound match
     case Bound.Ruled(rules) =>
       rules.find(r => r.fires(inputs) && r.guard(s)).fold(Nil)(_.effect(s, inputs))
@@ -278,12 +282,12 @@ private[umpire] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O, F
           throw IllegalArgumentException(s"a step function supports at most six inputs, got $n")
 
 // Every class of an action: each assignment of its inputs, in catalog order.
-private[umpire] def classesOf(decl: ActionDecl): List[List[Any]] =
+private[framework] def classesOf(decl: ActionDecl): List[List[Any]] =
   decl.domains.foldLeft(List(List.empty[Any])): (prefixes, domain) =>
     for prefix <- prefixes; v <- domain.values.toList yield prefix :+ v
 
 // A value as Umpire keys it in a class: a case by its name, followed by its fields, joined by `-`.
-private[umpire] def valueKey(v: Any): String = v match
+private[framework] def valueKey(v: Any): String = v match
   case p: Product if p.productArity > 0 =>
     (p.productPrefix +: p.productIterator.map(valueKey).toList).mkString("-")
   case other => other.toString
@@ -292,7 +296,7 @@ private[umpire] def valueKey(v: Any): String = v match
 // the class, both rules by their place and heading, and the first such state in catalog order: rules
 // say when an action fires, so no two of one class fire together (intended alternatives are one
 // effect's `choose`). `added` is checked against each rule of `rules`.
-private[umpire] def overlap[S, O, F](
+private[framework] def overlap[S, O, F](
     machine: String,
     states: Finite[S],
     rules: Seq[Rule[S, O, F]],
@@ -311,14 +315,14 @@ private[umpire] def overlap[S, O, F](
 
 // The name of an action as its rule writes it, from the source the rule was given: the last name
 // of `clerk.ship`, or of the action a class applies, `buyer.change(Change.hold)`.
-private[umpire] def writtenAction(code: String): String =
+private[framework] def writtenAction(code: String): String =
   // The type arguments of a class written by name, `apply[(A, B)](action)(...)`, name no action.
   val untyped = code.replaceAll("\\[[^\\]]*\\]", "")
   val path = "[A-Za-z_][A-Za-z0-9_$]*(?:\\.[A-Za-z_][A-Za-z0-9_$]*)*".r
   path
     .findAllIn(untyped)
     .map(_.stripSuffix(".apply"))
-    .find(p => p.nonEmpty && p != "umpire" && p != "apply")
+    .find(p => p.nonEmpty && p != "framework" && p != "apply")
     .fold(code)(_.split('.').last)
 
 // A machine: a transition relation over the finite state type `S` with outcomes `O` and facts `F`.
@@ -334,15 +338,15 @@ private[umpire] def writtenAction(code: String): String =
 // }}}
 //
 // A machine whose rules name phases mixes in its phase projection, `extends Machine[OrderState,
-// Outcome, OrderFact], Phased[OrderState, Phase](_.phase)` (model/umpire/Syntax.scala), which its
+// Outcome, OrderFact], Phased[OrderState, Phase](_.phase)` (model/framework/Syntax.scala), which its
 // sections read; a machine that names no phase is a plain `Machine`.
 //
 // Its members are its header, the state it starts in, `init`, the states it may end in, `end`, and
 // where it declares them, `entity` and `evidence`; then its sections, objects named after what they
 // hold, in this order: `states`, its vocabulary (the named sets and projections of its states);
-// `refinement`, where it refines another machine (umpire.Refinement); `effects`; `monitors`;
+// `refinement`, where it refines another machine (framework.Refinement); `effects`; `monitors`;
 // `rules`, which it must declare; `properties`; `capabilities`, its capabilities
-// `umpire.Capabilities`; and `queries`. Its `entity` is the one entity its
+// `framework.Capabilities`; and `queries`. Its `entity` is the one entity its
 // actions are `on`, or create, unless it names another. The IR generator (model/irgen) reads them
 // from the source, and names each of its declarations after where it is declared: its package and
 // the objects it sits in. At run time a machine is its init, its end and the step function each
@@ -353,12 +357,12 @@ private[umpire] def writtenAction(code: String): String =
 // A member of `states` or `effects` is a def of the state, `def held(s: OrderState) =
 // s.phase.in(…)`, `def ship(s: OrderState) = enter(s.copy(phase = shipped), Fact.statusShipped)`,
 // or a `val` written as a block that reads, and in an effect assigns, the state's fields by name
-// (model/umpire/Syntax.scala): `val held = is { phase.in(…) }`, `val ship = effect { phase =
+// (model/framework/Syntax.scala): `val held = is { phase.in(…) }`, `val ship = effect { phase =
 // shipped }`, which records the status the assigned case declares, where its enum declares one.
 abstract class Machine[S, O, F](using
-    private[umpire] val fs: Finite[S],
-    private[umpire] val fo: Finite[O],
-    private[umpire] val ff: Finite[F]
+    private[framework] val fs: Finite[S],
+    private[framework] val fo: Finite[O],
+    private[framework] val ff: Finite[F]
 ) extends Declares[S]:
   type Outcome = O
   type Fact = F
@@ -382,15 +386,15 @@ abstract class Machine[S, O, F](using
   protected given declaring: Declaring[S, O, F] = Declaring(this)
 
   // What each action is bound to, in the order its first rule names it.
-  private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] = rules.table
+  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = rules.table
 
   // The machines this one is made from, which constructing it constructs as well
   // (IrFile.construct): the machine its `object refinement` refines, and for a derivation its
   // source and the machine a `refining` names.
-  private[umpire] def reaches: Seq[Model] = Refinement.declaredBy(this).toSeq
+  private[framework] def reaches: Seq[Model] = Refinement.declaredBy(this).toSeq
 
   // One step function per action: the rules of each, lowered (Rules.lowered).
-  private[umpire] def bindings: List[StepBinding[S, O, F]] =
+  private[framework] def bindings: List[StepBinding[S, O, F]] =
     table.map((decl, bound) => StepBinding[S, O, F](decl, stepFunction(decl, bound))).toList
 
   private def built(
@@ -480,27 +484,27 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
   )
 
   // The phase projection its sections read: its source's, with its phase type.
-  private[umpire] def sourcePhasing: Phasing[S, P] = Phasing(source.projection(derivation))
+  private[framework] def sourcePhasing: Phasing[S, P] = Phasing(source.projection(derivation))
 
   protected given derivedPhasing: Phasing[S, P] = sourcePhasing
 
   final def init: S = derivation.init
   final def end(s: S): Boolean = derivation.end(s)
   final def rules: RuleBook[S, O, F] = derivation.rules
-  final override private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] =
+  final override private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     derivation.table
-  final override private[umpire] def reaches: Seq[Model] =
+  final override private[framework] def reaches: Seq[Model] =
     derivation +: Refinement.declaredBy(this).toSeq
 
 // A machine a derivation makes from another: its name, its starts and ends, what it binds each
 // action to, its source and the other machines it is made from. What else it declares only the
 // lifter reads.
-final private[umpire] class Built[S, O, F, M <: Model](
+final private[framework] class Built[S, O, F, M <: Model](
     override val name: String,
     starts: List[S],
     isEnd: S => Boolean,
     bound: => Vector[(ActionDecl, Bound[S, O, F])],
-    private[umpire] val source: M,
+    private[framework] val source: M,
     also: Seq[Model]
 )(using Finite[S], Finite[O], Finite[F])
     extends Machine[S, O, F],
@@ -508,6 +512,6 @@ final private[umpire] class Built[S, O, F, M <: Model](
   def init: S = starts.head
   def end(s: S): Boolean = isEnd(s)
   object rules extends RuleBook[S, O, F]:
-    private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
-  final override private[umpire] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] = bound
-  final override private[umpire] def reaches: Seq[Model] = source +: also
+    private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
+  final override private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] = bound
+  final override private[framework] def reaches: Seq[Model] = source +: also

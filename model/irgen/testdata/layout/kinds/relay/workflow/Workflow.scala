@@ -1,7 +1,7 @@
 package fixture.features.relay
 package workflow
 
-import umpire.*
+import framework.*
 
 val task = Entity(name = "task", key = "scheduledEvent")
 object formBindings:

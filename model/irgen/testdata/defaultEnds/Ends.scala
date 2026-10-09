@@ -1,6 +1,6 @@
 package fixture.defaultends
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case waiting extends Phase, Waiting

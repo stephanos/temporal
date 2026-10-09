@@ -1,6 +1,6 @@
 package fixture.deadlinecapabilityrejects
 
-import umpire.*
+import framework.*
 import temporal.capabilities.Deadline
 import fixture.deadlinecapabilities.*
 import fixture.deadlinecapabilities.given

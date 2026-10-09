@@ -1,4 +1,4 @@
-package umpire
+package framework
 // Input tokens, inputs supplied by name and bounded counters, run as Scala. The IR generator's
 // fixtures (irgen/testdata/lifts/Inputs.scala) prove the IR; these pin the framework's own values.
 
@@ -89,7 +89,7 @@ class Inputs extends munit.FunSuite:
     assert(
       compiletime.testing
         .typeCheckErrors("""
-      import umpire.*
+      import framework.*
       val a = action(Actor("p")).input[Boolean]("a").input[Boolean]("b")
         .input[Boolean]("c").input[Boolean]("d").input[UpTo[2]]("e")
       a(false, false, false, false, true)
@@ -98,7 +98,7 @@ class Inputs extends munit.FunSuite:
     assert(
       compiletime.testing
         .typeCheckErrors("""
-      import umpire.*
+      import framework.*
       val a = action(Actor("p")).input[Boolean]("a").input[Boolean]("b")
         .input[Boolean]("c").input[Boolean]("d").input[Boolean]("e")
       a(false, false, false, false)
@@ -107,7 +107,7 @@ class Inputs extends munit.FunSuite:
 
   test("a sixth input reaches execution with its declared value and named default"):
     assert(compiletime.testing.typeChecks("""
-      import umpire.*
+      import framework.*
       val a = action(Actor("p")).input[Boolean]("a").input[Boolean]("b")
         .input[Boolean]("c").input[Boolean]("d").input[Boolean]("e").input[Boolean]("f")
       a(false, false, false, false, false, true)
@@ -115,7 +115,7 @@ class Inputs extends munit.FunSuite:
     assert(
       compiletime.testing
         .typeCheckErrors("""
-      import umpire.*
+      import framework.*
       val a = action(Actor("p")).input[Boolean]("a").input[Boolean]("b")
         .input[Boolean]("c").input[Boolean]("d").input[Boolean]("e").input[Boolean]("f")
       a(false, false, false, false, false, 1)
@@ -124,7 +124,7 @@ class Inputs extends munit.FunSuite:
     assert(
       compiletime.testing
         .typeCheckErrors("""
-      import umpire.*
+      import framework.*
       val a = action(Actor("p")).input[Boolean]("a").input[Boolean]("b")
         .input[Boolean]("c").input[Boolean]("d").input[Boolean]("e").input[Boolean]("f")
       a(false, false, false, false, false)
@@ -212,14 +212,14 @@ class Inputs extends munit.FunSuite:
 
   test("repeated protobuf messages are typed by the selected repeated message field"):
     assert(compiletime.testing.typeChecks("""
-      import umpire.realize.*
+      import framework.realize.*
       import com.google.protobuf.struct.{ListValue, Value}
       Proto[ListValue](ProtoField.typed(Field(_.values), ProtoValue.messages(Proto[Value]())))
     """))
     assert(
       compiletime.testing
         .typeCheckErrors("""
-      import umpire.realize.*
+      import framework.realize.*
       import com.google.protobuf.struct.ListValue
       Proto[ListValue](ProtoField.typed(Field(_.values), ProtoValue.messages(Proto[ListValue]())))
     """).nonEmpty
@@ -227,7 +227,7 @@ class Inputs extends munit.FunSuite:
     assert(
       compiletime.testing
         .typeCheckErrors("""
-      import umpire.realize.*
+      import framework.realize.*
       import com.google.protobuf.struct.{Struct, Value}
       Proto[Struct](ProtoField.typed(Field(_.fields), ProtoValue.messages(Proto[Value]())))
     """).nonEmpty
@@ -235,7 +235,7 @@ class Inputs extends munit.FunSuite:
     assert(
       compiletime.testing
         .typeCheckErrors("""
-      import umpire.realize.*
+      import framework.realize.*
       import com.google.protobuf.wrappers.BytesValue
       Proto[BytesValue](ProtoField.typed(Field(_.value), ProtoValue.messages(Proto[BytesValue]())))
     """).nonEmpty

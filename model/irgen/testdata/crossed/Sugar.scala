@@ -2,7 +2,7 @@
 // tests build this and expect a type error at each marked line.
 package fixture.crossed
 
-import umpire.*
+import framework.*
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 

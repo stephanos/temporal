@@ -1,7 +1,7 @@
 package fixture.features.nexus.workflow
 package system
 
-import umpire.*
+import framework.*
 import product.NexusProduct
 
 enum Phase derives Finite:

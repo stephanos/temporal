@@ -3,7 +3,7 @@
 // at the refinement (system/System.scala).
 package fixture.features.urn
 
-import umpire.*
+import framework.*
 
 final case class Urn(full: Boolean) derives Finite
 

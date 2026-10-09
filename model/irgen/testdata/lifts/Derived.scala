@@ -3,7 +3,7 @@
 // each pair, but for names, positions and the names of the functions the declarations refer to.
 package fixture.derived
 
-import umpire.*
+import framework.*
 
 enum Light derives Finite:
   case off, on, broken

@@ -1,6 +1,6 @@
 package fixture.features.cistern
 
-import umpire.*
+import framework.*
 
 final case class Light(lit: Boolean) derives Finite
 

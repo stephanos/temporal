@@ -50,7 +50,7 @@ final private[irgen] class Context(val index: Index):
     case Some(_: DefDef) => true
     case _               => blockVal(sym).nonEmpty
 
-  // The call of a block form of the framework's syntax (model/umpire/Syntax.scala),
+  // The call of a block form of the framework's syntax (model/framework/Syntax.scala),
   // `is[S, O, F](using owner)(body)` or `effect[S, O, F](using owner, ok)(body)`: the form, the
   // machine's state, outcome and fact types, the givens it is applied to and its body, the context
   // function the call is given.
@@ -64,7 +64,7 @@ final private[irgen] class Context(val index: Index):
     def body: Term = call.body
 
   private val blockForms = Set("is", "effect")
-  private val syntaxOwner = "umpire.Syntax$package$"
+  private val syntaxOwner = "framework.Syntax$package$"
 
   // The call of a block form a term is.
   def blockCall(t: Term): Option[BlockCall] = t match
@@ -257,14 +257,14 @@ final private[irgen] class Context(val index: Index):
   // The name each parameter with a compiler-synthesized name is lifted with, by its symbol.
   val renamed = mutable.Map.empty[Symbol, String]
   def nameOf(sym: Symbol): String = renamed.getOrElse(sym, sym.name)
-  val stepType = "umpire.Step"
+  val stepType = "framework.Step"
   val noneModule = Symbol.requiredModule("scala.None")
   val someModule = Symbol.requiredModule("scala.Some")
 
   // TASTy records a source path relative to the build that compiled it; the prefix makes it
   // relative to the repository. A tree the lifter builds itself, such as the block left after a
   // `require`, has no span. Framework TASTy is deliberately not inspected, but a lifted expression
-  // may still retain a position in it; those sources live under model/umpire.
+  // may still retain a position in it; those sources live under model/framework.
   // The prefix is the one of the jar the source came from.
   def pos(t: Tree): ir.Position = placedAt.getOrElse(written(t))
 
@@ -273,7 +273,8 @@ final private[irgen] class Context(val index: Index):
     .Try {
       val p = t.pos
       val path = p.sourceFile.path
-      val prefix = sourceRoots.getOrElse(path, if path.startsWith("umpire/") then "model/" else "")
+      val prefix =
+        sourceRoots.getOrElse(path, if path.startsWith("framework/") then "model/" else "")
       ir.Position(file = prefix + path, line = p.startLine + 1)
     }
     .getOrElse(ir.Position.defaultInstance)
@@ -347,18 +348,18 @@ final private[irgen] class Context(val index: Index):
     owner.isClassDef && owner.flags.is(Flags.Module) && owner.name.stripSuffix("$") == name &&
       !owner.maybeOwner.isPackageDef
 
-  // ### Object forms: an object that is a machine or a composition (umpire.Machine, umpire.Derived,
-  // umpire.Composition), and the sections it reads
+  // ### Object forms: an object that is a machine or a composition (framework.Machine, framework.Derived,
+  // framework.Composition), and the sections it reads
 
-  lazy val machineClass: Symbol = Symbol.requiredClass("umpire.Machine")
-  lazy val derivedClass: Symbol = Symbol.requiredClass("umpire.Derived")
-  lazy val compositionClass: Symbol = Symbol.requiredClass("umpire.Composition")
-  lazy val rulesClass: Symbol = Symbol.requiredClass("umpire.Rules")
-  lazy val bindingsClass: Symbol = Symbol.requiredClass("umpire.Bindings")
-  lazy val failureModelClass: Symbol = Symbol.requiredClass("umpire.FailureModel")
-  lazy val negativeControlClass: Symbol = Symbol.requiredClass("umpire.NegativeControl")
-  lazy val syncsClass: Symbol = Symbol.requiredClass("umpire.Syncs")
-  lazy val refinementClass: Symbol = Symbol.requiredClass("umpire.Refinement")
+  lazy val machineClass: Symbol = Symbol.requiredClass("framework.Machine")
+  lazy val derivedClass: Symbol = Symbol.requiredClass("framework.Derived")
+  lazy val compositionClass: Symbol = Symbol.requiredClass("framework.Composition")
+  lazy val rulesClass: Symbol = Symbol.requiredClass("framework.Rules")
+  lazy val bindingsClass: Symbol = Symbol.requiredClass("framework.Bindings")
+  lazy val failureModelClass: Symbol = Symbol.requiredClass("framework.FailureModel")
+  lazy val negativeControlClass: Symbol = Symbol.requiredClass("framework.NegativeControl")
+  lazy val syncsClass: Symbol = Symbol.requiredClass("framework.Syncs")
+  lazy val refinementClass: Symbol = Symbol.requiredClass("framework.Refinement")
 
   // Whether a value of this type is a machine: a machine object, or a derivation of one.
   def isMachine(t: TypeRepr): Boolean = t.widen.dealias.derivesFrom(machineClass)

@@ -3,7 +3,7 @@
 // `LookalikePair` composes (fn-126 R15).
 package fixture.rejects.elsewhere
 
-import umpire.*
+import framework.*
 import fixture.rejects.{bulbHand, Bulb, Glow, Outcome, Ruled}
 
 object Lookalike extends Machine[Bulb, Outcome, Nothing]:

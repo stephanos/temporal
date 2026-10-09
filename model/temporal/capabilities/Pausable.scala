@@ -1,7 +1,7 @@
 // Pausing and unpausing an entity. Suspended phases say where dispatch must remain blocked.
 package temporal.capabilities
 
-import umpire.*
+import framework.*
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
 
@@ -16,7 +16,7 @@ final case class Pausable[S, P](
 ) extends CapabilityOf[S, Nothing, Nothing]
 
 object Pausable extends CapabilityKind:
-  type Suspended = umpire.Suspended
+  type Suspended = framework.Suspended
   // No step from a Suspended phase lands in Held: no work is handed out while paused.
   // Reading Pollable's Held role brings this Property only where both capabilities are declared.
   // This promises neither what pausing held work does (activity waits as pause-requested), the

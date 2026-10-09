@@ -5,7 +5,7 @@
 package fixture.features.lamp
 package system
 
-import umpire.*
+import framework.*
 import product.LampProduct
 
 enum Phase derives Finite:

@@ -1,7 +1,7 @@
 package fixture.features.kiln
 package product
 
-import umpire.*
+import framework.*
 
 object KilnProduct extends Machine[Kiln, Outcome, Nothing]:
   val init = Kiln(hot = false)

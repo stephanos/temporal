@@ -1,6 +1,6 @@
 package temporal.actors.client
 
-import umpire.Actor
+import framework.Actor
 
 // A caller of Temporal's public API through the frontend.
 trait Client extends Actor

@@ -6,7 +6,7 @@ package temporal
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 import temporal.actors.client.Client
-import umpire.IrFile
+import framework.IrFile
 
 class IrFilesTest extends munit.FunSuite:
   // Each feature's `object exports`, which declares its IR files as it initializes.
@@ -84,6 +84,6 @@ class IrFilesTest extends munit.FunSuite:
     )
     for model <- projected do
       model match
-        case _: umpire.Phased[?, ?] => ()
-        case _                      => fail(model.getClass.getName)
+        case _: framework.Phased[?, ?] => ()
+        case _                         => fail(model.getClass.getName)
   }

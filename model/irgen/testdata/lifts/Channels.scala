@@ -3,7 +3,7 @@
 // tests lift `Relay` and `Tallying` and compare the IR with expected/channels.json.
 package fixture.channels
 
-import umpire.*
+import framework.*
 
 enum Note derives Finite:
   case ping, pong

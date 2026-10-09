@@ -1,27 +1,27 @@
-package umpire
+package framework
 
 // A Property's untyped part. A same-step Property names the action it is about under `when` and
 // holds of the step that action produces; a transition Property holds of the state before a step
 // and the step after it.
-final class PropertyDecl private[umpire] (
+final class PropertyDecl private[framework] (
     val name: String,
     val machine: Model,
     // The action class, or under `whenAction` the action, the Property is about.
-    private[umpire] val when: Option[ClassRef | Composed | String],
-    private[umpire] val holds: Option[Nothing => Boolean],
-    private[umpire] val holds2: Option[(Nothing, Nothing) => Boolean]
+    private[framework] val when: Option[ClassRef | Composed | String],
+    private[framework] val holds: Option[Nothing => Boolean],
+    private[framework] val holds2: Option[(Nothing, Nothing) => Boolean]
 )
 
-// A Property over a machine whose state type is `S`. The claim patterns of model/umpire/Syntax.scala
+// A Property over a machine whose state type is `S`. The claim patterns of model/framework/Syntax.scala
 // are Properties of their own kinds.
-class Property[S] private[umpire] (val decl: PropertyDecl):
+class Property[S] private[framework] (val decl: PropertyDecl):
   def name: String = decl.name
 
 // Declares a Property on a machine whose steps are `Step[S, O, F]`.
-final class PropertyBuilder[S, O, F] private[umpire] (
-    private[umpire] val name: String,
-    private[umpire] val m: Model,
-    private[umpire] val when: Option[ClassRef | Composed | String]
+final class PropertyBuilder[S, O, F] private[framework] (
+    private[framework] val name: String,
+    private[framework] val m: Model,
+    private[framework] val when: Option[ClassRef | Composed | String]
 ):
   // Restricts the Property to the step of one action class.
   infix def when(c: ClassRef): PropertyBuilder[S, O, F] = PropertyBuilder(name, m, Some(c))
@@ -46,7 +46,7 @@ final class PropertyBuilder[S, O, F] private[umpire] (
 
 // A Scenario's untyped part: a named action schedule from one start, the path a Query runs. A
 // pinned Scenario lists its actions exactly; a free one lists none and admits any action.
-final class ScenarioDecl private[umpire] (
+final class ScenarioDecl private[framework] (
     val name: String,
     val machine: Model,
     val start: Option[Any],
@@ -56,11 +56,11 @@ final class ScenarioDecl private[umpire] (
 )
 
 // A Scenario over a machine whose state type is `S`.
-final class Scenario[S] private[umpire] (val decl: ScenarioDecl):
+final class Scenario[S] private[framework] (val decl: ScenarioDecl):
   def name: String = decl.name
 
 // Declares a Scenario.
-final class ScenarioBuilder[S] private[umpire] (name: String, m: Model, start: Option[S]):
+final class ScenarioBuilder[S] private[framework] (name: String, m: Model, start: Option[S]):
   // The state the Scenario starts in.
   infix def starts(s: S): ScenarioBuilder[S] = ScenarioBuilder(name, m, Some(s))
 
@@ -85,7 +85,7 @@ enum QueryForm:
   case verify
 
 // A bounded question about a machine: a Property, a Scenario and Limits.
-final class Query private[umpire] (
+final class Query private[framework] (
     val name: String,
     val form: QueryForm,
     val property: PropertyDecl,
@@ -115,17 +115,17 @@ final class Query private[umpire] (
 // `query("syncCompletion") find syncSucceeds in syncReplied limits two`. A Query neither names, such
 // as an item of a list, is named `<machine>.<scenario>.<property>` after its Scenario's machine, its
 // Scenario and its Property.
-final class QueryDecl private[umpire] (name: String):
+final class QueryDecl private[framework] (name: String):
   infix def find[P](p: Property[P]): QueryOn[P] = QueryOn(name, QueryForm.find, p)
   infix def verify[P](p: Property[P]): QueryOn[P] = QueryOn(name, QueryForm.verify, p)
 
-final class QueryOn[P] private[umpire] (name: String, form: QueryForm, p: Property[P]):
+final class QueryOn[P] private[framework] (name: String, form: QueryForm, p: Property[P]):
   // The Scenario's machine is the Property's, or refines it: a Property of the refined machine is
   // read through the refinement the Scenario's machine declares. `Machine[S, O, F]` does not carry
   // the type it refines, so the lifter, not the compiler, refuses a pair of unrelated machines.
   infix def in[S](s: Scenario[S]): QueryIn = QueryIn(name, form, p.decl, s.decl)
 
-final class QueryIn private[umpire] (
+final class QueryIn private[framework] (
     name: String,
     form: QueryForm,
     p: PropertyDecl,

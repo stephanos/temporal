@@ -43,16 +43,16 @@ final private[irgen] class Lifting(val ctx: Context)
                 "of Queries, or a progress claim"
             )
           case _ => ()
-    else if isNamed(d.tpt.tpe, "umpire.Machine") then machineOf(sym, d)
-    else if isNamed(d.tpt.tpe, "umpire.Composition") then compositionOf(sym, d)
-    else if isNamed(d.tpt.tpe, "umpire.realize.Realization") then realizationOf(sym, d)
+    else if isNamed(d.tpt.tpe, "framework.Machine") then machineOf(sym, d)
+    else if isNamed(d.tpt.tpe, "framework.Composition") then compositionOf(sym, d)
+    else if isNamed(d.tpt.tpe, "framework.realize.Realization") then realizationOf(sym, d)
     else
       val kind = d.tpt.tpe.widen.dealias
-      val claims = Set("umpire.Query", "umpire.Progress")
+      val claims = Set("framework.Query", "framework.Progress")
       val listed =
         isList(kind.typeSymbol) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
       if !claims(kind.typeSymbol.fullName) && !(listed && kind.typeArgs.headOption
-          .exists(a => isNamed(a, "umpire.Query")))
+          .exists(a => isNamed(a, "framework.Query")))
       then
         fail(
           d,
@@ -72,7 +72,7 @@ final private[irgen] class Lifting(val ctx: Context)
   private def readAtRunTime(v: ValDef): Boolean =
     val kind = v.tpt.tpe.widen.dealias
     !v.symbol.flags.is(Flags.Private) && !v.symbol.flags.is(Flags.Protected) &&
-    (kind.baseClasses.exists(_.fullName == "umpire.Query") ||
+    (kind.baseClasses.exists(_.fullName == "framework.Query") ||
       kind.baseClasses.exists(_.fullName == "scala.collection.Seq"))
 
   // Whether a val of a `queries` section is a root: a Query, a list of them or a progress claim.
@@ -80,8 +80,8 @@ final private[irgen] class Lifting(val ctx: Context)
     val kind = t.widen.dealias
     val listed =
       isList(kind.typeSymbol) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
-    Set("umpire.Query", "umpire.Progress")(kind.typeSymbol.fullName) ||
-    (listed && kind.typeArgs.headOption.exists(a => isNamed(a, "umpire.Query")))
+    Set("framework.Query", "framework.Progress")(kind.typeSymbol.fullName) ||
+    (listed && kind.typeArgs.headOption.exists(a => isNamed(a, "framework.Query")))
 
   // The IR files the lifted sources declare, `val f = irFile("name")(root, ...)`: each file's name
   // and its roots' fully qualified names, in the order written. A root is a reference to a val, so
@@ -89,7 +89,7 @@ final private[irgen] class Lifting(val ctx: Context)
   // line that is not a declaration. A declaration that cannot be read is given to `refused`, each one.
   def irFiles(refused: LiftError => Unit): Seq[(String, Seq[String])] =
     val declared = defs.values.toSeq
-      .collect { case v: ValDef if v.rhs.nonEmpty && isNamed(v.tpt.tpe, "umpire.IrFile") => v }
+      .collect { case v: ValDef if v.rhs.nonEmpty && isNamed(v.tpt.tpe, "framework.IrFile") => v }
       .sortBy(v => (pos(v).file, pos(v).line))
     val files = declared.flatMap: v =>
       try

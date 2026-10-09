@@ -4,16 +4,16 @@ import scala.collection.mutable
 import io.temporal.server.api.umpire.v1 as ir
 import io.temporal.server.api.umpire.v1.Pattern.Kind as P
 
-// The roles the cases of one phase enum take (model/umpire/Roles.scala), by class names alone, so
+// The roles the cases of one phase enum take (model/framework/Roles.scala), by class names alone, so
 // that it reads no TASTy: for every role a case carries, the cases that have it, inheritance
 // included, in the enum's declaration order, and the cases whose roles conflict. A role is a
 // framework role or a trait that extends one; a Model's own role takes part in a conflict only
 // through the framework roles it extends.
 private[irgen] object Roles:
-  private val live = "umpire.Live"
-  private val closed = "umpire.Closed"
+  private val live = "framework.Live"
+  private val closed = "framework.Closed"
 
-  // The framework's roles, in the order model/umpire/Roles.scala declares them.
+  // The framework's roles, in the order model/framework/Roles.scala declares them.
   val framework: Seq[String] =
     Seq(
       "Live",
@@ -27,14 +27,14 @@ private[irgen] object Roles:
       "Canceled",
       "Terminated",
       "TimedOut"
-    ).map("umpire." + _)
+    ).map("framework." + _)
 
   // The roles a phase has at most one of, each with what the refusal says of them.
   private val exclusive: Seq[(Seq[String], String)] = Seq(
     Seq(live, closed) -> "a phase is live or closed, never both",
-    Seq("Waiting", "Held", "Suspended").map("umpire." + _) ->
+    Seq("Waiting", "Held", "Suspended").map("framework." + _) ->
       "a live phase is at most one of Waiting, Held and Suspended",
-    Seq("Succeeded", "Failed", "Canceled", "Terminated", "TimedOut").map("umpire." + _) ->
+    Seq("Succeeded", "Failed", "Canceled", "Terminated", "TimedOut").map("framework." + _) ->
       ("a closed phase has at most one closure role of Succeeded, Failed, Canceled, Terminated " +
         "and TimedOut")
   )
@@ -126,7 +126,7 @@ private[irgen] trait PhaseRoles:
       fail(
         at,
         s"${role.show} is no role, so a test against it has no IR form: test a phase against a " +
-          "role of model/umpire/Roles.scala, or a trait that extends one"
+          "role of model/framework/Roles.scala, or a trait that extends one"
       )
     val e = value.widen.dealias.baseClasses
       .find(b => b.flags.is(Flags.Enum) && !b.flags.is(Flags.Case))

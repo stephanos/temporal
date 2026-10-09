@@ -2,7 +2,7 @@
 package fixture.features.urn
 package product
 
-import umpire.*
+import framework.*
 
 object brewer extends Actor:
   val fill = action(this)

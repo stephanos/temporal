@@ -28,7 +28,7 @@ the functional fixtures and the canary.
 | Module and destination | One job | Public interface | Permitted domain dependencies |
 | --- | --- | --- | --- |
 | Umpire IR, `api/umpire/v1`, `proto/internal/temporal/server/api/umpire/v1` | Represent a lifted Model. | Existing protobuf messages under the new package names. | Protobuf support; no Testpilot schema dependency added. |
-| DSL, `model/umpire` | Declare finite Models in Scala. | Authoring and realization declarations, with scoped protobuf builders, realization script helpers and the open traits a system's kit extends in `umpire/realize`; the capability mechanism, naming no capability (`CapabilityOf`, `CapabilityKind`, `Capabilities`, `claim`, `except`, `overriding`, `bound` in `Capabilities.scala`); no native evaluator. | Scala standard library and generic ScalaPB typing/runtime metadata; no Temporal-specific, IR generator or gate import, and no Temporal name (`TestFrameworkNamesNoTemporal`). |
+| DSL, `model/framework` | Declare finite Models in Scala. | Authoring and realization declarations, with scoped protobuf builders, realization script helpers and the open traits a system's kit extends in `framework/realize`; the capability mechanism, naming no capability (`CapabilityOf`, `CapabilityKind`, `Capabilities`, `claim`, `except`, `overriding`, `bound` in `Capabilities.scala`); no native evaluator. | Scala standard library and generic ScalaPB typing/runtime metadata; no Temporal-specific, IR generator or gate import, and no Temporal name (`TestFrameworkNamesNoTemporal`). |
 | Models, `model/temporal` | Declare Temporal behavior. Features live under `features/`, grouped by kind and form; the task queue lives under `foundations/taskqueue/` and the shared worker and client under `actors/`. A feature or form reads top to bottom in one feature file per folder, one object per machine (`object M extends Machine[S, O, F]`, `Derived(...)` or `Composition(...)`, with its `states`, `refinement`, `effects`, `monitors`, `rules`, `properties`, `capabilities` and `queries` sections; a failure model or a negative control says so with the marker `FailureModel` or `NegativeControl`), held to that order by the IR generator's declaration-order lint. A feature with two levels keeps only shared types, its signature and exports in its root feature file and its levels in `product/` and `system/`; each level's own file owns that level's `Phase`, `State` and `Fact`, and one file per subject sits beside it, as `features/activity/standalone` keeps `system/Record.scala` and `system/WithTaskQueue.scala` beside `system/System.scala`; the IR generator's structure lint holds that layout. Every Model folder holds one feature file named after it (`features/nexus/workflow/Workflow.scala`, `foundations/taskqueue/TaskQueue.scala`, …). An executable realization is a typed object beside its owning machine level; derived realizations name their base and machine. No folder splits its files by declaration category. The bounds more than one folder runs its Queries under are declared once, in `Bounds.scala`. | Existing machine, claim, Query and realization roots, and one `irFile` declaration per checked-in IR file, in its feature file's `object exports`; kind general files need no exports. | DSL and shared feature kit; generated Temporal API, Testpilot and well-known message classes with their ScalaPB/gRPC compile-time runtime. |
 | Nexus kind, `model/temporal/features/nexus` | State what either form of a Nexus operation does. | `Nexus.scala` declares shared Reply, Resolution, Outcome, input tokens and canonical handler/network/timeout/terminate actions; `product/Product.scala` owns NexusProduct and its terminalIsFinal Property. Both forms refine it and bind canonical actions to their own Entity through immutable aliases. The kind owns neither exports nor a System. | DSL and shared Temporal kit; neither form. A form's System refines only its local Product or its enclosing kind's Product. |
 | Activity kind, `model/temporal/features/activity` | Group the forms of an activity. | One general `Activity.scala` declaring Timeout, TimeoutType, Failure, the failure input, the worker's unbound poll/respondCompleted/respondFailed/respondCanceled actions, the timers and the deadlines, and `standalone/Standalone.scala`, which binds the worker actions to its own `activity` Entity through immutable aliases. The standalone form owns its Entity, per-RPC client actions, `product/` and `system/` levels and exports. A workflow form arrives with the deferred workflow-activity work. | DSL and shared Temporal kit; current form dependencies stay form-owned. |
@@ -90,10 +90,10 @@ constructors; it has no public string form for protobuf messages, methods, paths
 The gate checks Model source for remaining proto-name literals. The IR generator writes those typed
 selections back into the unchanged text-bearing IR, which Go validates independently at lowering.
 
-The framework `model/umpire` names no Temporal concept (fn-114.12). Its `umpire/realize` keeps what
+The framework `model/framework` names no Temporal concept (fn-114.12). Its `framework/realize` keeps what
 a realization of any system needs and open traits a system's kit extends; Temporal's realization
 vocabulary is in `model/temporal/realize/Realize.scala`. `TestFrameworkNamesNoTemporal`
-(`tools/umpire/ir/framework_test.go`) checks every file under `model/umpire`, prose and
+(`tools/umpire/ir/framework_test.go`) checks every file under `model/framework`, prose and
 identifiers, against a word list (temporal, workflow, activity, nexus, namespace, task queue,
 worker, history, chasm, matching, frontend and the eight capability kinds). A mention stays only under
 an allowance that names its path and reason, and an allowance that keeps no mention fails, so the
@@ -103,7 +103,7 @@ list only shrinks. It is empty since fn-122.8 moved the capability vocabulary an
 Temporal's driver tooling names Temporal concepts by design:
 
 - The IR generator as a whole writes Temporal realizations into the IR. `Realizations.scala` accepts
-  `umpire.realize.` and `temporal.realize.` as the realization vocabulary (`vocabularyPackages`),
+  `framework.realize.` and `temporal.realize.` as the realization vocabulary (`vocabularyPackages`),
   matches the kit's `WorkflowHistory.event` by fully qualified name, and writes each vocabulary
   class by its simple name to the IR oneof member of that name, which is Temporal's
   (`Workflow`, `Fault`, `NexusReply`, …). It writes a member of a vocabulary class or
@@ -289,8 +289,8 @@ code. `tableSide`/`sideOf` stay as dedicated reader test support.
 ## Scala layout and commands
 
 `model/project.scala` is the shared directive file copied from `scala/project.scala`. Compile the
-DSL with exactly that file and `model/umpire`; compile/test/package Models with that file plus
-`model/umpire` and `model/temporal`. Authoring tests are co-located with their Models; compiler and IR generator
+DSL with exactly that file and `model/framework`; compile/test/package Models with that file plus
+`model/framework` and `model/temporal`. Authoring tests are co-located with their Models; compiler and IR generator
 refusal fixtures live under `irgen/testdata`. The IR generator and gate have independent `project.scala`
 files. Their generated jars, fixtures
 and stamps live under ignored `model/build`; the gate names source roots explicitly, so a broad
@@ -301,7 +301,7 @@ effects live in `model/temporal/features/nexus/product/Product.scala` and each f
 Owner-approved early cleanup in task7, immediately after relocation, removes only the unused
 `Canonical.scala`, `Lower.scala` and `Alterer` plumbing from fn113 Part A / R1 after checking callers;
 this does not retire the evaluator. Task 7 delivered it: the two files, `Alterer` and the helpers left without
-a caller are gone, and `model/umpire` outside tests was 2,415 lines at that point; after fn-113 Part D
+a caller are gone, and `model/framework` outside tests was 2,415 lines at that point; after fn-113 Part D
 it is 1,191 lines.
 
 Checked IR, generated Cases, specimens, specs, README and SEMANTICS move directly under `model/`.

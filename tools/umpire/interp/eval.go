@@ -121,13 +121,13 @@ func (v Value) Equal(o Value) bool {
 
 // StepType is the framework's step record, `{outcome, state, facts, because}`, which step functions
 // return lists of.
-const StepType = "umpire.Step"
+const StepType = "framework.Step"
 
 var StepFields = []string{"outcome", "state", "facts", "because"}
 
 // deliveryType is the framework's delivery record, `{message, redeliveries}`: one message a channel
 // holds, and how many more times than once it has been delivered.
-const deliveryType = "umpire.Delivery"
+const deliveryType = "framework.Delivery"
 
 var deliveryFields = []string{"message", "redeliveries"}
 

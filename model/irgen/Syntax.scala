@@ -14,7 +14,7 @@ import scalapb.descriptors.{
   ScalaType
 }
 
-// The lifting of the framework's sugar (model/umpire/Syntax.scala). The lifter does not inline a
+// The lifting of the framework's sugar (model/framework/Syntax.scala). The lifter does not inline a
 // framework body, so each sugar form is matched here by its definition and lowered to the IR its core
 // form lifts to; the lifter's tests lift both spellings and require the same IR. The block forms
 // lift as the functions their method forms give: an `is { ... }` section val as its predicate
@@ -26,7 +26,7 @@ private[irgen] trait Syntax:
   import ctx.quotes.reflect.*
 
   // Top-level definitions of a file are members of its package object.
-  private val sugarOwner = "umpire.Syntax$package$"
+  private val sugarOwner = "framework.Syntax$package$"
 
   // The sugar definition a term applies, if it applies one: its name and its argument lists.
   private def sugarCall(t: Term): Option[(String, List[List[Term]])] = t match
@@ -34,7 +34,7 @@ private[irgen] trait Syntax:
     case TypeApply(fn, _) => sugarCall(fn)
     case r: Ref if r.symbol.maybeOwner.fullName == sugarOwner => Some(r.symbol.name -> Nil)
     // A guard of a machine's rules reads `phase.in(a, b)` as the rules repeat it.
-    case r: Ref if r.symbol.maybeOwner.fullName == "umpire.Rules" && r.symbol.name == "in" =>
+    case r: Ref if r.symbol.maybeOwner.fullName == "framework.Rules" && r.symbol.name == "in" =>
       Some("in" -> Nil)
     case _ => None
 
@@ -110,7 +110,7 @@ private[irgen] trait Syntax:
       case Record(_, _)           => "record(...)"
       case Reject(_, _)           => "reject(...)"
 
-  private lazy val recordedClass = Symbol.requiredClass("umpire.Recorded")
+  private lazy val recordedClass = Symbol.requiredClass("framework.Recorded")
 
   // The status fact an enum case declares, the argument its case passes to the enum's parameter
   // `status`: `Fact.statusStarted` of `case started extends Phase(Fact.statusStarted)`.
@@ -303,7 +303,7 @@ private[irgen] trait Syntax:
   def rejection(effect: Term, state: ir.Expr): Option[ir.Expr] =
     val (rejects, reason) = unwrapped(effect) match
       case Apply(sel @ Select(inner, "because"), List(r))
-          if sel.symbol.maybeOwner.fullName == "umpire.Rejects" =>
+          if sel.symbol.maybeOwner.fullName == "framework.Rejects" =>
         (unwrapped(inner), constString(r))
       case other => (other, "")
     sugarCall(rejects).collect { case ("rejects", List(List(why), _)) => why }.map { why =>
@@ -381,7 +381,7 @@ private[irgen] trait Syntax:
     val message = applied(t).collect {
       case (fn @ Select(slot, ":="), List(value))
           if fn.symbol.maybeOwner.fullName == "temporal.realize.RequestField" =>
-        (slot, value, isNamed(value.tpe, "umpire.realize.TypedProto"))
+        (slot, value, isNamed(value.tpe, "framework.realize.TypedProto"))
     }
     sugared.orElse(message).map { (slot, value, written) =>
       val target = selectorPath(root, kitSelector(slot, root, t, requestScope), slot)
@@ -500,7 +500,7 @@ private[irgen] trait Syntax:
         val targetsField = irField(into, "targets", t)
         val targetD = irMessage(targetsField, t)
         val written = targets.flatMap(a => itemsOf(Bound(a, line.env))).map { item =>
-          if isNamed(item.term.tpe, "umpire.realize.Observed") then
+          if isNamed(item.term.tpe, "framework.realize.Observed") then
             PMessage(Map(irField(targetD, "observe", t) -> PString(observedId(item))))
           else valueOf(targetsField, item)
         }
@@ -646,12 +646,12 @@ private[irgen] trait Syntax:
   ): PMessage =
     val tpe = follow(value).term.tpe
     def kind(name: String, v: PValue) = PMessage(Map(irField(valueD, name, at) -> v))
-    if isNamed(tpe, "umpire.realize.TypedProto") then
+    if isNamed(tpe, "framework.realize.TypedProto") then
       kind("message", valueOf(irField(valueD, "message", at), value))
-    else if isNamed(tpe, "umpire.realize.TypedProtoValue") then typedProtoValue(value, valueD)
-    else if tpe.widen.dealias.baseClasses.exists(_.fullName == "umpire.realize.Addressee") then
+    else if isNamed(tpe, "framework.realize.TypedProtoValue") then typedProtoValue(value, valueD)
+    else if tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.realize.Addressee") then
       kind("role_id", PString(textOfBound(value)))
-    else if isNamed(tpe, "umpire.realize.Name") then
+    else if isNamed(tpe, "framework.realize.Name") then
       kind("named", valueOf(irField(valueD, "named", at), value))
     else if field.isMapField then
       val map = irMessage(irField(valueD, "mapping", at), at)
@@ -748,7 +748,7 @@ private[irgen] trait Syntax:
   // each, a method of the class the beginning returns.
   private val finishers = Map("once" -> "keeps", "never" -> "from", "stays" -> "unless")
   private val finished =
-    Map("umpire.Once" -> "keeps", "umpire.Never" -> "from", "umpire.Stays" -> "unless")
+    Map("framework.Once" -> "keeps", "framework.Never" -> "from", "framework.Stays" -> "unless")
 
   // Hook: whether a declaration applies a claim pattern, which `pattern` folds. Core form: none of
   // its own; `fold` asks it beside `holds`, as in `case _ if patterned(t) => pattern(t, env, named)`.
@@ -916,15 +916,15 @@ private[irgen] trait Syntax:
       .flatten
       .orElse(forwardedDef(x).flatMap(defPath))
 
-  // The shared outcomes of the framework (umpire.outcomes), which no lifted source declares.
-  private lazy val sharedOutcome = Symbol.requiredClass("umpire.outcomes.Outcome")
+  // The shared outcomes of the framework (framework.outcomes), which no lifted source declares.
+  private lazy val sharedOutcome = Symbol.requiredClass("framework.outcomes.Outcome")
 
   // The outcome a `given Ok[O] = Ok(o)` names: `o`; for the shared outcomes, the framework's own
   // given, `Outcome.accepted`.
   private def outcomeOf(ok: Term, form: String): ir.Expr =
     val shared = ok match
       case r: Ref
-          if resolveSymbol(r).maybeOwner == Symbol.requiredModule("umpire.Ok").moduleClass =>
+          if resolveSymbol(r).maybeOwner == Symbol.requiredModule("framework.Ok").moduleClass =>
         Some(enumLiteral(sharedOutcome.companionModule.fieldMember("accepted"), ok))
       case _ => None
     shared.getOrElse(declaredOutcome(ok, form))
@@ -940,7 +940,7 @@ private[irgen] trait Syntax:
     declared.map(arguments) match
       case Some(Apply(fn, List(outcome)))
           if fn.symbol.name == "apply" &&
-            fn.symbol.owner.companionClass.fullName == "umpire.Ok" =>
+            fn.symbol.owner.companionClass.fullName == "framework.Ok" =>
         lift(outcome)
       case _ =>
         fail(

@@ -1,7 +1,7 @@
 package fixture.foundations.pump
 package product
 
-import umpire.*
+import framework.*
 
 object PumpProduct extends Machine[Pump, Outcome, Nothing]:
   val init = Pump(running = false)

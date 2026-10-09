@@ -9,7 +9,7 @@
 // once as it is declared now, then as it was; each old spelling fails to compile on its line.
 package fixture.retiredNames
 
-import umpire.*
+import framework.*
 
 enum Note derives Finite:
   case ping

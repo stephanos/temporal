@@ -17,7 +17,7 @@ import scala.collection.mutable
 //     feature file, a Model declaration of another file; and in a Model package whose folder has
 //     no feature file, a Model declaration of a file not named after its folder;
 //   - (e) in a feature file, R17's section rules: in a machine or composition object
-//     (`umpire.Machine`, `Derived`, `Composition`), its header and sections out of the order
+//     (`framework.Machine`, `Derived`, `Composition`), its header and sections out of the order
 //     states, refinement, effects, monitors, rules (a composition's syncs), properties,
 //     capabilities, queries; a declaration in a section other than its kind's,
 //     vocabulary outside `states`, a refinement's member outside `refinement`, an effect outside
@@ -84,11 +84,11 @@ final private[irgen] class Order(index: Index):
 
   // ### Object forms and sections
 
-  private val machineClass = Symbol.requiredClass("umpire.Machine")
-  private val compositionClass = Symbol.requiredClass("umpire.Composition")
-  private val rulesClass = Symbol.requiredClass("umpire.Rules")
-  private val caseClass = Symbol.requiredClass("umpire.Case")
-  private val phasedClass = Symbol.requiredClass("umpire.Phased")
+  private val machineClass = Symbol.requiredClass("framework.Machine")
+  private val compositionClass = Symbol.requiredClass("framework.Composition")
+  private val rulesClass = Symbol.requiredClass("framework.Rules")
+  private val caseClass = Symbol.requiredClass("framework.Case")
+  private val phasedClass = Symbol.requiredClass("framework.Phased")
 
   // Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`.
   private def objectForm(c: Symbol): Boolean =
@@ -180,7 +180,7 @@ final private[irgen] class Order(index: Index):
             // A context function the DSL applies at once is read now; any other lambda later.
             if l.tpe.isContextFunctionType then traverseTree(body)(o)
           // A rule heading runs its rules at once, and the disjointness check calls its guard, and
-          // the rules' phase projection, while the rules initialize (umpire.Rules).
+          // the rules' phase projection, while the rules initialize (framework.Rules).
           case Apply(fn, args) if appliesAtOnce(fn.symbol) =>
             traverseTree(fn)(o)
             def atOnce(a: Tree): Unit = a match
@@ -238,7 +238,7 @@ final private[irgen] class Order(index: Index):
       case t: Term if t.symbol.isClassConstructor => t.symbol.maybeOwner
     }
     bases
-      .filterNot(_.fullName.startsWith("umpire."))
+      .filterNot(_.fullName.startsWith("framework."))
       .flatMap(treeOf)
       .collect { case base: ClassDef if !exempt(fileOf(base)) => base }
       .flatMap { base =>
@@ -259,7 +259,7 @@ final private[irgen] class Order(index: Index):
       (owner == rulesClass &&
         (s.isClassConstructor || Set("on", "when", "from")(s.name))) ||
       (owner == caseClass && s.name == "where") ||
-      (Set("on", "where")(s.name) && owner.fullName == "umpire.Syntax$package$")
+      (Set("on", "where")(s.name) && owner.fullName == "framework.Syntax$package$")
     }
 
   // Each cycle of owners, once, at its first read in source order: the owners of one strongly
@@ -329,22 +329,23 @@ final private[irgen] class Order(index: Index):
       case w             =>
         val sym = w.typeSymbol
         sym.fullName match
-          case "umpire.Step" => Some(Kind.Step)
-          case "umpire.Monitor" | "umpire.Assumption" | "umpire.Hole" | "umpire.Channel" =>
+          case "framework.Step" => Some(Kind.Step)
+          case "framework.Monitor" | "framework.Assumption" | "framework.Hole" |
+              "framework.Channel" =>
             Some(Kind.Watch)
-          case "umpire.Machine" | "umpire.Composition" => Some(Kind.Machine)
-          case "umpire.Property" | "umpire.Progress"   => Some(Kind.Claim)
-          case "umpire.Scenario"                       => Some(Kind.Scenario)
-          case "umpire.Query"                          => Some(Kind.Query)
-          case "umpire.IrFile"                         => Some(Kind.File)
-          case _ if w.derivesFrom(iterable)            =>
+          case "framework.Machine" | "framework.Composition" => Some(Kind.Machine)
+          case "framework.Property" | "framework.Progress"   => Some(Kind.Claim)
+          case "framework.Scenario"                          => Some(Kind.Scenario)
+          case "framework.Query"                             => Some(Kind.Query)
+          case "framework.IrFile"                            => Some(Kind.File)
+          case _ if w.derivesFrom(iterable)                  =>
             w.baseType(iterable).typeArgs.headOption.flatMap(kindOf(_, seen))
           case _ if w.derivesFrom(option) =>
             w.baseType(option).typeArgs.headOption.flatMap(kindOf(_, seen))
           // A bundle of a Model's own, such as the claims a design is held to, is its fields' kind.
           case name
               if sym.flags.is(Flags.Case) && !seen(sym) &&
-                !name.startsWith("umpire.") && !name.startsWith("scala.") =>
+                !name.startsWith("framework.") && !name.startsWith("scala.") =>
             sym.caseFields.view.flatMap(f => kindOf(w.memberType(f), seen + sym)).headOption
           case _ => None
 
@@ -356,12 +357,12 @@ final private[irgen] class Order(index: Index):
     case c: ClassDef if objectForm(c.symbol) => Some(Kind.Machine)
     case _                                   => None
 
-  // `effect { ... }`, the framework's block a val declares a step function by (model/umpire/Syntax.scala).
+  // `effect { ... }`, the framework's block a val declares a step function by (model/framework/Syntax.scala).
   private def effectBlock(t: Term): Boolean = t match
     case Typed(e, _)        => effectBlock(e)
     case Inlined(_, Nil, e) => effectBlock(e)
     case Block(Nil, e)      => effectBlock(e)
-    case c: Apply           => c.symbol.fullName == "umpire.Syntax$package$.effect"
+    case c: Apply           => c.symbol.fullName == "framework.Syntax$package$.effect"
     case _                  => false
 
   // The place a kind belongs in: in an object form, a monitor's is the `monitors` section.
@@ -568,8 +569,8 @@ final private[irgen] class Order(index: Index):
         case Some(c) => noModelIn(c, s"${plain(c.name)}, an object of the signature")
         // An assumption no machine makes of its own, which a derivation adds with `assuming` or
         // a progress claim names with `under`, is the feature's: it sits in the signature.
-        case None if typed(d, Set("umpire.Assumption")) => ()
-        case None                                       =>
+        case None if typed(d, Set("framework.Assumption")) => ()
+        case None                                          =>
           for k <- kindOf(d) do
             refuse(
               d,
@@ -634,16 +635,16 @@ final private[irgen] class Order(index: Index):
             case None              => vocabulary(m)
     handBound(c, owner)
 
-  // Refuses a step function bound by hand, `action ~> step` (umpire.Machine's core binding), in a
+  // Refuses a step function bound by hand, `action ~> step` (framework.Machine's core binding), in a
   // machine or composition object (R17): its `rules` say when each action fires. A derivation's
   // `rebind(action ~> effect)`, which keeps the action's rules, and the rules a derivation binds,
   // `on(action) { where(g) ~> effect }`, are no hand-written step function.
   private def handBound(c: ClassDef, owner: String): Unit =
     def core(s: Symbol) =
-      s.exists && s.name == "~>" && s.maybeOwner.fullName == "umpire.Machine$package$"
+      s.exists && s.name == "~>" && s.maybeOwner.fullName == "framework.Machine$package$"
     def derivation(s: Symbol) =
       s.exists && ((s.name == "rebind" && s.maybeOwner == machineClass) ||
-        (s.name == "on" && s.maybeOwner.fullName == "umpire.Syntax$package$"))
+        (s.name == "on" && s.maybeOwner.fullName == "framework.Syntax$package$"))
     object bindings extends TreeTraverser:
       override def traverseTree(t: Tree)(o: Symbol): Unit = t match
         // The rebind's own bindings keep rules; whatever it is applied to is still read.

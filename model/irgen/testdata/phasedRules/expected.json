@@ -65,7 +65,7 @@
             "line": 29
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/phasedRules/Phased.scala",
@@ -149,7 +149,7 @@
             "line": 30
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/phasedRules/Phased.scala",
@@ -210,7 +210,7 @@
             "line": 28
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/phasedRules/Phased.scala",

@@ -2,7 +2,7 @@
 package fixture.features.kettle
 package system
 
-import umpire.*
+import framework.*
 import product.KettleProduct
 
 object KettleSystem extends Machine[Kettle, Outcome, Nothing]:

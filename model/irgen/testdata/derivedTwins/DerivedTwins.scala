@@ -3,7 +3,7 @@
 // one ID, `fixture.derivedtwins.query.anyLit`, over two machines: the run refuses the second.
 package fixture.derivedtwins
 
-import umpire.*
+import framework.*
 
 final case class LampState(lit: Boolean) derives Finite
 

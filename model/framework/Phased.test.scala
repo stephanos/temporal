@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 object PhasedFixture:
   enum Phase derives Finite:
@@ -112,5 +112,5 @@ class PhasedSuite extends munit.FunSuite:
     val error = intercept[IllegalArgumentException](OpenEnd.end(OpenEnd.init))
     assertEquals(
       error.getMessage,
-      "requirement failed: openEnd's phase type umpire.PhasedFixture$OpenPhase has no Closed case"
+      "requirement failed: openEnd's phase type framework.PhasedFixture$OpenPhase has no Closed case"
     )

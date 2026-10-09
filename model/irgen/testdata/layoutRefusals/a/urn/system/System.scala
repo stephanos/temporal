@@ -1,7 +1,7 @@
 package fixture.features.urn
 package system
 
-import umpire.*
+import framework.*
 import product.{brewer, UrnProduct, given}
 
 object UrnSystem extends Machine[Urn, Outcome, Nothing]:

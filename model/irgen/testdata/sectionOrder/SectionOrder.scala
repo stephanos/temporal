@@ -9,7 +9,7 @@
 // one name, each read by a machine of its own, are named apart by their objects, and refused nothing.
 package fixture.features.sectionorder
 
-import umpire.*
+import framework.*
 
 final case class Lamp(lit: Boolean) derives Finite
 

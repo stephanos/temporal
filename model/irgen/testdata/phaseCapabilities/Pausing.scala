@@ -1,6 +1,6 @@
 package fixture.phasecapabilities
 
-import umpire.*
+import framework.*
 import temporal.capabilities.*
 
 val bounds = Limits(steps = 2, actions = 3, search = 64)

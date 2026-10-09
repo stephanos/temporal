@@ -1,7 +1,7 @@
 package fixture.features.activity
 package standalone
 
-import umpire.*
+import framework.*
 
 enum Outcome derives Finite:
   case accepted

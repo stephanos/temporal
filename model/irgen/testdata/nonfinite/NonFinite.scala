@@ -1,5 +1,5 @@
 package fixture.crossed.nonfinite
 
-import umpire.*
+import framework.*
 
 final case class State(value: String) derives Finite

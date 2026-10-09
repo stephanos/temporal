@@ -1,6 +1,6 @@
 package fixture.features.kettle
 
-import umpire.*
+import framework.*
 import product.KettleContract
 import system.KettleSystem
 

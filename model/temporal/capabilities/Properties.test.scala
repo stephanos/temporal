@@ -1,7 +1,7 @@
 package temporal.capabilities
 // Every shared capability Property has two machines with their own state types.
 
-import umpire.{
+import framework.{
   Capabilities,
   CapabilityKind,
   CapabilityOf,
@@ -10,7 +10,7 @@ import umpire.{
   Property,
   RetryFixture
 }
-import umpire.outcomes.{Outcome, Rejection}
+import framework.outcomes.{Outcome, Rejection}
 import temporal.features.activity.standalone.{product, system}
 import temporal.features.nexus.standalone.system.NexusSystem
 import temporal.features.nexus.workflow.system.NexusSystem as WorkflowNexusSystem

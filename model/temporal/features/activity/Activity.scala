@@ -4,7 +4,7 @@
 package temporal
 package features.activity
 
-import umpire.*
+import framework.*
 import actors.worker.worker as process
 
 // ### Types

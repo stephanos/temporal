@@ -1,6 +1,6 @@
 package fixture.phasecapabilities
 
-import umpire.*
+import framework.*
 import temporal.capabilities.*
 
 package first:

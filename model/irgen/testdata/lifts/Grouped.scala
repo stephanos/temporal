@@ -4,7 +4,7 @@
 // machine of the two, but for names and positions.
 package fixture.grouped
 
-import umpire.*
+import framework.*
 
 enum Mode derives Finite:
   case idle, busy, halted

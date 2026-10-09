@@ -3,7 +3,7 @@
 // this and expect a type error at the marked line.
 package fixture.crossed.onechoice
 
-import umpire.*
+import framework.*
 
 enum Outcome derives Finite:
   case accepted

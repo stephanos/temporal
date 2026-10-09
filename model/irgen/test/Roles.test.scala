@@ -4,7 +4,7 @@ package umpire.irgen
 // role fixtures (testdata/lifts/Roles.scala, RoleRejects.scala), written out as the classes each
 // case derives from, so no Model is built or read.
 class RolesSuite extends munit.FunSuite:
-  // Every class a role derives from, itself included, as model/umpire/Roles.scala declares them,
+  // Every class a role derives from, itself included, as model/framework/Roles.scala declares them,
   // and the fixture's own role `Expired` and stand-alone trait `Audited`.
   private val parents = Map(
     "Live" -> Nil,
@@ -18,8 +18,8 @@ class RolesSuite extends munit.FunSuite:
     "Canceled" -> List("Closed"),
     "Terminated" -> List("Closed"),
     "TimedOut" -> List("Closed")
-  ).map((r, ps) => s"umpire.$r" -> ps.map("umpire." + _)) ++ Map(
-    "fixture.Expired" -> List("umpire.TimedOut"),
+  ).map((r, ps) => s"framework.$r" -> ps.map("framework." + _)) ++ Map(
+    "fixture.Expired" -> List("framework.TimedOut"),
     "fixture.Audited" -> Nil
   )
   private def bases(c: String): Seq[String] =
@@ -30,7 +30,7 @@ class RolesSuite extends munit.FunSuite:
     name -> (Seq("fixture.Phase") ++ roles.flatMap(r => bases(qualified(r))).distinct ++
       Seq("scala.reflect.Enum", "java.lang.Object", "scala.Any"))
   private def qualified(r: String) =
-    if parents.contains(s"umpire.$r") then s"umpire.$r" else s"fixture.$r"
+    if parents.contains(s"framework.$r") then s"framework.$r" else s"fixture.$r"
 
   private val phases = Seq(
     phase("unstarted"),
@@ -46,7 +46,9 @@ class RolesSuite extends munit.FunSuite:
   test("a role holds in the cases that have it, inherited roles included, in declaration order"):
     val roles = Roles.closure(phases, bases)
     assertEquals(
-      Seq("Live", "Waiting", "Retrying", "Closed", "TimedOut").map(r => roles.cases(s"umpire.$r")),
+      Seq("Live", "Waiting", "Retrying", "Closed", "TimedOut").map(r =>
+        roles.cases(s"framework.$r")
+      ),
       Seq(
         Seq("queued", "backingOff", "running", "paused"),
         Seq("queued", "backingOff"),
@@ -57,12 +59,14 @@ class RolesSuite extends munit.FunSuite:
     )
     assertEquals(roles.cases("fixture.Expired"), Seq("expired"), "a Model's own role")
     assertEquals(roles.cases("fixture.Audited"), Nil, "a stand-alone trait is no role")
-    assertEquals(roles.cases("umpire.Canceled"), Nil, "a role no case has")
+    assertEquals(roles.cases("framework.Canceled"), Nil, "a role no case has")
     assertEquals(roles.conflicts, Nil, "Retrying with Waiting is no conflict")
 
   test("a stand-alone trait is no role, and a trait extending a role is one"):
     assertEquals(
-      Seq("fixture.Audited", "fixture.Expired", "umpire.Closed").map(c => Roles.isRole(bases(c))),
+      Seq("fixture.Audited", "fixture.Expired", "framework.Closed").map(c =>
+        Roles.isRole(bases(c))
+      ),
       Seq(false, true, true)
     )
 
@@ -76,12 +80,20 @@ class RolesSuite extends munit.FunSuite:
     assertEquals(
       Roles.closure(conflicting, bases).conflicts.map(c => (c.phase, c.declared, c.roles)),
       Seq(
-        ("both", Seq("umpire.Retrying", "umpire.Failed"), Seq("umpire.Live", "umpire.Closed")),
-        ("twoLive", Seq("umpire.Held", "umpire.Suspended"), Seq("umpire.Held", "umpire.Suspended")),
+        (
+          "both",
+          Seq("framework.Retrying", "framework.Failed"),
+          Seq("framework.Live", "framework.Closed")
+        ),
+        (
+          "twoLive",
+          Seq("framework.Held", "framework.Suspended"),
+          Seq("framework.Held", "framework.Suspended")
+        ),
         (
           "twoClosed",
-          Seq("fixture.Expired", "umpire.Canceled"),
-          Seq("umpire.Canceled", "umpire.TimedOut")
+          Seq("fixture.Expired", "framework.Canceled"),
+          Seq("framework.Canceled", "framework.TimedOut")
         )
       )
     )

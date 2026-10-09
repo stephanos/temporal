@@ -1,7 +1,7 @@
 // IR files the lifter refuses to read, at their lines; a refusal here stops every file of the run.
 package fixture.irfilerefusals
 
-import umpire.*
+import framework.*
 
 val twice = irFile("twice")(temporal.actors.worker.Polling)
 

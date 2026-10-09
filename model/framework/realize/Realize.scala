@@ -13,14 +13,14 @@
 // which steps it takes on its own) its realization kit declares, by extending the open traits
 // `Addressee`, `Activation`, `Instruction`, `Recorded`, `Setting`, `Behavior` and `SystemStep`. The
 // lifter reads a kit's classes by name, as it reads these.
-package umpire.realize
+package framework.realize
 
 import io.grpc.MethodDescriptor
 import scala.compiletime.error
 import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion, UnrecognizedEnum}
 import scala.util.NotGiven
 import com.google.protobuf.ByteString
-import umpire.{Channel, ClassRef, Machine, Monitor}
+import framework.{Channel, ClassRef, Machine, Monitor}
 
 // The root of the Definition IDs a realization declares, such as its evidence's,
 // `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR

@@ -7,7 +7,7 @@ package foundations.taskqueue
 package product
 
 import scala.annotation.unused
-import umpire.*
+import framework.*
 
 // ### The opaque provider: the interface, and the interface under the storage-loss assumption
 

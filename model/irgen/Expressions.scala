@@ -131,7 +131,8 @@ private[irgen] trait Expressions:
 
   // Whether a call is the framework's `through(select, read)`.
   def throughCall(c: Apply): Boolean =
-    c.symbol.name == "through" && c.symbol.maybeOwner.fullName.startsWith("umpire.Compose$package")
+    c.symbol.name == "through" && c.symbol.maybeOwner.fullName
+      .startsWith("framework.Compose$package")
 
   // `through(select, read)`: the symbol that stands for the function `s => read(s.<path>)` of the
   // composed state where a def is bound or named, one per state, path and def. `callee` lifts it on
@@ -311,7 +312,7 @@ private[irgen] trait Expressions:
   // v.get(_.phase)`, or None for a def of any other shape.
   def getterField(fn: Symbol): Option[String] = defs.get(fn) match
     case Some(DefDef(_, List(TermParamClause(List(v))), _, Some(rhs)))
-        if v.symbol.flags.is(Flags.Given) && isNamed(v.tpt.tpe, "umpire.View") =>
+        if v.symbol.flags.is(Flags.Given) && isNamed(v.tpt.tpe, "framework.View") =>
       rhs match
         case Apply(TypeApply(Select(r: Ident, "get"), _), List(selector)) if r.symbol == v.symbol =>
           lambda(selector).collect { case (List(p), body) => fieldPath(p, body) }.flatten match
@@ -331,7 +332,7 @@ private[irgen] trait Expressions:
   // None for a def of any other shape.
   def setterShape(fn: Symbol): Option[(String, Boolean)] = defs.get(fn) match
     case Some(DefDef(_, List(TermParamClause(List(p)), TermParamClause(List(d))), _, Some(rhs)))
-        if d.symbol.flags.is(Flags.Given) && isNamed(d.tpt.tpe, "umpire.Draft") =>
+        if d.symbol.flags.is(Flags.Given) && isNamed(d.tpt.tpe, "framework.Draft") =>
       val (update, recorded) = rhs match
         case Apply(Select(r: Ident, "set"), List(update)) if r.symbol == d.symbol =>
           (Some(update), false)
@@ -364,7 +365,7 @@ private[irgen] trait Expressions:
       d.termParamss.flatMap(_.params).exists(_.tpt.tpe.widen.dealias.derivesFrom(viewClass))
     case _ => false
 
-  private lazy val viewClass = Symbol.requiredClass("umpire.View")
+  private lazy val viewClass = Symbol.requiredClass("framework.View")
 
   private def defCallee(sym: Symbol, at: Tree): String =
     if lifting(sym.fullName) then
@@ -541,25 +542,26 @@ private[irgen] trait Expressions:
     case Select(recv, "toList") if isList(recv.tpe.widen.dealias.typeSymbol) => lift(recv)
 
     // What a channel holds: its operations, and a channel holding nothing.
-    case Select(channel, "empty") if isNamed(channel.tpe, "umpire.Channel") =>
+    case Select(channel, "empty") if isNamed(channel.tpe, "framework.Channel") =>
       lit(ir.Value.Kind.List(ir.ListValue()), t)
-    case Apply(Select(recv, "send"), List(m)) if isNamed(recv.tpe, "umpire.Inbox") =>
+    case Apply(Select(recv, "send"), List(m)) if isNamed(recv.tpe, "framework.Inbox") =>
       inbox(ir.Inbox.Op.OP_SEND, recv, Some(m), t)
-    case Select(recv, "isEmpty") if isNamed(recv.tpe, "umpire.Inbox") =>
+    case Select(recv, "isEmpty") if isNamed(recv.tpe, "framework.Inbox") =>
       inbox(ir.Inbox.Op.OP_IS_EMPTY, recv, None, t)
-    case Select(recv, "isFull") if isNamed(recv.tpe, "umpire.Inbox") =>
+    case Select(recv, "isFull") if isNamed(recv.tpe, "framework.Inbox") =>
       inbox(ir.Inbox.Op.OP_IS_FULL, recv, None, t)
     // A declared hole, where a step reaches it.
-    case Select(h, "reached") if isNamed(h.tpe, "umpire.Hole") =>
+    case Select(h, "reached") if isNamed(h.tpe, "framework.Hole") =>
       expr(t)(E.Hole(holeOf(resolveSymbol(h), t)))
 
     // `steps.because(reason)`: each step written out takes the explanation.
     case Apply(Apply(TypeApply(fn, _), List(steps)), List(reason))
-        if fn.symbol.fullName == "umpire.Machine$package$.because" =>
+        if fn.symbol.fullName == "framework.Machine$package$.because" =>
       because(lift(steps, expected), constString(reason), t)
 
     // `choose(a1 -> x1, a2 -> x2, ...)`: the steps of the alternatives, each named by its token.
-    case Apply(TypeApply(fn, _), args) if fn.symbol.fullName == "umpire.Machine$package$.choose" =>
+    case Apply(TypeApply(fn, _), args)
+        if fn.symbol.fullName == "framework.Machine$package$.choose" =>
       chosen(choose(args.flatMap(varargs), expected), t)
 
     case Apply(Select(recv, "contains"), List(x)) =>
@@ -819,7 +821,7 @@ private[irgen] trait Expressions:
             s"`choose(committed -> ...)`, not $written"
         )
 
-  val choiceDef = "umpire.Machine$package$.choice"
+  val choiceDef = "framework.Machine$package$.choice"
 
   def copyOf(base: Term, args: List[Term], at: Tree): ir.Expr =
     val b = lift(base)

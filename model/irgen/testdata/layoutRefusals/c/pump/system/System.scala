@@ -1,7 +1,7 @@
 package fixture.foundations.pump
 package system
 
-import umpire.*
+import framework.*
 import product.PumpProduct
 
 object PumpSystem extends Machine[Pump, Outcome, Nothing]:

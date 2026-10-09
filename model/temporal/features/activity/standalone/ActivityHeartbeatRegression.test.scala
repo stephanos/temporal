@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.capabilities.Deadline
 import temporal.features.activity.{deadline, Timeout, TimeoutType}
@@ -21,7 +21,7 @@ import temporal.features.activity.standalone.system.{
   HeartbeatThenCompletion,
   RetryAfterHeartbeat
 }
-import umpire.realize.{
+import framework.realize.{
   EvidenceRef,
   FieldRole,
   Instruction,
@@ -40,7 +40,7 @@ import temporal.server.api.testpilot.v1.ActivityAttemptResponse.{
   ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
   ACTIVITY_ATTEMPT_RESPONSE_PENDING
 }
-import umpire.outcomes.{Outcome, Rejection}
+import framework.outcomes.{Outcome, Rejection}
 
 class ActivityHeartbeatRegression extends munit.FunSuite:
   private def take(s: system.State, c: Class): List[Step[system.State, Outcome, system.Fact]] =

@@ -1,7 +1,7 @@
 package fixture.features.kettle
 package product
 
-import umpire.*
+import framework.*
 
 object KettleProduct extends Machine[Kettle, Outcome, Nothing]:
   val init = Kettle(hot = false)

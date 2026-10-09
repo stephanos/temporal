@@ -1,7 +1,7 @@
 package fixture.features.brazier
 package system
 
-import umpire.*
+import framework.*
 
 object BrazierSystem extends Machine[Light, Outcome, Nothing]:
   val init = Light(lit = false)

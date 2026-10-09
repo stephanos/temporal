@@ -161,7 +161,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -237,7 +237,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -883,7 +883,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -959,7 +959,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1533,7 +1533,7 @@
             "line": 71
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -1657,7 +1657,7 @@
             "line": 77
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -1718,7 +1718,7 @@
             "line": 76
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -1802,7 +1802,7 @@
             "line": 78
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -1863,7 +1863,7 @@
             "line": 65
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -1993,7 +1993,7 @@
             "line": 61
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -2290,7 +2290,7 @@
             "line": 112
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -2414,7 +2414,7 @@
             "line": 114
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -2475,7 +2475,7 @@
             "line": 113
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -2559,7 +2559,7 @@
             "line": 115
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -2620,7 +2620,7 @@
             "line": 111
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",
@@ -2750,7 +2750,7 @@
             "line": 109
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Blocks.scala",

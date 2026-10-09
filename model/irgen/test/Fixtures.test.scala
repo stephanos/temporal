@@ -1676,7 +1676,7 @@ class Fixtures extends munit.FunSuite:
     assert(monitor("refusedOnce").contains("neverRefused"), monitor("refusedOnce"))
     val functions = model.path("functions").elements().asScala.map(_.path("name").asText()).toList
     assert(
-      functions.forall(!_.startsWith("umpire.")),
+      functions.forall(!_.startsWith("framework.")),
       s"a framework definition was lifted as a function: ${functions.mkString(", ")}"
     )
     val resume = model
@@ -2096,7 +2096,7 @@ class Fixtures extends munit.FunSuite:
       .getOrElse(fail(s"the choices fixture lifted no function $name"))
     def all(n: JsonNode, keep: JsonNode => Boolean): List[JsonNode] =
       (if keep(n) then List(n) else Nil) ++ n.elements().asScala.toList.flatMap(all(_, keep))
-    def steps(f: JsonNode) = all(f, _.at("/construct/type").asText() == "umpire.Step")
+    def steps(f: JsonNode) = all(f, _.at("/construct/type").asText() == "framework.Step")
     def choices(f: JsonNode) = steps(f).map(_.at("/construct/choice").asText())
     def calls(f: JsonNode) = all(f, _.has("call")).map(_.at("/call/function").asText())
     val written = Seq(
@@ -2405,7 +2405,7 @@ class Fixtures extends munit.FunSuite:
       assertEquals(found("job", name).path("transition").asBoolean, transition, name)
     val names = functions.keys.toList.sorted
     assert(
-      names.forall(!_.startsWith("umpire.")),
+      names.forall(!_.startsWith("framework.")),
       s"a framework definition was lifted as a function: ${names.mkString(", ")}"
     )
 
@@ -3148,7 +3148,7 @@ class Fixtures extends munit.FunSuite:
       "general-vocabulary",
       "activity/Activity.scala",
       Some(
-        "package fixture.features.activity\nimport umpire.Finite\nenum Phase derives Finite:\n  case idle\n"
+        "package fixture.features.activity\nimport framework.Finite\nenum Phase derives Finite:\n  case idle\n"
       ),
       "Phase is level vocabulary declared in activity's root feature file"
     ),
@@ -3163,7 +3163,7 @@ class Fixtures extends munit.FunSuite:
       "nexus/workflow/system/extra/Extra.scala",
       Some(
         "package fixture.features.nexus.workflow.system.extra\n" +
-          "import umpire.*\n" +
+          "import framework.*\n" +
           "object Extra extends Derived(fixture.features.nexus.workflow.system.NexusSystem)\n"
       ),
       "no level folder"
@@ -3293,7 +3293,7 @@ class Fixtures extends munit.FunSuite:
             .replaceAll("(?s)  object refinement .*?(?=  object effects:)", "")
             .replace("import fixture.features.relay.product.RelayProduct\n", "")
         else
-          "package fixture.features.relay.workflow\npackage system\nimport umpire.*\n" +
+          "package fixture.features.relay.workflow\npackage system\nimport framework.*\n" +
             "import fixture.features.relay.product.RelayProduct\nobject Copy extends Derived(RelayProduct.unmonitored)\n"
       Files.delete(system)
       Files.writeString(system.resolveSibling("Other.scala"), text)

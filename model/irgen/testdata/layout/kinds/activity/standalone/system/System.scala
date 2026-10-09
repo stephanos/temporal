@@ -1,7 +1,7 @@
 package fixture.features.activity.standalone
 package system
 
-import umpire.*
+import framework.*
 import product.ActivityProduct
 
 enum Phase derives Finite:

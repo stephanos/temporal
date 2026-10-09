@@ -3,7 +3,7 @@
 // marked line.
 package fixture.crossed.namedinput
 
-import umpire.*
+import framework.*
 
 enum Timeout derives Finite:
   case unset, expires

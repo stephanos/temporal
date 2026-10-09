@@ -4,7 +4,7 @@
 // status, which would hand the draft no status to record.
 package fixture.statusfactrejects
 
-import umpire.*
+import framework.*
 import fixture.statusfacts.{phase, phase_=, user, Fact, Job, Outcome, Phase, given}
 
 // Assigns the phase without handing the draft the phase it assigns.

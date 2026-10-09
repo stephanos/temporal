@@ -5,7 +5,7 @@
 // to. The control action reports results by name, with no enum of that name.
 package fixture.inputs
 
-import umpire.*
+import framework.*
 
 enum Outcome derives Finite:
   case accepted

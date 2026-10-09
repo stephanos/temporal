@@ -7,7 +7,7 @@
 // two, but for positions, ids and names.
 package fixture.literals
 
-import umpire.realize.*
+import framework.realize.*
 import temporal.realize.*
 import temporal.realize.WorkerInstruction.{AttemptFailure, NexusReply, WorkflowCommand}
 import temporal.features.activity.standalone.activity

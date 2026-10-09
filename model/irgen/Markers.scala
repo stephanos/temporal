@@ -2,7 +2,7 @@ package umpire.irgen
 
 import io.temporal.server.api.umpire.v1 as ir
 
-// What a machine is for, as its markers say (umpire.FailureModel, umpire.NegativeControl), held to
+// What a machine is for, as its markers say (framework.FailureModel, framework.NegativeControl), held to
 // what one IR file lifts with it (fn-126 decision 20). The markers are transparent: nothing here
 // changes the IR, so a marker is read from the object that declares the machine.
 //

@@ -1,7 +1,7 @@
 package fixture.features.relay
 package product
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, done

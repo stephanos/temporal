@@ -28,7 +28,7 @@ package workflow
 package system
 
 // `Answer` here is the designs' delivery answer.
-import umpire.*
+import framework.*
 import Answer.given
 
 // ### Types: one logical operation, the original run and one reset successor

@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.features.activity.{deadline, timers, Timeout}
 import temporal.features.activity.standalone.{
@@ -19,8 +19,8 @@ import temporal.features.activity.standalone.system.{
   RetryAfterTimeout,
   Standalone
 }
-import umpire.realize.Instruction
-import umpire.outcomes.{Outcome, Rejection}
+import framework.realize.Instruction
+import framework.outcomes.{Outcome, Rejection}
 import io.temporal.api.activity.v1.ActivityExecutionInfo
 import io.temporal.api.common.v1.Payloads
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION

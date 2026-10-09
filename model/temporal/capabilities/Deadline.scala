@@ -1,7 +1,7 @@
 // A selected timer fires only inside its armed role and settles from before-state retry policy.
 package temporal.capabilities
 
-import umpire.*
+import framework.*
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
 

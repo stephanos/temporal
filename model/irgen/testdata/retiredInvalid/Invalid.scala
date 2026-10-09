@@ -6,8 +6,8 @@
 //> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
 package fixture.retiredInvalid
 
-import umpire.*
-import umpire.realize.*
+import framework.*
+import framework.realize.*
 
 private def join(left: String, right: String): String = left + right
 

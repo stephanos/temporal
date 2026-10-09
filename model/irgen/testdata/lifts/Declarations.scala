@@ -5,7 +5,7 @@
 // The tests lift `queries` and `durableEventually` and compare the IR with expected/declarations.json.
 package fixture.declarations
 
-import umpire.*
+import framework.*
 
 enum Kept derives Finite:
   case nothing, held

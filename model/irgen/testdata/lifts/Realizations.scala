@@ -12,13 +12,13 @@
 // and require one expected Run of the two.
 package fixture.realizations
 
-import umpire.*
+import framework.*
 import DoorEntity.door
 import ErrandEntity.errand
-import umpire.realize.*, temporal.realize.{Role, RoleKind, WorkerActivation, WorkflowHistory}
-import umpire.realize.Instruction.*, temporal.realize.WorkerInstruction.*
-import umpire.realize.Operand.*
-import umpire.realize.ProtoValue.*
+import framework.realize.*, temporal.realize.{Role, RoleKind, WorkerActivation, WorkflowHistory}
+import framework.realize.Instruction.*, temporal.realize.WorkerInstruction.*
+import framework.realize.Operand.*
+import framework.realize.ProtoValue.*
 import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.history.v1.*
 import io.temporal.api.activity.v1.{ActivityExecutionInfo, ActivityExecutionListInfo}

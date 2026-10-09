@@ -33,7 +33,7 @@ package features.activity
 package standalone
 
 import temporal.actors.client.Client
-import umpire.*
+import framework.*
 import product.ActivityProduct
 import system.{ActivitySystem, StandaloneActivity}
 
@@ -112,7 +112,7 @@ val five = Limits(steps = 5, actions = 5, search = 65536)
 val six = Limits(steps = 6, actions = 6, search = 262144)
 val eight = Limits(steps = 8, actions = 8, search = 262144)
 
-// ### The checked-in IR files of the standalone activity Models (umpire.irFile).
+// ### The checked-in IR files of the standalone activity Models (framework.irFile).
 
 object exports:
   // The activity Model. Its cross-entity Query, stoppedWorkerStartsNothing, carries the composition

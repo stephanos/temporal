@@ -1,7 +1,7 @@
 package fixture.features.activity.standalone
 package product
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, done

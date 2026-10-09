@@ -7,7 +7,7 @@ package foundations.taskqueue
 package system
 
 import scala.annotation.unused
-import umpire.*
+import framework.*
 import product.{TaskQueueProduct, TaskQueueProductUnderStorageLoss}
 import QueueOutcome.given
 

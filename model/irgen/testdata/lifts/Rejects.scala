@@ -4,7 +4,7 @@
 // step functions are written out binds them by hand in the core, `object rules extends Bindings(...)`.
 package fixture.rejects
 
-import umpire.*
+import framework.*
 
 enum Note derives Finite:
   case ping
@@ -579,14 +579,15 @@ val omittedEmpty: Query = query verify reachLit in reachOnce limits one
 def flipWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
   monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
 val watchUnnamed: Query = (query verify flips in secondFlips limits one).expect(
-  umpire.realize.RunExpectation(
-    umpire.realize.Conformance.conformant,
-    umpire.realize.PropertyOutcome.satisfied,
-    umpire.realize.PropertyOutcome.satisfied,
-    umpire.realize.Disposition.completed,
-    umpire.realize.Cleanup.succeeded,
-    monitors =
-      Vector(umpire.realize.MonitorExpectation(flipWatch, umpire.realize.PropertyOutcome.satisfied))
+  framework.realize.RunExpectation(
+    framework.realize.Conformance.conformant,
+    framework.realize.PropertyOutcome.satisfied,
+    framework.realize.PropertyOutcome.satisfied,
+    framework.realize.Disposition.completed,
+    framework.realize.Cleanup.succeeded,
+    monitors = Vector(
+      framework.realize.MonitorExpectation(flipWatch, framework.realize.PropertyOutcome.satisfied)
+    )
   )
 )
 
@@ -594,14 +595,15 @@ val watchUnnamed: Query = (query verify flips in secondFlips limits one).expect(
 val unwatched: Monitor[Flag, Outcome, Nothing, Boolean] =
   monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
 val watchUnwatched: Query = (query verify flips in secondFlips limits one).expect(
-  umpire.realize.RunExpectation(
-    umpire.realize.Conformance.conformant,
-    umpire.realize.PropertyOutcome.satisfied,
-    umpire.realize.PropertyOutcome.satisfied,
-    umpire.realize.Disposition.completed,
-    umpire.realize.Cleanup.succeeded,
-    monitors =
-      Vector(umpire.realize.MonitorExpectation(unwatched, umpire.realize.PropertyOutcome.satisfied))
+  framework.realize.RunExpectation(
+    framework.realize.Conformance.conformant,
+    framework.realize.PropertyOutcome.satisfied,
+    framework.realize.PropertyOutcome.satisfied,
+    framework.realize.Disposition.completed,
+    framework.realize.Cleanup.succeeded,
+    monitors = Vector(
+      framework.realize.MonitorExpectation(unwatched, framework.realize.PropertyOutcome.satisfied)
+    )
   )
 )
 
@@ -622,14 +624,15 @@ val watchElsewhere: Vector[Query] = Vector(
     .starts(Flag(false))
     .actions(flip) limits one total 2,
   (query("watchedHere") verify flips in secondFlips limits one total 2).expect(
-    umpire.realize.RunExpectation(
-      umpire.realize.Conformance.conformant,
-      umpire.realize.PropertyOutcome.satisfied,
-      umpire.realize.PropertyOutcome.satisfied,
-      umpire.realize.Disposition.completed,
-      umpire.realize.Cleanup.succeeded,
+    framework.realize.RunExpectation(
+      framework.realize.Conformance.conformant,
+      framework.realize.PropertyOutcome.satisfied,
+      framework.realize.PropertyOutcome.satisfied,
+      framework.realize.Disposition.completed,
+      framework.realize.Cleanup.succeeded,
       monitors = Vector(
-        umpire.realize.MonitorExpectation(elsewhereWatch, umpire.realize.PropertyOutcome.satisfied)
+        framework.realize
+          .MonitorExpectation(elsewhereWatch, framework.realize.PropertyOutcome.satisfied)
       )
     )
   )

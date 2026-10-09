@@ -72,7 +72,7 @@ private[irgen] trait Claims:
     case Apply(Select(a, "apply"), values) if isAction(a) =>
       ir.ActionClass(action(a), values.map(literalValue))
     case ref => ir.ActionClass(action(ref))
-  private def isAction(t: Term): Boolean = isNamed(t.tpe, "umpire.Action")
+  private def isAction(t: Term): Boolean = isNamed(t.tpe, "framework.Action")
 
   // `start()`: the class of every input of the action `a` at its domain's first value, as
   // `start(unset, unset, unset)` writes it, and the one class of an action with no input.
@@ -103,7 +103,7 @@ private[irgen] trait Claims:
   // Limits, named by their `name` or else by `named`, the val that declares them.
   def limitsOf(t: Term, named: => String): ir.Limits = arguments(t) match
     case Apply(Select(companion, "apply"), List(name, steps, actions, search))
-        if companion.tpe.typeSymbol.companionClass.fullName == "umpire.Limits" =>
+        if companion.tpe.typeSymbol.companionClass.fullName == "framework.Limits" =>
       val l = ir.Limits(
         if isDefault(name) then named else constString(name),
         constInt(steps).toInt,
@@ -201,7 +201,7 @@ private[irgen] trait Claims:
 
   // Whether a type is one a claim is declared on: a machine, a composition, or `Declares[S]`.
   def declares(tpe: TypeRepr): Boolean =
-    tpe.widen.dealias.derivesFrom(Symbol.requiredClass("umpire.Declares"))
+    tpe.widen.dealias.derivesFrom(Symbol.requiredClass("framework.Declares"))
 
   // An inherited member read without a receiver, read on the object it is inherited by.
   def onThis(t: Term): Term =
@@ -219,7 +219,7 @@ private[irgen] trait Claims:
     if isMachine(cls.typeRef) then machineOf(module, at).name else compositionOf(module, at).name
 
   // Whether a call is one of `Declares`'s, `property` or `scenario`, which every model inherits.
-  def declared(t: Term): Boolean = t.symbol.maybeOwner.fullName == "umpire.Declares"
+  def declared(t: Term): Boolean = t.symbol.maybeOwner.fullName == "framework.Declares"
 
   // What a declaration of the lifted sources folds to, with the helper function parameters bound
   // in `env`. `named` is the name of the val whose right-hand side `t` is: a declaration that takes
@@ -349,7 +349,7 @@ private[irgen] trait Claims:
           query(name, form, p, s, limits, t)
         case other => fail(t, s"limits bounds a Query, not $other")
     case Apply(Select(companion, "apply"), _)
-        if companion.tpe.typeSymbol.companionClass.fullName == "umpire.Limits" =>
+        if companion.tpe.typeSymbol.companionClass.fullName == "framework.Limits" =>
       Decl.Bounds(limitsOf(t, captured(named, "Limits", "`Limits(\"...\", ...)`", t)))
     // A bundle of claims one shared def declares together, such as `queueClaims(m)`
     // declares of a provider: built by its case class's constructor, each claim folded, and read
@@ -397,8 +397,8 @@ private[irgen] trait Claims:
         valDef(sym, r, "a declaration") match
           case _ if objectForm(sym)         => Decl.Model(modelOfObject(moduleClassOf(sym), r))
           case _ if capabilitiesObject(sym) => capabilitiesSectionOf(sym, r)
-          case d if isNamed(d.tpt.tpe, "umpire.Machine")     => Decl.Model(machineOf(sym, r).name)
-          case d if isNamed(d.tpt.tpe, "umpire.Composition") =>
+          case d if isNamed(d.tpt.tpe, "framework.Machine") => Decl.Model(machineOf(sym, r).name)
+          case d if isNamed(d.tpt.tpe, "framework.Composition") =>
             Decl.Model(compositionOf(sym, r).name)
           case d => fold(d.rhs.get, Map.empty, Some(sym))
       )
@@ -446,7 +446,7 @@ private[irgen] trait Claims:
     cls.flags.is(Flags.Case) && !cls.flags.is(Flags.Enum) && cls.caseFields.nonEmpty &&
       fieldTypes(cls).forall((_, tpe) => claimType(tpe))
   def claimType(tpe: TypeRepr): Boolean =
-    Seq("umpire.Property", "umpire.Scenario", "umpire.Query").exists(isNamed(tpe, _))
+    Seq("framework.Property", "framework.Scenario", "framework.Query").exists(isNamed(tpe, _))
 
   // Records the total the Query `name` asserts, `n`: an integer literal, or a parameter of the
   // declaring def around it that each call supplies as one.
@@ -537,7 +537,7 @@ private[irgen] trait Claims:
   def valued(p: ValDef): Boolean =
     val tpe = instantiated(p.tpt.tpe).widen.dealias
     val folds = Seq(
-      "umpire.Limits",
+      "framework.Limits",
       "java.lang.String",
       "scala.Int",
       "scala.Long",
@@ -545,7 +545,7 @@ private[irgen] trait Claims:
     )
     !(declares(tpe) || claimType(tpe) || folds.exists(isNamed(tpe, _)) ||
       bundle(tpe.typeSymbol) || isList(tpe.typeSymbol) ||
-      tpe.derivesFrom(Symbol.requiredClass("umpire.Capabilities")))
+      tpe.derivesFrom(Symbol.requiredClass("framework.Capabilities")))
 
   // The value argument `a` of the parameter `p` of `d`, folded: an integer parameter, such as the
   // total of a Query the def declares, takes a literal the author computed, or a parameter of the

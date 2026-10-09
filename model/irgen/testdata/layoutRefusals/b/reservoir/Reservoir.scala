@@ -1,7 +1,7 @@
 // R20 (b): a two-level feature's Phase, State and Fact belong to the level files, not here.
 package fixture.features.reservoir
 
-import umpire.*
+import framework.*
 import product.ReservoirProduct
 import system.ReservoirSystem
 

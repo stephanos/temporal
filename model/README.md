@@ -95,7 +95,7 @@ IR. The Scala DSL supplies types and step functions for authoring; Go is the sin
 
 ```mermaid
 flowchart TD
-    scala["Scala Models<br/>model/temporal, written with model/umpire"]
+    scala["Scala Models<br/>model/temporal, written with model/framework"]
     uir[("Umpire IR<br/>model/ir/*.json")]
     reader["Tables, Query answers, witnesses<br/>tools/umpire/{ir,interp,check,realization}"]
     tir[("Testpilot IR: Cases<br/>model/cases/*-case.json")]
@@ -125,7 +125,7 @@ Two IRs sit between the layers, and each has one writer side and one reader side
 
 | Layer | What happens | Module | Command |
 | --- | --- | --- | --- |
-| Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/umpire`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
+| Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/framework`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
 | Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/irgen`, run by the gate `model/check` | `make umpire-gen-model` writes `model/ir`; `make umpire-check-model` requires it to be current |
 | Umpire IR | The checked-in lifted Models | `model/ir`; schema in `api/umpire/v1` | `make protoc` after a schema change |
 | Reading and checking | Go loads and validates the IR, builds each machine's table, and answers every Property, Query and refinement | `tools/umpire/{ir,interp,check,realization}` | `go test -tags test_dep ./tools/umpire/...` |
@@ -344,7 +344,7 @@ by id.
 
 | Path | What it holds |
 | --- | --- |
-| `model/umpire` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `umpire/realize` |
+| `model/framework` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `framework/realize` |
 | `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `foundations/taskqueue`, the task queue features compose; `actors`, the shared worker and client; `Bounds.scala`, shared Query bounds; `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
 | `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
@@ -355,7 +355,7 @@ by id.
 | [Known bugs](../.plans/UMPIRE4_VISION.md#known-bugs-knownbugs) | Vision for acknowledging a known bug; not implemented |
 | `model/build` | Build output of the gate; ignored by git |
 
-The framework, `model/umpire`, names no Temporal concept, in its prose or its identifiers, so a
+The framework, `model/framework`, names no Temporal concept, in its prose or its identifiers, so a
 Model of another system could be written in it. What a system has of its own its realization kit
 declares, by extending the framework's open traits `Addressee`, `Activation`, `Instruction`,
 `Recorded`, `Setting`, `Behavior` and `SystemStep`. Temporal's are in `temporal.realize`: `Role` and
@@ -364,7 +364,7 @@ instructions `WorkerInstruction.{AttemptFailure, AttemptCanceled, AttemptWithhel
 NexusReply, NexusCompletion}` with `FaultKind`, the history read `WorkflowHistory.event`, the
 dynamic-configuration `RequiredSetting`, and the API behavior hints `ApiBehavior` and `ServerStep`
 with `WaitBound`, `Visible`, `CauseKind`, `AttemptNumbering` and `InstructionLimit`. `TestFrameworkNamesNoTemporal` in `tools/umpire/ir`
-fails when a file under `model/umpire` names a Temporal term, the eight capability kinds among them; a
+fails when a file under `model/framework` names a Temporal term, the eight capability kinds among them; a
 mention stays only under an allowance that states its reason, and none has one today. The
 tooling downstream of the DSL is Temporal's driver tooling by design: the IR generator matches the kit's
 vocabulary by fully qualified name and writes it into the IR's realization messages, whose names are
@@ -463,7 +463,7 @@ The IR generator reads what an author wrote, as written:
   function it calls that gives steps, makes a step: the IR generator refuses `Step(…)`, `enter`, `stay`
   or a call of a step function at its line in a start, an `ends`, evidence, a refinement, a
   monitor, a Property, a progress claim or a Scenario's start (model/SEMANTICS.md, "Levels").
-- **Realization script helpers** (core, `umpire/realize/Scripts.scala`): `script(id, activation)`
+- **Realization script helpers** (core, `framework/realize/Scripts.scala`): `script(id, activation)`
   of `everyCase(command)`, `onPath(classes*)(command)` and `perform(step -> command, …)` items;
   `command(instruction, …)`; `rpc(role, method) { … }`, `readUntil(…) { … }`,
   `call.withFields { … }`, which appends assignments and keeps the call's name, and
@@ -724,7 +724,7 @@ A feature file reads in this order:
 5. `object exports`, its `irFile` roots.
 
 A machine object is the machine: `object ActivityProduct extends Machine[State, Outcome, Fact]`
-(`umpire.Machine`), in the `product` package that owns those types, named after its object with the first letter lowered
+(`framework.Machine`), in the `product` package that owns those types, named after its object with the first letter lowered
 (`activityProduct`). It reads in this order:
 
 1. its header: where its rules name phases, the parent `Phased[State, Phase](_.phase)` names the
@@ -765,7 +765,7 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    gives. An effect of the state alone may be a block instead, `val startAttempt = effect { phase =
    started }`, `val notFound = effect { reject(Outcome.rejected(Rejection.notFound)) }`, which a rule binds as it binds
    a def, `~> effects.startAttempt`; an effect that takes arguments beyond the state stays a def.
-   Machines that share request outcomes import `umpire.outcomes.{Outcome, Rejection}`: `accepted`
+   Machines that share request outcomes import `framework.outcomes.{Outcome, Rejection}`: `accepted`
    is the common success and `rejected(why)` carries `notFound`, `alreadyExists`,
    `failedPrecondition` or `invalidArgument`. In their rules,
    `rejects(Rejection.notFound)` keeps the state and records nothing;
@@ -774,7 +774,7 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
 5. `object monitors`: the monitors that watch it and the assumptions it makes; an assumption no
    machine makes of its own, which a derivation adds with `assuming` or a progress claim names with
    `under`, sits in the feature's signature;
-6. `object rules extends Rules` (`umpire.Rules`), reading the machine's `Phased` projection:
+6. `object rules extends Rules` (`framework.Rules`), reading the machine's `Phased` projection:
    when each action fires, in one or more brace-delimited blocks that name actions or classes,
    including a block with one case. Its opening brace follows `on(…)`, every case occupies its own line and its closing brace
    occupies a line of its own; the parenthesized `on(…)(case)` form is rejected. A block may give
@@ -796,7 +796,7 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    constructs every IR file's roots (`model/temporal/IrFiles.test.scala`). Each action's cases lower
    to one step function, `<machine>.rules.<action>`;
 7. `object properties`, its claims, which name the machine implicitly: `property when … holds …`;
-8. `object capabilities extends Capabilities` (`umpire.Capabilities`), its one typed `val` per
+8. `object capabilities extends Capabilities` (`framework.Capabilities`), its one typed `val` per
    capability and any `except(…)` or `overriding(…)` statement; its `queries` section sets generated
    Query limits with `capabilities.bound(three)`;
 9. `object queries`, its Scenarios, then its Queries; each Scenario takes its name from the `val`
@@ -844,7 +844,7 @@ type is named so too, `temporal.features.activity.standalone.system.State`. A ma
 composition's family, the root every ID derived from it hangs off (`<family>.query.<name>`, its
 target, its claims), is the package that declares it, `temporal.features.activity.standalone.system`,
 and a realization's IDs (its evidence, sources and producer) hang off its own package, which the
-kit's `umpire.realize.family` reads. Nobody writes an ID or a family: moving a declaration between
+kit's `framework.realize.family` reads. Nobody writes an ID or a family: moving a declaration between
 files of one package keeps every name, and moving it into another object or package, or renaming
 it, changes them, which is accepted. Scala names no two declarations alike; the IR generator refuses
 two that would derive one ID anyway, two machines or two Queries of one name in one package
@@ -852,7 +852,7 @@ two that would derive one ID anyway, two machines or two Queries of one name in 
 
 A feature declares its actions grouped by who takes them, so every call site shows the actor:
 `client.start()`, `worker.poll`, `deadline.scheduleToStart`. An actor is an object,
-`object caller extends Actor` (`umpire.Actor`), named after it with the first letter lowered, whose
+`object caller extends Actor` (`framework.Actor`), named after it with the first letter lowered, whose
 members are the actions it takes (`val start = action(this)…`); the faults the task queue suffers are
 the actor `fault`'s, `object fault extends Actor`. Steps no actor of the feature takes are grouped in
 plain objects: `timers`, `deadline`, `history` for internal steps and `queue`. Actions a feature adds
@@ -1144,7 +1144,7 @@ capability brings those Properties without restating or calling them; a Property
 capability kinds is brought only when both are declared. The machine remains the only machine—the
 capability declaration expands into Properties, Scenarios and Queries owned by it.
 
-The Temporal-agnostic mechanism is in `model/umpire/Capabilities.scala`: `CapabilityOf`,
+The Temporal-agnostic mechanism is in `model/framework/Capabilities.scala`: `CapabilityOf`,
 `CapabilityKind`, `Capabilities`, `claim`, `except`, `overriding` and `bound`. Temporal's capability
 case classes and companion Properties are in `model/temporal/capabilities`:
 
@@ -1176,7 +1176,7 @@ retry. The three Nexus workflow deadlines cover Live, Waiting and Held and alway
 Closable binds only its rejection outcome. It reads the declaring object's `Phased` projection,
 or its derivation source, through `Phasing.phase` and witnessed `Phasing.roleCases[Closed]`.
 The latter requires a nonempty role set. A companion declares its owned role with a type alias,
-`type Closed = umpire.Closed`; reading that role counts as reading its own capability field, so
+`type Closed = framework.Closed`; reading that role counts as reading its own capability field, so
 both Closable Properties are brought exactly where Closable is declared. Declaring it without
 `Phased`, or on a phase with no `Closed` case, is refused with the declaring machine's name.
 
@@ -1510,8 +1510,8 @@ build refuses it with that diagnostic. For example:
 
 ```scala
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
-import umpire.*
-import umpire.realize.*
+import framework.*
+import framework.realize.*
 import temporal.realize.*
 
 val start = action("start", Actor("caller"))

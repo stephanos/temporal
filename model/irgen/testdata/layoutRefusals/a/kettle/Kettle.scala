@@ -8,7 +8,7 @@
 // product/Product.scala (urn/system/System.scala).
 package fixture.features.kettle
 
-import umpire.*
+import framework.*
 import product.KettleProduct
 import system.KettleSystem
 

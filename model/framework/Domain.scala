@@ -3,7 +3,7 @@
 // matches. The IR generator (model/irgen) reads the declarations into the IR, and the Go reader
 // (tools/umpire/interp and tools/umpire/check) builds the tables, checks the refinements and answers the Queries from it;
 // nothing here computes them.
-package umpire
+package framework
 
 import scala.compiletime.{constValue, erasedValue, summonFrom}
 import scala.deriving.Mirror

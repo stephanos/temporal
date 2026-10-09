@@ -8,7 +8,7 @@
 // field, an assignment alone, an empty block and a rejection.
 package fixture.blocks
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, running, paused, done

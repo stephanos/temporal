@@ -1,4 +1,4 @@
-package umpire
+package framework
 // What the standalone activity Model's effects do, run as Scala.
 
 import temporal.features.activity.{failure, Failure}
@@ -6,7 +6,7 @@ import temporal.features.activity.standalone.{activity, client, service, system,
 import temporal.features.activity.{deadline, timers, Timeout, TimeoutType}
 import temporal.features.activity.standalone.product
 import temporal.actors.worker.worker as process
-import umpire.outcomes.Outcome
+import framework.outcomes.Outcome
 import system.*
 
 class StandaloneActivityPins extends munit.FunSuite:

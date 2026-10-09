@@ -5,7 +5,7 @@
 // state and `effect { }` for a step function of it, with an effect block's `record` and
 // `reject(outcome)` statements, the `View` and `Draft` the field accessors of the state read and
 // assign through, and `Recorded`, the status fact a phase enum's case declares.
-package umpire
+package framework
 
 import scala.annotation.{implicitNotFound, targetName, unused}
 import scala.collection.mutable
@@ -44,8 +44,8 @@ def reject[S, O](outcome: O, s: S): List[Step[S, O, Nothing]] = List(Step(outcom
 val disabled: List[Nothing] = Nil
 
 // The outcomes shared by every machine whose steps answer a request, accepted or rejected for a
-// reason, which a machine adopts by name, `import umpire.outcomes.{Outcome, Rejection}`, in place of
-// its own. `import umpire.*` does not open it, so a Model's own `Outcome` stays its own. Core form: a
+// reason, which a machine adopts by name, `import framework.outcomes.{Outcome, Rejection}`, in place of
+// its own. `import framework.*` does not open it, so a Model's own `Outcome` stays its own. Core form: a
 // machine's own outcome enum, `enum Outcome derives Finite: case accepted, notFound`.
 object outcomes:
   // Why a request is rejected, loosely after the gRPC status codes a realization maps it to: the
@@ -67,14 +67,14 @@ object outcomes:
 // `reject(Outcome.rejected(Rejection.notFound), s)`.
 def rejects[S](why: outcomes.Rejection)(using
     @implicitNotFound(
-      "rejects answers the shared umpire.outcomes.Outcome, so it is an effect of a rule, in an `on` " +
-        "block, of a machine on the shared outcomes: `import umpire.outcomes.{Outcome, Rejection}`"
+      "rejects answers the shared framework.outcomes.Outcome, so it is an effect of a rule, in an `on` " +
+        "block, of a machine on the shared outcomes: `import framework.outcomes.{Outcome, Rejection}`"
     ) @unused firing: Firing[S, outcomes.Outcome, ?, ?]
 ): Rejects[S] = Rejects(why)
 
 // The effect `rejects(why)` writes: a function of the state alone, as every effect a rule names is.
 // Core form: `(s: S) => reject(Outcome.rejected(why), s)`.
-final class Rejects[S] private[umpire] (why: outcomes.Rejection)
+final class Rejects[S] private[framework] (why: outcomes.Rejection)
     extends (S => List[Step[S, outcomes.Outcome, Nothing]]):
   def apply(s: S): List[Step[S, outcomes.Outcome, Nothing]] =
     List(Step(outcomes.Outcome.rejected(why), s))
@@ -93,13 +93,13 @@ final class Rejects[S] private[umpire] (why: outcomes.Rejection)
     "outside a block, take the state as a parameter, `def f(s: State) = s.phase`"
 )
 sealed trait View[S]:
-  private[umpire] def state: S
+  private[framework] def state: S
 
   // The value of one field of the state: `v.get(_.phase)`. Core form: `s.phase`.
   def get[A](field: S => A): A = field(state)
 
 // The view an `is { }` block reads: the state it is asked of. Core form: the predicate's parameter.
-final private class Fixed[S](private[umpire] val state: S) extends View[S]
+final private class Fixed[S](private[framework] val state: S) extends View[S]
 
 // The status fact a phase enum's case is recorded as, declared on each case through the enum's
 // parameter, which has no default, so a case without one does not compile:
@@ -122,13 +122,13 @@ trait Recorded[F]:
   "this assigns a field of ${S}, records a fact or rejects, which only an `effect { }` block does: " +
     "outside one, return the steps, `enter(s.copy(...), fact)` or `reject(outcome, s)`"
 )
-final class Draft[S, O, F] private[umpire] (start: S) extends View[S]:
+final class Draft[S, O, F] private[framework] (start: S) extends View[S]:
   private var current: S = start // scalafix:ok DisableSyntax.var
   private var facts: List[F] = Nil // scalafix:ok DisableSyntax.var
   private var rejection: Option[O] = None // scalafix:ok DisableSyntax.var
   private var statuses: List[F] = Nil // scalafix:ok DisableSyntax.var
 
-  private[umpire] def state: S = current
+  private[framework] def state: S = current
 
   // The state with one field replaced: `d.set(_.copy(phase = p))`. Core form: `s.copy(phase = p)`.
   def set(update: S => S): Unit = current = update(current)
@@ -143,7 +143,7 @@ final class Draft[S, O, F] private[umpire] (start: S) extends View[S]:
   // The step the block made, from the state `s` it started in: the rejection with `s`, or the ok
   // outcome with the state assigned and the facts in the order recorded, then the status of each
   // value assigned, which the block does not record itself.
-  private[umpire] def step(s: S, ok: Ok[O]): Step[S, O, F] = rejection match
+  private[framework] def step(s: S, ok: Ok[O]): Step[S, O, F] = rejection match
     case Some(outcome) => Step(outcome, s)
     case None          =>
       for f <- statuses do
@@ -154,9 +154,9 @@ final class Draft[S, O, F] private[umpire] (start: S) extends View[S]:
         )
       Step(ok.outcome, current, facts ++ statuses)
 
-  private[umpire] def add(recorded: Seq[F]): Unit = facts = facts ++ recorded
+  private[framework] def add(recorded: Seq[F]): Unit = facts = facts ++ recorded
 
-  private[umpire] def refuse(outcome: O): Unit = rejection = Some(outcome)
+  private[framework] def refuse(outcome: O): Unit = rejection = Some(outcome)
 
 // `val held = is { phase == Phase.held }`: a predicate of the machine's state, its fields read by
 // name. Core form: `def held(s: State) = s.phase == Phase.held`.
@@ -192,7 +192,7 @@ def reject[S, O, F](using draft: Draft[S, O, F])(outcome: O): Unit = draft.refus
 // one. Written dotted, never infix. Core form: `List(a, b, c).contains(phase)`.
 extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
 
-// `phase.in[Closed]`: whether the phase has the role `Closed` (model/umpire/Roles.scala), the roles
+// `phase.in[Closed]`: whether the phase has the role `Closed` (model/framework/Roles.scala), the roles
 // its case declares and the broader ones they extend. Written dotted, never infix. Core form:
 // `List(<the cases of Closed, in declaration order>).contains(phase)`.
 extension [A](value: A)
@@ -233,7 +233,7 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
 
 // What `once(over)` leaves to say: the value it keeps. Core form: the `holdsAcross` lambda `keeps`
 // finishes.
-final class Once[S, O, F] private[umpire] (b: PropertyBuilder[S, O, F], over: S => Boolean):
+final class Once[S, O, F] private[framework] (b: PropertyBuilder[S, O, F], over: S => Boolean):
   // The value a step from a state `over` holds of keeps, a field path such as `_.phase` or
   // `_.order.phase`. Core form:
   // `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
@@ -252,7 +252,7 @@ final class Once[S, O, F] private[umpire] (b: PropertyBuilder[S, O, F], over: S 
 
 // `never(to)`, a same-step Property, which `from` turns into a transition one. Core form:
 // `holds(after => !to(after))`.
-final class Never[S, O, F] private[umpire] (
+final class Never[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     to: Step[S, O, F] => Boolean
 ) extends Property[S](
@@ -273,7 +273,7 @@ final class Never[S, O, F] private[umpire] (
 
 // `stays(p)`, a transition Property, which `unless` releases. Core form:
 // `holdsAcross((before, after) => !p(before) || p(after.state))`.
-final class Stays[S, O, F] private[umpire] (b: PropertyBuilder[S, O, F], p: S => Boolean)
+final class Stays[S, O, F] private[framework] (b: PropertyBuilder[S, O, F], p: S => Boolean)
     extends Property[S](
       PropertyDecl(
         b.name,
@@ -298,7 +298,7 @@ final class Stays[S, O, F] private[umpire] (b: PropertyBuilder[S, O, F], p: S =>
 
 // A named slot with the value it receives, what `slot := value` writes. Core form: the value itself,
 // written at the slot's place, `expires` in `start(unset, expires, unset)`.
-final case class Assigned[A] private[umpire] (slot: Slot[A], value: A)
+final case class Assigned[A] private[framework] (slot: Slot[A], value: A)
 
 // `slot := value`: this named slot receives this value, and nothing else. The value has the slot's
 // type. Core form: the value at the slot's place in the positional call, `expires` in
@@ -347,9 +347,9 @@ def stickyAcross[S, O, F](promise: (S, Step[S, O, F]) => Boolean): Monitor[S, O,
 // `where(g)`, `always` or `when(open).where(g)`, and through `~>` the effect it has there,
 // `when(placed) ~> effects.ship`. Core form: the arm `if g(s) then e(s, inputs) else ...` of the
 // action's step function.
-final class Case[S, O, F] private[umpire] (
-    private[umpire] val heading: String,
-    private[umpire] val guard: S => Boolean
+final class Case[S, O, F] private[framework] (
+    private[framework] val heading: String,
+    private[framework] val guard: S => Boolean
 ):
   // This case where `condition` also holds of the state, beyond its phases:
   // `when(open).where(_.timer == Timeout.expires)`. Core form: `g(s) && condition(s)`.
@@ -403,13 +403,16 @@ final class Case[S, O, F] private[umpire] (
 // The action, or the one class of it, an `on` block fires, and where its cases go, given to the
 // block's cases. Core form: none of its own; it is the `action` of `action ~> stepFunction`, whose
 // arms the block's cases are.
-final class Firing[S, O, F, I <: Tuple] private[umpire] (
-    private[umpire] val decl: ActionDecl,
-    private[umpire] val values: Option[List[Any]],
-    private[umpire] val action: String,
+final class Firing[S, O, F, I <: Tuple] private[framework] (
+    private[framework] val decl: ActionDecl,
+    private[framework] val values: Option[List[Any]],
+    private[framework] val action: String,
     add: (Case[S, O, F], (S, List[Any]) => List[Step[S, O, F]]) => Unit
 ):
-  private[umpire] def bind(c: Case[S, O, F], effect: (S, List[Any]) => List[Step[S, O, F]]): Unit =
+  private[framework] def bind(
+      c: Case[S, O, F],
+      effect: (S, List[Any]) => List[Step[S, O, F]]
+  ): Unit =
     add(c, effect)
 
 // A case that holds where `condition` holds of the state: `where(states.held) ~> effects.settle`.
@@ -436,7 +439,7 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
 // first evaluation refuses a phase with no Closed case, naming the object and phase type. A derived
 // machine's final end prevents mixing it in, and a derived composition refuses its own projection
 // as it initializes. Core form: the given `Phasing(_.phase)` the object's sections read.
-trait Phased[S, P](private[umpire] val projection: S => P)(using
+trait Phased[S, P](private[framework] val projection: S => P)(using
     Finite[P],
     TypeTest[P, Closed],
     ClassTag[P]
@@ -450,7 +453,7 @@ trait Phased[S, P](private[umpire] val projection: S => P)(using
   // Core form: `projection(s).in(<the Closed cases of P>)`.
   def end(s: S): Boolean = closedCases.contains(projection(s))
 
-  final override private[umpire] def declaresPhase: Boolean = true
+  final override private[framework] def declaresPhase: Boolean = true
 
 // The phase a derived machine reads through its source. Its evidence is preferred to the evidence
 // of a source that declares no phase, which it extends. Core form: none of its own; it is the
@@ -499,7 +502,7 @@ abstract class Rules[S, O, F, P](using
 
   // Runs one block's cases, refusing a block in a block, and in a `from` an action its declarer
   // does not declare.
-  private[umpire] def block[I <: Tuple](
+  private[framework] def block[I <: Tuple](
       decl: ActionDecl,
       values: Option[List[Any]],
       code: String
@@ -573,7 +576,7 @@ abstract class Rules[S, O, F, P](using
 
   // Runs the cases once for each target, as its own block, refusing a target named twice. The
   // cases run once per target, so each binds its own rules.
-  private[umpire] def each(
+  private[framework] def each(
       targets: List[(Action[?] | Class, String)]
   )(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
     val named = targets.map:
@@ -621,7 +624,7 @@ abstract class Rules[S, O, F, P](using
   inline def in[R]: Nothing =
     error("in[R] is membership alone: write `when[R]` for a role rule case")
 
-  private[umpire] def phases(set: P => Boolean, code: String): Case[S, O, F] =
+  private[framework] def phases(set: P => Boolean, code: String): Case[S, O, F] =
     Case(s"when(${code.trim})", s => set(phase(s)))
 
   // A case that holds in the phases listed: `when(placed, open)`. Core form:
@@ -635,7 +638,7 @@ abstract class Rules[S, O, F, P](using
   inline def when(inline set: P => Boolean)(using PhasesOf[P, P]): Case[S, O, F] =
     phases(set, codeOf(set))
 
-  // A case that holds in the phases with the role `R` (model/umpire/Roles.scala), as the projection
+  // A case that holds in the phases with the role `R` (model/framework/Roles.scala), as the projection
   // of the machine's `Phased` reads them: `when[Closed] ~> effects.notFound`; a machine that is
   // not `Phased` names no role. Core form:
   // `List(<the cases of R, in declaration order>).contains(s.phase)`.
@@ -665,7 +668,7 @@ abstract class Rules[S, O, F, P](using
   extension [A](value: A)
     def in[R](using role: TypeTest[A, R]): Boolean = role.unapply(value).nonEmpty
 
-  private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] =
+  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     order.toVector.map: decl =>
       decl -> (if never.contains(decl) then Bound.Disabled[S, O, F]()
                else Bound.Ruled(written.filter(_.decl == decl).toVector))
@@ -699,7 +702,7 @@ inline def on[S, O, F, I <: Tuple](using
 ): RuleGroup[S, O, F] = derivedRules(owner, a.decl, codeOf(a))(cases)
 
 // The rules of a derivation's `on`, each named by its action as `written` spells it.
-private[umpire] def derivedRules[S, O, F, I <: Tuple](
+private[framework] def derivedRules[S, O, F, I <: Tuple](
     owner: Owner[S, O, F],
     decl: ActionDecl,
     written: String

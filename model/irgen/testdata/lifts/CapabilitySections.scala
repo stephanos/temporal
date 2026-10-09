@@ -11,7 +11,7 @@
 // The kinds are the fixture's own, each a case class whose companion defines its Properties.
 package fixture.capabilitysections
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case queued, running, held, done

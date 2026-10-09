@@ -3,7 +3,7 @@
 // objects, whose projection is their source's, and rules that read no projection at all.
 package fixture.phased
 
-import umpire.*
+import framework.*
 
 enum Light derives Finite:
   case off, on, broken

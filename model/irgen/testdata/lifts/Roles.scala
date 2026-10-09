@@ -5,7 +5,7 @@
 // a Model's own role and its framework role, a one-case enum, and a binding type pattern.
 package fixture.roles
 
-import umpire.*
+import framework.*
 
 // A Model's own role, through the framework role it extends.
 trait Expired extends TimedOut

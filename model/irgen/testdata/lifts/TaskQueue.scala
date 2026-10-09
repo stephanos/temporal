@@ -8,7 +8,7 @@ package fixture.taskqueue
 import temporal.foundations.taskqueue.*
 import temporal.foundations.taskqueue.product.TaskQueueProduct
 import temporal.foundations.taskqueue.system.{ForgetfulQueue, TaskQueueSystem}
-import umpire.*
+import framework.*
 
 // ### The job
 

@@ -224,9 +224,9 @@ final private[irgen] class Structure(index: Index):
 
   // ### Machine objects and their refinements
 
-  private val machineClass = Symbol.requiredClass("umpire.Machine")
-  private val compositionClass = Symbol.requiredClass("umpire.Composition")
-  private val refinementClass = Symbol.requiredClass("umpire.Refinement")
+  private val machineClass = Symbol.requiredClass("framework.Machine")
+  private val compositionClass = Symbol.requiredClass("framework.Composition")
+  private val refinementClass = Symbol.requiredClass("framework.Refinement")
 
   // Whether an object is a machine, `Derived` or `Composition` object.
   private def form(c: Symbol): Boolean =

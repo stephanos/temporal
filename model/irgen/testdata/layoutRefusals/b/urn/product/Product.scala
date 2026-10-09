@@ -1,7 +1,7 @@
 package fixture.features.urn
 package product
 
-import umpire.*
+import framework.*
 
 object UrnProduct extends Machine[Urn, Outcome, Nothing]:
   val init = Urn(hot = false)

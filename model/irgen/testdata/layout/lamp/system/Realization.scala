@@ -3,8 +3,8 @@
 package fixture.features.lamp
 package system
 
-import umpire.realize.*
-import umpire.realize.Activation.Controller
+import framework.realize.*
+import framework.realize.Activation.Controller
 
 object LampRealization:
   val system = Realization(

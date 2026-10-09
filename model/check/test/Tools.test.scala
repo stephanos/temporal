@@ -21,18 +21,18 @@ class ToolsSuite extends munit.FunSuite:
 
   // scala-cli prints a -Werror failure with the bracket's word colored, and exits 0.
   private val printedError =
-    """printf '[\033[31merror\033[0m] ./model/umpire/Machine.scala:71:3\n'"""
+    """printf '[\033[31merror\033[0m] ./model/framework/Machine.scala:71:3\n'"""
 
   test("a scala-cli run that prints an error and exits 0 failed"):
     val tools = stubs().tool("scala-cli", s"$printedError; exit 0").tools(work)
-    val ran = tools.scalaCli(Seq("compile", "model/umpire"))
+    val ran = tools.scalaCli(Seq("compile", "model/framework"))
     assertEquals(ran.exit, 0)
-    assertEquals(ran.errors, Seq("[error] ./model/umpire/Machine.scala:71:3"))
+    assertEquals(ran.errors, Seq("[error] ./model/framework/Machine.scala:71:3"))
     assert(ran.failed)
     val message = refused(ran.orFail())
     assert(message.startsWith(s"scala-cli printed an error and exited 0 in $work: "), message)
-    assert(message.contains("compile model/umpire"), message)
-    assert(message.contains("[error] ./model/umpire/Machine.scala:71:3"), message)
+    assert(message.contains("compile model/framework"), message)
+    assert(message.contains("[error] ./model/framework/Machine.scala:71:3"), message)
 
   test("a nonzero exit failed, and the failure names the tool, the status and the command"):
     val tools = stubs().tool("go", "echo 'FAIL tools/umpire/ir'; exit 3").tools(work)

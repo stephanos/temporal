@@ -135,7 +135,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -255,7 +255,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -350,7 +350,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -528,7 +528,7 @@
                       "line": 607
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Realizations.scala",
@@ -591,7 +591,7 @@
                       "line": 609
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Realizations.scala",
@@ -667,7 +667,7 @@
                       "line": 611
                     },
                     "construct": {
-                      "type": "umpire.Step",
+                      "type": "framework.Step",
                       "args": [ {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Realizations.scala",
@@ -784,7 +784,7 @@
                   "line": 598
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Realizations.scala",
@@ -1014,7 +1014,7 @@
                   "line": 68
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Realizations.scala",
@@ -1134,7 +1134,7 @@
                   "line": 592
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Realizations.scala",
@@ -1240,7 +1240,7 @@
     "params": [ {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1317,7 +1317,7 @@
     "params": [ {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1394,7 +1394,7 @@
     "params": [ {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {

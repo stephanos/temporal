@@ -1,6 +1,6 @@
 package fixture.heartbeat
 
-import umpire.realize.*
+import framework.realize.*
 import temporal.realize.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 

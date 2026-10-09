@@ -6,7 +6,7 @@ package fixture.rolerejects
 // The role tests the lifter refuses, which the Models' lint leaves to the fixtures.
 // scalafix:off DisableSyntax.isInstanceOf
 
-import umpire.*
+import framework.*
 import fixture.roles.{Audited, Phase}
 
 enum Outcome derives Finite:

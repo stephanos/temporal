@@ -14,9 +14,9 @@ that uses a declaration or a field it does not implement, rather than read the M
 
 A value is a Boolean, an integer, a string, an enum value `C(v1, …, vn)` of one case `C` of an enum
 type with its fields, a record value `(v1, …, vn)` of a record type, a list `[v1, …, vn]`, or an
-anonymous function. Equality is structural. The step record `umpire.Step` is a built-in record with
+anonymous function. Equality is structural. The step record `framework.Step` is a built-in record with
 the fields `outcome`, `state`, `facts` (a list) and `because` (a string). The delivery
-`umpire.Delivery` is a built-in record with the fields `message` and `redeliveries` (an integer): one
+`framework.Delivery` is a built-in record with the fields `message` and `redeliveries` (an integer): one
 message a channel holds, and how many more times than once it has been delivered.
 
 An optional value is an ordinary enum: a front end declares one type per value type, with the cases
@@ -122,7 +122,7 @@ A higher level reads the lower ones: a step reads its state, a reading of a step
 | reading of a step | a same-step Property's `holds` and a transition Property's; a monitor's `next` and `after` |
 | claim over a path | a Query, which reads a Property on the paths of a Scenario within Limits ([Claims](#claims)); a monitor's verdict ([Monitors](#monitors)); a progress claim ([Progress](#progress)) |
 
-Only a step makes a step record. A `construct` of `umpire.Step`, or a call of a function that gives
+Only a step makes a step record. A `construct` of `framework.Step`, or a call of a function that gives
 step records, belongs to the function a step binding names and the functions it calls; anywhere
 else it is at the wrong level, as an `ends` that asks whether a step function gives a step, or a
 Property that calls the step function on the state after its step, would be. The IR does not mark
@@ -195,7 +195,7 @@ reader's table (`tools/umpire/interp`, `Table`) over the derived keys.
 ### Rules
 
 The IR binds each action to one step function; a Model writes when it fires and what it does
-apart, and the IR generator lowers the two to that function (`model/umpire/Syntax.scala`, `Rules`).
+apart, and the IR generator lowers the two to that function (`model/framework/Syntax.scala`, `Rules`).
 A machine object's `rules` holds one or more blocks that name actions, `on(a) { … }`, or classes,
 `on(a(v)) { … }`, whose cases each say where the action fires and what it does there, `c ~> e`. An
 `on(a, b) { … }` block gives the same cases to each named action. Every `on`, including one with one
@@ -232,7 +232,7 @@ file's roots, so an overlap fails it. A step that can go more than one way is on
 each result with `choose` ([Named choices](#named-choices)), never two rules. Because the rules are
 disjoint, their order changes no row: it fixes only the order of the arms of the lowered function.
 
-A machine may use the shared `umpire.outcomes.Outcome`: `accepted`, or `rejected(why)` where `why`
+A machine may use the shared `framework.outcomes.Outcome`: `accepted`, or `rejected(why)` where `why`
 is one of the shared `Rejection` values. In such a rule, `rejects(why)` is the effect that keeps the
 state, records no facts and answers `rejected(why)`; `.because(text)` fills the step's `because`
 field without changing that state, facts or outcome.
@@ -267,7 +267,7 @@ constrains and a Property only a `find` asks.
 ### Named choices
 
 A step that can go more than one way may name each of its results. The name rides on the step
-record's construct: `construct(umpire.Step, "", outcome, state, facts, because)` with `choice` set
+record's construct: `construct(framework.Step, "", outcome, state, facts, because)` with `choice` set
 to the alternative's name, as the IR generator writes each alternative of a Scala `choose`. An alternative
 that calls a function is lifted as a call of a copy of it, `<function>$<choice>`, whose every step
 record carries the name; the choose is then the concatenation of its alternatives' lists in the
@@ -541,7 +541,7 @@ A realization says how the find Queries of one machine run against a system. It 
 - a **correlation**: the fields that scope evidence to its run and name its operation, the
   observation that carries it, and the window a check keeps;
 - **rejection codes**: one gRPC status-code string for every member of the shared
-  `umpire.outcomes.Rejection` enum, attached by the system's realization kit;
+  `framework.outcomes.Rejection` enum, attached by the system's realization kit;
 - **controls**, the actuators a run needs beyond its commands: one that holds the deliveries of a
   channel, or one that holds what a step of a class dispatched, which names the task-queue role
   whose deliveries a run holds it through;

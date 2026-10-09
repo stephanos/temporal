@@ -470,7 +470,7 @@ func TestTheStepsEachKindConfirmsAreToldByTheirPlaceOnThePath(t *testing.T) {
 // jobModel is the job as a lifted Model: its machine, a Property that the job finishes by the last of
 // actions, and a Scenario and find Query of that path, named name.
 func jobModel(name string, actions ...string) *umpirespb.Model {
-	const stateType, outcomeType, factType, stepType = "JobState", "JobOutcome", "JobFact", "umpire.Step"
+	const stateType, outcomeType, factType, stepType = "JobState", "JobOutcome", "JobFact", "framework.Step"
 	at := &umpirespb.Position{File: "job.go", Line: 1}
 	named := func(name string) *umpirespb.TypeRef {
 		return &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Named{Named: name}}

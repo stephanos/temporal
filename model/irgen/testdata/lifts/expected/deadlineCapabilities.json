@@ -223,7 +223,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -431,7 +431,7 @@
     }, {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -518,7 +518,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -830,7 +830,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1151,7 +1151,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1373,7 +1373,7 @@
     }, {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1532,7 +1532,7 @@
                 "line": 168
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -1728,7 +1728,7 @@
             "line": 76
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -1885,7 +1885,7 @@
                   "line": 81
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -2021,7 +2021,7 @@
                   "line": 92
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -2146,7 +2146,7 @@
                   "line": 96
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -2271,7 +2271,7 @@
                   "line": 100
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -2396,7 +2396,7 @@
                   "line": 104
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -2521,7 +2521,7 @@
                   "line": 108
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -2646,7 +2646,7 @@
                   "line": 112
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -2771,7 +2771,7 @@
                   "line": 115
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -2863,7 +2863,7 @@
                   "line": 117
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -2966,7 +2966,7 @@
                   "line": 118
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -3058,7 +3058,7 @@
                   "line": 119
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -3273,7 +3273,7 @@
                 "line": 64
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -3513,7 +3513,7 @@
                     "line": 70
                   },
                   "construct": {
-                    "type": "umpire.Step",
+                    "type": "framework.Step",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -3608,7 +3608,7 @@
                     "line": 72
                   },
                   "construct": {
-                    "type": "umpire.Step",
+                    "type": "framework.Step",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/DeadlineCapabilities.scala",
@@ -3805,7 +3805,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -4103,7 +4103,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -4309,7 +4309,7 @@
     }, {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {

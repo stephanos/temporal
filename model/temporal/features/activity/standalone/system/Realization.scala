@@ -20,8 +20,8 @@ package features.activity
 package standalone
 package system
 
-import umpire.*
-import umpire.realize.{Fact as RealizationFact, *}
+import framework.*
+import framework.realize.{Fact as RealizationFact, *}
 import temporal.realize.*
 import io.temporal.api.workflowservice.v1.{
   DescribeActivityExecutionResponse,

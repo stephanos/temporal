@@ -1,6 +1,6 @@
 package fixture.defaultends
 
-import umpire.*
+import framework.*
 import temporal.capabilities.*
 
 val closingBounds = Limits(steps = 2, actions = 2, search = 32)

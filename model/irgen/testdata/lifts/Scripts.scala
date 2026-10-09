@@ -1,4 +1,4 @@
-// The script helpers (model/umpire/realize/Scripts.scala) and the Temporal kit (model/temporal/realize)
+// The script helpers (model/framework/realize/Scripts.scala) and the Temporal kit (model/temporal/realize)
 // beside the core records they stand for.
 //
 // `helpers` writes a realization with the helpers and the kit: commands named after their vals,
@@ -11,9 +11,9 @@
 // to be equal apart from positions, ids and names.
 package fixture.scripts
 
-import umpire.*
-import umpire.realize.*
-import umpire.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
+import framework.*
+import framework.realize.*
+import framework.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
 import temporal.features.activity.standalone.{activity, client, worker}
 import temporal.features.activity.standalone.system.Fact as ActivityFact

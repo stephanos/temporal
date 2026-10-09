@@ -7,7 +7,7 @@
 package fixture.features.lamp
 package product
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case dark, lit

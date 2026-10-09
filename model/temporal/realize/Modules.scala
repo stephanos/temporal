@@ -9,8 +9,8 @@ import io.grpc.MethodDescriptor
 import scala.annotation.unused
 import scalapb.{GeneratedEnum, GeneratedMessage}
 import io.temporal.api.history.v1.HistoryEvent
-import umpire.{Action, Class, Input, Machine}
-import umpire.realize.*
+import framework.{Action, Class, Input, Machine}
+import framework.realize.*
 
 // The fields every call on `role` assigns, each a request field by its protobuf name and the
 // operand it gets: `RequestBase(workflowService, "namespace" -> workerNamespace, "activity_id" ->

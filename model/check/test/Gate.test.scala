@@ -361,18 +361,18 @@ class GateSuite extends munit.FunSuite:
 
   test("the gate stops at a build that prints an error and exits 0"):
     val werror =
-      """case " $* " in *" test "*) printf '[\033[31merror\033[0m] ./model/umpire/Machine.scala:71:3\n';; esac"""
+      """case " $* " in *" test "*) printf '[\033[31merror\033[0m] ./model/framework/Machine.scala:71:3\n';; esac"""
     val repository = Repository(scalaCli = werror)
     val answer = gate(repository.tools)
     assertEquals(answer.status, 1)
     assert(answer.err.startsWith("gate: scala-cli printed an error and exited 0 in "), answer.err)
-    assert(answer.err.contains("[error] ./model/umpire/Machine.scala:71:3"), answer.err)
+    assert(answer.err.contains("[error] ./model/framework/Machine.scala:71:3"), answer.err)
     // The framework alone compiled; the test of the Models was the last build run.
     assertEquals(
       repository.ran.filter(_.startsWith("scala-cli ")).takeRight(2),
       Seq(
-        "scala-cli compile model/project.scala model/umpire --suppress-outdated-dependency-warning",
-        "scala-cli test --server=false model/project.scala model/umpire model/temporal --suppress-outdated-dependency-warning"
+        "scala-cli compile model/project.scala model/framework --suppress-outdated-dependency-warning",
+        "scala-cli test --server=false model/project.scala model/framework model/temporal --suppress-outdated-dependency-warning"
       )
     )
 
@@ -494,10 +494,10 @@ class GateSuite extends munit.FunSuite:
         |    case " $* " in *" --server=false "*) ;; *) echo '[error] No input files provided'; exit 0;; esac
         |  ;; esac
         |;; esac
-        |case " $* " in *" test model/project.scala model/umpire model/temporal "*)
+        |case " $* " in *" test model/project.scala model/framework model/temporal "*)
         |  case " $* " in *" --server=false "*) ;; *) echo '[error] No class, trait or object is defined in the compilation unit.'; exit 0;; esac
         |;; esac
-        |case " $* " in *" compile --print-class-path model/project.scala model/umpire model/temporal "*)
+        |case " $* " in *" compile --print-class-path model/project.scala model/framework model/temporal "*)
         |  case " $* " in *" --server=false "*) ;; *) echo '[error] No class, trait or object is defined in the compilation unit.'; exit 0;; esac
         |;; esac
         |""".stripMargin
@@ -517,12 +517,12 @@ class GateSuite extends munit.FunSuite:
     assert(repository.ran.find(_.contains(" --print-class-path ")).get.contains(" --server=false "))
 
   test("the gate stops at a mention the vocabulary check finds, and shows where"):
-    val found = "model/umpire/Table.scala:7\\n--- FAIL: TestModelNamesNoRetiredFrontEnd (0.05s)"
+    val found = "model/framework/Table.scala:7\\n--- FAIL: TestModelNamesNoRetiredFrontEnd (0.05s)"
     val repository = currentRepository(vocabulary(found, exit = 1))
     val answer = gate(repository.tools, "--skip-go-checks")
     assertEquals(answer.status, 1)
     assert(answer.err.startsWith("gate: go exited 1 in "), answer.err)
-    assert(answer.err.contains("model/umpire/Table.scala:7"), answer.err)
+    assert(answer.err.contains("model/framework/Table.scala:7"), answer.err)
     // It is the first thing the gate runs: nothing was built or lifted before it.
     assertEquals(repository.ran, Seq(vocabularyCheck))
 

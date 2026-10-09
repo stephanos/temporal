@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 // The order a channel delivers the messages it holds in.
 enum Order:
@@ -24,7 +24,7 @@ final case class Delivery[M](message: M, redeliveries: Int)
 // `deliver` to what receiving a message does and, for a lossy channel, `lose` to what losing one
 // does. When a message can be delivered or lost, and the redelivery after a lost acknowledgment,
 // are derived from this declaration by the IR interpreter (model/SEMANTICS.md, Channels).
-final class Channel[M] private[umpire] (
+final class Channel[M] private[framework] (
     val name: String,
     val capacity: Int,
     val order: Order,
@@ -32,7 +32,7 @@ final class Channel[M] private[umpire] (
     val duplicates: Int
 )(using val messages: Finite[M]):
   // Every entry a channel can hold, messages in catalog order and each one's redeliveries within.
-  private[umpire] lazy val entries: Vector[Delivery[M]] =
+  private[framework] lazy val entries: Vector[Delivery[M]] =
     for m <- messages.values.toVector; r <- (0 to duplicates).toVector yield Delivery(m, r)
 
   // Everything the channel can hold, for the state field that holds it: no message, then every
@@ -96,7 +96,7 @@ def channel[M](capacity: Int, order: Order, loss: Loss, duplicates: Int = 0)(usi
 
 // What a channel holds: its deliveries in send order, or in catalog order for an unordered channel,
 // so that sending the same messages in another order reaches the same state.
-final case class Inbox[M] private[umpire] (channel: Channel[M], deliveries: List[Delivery[M]]):
+final case class Inbox[M] private[framework] (channel: Channel[M], deliveries: List[Delivery[M]]):
   // The contents with `m` added: at the end, or at its catalog position for an unordered channel.
   // Sending to a full channel leaves the channel's contents, so the step lands outside the domain.
   def send(m: M): Inbox[M] =

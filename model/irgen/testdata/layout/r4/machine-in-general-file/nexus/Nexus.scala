@@ -1,5 +1,5 @@
 package fixture.features.nexus
 
-import umpire.*
+import framework.*
 
 object Misplaced extends Derived(standalone.NexusOperation.unmonitored)

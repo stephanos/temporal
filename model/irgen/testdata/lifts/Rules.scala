@@ -7,7 +7,7 @@
 // lifter's tests lift the roots `rules` lists and compare the IR with expected/rules.json.
 package fixture.rules
 
-import umpire.*
+import framework.*
 
 enum Light derives Finite:
   case off, on, broken

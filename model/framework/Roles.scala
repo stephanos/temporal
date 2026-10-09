@@ -1,10 +1,10 @@
-package umpire
+package framework
 
 import scala.reflect.{ClassTag, TypeTest}
 
 // A role's phase cases, checked when a reader first needs them so an explicit override needs no
 // case of that role. Readers share the finite catalog, witness and missing-role diagnostic.
-private[umpire] def roleCases[P, R](owner: String, role: String)(using
+private[framework] def roleCases[P, R](owner: String, role: String)(using
     finite: Finite[P],
     witness: TypeTest[P, R],
     phaseType: ClassTag[P]

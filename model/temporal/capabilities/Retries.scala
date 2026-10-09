@@ -1,7 +1,7 @@
 // Failure settlement and the entity's retry policy. Eligibility reads the state before failure.
 package temporal.capabilities
 
-import umpire.*
+import framework.*
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
 
@@ -22,8 +22,8 @@ final case class Retries[S, P, N <: Int](
 ) extends CapabilityOf[S, Nothing, Nothing]
 
 object Retries extends CapabilityKind:
-  type Waiting = umpire.Waiting
-  type Failed = umpire.Failed
+  type Waiting = framework.Waiting
+  type Failed = framework.Failed
 
   private def noPending[S](@unused state: S): Boolean = false
 

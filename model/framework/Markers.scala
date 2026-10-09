@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 // A design whose checks are meant to find it wrong, mixed into its object:
 // `object LateRecord extends Derived(OrderRecord.rebind(...)), NegativeControl`. It is a

@@ -2,7 +2,7 @@
 // this and expect an error at each marked line.
 package fixture.crossed
 
-import umpire.*
+import framework.*
 
 // A root that names nothing.
 val unknownRoot = irFile("unknown")(noSuchDeclaration)

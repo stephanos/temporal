@@ -1,4 +1,4 @@
-// The lifter: reads the typed trees (TASTy) of Scala Models compiled against the umpire framework,
+// The lifter: reads the typed trees (TASTy) of Scala Models compiled against the framework,
 // and emits the Umpire IR they declare. It lifts what authors wrote, as written: the `machine`
 // blocks, the action chains, and the step functions' bodies, including native `match`, `if`,
 // `copy` and local `val`s. Unsupported constructs stop the lift at their Scala source positions.
@@ -266,7 +266,7 @@ private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftErro
         Files.writeString(directory.resolve(s"$file.waivers.json"), json(stated))
 
 // Whether a jar entry is of the lifted sources: a Model's, never the framework's.
-private def lifted(entry: String): Boolean = !entry.startsWith("umpire/")
+private def lifted(entry: String): Boolean = !entry.startsWith("framework/")
 
 // Jackson's indented layout, with a field's value after `": "` as ProtoJSON is usually written.
 final private class Pretty extends DefaultPrettyPrinter:

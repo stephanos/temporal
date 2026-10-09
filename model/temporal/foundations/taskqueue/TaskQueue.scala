@@ -32,7 +32,7 @@
 package temporal
 package foundations.taskqueue
 
-import umpire.*
+import framework.*
 
 // ### Types
 

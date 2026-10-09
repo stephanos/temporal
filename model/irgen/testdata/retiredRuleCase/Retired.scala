@@ -1,7 +1,7 @@
 // The rule-case `in`, retired in favor of `when`, with membership `phase.in(...)` still live.
 package fixture.retiredrulecase
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, done

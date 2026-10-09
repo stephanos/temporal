@@ -173,7 +173,7 @@ var retiredFeatureFileProse = regexp.MustCompile(
 // ownCapabilities are the files that keep the name Capabilities.scala on purpose: the framework's
 // mechanism, the kit's capability kinds and the IR generator's expansion and fixture. A file of
 // theirs, or a line that names their folder, may name Capabilities.scala bare.
-var ownCapabilities = regexp.MustCompile(`\b(?:model/umpire|temporal/capabilities|model/irgen|irgen/testdata)\b`)
+var ownCapabilities = regexp.MustCompile(`\b(?:model/framework|temporal/capabilities|model/irgen|irgen/testdata)\b`)
 
 // retiredFeatureFileProseIn reports whether a line of the file at path names a retired per-kind file
 // bare, apart from Capabilities.scala where its own folders name it.
@@ -499,16 +499,16 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"the System realization":                {"activity/standalone/system/Realization.scala", false},
 		"the Nexus caller realization":          {"nexuscaller/Realization.scala", false},
 		"the kit's capabilities":                {"model/temporal/capabilities/Capabilities.scala", false},
-		"the framework's capabilities":          {"model/umpire/Capabilities.scala", false},
+		"the framework's capabilities":          {"model/framework/Capabilities.scala", false},
 		"a fixture named like a retired file":   {"model/irgen/testdata/lifts/Capabilities.scala, irFileRefusals/IrFiles.scala", false},
 		"a folder's file named bare":            {"in its Model folder's Capabilities.scala", true},
 		"a feature's file named bare":           {"the feature's `IrFiles.scala`", true},
 		"a Model's own file named bare":         {"its own `Capabilities.scala`", true},
 		"a file read off by name":               {"The claims are read off Properties.scala", true},
 		"a file named after a preposition":      {"declared in `Queries.scala`, beside Model.scala", true},
-		"the framework's Capabilities.scala":    {"`cited` in `Capabilities.scala` (model/umpire)", false},
+		"the framework's Capabilities.scala":    {"`cited` in `Capabilities.scala` (model/framework)", false},
 		"the kit's Capabilities.scala":          {"the kinds in temporal/capabilities, in Capabilities.scala", false},
-		"a retired file beside the kit's":       {"model/umpire keeps Capabilities.scala; see Queries.scala", true},
+		"a retired file beside the kit's":       {"model/framework keeps Capabilities.scala; see Queries.scala", true},
 		"a file named by its kind alone":        {"no file named by kind (`Model.scala`, `Properties.scala`)", false},
 	} {
 		t.Run(name, func(t *testing.T) {

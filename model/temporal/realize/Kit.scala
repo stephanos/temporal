@@ -6,16 +6,16 @@
 // operation, and checked within one window. Its controller is one script, whose reads wait as the
 // kit's API behavior derives (Behavior.scala). What a feature says differently is a parameter: the
 // roles it addresses, the operation its evidence is keyed by, its scripts and its evidence. The
-// Definition IDs it declares hang off the realization's own package, `umpire.realize.family`, which
+// Definition IDs it declares hang off the realization's own package, `framework.realize.family`, which
 // the lifter writes in.
 //
 // The standalone activity and the Nexus caller realizations build on it. Everything here is a
 // declaration the lifter reads, by value, into the realizations that use it.
 package temporal.realize
 
-import umpire.{Entity, Machine}
-import umpire.outcomes.Rejection
-import umpire.realize.*
+import framework.{Entity, Machine}
+import framework.outcomes.Rejection
+import framework.realize.*
 import temporal.server.api.testpilot.v1.{
   ActivityAttempt,
   CorrelatedEvidence,

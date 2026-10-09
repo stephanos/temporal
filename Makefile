@@ -673,7 +673,7 @@ MODEL_GATE_ARGS ?=
 MODEL_SCALAFIX = $(MODEL_CLI) --power fix --enable-built-in=false \
 	--scalafix-conf "$(CURDIR)/$(MODEL_ROOT)/.scalafix.conf" \
 	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
-MODEL_SOURCES := $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal
+MODEL_SOURCES := $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/framework $(MODEL_ROOT)/temporal
 model_scalafix_files = $(foreach source,$(1),--scalafix-arg=--files --scalafix-arg="$(CURDIR)/$(source)")
 MODEL_SCALAFIX_FILES = $(call model_scalafix_files,$(MODEL_SOURCES))
 # scala-cli hands scalafix every file under a project's directory, so the IR generator names its own
@@ -706,7 +706,7 @@ $(MODEL_BUILD)/api-scalapb.jar: $(MODEL_BUILD)/ir-scalapb.jar proto/api.binpb cm
 	@$(MODEL_GATE) --generate-api --if-stale
 
 # The Models' TASTy, packaged as the gate's "package the Models' TASTy" step packages it.
-$(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_ROOT)/project.scala $(shell find $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal -name '*.scala')
+$(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_ROOT)/project.scala $(shell find $(MODEL_ROOT)/framework $(MODEL_ROOT)/temporal -name '*.scala')
 	@printf $(COLOR) "Package the Models' TASTy..."
 	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library $(MODEL_SOURCES) -f -o $@
 

@@ -2,7 +2,7 @@
 // form for. The lifter's tests lift it and expect the refusal at the loop's line.
 package temporal.fixture
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, done

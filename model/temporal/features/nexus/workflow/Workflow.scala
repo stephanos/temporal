@@ -25,7 +25,7 @@ package temporal
 package features.nexus
 package workflow
 
-import umpire.*
+import framework.*
 import product.NexusProduct
 import system.{HandlerWorker, NexusCaller, NexusSystem, TrustingCaller}
 
@@ -107,7 +107,7 @@ object deadline:
 val two = Limits(steps = 2, actions = 2, search = 512)
 val control = Limits(steps = 8, actions = 8, search = 262144)
 
-// ### The checked-in IR files of the Nexus caller Model and its close and reset designs (umpire.irFile).
+// ### The checked-in IR files of the Nexus caller Model and its close and reset designs (framework.irFile).
 
 object exports:
   // The functional Queries and the realization that runs them are roots beside the machines: Go

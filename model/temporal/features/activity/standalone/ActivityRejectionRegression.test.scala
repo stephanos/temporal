@@ -1,11 +1,11 @@
-package umpire
+package framework
 
 import temporal.capabilities.Closable
 import temporal.features.activity.standalone.{client, product, system, worker}
 import temporal.features.activity.standalone.product.ActivityProduct
 import temporal.features.activity.standalone.product.ActivityProduct.phased
 import temporal.features.activity.standalone.system.ActivitySystem
-import umpire.outcomes.{Outcome, Rejection}
+import framework.outcomes.{Outcome, Rejection}
 
 class ActivityRejectionRegression extends munit.FunSuite:
   private def take[S, F](

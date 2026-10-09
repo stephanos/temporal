@@ -1,6 +1,6 @@
 package fixture.features.urn
 
-import umpire.*
+import framework.*
 import product.UrnProduct
 import system.UrnSystem
 

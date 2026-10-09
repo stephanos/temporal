@@ -277,7 +277,7 @@ func TestModelNamesNoRetiredFrontEnd(t *testing.T) {
 }
 
 func TestRetiredFrontEndMentionsAreFound(t *testing.T) {
-	const path = "model/umpire/Table.scala"
+	const path = "model/framework/Table.scala"
 	for name, test := range map[string]struct {
 		path, content string
 		mentions      []string
@@ -295,10 +295,10 @@ func TestRetiredFrontEndMentionsAreFound(t *testing.T) {
 		"a module":              {path, "// `Umpire.Command.Compose`", []string{path + ":1"}},
 		"a model namespace":     {path, "// below `Temporal.Feature`", []string{path + ":1"}},
 		"every line":            {path, "Lean\nfine\nlake", []string{path + ":1", path + ":3"}},
-		"a file name":           {"model/umpire/Lean.scala", "package umpire", []string{"model/umpire/Lean.scala"}},
+		"a file name":           {"model/framework/Lean.scala", "package framework", []string{"model/framework/Lean.scala"}},
 		"a directory":           {"model/lean/Table.scala", "// Lean", []string{"model/lean/Table.scala", "model/lean/Table.scala:1"}},
-		"other words":           {path, "a clean Boolean; cleanup; Leander; umpire.Table; Temporal.Features; unveiled; flake", nil},
-		"the Scala package":     {path, "import umpire.realize.Operand.*\nval f = umpire.Family(\"temporal.case\")", nil},
+		"other words":           {path, "a clean Boolean; cleanup; Leander; framework.Table; Temporal.Features; unveiled; flake", nil},
+		"the Scala package":     {path, "import framework.realize.Operand.*\nval f = framework.Family(\"temporal.case\")", nil},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, test.mentions, retiredFrontEndMentions(test.path, test.content))

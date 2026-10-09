@@ -1,8 +1,8 @@
 package fixture.deadlinepresets
 
-import umpire.*
-import umpire.outcomes.Outcome
-import umpire.realize.*
+import framework.*
+import framework.outcomes.Outcome
+import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.standalone.{client, maxAttempts, startToClose, MaxAttempts}
 import temporal.features.activity.standalone.system.ActivitySystem

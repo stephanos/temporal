@@ -306,7 +306,7 @@
                 "line": 35
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
@@ -433,7 +433,7 @@
                 "line": 44
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
@@ -548,7 +548,7 @@
                   "line": 39
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
@@ -620,7 +620,7 @@
                   "line": 40
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
@@ -748,7 +748,7 @@
     "params": [ {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -785,7 +785,7 @@
     "params": [ {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -916,7 +916,7 @@
     "params": [ {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -983,7 +983,7 @@
     "params": [ {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1020,7 +1020,7 @@
     "params": [ {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1151,7 +1151,7 @@
     "params": [ {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1218,7 +1218,7 @@
     "params": [ {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1255,7 +1255,7 @@
     "params": [ {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1386,7 +1386,7 @@
     "params": [ {
       "name": "step",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -2751,7 +2751,7 @@
             "line": 58
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/product/Product.scala",
@@ -2882,7 +2882,7 @@
                 "line": 41
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/foundations/taskqueue/product/Product.scala",
@@ -2958,7 +2958,7 @@
                 "line": 49
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/foundations/taskqueue/product/Product.scala",
@@ -3048,7 +3048,7 @@
             "line": 28
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/product/Product.scala",
@@ -3116,7 +3116,7 @@
             "line": 34
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/product/Product.scala",
@@ -3234,7 +3234,7 @@
                 "line": 109
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
@@ -3330,7 +3330,7 @@
                 "line": 110
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
@@ -3426,7 +3426,7 @@
             "line": 103
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/system/System.scala",
@@ -3575,7 +3575,7 @@
                   "line": 117
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
@@ -3698,7 +3698,7 @@
                   "line": 119
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
@@ -3795,7 +3795,7 @@
             "line": 94
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/system/System.scala",
@@ -3916,7 +3916,7 @@
             "line": 72
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/system/System.scala",
@@ -4003,7 +4003,7 @@
             "line": 78
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/system/System.scala",
@@ -4120,7 +4120,7 @@
                   "line": 129
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
@@ -4242,7 +4242,7 @@
                   "line": 131
                 },
                 "construct": {
-                  "type": "umpire.Step",
+                  "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
@@ -4339,7 +4339,7 @@
             "line": 84
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
@@ -4436,7 +4436,7 @@
             "line": 87
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
@@ -4533,7 +4533,7 @@
             "line": 90
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",

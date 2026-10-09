@@ -4,7 +4,7 @@
 // (crossed/Rules.scala), as the build reports them in an earlier phase.
 package fixture.objectforms
 
-import umpire.*
+import framework.*
 
 enum Glow derives Finite:
   case dim, bright

@@ -1,7 +1,7 @@
 // Polling hands an entity's work to a worker; Held phases say where the worker owns it.
 package temporal.capabilities
 
-import umpire.*
+import framework.*
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
 
@@ -13,4 +13,4 @@ final case class Pollable[S, P](dispatch: ClassRef | Composed)(using
 ) extends CapabilityOf[S, Nothing, Nothing]
 
 object Pollable extends CapabilityKind:
-  type Held = umpire.Held
+  type Held = framework.Held

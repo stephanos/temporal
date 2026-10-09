@@ -3,7 +3,7 @@
 // returns, and a block reading a field through an accessor of any shape but the fixed one.
 package fixture.blockrejects
 
-import umpire.*
+import framework.*
 import fixture.blocks.{phase, phase_=, retried, retried_=, user, Fact, Job, Outcome, Phase, given}
 
 // Reads the phase it compares rather than one field.

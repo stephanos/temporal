@@ -1,6 +1,6 @@
 package ir
 
-// model/umpire is the framework the models are written in, and it describes no one system: the
+// model/framework is the framework the models are written in, and it describes no one system: the
 // words of the system a model checks belong beside that model, in model/temporal. The framework's
 // prose and identifiers use neutral examples instead, so a reader learns the framework on its own
 // terms and a new kind of model needs nothing from it that names another.
@@ -16,7 +16,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const frameworkRoot = modelRoot + "/umpire"
+const frameworkRoot = modelRoot + "/framework"
+
+// TestFrameworkLayout keeps the generic framework's source path and Scala namespace distinct from
+// the Umpire product and its tooling namespaces. Production IR and Cases are intentionally omitted:
+// the batch seal regenerates those once all structural renames have landed.
+func TestFrameworkLayout(t *testing.T) {
+	require.DirExists(t, filepath.Join(repoRoot, frameworkRoot))
+	require.NoDirExists(t, filepath.Join(repoRoot, modelRoot, "umpire"))
+
+	var mentions []string
+	require.NoError(t, modelFiles(func(rel, content string) {
+		if strings.HasPrefix(rel, modelRoot+"/ir/") || strings.HasPrefix(rel, modelRoot+"/cases/") {
+			return
+		}
+		allowed := strings.NewReplacer(
+			"umpire.irgen", "",
+			"umpire.check", "",
+			"io.temporal.server.api.umpire.v1", "",
+			"umpire.case.service", "",
+		).Replace(content)
+		for i, line := range strings.Split(allowed, "\n") {
+			if strings.Contains(line, "model/umpire") || strings.Contains(line, "umpire.") ||
+				strings.TrimSpace(line) == "package umpire" {
+				mentions = append(mentions, fmt.Sprintf("%s:%d", rel, i+1))
+			}
+		}
+	}))
+	require.Empty(t, mentions, "framework sources use model/framework and the framework.* Scala namespace")
+}
 
 // temporalTerms are the words that name a Temporal concept, lowercase and with their plurals: the
 // server, its services and entities, and the capability kinds a realization declares. They are
@@ -125,7 +153,7 @@ func temporalMentions(path, content string) []string {
 	return found
 }
 
-// TestFrameworkNamesNoTemporal keeps model/umpire free of Temporal's vocabulary, in prose and in
+// TestFrameworkNamesNoTemporal keeps model/framework free of Temporal's vocabulary, in prose and in
 // identifiers alike, so the framework stays one any system's model can be written in and Temporal
 // is described where its models are, in model/temporal. A mention stays only under an allowance with
 // its reason, and an allowance that keeps no mention any more fails too, so the list only shrinks.
@@ -160,7 +188,7 @@ func TestFrameworkNamesNoTemporal(t *testing.T) {
 }
 
 func TestTemporalTermsAreFound(t *testing.T) {
-	const path = "model/umpire/Table.scala"
+	const path = "model/framework/Table.scala"
 	for name, test := range map[string]struct {
 		path, content string
 		mentions      []string
@@ -204,15 +232,15 @@ func TestTemporalTermsAreFound(t *testing.T) {
 		"a qualified name":      {path, "temporal.nexus.caller", []string{path + ":1"}},
 		"an endpoint":           {path, "nexusEndpoint", []string{path + ":1"}},
 		"every line":            {path, "history\nfine\nworkers", []string{path + ":1", path + ":3"}},
-		"a file name":           {"model/umpire/WorkflowTable.scala", "package umpire", []string{"model/umpire/WorkflowTable.scala"}},
-		"a directory":           {"model/umpire/nexus/Table.scala", "// Nexus", []string{"model/umpire/nexus/Table.scala", "model/umpire/nexus/Table.scala:1"}},
+		"a file name":           {"model/framework/WorkflowTable.scala", "package framework", []string{"model/framework/WorkflowTable.scala"}},
+		"a directory":           {"model/framework/nexus/Table.scala", "// Nexus", []string{"model/framework/nexus/Table.scala", "model/framework/nexus/Table.scala:1"}},
 		"words containing a term": {
 			path, "a Coworker; workerless; temporally; historical; Matchings; frontendy; nexuses; reactivity", nil,
 		},
 		"the words of a pair alone": {path, "a task; a queue; queue tasks; the task, queued; task. Queue it; taskmaster", nil},
 		"capability verbs":          {path, "close, terminate, pause, cancel, poll and describe; cancellable", nil},
 		"the framework": {
-			path, "package umpire\nimport umpire.realize.Operand.*\n// realize a Machine; cleanup\nval f = Family(\"example.orders\")", nil,
+			path, "package framework\nimport framework.realize.Operand.*\n// realize a Machine; cleanup\nval f = Family(\"example.orders\")", nil,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {

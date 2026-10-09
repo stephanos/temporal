@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.features.activity.{failure, Failure}
 import temporal.features.activity.standalone.{activity, client, product, service, system, worker}
@@ -8,7 +8,7 @@ import temporal.features.activity.standalone.system.{
   ByIDCompletion,
   ByIDFailure
 }
-import umpire.outcomes.{Outcome, Rejection}
+import framework.outcomes.{Outcome, Rejection}
 
 class ActivityByIDRegression extends munit.FunSuite:
   test("the service declares three independent by-ID answer actions") {
@@ -114,7 +114,7 @@ class ActivityByIDRegression extends munit.FunSuite:
     assertEquals(query.total, Some(22464L))
     assertEquals(
       query.expectedRun,
-      Some(temporal.realize.inconclusive(umpire.realize.Reason.explanationsDisagree))
+      Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree))
     )
     val held = take(take(ActivitySystem.init, client.start()).state, worker.poll).state
     val requested = take(held, client.requestCancel)
@@ -166,7 +166,7 @@ class ActivityByIDRegression extends munit.FunSuite:
       assertEquals(query.total, Some(5616L * actions.size))
       assertEquals(
         query.expectedRun,
-        Some(temporal.realize.inconclusive(umpire.realize.Reason.explanationsDisagree))
+        Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree))
       )
       val before = actions.init.foldLeft(ActivitySystem.init)((s, a) => take(s, a).state)
       val after = take(before, actions.last)

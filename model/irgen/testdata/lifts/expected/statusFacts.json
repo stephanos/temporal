@@ -631,7 +631,7 @@
             "line": 50
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",
@@ -739,7 +739,7 @@
             "line": 54
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",
@@ -800,7 +800,7 @@
             "line": 48
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",
@@ -897,7 +897,7 @@
             "line": 49
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",
@@ -978,7 +978,7 @@
             "line": 47
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",
@@ -1075,7 +1075,7 @@
             "line": 71
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",
@@ -1183,7 +1183,7 @@
             "line": 72
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",
@@ -1244,7 +1244,7 @@
             "line": 69
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",
@@ -1341,7 +1341,7 @@
             "line": 70
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",
@@ -1422,7 +1422,7 @@
             "line": 68
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/StatusFacts.scala",

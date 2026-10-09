@@ -11,12 +11,12 @@
 // Each helper is core: it writes the IR record its scaladoc names (Script, Item, Performance,
 // Command, Rpc, Poll), which the IR generator writes by name (model/irgen/Realizations.scala). No
 // body here runs.
-package umpire.realize
+package framework.realize
 
 import io.grpc.MethodDescriptor
 import scala.annotation.unused
 import scalapb.GeneratedMessage
-import umpire.{Action, ClassRef}
+import framework.{Action, ClassRef}
 
 // A fact as a machine records it: a case of its fact enum (`system.Fact.statusPaused`), or for a
 // case with fields the case itself (`system.Fact.statusTimedOut`), which names every value of it.

@@ -1,6 +1,6 @@
 package fixture.retrycapabilityrejects
 
-import umpire.*
+import framework.*
 import temporal.capabilities.Retries
 import fixture.retrycapabilities.*
 import fixture.retrycapabilities.given

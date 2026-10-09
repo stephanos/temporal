@@ -1,7 +1,7 @@
 package fixture.features.furnace
 package product
 
-import umpire.*
+import framework.*
 
 object FurnaceProduct extends Machine[Light, Outcome, Nothing]:
   val init = Light(lit = false)

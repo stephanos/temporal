@@ -4,7 +4,7 @@
 // rejected declarations and compare the diagnostics with expected/rejects.txt.
 package fixture.hintrejects
 
-import umpire.realize.*
+import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.standalone.activity
 import temporal.features.activity.standalone.system.ActivitySystem as activitySystem

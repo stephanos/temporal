@@ -19,10 +19,10 @@ package features.activity
 package standalone
 package system
 
-import umpire.*
-import umpire.outcomes.{Outcome, Rejection}
-import umpire.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
-import umpire.realize.{Reason, RunExpectation}
+import framework.*
+import framework.outcomes.{Outcome, Rejection}
+import framework.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
+import framework.realize.{Reason, RunExpectation}
 import temporal.capabilities.*
 import temporal.realize.satisfied
 import Bounds.{four, three}

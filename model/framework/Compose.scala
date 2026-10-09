@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import scala.annotation.unused
 import scala.deriving.Mirror
@@ -30,11 +30,11 @@ import scala.deriving.Mirror
 // its members, which the gate constructs (IrFile.construct).
 //
 // A composition whose sections read its phase mixes in its projection, `extends
-// Composition[OverQueue](...), Phased[OverQueue, Phase](_.order.phase)` (model/umpire/Syntax.scala).
+// Composition[OverQueue](...), Phased[OverQueue, Phase](_.order.phase)` (model/framework/Syntax.scala).
 // A derived one mixes in none of its own, and one that does is refused as it initializes.
 abstract class Composition[S <: Product] private (
-    private[umpire] val shape: Composition.Shape[S],
-    private[umpire] val mirror: Mirror.ProductOf[S]
+    private[framework] val shape: Composition.Shape[S],
+    private[framework] val mirror: Mirror.ProductOf[S]
 ) extends Declares[S]:
   type Outcome = String
   type Fact = String
@@ -65,7 +65,7 @@ abstract class Composition[S <: Product] private (
   protected given declaring: Declaring[S, String, String] = Declaring(this)
 
   // The members, each constructed: the machines and compositions it composes.
-  private[umpire] def members: Vector[Model] = shape match
+  private[framework] def members: Vector[Model] = shape match
     case Composition.Shape.Members(selectors) => selectors.map(Composition.selected(_, mirror))
     case Composition.Shape.Of(derivation)     => derivation.members
     case Composition.Shape.With(base, member) =>
@@ -80,7 +80,7 @@ abstract class Composition[S <: Product] private (
   // where the member replaces a machine.
   def withMember(member: S => (Any, Model)): Composition[S] & DerivedFrom[this.type] =
     new Composition[S](Composition.Shape.With(this, member), mirror) with DerivedFrom[this.type]:
-      private[umpire] val source: Composition.this.type = Composition.this
+      private[framework] val source: Composition.this.type = Composition.this
 
   // The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:
   // a class a Scenario of this composition lists, or the action `whenAction` names. The lifter
@@ -107,13 +107,13 @@ abstract class Composition[S <: Product] private (
 abstract class DerivedComposition[S <: Product, P](derivation: Composition[S])(using
     source: Inherited[derivation.type, S, P]
 ) extends Composition[S](derivation):
-  private[umpire] def sourcePhasing: Phasing[S, P] = Phasing(source.projection(derivation))
+  private[framework] def sourcePhasing: Phasing[S, P] = Phasing(source.projection(derivation))
   protected given derivedPhasing: Phasing[S, P] = sourcePhasing
   final def end(s: S): Boolean = source.end(derivation)(s)
 
 object Composition:
   // How a composition is made: from its members, from another's derivation, or with a member.
-  private[umpire] enum Shape[S <: Product]:
+  private[framework] enum Shape[S <: Product]:
     case Members(selectors: Vector[S => (Any, Model)])
     case Of(derivation: Composition[S])
     case With(base: Composition[S], member: S => (Any, Model))
@@ -126,11 +126,11 @@ object Composition:
     // An empty field is null, as a case class constructor keeps it.
     def productElement(n: Int): Any = null // scalafix:ok DisableSyntax.null
 
-  private[umpire] def selected[S](selector: S => (Any, Model), m: Mirror.ProductOf[S]): Model =
+  private[framework] def selected[S](selector: S => (Any, Model), m: Mirror.ProductOf[S]): Model =
     selector(m.fromProduct(Empty))._2
 
 // The owner of a composition's `syncs`, which read its composed state type.
-final class Composer[S <: Product] private[umpire] (val composition: Composition[S])
+final class Composer[S <: Product] private[framework] (val composition: Composition[S])
 
 // A composition's syncs, `object syncs extends Syncs`: each statement pairs two members' actions
 // into one step, `sync(_.order -> clerk.dispatch, _.queue -> queue.enqueue)`, named after the
@@ -156,7 +156,7 @@ abstract class Syncs[S <: Product](using @unused composer: Composer[S]):
 type Move[S] = S => (Any, Action[?])
 
 // A composed class or action of a composition, as `synced` and `own` select it.
-final class Composed private[umpire] (val composition: Model, val selected: Any)
+final class Composed private[framework] (val composition: Model, val selected: Any)
 
 // A member's def read from the composed state: `through(_.order, Order.held)` is
 // `s => Order.held(s.order)`. A composition's capability field or a declaring function's

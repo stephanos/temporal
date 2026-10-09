@@ -1,6 +1,6 @@
 package fixture.deadlinecapabilities
 
-import umpire.*
+import framework.*
 import temporal.capabilities.Deadline
 
 enum Phase derives Finite:

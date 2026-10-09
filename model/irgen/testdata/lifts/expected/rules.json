@@ -1366,7 +1366,7 @@
             "line": 56
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
@@ -1463,7 +1463,7 @@
             "line": 61
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
@@ -1524,7 +1524,7 @@
             "line": 55
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
@@ -1653,7 +1653,7 @@
             "line": 57
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
@@ -1719,7 +1719,7 @@
             "line": 59
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
@@ -1851,7 +1851,7 @@
             "line": 60
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
@@ -2168,7 +2168,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -2221,7 +2221,7 @@
     "params": [ {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -2832,7 +2832,7 @@
     "params": [ {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {

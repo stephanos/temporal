@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 // Who takes an action: an object that extends it, `object caller extends Actor`, whose members are
 // the actions it takes, `val start = action(this)`, named after its object with the first letter
@@ -58,7 +58,7 @@ final case class ActionDecl(
 // An action with its typed, finite inputs. `I` is a tuple with one element per `input` line, so
 // `schedule` is `Action[(Timeout, Timeout, Timeout)]` and a timer is `Action[EmptyTuple]`; the step
 // function bound to an action must take exactly those inputs.
-final class Action[I <: Tuple] private[umpire] (val decl: ActionDecl):
+final class Action[I <: Tuple] private[framework] (val decl: ActionDecl):
   def name: String = decl.name
 
   infix def on(e: Entity): Action[I] = Action(decl.copy(on = Some(e)))
@@ -179,14 +179,14 @@ type InputAt[I <: Tuple, Size <: Int, N <: Int] = (I, Size, N) match
 sealed trait OtherInputs
 
 // A named place that receives a value of type `A`: an action's input. `:=`
-// (model/umpire/Syntax.scala) gives one its value.
+// (model/framework/Syntax.scala) gives one its value.
 trait Slot[A]
 
 // One input of an action, named after the `val` that declares it: `val scheduleToStart =
 // input[Timeout]`. An action declares it with `.input(scheduleToStart)`, and its values are the
 // domain's. Tokens are compared by identity, as declarations are, so two tokens of one type are two
 // inputs.
-final class Input[A] private[umpire] (val domain: Finite[A]) extends Slot[A]
+final class Input[A] private[framework] (val domain: Finite[A]) extends Slot[A]
 
 // Declares an input token of type `A`, named after the `val` that declares it.
 def input[A](using f: Finite[A]): Input[A] = Input(f)

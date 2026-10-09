@@ -6,8 +6,8 @@ package temporal
 package features.nexus
 package product
 
-import umpire.*
-import umpire.outcomes.{Outcome, Rejection}
+import framework.*
+import framework.outcomes.{Outcome, Rejection}
 import temporal.actors.worker.worker
 
 // What an operation does.

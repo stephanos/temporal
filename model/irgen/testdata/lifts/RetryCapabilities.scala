@@ -1,6 +1,6 @@
 package fixture.retrycapabilities
 
-import umpire.*
+import framework.*
 import temporal.capabilities.{Closable, Retries}
 
 enum SimplePhase derives Finite:

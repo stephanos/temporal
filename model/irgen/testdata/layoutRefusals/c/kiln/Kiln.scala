@@ -6,7 +6,7 @@
 // whose type after its machine the order lint refuses: a level's file reads as a feature file).
 package fixture.features.kiln
 
-import umpire.*
+import framework.*
 
 final case class Kiln(hot: Boolean) derives Finite
 

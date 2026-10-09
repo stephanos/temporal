@@ -7,7 +7,7 @@
 // Go tests read that IR as a small fixed system.
 package fixture.specimens.admission
 
-import umpire.*
+import framework.*
 import Entities.activity
 
 // ### The product: what a caller reads of the activity, as far as the designs' refinement reads it

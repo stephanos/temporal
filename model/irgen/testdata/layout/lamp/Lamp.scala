@@ -21,7 +21,7 @@
 // after the feature, and replace the lamp with what the server does.
 package fixture.features.lamp
 
-import umpire.*
+import framework.*
 import product.{LampProduct, OnlyOn}
 import system.{Bulb, LampRealization, LampSystem, OnlyClosed}
 

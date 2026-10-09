@@ -1,6 +1,6 @@
 package fixture.retiredrulecaselifter
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, done

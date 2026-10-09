@@ -1,7 +1,7 @@
 package fixture.features.pump
 package system
 
-import umpire.*
+import framework.*
 import product.PumpProduct
 
 object PumpProtocol extends Machine[Pump, Outcome, Nothing]:

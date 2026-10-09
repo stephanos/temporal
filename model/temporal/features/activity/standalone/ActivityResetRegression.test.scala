@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.features.activity.{deadline, Failure, Timeout, TimeoutType}
 import temporal.features.activity.standalone.{
@@ -17,7 +17,7 @@ import temporal.features.activity.standalone.system.{
   ResetKeepingPause,
   ResetSettlement
 }
-import umpire.outcomes.{Outcome, Rejection}
+import framework.outcomes.{Outcome, Rejection}
 
 class ActivityResetRegression extends munit.FunSuite:
   private type ActivityStep = Step[system.State, Outcome, system.Fact]

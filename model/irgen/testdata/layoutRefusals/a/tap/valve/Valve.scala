@@ -3,7 +3,7 @@
 package fixture.features.tap
 package valve
 
-import umpire.*
+import framework.*
 
 object Valve extends Machine[Tap, Outcome, Nothing]:
   val init = Tap(open = false)

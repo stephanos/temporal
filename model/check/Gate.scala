@@ -57,7 +57,7 @@ final class Gate(tools: Tools, log: PrintStream):
   private val scala = "3.9.0"
   private val modelJar = build.resolve("model-scala.jar")
   private val modelClasspath = build.resolve("model-scala.classpath")
-  private val dsl = Seq("model/project.scala", "model/umpire")
+  private val dsl = Seq("model/project.scala", "model/framework")
   // The words the model does not use are spelled in this Go test and not here, so that the gate is
   // no use of them.
   private val vocabulary = "TestModelNamesNoRetiredFrontEnd"
@@ -408,7 +408,7 @@ final class Gate(tools: Tools, log: PrintStream):
     step("generate the linked API's classes when their inputs changed"):
       generateApi(ifStale = true)
 
-    // The framework must build without the Temporal Models, so nothing in umpire/ reaches into them.
+    // The framework must build without the Temporal Models, so nothing in framework/ reaches into them.
     step("compile the framework alone"):
       tools.scalaCli("compile" +: dsl).orFail()
 

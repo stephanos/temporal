@@ -46,7 +46,7 @@ private[irgen] trait Declarations:
 
   def action(ref: Term): String = ref match
     // A channel's delivery or loss: an action its declaration implies.
-    case Select(channel, op @ ("deliver" | "lose")) if isNamed(channel.tpe, "umpire.Channel") =>
+    case Select(channel, op @ ("deliver" | "lose")) if isNamed(channel.tpe, "framework.Channel") =>
       channelAction(resolveSymbol(channel), op, ref)
     case _ =>
       val declared = declaredAction(ref)
@@ -113,10 +113,10 @@ private[irgen] trait Declarations:
     case This(_) if isActor(t.symbol) => objectActor(t.symbol)
     case r: Ref if r.symbol.flags.is(Flags.Module) && isActor(r.symbol.moduleClass) =>
       objectActor(r.symbol.moduleClass)
-    case r: Ref if r.symbol.fullName == "umpire.Actor$.system" => "system"
-    case _                                                     => constString(t)
+    case r: Ref if r.symbol.fullName == "framework.Actor$.system" => "system"
+    case _                                                        => constString(t)
 
-  private lazy val actorClass = Symbol.requiredClass("umpire.Actor")
+  private lazy val actorClass = Symbol.requiredClass("framework.Actor")
   private def isActor(cls: Symbol): Boolean =
     cls.isClassDef && cls.flags.is(Flags.Module) && cls.typeRef.derivesFrom(actorClass)
   private def objectActor(cls: Symbol): String =
@@ -203,7 +203,7 @@ private[irgen] trait Declarations:
   def parentArguments(c: ClassDef): List[List[Term]] =
     c.parents.collectFirst { case t: Term => t }.flatMap(call).fold(Nil)(_._2)
 
-  private lazy val phasedClass = Symbol.requiredClass("umpire.Phased")
+  private lazy val phasedClass = Symbol.requiredClass("framework.Phased")
 
   // The phase projection of each object form lifted that reads one, by its name, as its source
   // writes it: its own, or a derived machine's or derived composition's source's.
@@ -242,8 +242,8 @@ private[irgen] trait Declarations:
     def selected(t: Term): Option[(Term, String, List[TypeRepr], List[Term])] = t match
       case Apply(fn, args)   => selected(fn).map((r, n, ts, as) => (r, n, ts, as ++ args))
       case TypeApply(fn, ts) => selected(fn).map((r, n, _, as) => (r, n, ts.map(_.tpe), as))
-      case Select(r, n) if isNamed(r.tpe, "umpire.Phasing") => Some((r, n, Nil, Nil))
-      case _                                                => None
+      case Select(r, n) if isNamed(r.tpe, "framework.Phasing") => Some((r, n, Nil, Nil))
+      case _                                                   => None
     selected(t).flatMap { (receiver, name, roles, args) =>
       boundPhasings.get(receiver.symbol).map { (projection, reader) =>
         val (parameter, body) = lambda(projection) match
@@ -290,7 +290,7 @@ private[irgen] trait Declarations:
       lambda(projection) match
         case Some((List(p), body)) =>
           renamed(p.symbol) = "s"
-          val closed = Symbol.requiredClass("umpire.Closed").typeRef
+          val closed = Symbol.requiredClass("framework.Closed").typeRef
           val cases = roleSet(body.tpe, closed, projection, Some(objectFormName(cls)))
           val test = binary(ir.Binary.Op.OP_CONTAINS, lift(body), cases, projection)
           expr(at)(E.Lambda(ir.Lambda(Seq(ir.Param("s", Some(typeRef(state, at)))), Some(test))))
@@ -424,15 +424,15 @@ private[irgen] trait Declarations:
             // A monitor reads the steps of the machine that watches it, so it is of its states.
             for
               watched <- tpe.widen.dealias.typeArgs.headOption
-              if isNamed(tpe, "umpire.Monitor") && !(watched =:= s)
+              if isNamed(tpe, "framework.Monitor") && !(watched =:= s)
             do
               fail(
                 v,
                 s"${v.name} is a monitor of ${watched.show}, and $name's states are ${s.show}: a " +
                   "machine watches monitors of its own state type"
               )
-            if isNamed(tpe, "umpire.Monitor") then b.addMonitors(monitorOf(sym, v))
-            else if isNamed(tpe, "umpire.Assumption") then b.addAssumes(assumptionOf(sym, v))
+            if isNamed(tpe, "framework.Monitor") then b.addMonitors(monitorOf(sym, v))
+            else if isNamed(tpe, "framework.Assumption") then b.addAssumes(assumptionOf(sym, v))
             else b
           case (b, _) => b
         }
@@ -454,7 +454,7 @@ private[irgen] trait Declarations:
       val steps =
         if core then
           parentArguments(rules).flatten
-            .filter(a => !isNamed(a.tpe, "umpire.Owner"))
+            .filter(a => !isNamed(a.tpe, "framework.Owner"))
             .flatMap(varargs)
             .map(stepBinding(_, name, "a core binding is `action ~> function`"))
         else ruleSteps(name, typeRef(s, c), rules, c.symbol)
@@ -545,7 +545,7 @@ private[irgen] trait Declarations:
             case Some(("on", List(targets, List(block)))) if targets.sizeIs <= 4 =>
               val fired = targets.map { target =>
                 val (id, cls) = unwrapped(target) match
-                  case r if isNamed(r.tpe, "umpire.Class") =>
+                  case r if isNamed(r.tpe, "framework.Class") =>
                     val c = classOf(r)
                     c.action -> Some(c.inputs)
                   case r => action(r) -> None
@@ -647,8 +647,8 @@ private[irgen] trait Declarations:
   // Whether the action a target fires, or the class of it, is a member of the object `owner`.
   private def declaredBy(target: Term, owner: Symbol): Boolean =
     def actionRef(t: Term): Option[Term] = unwrapped(t) match
-      case r: Ref if isNamed(r.tpe, "umpire.Action") => Some(r)
-      case Apply(fn, args)                           =>
+      case r: Ref if isNamed(r.tpe, "framework.Action") => Some(r)
+      case Apply(fn, args)                              =>
         actionRef(fn).orElse(args.iterator.flatMap(actionRef).nextOption())
       case TypeApply(fn, _) => actionRef(fn)
       case Select(q, _)     => actionRef(q)
@@ -707,7 +707,7 @@ private[irgen] trait Declarations:
     case Select(q, _)    => q
     case other           => fail(other, s"not a case: ${other.show}")
 
-  private lazy val caseClass = Symbol.requiredClass("umpire.Case")
+  private lazy val caseClass = Symbol.requiredClass("framework.Case")
 
   // Where a case fires: `when(...)`, `where(g)`, `always`, or one of them `.where(g)`.
   private def heading(c: Term, machine: String): Heading = unwrapped(c) match
@@ -733,7 +733,7 @@ private[irgen] trait Declarations:
               "`when(phases)`, `when(states.set)`, `where(g)` or `always`"
           )
 
-  private val syntaxPackage = "umpire.Syntax$package$"
+  private val syntaxPackage = "framework.Syntax$package$"
 
   // A term without the wrappers an argument arrives in.
   def unwrapped(t: Term): Term = t match
@@ -775,7 +775,7 @@ private[irgen] trait Declarations:
   // One action's rules, in order, lowered to its step function `<machine>.rules.<action>`: each rule
   // an arm `if guard(s) then effect(s, inputs) else ...`, and no step where none fires. Where a rule
   // fires one class, the inputs are matched first, one case per class, so the state alone decides
-  // among the rules of a class (core form: model/umpire/Syntax.scala, Rules).
+  // among the rules of a class (core form: model/framework/Syntax.scala, Rules).
   def lowered(
       machine: String,
       state: ir.TypeRef,
@@ -900,7 +900,7 @@ private[irgen] trait Declarations:
       case If(_, a, b)        => empty(a) ++ empty(b)
       case Match(_, cases)    => cases.flatMap(c => empty(c.rhs))
       case Ident("Nil")       => List(t)
-      case r: Ref if r.symbol.fullName == "umpire.Syntax$package$.disabled" => List(t)
+      case r: Ref if r.symbol.fullName == "framework.Syntax$package$.disabled" => List(t)
       case Apply(TypeApply(Select(Ident("List"), "apply"), _), List(items))
           if varargs(items).isEmpty =>
         List(t)
@@ -922,10 +922,10 @@ private[irgen] trait Declarations:
 
   // The action and the function of the core `action ~> function`, or a refusal.
   def coreBinding(binding: Term, should: => String): (Term, Term) = binding match
-    case Typed(e, _)                                                    => coreBinding(e, should)
-    case Block(Nil, e)                                                  => coreBinding(e, should)
-    case Inlined(_, Nil, e)                                             => coreBinding(e, should)
-    case t if t.symbol.maybeOwner.fullName == "umpire.Machine$package$" =>
+    case Typed(e, _)                                                       => coreBinding(e, should)
+    case Block(Nil, e)                                                     => coreBinding(e, should)
+    case Inlined(_, Nil, e)                                                => coreBinding(e, should)
+    case t if t.symbol.maybeOwner.fullName == "framework.Machine$package$" =>
       call(t) match
         case Some(("~>", List(List(a), List(fn)))) => (a, fn)
         case _                                     => fail(t, s"$should, not ${t.show}")
@@ -1362,7 +1362,8 @@ private[irgen] trait Declarations:
 
       // The case of a framework enum a policy argument names; anything computed is refused.
       def policy[V](arg: Term, enumName: String, cases: Map[String, V]): V = resolve(arg) match
-        case r: Ref if isEnumCase(r.symbol) && enumOf(r.symbol).fullName == s"umpire.$enumName" =>
+        case r: Ref
+            if isEnumCase(r.symbol) && enumOf(r.symbol).fullName == s"framework.$enumName" =>
           cases(r.symbol.name)
         case other =>
           fail(
@@ -1397,7 +1398,7 @@ private[irgen] trait Declarations:
     if !message.widen.typeSymbol.flags.is(Flags.Opaque) && t.typeSymbol == defn.IntClass then
       resolve(finite) match
         case Apply(upTo @ Select(_, "upTo"), List(bound))
-            if upTo.symbol.owner.fullName.startsWith("umpire.Finite") =>
+            if upTo.symbol.owner.fullName.startsWith("framework.Finite") =>
           range(0, constInt(bound))
         case other =>
           fail(

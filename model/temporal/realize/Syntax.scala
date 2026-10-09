@@ -7,7 +7,7 @@ package temporal.realize
 import scala.annotation.targetName
 import com.google.protobuf.ByteString
 import scalapb.GeneratedMessage
-import umpire.realize.{
+import framework.realize.{
   Addressee,
   Cardinality,
   Field,

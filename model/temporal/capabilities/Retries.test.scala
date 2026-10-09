@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.capabilities.Retries
 import scala.annotation.unused

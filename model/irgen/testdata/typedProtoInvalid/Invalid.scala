@@ -5,7 +5,7 @@ import io.temporal.api.command.v1.Command
 import io.temporal.api.common.v1.Payload
 import io.temporal.api.enums.v1.{ActivityExecutionStatus, CommandType}
 import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure}
-import umpire.realize.*
+import framework.realize.*
 
 val wrongMessage = Proto[Payload](
   ProtoField.typed(Field[Failure, String](_.message), ProtoValue.text("bad"))

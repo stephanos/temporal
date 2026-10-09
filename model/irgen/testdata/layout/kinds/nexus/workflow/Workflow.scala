@@ -1,7 +1,7 @@
 package fixture.features.nexus
 package workflow
 
-import umpire.*
+import framework.*
 
 enum Outcome derives Finite:
   case accepted

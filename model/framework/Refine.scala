@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import scala.annotation.unused
 
@@ -16,7 +16,7 @@ object Refinement:
   // The states of the refining machine whose `Closed` role differs from that of their image under
   // `refinement`, each with its image, over every value of `S`: the refinement keeps closedness
   // where the result is empty. Roles are read through each machine's phase projection, `phase` and
-  // `productPhase` (model/umpire/Roles.scala). The IR holds no roles, so the model tests call it for
+  // `productPhase` (model/framework/Roles.scala). The IR holds no roles, so the model tests call it for
   // each refinement whose machines' phases both carry roles, naming the refinement.
   def unclosed[S, P](refinement: Refinement[S, P])(phase: S => Any, productPhase: P => Any)(using
       states: Finite[S]
@@ -33,7 +33,7 @@ object Refinement:
   // machine need not declare, so the base class names no member for it; it is found as the
   // object's nested module, `<Machine>$refinement$`, which initializes it. The machine's own
   // wiring, its `rules`, reads no section this way.
-  private[umpire] def declaredBy(machine: Machine[?, ?, ?]): Option[Model] =
+  private[framework] def declaredBy(machine: Machine[?, ?, ?]): Option[Model] =
     scala.util
       .Try(java.lang.Class.forName(machine.getClass.getName + "refinement$"))
       .flatMap(c =>

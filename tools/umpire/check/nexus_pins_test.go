@@ -23,7 +23,7 @@ const productClaimProbes = `{
   "functions": [
     {"name": "nexusProduct.property.timesOut",
       "position": {"file": "tools/umpire/check/nexus_pins_test.go"},
-      "params": [{"name": "after", "type": {"named": "umpire.Step"}}],
+      "params": [{"name": "after", "type": {"named": "framework.Step"}}],
       "body": {"binary": {"op": "OP_EQ",
         "left": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "phase"}},
         "right": {"literal": {"enum": {"type": "temporal.features.nexus.product.Phase", "case": "timedOut"}}}}}}],

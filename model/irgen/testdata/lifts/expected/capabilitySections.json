@@ -195,7 +195,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -562,7 +562,7 @@
                 "line": 92
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
@@ -659,7 +659,7 @@
             "line": 87
           },
           "construct": {
-            "type": "umpire.Step",
+            "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
@@ -878,7 +878,7 @@
                     "line": 95
                   },
                   "construct": {
-                    "type": "umpire.Step",
+                    "type": "framework.Step",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
@@ -1132,7 +1132,7 @@
                     "line": 99
                   },
                   "construct": {
-                    "type": "umpire.Step",
+                    "type": "framework.Step",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
@@ -1274,7 +1274,7 @@
                 "line": 90
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
@@ -1410,7 +1410,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1620,7 +1620,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1691,7 +1691,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1733,7 +1733,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1871,7 +1871,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -1981,7 +1981,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -2052,7 +2052,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {
@@ -2094,7 +2094,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "umpire.Step"
+        "named": "framework.Step"
       }
     } ],
     "body": {

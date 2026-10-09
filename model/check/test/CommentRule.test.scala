@@ -1,4 +1,4 @@
-package umpire.check
+package framework.check
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
@@ -52,7 +52,7 @@ class CommentRuleSuite extends munit.FunSuite:
       (status, err.toString)
     val (failed, printed) = run(
       repository(
-        "model/umpire/Machine.scala" -> "package umpire\n\n/** A machine. */\ntrait Machine\n",
+        "model/framework/Machine.scala" -> "package framework\n\n/** A machine. */\ntrait Machine\n",
         "model/irgen/testdata/lifts/Fixture.scala" -> "/* A fixture. */\nobject Fixture\n",
         "model/build/Generated.scala" -> "/** Generated. */\nobject Generated\n",
         "model/check/.scala-build/Cached.scala" -> "/* Cached. */\nobject Cached\n"
@@ -61,11 +61,11 @@ class CommentRuleSuite extends munit.FunSuite:
     assertEquals(failed, 1)
     assertEquals(
       printed.linesIterator.map(_.takeWhile(_ != ' ')).toVector,
-      Vector("model/irgen/testdata/lifts/Fixture.scala:1:", "model/umpire/Machine.scala:3:")
+      Vector("model/irgen/testdata/lifts/Fixture.scala:1:", "model/framework/Machine.scala:3:")
     )
     assert(printed.contains("comment rule: write the comment as // lines"), printed)
     assertEquals(
-      run(repository("model/umpire/Machine.scala" -> "// A machine.\ntrait M\n")),
+      run(repository("model/framework/Machine.scala" -> "// A machine.\ntrait M\n")),
       (0, "")
     )
 

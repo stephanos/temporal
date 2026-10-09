@@ -25,7 +25,7 @@ private[irgen] trait Realizations:
   // Temporal kit's, which extends its open traits with what only Temporal has. The lifter and the
   // Testpilot IR it writes are Temporal's driver tooling, so the kit's names are matched here by
   // their fully qualified names (.plans/UMPIRE_MODULES.md).
-  private val vocabularyPackages = Seq("umpire.realize.", "temporal.realize.")
+  private val vocabularyPackages = Seq("framework.realize.", "temporal.realize.")
 
   private def inVocabulary(sym: Symbol): Boolean =
     vocabularyPackages.exists(sym.fullName.startsWith)
@@ -67,7 +67,12 @@ private[irgen] trait Realizations:
 
   // A value the IR names rather than writes out: a machine, a channel, an action or a class.
   def namedByIR(tpe: TypeRepr): Boolean =
-    isMachine(tpe) || Set("umpire.Machine", "umpire.Channel", "umpire.Action", "umpire.Class")(
+    isMachine(tpe) || Set(
+      "framework.Machine",
+      "framework.Channel",
+      "framework.Action",
+      "framework.Class"
+    )(
       tpe.widen.dealias.typeSymbol.fullName
     )
 
@@ -80,7 +85,7 @@ private[irgen] trait Realizations:
 
   // What a term is once the names it goes through are followed: a helper function of the lifted
   // sources by its body with its parameters bound, a val by its definition. A declaration followed
-  // reads `umpire.realize.family` as its own package, and a kit's function, of `temporal.realize`,
+  // reads `framework.realize.family` as its own package, and a kit's function, of `temporal.realize`,
   // as the package of the declaration that called it.
   def reduce(b: Bound): Bound = b.term match
     case Typed(e, _)                                => reduce(Bound(e, b.env))
@@ -122,7 +127,7 @@ private[irgen] trait Realizations:
     case t =>
       applied(t) match
         case Some((sel @ Select(table, "apply"), List(fact)))
-            if sel.symbol.owner.fullName == "umpire.realize.StatusTable" =>
+            if sel.symbol.owner.fullName == "framework.realize.StatusTable" =>
           reduce(looked(Bound(table, b.env), Bound(fact, b.env), t))
         case Some((fn, args)) if isFunction(fn.symbol) && !vocabularyMember(fn.symbol) =>
           defs(fn.symbol) match
@@ -138,9 +143,9 @@ private[irgen] trait Realizations:
             case _ => b
         case _ => b
 
-  // `umpire.realize.family`, which a realization reads as its own package.
+  // `framework.realize.family`, which a realization reads as its own package.
   private lazy val familySymbol: Symbol =
-    Symbol.requiredModule("umpire.realize.Realize$package").moduleClass.declaredField("family")
+    Symbol.requiredModule("framework.realize.Realize$package").moduleClass.declaredField("family")
 
   // The family a declaration followed reads: its own package, or for a kit's, the one of the
   // declaration it is followed from, `from`.
@@ -346,7 +351,7 @@ private[irgen] trait Realizations:
     val b = reduce(b0)
     val t = b.term
     val (fn, args) = applied(t).getOrElse(fail(t, "expected a typed protobuf value"))
-    if fn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.ProtoValue" then
+    if fn.symbol.owner.fullName.stripSuffix("$") != "framework.realize.ProtoValue" then
       fail(t, s"expected a typed protobuf value, got ${t.show}")
     val m = Message(d)
     def argument(i: Int): Bound = Bound(args(i), b.env)
@@ -384,7 +389,7 @@ private[irgen] trait Realizations:
           val (entryFn, entryArgs) = applied(resolved.term)
             .getOrElse(fail(resolved.term, "expected a typed map entry"))
           if entryFn.symbol.name != "typed" ||
-            entryFn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.ProtoEntry"
+            entryFn.symbol.owner.fullName.stripSuffix("$") != "framework.realize.ProtoEntry"
           then fail(resolved.term, "expected a typed map entry")
           PMessage(
             Map(
@@ -457,7 +462,7 @@ private[irgen] trait Realizations:
           operand.findFieldByName("position").map(_ -> pos(t).toPMessage)
       )
     fn.symbol.owner.fullName.stripSuffix("$") match
-      case "umpire.realize.Operand" =>
+      case "framework.realize.Operand" =>
         name match
           case "run" | "runKey" => irVariant(operand, "run", t, Map.empty)
           case "environment"    =>
@@ -507,7 +512,7 @@ private[irgen] trait Realizations:
                 irVariant(operand, "projected", t, Map.empty)
               case _ => fail(t, "only Projected has a dynamic message root")
           case _ => fail(t, s"unsupported typed operand: ${t.show}")
-      case "umpire.realize.ProjectedOrigin" if name == "<init>" =>
+      case "framework.realize.ProjectedOrigin" if name == "<init>" =>
         reduce(argument(0)).term match
           case r: Ref if isEnumCase(r.symbol) && r.symbol.name == "Projected" =>
             irVariant(operand, "projected", t, Map.empty)
@@ -518,7 +523,7 @@ private[irgen] trait Realizations:
     val b = reduce(b0)
     val t = b.term
     val (fn, args) = applied(t).getOrElse(fail(t, "expected a typed condition"))
-    if fn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.Condition"
+    if fn.symbol.owner.fullName.stripSuffix("$") != "framework.realize.Condition"
     then fail(t, s"unsupported typed condition: ${t.show}")
     def argument(i: Int): Bound = Bound(args(i), b.env)
     fn.symbol.name match
@@ -569,7 +574,7 @@ private[irgen] trait Realizations:
     def factoryOf(fn: Term, owner: String, name: String): Boolean =
       fn.symbol.name == name && fn.symbol.owner.fullName.stripSuffix("$") == owner
     def factory(fn: Term, owner: String, name: String): Boolean =
-      factoryOf(fn, s"umpire.realize.$owner", name)
+      factoryOf(fn, s"framework.realize.$owner", name)
     b.term match
       case r: Ref if isEnumCase(r.symbol) || caseObject(r.symbol) =>
         vocabulary(r.symbol)
@@ -719,15 +724,15 @@ private[irgen] trait Realizations:
     val f = follow(b0)
     val evidenceIdField = irField(ir.Evidence.scalaDescriptor, "id", f.term)
     val evidenceId =
-      if f.env.contains(moduleMark) || isNamed(f.term.tpe, "umpire.realize.EvidenceRef") then
+      if f.env.contains(moduleMark) || isNamed(f.term.tpe, "framework.realize.EvidenceRef") then
         entryEvidence(f).map(_.value(evidenceIdField)).collect { case PString(id) => id }
       else None
     evidenceId.getOrElse:
       f.term match
-        case t if commandLike(t.tpe)               => commandName(f)
-        case r: Ref if factCase(r.symbol)          => r.symbol.name
-        case t if isNamed(t.tpe, "umpire.Monitor") => monitorName(t)
-        case _                                     => reducedText(b0)
+        case t if commandLike(t.tpe)                  => commandName(f)
+        case r: Ref if factCase(r.symbol)             => r.symbol.name
+        case t if isNamed(t.tpe, "framework.Monitor") => monitorName(t)
+        case _                                        => reducedText(b0)
 
   // The name of a monitor written by value, `MonitorExpectation(terminalFinality, …)`: the one the
   // declaration of its val gives it. A monitor no val declares, or that no lifted machine watches,
@@ -757,10 +762,10 @@ private[irgen] trait Realizations:
     val b = reduce(b0)
     b.term match
       case t if isNamed(t.tpe, "io.grpc.MethodDescriptor") => methodName(b)
-      case t if isNamed(t.tpe, "umpire.realize.Field")     => fieldPath(b)
+      case t if isNamed(t.tpe, "framework.realize.Field")  => fieldPath(b)
       case t
-          if isNamed(t.tpe, "umpire.realize.EvidenceRef") ||
-            isNamed(t.tpe, "umpire.realize.TypedEvidence") =>
+          if isNamed(t.tpe, "framework.realize.EvidenceRef") ||
+            isNamed(t.tpe, "framework.realize.TypedEvidence") =>
         val (_, args) = written(b)
         textOfBound(args.find(_._1 == "id").get._2)
       case t if identified.exists(declares(t.tpe, _)) => idOf(b)
@@ -773,7 +778,7 @@ private[irgen] trait Realizations:
       case Literal(StringConstant(s)) => s
       case r: Ref if isMachine(r.tpe) =>
         machineOf(resolveSymbol(r), r).name
-      case r: Ref if isNamed(r.tpe, "umpire.Channel") =>
+      case r: Ref if isNamed(r.tpe, "framework.Channel") =>
         channelOf(resolveSymbol(r), r)
       case Apply(
             Select(Apply(Select(sc, "apply"), List(parts)), "s"),
@@ -850,7 +855,7 @@ private[irgen] trait Realizations:
       case ScalaType.Message(d) if hintMessages(d.fullName) => hintValue(b0, d)
       // The term as written, not reduced: a command is named after the val that declares it, and a
       // fact by its case.
-      case ScalaType.String if !isNamed(follow(b0).term.tpe, "umpire.realize.Field") =>
+      case ScalaType.String if !isNamed(follow(b0).term.tpe, "framework.realize.Field") =>
         follow(b0).term match
           case r: Ref if f.name == "records" && factCase(r.symbol) => factsNamed += r
           case _                                                   => ()
@@ -862,14 +867,14 @@ private[irgen] trait Realizations:
     f.scalaType match
       case ScalaType.Message(d) if d.name == "ActionClass" =>
         classOf(b.term).toPMessage
-      case ScalaType.Message(d) if isNamed(b.term.tpe, "umpire.realize.TypedProtoValue") =>
+      case ScalaType.Message(d) if isNamed(b.term.tpe, "framework.realize.TypedProtoValue") =>
         typedProtoValue(b, d)
-      case ScalaType.Message(d) if isNamed(b.term.tpe, "umpire.realize.Condition") =>
+      case ScalaType.Message(d) if isNamed(b.term.tpe, "framework.realize.Condition") =>
         conditionValue(b, d)
       case ScalaType.Message(d)
-          if isNamed(b.term.tpe, "umpire.realize.TypedOperand") ||
-            isNamed(b.term.tpe, "umpire.realize.ProjectedPath") ||
-            isNamed(b.term.tpe, "umpire.realize.RunKey") =>
+          if isNamed(b.term.tpe, "framework.realize.TypedOperand") ||
+            isNamed(b.term.tpe, "framework.realize.ProjectedPath") ||
+            isNamed(b.term.tpe, "framework.realize.RunKey") =>
         typedOperandValue(b, d)
       case ScalaType.Message(d) =>
         val sub = Message(d)
@@ -877,12 +882,12 @@ private[irgen] trait Realizations:
         sub.written
       case ScalaType.String
           if f.name == "history" &&
-            isNamed(b.term.tpe, "umpire.realize.Field") =>
+            isNamed(b.term.tpe, "framework.realize.Field") =>
         val path = fieldPath(b)
         if !path.startsWith("attributes<") || !path.endsWith(">") then
           fail(b.term, s"$path is no history event attributes member")
         PString(path.stripPrefix("attributes<").stripSuffix(">"))
-      case ScalaType.String if isNamed(b.term.tpe, "umpire.realize.Field") =>
+      case ScalaType.String if isNamed(b.term.tpe, "framework.realize.Field") =>
         PString(fieldPath(b))
       case ScalaType.String               => PString(textOfBound(b))
       case ScalaType.Boolean              => PBoolean(flagOf(b))
@@ -956,14 +961,14 @@ private[irgen] trait Realizations:
     if d.name == "Observed" && typeArgument(b.term).nonEmpty then
       val (fn, args) = applied(b.term).getOrElse(fail(b.term, "expected a typed observation"))
       if fn.symbol.name != "apply" ||
-        fn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.Observed"
+        fn.symbol.owner.fullName.stripSuffix("$") != "framework.realize.Observed"
       then fail(b.term, "expected a typed observation")
       into.set(irField(d, "id", b.term), PString(textOfBound(Bound(args.head, b.env))))
       into.set(
         irField(d, "message", b.term),
         PString(messageDescriptor(typeArgument(b.term).get, b.term).fullName)
       )
-    else if d.name == "Proto" && isNamed(b.term.tpe, "umpire.realize.TypedProto") then
+    else if d.name == "Proto" && isNamed(b.term.tpe, "framework.realize.TypedProto") then
       protoLiteral(b, d) match
         case Some(literal) => literal.value.foreach((f, v) => into.set(f, v))
         case None          => coreProto(b, into)
@@ -998,10 +1003,10 @@ private[irgen] trait Realizations:
           md.findFieldByName(snake(p)) match
             case Some(f)
                 if p == "path" &&
-                  isNamed(a.term.tpe, "umpire.realize.Field") &&
+                  isNamed(a.term.tpe, "framework.realize.Field") &&
                   applied(at).exists { case (fn, _) =>
                     fn.symbol.name == "read" &&
-                    fn.symbol.owner.fullName.stripSuffix("$") == "umpire.realize.Recorded"
+                    fn.symbol.owner.fullName.stripSuffix("$") == "framework.realize.Recorded"
                   } =>
               m.set(f, PString(fieldPath(a, repeated = true)))
             case Some(f) => fieldOf(m, f, a)
@@ -1028,7 +1033,7 @@ private[irgen] trait Realizations:
     val d = into.descriptor
     val (fn, args) = applied(b.term).getOrElse(fail(b.term, "expected a typed proto"))
     if fn.symbol.name != "apply" ||
-      fn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.Proto"
+      fn.symbol.owner.fullName.stripSuffix("$") != "framework.realize.Proto"
     then fail(b.term, "expected a typed proto")
     val message = b.term.tpe.widen.dealias.typeArgs.headOption
       .getOrElse(fail(b.term, "a typed proto needs a message type"))
@@ -1039,7 +1044,7 @@ private[irgen] trait Realizations:
       val (fieldFn, fieldArgs) = applied(field.term)
         .getOrElse(fail(field.term, "expected a typed protobuf field"))
       if fieldFn.symbol.name != "typed" ||
-        fieldFn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.ProtoField"
+        fieldFn.symbol.owner.fullName.stripSuffix("$") != "framework.realize.ProtoField"
       then fail(field.term, "expected a typed protobuf field")
       val name = protoFieldName(Bound(fieldArgs(0), field.env))
       val value = typedProtoValue(
@@ -1571,7 +1576,7 @@ private[irgen] trait Realizations:
     itemsOf(b).flatMap { item =>
       reduce(item).term match
         case r: Ref
-            if isNamed(r.tpe, "umpire.Action") && actions
+            if isNamed(r.tpe, "framework.Action") && actions
               .get(action(r))
               .exists(_.inputs.nonEmpty) =>
           deadlineClasses
@@ -1737,7 +1742,7 @@ private[irgen] trait Realizations:
             s"$name is no section of a realization object, whose sections are ${allowed.mkString(", ")}, in that order"
           )
         Some(name -> s)
-      case v: ValDef if isNamed(v.tpt.tpe, "umpire.realize.Realization") =>
+      case v: ValDef if isNamed(v.tpt.tpe, "framework.realize.Realization") =>
         fail(
           v,
           s"${c.name.stripSuffix("$")} holds a second realization, ${v.name}: a realization object holds one, so declare it as an object of its own"
@@ -1844,7 +1849,8 @@ private[irgen] trait Realizations:
   private def entityOf(machine: ir.Machine, near: Symbol, at: Tree): Term =
     val own = near.fullName
     val candidates = defs.collect {
-      case (sym, v: ValDef) if isNamed(v.tpt.tpe, "umpire.Entity") && sym.name == machine.entity =>
+      case (sym, v: ValDef)
+          if isNamed(v.tpt.tpe, "framework.Entity") && sym.name == machine.entity =>
         sym
     }.toVector
     def shared(sym: Symbol) = sym.fullName.split('.').zip(own.split('.')).takeWhile(_ == _).length
@@ -2042,9 +2048,9 @@ private[irgen] trait Realizations:
         )
       }
 
-  // ### Script helpers (model/umpire/realize/Scripts.scala), written by name
+  // ### Script helpers (model/framework/realize/Scripts.scala), written by name
 
-  private val scriptHelpers = "umpire.realize.Scripts$package$"
+  private val scriptHelpers = "framework.realize.Scripts$package$"
 
   // The script helper a term applies, by name, with its argument lists in order.
   def scriptCall(t: Term): Option[(String, List[Term])] = applied(t).collect {
@@ -2100,7 +2106,7 @@ private[irgen] trait Realizations:
 
   // A command, or an instruction, which stands for the command with no options.
   private def commandLike(tpe: TypeRepr): Boolean =
-    declares(tpe, "umpire.realize.Command") || declares(tpe, "umpire.realize.Instruction")
+    declares(tpe, "framework.realize.Command") || declares(tpe, "framework.realize.Instruction")
 
   // A feature file, one under a `features` directory such as model/temporal/features, writes what
   // the kit writes for it in the kit's forms.
@@ -2109,7 +2115,7 @@ private[irgen] trait Realizations:
   // A feature file writes an instruction in its lower-case form, `fault(…)`, and never its core
   // case class, `Fault(…)`, which the kit's form constructs (model/temporal/realize/Kit.scala).
   private def lowerCaseForm(cls: Symbol, at: Term): Unit =
-    if declares(cls.typeRef, "umpire.realize.Instruction") && inFeature(at) then
+    if declares(cls.typeRef, "framework.realize.Instruction") && inFeature(at) then
       fail(
         at,
         s"${cls.name} is the core form of an instruction: a feature file writes its lower-case " +
@@ -2120,10 +2126,10 @@ private[irgen] trait Realizations:
   // declares it, a script, an actuator or a learned value.
   private val identified =
     Set(
-      "umpire.realize.Addressee",
-      "umpire.realize.Script",
-      "umpire.realize.Actuator",
-      "umpire.realize.Learned",
+      "framework.realize.Addressee",
+      "framework.realize.Script",
+      "framework.realize.Actuator",
+      "framework.realize.Learned",
       "temporal.realize.ActivityPublication"
     )
 
@@ -2149,7 +2155,7 @@ private[irgen] trait Realizations:
   // fields, which names every value of it.
   private def factCase(sym: Symbol): Boolean =
     def ours(s: Symbol) =
-      !s.fullName.startsWith("umpire.") && !s.fullName.startsWith("scala.") && !inVocabulary(s)
+      !s.fullName.startsWith("framework.") && !s.fullName.startsWith("scala.") && !inVocabulary(s)
     (isEnumCase(sym) && ours(sym)) ||
     (sym.flags.is(Flags.Module) && isEnumCase(sym.companionClass) && ours(sym.companionClass))
 
@@ -2197,7 +2203,7 @@ private[irgen] trait Realizations:
 
   // Whether a command is written out with its id, `Command(id, …)`, rather than named by its val.
   private def spelledOut(b: Bound): Boolean =
-    isNamed(b.term.tpe, "umpire.realize.Command") && scriptCall(b.term).isEmpty
+    isNamed(b.term.tpe, "framework.realize.Command") && scriptCall(b.term).isEmpty
 
   // The id of a command: the one it is written out with, or the name of the `val` that declares it
   // in kebab case. A call with fields `withFields` adds keeps the name of the call it extends.
@@ -2403,7 +2409,7 @@ private[irgen] trait Realizations:
           .flatMap(_.params)
           .headOption
           .map(_.tpt.tpe.widen.dealias)
-          .filter(t => isNamed(t, "umpire.realize.RequestScope"))
+          .filter(t => isNamed(t, "framework.realize.RequestScope"))
           .getOrElse(fail(b.term, "expected the scope of a request"))
         val root = scope.typeArgs.head
         def lines(t: Bound): List[Bound] = t.term match
@@ -2429,7 +2435,9 @@ private[irgen] trait Realizations:
                 applied(r.term) match
                   case Some((fn, _))
                       if fn.symbol.name == "typed" &&
-                        fn.symbol.owner.fullName.stripSuffix("$") == "umpire.realize.Assignment" =>
+                        fn.symbol.owner.fullName.stripSuffix(
+                          "$"
+                        ) == "framework.realize.Assignment" =>
                     val m = Message(assignment)
                     declaration(r, m)
                     (List(m.written), Nil)

@@ -8,8 +8,8 @@ package standalone
 package product
 
 import scala.annotation.unused
-import umpire.*
-import umpire.outcomes.{Outcome, Rejection}
+import framework.*
+import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
 import Bounds.three
 import actors.worker.worker as process

@@ -3,8 +3,8 @@
 // line.
 package fixture.crossed
 
-import umpire.*
-import umpire.outcomes.Rejection
+import framework.*
+import framework.outcomes.Rejection
 
 object knocker extends Actor:
   val knock = action(this)

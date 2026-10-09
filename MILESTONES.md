@@ -103,7 +103,7 @@ that IR, lower it to Testpilot Cases, and run those Cases as functional tests an
 Umpire IR and the Testpilot IR are what connect the parts. See [SCALA.md](.plans/SCALA.md) and
 [UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md).
 
-The DSL framework (`model/umpire`) stays Temporal-agnostic as far as is realistic: Temporal's capability
+The DSL framework (`model/framework`) stays Temporal-agnostic as far as is realistic: Temporal's capability
 vocabulary, properties, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
 are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
 
@@ -148,11 +148,11 @@ paths and positions.
 
 #### fn-143: Rename `model/umpire` to `model/framework`
 
-Source gate: after fn-142.1. Folder and package both become `framework`; product names (`tools/umpire`, `umpire-*` targets, `umpire.v1`) stay. The IR differs only in paths and positions.
+Source gate: after fn-142.1. Folder and package both become `framework`; product names (`tools/umpire`, `umpire-*` targets, `umpire.v1`) stay. The IR differs only in paths, positions, framework qualified names and implied fingerprints.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-143.1 | ⬜ todo | Move, rename the package, prove the diff is the umpire.→framework. mapping, docs |
+| fn-143.1 | ✅ done | Moved the framework and Scala package; scratch equivalence and focused source/lifter/Go checks passed, with production regeneration and the integrated batch gate remaining at fn-145.4 |
 
 #### fn-145: Modularize the Umpire IR schema
 

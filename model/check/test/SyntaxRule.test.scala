@@ -1,4 +1,4 @@
-package umpire.check
+package framework.check
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
@@ -16,10 +16,10 @@ class SyntaxRuleSuite extends munit.FunSuite:
   private def findings(files: (String, String)*): Vector[String] =
     SyntaxRule.findings(repository(files*))
 
-  // The framework's sugar as model/umpire/Syntax.scala declares it, documented.
+  // The framework's sugar as model/framework/Syntax.scala declares it, documented.
   private val syntax =
     """// Sugar of the framework.
-      |package umpire
+      |package framework
       |
       |// The ok outcome of a machine. Core form: the outcome itself, `Outcome.accepted`.
       |final case class Ok[O](outcome: O)
@@ -52,15 +52,15 @@ class SyntaxRuleSuite extends munit.FunSuite:
       |  // One step that keeps the state. Core form: `List(Step(Outcome.accepted, s))`.
       |  def stay[S](s: S): List[S] = List(s)
       |
-      |  private[umpire] def internal: Int = 1
+      |  private[framework] def internal: Int = 1
       |""".stripMargin
 
   test("a documented Syntax.scala, its private helpers and its locals pass"):
-    assertEquals(findings("model/umpire/Syntax.scala" -> syntax), Vector.empty)
+    assertEquals(findings("model/framework/Syntax.scala" -> syntax), Vector.empty)
 
   test("a Syntax.scala definition without a doc comment, or whose doc names no core form, fails"):
     val source =
-      """package umpire
+      """package framework
         |
         |def enter(n: Int): Int = n
         |
@@ -97,24 +97,24 @@ class SyntaxRuleSuite extends munit.FunSuite:
 
   test("an extension's first definition may be documented above the extension"):
     val source =
-      """package umpire
+      """package framework
         |
         |// `a implies b`. Core form: `!a || b`.
         |extension (a: Boolean)
         |  infix def implies(b: => Boolean): Boolean = !a || b
         |""".stripMargin
-    assertEquals(findings("model/umpire/Syntax.scala" -> source), Vector.empty)
+    assertEquals(findings("model/framework/Syntax.scala" -> source), Vector.empty)
 
   test("the lifter's Syntax trait documents its public members, not its private ones"):
     val source =
-      """package umpire.irgen
+      """package framework.irgen
         |
         |// The lifting of the sugar.
         |private[irgen] trait Syntax:
         |  self: Lifting =>
         |  import ctx.*
         |
-        |  private val owner = "umpire.Syntax$package$"
+        |  private val owner = "framework.Syntax$package$"
         |
         |  // Hook: a sugar form lifted. Core form: `s.facts.contains(f)` lifts the same.
         |  def sugar(t: Term): Expr = t match
@@ -128,8 +128,8 @@ class SyntaxRuleSuite extends munit.FunSuite:
     assert(found.head.contains("`sugared`"), found.head)
 
   test("a sugar name defined at the top level, in an object or as an extension fails"):
-    val umpire =
-      """package umpire
+    val framework =
+      """package framework
         |
         |infix def implies(a: Boolean, b: Boolean): Boolean = !a || b
         |
@@ -151,14 +151,14 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |private def sticky(p: Boolean): Boolean = p
         |""".stripMargin
     val lifter =
-      """package umpire.irgen
+      """package framework.irgen
         |
         |object Matching:
         |  object Inner:
         |    def unless(t: Term): Boolean = false
         |""".stripMargin
     val found = findings(
-      "model/umpire/Steps.scala" -> umpire,
+      "model/framework/Steps.scala" -> framework,
       "model/temporal/features/activity/standalone/Standalone.scala" -> temporal,
       "model/irgen/Matching.scala" -> lifter
     )
@@ -169,10 +169,10 @@ class SyntaxRuleSuite extends munit.FunSuite:
         "model/temporal/features/activity/standalone/Standalone.scala:5:",
         "model/temporal/features/activity/standalone/Standalone.scala:6:",
         "model/temporal/features/activity/standalone/Standalone.scala:8:",
-        "model/umpire/Steps.scala:3:",
-        "model/umpire/Steps.scala:7:",
-        "model/umpire/Steps.scala:8:",
-        "model/umpire/Steps.scala:10:"
+        "model/framework/Steps.scala:3:",
+        "model/framework/Steps.scala:7:",
+        "model/framework/Steps.scala:8:",
+        "model/framework/Steps.scala:10:"
       )
     )
     assert(found.head.contains("move it into model/irgen/Syntax.scala"), found.head)
@@ -181,13 +181,13 @@ class SyntaxRuleSuite extends munit.FunSuite:
 
   test("class members, constructor parameters, locals and comments are not sugar"):
     val claims =
-      """package umpire
+      """package framework
         |
-        |final class QueryOn[P] private[umpire] (name: String, p: Property[P]):
+        |final class QueryOn[P] private[framework] (name: String, p: Property[P]):
         |  // The scenario clause: `query find p in s`. Sugar words in a doc: enter, implies.
         |  infix def in[S](s: Scenario[S]): QueryIn = QueryIn(name, p.decl, s.decl)
         |
-        |final class Progress[S] private[umpire] (
+        |final class Progress[S] private[framework] (
         |    val name: String,
         |    val from: S => Boolean,
         |    val to: S => Boolean
@@ -212,7 +212,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |    def keeps: Int = 1
         |  Vector(stays)
         |""".stripMargin
-    assertEquals(findings("model/umpire/Claims.scala" -> claims), Vector.empty)
+    assertEquals(findings("model/framework/Claims.scala" -> claims), Vector.empty)
 
   test("fixtures, tests and build output are not read"):
     val sugar = "package x\n\ndef implies(a: Boolean, b: Boolean): Boolean = !a || b\n"
@@ -221,14 +221,14 @@ class SyntaxRuleSuite extends munit.FunSuite:
         "model/irgen/testdata/lifts/Model.scala" -> sugar,
         "model/irgen/test/Lift.test.scala" -> sugar,
         "model/temporal/features/activity/standalone/Pins.test.scala" -> sugar,
-        "model/umpire/.scala-build/Gen.scala" -> sugar
+        "model/framework/.scala-build/Gen.scala" -> sugar
       ),
       Vector.empty
     )
 
   test("a core file that imports a Syntax module or a name of its sugar fails"):
     val lifter =
-      """package umpire.irgen
+      """package framework.irgen
         |
         |import scala.collection.mutable
         |import umpire.irgen.Syntax
@@ -238,7 +238,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |  def lifted(t: Term) = if sugared(t) then sugar(t) else plain(t)
         |""".stripMargin
     val lifterSyntax =
-      """package umpire.irgen
+      """package framework.irgen
         |
         |// The lifting of the sugar.
         |private[irgen] trait Syntax:
@@ -248,20 +248,20 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |  // Hook: its IR. Core form: `xs.contains(x)` lifts the same.
         |  def sugar(t: Term): Expr = ???
         |""".stripMargin
-    val umpire =
-      """package umpire
+    val framework =
+      """package framework
         |
-        |import umpire.{
+        |import framework.{
         |  Step,
         |  enter
         |}
-        |import umpire.Syntax$package.*
+        |import framework.Syntax$package.*
         |
         |def core: Int = 1
         |""".stripMargin
     val found = findings(
-      "model/umpire/Syntax.scala" -> syntax,
-      "model/umpire/Core.scala" -> umpire,
+      "model/framework/Syntax.scala" -> syntax,
+      "model/framework/Core.scala" -> framework,
       "model/irgen/Syntax.scala" -> lifterSyntax,
       "model/irgen/Lifting.scala" -> lifter
     )
@@ -270,10 +270,10 @@ class SyntaxRuleSuite extends munit.FunSuite:
       Vector(
         "model/irgen/Lifting.scala:4: syntax rule: a core file imports the sugar of " +
           "model/irgen/Syntax.scala (`Syntax`): remove the import and write the core form",
-        "model/umpire/Core.scala:3: syntax rule: a core file imports the sugar of " +
-          "model/umpire/Syntax.scala (`enter`): remove the import and write the core form",
-        "model/umpire/Core.scala:7: syntax rule: a core file imports the sugar of " +
-          "model/umpire/Syntax.scala (`Syntax$package`): remove the import and write the core form"
+        "model/framework/Core.scala:3: syntax rule: a core file imports the sugar of " +
+          "model/framework/Syntax.scala (`enter`): remove the import and write the core form",
+        "model/framework/Core.scala:7: syntax rule: a core file imports the sugar of " +
+          "model/framework/Syntax.scala (`Syntax$package`): remove the import and write the core form"
       )
     )
 
@@ -281,7 +281,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
     "a core file of the framework that names its sugar fails, unless the core declares the name"
   ):
     val core =
-      """package umpire
+      """package framework
         |
         |// Doc comments may say `enter(s)` and `a implies b`.
         |def step[S](s: S)(using Ok[String]): List[Step[S, String, Nothing]] =
@@ -293,20 +293,21 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |
         |def scenario(q: QueryOn[Int], s: Scenario[Int]): QueryIn = q in s
         |""".stripMargin
-    val found = findings("model/umpire/Syntax.scala" -> syntax, "model/umpire/Core.scala" -> core)
+    val found =
+      findings("model/framework/Syntax.scala" -> syntax, "model/framework/Core.scala" -> core)
     assertEquals(
       found.map(_.takeWhile(_ != ' ')),
-      Vector(4, 6, 6, 6).map(line => s"model/umpire/Core.scala:$line:")
+      Vector(4, 6, 6, 6).map(line => s"model/framework/Core.scala:$line:")
     )
     assertEquals(
       found.map(_.replaceAll(".*uses `([^`]+)`.*", "$1")),
       Vector("Ok", "implies", "enter", "disabled")
     )
-    assert(found.head.contains("sugar defined in model/umpire/Syntax.scala"), found.head)
+    assert(found.head.contains("sugar defined in model/framework/Syntax.scala"), found.head)
 
   test("the lifter's core may name its Syntax trait's hooks"):
     val lifterSyntax =
-      """package umpire.irgen
+      """package framework.irgen
         |
         |// The lifting of the sugar.
         |private[irgen] trait Syntax:
@@ -314,7 +315,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |  def sugared(t: Term): Boolean = true
         |""".stripMargin
     val core =
-      """package umpire.irgen
+      """package framework.irgen
         |
         |trait Lifting extends Syntax:
         |  def lifted(t: Term): Boolean = sugared(t)
@@ -331,12 +332,12 @@ class SyntaxRuleSuite extends munit.FunSuite:
         Gate.main(Seq("--check-syntax"), Tools(root, Map.empty), PrintStream(out), PrintStream(err))
       assertEquals(out.toString, "")
       (status, err.toString)
-    val sugar = "package umpire\n\ndef implies(a: Boolean, b: Boolean): Boolean = !a || b\n"
-    val (failed, printed) = run(repository("model/umpire/Logic.scala" -> sugar))
+    val sugar = "package framework\n\ndef implies(a: Boolean, b: Boolean): Boolean = !a || b\n"
+    val (failed, printed) = run(repository("model/framework/Logic.scala" -> sugar))
     assertEquals(failed, 1)
-    assert(printed.startsWith("model/umpire/Logic.scala:3: syntax rule: "), printed)
+    assert(printed.startsWith("model/framework/Logic.scala:3: syntax rule: "), printed)
     assertEquals(printed.linesIterator.size, 1)
-    assertEquals(run(repository("model/umpire/Syntax.scala" -> syntax)), (0, ""))
+    assertEquals(run(repository("model/framework/Syntax.scala" -> syntax)), (0, ""))
 
   test("the repository's sugar keeps to the rule"):
     assertEquals(SyntaxRule.findings(Tools.here.directory), Vector.empty)

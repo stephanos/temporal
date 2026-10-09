@@ -1,6 +1,6 @@
 package fixture.enumrefusals
 
-import umpire.realize.*
+import framework.realize.*
 
 val unknownBasis = Realization(
   "unknownBasis",

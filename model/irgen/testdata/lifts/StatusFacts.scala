@@ -7,7 +7,7 @@
 // names and positions, and the phase enum to lift as an enum with no fields.
 package fixture.statusfacts
 
-import umpire.*
+import framework.*
 
 enum Fact derives Finite:
   case statusIdle, statusRunning, statusPaused, attempted

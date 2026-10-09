@@ -1,11 +1,11 @@
-// Each sugar form of model/umpire/Syntax.scala beside its core form: `Sugared` binds and claims with
+// Each sugar form of model/framework/Syntax.scala beside its core form: `Sugared` binds and claims with
 // the sugar, `Cored` with the core spelling, action by action and Property by Property, and `Watched`
 // is watched by each sticky monitor and its `monitor` spelling. The lifter's tests lift both and
 // require one IR of the two, but for names, positions and the names of the functions the declarations
 // refer to.
 package fixture.sugar
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, running, paused, done

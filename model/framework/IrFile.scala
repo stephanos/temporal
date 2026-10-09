@@ -1,7 +1,7 @@
-package umpire
+package framework
 
 import scala.collection.mutable
-import umpire.realize.Realization
+import framework.realize.Realization
 
 // A checked-in IR file, `model/ir/<name>.json`, and the declarations that are its roots, named by
 // value beside the Models it holds:
@@ -19,7 +19,7 @@ import umpire.realize.Realization
 // may be a root of several files and is lifted into each; one no file names stays out of model/ir,
 // so a design can be kept out of the checked files. The file's `source` lists its roots' fully
 // qualified names.
-final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot]):
+final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot]):
   // Constructs every root and what it reaches, as the gate does for every IR file (a Model test
   // beside the Models): each machine's rules, so an overlap of two of them is refused here, the
   // members of each composition, the machine each machine refines, the source of each derivation,
@@ -50,7 +50,7 @@ final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot]):
     seen.map(_.name).toSet
 
 object IrFile:
-  private[umpire] val made = mutable.ArrayBuffer.empty[IrFile]
+  private[framework] val made = mutable.ArrayBuffer.empty[IrFile]
 
   // Every IR file declared so far: each `irFile` val of an object that has initialized.
   def declared: Seq[IrFile] = made.synchronized(made.toSeq)

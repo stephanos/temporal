@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.features.activity.{deadline, timers, Failure, Timeout, TimeoutType}
 import temporal.features.activity.standalone.{
@@ -10,7 +10,7 @@ import temporal.features.activity.standalone.{
   MaxAttempts
 }
 import temporal.features.activity.standalone.system.ActivitySystem
-import umpire.outcomes.Outcome
+import framework.outcomes.Outcome
 
 class ActivityRetryRegression extends munit.FunSuite:
   private def take(s: system.State, c: Class): Step[system.State, Outcome, system.Fact] =

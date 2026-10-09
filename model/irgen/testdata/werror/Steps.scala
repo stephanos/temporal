@@ -3,7 +3,7 @@
 // diagnostics rather than its exit status, and this one is expected at the match's line.
 package fixture.werror
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, working, done

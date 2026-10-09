@@ -1,7 +1,7 @@
 // A shared feature: its root feature file may name no IR file.
 package fixture.foundations.pump
 
-import umpire.*
+import framework.*
 
 final case class Pump(running: Boolean) derives Finite
 

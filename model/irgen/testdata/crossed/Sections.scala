@@ -3,7 +3,7 @@
 // outcome of another type and a fact of another type, each a type error at its line.
 package fixture.crossed
 
-import umpire.*
+import framework.*
 
 final case class Watching[S](on: S => Boolean) extends CapabilityOf[S, Nothing, Nothing]
 object Watching extends CapabilityKind

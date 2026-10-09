@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.features.nexus.{product, standalone, workflow}
 import workflow.system.given

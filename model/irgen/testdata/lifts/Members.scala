@@ -8,7 +8,7 @@
 // `withMember` derives from it keeps and `synced` selects from either member.
 package fixture.members
 
-import umpire.*
+import framework.*
 
 // ### Separators in composed keys, and actions spelled alike in two members
 

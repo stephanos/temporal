@@ -1,6 +1,6 @@
 package fixture.realizationRefusals
 
-import umpire.realize.{Activation, Realization, Script}
+import framework.realize.{Activation, Realization, Script}
 
 val unknownConstructor: Realization = Realization(
   name = "unknownConstructor",

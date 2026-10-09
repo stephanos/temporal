@@ -16,8 +16,8 @@ package temporal
 package actors.worker
 
 import scala.annotation.unused
-import umpire.*
-import umpire.outcomes.Outcome
+import framework.*
+import framework.outcomes.Outcome
 
 // ### Types
 

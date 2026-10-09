@@ -1,6 +1,6 @@
 package fixture.features.stove
 
-import umpire.*
+import framework.*
 
 final case class Light(lit: Boolean) derives Finite
 

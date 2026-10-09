@@ -1,4 +1,4 @@
-package umpire
+package framework
 // The Nexus and shared-worker rejection cells, recorded before they adopted the shared Outcome.
 
 import temporal.features.nexus.handler as nexusHandler
@@ -7,7 +7,7 @@ import temporal.features.nexus.standalone
 import temporal.features.nexus.workflow
 import temporal.features.nexus.workflow.system.given
 import temporal.actors.worker as sharedWorker
-import umpire.outcomes.Outcome
+import framework.outcomes.Outcome
 
 class NexusOutcomePins extends munit.FunSuite:
   final case class ExpectedStep[S, F](

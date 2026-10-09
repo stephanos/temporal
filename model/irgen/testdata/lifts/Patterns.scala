@@ -1,11 +1,11 @@
-// Each claim pattern of model/umpire/Syntax.scala beside the `holds` or `holdsAcross` lambda it stands
+// Each claim pattern of model/framework/Syntax.scala beside the `holds` or `holdsAcross` lambda it stands
 // for, on a machine and on a composition over a member projection, with the composition's
 // `records(_.member, fact)` beside its composed key and three claims written once over `Declares[S]`.
 // Each pattern is named `<name>` and its lambda spelling `<name>Core`; the lifter's tests lift both
 // and require one IR, but for names, positions and the names of the functions they refer to.
 package fixture.patterns
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, running, paused, done

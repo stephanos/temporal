@@ -2,7 +2,7 @@
 // vocabulary. A capability kind's companion defines the Properties it brings. The IR generator
 // expands them for each machine's `capabilities` section, and its `queries` section bounds their
 // generated Queries.
-package umpire
+package framework
 
 import scala.annotation.unused
 
@@ -46,7 +46,7 @@ abstract class Capabilities[S, O, F](using declaring: Declaring[S, O, F]):
   protected type Capability = CapabilityOf[S, O, F]
 
   // The machine or composition the section declares the capabilities of.
-  private[umpire] def model: Declares[S] = declaring.model
+  private[framework] def model: Declares[S] = declaring.model
 
   // Lifts no Property and no Query for the capability Property `property`, for the reason
   // `because` gives: `except(<Capability>.<property>, because = "…")`.

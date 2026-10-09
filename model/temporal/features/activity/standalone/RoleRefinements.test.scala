@@ -1,4 +1,4 @@
-package umpire
+package framework
 // The standalone activity's refinements whose System and Product phases both take roles keep
 // closedness: a System state is Closed exactly when its Product image is, over every Finite state.
 // A role-carrying refinement added later is added here by name.

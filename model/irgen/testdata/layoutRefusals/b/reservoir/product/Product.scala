@@ -1,7 +1,7 @@
 package fixture.features.reservoir
 package product
 
-import umpire.*
+import framework.*
 
 object ReservoirProduct extends Machine[ProductState, Outcome, ProductFact]:
   val init = ProductState(ProductPhase.empty)

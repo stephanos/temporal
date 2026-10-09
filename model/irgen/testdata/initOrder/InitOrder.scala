@@ -8,7 +8,7 @@
 // (Realization.scala), which reads it back through its base class.
 package fixture.features.initorder
 
-import umpire.*
+import framework.*
 
 final case class Lamp(lit: Boolean) derives Finite
 

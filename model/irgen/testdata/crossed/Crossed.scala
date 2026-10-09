@@ -2,7 +2,7 @@
 // The lifter's tests build this and expect a type error at each marked line.
 package fixture.crossed
 
-import umpire.*
+import framework.*
 
 enum Note derives Finite:
   case ping

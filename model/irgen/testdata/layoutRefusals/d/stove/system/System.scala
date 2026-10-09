@@ -1,7 +1,7 @@
 package fixture.features.stove
 package system
 
-import umpire.*
+import framework.*
 
 object StoveSystem extends Machine[Light, Outcome, Nothing]:
   val init = Light(lit = false)

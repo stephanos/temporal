@@ -1,4 +1,4 @@
-// The shared outcomes, umpire.outcomes (fn-139.1): two machines on the framework's `Outcome` and
+// The shared outcomes, framework.outcomes (fn-139.1): two machines on the framework's `Outcome` and
 // `Rejection`, whose `enter` and `stay` answer `accepted` by the framework's given. `DoorSystem`
 // writes its rejecting rules with `rejects(r)` and `rejects(r).because(text)`; `DoorProduct` writes
 // the same rules with effects that spell `reject(Outcome.rejected(r), s)`. The lifter's tests
@@ -7,8 +7,8 @@
 // passes `rejected = Outcome.rejected(Rejection.notFound)`. tools/umpire/ir admits the IR.
 package fixture.rejections
 
-import umpire.*
-import umpire.outcomes.{Outcome, Rejection}
+import framework.*
+import framework.outcomes.{Outcome, Rejection}
 
 enum Phase derives Finite:
   case shut, ajar, locked, gone

@@ -1,7 +1,7 @@
 package fixture.features.relay.standalone
 package system
 
-import umpire.*
+import framework.*
 import fixture.features.relay.{given, *}
 import fixture.features.relay.product.RelayProduct
 

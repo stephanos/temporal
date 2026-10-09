@@ -4,7 +4,7 @@
 // no Model declarations and stay.
 package fixture.features.misnamed
 
-import umpire.*
+import framework.*
 
 final case class Lamp(lit: Boolean) derives Finite
 

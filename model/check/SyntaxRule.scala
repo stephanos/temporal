@@ -8,18 +8,18 @@ import scala.jdk.CollectionConverters.*
 // core form it stands for, and no core file reaches it. `make lint-model` holds the Models, the
 // framework and the lifter to three rules (`gate --check-syntax`):
 //
-//   - Each definition of a `Syntax.scala` under model/umpire, model/temporal or model/irgen that is
+//   - Each definition of a `Syntax.scala` under model/framework, model/temporal or model/irgen that is
 //     top-level, a member of an object or an extension method (in model/irgen also a member of a
 //     top-level class or trait) has a doc comment directly before it, with only blank lines and
 //     annotations between, that says `Core form:` and, after it, the core spelling in backticks.
 //     Private definitions are helpers and exempt.
-//   - No other file of model/umpire, model/temporal or model/irgen (its own files, not its
+//   - No other file of model/framework, model/temporal or model/irgen (its own files, not its
 //     fixtures or tests) defines a sugar name at the top level, in an object or as an extension
 //     method. Members of a class, trait or enum, constructor parameters and locals are not sugar.
-//   - A core file, the files of model/umpire, model/temporal/realize and model/irgen beside their
+//   - A core file, the files of model/framework, model/temporal/realize and model/irgen beside their
 //     tree's `Syntax.scala`, imports no `Syntax` module and no name that file defines. In
-//     model/umpire and model/temporal/realize it names none of them either, outside comments and
-//     strings: top-level sugar of package `umpire` needs no import there. A name the core of the tree
+//     model/framework and model/temporal/realize it names none of them either, outside comments and
+//     strings: top-level sugar of package `framework` needs no import there. A name the core of the tree
 //     declares itself, as a member, parameter or local, reads as that declaration and is left alone.
 //
 // The Models are scalafmt-formatted Scala 3 with significant indentation, so a definition's place is
@@ -281,7 +281,7 @@ private[check] object SyntaxRule:
   // The lifter's core reaches the hooks of its trait Syntax through its self-type, by name; only an
   // import of it is refused there.
   private val trees = Seq(
-    Tree("model/umpire", recursive = true, references = true),
+    Tree("model/framework", recursive = true, references = true),
     Tree("model/temporal/realize", recursive = true, references = true),
     Tree("model/irgen", recursive = false, references = false)
   )
@@ -289,7 +289,7 @@ private[check] object SyntaxRule:
   private def home(file: String): String =
     if file.startsWith("model/irgen/") then "model/irgen/Syntax.scala"
     else if file.startsWith("model/temporal/") then "model/temporal/realize/Syntax.scala"
-    else "model/umpire/Syntax.scala"
+    else "model/framework/Syntax.scala"
 
   // The definitions of a `Syntax.scala` that are its sugar: public, at a place the rule reads.
   private def sugar(file: Source): Vector[Definition] =
@@ -374,7 +374,7 @@ private[check] object SyntaxRule:
   // What breaks the rules in the repository at `root`, each as `file:line: reason`, in order.
   def findings(root: Path): Vector[String] =
     val files = Vector(
-      "model/umpire" -> true,
+      "model/framework" -> true,
       "model/temporal" -> true,
       "model/irgen" -> false
     ).flatMap((directory, recursive) => sources(root, directory, recursive)).map(read(root, _))

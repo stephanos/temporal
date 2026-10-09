@@ -3,7 +3,7 @@
 // lifts equal byte for byte (expected.json).
 package fixture.phased
 
-import umpire.*
+import framework.*
 
 enum Light derives Finite:
   case off, on, broken

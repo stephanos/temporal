@@ -1,7 +1,7 @@
 package fixture.features.cistern
 package product
 
-import umpire.*
+import framework.*
 
 object CisternContract extends Machine[Light, Outcome, Nothing]:
   val init = Light(lit = false)

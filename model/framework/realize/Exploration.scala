@@ -1,6 +1,6 @@
-package umpire.realize
+package framework.realize
 
-import umpire.ClassRef
+import framework.ClassRef
 
 final case class Alternative(name: String, priority: Int, actions: Vector[ClassRef])
 final case class Variation(index: Int, choices: Vector[Alternative])

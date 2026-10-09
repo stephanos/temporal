@@ -3,7 +3,7 @@
 // field of the state shares. The tests lift `presence` and compare the IR with expected/presence.json.
 package fixture.presence
 
-import umpire.*
+import framework.*
 
 enum Result derives Finite:
   case succeeded, failed

@@ -1,6 +1,6 @@
 package fixture.binding
 
-import umpire.*
+import framework.*
 // Its actions name no message: a realization binding derives what a class carries (fn-133.8).
 
 enum Outcome derives Finite:

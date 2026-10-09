@@ -1,6 +1,6 @@
 package fixture.crossed.actioninput
 
-import umpire.*
+import framework.*
 
 final case class State(on: Boolean) derives Finite
 

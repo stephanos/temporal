@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.capabilities.{Pausable, Pollable}
 
@@ -51,13 +51,13 @@ class PausableSuite extends munit.FunSuite:
 
   test("an abstract phase cannot declare Pausable or Pollable without runtime type witnesses"):
     val pausableErrors = scala.compiletime.testing.typeCheckErrors("""
-      import umpire.*
+      import framework.*
       import temporal.capabilities.Pausable
       def pausing[S, P](pause: ClassRef, unpause: ClassRef)(using Phasing[S, P], Finite[P]) =
         Pausable[S, P](pause, unpause)
     """)
     val pollableErrors = scala.compiletime.testing.typeCheckErrors("""
-      import umpire.*
+      import framework.*
       import temporal.capabilities.Pollable
       def polling[S, P](dispatch: ClassRef)(using Phasing[S, P], Finite[P]) =
         Pollable[S, P](dispatch)

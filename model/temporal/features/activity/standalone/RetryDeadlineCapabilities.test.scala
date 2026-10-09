@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.capabilities.{Deadline, Retries}
 import temporal.features.activity.{deadline as activityDeadline, Failure, TimeoutType}
@@ -7,7 +7,7 @@ import temporal.features.activity.standalone.system as activity
 import temporal.features.nexus.Reply
 import temporal.features.nexus.workflow.{deadline as nexusDeadline, handler, network}
 import temporal.features.nexus.workflow.system as nexus
-import umpire.outcomes.Outcome
+import framework.outcomes.Outcome
 
 class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
   private def fields(section: AnyRef, name: String): Map[String, Any] =

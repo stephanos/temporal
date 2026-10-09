@@ -2,7 +2,7 @@
 // realization must not do: the capabilities section reads the realization first.
 package fixture.features.initorder
 
-import umpire.{Capabilities, Declaring, Machine}
+import framework.{Capabilities, Declaring, Machine}
 
 object SwitchRealization:
   val reported = Switch.states.lit(Lamp(true))

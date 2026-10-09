@@ -1,7 +1,7 @@
 package fixture.features.reservoir
 package system
 
-import umpire.*
+import framework.*
 import product.ReservoirProduct
 
 object ReservoirSystem extends Machine[SystemState, Outcome, SystemFact]:

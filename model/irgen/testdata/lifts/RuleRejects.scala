@@ -2,7 +2,7 @@
 // `from`'s declarer does not declare, and an import after the first statement.
 package fixture.rulerejects
 
-import umpire.*
+import framework.*
 import fixture.grouped.{clock, cook, Kettle, Mode, Outcome, Plain}
 
 object NestedFrom extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):

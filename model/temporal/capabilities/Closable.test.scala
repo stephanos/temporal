@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 import temporal.capabilities.Closable
 
@@ -25,7 +25,7 @@ class ClosableSuite extends munit.FunSuite:
 
   test("an abstract phase cannot declare Closable without its runtime type witness"):
     val errors = scala.compiletime.testing.typeCheckErrors("""
-      import umpire.*
+      import framework.*
       import temporal.capabilities.Closable
       def closing[S, P](using Phasing[S, P], Finite[P]) = Closable[S, P, String]("rejected")
     """)

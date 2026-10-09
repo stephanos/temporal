@@ -1,9 +1,9 @@
-package umpire
+package framework
 
 import temporal.features.activity.{deadline, timers, Failure, Timeout}
 import temporal.features.activity.standalone.{client, system, worker, MaxAttempts}
 import temporal.features.activity.standalone.system.ActivitySystem
-import umpire.outcomes.Outcome
+import framework.outcomes.Outcome
 
 class ActivityDispatchRegression extends munit.FunSuite:
   private def take(

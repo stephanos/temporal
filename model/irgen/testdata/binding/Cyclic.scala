@@ -1,6 +1,6 @@
 package fixture.binding
 
-import umpire.*
+import framework.*
 
 object firstCycle:
   val job = Entity()

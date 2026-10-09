@@ -1,7 +1,7 @@
 package fixture.features.cistern
 package system
 
-import umpire.*
+import framework.*
 
 enum Placeholder derives Finite:
   case empty

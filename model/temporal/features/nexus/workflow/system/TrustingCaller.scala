@@ -9,10 +9,10 @@ package features.nexus
 package workflow
 package system
 
-import umpire.*
-import umpire.outcomes.{Outcome, Rejection}
-import umpire.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
-import umpire.realize.{PropertyOutcome, RunExpectation, Variation}
+import framework.*
+import framework.outcomes.{Outcome, Rejection}
+import framework.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
+import framework.realize.{PropertyOutcome, RunExpectation, Variation}
 import temporal.actors.worker.worker
 
 // ### Signature

@@ -17,8 +17,8 @@ package features.activity
 package standalone
 package system
 
-import umpire.*
-import umpire.outcomes.{Outcome, Rejection}
+import framework.*
+import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
 import Bounds.three
 import foundations.taskqueue.{fault, queue, seven, twelve, Outstanding, QueueDetail, QueueView}

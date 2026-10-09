@@ -4,7 +4,7 @@
 // server runs under, and how Temporal's APIs behave between calls.
 //
 // Each declaration extends an open trait of the framework's realization vocabulary
-// (model/umpire/realize), which knows no system. As there, the lifter emits a declaration into the
+// (model/framework/realize), which knows no system. As there, the lifter emits a declaration into the
 // IR as written, each class by its simple name and each parameter by its own
 // (model/irgen/Realizations.scala), and a default is the empty value, which the IR leaves unset.
 package temporal.realize
@@ -12,8 +12,8 @@ package temporal.realize
 import io.grpc.MethodDescriptor
 import io.temporal.api.common.v1.Payloads
 import scalapb.GeneratedMessage
-import umpire.ClassRef
-import umpire.realize.{
+import framework.ClassRef
+import framework.realize.{
   Activation,
   Addressee,
   Behavior,
@@ -91,10 +91,10 @@ enum WorkerInstruction extends Instruction:
   case WorkflowCommand(command: TypedProto[?])
 
   // A Nexus handler's answer; an asynchronous one binds the handle `binds` names.
-  case NexusReply(reply: TypedProto[?], binds: String | umpire.realize.Learned = "")
+  case NexusReply(reply: TypedProto[?], binds: String | framework.realize.Learned = "")
 
   // Completes the asynchronous Nexus operation a handle names, with a payload or a failure.
-  case NexusCompletion(handle: String | umpire.realize.Learned, result: TypedProto[?])
+  case NexusCompletion(handle: String | framework.realize.Learned, result: TypedProto[?])
 
 // A workflow's history, as evidence is read from it.
 object WorkflowHistory:

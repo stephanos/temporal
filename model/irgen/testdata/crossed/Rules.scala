@@ -2,7 +2,7 @@
 // `Phased[State, Phase](_.phase)`, and rules on a plain machine name no phase.
 package fixture.crossed
 
-import umpire.*
+import framework.*
 
 object flipper extends Actor:
   val flip = action(this)

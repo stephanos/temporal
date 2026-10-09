@@ -23,9 +23,9 @@ class CapabilityVocabularySuite extends munit.FunSuite:
     try stream.iterator.asScala.filter(_.toString.endsWith(".scala")).toVector.sorted
     finally stream.close()
 
-  test("model/umpire and the lifter's sources name no Temporal capability kind") {
+  test("model/framework and the lifter's sources name no Temporal capability kind") {
     val root = Tools.here.directory
-    val files = scala(root.resolve("model/umpire"), recursive = true) ++
+    val files = scala(root.resolve("model/framework"), recursive = true) ++
       scala(root.resolve("model/irgen"), recursive = false)
     val named = for
       file <- files

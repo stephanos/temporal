@@ -1,6 +1,6 @@
 package fixture.features.relay
 
-import umpire.*
+import framework.*
 
 enum Outcome derives Finite:
   case accepted

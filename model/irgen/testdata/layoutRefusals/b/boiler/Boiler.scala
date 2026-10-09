@@ -1,6 +1,6 @@
 package fixture.features.boiler
 
-import umpire.*
+import framework.*
 import product.BoilerContract
 import system.BoilerImplementation
 

@@ -5,6 +5,6 @@
 package fixture.dynamicInvalid
 
 import temporal.server.api.testpilot.v1.InstructionOutcome
-import umpire.realize.*
+import framework.realize.*
 
 val wrongRun = Operand.Run.as[InstructionOutcome]

@@ -1,4 +1,4 @@
-package umpire
+package framework
 
 // A passive monitor over the steps of machines whose steps are `Step[S, O, F]`: a finite state `M`
 // of its own that every step advances, and a verdict read at its evaluation point. It reads steps
@@ -7,7 +7,7 @@ package umpire
 // machine that names it under `monitors`.
 //
 // The IR interpreter checks it (model/SEMANTICS.md, Monitors).
-final class Monitor[S, O, F, M] private[umpire] (
+final class Monitor[S, O, F, M] private[framework] (
     val name: String,
     val initial: M,
     val next: (M, S, Step[S, O, F]) => M,

@@ -1,10 +1,10 @@
-package umpire
+package framework
 
 import temporal.features.activity.Timeout
 import temporal.features.activity.standalone.{client, product, system, MaxAttempts}
 import temporal.features.activity.standalone.product.ActivityProduct
 import temporal.features.activity.standalone.system.ActivitySystem
-import umpire.outcomes.{Outcome, Rejection}
+import framework.outcomes.{Outcome, Rejection}
 
 class ActivityVisibilityRegression extends munit.FunSuite:
   private def take(a: Action[EmptyTuple], s: product.State) =

@@ -3,8 +3,8 @@
 // diagnostics with expected/rejects.txt.
 package fixture.scriptrejects
 
-import umpire.*
-import umpire.realize.*
+import framework.*
+import framework.realize.*
 import temporal.realize.WorkerInstruction.{AttemptFailure, Fault}
 import temporal.realize.*
 import temporal.features.activity.Timeout

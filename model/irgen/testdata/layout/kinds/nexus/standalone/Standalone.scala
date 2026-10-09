@@ -1,7 +1,7 @@
 package fixture.features.nexus
 package standalone
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case idle, done

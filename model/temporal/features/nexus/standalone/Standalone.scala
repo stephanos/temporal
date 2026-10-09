@@ -17,7 +17,7 @@ package temporal
 package features.nexus
 package standalone
 
-import umpire.*
+import framework.*
 import temporal.actors.client.Client
 import system.NexusSystem
 
@@ -40,7 +40,7 @@ object handler extends Actor:
   val reply = temporal.features.nexus.handler.reply.on(operation)
   val complete = temporal.features.nexus.handler.complete.on(operation)
 
-// ### The checked-in IR file of the standalone Nexus operation Model (umpire.irFile).
+// ### The checked-in IR file of the standalone Nexus operation Model (framework.irFile).
 
 object exports:
   val nexusStandalone = irFile("nexus-standalone")(

@@ -1,6 +1,6 @@
 package fixture.externalwrongmethod
 
-import umpire.realize.*
+import framework.realize.*
 import temporal.realize.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_RESPOND_ACTIVITY_TASK_FAILED_BY_ID
 

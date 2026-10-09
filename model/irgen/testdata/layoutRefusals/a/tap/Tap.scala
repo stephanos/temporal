@@ -1,7 +1,7 @@
 // A feature of one level, whose machine sits in a product/ folder all the same.
 package fixture.features.tap
 
-import umpire.*
+import framework.*
 import product.Faucet
 
 final case class Tap(open: Boolean) derives Finite

@@ -1,6 +1,6 @@
 package temporal.realize
 
-import umpire.outcomes.Rejection
+import framework.outcomes.Rejection
 
 class RejectionsTest extends munit.FunSuite:
   test("the Temporal rejection-code table is exhaustive and unique"):

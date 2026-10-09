@@ -2,7 +2,7 @@
 // and a described status keyed by one, do not compile, each at its line.
 package fixture.typedrealizations
 
-import umpire.realize.*
+import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.standalone.system.{ActivitySystem, AdmissionFact}
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*

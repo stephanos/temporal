@@ -8,7 +8,7 @@
 // directly (`directLamp`, `directPlainLamp`) do, but for the words `bundled` and `direct` in their names.
 package fixture.totals
 
-import umpire.*
+import framework.*
 
 // A lamp's state, named apart from the machine object `Lamp`.
 final case class LampState(lit: Boolean) derives Finite

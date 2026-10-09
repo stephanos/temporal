@@ -21,8 +21,8 @@
 // record `temporalRealization` writes.
 package temporal.realize
 
-import umpire.Machine
-import umpire.realize.*
+import framework.Machine
+import framework.realize.*
 
 // The header of a realization object of `machine`: what is not derived.
 abstract class Realizes[S, O, F <: AnyRef](

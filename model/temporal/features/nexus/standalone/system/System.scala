@@ -4,9 +4,9 @@ package standalone
 package system
 
 import scala.annotation.unused
-import umpire.*
-import umpire.outcomes.{Outcome, Rejection}
-import umpire.realize.Reason
+import framework.*
+import framework.outcomes.{Outcome, Rejection}
+import framework.realize.Reason
 import temporal.capabilities.*
 import temporal.realize.inconclusive
 import temporal.Bounds.three

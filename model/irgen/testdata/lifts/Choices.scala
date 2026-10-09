@@ -5,7 +5,7 @@
 // unnamed twins of these functions are retired; the Go tooling holds the names inert.
 package fixture.choices
 
-import umpire.*
+import framework.*
 
 enum Phase derives Finite:
   case scheduled, started, paused

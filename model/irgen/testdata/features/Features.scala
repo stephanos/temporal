@@ -3,7 +3,7 @@
 // a directory named `features`, at their lines.
 package fixture.features
 
-import umpire.realize.*
+import framework.realize.*
 import temporal.realize.*
 import temporal.realize.WorkerInstruction.Fault
 import temporal.features.activity.standalone.activity

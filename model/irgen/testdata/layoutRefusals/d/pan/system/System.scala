@@ -1,7 +1,7 @@
 package fixture.features.pan
 package system
 
-import umpire.*
+import framework.*
 
 object PanImplementation extends Machine[Light, Outcome, Nothing]:
   val init = Light(lit = false)

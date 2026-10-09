@@ -1,6 +1,6 @@
 // Build directives for the Scala model layer. scala-cli reads them from any source file; they live
-// here so the rest of the tree is plain Scala. The framework in umpire/ builds on its own
-// (`scala-cli compile project.scala umpire`); the Temporal Models in temporal/ build on top of it.
+// here so the rest of the tree is plain Scala. The framework in framework/ builds on its own
+// (`scala-cli compile project.scala framework`); the Temporal Models in temporal/ build on top of it.
 
 //> using scala 3.9.0
 //> using jvm 27

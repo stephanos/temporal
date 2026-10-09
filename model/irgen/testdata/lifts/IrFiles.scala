@@ -2,7 +2,7 @@
 // declaration a root of two files, and a file whose root the lifter refuses.
 package fixture.irfiles
 
-import umpire.*
+import framework.*
 import fixture.presence.Presence
 import fixture.specimens.admission.{currentQueries, staleQueries}
 

@@ -1,6 +1,6 @@
 package fixture.features.pump
 
-import umpire.*
+import framework.*
 import product.PumpProduct
 import system.PumpProtocol
 

@@ -2,7 +2,7 @@
 // derived from the realization's binding of it.
 package fixture.retiredschema
 
-import umpire.*
+import framework.*
 import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
 
 val start =

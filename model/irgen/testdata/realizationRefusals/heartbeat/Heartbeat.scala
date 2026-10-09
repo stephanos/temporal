@@ -1,7 +1,7 @@
 package fixture.heartbeat
 
-import umpire.*
-import umpire.realize.*
+import framework.*
+import framework.realize.*
 import temporal.realize.*
 import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION

@@ -7,7 +7,7 @@
 // compare the IR with expected/sections.json and check those IDs.
 package fixture.sections
 
-import umpire.*
+import framework.*
 
 final case class Light(on: Boolean) derives Finite
 

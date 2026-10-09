@@ -5,7 +5,7 @@
 // `queries` section bounds, and a bound override of a Property not brought and of one waived.
 package fixture.capabilitysectionrejects
 
-import umpire.*
+import framework.*
 import fixture.capabilitysections.{hold, release, take, three, Answer, Note, Phase}
 import fixture.capabilitysections.{Holdable, Sealable, Takeable, Tasks, TaskState}
 

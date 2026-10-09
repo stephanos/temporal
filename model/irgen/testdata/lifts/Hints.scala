@@ -12,7 +12,7 @@
 // deadline and a deadline on a step that is no timer.
 package fixture.hints
 
-import umpire.realize.*
+import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.deadline
 import temporal.features.activity.standalone.{activity, worker}

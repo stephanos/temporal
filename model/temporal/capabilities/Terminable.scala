@@ -1,8 +1,8 @@
 // Terminating a live entity settles it in the same step.
 package temporal.capabilities
 
-import umpire.*
-import umpire.realize.RunExpectation
+import framework.*
+import framework.realize.RunExpectation
 
 final case class Terminable[S, F](
     terminate: ClassRef,

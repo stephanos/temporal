@@ -5,7 +5,7 @@
 // `twelve` search further than the activity's and the task queue's of the same names.
 package temporal
 
-import umpire.*
+import framework.*
 
 object Bounds:
   val three = Limits(steps = 3, actions = 3, search = 4096)
