@@ -1,0 +1,238 @@
+{
+  "base_commit": "7b75ae312a6641c6b00afbb63f44ae9a9dd0c2b2",
+  "original_sha256": "522a5a2319423de0b9b6877c68aa25209ee69e29093487933bd532c246eb230b",
+  "candidate_sha256": "4a94563b09e82dec418088309cc4ae01f49f7899389f4c0d184ecb0e6579bb59",
+  "frozen_control_sha256": "94b7fb2073c75a46b0835cc2620fc3c522c7d945bf7b6e5d1686c84a58e16572",
+  "reconstructed_non_admitted_bytes": true,
+  "lint_before": 60,
+  "lint_after": 54,
+  "removed": [
+    [
+      "tools/gomad3/runner/internal/execution/process_test.go",
+      966,
+      15,
+      "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+      "\t\tfmt.Fprintln(os.Stdout, \"target stdout\")",
+      "\t\t            ^"
+    ],
+    [
+      "tools/gomad3/runner/internal/execution/process_test.go",
+      994,
+      15,
+      "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+      "\t\tfmt.Fprintln(os.Stdout, \"post-choice-marker\")",
+      "\t\t            ^"
+    ],
+    [
+      "tools/gomad3/runner/internal/execution/process_test.go",
+      1013,
+      15,
+      "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+      "\t\tfmt.Fprintln(os.Stdout, \"choice tape read-only\")",
+      "\t\t            ^"
+    ],
+    [
+      "tools/gomad3/runner/internal/execution/process_test.go",
+      1311,
+      14,
+      "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+      "\tfmt.Fprintln(os.Stdout, <-results+<-results)",
+      "\t            ^"
+    ],
+    [
+      "tools/gomad3/runner/internal/execution/process_test.go",
+      1317,
+      14,
+      "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+      "\tfmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))",
+      "\t            ^"
+    ],
+    [
+      "tools/gomad3/runner/internal/execution/process_test.go",
+      1323,
+      14,
+      "Error return value of `fmt.Fprintln` is not checked (errcheck)",
+      "\tfmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))",
+      "\t            ^"
+    ]
+  ],
+  "introduced": 0,
+  "all_residual_blocks_match": true,
+  "sensitivity_rejections": 6,
+  "observations": [
+    {
+      "name": "baseline-output-controls",
+      "exit": 0,
+      "elapsed_seconds": 5.655,
+      "counts": {
+        "pass": 13
+      },
+      "top": {
+        "pass": 1
+      }
+    },
+    {
+      "name": "baseline-focused",
+      "exit": 1,
+      "elapsed_seconds": 0.519,
+      "counts": {
+        "pass": 14,
+        "fail": 6
+      },
+      "top": {
+        "pass": 2,
+        "fail": 6
+      }
+    },
+    {
+      "name": "baseline-configured-lint",
+      "exit": 1,
+      "elapsed_seconds": 3.501,
+      "counts": {},
+      "top": {}
+    },
+    {
+      "name": "baseline-original-lint",
+      "exit": 2,
+      "elapsed_seconds": 15.576,
+      "counts": {},
+      "top": {}
+    },
+    {
+      "name": "final-focused",
+      "exit": 1,
+      "elapsed_seconds": 1.181,
+      "counts": {
+        "pass": 14,
+        "fail": 6
+      },
+      "top": {
+        "pass": 2,
+        "fail": 6
+      }
+    },
+    {
+      "name": "final-ordinary-execution",
+      "exit": 1,
+      "elapsed_seconds": 8.014,
+      "counts": {
+        "pass": 217,
+        "fail": 38,
+        "skip": 10
+      },
+      "top": {
+        "pass": 97,
+        "fail": 38,
+        "skip": 10
+      }
+    },
+    {
+      "name": "final-vet",
+      "exit": 0,
+      "elapsed_seconds": 1.431,
+      "counts": {},
+      "top": {}
+    },
+    {
+      "name": "final-standalone-errortype",
+      "exit": 0,
+      "elapsed_seconds": 1.382,
+      "counts": {},
+      "top": {}
+    },
+    {
+      "name": "final-format",
+      "exit": 0,
+      "elapsed_seconds": 0.033,
+      "counts": {},
+      "top": {}
+    },
+    {
+      "name": "final-configured-lint",
+      "exit": 1,
+      "elapsed_seconds": 5.868,
+      "counts": {},
+      "top": {}
+    },
+    {
+      "name": "final-fast-lint",
+      "exit": 0,
+      "elapsed_seconds": 12.684,
+      "counts": {},
+      "top": {}
+    },
+    {
+      "name": "final-original-lint",
+      "exit": 2,
+      "elapsed_seconds": 4.116,
+      "counts": {},
+      "top": {}
+    },
+    {
+      "name": "sensitivity-output",
+      "exit": 1,
+      "elapsed_seconds": 1.361,
+      "counts": {
+        "fail": 2
+      },
+      "top": {
+        "fail": 1
+      }
+    },
+    {
+      "name": "sensitivity-choice-marker",
+      "exit": 1,
+      "elapsed_seconds": 1.351,
+      "counts": {
+        "fail": 2
+      },
+      "top": {
+        "fail": 1
+      }
+    },
+    {
+      "name": "sensitivity-choice-tape-readonly",
+      "exit": 1,
+      "elapsed_seconds": 1.253,
+      "counts": {
+        "fail": 2
+      },
+      "top": {
+        "fail": 1
+      }
+    },
+    {
+      "name": "sensitivity-choice-reorder",
+      "exit": 1,
+      "elapsed_seconds": 1.527,
+      "counts": {
+        "fail": 2
+      },
+      "top": {
+        "fail": 1
+      }
+    },
+    {
+      "name": "sensitivity-choice-select",
+      "exit": 1,
+      "elapsed_seconds": 1.245,
+      "counts": {
+        "fail": 2
+      },
+      "top": {
+        "fail": 1
+      }
+    },
+    {
+      "name": "sensitivity-choice-prefix-rng",
+      "exit": 1,
+      "elapsed_seconds": 1.488,
+      "counts": {
+        "fail": 2
+      },
+      "top": {
+        "fail": 1
+      }
+    }
+  ]
+}

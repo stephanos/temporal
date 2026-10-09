@@ -1,0 +1,55 @@
+tools/gomad3/runner/internal/execution/launch_plan_unix.go:321:2: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+	panic(fmt.Sprintf("unknown descriptor resource %q", resource))
+	^
+tools/gomad3/runner/internal/execution/process.go:152:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World record and transition limits must be positive")
+		       ^
+tools/gomad3/runner/internal/execution/process_test.go:966:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(os.Stdout, "target stdout")
+		            ^
+tools/gomad3/runner/internal/execution/process_test.go:994:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(os.Stdout, "post-choice-marker")
+		            ^
+tools/gomad3/runner/internal/execution/process_test.go:1013:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(os.Stdout, "choice tape read-only")
+		            ^
+tools/gomad3/runner/internal/execution/process_test.go:1311:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(os.Stdout, <-results+<-results)
+	            ^
+tools/gomad3/runner/internal/execution/process_test.go:1317:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))
+	            ^
+tools/gomad3/runner/internal/execution/process_test.go:1323:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(os.Stdout, runChoiceSelectSequence(8))
+	            ^
+tools/gomad3/runner/internal/execution/process_test.go:1419:2: SA5002: this loop will spin, using 100% CPU (staticcheck)
+	for {
+	^
+tools/gomad3/runner/internal/execution/process_unix.go:722:18: ST1005: error strings should not be capitalized (staticcheck)
+		return result, fmt.Errorf("World child record exceeded its configured bound")
+		               ^
+tools/gomad3/runner/internal/execution/watchdog_io_test.go:114:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(os.Stdout, "ready")
+		            ^
+tools/gomad3/runner/internal/execution/worldrecord.go:45:46: ST1005: error strings should not be capitalized (staticcheck)
+		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("World transition count mismatch")
+		                                           ^
+tools/gomad3/runner/internal/execution/worldrecord.go:56:46: ST1005: error strings should not be capitalized (staticcheck)
+		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("World semantic or transition identity mismatch")
+		                                           ^
+tools/gomad3/runner/internal/execution/worldrecord.go:84:20: ST1005: error strings should not be capitalized (staticcheck)
+		return Bundle{}, fmt.Errorf("World transition limit must be positive")
+		                 ^
+tools/gomad3/runner/internal/execution/worldrecord.go:147:20: ST1005: error strings should not be capitalized (staticcheck)
+		return Bundle{}, fmt.Errorf("World transition payload requires %d bytes, limit is %d", len(transitionBytes), transitionLimit)
+		                 ^
+tools/gomad3/runner/internal/execution/worldrecord.go:188:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World quiescence terminal has detail")
+			       ^
+tools/gomad3/runner/internal/execution/worldrecord.go:192:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World error terminal omitted detail")
+			       ^
+17 issues:
+* errcheck: 7
+* forbidigo: 1
+* staticcheck: 9
