@@ -129,6 +129,7 @@ object exports:
     ActivityProduct.capabilities,
     ActivitySystem.capabilities,
     ActivitySystem.queries,
+    system.Completion,
     system.TimeoutRetry.queries,
     system.HeartbeatRetry.queries,
     system.HeartbeatCompletion.queries,
