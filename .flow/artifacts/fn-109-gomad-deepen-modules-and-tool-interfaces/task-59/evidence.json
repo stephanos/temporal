@@ -1,0 +1,229 @@
+{
+  "task": "fn-109.59",
+  "status": "in_progress",
+  "workspace": "/tmp/gomad-fn109-parallel.pmgezCtg/task-59",
+  "base_commit": "f830467fcb712a83ba504c7dd43e2beb7f2cf223",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "go test -tags test_dep -count=1 -json -run \"^(TestRunChoiceExplorationDivergencePoliciesAndInspection|TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors|TestProcessExplorationCompletionKeepsRunnerDomainFallback|TestRunChoiceExplorationResumePreservesDivergenceIdentity|TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons|TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestCancellationIsAHostFailure|TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy)$\" ./runner",
+    "go test -tags test_dep -count=1 -json -run \"^(TestRunChoiceExplorationDivergencePoliciesAndInspection|TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors|TestProcessExplorationCompletionKeepsRunnerDomainFallback|TestRunChoiceExplorationResumePreservesDivergenceIdentity|TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons|TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestCancellationIsAHostFailure|TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy)$\" ./runner",
+    "go vet -tags test_dep ./runner",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner",
+    "go test -tags test_dep -count=1 -json -run \"^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestDomainModulesDoNotExportWireFraming|TestPublicPackagesDoNotExportForwardingAliases|TestHostPackageVet)$\" .",
+    "go test -tags test_dep -count=1 -json -run \"^TestRunnerExecutionInjectionIsPrivate$\" .",
+    "make -C tools/gomad3 validate",
+    "test -z \"$(gofmt -l tools/gomad3/runner/choice_exploration_divergence_test.go tools/gomad3/runner/completion_characterization_test.go)\" && git diff --check",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/tmp/gomad-fn109-parallel.pmgezCtg/task-59/.github/.golangci.yml ./runner",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=f830467fcb712a83ba504c7dd43e2beb7f2cf223 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "baseline": "red. focused-before exit1; actual Linux/arm64 adapter rejection before campaign assertions; retained original-base RED80.",
+  "gates": [
+    {
+      "receipt": "focused-before.json",
+      "receipt_sha256": "5a0adf76959eac3a8707699fa8f386425ec15160e86947697e30f7580aee2b3a",
+      "exit_code": 1,
+      "elapsed_seconds": 3.06,
+      "source_before_sha256": "d11d6d8aacf3bbca6840098fcdff6ff9d7aab77341afa66cbf3ba5de2ce756c0",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "focused-after.json",
+      "receipt_sha256": "170a9626fb7da01c0aa59b01343ccb43c821e301216758eb25d3c02843972777",
+      "exit_code": 1,
+      "elapsed_seconds": 1.79,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "affected-vet.json",
+      "receipt_sha256": "d61b119277765a49792a7c3321428e80550fe4400036216d5653d3501d1d6b11",
+      "exit_code": 0,
+      "elapsed_seconds": 0.518,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "standalone-errortype.json",
+      "receipt_sha256": "aa3df1e4160a6c2b0cc871b2775ab599df5ca2d3be8ad531889be59d9117f125",
+      "exit_code": 0,
+      "elapsed_seconds": 0.671,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "architecture-source-sets.json",
+      "receipt_sha256": "f28b870d5135157066dffa1fe55e7b3174b2883061fceb97fb3744f1ceb59f31",
+      "exit_code": 0,
+      "elapsed_seconds": 34.127,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "runner-ownership.json",
+      "receipt_sha256": "49e2c08813916975dd0cfdd19cc7f281fcec168b7c6d450bb69f869760c99a5d",
+      "exit_code": 0,
+      "elapsed_seconds": 0.217,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "generated-validation.json",
+      "receipt_sha256": "d572baf2aebe777e3065e96b1fb0e11f8a94d8ac61b6ed206bb41db2a8b3824b",
+      "exit_code": 0,
+      "elapsed_seconds": 8.387,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "format-check.json",
+      "receipt_sha256": "1b9b9d3bf34644df060d61b448e41405c55553b3cbd8c36cb0f4e31b105788f7",
+      "exit_code": 0,
+      "elapsed_seconds": 0.119,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "affected-configured-lint.json",
+      "receipt_sha256": "a6d7d8f54840b7ce3425643c36023aa5b61d152f38461627c8bdcc358a9eab4a",
+      "exit_code": 1,
+      "elapsed_seconds": 3.409,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "make-fast-task-base.json",
+      "receipt_sha256": "2694f54dead1acde922ac71a198a828766c4f94ca791755de590feefcc50c22f",
+      "exit_code": 0,
+      "elapsed_seconds": 11.088,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    },
+    {
+      "receipt": "make-gomad-original-base.json",
+      "receipt_sha256": "7f5051fd346bc2ba352fe658f4105a0ed5a473d71853a81e31cf855ce4be9d50",
+      "exit_code": 2,
+      "elapsed_seconds": 1.731,
+      "source_before_sha256": "33c3397143d9ecfae830b39584793317bdaa57ab7cf4ea3790f0382c3f1eb69e",
+      "terminal": true,
+      "source_unchanged": true,
+      "timed_out": false
+    }
+  ],
+  "focused_before": {
+    "counts": {
+      "fail": 88,
+      "pass": 1
+    },
+    "top_level_counts": {
+      "fail": 7,
+      "pass": 1
+    },
+    "failed_top_level_tests": [
+      "TestRunChoiceExplorationDivergencePoliciesAndInspection",
+      "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors",
+      "TestRunChoiceExplorationResumePreservesDivergenceIdentity",
+      "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons",
+      "TestCompletionFaultsKeepReasonPrecedenceAndEvidence",
+      "TestCancellationIsAHostFailure",
+      "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy"
+    ],
+    "failed_test_names_sha256": "c212101c0ce3e0ab84f90044285cf5f7b3dda7a4b51cba1ed41072ed3929775a",
+    "skipped_tests": []
+  },
+  "source_proof": "source-proof.json",
+  "tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "lint": {
+    "baseline_receipt": "../task-56/corrected-make-gomad-original-base.json",
+    "baseline_findings": 80,
+    "candidate_receipt": "make-gomad-original-base.json",
+    "candidate_findings": 78,
+    "removed": 2,
+    "added": 0,
+    "removed_diagnostics": [
+      [
+        "tools/gomad3/runner/choice_exploration_divergence_test.go",
+        "234",
+        "5",
+        "missing cases in switch of type choice.DivergenceReason: choice.DivergenceAlternativeSet, choice.DivergenceTapeExhausted, choice.DivergenceIdentityMissing, choice.DivergenceIdentityDuplicate, choice.DivergenceAlternativeCapacity, choice.DivergenceObservation (exhaustive)",
+        "\t\t\t\tswitch reason {",
+        "\t\t\t\t^"
+      ],
+      [
+        "tools/gomad3/runner/completion_characterization_test.go",
+        "95",
+        "2",
+        "missing cases in switch of type runner.Strategy: runner.StrategySeed (exhaustive)",
+        "\tswitch strategy {",
+        "\t^"
+      ]
+    ],
+    "residual_full_diagnostic_blocks_including_line_numbers_preserved": true,
+    "integrated_errortype": "Unreached after configured golangci failure; standalone affected observation retained separately.",
+    "affected": {
+      "before": 17,
+      "after": 15,
+      "removed": 2,
+      "added": 0,
+      "baseline": "Retained actual original-base RED80 root Runner subset; no separate affected baseline run.",
+      "candidate_receipt": "affected-configured-lint.json",
+      "all_residual_full_blocks_preserved": true
+    },
+    "fast": "Task-base fast exit0 filters1837 analyzer reports to0 and completes its configured silent errortype recipe; it supplies no unfiltered-green claim."
+  },
+  "gate_runner_sha256": "f2737ccf320fcb4ad59f390bcaa454809daecd4d744b3b1c4f606b2b084e49fc",
+  "routing": "Tier: session (jev-unavailable(no_key)); actual execution-model telemetry unavailable.",
+  "review": "Conductor owns fresh independent review; worker issued no verdict.",
+  "commit_owner": "Root; changes unstaged/uncommitted until explicit post-verification checkpoint grant.",
+  "acceptance": "Open. Required focused campaign controls fail before assertions; required configured/original-base source gates remain red where observed. Original first-baseline/fixed-identity/R18/R19 and deferred native requirements remain.",
+  "native": "fn149/fn128 deferred and unverified. Linux/arm64 stock-source observations supply no patched-runtime/native pass.",
+  "ordinary_runner": "Not run locally under conductor grant. Root owns one full ordinary ./runner gate on the integrated tasks57-59 candidate; requirement remains open.",
+  "all_handles_terminal": true,
+  "focused_after": {
+    "counts": {
+      "fail": 88,
+      "pass": 1
+    },
+    "top_level_counts": {
+      "fail": 7,
+      "pass": 1
+    },
+    "failed_top_level_tests": [
+      "TestRunChoiceExplorationDivergencePoliciesAndInspection",
+      "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors",
+      "TestRunChoiceExplorationResumePreservesDivergenceIdentity",
+      "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons",
+      "TestCompletionFaultsKeepReasonPrecedenceAndEvidence",
+      "TestCancellationIsAHostFailure",
+      "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy"
+    ],
+    "failed_test_names_sha256": "c212101c0ce3e0ab84f90044285cf5f7b3dda7a4b51cba1ed41072ed3929775a",
+    "skipped_tests": []
+  }
+}

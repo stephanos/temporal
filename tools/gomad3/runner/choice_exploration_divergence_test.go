@@ -242,6 +242,7 @@ func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {
 					d.Observed.Selected = (d.Expected.Selected + 1) % d.Expected.Alternatives
 				case choice.DivergenceTapeUnconsumed:
 					d.Observed = nil
+				case choice.DivergenceAlternativeSet, choice.DivergenceTapeExhausted, choice.DivergenceIdentityMissing, choice.DivergenceIdentityDuplicate, choice.DivergenceAlternativeCapacity, choice.DivergenceObservation:
 				}
 				return &execution.ChoiceReplayDivergenceError{Divergence: *d}
 			}

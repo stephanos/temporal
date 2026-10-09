@@ -1,0 +1,58 @@
+{
+  "base_commit": "f830467fcb712a83ba504c7dd43e2beb7f2cf223",
+  "files": {
+    "tools/gomad3/runner/choice_exploration_divergence_test.go": {
+      "base_sha256": "877355a89f2abccf6a18947bdf904ebea62926b53841628d6eb4391ed7fe148d",
+      "candidate_sha256": "93b138931736026645f0c4f05940a95ef8fe301de36bc3dbab3bea9c4c4b23df",
+      "complete_original_bytes_reconstructed": true
+    },
+    "tools/gomad3/runner/completion_characterization_test.go": {
+      "base_sha256": "7128a2f2b93a4f84033e284e76766b90db4bd9874112d38e1504f24cacf6a9d1",
+      "candidate_sha256": "b865856c22c519d3b9af29b65cbc5cf0c72b288b5380875f6809801c7a794e3f",
+      "complete_original_bytes_reconstructed": true
+    }
+  },
+  "other_tracked_sources_and_old_tests_preserved_count": 1051,
+  "preserved_manifest_sha256": "9bc598bad038a79d6be9a93ba491f25e3183d15175466b7bb74f82fcf49edbdf",
+  "all_original_assertions_tables_mutations_comments_and_defaults_preserved": true,
+  "baseline_fingerprint_reconstructed": "d11d6d8aacf3bbca6840098fcdff6ff9d7aab77341afa66cbf3ba5de2ce756c0",
+  "runtime_gap": "Only runner-domain fallback executes successfully; host validation prevents the seven campaign tests from reaching their intended assertions.",
+  "lint": {
+    "baseline_receipt": "../task-56/corrected-make-gomad-original-base.json",
+    "baseline_findings": 80,
+    "candidate_receipt": "make-gomad-original-base.json",
+    "candidate_findings": 78,
+    "removed": 2,
+    "added": 0,
+    "removed_diagnostics": [
+      [
+        "tools/gomad3/runner/choice_exploration_divergence_test.go",
+        "234",
+        "5",
+        "missing cases in switch of type choice.DivergenceReason: choice.DivergenceAlternativeSet, choice.DivergenceTapeExhausted, choice.DivergenceIdentityMissing, choice.DivergenceIdentityDuplicate, choice.DivergenceAlternativeCapacity, choice.DivergenceObservation (exhaustive)",
+        "\t\t\t\tswitch reason {",
+        "\t\t\t\t^"
+      ],
+      [
+        "tools/gomad3/runner/completion_characterization_test.go",
+        "95",
+        "2",
+        "missing cases in switch of type runner.Strategy: runner.StrategySeed (exhaustive)",
+        "\tswitch strategy {",
+        "\t^"
+      ]
+    ],
+    "residual_full_diagnostic_blocks_including_line_numbers_preserved": true,
+    "integrated_errortype": "Unreached after configured golangci failure; standalone affected observation retained separately.",
+    "affected": {
+      "before": 17,
+      "after": 15,
+      "removed": 2,
+      "added": 0,
+      "baseline": "Retained actual original-base RED80 root Runner subset; no separate affected baseline run.",
+      "candidate_receipt": "affected-configured-lint.json",
+      "all_residual_full_blocks_preserved": true
+    },
+    "fast": "Task-base fast exit0 filters1837 analyzer reports to0 and completes its configured silent errortype recipe; it supplies no unfiltered-green claim."
+  }
+}

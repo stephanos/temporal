@@ -93,6 +93,7 @@ func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, 
 	config.ChoiceTraceLimit = limit
 	config.WorldTransitionLimit = 1 << 20
 	switch strategy {
+	case StrategySeed:
 	case StrategyChoiceExploration:
 		config.MaxExecutions = 8
 		config.MaxChoiceDepth = 4
