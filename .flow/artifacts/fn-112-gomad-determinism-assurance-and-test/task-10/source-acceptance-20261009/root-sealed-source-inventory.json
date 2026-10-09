@@ -1,0 +1,28 @@
+{
+  "command": "python3 .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/current-source-audit.py root-source-audit.json && git diff --check",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started_at": "2026-10-09T19:08:04.742211+00:00",
+  "ended_at": "2026-10-09T19:08:05.168524+00:00",
+  "elapsed_seconds": 0.426,
+  "exit_code": 0,
+  "source_before_sha256": "5efeac884fbdb101b466760688d6837c7da15c1810985a76efaf47e3dfe8324b",
+  "source_after_sha256": "5efeac884fbdb101b466760688d6837c7da15c1810985a76efaf47e3dfe8324b",
+  "source_unchanged": true,
+  "head": "15f56644664f3d3749bab2387aa97936a1cac6dd",
+  "go": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+  "go_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+  "environment": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "TMPDIR": "/tmp/fn11210-portable.6ZZCZ0Ix",
+    "GOTMPDIR": "/tmp/fn11210-portable.6ZZCZ0Ix",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOPROXY": "file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "log_sha256": "275d78d72a56ed1a0b5a615dcef96d863f61cf83eb9097647423c5cbd3c88320"
+}

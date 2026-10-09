@@ -1,0 +1,408 @@
+{
+  "head": "15f56644664f3d3749bab2387aa97936a1cac6dd",
+  "examples_checked": 183,
+  "example_errors": 14,
+  "make_targets_checked": 45,
+  "claim_rows": 98,
+  "claim_rows_passing": 88,
+  "links_checked": 166,
+  "fenced_blocks": {
+    "tools/gomad3/SPEC.md": 0,
+    "tools/gomad3/ARCHITECTURE.md": 1,
+    "tools/gomad3/CLI.md": 54,
+    "tools/gomad3/TUTORIAL.md": 18,
+    "tools/gomad3/README.md": 20,
+    "MILESTONES.md": 0
+  },
+  "clock_probe": "inconclusive",
+  "whitespace": {
+    "baseline_to_current": 0,
+    "head_to_current": 0
+  },
+  "errors": [
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true,
+      "fragment_resolves": false,
+      "error": "fragment missing"
+    },
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true,
+      "fragment_resolves": false,
+      "error": "fragment missing"
+    },
+    {
+      "file": "tools/gomad3/CLI.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true,
+      "fragment_resolves": false,
+      "error": "fragment missing"
+    },
+    {
+      "file": "tools/gomad3/CLI.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true,
+      "fragment_resolves": false,
+      "error": "fragment missing"
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true,
+      "fragment_resolves": false,
+      "error": "fragment missing"
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true,
+      "fragment_resolves": false,
+      "error": "fragment missing"
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true,
+      "fragment_resolves": false,
+      "error": "fragment missing"
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true,
+      "fragment_resolves": false,
+      "error": "fragment missing"
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true,
+      "fragment_resolves": false,
+      "error": "fragment missing"
+    },
+    {
+      "command": "gomadtool compatibility-pack refresh",
+      "error": "command help unavailable"
+    },
+    {
+      "command": "gomadtool compatibility-pack refresh",
+      "error": "indexed command has no dispatch case"
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:535+0",
+      "error": "usage text omits a value the parser accepts",
+      "flag": "format",
+      "value": "json",
+      "command": "gomadtool pin-impact"
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:545+2",
+      "error": "compatibility-pack needs an action",
+      "tokens": [
+        "compatibility-pack",
+        "refresh",
+        "--root=.",
+        "--impact-report=/absolute/path/to/pin-impact.json"
+      ]
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:607+0",
+      "error": "compatibility-pack needs an action",
+      "tokens": [
+        "compatibility-pack",
+        "refresh",
+        "--root=."
+      ]
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:inline `resume --guide-regression=true|false`",
+      "error": "boolean flag given a value",
+      "flag": "guide-regression",
+      "value": "trueORfalse",
+      "command": "gomad resume"
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:inline `compatibility-pack generate --approve-review`",
+      "error": "flag needs a value",
+      "flag": "approve-review",
+      "command": "gomadtool compatibility-pack generate"
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:inline `make compatibility-pack-qualification`",
+      "error": "make target not defined",
+      "target": "compatibility-pack-qualification",
+      "directory": "."
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:inline `qualify --all`",
+      "error": "flag not registered for this command",
+      "flag": "all",
+      "command": "gomad qualify"
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:inline `gomadtool compatibility-pack refresh --root=.`",
+      "error": "compatibility-pack needs an action",
+      "tokens": [
+        "compatibility-pack",
+        "refresh",
+        "--root=."
+      ]
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:inline `compatibility-pack generate --approve-review=DIGEST`",
+      "error": "not a sha256: digest",
+      "flag": "approve-review",
+      "value": "DIGEST",
+      "command": "gomadtool compatibility-pack generate"
+    },
+    {
+      "origin": "tools/gomad3/CLI.md:inline `make generate`",
+      "error": "make target not defined",
+      "target": "generate",
+      "directory": "."
+    },
+    {
+      "origin": "tools/gomad3/README.md:739+2",
+      "error": "not a sha256: digest",
+      "flag": "approve-review",
+      "value": "LTdigest",
+      "command": "gomadtool adapter-regenerate"
+    },
+    {
+      "origin": "tools/gomad3/README.md:739+3",
+      "error": "compatibility-pack needs an action",
+      "tokens": [
+        "compatibility-pack",
+        "refresh",
+        "--root=."
+      ]
+    },
+    {
+      "origin": "tools/gomad3/README.md:739+4",
+      "error": "not a sha256: digest",
+      "flag": "approve-review",
+      "value": "LTdigest",
+      "command": "gomadtool compatibility-pack generate"
+    },
+    {
+      "origin": "tools/gomad3/README.md:1131+0",
+      "error": "usage text omits a value the parser accepts",
+      "flag": "format",
+      "value": "json",
+      "command": "gomadtool pin-impact"
+    },
+    {
+      "origin": "tools/gomad3/README.md:1150+0",
+      "error": "compatibility-pack needs an action",
+      "tokens": [
+        "compatibility-pack",
+        "refresh",
+        "--root=$PWD/tools/gomad3"
+      ]
+    },
+    {
+      "origin": "tools/gomad3/README.md:inline `qualify --all`",
+      "error": "flag not registered for this command",
+      "flag": "all",
+      "command": "gomad qualify"
+    },
+    {
+      "error": "documented flag is registered by no command",
+      "flags": [
+        "impact-report"
+      ]
+    },
+    {
+      "requirement": "R5",
+      "claim": "required probes need semantic coverage",
+      "guide": "CLI",
+      "statement": "with `--coverage=semantic` or `--coverage=semantic\\+choice`",
+      "source": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "source_pattern": "case runner\\.CoverageSemantic, runner\\.CoverageSemanticChoice:",
+      "statement_present": true,
+      "source_matches": false,
+      "error": "claim matrix row failed"
+    },
+    {
+      "requirement": "R5",
+      "claim": "plan fixes the failure policy",
+      "guide": "CLI",
+      "statement": "fixes the failure policy to complete all planned work",
+      "source": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "source_pattern": "\"--__plan\", \"--on-failure=all\"",
+      "statement_present": true,
+      "source_matches": false,
+      "error": "claim matrix row failed"
+    },
+    {
+      "requirement": "R5",
+      "claim": "plan accepts unguided seed campaigns",
+      "guide": "CLI",
+      "statement": "accepts unguided seed Campaigns",
+      "source": "tools/gomad3/runner/portable_plan.go",
+      "source_pattern": "portable campaign plans require an unguided seed campaign with on-failure=all",
+      "statement_present": false,
+      "source_matches": false,
+      "error": "claim matrix row failed"
+    },
+    {
+      "requirement": "R4",
+      "claim": "forward draw range",
+      "guide": "ARCHITECTURE",
+      "statement": "cumulative 1–1024 nanosecond increment at each `time\\.Now` read",
+      "source": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+      "source_pattern": "return int64\\(1 \\+ value&gomadClockTickMask\\)",
+      "statement_present": false,
+      "source_matches": true,
+      "error": "claim matrix row failed"
+    },
+    {
+      "requirement": "R4",
+      "claim": "offset is cumulative and outside faketime",
+      "guide": "ARCHITECTURE",
+      "statement": "retain the idle-driven clock",
+      "source": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+      "source_pattern": "now := faketime\\s+if gomadClockForward \\{\\s+gomadClockTickOffset \\+= gomadClockTickDraw\\(\\)\\s+now \\+= gomadClockTickOffset",
+      "statement_present": false,
+      "source_matches": false,
+      "error": "claim matrix row failed"
+    },
+    {
+      "requirement": "R4",
+      "claim": "only the time.Now entry point ticks",
+      "guide": "ARCHITECTURE",
+      "statement": "For a reading that still carries its monotonic value, `time\\.Since` and `time\\.Until` read the idle-driven clock",
+      "source": "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+      "source_pattern": "func time_runtimeNow\\(\\) \\(sec int64, nsec int32, mono int64\\) \\{[^@]*\\+\\tif gomadEnabled \\{\\n\\+\\t\\treturn gomadTimeNow\\(\\)",
+      "statement_present": false,
+      "source_matches": true,
+      "error": "claim matrix row failed"
+    },
+    {
+      "requirement": "R4",
+      "claim": "wall-only readings compare against ticked time.Now",
+      "guide": "ARCHITECTURE",
+      "statement": "A reading stripped of its monotonic value, as by `Round\\(0\\)`, serialization, or parsing, is compared against a fresh ticked `time\\.Now` instead",
+      "source": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+      "source_pattern": "func gomadTimeNow\\(\\) \\(sec int64, nsec int32, mono int64\\)",
+      "statement_present": false,
+      "source_matches": true,
+      "error": "claim matrix row failed"
+    },
+    {
+      "requirement": "R4",
+      "claim": "synctest bubble keeps its clock",
+      "guide": "ARCHITECTURE",
+      "statement": "a `testing/synctest` bubble keeps its own clock",
+      "source": "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+      "source_pattern": "return sec, nsec, 0\\n \\t\\}\\n\\+\\tif gomadEnabled \\{",
+      "statement_present": true,
+      "source_matches": false,
+      "error": "claim matrix row failed"
+    },
+    {
+      "requirement": "R4",
+      "claim": "forward conformance check",
+      "guide": "CLI",
+      "statement": "cumulative seeded offset of 1 to 1024 nanoseconds per `time\\.Now` read",
+      "source": "tools/gomad3/internal/gomadtool/conformance/runtime_clock_tick.go",
+      "source_pattern": "delta < 1 \\|\\| delta > 1024",
+      "statement_present": false,
+      "source_matches": true,
+      "error": "claim matrix row failed"
+    },
+    {
+      "requirement": "R6",
+      "claim": "coordinator and supervisor are private modes",
+      "guide": "TUTORIAL",
+      "statement": "the CLI starts an isolated coordinator for the campaign",
+      "source": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "source_pattern": "case \"__coordinator\", \"__target_bootstrap\", \"__supervisor\":",
+      "statement_present": true,
+      "source_matches": false,
+      "error": "claim matrix row failed"
+    },
+    {
+      "error": "corpus statement disagrees with the manifests",
+      "where": "README",
+      "expected": "for the 28-workload Temporal manifest"
+    },
+    {
+      "error": "corpus statement disagrees with the manifests",
+      "where": "MILESTONES",
+      "expected": "Routine qualification is untraced (F10 D13)"
+    },
+    {
+      "error": "corpus statement disagrees with the manifests",
+      "where": "MILESTONES",
+      "expected": "No exact replay available for eight suites"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestClientMiscTestSuite"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestScheduleV1"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestScheduleV1WorkflowPauseInteraction"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestTaskQueueStats_Pri_Suite"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestVersioning3FunctionalSuite"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestVersioning3QueryFunctionalSuite"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestVersioningFunctionalSuite"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestWorkerDeploymentSuite"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestSignalWorkflowTestSuiteChasm"
+    },
+    {
+      "error": "milestones omit a non-default ./tests disposition",
+      "test": "TestSignalWorkflowTestSuiteChasm"
+    },
+    {
+      "error": "clock probe is inconclusive: the pinned toolchain could not build it",
+      "toolchain": "tools/gomad3/.toolchain/bin/go",
+      "state": "inconclusive"
+    },
+    {
+      "error": "companion check failed",
+      "argv": [
+        "/usr/bin/python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/verify-vocabulary.py",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/baseline-guides"
+      ],
+      "status": 1
+    },
+    {
+      "error": "companion check failed",
+      "argv": [
+        "/usr/bin/python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/verify-documentation.py",
+        "/tmp/fn11210-portable.6ZZCZ0Ix/bin",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/baseline-guides"
+      ],
+      "status": 1
+    }
+  ]
+}

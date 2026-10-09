@@ -1,0 +1,1036 @@
+{
+  "errors": [
+    {
+      "documented_flags_without_registered_help": [
+        "provenance"
+      ]
+    }
+  ],
+  "command_help_inventory": [
+    {
+      "argv": [
+        "gomad",
+        "doctor",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "json",
+        "toolchain-root"
+      ],
+      "help_sha256": "40ced2b0587ab4af67e2b600ebc470204ffb50638890934c188c917117dc549d"
+    },
+    {
+      "argv": [
+        "gomad",
+        "analyze",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "build-tag",
+        "capability-mode",
+        "format",
+        "timeout",
+        "toolchain-root",
+        "working-dir"
+      ],
+      "help_sha256": "7e8a47dad7363a86d19e94bcf11fef7bb555372c15f1713043092ef23cd79a9c"
+    },
+    {
+      "argv": [
+        "gomad",
+        "explore",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "build-tag",
+        "capability-mode",
+        "choice-bytes",
+        "choice-start-ordinal",
+        "choices",
+        "clock-tick",
+        "corpus",
+        "count",
+        "coverage",
+        "diagnostics",
+        "env",
+        "execution-timeout",
+        "failure-budget",
+        "guide",
+        "guide-regression",
+        "io-ro-mount",
+        "io-transcript-bytes",
+        "json",
+        "keep-successes",
+        "max-choice-depth",
+        "max-crash-decisions",
+        "max-executions",
+        "max-exploration-bytes",
+        "max-exploration-result-bytes",
+        "max-fault-decisions",
+        "max-forced-decisions",
+        "max-network-decisions",
+        "max-runtime-decisions",
+        "max-scenario-decisions",
+        "max-storage-decisions",
+        "on-failure",
+        "output",
+        "output-limit",
+        "overall-timeout",
+        "parallel",
+        "require-probe",
+        "seeds",
+        "strategy",
+        "success-bytes",
+        "success-limit",
+        "terminate-grace",
+        "toolchain-root",
+        "working-dir",
+        "world-transition-limit"
+      ],
+      "help_sha256": "28234f1c2fd09f68bebf2fd9b8971b63db3f1b485f12ac8dde029701d278eacc"
+    },
+    {
+      "argv": [
+        "gomad",
+        "inspect",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "choices",
+        "json"
+      ],
+      "help_sha256": "6856401de4a7aedd33d3495e5579a1f09a08ac698a4fb57f0bb0cbbd94bab7ac"
+    },
+    {
+      "argv": [
+        "gomad",
+        "replay",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "observed",
+        "toolchain-root",
+        "verify-only"
+      ],
+      "help_sha256": "4a5d1712360441e7d8ea033be491c3e6d78c496570a8717a0cf69fe97b78b24b"
+    },
+    {
+      "argv": [
+        "gomad",
+        "minimize",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "attempt-budget",
+        "json",
+        "max-bytes",
+        "resume",
+        "toolchain-root"
+      ],
+      "help_sha256": "44e711f3d4c0f5f2cb111aeee48e16aff2bf9d8430b74ee17677e122295d87c9"
+    },
+    {
+      "argv": [
+        "gomad",
+        "qualify",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "build-tag",
+        "capability-mode",
+        "choice-bytes",
+        "choices",
+        "clock-tick",
+        "diagnostics",
+        "env",
+        "execution-timeout",
+        "io-ro-mount",
+        "io-transcript-bytes",
+        "json",
+        "output-limit",
+        "overall-timeout",
+        "repeat",
+        "replay-successes",
+        "require-probe",
+        "seed",
+        "success-bytes",
+        "success-limit",
+        "terminate-grace",
+        "toolchain-root",
+        "working-dir",
+        "world-transition-limit"
+      ],
+      "help_sha256": "8a2319b06eee583d2464bcd3aa030b52eedc153e73061d8ff923974c382b22c3"
+    },
+    {
+      "argv": [
+        "gomad",
+        "qualify-set",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "check",
+        "format",
+        "manifest",
+        "min-free-bytes",
+        "output",
+        "prune-qualified-artifacts",
+        "shard",
+        "working-dir"
+      ],
+      "help_sha256": "a434b73f3c72e8fcd952e02f16658fce23449e8c1346edab4c027be1d2e1fe8b"
+    },
+    {
+      "argv": [
+        "gomad",
+        "merge-set",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "format",
+        "manifest",
+        "output"
+      ],
+      "help_sha256": "ca7196f5d2c50bb20b538edc0f4495e725e2dd6014a25163a4a08d42beb63c5a"
+    },
+    {
+      "argv": [
+        "gomad",
+        "compare-support",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve-boundary-diff",
+        "baseline",
+        "candidate",
+        "format"
+      ],
+      "help_sha256": "dd4eb5ca41a9818dc005e64ba40df9ad17c9289dfbce646ec514ea2847affaad"
+    },
+    {
+      "argv": [
+        "gomad",
+        "plan",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "build-tag",
+        "capability-mode",
+        "choice-bytes",
+        "choice-start-ordinal",
+        "choices",
+        "clock-tick",
+        "corpus",
+        "count",
+        "coverage",
+        "diagnostics",
+        "env",
+        "execution-timeout",
+        "failure-budget",
+        "guide",
+        "guide-regression",
+        "io-ro-mount",
+        "io-transcript-bytes",
+        "json",
+        "keep-successes",
+        "max-choice-depth",
+        "max-crash-decisions",
+        "max-executions",
+        "max-exploration-bytes",
+        "max-exploration-result-bytes",
+        "max-fault-decisions",
+        "max-forced-decisions",
+        "max-network-decisions",
+        "max-runtime-decisions",
+        "max-scenario-decisions",
+        "max-storage-decisions",
+        "on-failure",
+        "output",
+        "output-limit",
+        "overall-timeout",
+        "parallel",
+        "require-probe",
+        "seeds",
+        "strategy",
+        "success-bytes",
+        "success-limit",
+        "terminate-grace",
+        "toolchain-root",
+        "working-dir",
+        "world-transition-limit"
+      ],
+      "help_sha256": "28234f1c2fd09f68bebf2fd9b8971b63db3f1b485f12ac8dde029701d278eacc"
+    },
+    {
+      "argv": [
+        "gomad",
+        "execute-shard",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "json",
+        "shard",
+        "toolchain-root"
+      ],
+      "help_sha256": "4e4ca8e03403cbbce4591a6651b24656ae6551428ac29b6387ba5c7b524a23d9"
+    },
+    {
+      "argv": [
+        "gomad",
+        "merge",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "json",
+        "output",
+        "partial"
+      ],
+      "help_sha256": "6c5208cd1a96bc8fb5fedb7b24868e06e89e2447989482df0dd9633c2964801f"
+    },
+    {
+      "argv": [
+        "gomad",
+        "recover",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "json"
+      ],
+      "help_sha256": "e8bd15fca87edb8a4b190de5edee1c851447ef364068ad2ba8c85d921a5cfa9c"
+    },
+    {
+      "argv": [
+        "gomad",
+        "resume",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "guide-regression",
+        "json",
+        "toolchain-root"
+      ],
+      "help_sha256": "0cceb83cfb65297e275c1fff8245ef5d50ba57b74e17c873e30dbb135cace6d0"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "toolchain-build",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "bootstrap-go",
+        "build-bash",
+        "overlay",
+        "patch",
+        "root",
+        "toolchain-root"
+      ],
+      "help_sha256": "9e018007cf2dddc926c87d97d31b3d78c5ca2545697b63498579f0746056941d"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "build-key",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "archive-sha256",
+        "bash-path",
+        "bash-version",
+        "bootstrap-version",
+        "build-path",
+        "go-version",
+        "host-arch",
+        "host-os",
+        "overlay",
+        "patch",
+        "recipe-version"
+      ],
+      "help_sha256": "ce8417fe3f1355ac0d33031dcc9744ad119a03a5b4102db8426d8f165ca80eac"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "patch-validate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "overlay",
+        "patch",
+        "root"
+      ],
+      "help_sha256": "ea5864169784f9a1dd86003dfd7e3c64bd0696f1654bc37b726f3ccaf30f1593"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "patch-materialize",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "overlay",
+        "patch",
+        "root",
+        "source-root"
+      ],
+      "help_sha256": "d979d62d13b0e3ef8cde20661166f5b699c7db58f5f80343db98e17f25385b63"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "patch-regenerate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "archive",
+        "bootstrap-go",
+        "candidate-root",
+        "gofmt",
+        "output",
+        "root",
+        "toolchain-root"
+      ],
+      "help_sha256": "b457f174fbc22cad5473a0dd43e9f1b943156a3db2608bcc08af3846c92823d4"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "version-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "root"
+      ],
+      "help_sha256": "27b19b2a1ac17a8728ec5fc165b0f4ac9d6aabb6691127a551ba1836d5bba453"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "protocol-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "root"
+      ],
+      "help_sha256": "83436aa73b495d469b1d60f2c84c23764e9d90dde8b5e3cd6587c4a1b1de8e03"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "qualification-manifest-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "output",
+        "root",
+        "spec"
+      ],
+      "help_sha256": "b10d46a17a339abda7c92cc21759861b12d005b522a03bedad85fab71a2731bc"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "boundary-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "check-compiler-tests",
+        "compiler-test-overlay",
+        "discover",
+        "goroot",
+        "qualify",
+        "refresh",
+        "root"
+      ],
+      "help_sha256": "ff7097446ca1a846e00999683f56aad61d71d46636f91b055babe31911887314"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "discover",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "request",
+        "root",
+        "working-dir"
+      ],
+      "help_sha256": "a8f2ef8dd84897a5bf6429bc34f9614932a32ce6b8733015af3df78c8bcb163f"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "review",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "output",
+        "request",
+        "root"
+      ],
+      "help_sha256": "35d9f3e79757a2afa30883677fdf9b6a9327dfbe2635568a25c500ea2ce4ed7f"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve-review",
+        "compatibility-root",
+        "request",
+        "root"
+      ],
+      "help_sha256": "116801bbb1715122bfb81db3261fadc239c84b8896756f87e470867ca6135011"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "check",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "root",
+        "staged-copy"
+      ],
+      "help_sha256": "178ee0a574cfa013aeb4749d42948ee9fd00d39d15c71310e9652ad48180cd9e"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "qualify",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "all",
+        "compatibility-root",
+        "request",
+        "root",
+        "working-dir"
+      ],
+      "help_sha256": "1343cc80948ab4ebc047509aa99f1cd53d93ed02561ea64b80212295f3dc8459"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "refresh",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "baseline-ref",
+        "compatibility-root",
+        "go",
+        "impact-report",
+        "root"
+      ],
+      "help_sha256": "42c826d83aea0bcd282e9cab26f5026bdd076f2c551cba950280536e9a2e5443"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "refresh",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "baseline-ref",
+        "compatibility-root",
+        "go",
+        "impact-report",
+        "root"
+      ],
+      "help_sha256": "42c826d83aea0bcd282e9cab26f5026bdd076f2c551cba950280536e9a2e5443"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "script-validate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "root"
+      ],
+      "help_sha256": "25ca54c2d07d19a05151c21f1572efa3c5dfa755af9285ac879fc53a594e93c3"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "checked-run",
+        "-h"
+      ],
+      "status": 125,
+      "flags": [],
+      "help_sha256": "c1163dc883f51a223a8c6f4280df836ab989848d1c856415415fd82245b6b037"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "diagnostic-diff",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "json"
+      ],
+      "help_sha256": "c46b61e97be1c6bb09fe2efec7d61fd8cb796ab98cf9620866fa654bc1412b19"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "soak",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "batches",
+        "budget",
+        "gomad",
+        "keep-batches",
+        "ledger",
+        "manifest",
+        "output",
+        "run-id",
+        "seed",
+        "work",
+        "workload"
+      ],
+      "help_sha256": "682e36d95cb952e71d14f5f8b8dfccf7b0af2e06b9c9c5d498ba6e5b8aa91b11"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "pin-impact",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "baseline",
+        "baseline-module",
+        "baseline-ref",
+        "candidate",
+        "format",
+        "go",
+        "json",
+        "module",
+        "output",
+        "root"
+      ],
+      "help_sha256": "4445829c07691316501d40dc5e230c83f99dd5de97b1e46e207373b93456afe3"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "adapter-regenerate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve",
+        "approve-review",
+        "go",
+        "json",
+        "module",
+        "module-dir",
+        "recover",
+        "root",
+        "stage-only",
+        "verify",
+        "version"
+      ],
+      "help_sha256": "ea5ba0f8ae8aaa660651f261e514b2764c16a6cce5cbe1e3b9c2316f87875275"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "test",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compiler",
+        "go",
+        "mode",
+        "overlay",
+        "patch",
+        "root"
+      ],
+      "help_sha256": "20664a450d7dae00638bd3f34edec8157dbb163c377cf83845fc1f4a78312413"
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "upgrade-dossier",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve-boundary-diff",
+        "baseline-ref",
+        "corpus-report",
+        "output",
+        "root"
+      ],
+      "help_sha256": "928359a74914cacf80e2fcc517b7adde0a72577bc6f3ea2d496bf337f659be7d"
+    }
+  ],
+  "links": [
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "SPEC.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "README.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "README.md#go-caller-migrations",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "SPEC.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "choice/no_op_select.go",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "README.md#compatibility-pack-development",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "#close-the-loop-with-upgrade-dossier",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "README.md#deterministic-io",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "CLI.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../MILESTONES.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "CLI.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "README.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "ARCHITECTURE.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../.plans/GOMAD_NEXT.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "choice/no_op_select.go",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "#contract",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/retained-bytes.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "CLI.md#bump-a-dependency",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/specs/fn-149-gomad-deferred-darwin-qualification.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/artifacts/native-scope-transfer-2026-10-07.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "deterministicio/boundary/upgrade-go1.27.1.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "ARCHITECTURE.md",
+      "resolves": true
+    }
+  ],
+  "documented_flags": [
+    "all",
+    "approve",
+    "approve-boundary-diff",
+    "approve-review",
+    "artifacts",
+    "attempt-budget",
+    "baseline",
+    "baseline-module",
+    "baseline-ref",
+    "batches",
+    "budget",
+    "build-tag",
+    "candidate",
+    "candidate-root",
+    "capability-mode",
+    "check",
+    "check-compiler-tests",
+    "choice-bytes",
+    "choice-start-ordinal",
+    "choices",
+    "clock-tick",
+    "compatibility-root",
+    "corpus",
+    "corpus-report",
+    "count",
+    "coverage",
+    "diagnostics",
+    "discover",
+    "env",
+    "execution-timeout",
+    "failure-budget",
+    "format",
+    "go",
+    "gomad",
+    "guide",
+    "guide-regression",
+    "impact-report",
+    "io-ro-mount",
+    "io-transcript-bytes",
+    "json",
+    "keep-batches",
+    "keep-successes",
+    "ledger",
+    "manifest",
+    "max-bytes",
+    "max-choice-depth",
+    "max-crash-decisions",
+    "max-executions",
+    "max-exploration-bytes",
+    "max-exploration-result-bytes",
+    "max-fault-decisions",
+    "max-forced-decisions",
+    "max-network-decisions",
+    "max-runtime-decisions",
+    "max-scenario-decisions",
+    "max-storage-decisions",
+    "min-free-bytes",
+    "mode",
+    "module",
+    "observed",
+    "on-failure",
+    "output",
+    "output-limit",
+    "overall-timeout",
+    "parallel",
+    "partial",
+    "provenance",
+    "prune-qualified-artifacts",
+    "qualify",
+    "recover",
+    "refresh",
+    "repeat",
+    "replay-successes",
+    "request",
+    "require-probe",
+    "resume",
+    "root",
+    "run-id",
+    "seed",
+    "seeds",
+    "shard",
+    "source-root",
+    "spec",
+    "stage-only",
+    "staged-copy",
+    "strategy",
+    "success-bytes",
+    "success-limit",
+    "terminate-grace",
+    "timeout",
+    "toolchain-root",
+    "verify-only",
+    "version",
+    "work",
+    "working-dir",
+    "workload",
+    "world-transition-limit"
+  ],
+  "generated_selection_count": 149,
+  "native_execution_claim": false,
+  "manifest_before_sha256": "373bbeba5aee579de261ae02793f20ceb67939649ef3e505c4b3265b6e61262b",
+  "manifest_after_sha256": "6399fe11ec2db65a016c5a7b3713da52451e25b9be90fafd4de5148d2f401516",
+  "manifest_execution_policy_unchanged": true,
+  "manifest_prose_changes_raw_report_and_ledger_run_identity": true,
+  "inputs_sha256": {
+    "tools/gomad3/SPEC.md": "4f2ea508a537cc2b08bad16ec037ae29b70c8ad67efa3cd4d00d6ad5e8c43bb1",
+    "tools/gomad3/ARCHITECTURE.md": "bffef9c1490840f23ac65dddb0e18aaeb270baca06535b3fc59ed9ec9f6f3051",
+    "tools/gomad3/CLI.md": "efb2945f5294276be8d8722b3752a0ad5f2ef0bc7f789e1a932999f8daa5899a",
+    "tools/gomad3/TUTORIAL.md": "22554280d9e0ab2351c7d44e209a3273e53887d2086cc37f9dc20a189a484c60",
+    "tools/gomad3/README.md": "fb85ed4952fb925ca31768b516fa01285d73fa2738551d9781cd6264cda0f610",
+    "tools/gomad3/cmd/gomadtool/compatibility_pack.go": "1372ebdc6d80efa644040d89a2c42c1302fc15660cbab79b94d78c1308eef7bd",
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": "ae0100d3bb6b150ac1b5f7b59d2649a987c3b7d603ca7b608deef90299571511",
+    "/tmp/fn11210-portable.6ZZCZ0Ix/bin/gomad": "6954b13c041a8cbf0cb76ef2756c7dc36484410b3d85dc1bbf0cc208af20fd3a",
+    "tools/gomad3/cmd/gomadtool/main.go": "c4383d94e0b1e67cb0dffd3051bccdacb795e94a8cc3b3b7bd4b26b1b9d0cc1d",
+    "/tmp/fn11210-portable.6ZZCZ0Ix/bin/gomadtool": "844a5d829e6f611cc275177917fcd4cdd6a125057a14d58f12e2b33013f3013d",
+    "tools/gomad3integration/qualification/soak.json": "6399fe11ec2db65a016c5a7b3713da52451e25b9be90fafd4de5148d2f401516",
+    ".github/workflows/gomad3.yml": "23e475ee000caa47809b8fdf194425e9ce728a8672c627b5e689801f285187ee",
+    "tools/gomad3integration/qualification/tests.json": "28a25783c616e4c96d8f89ad0607eaaba5ea395596b4f00be545c8e0dd30f311"
+  }
+}

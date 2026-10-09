@@ -1,0 +1,23 @@
+Usage of gomadtool soak:
+  -batches uint
+    	batches per workload and seed (default: the manifest)
+  -budget duration
+    	run budget (default: the manifest)
+  -gomad string
+    	gomad executable
+  -keep-batches
+    	keep each batch's Campaigns
+  -ledger string
+    	cumulative ledger directory restored from the previous run
+  -manifest string
+    	determinism soak manifest
+  -output string
+    	report, summary, batch reports, and divergence evidence directory
+  -run-id string
+    	identity of this run in the ledger
+  -seed string
+    	comma-separated seeds to run (default: the manifest seeds)
+  -work string
+    	directory for each batch's Campaigns, pruned after the batch
+  -workload string
+    	comma-separated workloads to run (default: the whole selection)

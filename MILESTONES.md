@@ -303,7 +303,7 @@ CI, PR, or push authority.
 | [fn-112.7](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md) | ✅ Done | Compare the filesystem and TCP models with the host OS on generated sequences |
 | [fn-112.8](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md) | ✅ Done | Drive explore, replay, and kill-then-resume through the built CLI |
 | [fn-112.9](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md) | ✅ Done | Consolidate the change-detector tests with a retained mapping; retained source acceptance |
-| [fn-112.10](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md) | ⬜ Todo | Add the scheduled determinism soak gate and update the docs to the delivered state |
+| [fn-112.10](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md) | 🚧 In progress | Finish retained source acceptance for the soak gate and shared documentation |
 | [fn-112.11](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.11.md) | ✅ Done | Preserve watchdog classification when a killed target has no I/O terminal |
 | [fn-112.12](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.12.md) | ✅ Done | Resolve the native model compiler from the standard host-test entrypoint |
 | [fn-112.13](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.13.md) | ✅ Done | Execute watchdog diagnostic replay without requiring an exact I/O transcript |

@@ -1,0 +1,12 @@
+{"ImportPath":"./qualification/soak","Action":"build-output","Output":"# ./qualification/soak\n"}
+{"ImportPath":"./qualification/soak","Action":"build-output","Output":"stat /Users/stephan/Workspace/skunkworks/gomad/temporal/qualification/soak: directory not found\n"}
+{"ImportPath":"./qualification/soak","Action":"build-fail"}
+{"Time":"2026-10-09T18:48:34.871039335Z","Action":"start","Package":"./qualification/soak"}
+{"Time":"2026-10-09T18:48:34.87114096Z","Action":"output","Package":"./qualification/soak","Output":"FAIL\t./qualification/soak [setup failed]\n","OutputType":"frame"}
+{"Time":"2026-10-09T18:48:34.871165001Z","Action":"fail","Package":"./qualification/soak","Elapsed":0,"FailedBuild":"./qualification/soak"}
+{"ImportPath":"./qualification/set","Action":"build-output","Output":"# ./qualification/set\n"}
+{"ImportPath":"./qualification/set","Action":"build-output","Output":"stat /Users/stephan/Workspace/skunkworks/gomad/temporal/qualification/set: directory not found\n"}
+{"ImportPath":"./qualification/set","Action":"build-fail"}
+{"Time":"2026-10-09T18:48:34.871209168Z","Action":"start","Package":"./qualification/set"}
+{"Time":"2026-10-09T18:48:34.871217876Z","Action":"output","Package":"./qualification/set","Output":"FAIL\t./qualification/set [setup failed]\n","OutputType":"frame"}
+{"Time":"2026-10-09T18:48:34.871233001Z","Action":"fail","Package":"./qualification/set","Elapsed":0,"FailedBuild":"./qualification/set"}

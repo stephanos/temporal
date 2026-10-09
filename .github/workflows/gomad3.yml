@@ -385,7 +385,7 @@ jobs:
   # The linux/amd64 counterpart. soak.json lists linux/amd64 under
   # informational_platforms while fn-105 D12 is open, so this job's report says
   # its gate is informational and a divergence does not fail it; overflow,
-  # target, and infrastructure failures still do. fn-105 R12 removes that entry
+  # target, and infrastructure failures still do. Deferred fn-128.2 owns removal of that entry
   # together with the other D12 allowances.
   determinism-soak-linux:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}

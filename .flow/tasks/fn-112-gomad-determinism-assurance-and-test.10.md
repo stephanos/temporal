@@ -44,6 +44,10 @@ The soak gate (R6) and final documentation (R11). Combined because the docs repo
 ### Key context
 - The bound is measured with diagnostics on; say so wherever it is quoted.
 - Spec Open Question 1 (target bound and runners) is unanswered; deliver the cumulative report and state the count reached.
+
+### Source acceptance admission (2026-10-09)
+
+The owner prioritized near-complete specs. Resume task 10 at committed source base `15f56644664f3d3749bab2387aa97936a1cac6dd` under [the root admission](../artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/admission.md). Existing acceptance, scope, dependency edges and historical evidence remain unchanged. Native obligations stay deferred under fn-149/fn-128. Root owns lifecycle, independent review and commits. Current source gates must pass before Done; documentation-only gaps do not license weakening tests or retrying unchanged failures.
 ## Acceptance
 
 

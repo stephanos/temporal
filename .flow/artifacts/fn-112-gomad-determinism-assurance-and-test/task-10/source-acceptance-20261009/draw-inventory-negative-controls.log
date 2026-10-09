@@ -1,0 +1,12 @@
+{"Time":"2026-10-09T19:03:24.998105426Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/toolchain"}
+{"Time":"2026-10-09T19:03:24.999780592Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/toolchain","Test":"TestDrawInventoryRejectsUnclassifiedReference"}
+{"Time":"2026-10-09T19:03:24.999858176Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/toolchain","Test":"TestDrawInventoryRejectsUnclassifiedReference","Output":"=== RUN   TestDrawInventoryRejectsUnclassifiedReference\n","OutputType":"frame"}
+{"Time":"2026-10-09T19:03:25.000433717Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/toolchain","Test":"TestDrawInventoryRejectsUnclassifiedReference","Output":"--- PASS: TestDrawInventoryRejectsUnclassifiedReference (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-09T19:03:25.000480926Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/toolchain","Test":"TestDrawInventoryRejectsUnclassifiedReference","Elapsed":0}
+{"Time":"2026-10-09T19:03:25.000536717Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/toolchain","Test":"TestSeededDrawInventoryRejectsUnclassifiedReference"}
+{"Time":"2026-10-09T19:03:25.000559884Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/toolchain","Test":"TestSeededDrawInventoryRejectsUnclassifiedReference","Output":"=== RUN   TestSeededDrawInventoryRejectsUnclassifiedReference\n","OutputType":"frame"}
+{"Time":"2026-10-09T19:03:25.000905342Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/toolchain","Test":"TestSeededDrawInventoryRejectsUnclassifiedReference","Output":"--- PASS: TestSeededDrawInventoryRejectsUnclassifiedReference (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-09T19:03:25.000938842Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/toolchain","Test":"TestSeededDrawInventoryRejectsUnclassifiedReference","Elapsed":0}
+{"Time":"2026-10-09T19:03:25.000971551Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/toolchain","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-09T19:03:25.001029467Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/toolchain","Output":"ok  \tgo.temporal.io/server/tools/gomad3/toolchain\t0.003s\n"}
+{"Time":"2026-10-09T19:03:25.001072842Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/toolchain","Elapsed":0.003}

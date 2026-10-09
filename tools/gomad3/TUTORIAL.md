@@ -725,8 +725,9 @@ evidence proves repeated observations, not Exact Replay. Closure capability
 mode reviews dependencies without compiling guards, so code a compatibility pack
 admits runs live. Host netpoll readiness, SIGPROF and CPU profiling, enabled
 block or mutex profiling, and `runtime.NumCPU` are declared outside the contract
-(see the README's Contract). The bound Gomad quotes is the soak's per-platform
-count of fresh repetitions with zero divergences, measured with diagnostics on;
+(see the README's Contract). The bound Gomad quotes is the soak's per-platform,
+per-cohort cumulative count of fresh repetitions from clean batches while that
+cohort has zero divergences, measured with diagnostics on;
 until the first scheduled run on each platform is retained, none has been
 measured, and linux/amd64 stays informational while its replay divergence is
 open. Read the current

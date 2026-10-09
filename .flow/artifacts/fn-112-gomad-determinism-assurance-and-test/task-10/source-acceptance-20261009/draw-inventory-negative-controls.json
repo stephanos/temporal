@@ -1,0 +1,28 @@
+{
+  "command": "go test -tags test_dep -count=1 -json -run \"^(TestDrawInventoryRejectsUnclassifiedReference|TestSeededDrawInventoryRejectsUnclassifiedReference)$\" ./toolchain",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-09T19:03:24.508693+00:00",
+  "ended_at": "2026-10-09T19:03:25.162734+00:00",
+  "elapsed_seconds": 0.654,
+  "exit_code": 0,
+  "source_before_sha256": "5efeac884fbdb101b466760688d6837c7da15c1810985a76efaf47e3dfe8324b",
+  "source_after_sha256": "5efeac884fbdb101b466760688d6837c7da15c1810985a76efaf47e3dfe8324b",
+  "source_unchanged": true,
+  "head": "15f56644664f3d3749bab2387aa97936a1cac6dd",
+  "go": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+  "go_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+  "environment": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "TMPDIR": "/tmp/fn11210-portable.6ZZCZ0Ix",
+    "GOTMPDIR": "/tmp/fn11210-portable.6ZZCZ0Ix",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOPROXY": "file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "log_sha256": "d21ed0181e535d76f553ce229f6965f9e87c30543eb3e6d85f16ab9323b47e6f"
+}

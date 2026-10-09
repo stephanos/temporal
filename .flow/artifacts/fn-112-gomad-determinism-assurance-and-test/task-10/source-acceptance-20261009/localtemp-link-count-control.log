@@ -1,0 +1,4 @@
+fixture-root /tmp/fn11210-portable.6ZZCZ0Ix/fn11210-link-control-791919736
+removed="" dev=30 ino=5637248 nlink=3
+removed="first" dev=30 ino=5637248 nlink=2
+removed="second" dev=30 ino=5637248 nlink=1

@@ -1,0 +1,228 @@
+level=info msg="golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\") on (unknown)"
+level=info msg="[config_reader] Used config file ../../.github/.golangci.yml"
+level=info msg="[config_reader] Module name \"go.temporal.io/server/tools/gomad3\""
+level=info msg="[goenv] Read go env for 5.961083ms: map[string]string{\"GOCACHE\":\"/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r\", \"GOROOT\":\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64\"}"
+level=info msg="[lintersdb] Active 13 linters: [depguard errcheck exhaustive forbidigo gci godox goimports govet importas iotamixing revive staticcheck testifylint]"
+level=info msg="[loader] Using build tags: [test_dep]"
+level=info msg="[loader] Go packages loading at mode 8767 (compiled_files|imports|name|deps|exports_file|files|types_sizes) took 630.629084ms"
+level=info msg="[runner/filename_unadjuster] Pre-built 0 adjustments in 11.081666ms"
+level=info msg="[linters_context/goanalysis] analyzers took 6.723041245s with top 10 stages: revive: 3.064686335s, goimports: 555.649417ms, nilness: 452.872005ms, buildir: 447.705752ms, gci: 288.481959ms, printf: 146.889078ms, SA5012: 137.246634ms, exhaustive: 132.387248ms, S1038: 114.976583ms, inline: 97.09312ms"
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^api\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^proto\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^.git\""
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Sleep\", Path Except: \"_test\\\\.go|tests/.+\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 1 issues by rules: [Text: \"time.Now\", Path Except: \"chasm/lib/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path: \"_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"FunctionalTestBase\", Path: \"tests/testcore/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Eventually\", Path: \"tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 22 issues by rules: [Text: \"(cyclomatic|cognitive)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated\", Linters: \"staticcheck\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path: \"chasm/lib/.*_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path Except: \"common/persistence/cassandra/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"context.Background\", Path Except: \"tests/.+_test\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"use of `softassert\\\\.\\\\w+`\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"^use of `panic` forbidden because \\\"Please avoid using panic in application code\\\"$\", Source: \"^\\\\t\\\\tpanic\\\\(\\\"gomad3: completed (an inactive campaign attempt|a campaign attempt without a classification)\\\"\\\\)$\", Path: \"^tools/gomad3/runner/internal/campaign/controller\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"chasm/lib/activity/model/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"assert\\\\.CollectT\", Path: \"tests/(nexus_standalone|nexus_workflow)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 8 issues by rules: [Text: \"(dot-imports|unchecked-type-assertion)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 35 issues by rules: [Path: \"^tools\\\\/.+\\\\.go\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"ActiveInCluster\", Path: \"common/namespace/(namespace|replication_resolver)(_test)?\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner] Issues before processing: 129, after processing: 63"
+level=info msg="[runner] Processors filtering stat (in/out): invalid_issue: 129/129, exclusion_paths: 129/129, exclusion_rules: 129/63, max_per_file_from_linter: 63/63, source_code: 63/63, path_shortener: 63/63, nolint_filter: 63/63, diff: 63/63, fixer: 63/63, uniq_by_line: 63/63, max_same_issues: 63/63, path_prettifier: 63/63, cgo: 129/129, path_relativity: 129/129, generated_file_filter: 129/129, max_from_linter: 63/63, severity-rules: 63/63, sort_results: 63/63, path_absoluter: 129/129, filename_unadjuster: 129/129"
+level=info msg="[runner] processing took 8.413252ms with stages: source_code: 3.071459ms, generated_file_filter: 2.405417ms, exclusion_rules: 1.4365ms, nolint_filter: 1.226084ms, exclusion_paths: 151.459µs, path_relativity: 81.875µs, cgo: 14.459µs, path_shortener: 7.625µs, uniq_by_line: 6.542µs, invalid_issue: 2.749µs, sort_results: 2.417µs, path_absoluter: 1.791µs, filename_unadjuster: 1.125µs, max_same_issues: 1.083µs, max_per_file_from_linter: 1.001µs, path_prettifier: 917ns, fixer: 333ns, diff: 208ns, max_from_linter: 166ns, severity-rules: 42ns"
+level=info msg="[runner] linters took 2.074012751s with stages: goanalysis_metalinter: 2.065490168s"
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:62:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:67:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:72:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:96:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:100:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:121:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:126:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "compatibility-pack review output must be below internal/compatibilitypack")
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:135:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:157:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:162:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:166:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:179:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:187:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:207:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:212:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:220:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:227:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:259:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:278:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:283:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:288:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:313:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "no compatibility-pack request names %s\n", platform)
+		           ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:428:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/compatibility_pack.go:433:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/diagnostic.go:21:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool diagnostic-diff [--json] EXPECTED_TRACE ACTUAL_TRACE")
+		            ^
+tools/gomad3/cmd/gomadtool/diagnostic.go:26:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/diagnostic.go:31:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/diagnostic.go:36:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/diagnostic.go:50:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:32:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, usage)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:73:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, usage)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:80:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool checked-run <seconds> <expected-status> <label> <result-dir> -- <command> [args...]")
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:86:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "gomad3 checked runner requires a positive timeout and numeric expected status")
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:91:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "gomad3 checked runner result directory is invalid: %v\n", err)
+		           ^
+tools/gomad3/cmd/gomadtool/main.go:95:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:100:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:114:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, runErr)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:125:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/main.go:131:15: Error return value of `fmt.Fprintf` is not checked (errcheck)
+			fmt.Fprintf(stderr, "gomad3 process failed: %s: status 124 was not a timeout\n", arguments[2])
+			           ^
+tools/gomad3/cmd/gomadtool/main.go:136:13: Error return value of `fmt.Fprintf` is not checked (errcheck)
+	fmt.Fprintf(stderr, "gomad3 process failed: %s: status %d, want %d\n", arguments[2], actual, expected)
+	           ^
+tools/gomad3/cmd/gomadtool/main.go:138:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "--- stdout ---\n%s", executed.Stdout.RawBytes)
+		           ^
+tools/gomad3/cmd/gomadtool/main.go:141:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "--- stderr ---\n%s", executed.Stderr.RawBytes)
+		           ^
+tools/gomad3/cmd/gomadtool/main.go:175:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:192:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:207:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:235:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/main.go:240:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:319:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:347:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:352:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:356:17: Error return value of `fmt.Fprintf` is not checked (errcheck)
+					fmt.Fprintf(stderr, "--- stdout ---\n%s", result.Stdout)
+					           ^
+tools/gomad3/cmd/gomadtool/main.go:359:17: Error return value of `fmt.Fprintf` is not checked (errcheck)
+					fmt.Fprintf(stderr, "--- stderr ---\n%s", result.Stderr)
+					           ^
+tools/gomad3/cmd/gomadtool/main.go:367:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/main.go:393:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, "gomad3 requires an installed bootstrap Go; set GOMAD3_BOOTSTRAP_GO")
+			            ^
+tools/gomad3/cmd/gomadtool/main.go:400:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, "gomad3 requires Bash to run upstream make.bash")
+			            ^
+tools/gomad3/cmd/gomadtool/main.go:410:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/soak.go:37:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool soak --manifest=FILE --gomad=FILE --work=DIR --ledger=DIR --output=DIR [flags]")
+		            ^
+tools/gomad3/cmd/gomadtool/soak.go:47:16: Error return value of `fmt.Fprintf` is not checked (errcheck)
+				fmt.Fprintf(stderr, "invalid --seed %q\n", value)
+				           ^
+tools/gomad3/cmd/gomadtool/soak.go:55:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/soak.go:62:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/upgrade.go:29:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomadtool/upgrade.go:41:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomadtool/upgrade.go:64:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+63 issues:
+* errcheck: 63
+level=info msg="File cache stats: 5 entries of total size 38.0KiB"
+level=info msg="Memory: 29 samples, avg is 166.1MB, max is 254.7MB"
+level=info msg="Execution took 2.733715584s"

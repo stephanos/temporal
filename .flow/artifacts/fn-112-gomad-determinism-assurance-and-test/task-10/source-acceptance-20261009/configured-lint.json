@@ -1,0 +1,28 @@
+{
+  "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml ./qualification/soak ./qualification/set ./cmd/gomadtool",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-09T18:57:36.793785+00:00",
+  "ended_at": "2026-10-09T18:57:39.992969+00:00",
+  "elapsed_seconds": 3.199,
+  "exit_code": 1,
+  "source_before_sha256": "b710e62cecf04067e0e69592c7689561527cb2d55edd446b61dd5136e6367a4e",
+  "source_after_sha256": "b710e62cecf04067e0e69592c7689561527cb2d55edd446b61dd5136e6367a4e",
+  "source_unchanged": true,
+  "head": "15f56644664f3d3749bab2387aa97936a1cac6dd",
+  "go": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+  "go_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+  "environment": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "TMPDIR": "/tmp/fn11210-portable.6ZZCZ0Ix",
+    "GOTMPDIR": "/tmp/fn11210-portable.6ZZCZ0Ix",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOPROXY": "file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "log_sha256": "1696bc62623d489ea175f3f9953ba0140915b0f7455d1d0e73fbadf48020bcd7"
+}

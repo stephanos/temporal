@@ -1,0 +1,28 @@
+{
+  "command": "mkdir -p /tmp/fn11210-portable.6ZZCZ0Ix/bin && go build -trimpath -o /tmp/fn11210-portable.6ZZCZ0Ix/bin/gomad ./cmd/gomad && go build -trimpath -o /tmp/fn11210-portable.6ZZCZ0Ix/bin/gomadtool ./cmd/gomadtool",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-09T18:52:00.912918+00:00",
+  "ended_at": "2026-10-09T18:52:12.084680+00:00",
+  "elapsed_seconds": 11.172,
+  "exit_code": 0,
+  "source_before_sha256": "1eb11a55a28c650c85efb6b3f30a625b621f9ba766b5e62828d19858e74ce438",
+  "source_after_sha256": "1eb11a55a28c650c85efb6b3f30a625b621f9ba766b5e62828d19858e74ce438",
+  "source_unchanged": true,
+  "head": "15f56644664f3d3749bab2387aa97936a1cac6dd",
+  "go": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+  "go_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+  "environment": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "TMPDIR": "/tmp/fn11210-portable.6ZZCZ0Ix",
+    "GOTMPDIR": "/tmp/fn11210-portable.6ZZCZ0Ix",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOPROXY": "file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

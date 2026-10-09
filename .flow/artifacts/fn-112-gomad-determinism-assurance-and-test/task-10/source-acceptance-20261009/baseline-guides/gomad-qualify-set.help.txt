@@ -1,0 +1,19 @@
+Usage of gomad qualify-set:
+  -artifacts string
+    	qualification artifact root (default ".gomad/qualification")
+  -check
+    	validate the manifest without executing targets
+  -format string
+    	text or json (default "text")
+  -manifest string
+    	qualification manifest
+  -min-free-bytes value
+    	stop before a seed starts on an artifact volume with less free space (default 2147483648)
+  -output string
+    	qualification set report (default ".gomad/qualification-set.json")
+  -prune-qualified-artifacts
+    	delete each qualified seed's retained Campaigns once its evidence is final
+  -shard string
+    	zero-based INDEX/COUNT subset of the manifest's workloads, merged later with merge-set
+  -working-dir string
+    	target module directory

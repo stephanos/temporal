@@ -986,8 +986,9 @@ where the patched toolchain does not build, against a stand-in `gomad
 qualify`; that run measured no Gomad bound. The first retained scheduled or
 dispatched run on each platform supplies the native bound, and linux/amd64
 stays informational while the
-[linux replay divergence](../../MILESTONES.md#open-findings) (fn-105 D12) is
-open.
+[linux replay divergence](../../MILESTONES.md#open-findings) (historical fn-105
+D12, now owned by deferred fn-128.2) is open. Native soak execution and retained
+bounds belong to deferred fn-149.4 on Darwin and fn-128.5/fn-128.7 on Linux.
 
 The runtime system monitor is disabled with asynchronous preemption, so a
 CPU-bound goroutine or `select` polling loop may run forever and prevent

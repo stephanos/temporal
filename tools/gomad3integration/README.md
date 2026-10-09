@@ -48,15 +48,16 @@ The user-timers and activity batch cancel suites' darwin/arm64 expectation is
 `qualified`: since the runtime greys the scheduler structures at mark start
 (MILESTONES.md F5), both seeds reproduce their evidence across
 repetitions and replay with exact choice replay, and all 28 darwin workloads
-are supported. Their linux/amd64 expectation is `qualified` too: fork run
-36493869196 qualified both seeds with exact replay, as had the four linux runs
-before it.
-The F6 slice is `qualified` on both platforms. On darwin/arm64 all ten suites
-qualify on both seeds with exact replay, including four fresh repetitions of the
+are supported in those historical runs. Their current linux/amd64 expectation
+is `intermittent`: later runs showed replay divergence, and the earlier clean
+runs do not establish current qualification.
+The F6 slice expects `qualified` on darwin/arm64. Historically all ten suites
+qualified on both seeds with exact replay, including four fresh repetitions of the
 six suites that had diverged on linux. On linux/amd64, fork run 36493869196
-qualified all ten on both seeds with exact replay, which confirms that the
-platform-neutral environment-filter and mark-start greying fixes closed the
-earlier linux divergences. Each non-qualified expectation names its milestone
+qualified all ten on both seeds with exact replay, but later runs showed those
+clean Linux results were chance, not closure of the divergence. Its current
+linux/amd64 expectations remain `intermittent` under the historical D12 finding,
+now owned by deferred fn-128.2. Each non-qualified expectation names its milestone
 section as its `finding`.
 Each slice suite inherits the
 two-minute `run_timeout` (the longest measured darwin execution took 7 s of
@@ -135,8 +136,10 @@ workflows (about 8 seconds of execution per seed on linux/amd64). Each suite is
 copied verbatim from `temporal.json`, which `make gomad3-integration-test`
 checks. The `Gomad v3 functional smoke` workflow runs it on linux/amd64 for
 changes to Gomad, the functional tests, and the server packages their closure
-reaches, and requires `unsupported`, `failed`, and `infrastructure_errors` to
-be zero with every suite qualified and replayed exactly. It runs seed 11 only:
+reaches, and requires all four suites to complete with `unsupported` and
+`infrastructure_errors` zero; each suite may be `qualified`, `nondeterministic`, or
+`replay_divergence` under its Linux `intermittent` expectation. Every qualified
+suite must be replayed exactly. It runs seed 11 only:
 seed 17 has diverged on replay intermittently on linux since the FIPS DRBG and
 mark-start greying runtime changes (MILESTONES.md F7), a different suite
 each run, and a required gate must not flake; the representative set still
@@ -153,8 +156,8 @@ make gomad3-smoke-qualification
 `frontend-system-info` probe, seeds 11 and 17, and the soak's size: each
 workload and seed runs at least two and at most four `gomad qualify
 --diagnostics` batches of 32 fresh repetitions (N = 64 to 128) under two busy
-host threads, adding a batch only while the previous batch's measured cost fits
-a 120-minute budget, so the scheduled jobs stay within a fork's shared
+host threads, adding a batch only while the previous batch's measured cost plus
+20% headroom fits a 120-minute budget, so the scheduled jobs stay within a fork's shared
 hosted-runner quota. Its `sizing` field records that reasoning. `make gomad3-soak` runs it
 through `gomadtool soak` (see `tools/gomad3/CLI.md`); `GOMAD3_SOAK_WORKLOAD`
 and `GOMAD3_SOAK_SEED` select one workload and seed, as each scheduled job
@@ -164,16 +167,19 @@ or dispatched run, so a cohort's count accumulates across weeks until the
 toolchain, Runner, or target changes. A divergence fails the darwin/arm64 job
 and retains both diagnostic traces and the differ output; an overflow, target
 failure, or infrastructure failure fails it separately. `informational_platforms`
-keeps linux/amd64 informational while fn-105 D12 is open; fn-105 R12 removes
-that entry with the other D12 allowances. No scheduled run has been retained
-yet, so the soak has no native bound to quote.
+keeps linux/amd64 informational while historical fn-105 D12 is open; deferred
+fn-128.2 owns removal of that entry with the other D12 allowances. Native soak
+execution and retained bounds belong to deferred fn-149.4 on Darwin and
+fn-128.5/fn-128.7 on Linux. No scheduled run has been retained yet, so the soak
+has no native bound to quote.
 
 ### Sharding the generated set
 
 The set is sharded at the workload level, not with the Campaign `plan` /
 `execute-shard` / `merge` primitives: those partition the seeds of one Target,
-while this set has 147 Targets that each qualify on two seeds. `qualify-set
---shard INDEX/COUNT` applies the same zero-based ordinal-modulo partition to
+while the current generated manifest selects 149 Targets that each qualify on
+two seeds. That is a selection count, not an executed qualification result.
+`qualify-set --shard INDEX/COUNT` applies the same zero-based ordinal-modulo partition to
 the manifest's workloads, and `merge-set` combines the shard reports into the
 report a whole run would have published (see `tools/gomad3/README.md`). With
 Make:
