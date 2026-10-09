@@ -280,6 +280,9 @@ CI, PR, or push authority.
 | [fn-109.54](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.54.md) | 🚧 In progress | Check doctor reports and classify output failures |
 | [fn-109.55](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.55.md) | 🚧 In progress | Check verify-only replay report delivery |
 | [fn-109.56](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.56.md) | 🚧 In progress | Check builder cleanup while preserving publication outcomes |
+| [fn-109.57](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.57.md) | 🚧 In progress | Check test cleanup results without changing resource lifetimes |
+| [fn-109.58](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.58.md) | 🚧 In progress | Check inspection and invalid compiler-fixture cleanup |
+| [fn-109.59](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.59.md) | 🚧 In progress | Make preserved test-switch no-op cases explicit |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 
