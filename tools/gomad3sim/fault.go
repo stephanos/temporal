@@ -49,7 +49,7 @@ type FaultMatch struct {
 type FaultAction struct {
 	ID          FaultID          `json:"id"`
 	Kind        FaultKind        `json:"kind"`
-	Match       FaultMatch       `json:"match,omitempty"`
+	Match       FaultMatch       `json:"match"`
 	Node        NodeID           `json:"node,omitempty"`
 	Candidates  []NodeID         `json:"candidates,omitempty"`
 	TargetFrom  FaultID          `json:"target_from,omitempty"`

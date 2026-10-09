@@ -112,9 +112,9 @@ INTERNAL_BINPB := $(PROTO_ROOT)/image.bin
 CHASM_BINPB := $(PROTO_ROOT)/chasm.bin
 PROTO_OUT := api
 
-ALL_SRC         := $(shell find . -path "./tools/gomad3/.toolchain" -prune -o -name "*.go" -print)
+ALL_SRC         := $(shell find . -path "./.gomad" -prune -o -path "./.tmp" -prune -o -path "./.flow/artifacts" -prune -o -path "./tools/gomad3" -prune -o -name "*.go" -print)
 ALL_SRC         += go.mod
-ALL_SCRIPTS     := $(shell find . -path "./tools/gomad3/.toolchain" -prune -o -name "*.sh" -print)
+ALL_SCRIPTS     := $(shell find . -path "./.gomad" -prune -o -path "./.tmp" -prune -o -path "./.flow/artifacts" -prune -o -path "./tools/gomad3/.toolchain" -prune -o -name "*.sh" -print)
 
 MAIN_BRANCH    := main
 
@@ -129,7 +129,7 @@ DB_TOOL_INTEGRATION_TEST_ROOT := ./tools/tests
 INTEGRATION_TEST_DIRS := $(DB_INTEGRATION_TEST_ROOT) $(DB_TOOL_INTEGRATION_TEST_ROOT) ./temporaltest
 TESTCORE_UNITTESTS := ./tests/testcore
 ifeq ($(UNIT_TEST_DIRS),)
-UNIT_TEST_DIRS := $(filter-out $(FUNCTIONAL_TEST_ROOT)% $(FUNCTIONAL_TEST_XDC_ROOT)% $(FUNCTIONAL_TEST_NDC_ROOT)% $(MIXED_BRAIN_TEST_ROOT)% $(DB_INTEGRATION_TEST_ROOT)% $(DB_TOOL_INTEGRATION_TEST_ROOT)% ./temporaltest%,$(TEST_DIRS))
+UNIT_TEST_DIRS := $(filter-out $(FUNCTIONAL_TEST_ROOT)% $(FUNCTIONAL_TEST_XDC_ROOT)% $(FUNCTIONAL_TEST_NDC_ROOT)% $(MIXED_BRAIN_TEST_ROOT)% $(DB_INTEGRATION_TEST_ROOT)% $(DB_TOOL_INTEGRATION_TEST_ROOT)% ./temporaltest% ./tools/gomad3integration%,$(TEST_DIRS))
 
 # Testcore unit tests are filtered out by the FUNCTIONAL_TEST_ROOT pattern, need to add them back manually.
 UNIT_TEST_DIRS += $(TESTCORE_UNITTESTS)
@@ -570,7 +570,7 @@ fmt-gofix:
 
 fmt-imports: $(GCI) # Don't get confused, there is a single linter called gci, which is a part of the mega linter we use is called golangci-lint.
 	@printf $(COLOR) "Formatting imports..."
-	@find . -path './.gomad' -prune -o -path './tools/gomad3/.toolchain' -prune -o -type f -name '*.go' -print0 | \
+	@find . -path './.gomad' -prune -o -path './.tmp' -prune -o -path './.flow/artifacts' -prune -o -path './tools/gomad3/.toolchain' -prune -o -path './tools/gomad3/toolchain/runtime/overlay' -prune -o -type f -name '*.go' -print0 | \
 		xargs -0 $(GCI) write --skip-generated -s standard -s default
 
 parallelize-tests:

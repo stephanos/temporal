@@ -301,8 +301,7 @@ func applyReplayDivergence(result *Result, source error) bool {
 }
 
 func replayDivergence(source error) *ReplayDivergenceError {
-	var divergenceErr *ReplayDivergenceError
-	if errors.As(source, &divergenceErr) {
+	if divergenceErr, ok := errors.AsType[*ReplayDivergenceError](source); ok {
 		return divergenceErr
 	}
 	return nil

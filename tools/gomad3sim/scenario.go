@@ -74,7 +74,7 @@ func Repeat(count uint64, step ScenarioStep) ScenarioStep {
 			if err := validateScenarioStep(step); err != nil {
 				return err
 			}
-			for index := uint64(0); index < count; index++ {
+			for range count {
 				if err := executeScenarioStep(ctx, cluster, step); err != nil {
 					return err
 				}
@@ -147,11 +147,9 @@ func BoundedParallel(id string, maximum uint64, steps ...ScenarioStep) Scenario 
 			var wait sync.WaitGroup
 			for index := start; index < end; index++ {
 				index := index
-				wait.Add(1)
-				go func() {
-					defer wait.Done()
+				wait.Go(func() {
 					errorsByIndex[index-start] = steps[index].run(ctx, cluster)
-				}()
+				})
 			}
 			wait.Wait()
 			for offset, runErr := range errorsByIndex {

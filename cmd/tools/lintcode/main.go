@@ -389,7 +389,7 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 				return entry, nil
 			}
 		}
-		for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(relative)), "/") {
+		for part := range strings.SplitSeq(filepath.ToSlash(filepath.Dir(relative)), "/") {
 			if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
 				return entry, fmt.Errorf("uncovered Gomad host source %s", path)
 			}

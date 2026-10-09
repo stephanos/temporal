@@ -451,7 +451,7 @@ func (r *lintRepo) calls() []lintCall {
 	}
 	require.NoError(r.t, err)
 	var calls []lintCall
-	for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
+	for line := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
 		var call lintCall
 		require.NoError(r.t, json.Unmarshal([]byte(line), &call))
 		calls = append(calls, call)
