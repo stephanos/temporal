@@ -11,6 +11,6 @@
   "spec": "fn-156-let-the-scala-compiler-and-lint-enforce",
   "spec_path": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.6.md",
   "status": "todo",
-  "title": "Trial explicit nulls and report Draft capture checking",
-  "updated_at": "2026-10-09T23:51:19.396826Z"
+  "title": "Trial explicit nulls across compiler roots",
+  "updated_at": "2026-10-09T23:58:22.573956Z"
 }

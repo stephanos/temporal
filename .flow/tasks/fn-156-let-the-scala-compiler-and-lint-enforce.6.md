@@ -1,41 +1,40 @@
 ---
-satisfies: [R3, R8]
+satisfies: [R3]
 ---
-# fn-156-let-the-scala-compiler-and-lint-enforce.6 Trial explicit nulls and report Draft capture checking
+# fn-156-let-the-scala-compiler-and-lint-enforce.6 Trial explicit nulls across compiler roots
 
 ## Description
-Resolve R3's adoption trial and deliver R8's bounded report. Null-boundary changes follow the shared mechanical migrations; the capture spike stays disposable throughout.
+
+Resolve R3's explicit-nulls adoption trial after the shared source migrations. R8 is the independent report-only task .8; this task does not edit its scratch checkout or report.
 
 **Size:** M
-**Files:** relevant compiler directives and ScalaPB/Java boundary modules if the null trial succeeds; `.plans/SCALA.md` and `.plans/SCALA_CAPTURE_CHECKING.md` report; scratch spike under `.flow/tmp/fn156/`.
-**Touches:** [model/project.scala, model/irgen/project.scala, model/irgen/testdata/**/project.scala, model/framework/realize/**, model/temporal/realize/**, model/irgen/**, .plans/SCALA.md, .plans/SCALA_CAPTURE_CHECKING.md, .flow/tmp/fn156/**]
+**Files:** relevant compiler directives, ScalaPB/Java boundary modules only if the null trial succeeds, and `.plans/SCALA.md` null-trial section.
+**Touches:** [model/project.scala, model/irgen/project.scala, model/irgen/testdata/**/project.scala, model/framework/realize/**, model/temporal/realize/**, model/irgen/**, .plans/SCALA.md, .flow/tmp/fn156/source/nulls/**]
 
-### Approach
+## Approach
 
-- Compile explicit nulls once over every intended independent build root under the compiler actually pinned at execution. Retain command/version/output and count all findings by boundary. Adopt only when findings are confined to ScalaPB/Java boundaries and fixable there while preserving lifted bytes; otherwise drop the flag and report the count and concrete reason. Avoid broad unsafeNulls or casts hiding findings.
-- Run capture checking in a disposable checkout/scratch compiler project for at most two elapsed days. Report-only investigation uses the project research tier, gpt-6-astra at high; implementation and review retain their configured tiers. Re-fetch official compiler documentation for the pinned release; compiler incompatibility or experimental-feature restrictions are report outcomes.
-- Exercise valid effect blocks, escaping Draft through return values, retained closures, object fields and nested effects; test whether the compiler rejects each escape and accepts valid uses. Record minimal diagnostic examples, limits, required API/type changes and cost of adoption. Do not merge scratch capture source changes or turn the spike into adoption.
-- Review null boundary changes with task 1's exact artifact manifests. Keep compiler check results separate from proof of runtime semantics.
+- Compile explicit nulls once over every intended independent build root under the compiler pinned at execution. Retain command/version/output and count all findings by boundary, reading diagnostics even on exit zero.
+- Adopt only when findings are confined to ScalaPB/Java boundaries and fixable there while preserving lifted bytes; otherwise drop the flag and report the count and concrete reason. Avoid broad unsafeNulls or casts hiding findings. The gate's independent tooling caller gets a specific disposition, not an unmentioned omission.
+- Review any retained boundary changes with task 1's exact artifact manifests. Rerun affected intended builds and negative fixtures. Keep compiler results separate from proof of runtime semantics and preserve existing warning/error causes.
+- Apply the owner validation policy: defer a validation stuck beyond one hour across attempts unless it blocks all other available work; preserve actual diagnostics, unmet acceptance and revisit conditions, and continue available independent work.
 
-### Investigation targets
+## Investigation targets
 
 **Required:**
-- `model/framework/Syntax.scala:125` - Draft context.
-- `model/framework/Syntax.scala:171` - effect scope.
 - `model/framework/realize` - generic ScalaPB/Java boundary.
 - `model/temporal/realize` - typed generated Temporal boundary.
-- `model/project.scala` and `model/irgen/project.scala` - compiler versions/options.
-- `.plans/SCALA.md` - existing compiler investigation record.
+- `model/project.scala`, `model/irgen/project.scala` and `model/check/project.scala` - independent callers/options.
+- `.plans/SCALA.md` - compiler investigation record.
 
-### Quick commands
+## Quick commands
 
-Run disposable actual-compiler null/capture compiles with recorded start/end timestamps and diagnostics. Hold `/tmp/umpire-heavy-gates.lock` for any production-sized trial. If nulls is retained, rerun its affected full Scala builds and the exact scratch output comparison.
+Run actual-compiler null compiles with recorded inputs, version and diagnostics. Hold `/tmp/umpire-heavy-gates.lock` with actual flock/fcntl ownership for production-sized trials. If retained, rerun affected full Scala builds and exact scratch output comparison.
 
 ## Acceptance
-- [ ] Explicit nulls is either retained with boundary-only fixes and successful intended builds, or removed with actual finding count, toolchain and reason in the report.
-- [ ] The capture report states whether the current compiler can prove Draft confinement, valid-use/escape evidence, limitations, adoption cost and the two-day elapsed bound.
-- [ ] Capture experiments leave no merged source change; null adoption keeps exact artifact bytes and no new semantic or unsafe blanket exemption.
 
+- [ ] Explicit nulls is either retained with boundary-only fixes and successful intended builds, or removed with actual finding count, toolchain and reason in the report.
+- [ ] All independent compiler callers and negative/refusal fixtures have a documented outcome; compiler diagnostics are not inferred from exit status alone.
+- [ ] Any null adoption keeps exact artifact bytes, original semantics and no unsafe blanket exemption; stuck validation preserves unmet evidence rather than passing credit.
 
 ## Done summary
 TBD

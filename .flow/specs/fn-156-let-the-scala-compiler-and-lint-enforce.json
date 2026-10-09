@@ -1,13 +1,81 @@
 {
   "branch_name": "fn-156-let-the-scala-compiler-and-lint-enforce",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-09T22:13:05.750598Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-155-name-the-standalone-activitys-repeated"
   ],
   "id": "fn-156-let-the-scala-compiler-and-lint-enforce",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-09T23:54:32.770496Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "76f6c5e79b43463179f22e8a0ea507ba5b4b92c6614f6516ea6e44d0040db74b",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6502019a5725b9d8cfa7a5e717033044",
+            "classification": "introduced",
+            "findingId": "finding-6502019a5725b9d8cfa7a5e717033044",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b5fe755126d0a378a5ce006c0aed7fba",
+            "classification": "introduced",
+            "findingId": "finding-b5fe755126d0a378a5ce006c0aed7fba",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "abe73b7a629807d2a6aaf08430bb28c47137651d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 383226,
+      "output_sha256": "74a4167a9c814daf27b715db4cfbf29ad5bcbb3e76d6ef961c108e97968e83c3",
+      "reservation_id": "cf7faab0c7614329b2eb8a5a0d6cbd66",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T23:54:31.898582Z",
+      "tool_calls": 20,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md",
   "status": "open",
   "title": "Let the Scala compiler and lint enforce Model correctness",
@@ -22,5 +90,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T23:51:36.210216Z"
+  "updated_at": "2026-10-09T23:58:23.114885Z"
 }
