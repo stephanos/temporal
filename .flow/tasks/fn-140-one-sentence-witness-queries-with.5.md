@@ -12,7 +12,7 @@ Update author documentation and the existing layout template for R7. This task r
 **Files:** `model/README.md`, `model/SEMANTICS.md`, `.plans/UMPIRE_MODULES.md`, the lamp template's level files, existing layout fixture assertions if needed.
 
 ### Approach
-- Rewrite README's path/Property/Scenario/Query example at `:62` around one witness, then give its exact ordinary core form and explain when shared triples or query verify remain appropriate. Update live Case generation at `:1325` and naming/read-order guidance without adding new semantics.
+- Rewrite README's path/Property/Scenario/Query example at `:62` around one witness, then give its exact ordinary core form and explain when shared triples or query verify remain appropriate. Update live Case generation at `:1590` and naming/read-order guidance without adding new semantics.
 - Document the source-only reason rule for convenience, full Run and monitor expectations; distinguish the explanatory text from existing judge reason IDs and expected_run metadata.
 - Add one ordinary witness to the existing lamp template while keeping its verify/refinement example. Exercise the template through the established layout fixture; keep its package-only root in normal compilation, per the current build-errors memory.
 - Describe witness ownership and no-new-IR lifting in the module map. Remove obsolete Query expect examples from author documentation.
@@ -21,8 +21,8 @@ Update author documentation and the existing layout template for R7. This task r
 ### Investigation targets
 **Required:**
 - `model/README.md:62-84` - initial author example.
-- `model/README.md:1102` and `:1325` - layout and live generation.
-- `model/SEMANTICS.md:923` - generated Case expectations.
+- `model/README.md:1127` and `:1590` - layout and live generation.
+- `model/SEMANTICS.md:984` - generated Case expectations.
 - `model/irgen/testdata/layout/lamp/product/Product.scala:37` - template claims.
 - `model/irgen/testdata/layout/lamp/system/System.scala` - template refinement.
 **Optional:**

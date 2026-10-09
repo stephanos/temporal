@@ -27,7 +27,7 @@ The early proof. Go derives the crash row from the durability record (R3), as ch
 
 **Optional** (reference as needed):
 - `tools/umpire/internal/engine/table.go:160, 369-430` - `RowsFrom`, `checkSpec`, `checkRows`
-- `model/temporal/shared/taskqueue/system/System.scala:110-120, 150-153` - `crashDetail` and its rule
+- `model/temporal/foundations/taskqueue/system/System.scala:110-120, 150-153` - `crashDetail` and its rule
 
 ## Acceptance
 - [ ] The proof test shows the derived crash table equal to `crashDetail`'s over every catalog state: outcome `internal`, fact `crashed`, no `because`, the same next state. Or the done summary lists each row that differs, and the task stops for the owner.
