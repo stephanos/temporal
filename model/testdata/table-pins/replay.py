@@ -152,7 +152,7 @@ def replay(arguments):
 # --- Equivalence under a rename map (fn-160.5): the same dumper over the changed IR, compared with
 # the streams a baseline captured, each baseline line renamed and both without source positions.
 # The rename map is the model gate's (model/check/Equivalence.scala): `old new` renames a whole
-# word, `key -` removes a table (here the subject named by the key's last segment).
+# word, `key -` removes a table: here the subject whose family-qualified name is `key`.
 
 WORD = "A-Za-z0-9_"
 
@@ -185,7 +185,7 @@ class Renames:
         return self.pattern.sub(replace, text)
 
     def removed_owners(self):
-        return {r.rsplit(".", 1)[-1] for r in self.removals if "/" not in r}
+        return {r for r in self.removals if "/" not in r}
 
 
 def without_positions(value):
@@ -197,17 +197,31 @@ def without_positions(value):
 
 
 def normalized_lines(path, rename):
+    """A stream's records without source positions and without the header's IR file name, which
+    an equivalence lets change; each canonical and renamed."""
     with gzip.open(path, "rt", encoding="utf-8") as source:
         for line in source:
-            line = json.dumps(without_positions(json.loads(line)), separators=(",", ":"), sort_keys=True)
-            yield rename(line)
+            record = without_positions(json.loads(line))
+            if record.get("kind") == "header":
+                record.pop("artifact", None)
+            yield rename(json.dumps(record, separators=(",", ":"), sort_keys=True))
+
+
+def subject(path):
+    """A dump's subject: its kind and its declaration's family-qualified name, since two IR files
+    may each hold a different machine of one name."""
+    kind, owner = path.name[:-len(".jsonl.gz")].split("-", 1)
+    with gzip.open(path, "rt", encoding="utf-8") as source:
+        first = source.readline()
+    header = json.loads(first) if first.strip() else {}
+    family = (header.get("declaration") or {}).get("family", "")
+    return kind, f"{family}.{owner}" if family else owner
 
 
 def streams(folder):
     found = {}
     for path in sorted(folder.glob("*/*.jsonl.gz")):
-        kind, owner = path.name[:-len(".jsonl.gz")].split("-", 1)
-        found.setdefault((kind, owner), []).append(path)
+        found.setdefault(subject(path), []).append(path)
     return found
 
 
@@ -245,7 +259,7 @@ def compare_streams(baseline, current, renames, shown=12):
     for key in sorted(set(now) - matched):
         differences.append(f"{key[0]} {key[1]} is new")
     return dict(differences=differences, used=sorted(renames.used),
-                used_removals=sorted(r for r in renames.removals if r.rsplit(".", 1)[-1] in used_removals))
+                used_removals=sorted(used_removals))
 
 
 def dump_all(ir, dumper, out):
