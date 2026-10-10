@@ -54,6 +54,8 @@ What a feature folder is follows the existing layout rules: a folder with a feat
 
 - **R12:** The level between Product and Realization is named **Protocol**, not System: level folders `system/` become `protocol/`, the level's machines and files are renamed (`ActivitySystem` → `ActivityProtocol`, `system/System.scala` → `protocol/Protocol.scala`, and likewise for Nexus and the task queue), and the README, SEMANTICS, structure lint and level vocabulary say Product / Protocol / Realization, so the three levels sort alphabetically in their conceptual order. [user] ("yes, add task to rename System to Protocol") Errors: no error surface; machine-scoped ids change and are listed in the batch rename map.
 
+- **R13:** A kind folder holds its kind file (`Nexus.scala`, `Activity.scala`: shared types and signature) and its forms (`standalone/`, `workflow/`); anything two forms share lives under `shared/`. The Nexus Product, one machine both forms refine (`NexusProduct`), moves from `features/nexus/product/` to `features/nexus/shared/product/`. A form's root feature file is named `<Form><Kind>.scala` (`StandaloneActivity.scala`, `StandaloneNexus.scala`). The structure lint enforces both. [user] Errors: no error surface; package and file ids change and are listed in the batch rename map.
+
 ## Boundaries
 <!-- scope: business -->
 
@@ -66,6 +68,8 @@ What a feature folder is follows the existing layout rules: a folder with a feat
 The user asked for a single file per feature where only the root of the graph is specified. [user] A single root object was rejected because model references point downward and no object reaches a feature's Queries, claims and realizations. The feature's package serves as that root instead. [paraphrase] Keeping explicit `irFile` lists but defaulting the main file to its folder's sections was considered as a middle ground. It was not chosen: it keeps the multi-file split and part of the inventory. [paraphrase]
 
 - **Level names (owner, 2026-10-10):** Product and Realization stay; System becomes Protocol: the server's protocol between its parts (history, matching, timers, durability) that refines the Product. Rejected: Guarantee/Mechanism (owner keeps Product), Production (reads as the prod environment), Provider (task-queue providers exist). [user]
+
+- **Kind layout (owner, 2026-10-10):** a Product shared by two forms goes under the kind's `shared/`, not beside the forms; one Product per form (duplicating NexusProduct) was rejected, since both forms refine the same promises (fn-126 decision 16). Form feature files are `<Form><Kind>.scala`. Open: whether `nexus/workflow/Workflow.scala` becomes `WorkflowNexus.scala`. [user]
 
 ## Parked unknowns
 

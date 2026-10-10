@@ -967,7 +967,7 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 | Name | Status | What |
 | --- | --- | --- |
 | fn-160.2 | ⬜ todo | Collect one IR file per feature package, and per foundation/actor/kind package that declares Queries or realizations; remove `irFile`/`exports`; exploration checks only the asked Query; regenerate and migrate consumers |
-| fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); the lifter enforces it (after fn-160.2) |
+| fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); forms' files `<Form><Kind>.scala`; forms' shared parts under the kind's `shared/` (Nexus Product → `nexus/shared/product/`); the lifter enforces it |
 | fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
 | fn-160.6 | ⬜ todo | Rename the System level to Protocol (folders, packages, machines, files, lint vocabulary, docs), so the levels read Product / Protocol / Realization |
 
