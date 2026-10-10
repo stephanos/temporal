@@ -27,6 +27,10 @@ retain the passing boundaries, Runner failures, RED53 lint and open acceptance.
   admitted base `18bcc34b07bd2a82edce969526fe362875674c57`.
   Source/evidence and document checks may run independently; executable gates require
   an explicit lane handoff.
+- A disjoint fn112.10 evidence worker owns only `runner-coverage-inventory/**` in
+  `/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/runner-coverage`,
+  admitted base `1af406663d1304453a70b370c22fef92778808c9`. It inventories blocked
+  portable assertions and real execution slices without Go gates or test changes.
 
 Both remain in progress. Independent source-progress review precedes any source
 checkpoint; neither worker may certify completion. No native qualification, CI,
@@ -78,3 +82,17 @@ and task2 source-acceptance handover retain the relevant provenance.
 Native fn149 and fn128 stay deferred and unverified. Their missing transferred
 execution evidence does not waive independent source acceptance and does not require
 revival for source closeout.
+
+The separate fn105 readiness audit found no independent implementation admission among
+tasks 4–6 and 8–10. D4 and D5 are reference-only donors to fn109.19/.20, not parallel owners;
+D6 still requires a recorded timestamp-tie/fixed-increment bug-class trigger. D8's real
+consumer checkout `/Users/stephan/Workspace/skunkworks/gomad/downstream` is absent, with
+no alternate `downstream`/`localcell` directory found within Workspace depth 5 and no
+configured `GOMAD_MEMBERLIST_TCP_CONSUMER_DIR`. Native transfer retains this actual-checkout
+prerequisite. D9 follows D8; D10 follows D9. Existing adapters are implemented, and five
+old adapter test files were deliberately consolidated, not lost. The retained D8 freeze
+has 30 matching hashes, 20 changed files and 5 consolidated files absent; it is not current
+source acceptance. See fn107's `fn107-d9-v14-consumer-source-freeze.json`,
+`current-source-checkpoint.json` and `wrap-up-checkpoint.json`, and fn112 task9's
+`evidence.md`. Resume D8 source/consumer review when that actual checkout is available;
+do not substitute native execution or repeat the already-delivered adapter work.
