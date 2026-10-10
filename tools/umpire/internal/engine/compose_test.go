@@ -102,6 +102,33 @@ func TestAReplacingMemberKeepsEveryAssumptionItDeclares(t *testing.T) {
 		"the door relies on the opaque key's assumption on its own")
 }
 
+func TestReplacingFairnessUsesOnlyTheProvidersDeclarationOfTheSameName(t *testing.T) {
+	opaque := opaqueKeyTable(assumes(umpire.Assumption{Name: "keyIsOpaque", Fair: []string{"useKey"}}))
+	for _, own := range []bool{false, true} {
+		name := "without provider assumption"
+		if own {
+			name = "with same named provider assumption"
+		}
+		t.Run(name, func(t *testing.T) {
+			provider := detailedKeyTable("provider", false, refining("opaqueKey"))
+			want := []umpire.Assumption{{Name: "keyIsOpaque", Fair: []string{"door_push"}}}
+			if own {
+				provider = detailedKeyTable("provider", false, refining("opaqueKey"),
+					assumes(umpire.Assumption{Name: "keyIsOpaque", Fair: []string{"loseKey"}}))
+				want[0].Fair = append(want[0].Fair, "key_loseKey")
+			}
+			door := doorTable("door", assumes(umpire.Assumption{Name: "keyIsOpaque", Fair: []string{"push"}}))
+			tb := composed(t, houseOf(door, replacing(provider, opaque)))
+			require.Equal(t, want, tb.Assumptions)
+			require.NotContains(t, tb.Assumptions[0].Fair, "lock", "the replaced member's useKey fairness is absent")
+			a, err := umpire.CheckProgress(tb, umpire.KeyProgress("shuts", doorIs("open"), doorIs("closed"), 1), wide)
+			require.NoError(t, err)
+			require.Equal(t, []string{"keyIsOpaque"}, a.Assumptions)
+			requireVerdict(t, umpire.VerifiedWithinLimits, a.Cycle)
+		})
+	}
+}
+
 func TestAMembersFairnessNamesItsComposedClasses(t *testing.T) {
 	fairDoor := umpire.Assumption{Name: "doorIsFair", Fair: []string{"push", "lock"}}
 	tb := composed(t, houseOf(doorTable("door", assumes(fairDoor)), umpire.ComposeMember{Table: keyholderTable("keyholder")}))
@@ -118,6 +145,45 @@ func TestAMembersFairnessNamesItsComposedClasses(t *testing.T) {
 	haunted.Name, haunted.Syncs = "haunted", nil
 	_, err = umpire.ComposeTables(haunted)
 	require.EqualError(t, err, "compose-haunted: the assumption ghostIsFair of door makes ghost fair, which is no action of door")
+}
+
+func TestComposedSameNamedFairnessUnionsRepeatedMembersWithoutLosingClasses(t *testing.T) {
+	member := umpire.NewTable(umpire.TableSpec{Machine: "counter", Family: "test.progress",
+		States: []string{"waiting", "done"}, Starts: []string{"waiting"}, Actions: []string{"finish", "poll"}, Outcomes: []string{"ok"},
+		Assumptions: []umpire.Assumption{{Name: "finishes", Fair: []string{"finish"}}},
+		Rows:        []umpire.Row{rowOf("waiting", "finish", resultOf("ok", "done")), rowOf("waiting", "poll", resultOf("ok", "waiting"))}})
+	for _, synced := range []bool{false, true} {
+		name := "independent"
+		if synced {
+			name = "synchronized"
+		}
+		t.Run(name, func(t *testing.T) {
+			spec := umpire.ComposeSpec{Family: "test.progress", Name: "repeated", Ceiling: roomy,
+				Members: []umpire.ComposeMember{{Field: "left", Table: member}, {Field: "right", Table: member}}}
+			fair := []string{"left_finish", "right_finish"}
+			if synced {
+				spec.Syncs = []umpire.ComposeSync{{Name: "finishBoth", FirstMember: "left", FirstAction: "finish", SecondMember: "right", SecondAction: "finish"}}
+				fair = []string{"finishBoth"}
+			}
+			tb := composed(t, spec)
+			require.Equal(t, []umpire.Assumption{{Name: "finishes", Fair: fair}}, tb.Assumptions)
+			require.Equal(t, []umpire.Assumption{{Name: "finishes", Fair: []string{"finish"}}}, member.Assumptions)
+			p := umpire.KeyProgress("bothFinish", is("waiting_waiting"), is("done_done"), 2)
+			a, err := umpire.CheckProgress(tb, p, wide)
+			require.NoError(t, err)
+			require.Equal(t, []string{"finishes"}, a.Assumptions)
+			requireVerdict(t, umpire.VerifiedWithinLimits, a.Cycle)
+			requireVerdict(t, umpire.CounterexampleFound, a.Deadline)
+			require.NoError(t, p.Replay(tb, umpire.DeadlineKind, a.Deadline))
+			unfair := umpire.ProgressVerdict{Outcome: umpire.CounterexampleFound, Loop: 0,
+				Witness: tb.PathTo("waiting_waiting")}
+			poll := slices.IndexFunc(tb.Rows, func(row umpire.Row) bool { return row.Source == "waiting_waiting" && row.Action == "left_poll" })
+			require.NotEqual(t, -1, poll)
+			row := tb.Rows[poll]
+			unfair.Witness.Steps = append(unfair.Witness.Steps, umpire.TraceStep{Action: tb.ActionAtom(row.Action), Outcome: tb.OutcomeAtom(row.Results[0].Outcome), State: tb.StateAtom(row.Results[0].State)})
+			require.ErrorContains(t, p.Replay(tb, umpire.CycleKind, unfair), "stays enabled on the cycle and is never taken")
+		})
+	}
 }
 
 func TestAViolatingProviderFailsItsReplacement(t *testing.T) {
