@@ -243,6 +243,45 @@ types before lifting.
 step, for when you run the Go tests separately; it still lints the IR. `go test -tags test_dep ./tools/umpire/...` runs the
 Go side alone from the checked-in IR and needs no JVM.
 
+### Sealing a batch
+
+A batch that keeps the Models' meaning but changes their identities (renames, moved files, merged IR
+files) is sealed by comparing the tree after it with a baseline captured before its first edit:
+
+```sh
+make umpire-capture-baseline OUT=/abs/new/dir            # on the clean tree, before the first edit
+make umpire-check-equivalence BASE=/abs/new/dir MAP=renames.txt STEPS_ONLY=1   # while model/ir is stale
+make umpire-check-equivalence BASE=/abs/new/dir MAP=renames.txt                # after the regeneration
+make umpire-check-equivalence BASE=/abs/new/dir MAP=/dev/null                  # an unchanged tree passes
+```
+
+The baseline (`model/check/Equivalence.scala`) holds `baseline.txt` (commit, whether `model/` was
+clean, counts), `step-tables/`, copies of `model/ir` (IR files and accepted lint findings) and
+`model/cases` (Cases and `manifest.json`), and the Models' sources for reference. The check fails on
+every difference the rename map does not explain, and on every map entry that explains nothing.
+
+- **Step tables.** `model/framework/StepTables.scala` writes, for every machine and composition the
+  IR files' roots reach (`IrFile.discover`, as `MachineTablePins` discovers them), its start, binding
+  order, each state with its end and refinement image, and one row per state and action class with
+  the ordered steps, disabled pairs included. A composition's table holds its members, its syncs and
+  its ends. Values are spelled as the table pins spell them. The tables are read from the Models as
+  Scala runs them, so they compare while the IR is stale and the IR generator does not build.
+- **Projection.** Every IR declaration, keyed by section and identity, so how declarations are split
+  across IR files does not matter; every accepted lint finding; every Case by file name; every
+  manifest entry by its Query. Source positions, content fingerprints and IR files' root lists are
+  left out.
+- **Interpreter tables.** With `DUMPER=<path>` (the table pins' dumper,
+  `model/testdata/table-pins/README.md`), capture also replays the pins and keeps the native
+  streams, and the check dumps the current IR and compares the streams under the map.
+
+The rename map has one entry per line, `#` starting a comment. `old new` renames the whole word
+`old` everywhere: table keys (`<family>.<machine>`), rows, IR ids and strings, IR and Case file names.
+A word ends at any character other than a letter, digit or `_`, so `pkg.Machine`, `worker.poll` and
+`activity-standalone-race` are words, and renaming an IR file renames the Cases derived from it.
+All entries apply at once, the longest first. `key -` removes a table, `key/actor.action -` removes
+one action's rows from a table. With `STEPS_ONLY=1`, an entry that only the IR or Cases mention is
+reported as left to the projection rather than as unused.
+
 ## Following the example to a Verdict
 
 **Lifted.** `make umpire-gen-model` lifts the Query into `model/ir/nexus-workflow.json`. This is its

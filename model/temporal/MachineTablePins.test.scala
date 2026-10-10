@@ -22,15 +22,7 @@ class MachineTablePins extends munit.FunSuite:
   private def hash(bytes: Array[Byte]): String =
     MessageDigest.getInstance("SHA-256").digest(bytes).map(b => f"${b & 0xff}%02x").mkString
 
-  private def key(value: Any): String = value match
-    case _: None.type                 => "None"
-    case Some(member)                 => "Some-" + key(member)
-    case values: List[?]              => values.map(key).mkString("[", ",", "]")
-    case enumCase: scala.reflect.Enum =>
-      val product = enumCase.asInstanceOf[Product] // scalafix:ok DisableSyntax.asInstanceOf
-      (product.productPrefix +: product.productIterator.map(key).toSeq).mkString("-")
-    case record: Product => record.productIterator.map(key).mkString("-")
-    case other           => other.toString
+  private def key(value: Any): String = StepTables.spell(value)
 
   private def catalog(actual: Seq[String], pin: JValue, label: String): Unit =
     assertEquals(actual.size, integer(pin \ "size"), label)

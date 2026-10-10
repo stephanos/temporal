@@ -120,7 +120,7 @@ object Composition:
 
   // A selector reads one field of the composed state and names the member that fills it, so the
   // member is read off a composed state of empty fields: a case class's constructor keeps them.
-  private object Empty extends Product:
+  private[framework] object Empty extends Product:
     def canEqual(that: Any): Boolean = false
     def productArity: Int = 0
     // An empty field is null, as a case class constructor keeps it.
@@ -137,20 +137,50 @@ final class Composer[S <: Product] private[framework] (val composition: Composit
 // first member's action or by the name it is given, `sync("admit", ...)`; `replaces(_.queue,
 // OpaqueProduct)` says a member stands in for an opaque machine. The IR generator reads them from the
 // source, in order.
-abstract class Syncs[S <: Product](using @unused composer: Composer[S]):
+abstract class Syncs[S <: Product](using composer: Composer[S]):
+  // Each statement, in order, as the step tables read it (model/framework/StepTables.scala): the
+  // IR generator reads the statements from the source, and nothing else runs them.
+  private[framework] val recorded = scala.collection.mutable.ArrayBuffer.empty[Syncs.Statement]
+
+  private def move(selector: S => (Any, Action[?])): ActionDecl =
+    selector(composer.composition.mirror.fromProduct(Composition.Empty))._2.decl
+
   // Pairs two members' actions into one step named after the first member's action.
-  def sync(@unused first: S => (Any, Action[?]), @unused second: S => (Any, Action[?])): Unit = ()
+  def sync(first: S => (Any, Action[?]), second: S => (Any, Action[?])): Unit =
+    recorded += Syncs.Statement.Sync("", move(first), move(second)): Unit
 
   // Pairs two members' actions into one step named `name`.
   def sync(
-      @unused name: String,
-      @unused first: S => (Any, Action[?]),
-      @unused second: S => (Any, Action[?])
-  ): Unit = ()
+      name: String,
+      first: S => (Any, Action[?]),
+      second: S => (Any, Action[?])
+  ): Unit =
+    recorded += Syncs.Statement.Sync(name, move(first), move(second)): Unit
 
   // The member a field selector names, `_.queue`, stands in for `opaque` within this composition:
   // a detailed provider in place of an opaque one, which must declare a refinement of it.
-  def replaces(@unused field: S => Any, @unused opaque: Model): Unit = ()
+  def replaces(@unused field: S => Any, opaque: Model): Unit =
+    recorded += Syncs.Statement.Replaces(opaque): Unit
+
+object Syncs:
+  // A statement of a `syncs` object.
+  private[framework] enum Statement:
+    case Sync(name: String, first: ActionDecl, second: ActionDecl)
+    case Replaces(opaque: Model)
+
+  // The `syncs` object `composition` declares, where it declares one: a member object a
+  // composition need not declare, found as the object's nested module, `<Composition>$syncs$`, as
+  // `Refinement.declaredBy` finds a refinement.
+  private[framework] def declaredBy(composition: Composition[?]): Option[Syncs[?]] =
+    val declaration =
+      try Some(java.lang.Class.forName(composition.getClass.getName + "syncs$"))
+      catch case _: ClassNotFoundException => None
+    declaration
+      .map(c => c.getField("MODULE$").get(null)) // scalafix:ok DisableSyntax.null
+      .map:
+        case syncs: Syncs[?] => syncs
+        case other           =>
+          throw IllegalStateException(s"${composition.name}.syncs is not Syncs: $other")
 
 // One member's action a sync pairs, by a selector of the member's field.
 type Move[S] = S => (Any, Action[?])

@@ -24,12 +24,22 @@ import framework.realize.Realization
 // qualified names.
 final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot]):
   // Every reachable declaration, retaining the typed instances and their finite witnesses.
-  def subjects(): Vector[Model] =
+  def subjects(): Vector[Model] = traverse()._2
+
+  // Every Model constructing the roots reaches, each once, in first-reached order: the declarations
+  // `subjects` gives, and the machines and compositions derivations make in place, such as
+  // `m.restrict(...)` passed as a member (the step tables, model/framework/StepTables.scala).
+  private[framework] def reached(): Vector[Model] = traverse()._1
+
+  // The Models the roots reach, in first-reached order, and the declarations among them.
+  private def traverse(): (Vector[Model], Vector[Model]) =
     val seen = java.util.IdentityHashMap[Model, java.lang.Boolean]()
+    val reached = mutable.ArrayBuffer.empty[Model]
     val declarations = mutable.LinkedHashMap.empty[String, Model]
     def model(m: Model): Unit =
       if !seen.containsKey(m) then
         seen.put(m, java.lang.Boolean.TRUE): Unit
+        reached += m: Unit
         val declared = m match
           case _: Built[?, ?, ?, ?] => false // format: off
           case c: Composition[?]   => !c.getClass.getName.contains("$anon")
@@ -71,7 +81,7 @@ final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot])
         .map((n, ms) => s"$n: ${ms.map(IrFile.identity).mkString(", ")}")
         .mkString("; ")
     )
-    subjects
+    (reached.toVector, subjects)
 
   // Constructs each reachable machine's rules, refusing overlaps as the model gate does.
   def construct(): Set[String] =
