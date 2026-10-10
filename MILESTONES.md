@@ -5,10 +5,10 @@ Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the o
 
 As of 2026-10-10.
 
-Execution is paused at the owner's request after wrapping the in-flight source checkpoints.
-The compiler, format and fairness checkpoints are integrated locally; no new work is scheduled.
-Open tasks remain in progress where acceptance, generation or review is still required.
-Fn-157 remains owner-deferred. Resume requires a new owner instruction.
+Execution resumed on 2026-10-10 under the owner's instruction to complete all milestone work,
+taking the conductor's recommendations without further questions. The compiler, format and
+fairness checkpoints are merged into `umpire` (`ae3f36ee51`). Active lanes: Batch 3 format close,
+fn-156 close, and fn-160.5's equivalence check with the pre-1d baseline capture.
 
 ## Keeping this page current
 
