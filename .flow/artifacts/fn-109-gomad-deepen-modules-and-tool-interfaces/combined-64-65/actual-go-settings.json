@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "go",
+    "env",
+    "-json",
+    "GOOS",
+    "GOARCH",
+    "GOROOT",
+    "CGO_ENABLED",
+    "CC",
+    "CXX",
+    "GOVERSION",
+    "GOCACHE",
+    "GOMODCACHE"
+  ],
+  "elapsed_seconds": 0.029543041993747465,
+  "exit": 0,
+  "handle_terminal": true,
+  "head": "b88c7dcb3c2681e58b2692eee9c49b18026d36fe",
+  "source_before_after_equal": true,
+  "stderr": "",
+  "stdout": "{\n\t\"CC\": \"gcc\",\n\t\"CGO_ENABLED\": \"1\",\n\t\"CXX\": \"g++\",\n\t\"GOARCH\": \"arm64\",\n\t\"GOCACHE\": \"/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache\",\n\t\"GOMODCACHE\": \"/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc\",\n\t\"GOOS\": \"linux\",\n\t\"GOROOT\": \"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64\",\n\t\"GOVERSION\": \"go1.27.1\"\n}\n"
+}

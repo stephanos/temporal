@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "vet",
+    "-tags",
+    "test_dep",
+    "./runner",
+    "./runner/internal/execution"
+  ],
+  "elapsed_seconds": 2.084870708989911,
+  "environment_overrides": {
+    "CGO_ENABLED": "0",
+    "GOARCH": "amd64",
+    "GOOS": "linux"
+  },
+  "exit": 0,
+  "handle_terminal": true,
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "name": "vet-linux-amd64",
+  "outer_timeout_seconds": 900,
+  "run_binding_sha256": "7d8261c8f5bacfde55aed1afeb5940b79140ed6af1c3714ba7cda20277266fd3",
+  "source_before_after_equal": true,
+  "utc_end": "2026-10-10T01:06:25.159098+00:00",
+  "utc_start": "2026-10-10T01:06:23.074246+00:00"
+}

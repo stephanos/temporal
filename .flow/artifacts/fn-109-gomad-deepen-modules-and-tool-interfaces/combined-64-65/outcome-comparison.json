@@ -1,0 +1,77 @@
+{
+  "admitted_original_names": [
+    "TestRunClassifiesConnectedWorldDeadlock",
+    "TestRunCountsConnectedWorldReplayDivergence",
+    "TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures",
+    "TestRunPublishesConnectedWorldBundle",
+    "TestRunRejectsInvalidConnectedWorldBeforePublication",
+    "TestRunRejectsPreparedTargetMutationBeforeFailurePublication"
+  ],
+  "baseline_counts": {
+    "fail": 288,
+    "pass": 358,
+    "skip": 12
+  },
+  "baseline_log_sha256": "ba44f0577ecebe806c44293a5921ace057b713548782c7f8a0ae4b4357e50cdb",
+  "baseline_non_json_lines": [],
+  "current_counts": {
+    "fail": 282,
+    "pass": 379,
+    "skip": 12
+  },
+  "current_log_sha256": "5edaf1c5af2896a15c8cfe4bf92cb48aea0a67c838b1a73449403593b109a7cc",
+  "current_non_json_lines": [],
+  "missing_original_outcomes": [],
+  "new_control_outcomes": {
+    "TestInjectionCharacterizationIsolatedPreparationDependencies": "pass",
+    "TestInjectionCharacterizationIsolatedPreparationDependencies/bootstrap_only": "pass",
+    "TestInjectionCharacterizationIsolatedPreparationDependencies/combined": "pass",
+    "TestInjectionCharacterizationIsolatedPreparationDependencies/injection_before_seed_validation": "pass",
+    "TestInjectionCharacterizationIsolatedPreparationDependencies/prepare_only": "pass",
+    "TestInjectionCharacterizationIsolatedPreparationDependencies/resume_preflight_before_injection": "pass",
+    "TestPreparationDependenciesFailuresStopAtOriginalStages": "pass",
+    "TestPreparationDependenciesFailuresStopAtOriginalStages/bootstrap": "pass",
+    "TestPreparationDependenciesFailuresStopAtOriginalStages/prepare": "pass",
+    "TestPreparationDependenciesForwardRealFixtureInputs": "pass",
+    "TestPreparationDependenciesKeepRealDefaultsAndBootstrapGuard": "pass",
+    "TestPreparationDependenciesKeepRealDefaultsAndBootstrapGuard/executor_only": "pass",
+    "TestPreparationDependenciesKeepRealDefaultsAndBootstrapGuard/prepare_only": "pass",
+    "TestPreparationDependenciesKeepRealDefaultsAndBootstrapGuard/public": "pass",
+    "TestPreparationDependenciesOperationErrorsRemainUnchanged": "pass"
+  },
+  "newly_reached_original_subtests": {},
+  "original_changes": [
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunClassifiesConnectedWorldDeadlock"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunCountsConnectedWorldReplayDivergence"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunPublishesConnectedWorldBundle"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunRejectsInvalidConnectedWorldBeforePublication"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunRejectsPreparedTargetMutationBeforeFailurePublication"
+    }
+  ],
+  "unadmitted_newly_reached_original_subtests": {},
+  "unadmitted_original_changes": []
+}

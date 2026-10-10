@@ -1,0 +1,21 @@
+{
+  "baseline_environment_sha256": "528f3aeaf12166f5df4ea75f8dafa2ea02e262b441dbb0dd181d30ffb95c31c2",
+  "cgo_limit": "Historical ordinary receipt left CGO_ENABLED unset and did not retain its effective default; current ordinary and lint gates clear ambient CGO settings and use the captured Go default. Historical effective settings remain unknown.",
+  "command_difference": "Historical ordinary command also selected CLI and campaign packages and used -timeout=8m; current frozen command selects only Runner with the requested argv.",
+  "current_actual_go_settings_sha256": "f3012d737bb94074833773a1d698c0f290ea002cb9d4e084a21a092e1a17268c",
+  "current_environment_sha256": "c8bca0a1dae855e252d58d675bcfdac4b6edd8398701825607df0446ba9ba2b0",
+  "recorded_setting_differences": {
+    "PATH": {
+      "baseline": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "current": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin"
+    },
+    "SANDBOX_START_DIR": {
+      "baseline": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/worktree",
+      "current": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/joined-current"
+    },
+    "TZ": {
+      "baseline": null,
+      "current": "UTC"
+    }
+  }
+}

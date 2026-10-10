@@ -1,0 +1,41 @@
+{
+  "kind": "post-capture-only",
+  "created_at_utc": "2026-10-10 01:14:26 UTC",
+  "execution_head": "b88c7dcb3c2681e58b2692eee9c49b18026d36fe",
+  "primary_source_equal_at": "6af88c48ac6ac5c934dfc5e938b380504bbb5c2a",
+  "members": {
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/actual-go-settings.json": "f3012d737bb94074833773a1d698c0f290ea002cb9d4e084a21a092e1a17268c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/environment.json": "c8bca0a1dae855e252d58d675bcfdac4b6edd8398701825607df0446ba9ba2b0",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/independent-correctness-review.md": "b1c444c24059b38b1853ae8155052d7c5792b1e6d4e7e3e1c3fa4bd55830ba99",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/independent-standards-review.md": "fd3eaae023c7e27c598124269eee03baa705f3cc376864bb48cf5bdc9e850c20",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/index-cache-research.md": "f334ede042678c7918dd694d96ea191887ae1f03ecf433a8544806f061453325",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/integrated-lint.json": "a3f59c238127c468bafdf3cccec2a8dbded9373262b8e22f719c8b31516cc265",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/integrated-lint.log": "0ed26fe36ddd89dc5ac542e0083c07a1d4213423bed526368db4f9bba0e5fb6b",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/lint-comparison.json": "f2d25a22c9785b8e115e0775e4147370dd7ff74fbbbb5d876bac414b8b17dd59",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/ordinary-environment-comparison.json": "801dbbd478189011b8512d38a3931d62f3e1a1b6ff37f97e47fc097bf2e18fd1",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/ordinary-runner.json": "3e3c6b183417feb89fb34739dcfd76f94e9036da453d0bfa1e2eb17e52f53e27",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/ordinary-runner.log": "5edaf1c5af2896a15c8cfe4bf92cb48aea0a67c838b1a73449403593b109a7cc",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/outcome-comparison.json": "a19cd6c6e09f393401d10fabffcd243e23bc667e992365155b560814b695ac4e",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/run-binding.json": "7d8261c8f5bacfde55aed1afeb5940b79140ed6af1c3714ba7cda20277266fd3",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/run-gates.py": "c83d15c6549da0d81e1efbe15fb6fc18dc9d9642a501ec7c845a29ffc3f911fd",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/source-after.json": "ef815e9f74282cfd44da7698c4a1e5b5d756b660d43fc1fe7a79a1f8aec8e784",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/source-before.json": "ef815e9f74282cfd44da7698c4a1e5b5d756b660d43fc1fe7a79a1f8aec8e784",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/summary.json": "7f198a36724f88eb78cfcd53f5ae002d11284f94538009da50e2ccc6091fb0b3",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/tools.json": "ffee63e3a581ac37ffa97b7af4eec395132d29dfacd519bcc2d24a60f5383a97",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/vet-darwin-arm64.json": "dd90185b678600073d4f7c8a67aa39c02cb23ffcd8c3abebf5172acdd61fc70f",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/vet-darwin-arm64.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/vet-linux-amd64.json": "56fd37a502d06399d019d489504a28c3e552ce97ee687411776d025b588a35ab",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/vet-linux-amd64.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/handover.md": "205c9d14c07017aa0e15f3ecac75773c8b3f842da9307a75f329e3bc2e031735",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/post-task65-acceptance-map.md": "1c974a2b3f79e4b2811cd901ba3bcf30fd49f0c73cb91d10f0f9dfc3c037b872",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/runner-preparation-design/next-scripted-slice.md": "e01044412ffdf611e8faa1622d9eddfdb27eebf859de7198fd2c35c3962d1bdf"
+  },
+  "member_count": 25,
+  "scope": "Exactly the listed gate packet, review and research files. This seal excludes itself and all subsequent artifacts.",
+  "limits": [
+    "This post-capture seal preserves observed current bytes only; it does not retroactively establish execution-time binding, historical origin or continuous source/tool locking.",
+    "Execution environment capture is selective rather than hermetic.",
+    "Ordinary Runner and configured integrated lint remain red; source acceptance and formal review remain open.",
+    "Supported-native qualification and soak bounds remain deferred and unverified."
+  ]
+}

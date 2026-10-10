@@ -1,0 +1,25 @@
+The packet is sufficient to record bounded source progress at `b88c7dcb3c2681e58b2692eee9c49b18026d36fe`. Its captured ordinary Runner and aggregate lint gates remain failing. This review supplies no formal SHIP, impl-review or Done verdict.
+
+Critical findings: none.
+
+Important findings: none within the assigned packet-binding and comparator axis.
+
+Minor findings and capture limits:
+
+- The captured environment is partial. [run-gates.py:240](/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/joined-current/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/run-gates.py:240) records `GO*`, `CGO*`, `PATH`, `TMPDIR`, `TZ` and `SANDBOX_START_DIR`, while subprocesses inherit the broader environment. The packet therefore does not establish a fully captured or hermetic execution environment. Retain this limit explicitly.
+- The original [run-binding.json](/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/joined-current/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/run-binding.json) does not directly bind `actual-go-settings.json`, the derived comparisons or `summary.json`. The settings hash appears in `ordinary-environment-comparison.json`; comparisons can be checked against bound raw logs. A separately labelled post-capture seal can preserve their current bytes, but cannot retroactively establish execution-time binding, historical origin or a continuous source/tool lock.
+
+Verified evidence:
+
+- Wrapper SHA is `c83d15c6549da0d81e1efbe15fb6fc18dc9d9642a501ec7c845a29ffc3f911fd`. Before/after manifests are byte-identical and both hash to `ef815e9f74282cfd44da7698c4a1e5b5d756b660d43fc1fe7a79a1f8aec8e784`. Every currently inventoried file and tool matches its retained SHA.
+- Counts are actual: 1,070 original paths plus six new source files produce 1,076; 53 simulation files and the historical local owner spec produce 1,130; eleven absolute consumed inputs produce 1,141. No inventoried or relevant tracked path is missing. The absolute primary owner spec matches `851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c`; the local `0866…` spec remains historical.
+- All four receipts match their raw-log and run-binding hashes and the copies in [summary.json](/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/joined-current/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/summary.json). Recorded exits are ordinary Runner `1`, original-base integrated lint `2`, Darwin/arm64 vet `0` and Linux/amd64 vet `0`. Each wrapper handle is terminal.
+- Independent parsing reproduces [outcome-comparison.json](/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/joined-current/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/outcome-comparison.json). Exactly six admitted original outcomes change from fail to pass; fifteen separately declared new outcomes pass. No original outcome disappears and no original subtest becomes newly reached. Totals change from 358 pass/288 fail/12 skip to 379 pass/282 fail/12 skip.
+- Independent full-block comparison reproduces [lint-comparison.json](/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/joined-current/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/lint-comparison.json). Exactly the readiness `fmt.Fprintln` errcheck block disappears; all 52 remaining blocks preserve messages, rendered source and carets. The sole line mapping is `runner.go:405` to `401`. All 24 reference blobs match retained task63 source SHAs through `a1908ed7591f5316869c3fd30979c13b77f1cca3`. No introduced block or mapping gap exists.
+- The integrated command preserves the original base and Make recipe, with `GOLANGCI_LINT_FIX=false`. Raw processing records `diff: 52/52`; aggregate lint remains red. Make stops at its golangci recipe, so integrated errortype is correctly reported unreached. A worker fast-lint `53→0` observation cannot replace this aggregate result.
+
+Historical ordinary effective CGO settings remain unknown. Current captured default CGO is `1`; only cross-source vet overrides it to `0`. Historical ordinary argv also selected CLI/campaign packages and `-timeout=8m`, so the observed outcome comparison is not a controlled identical-environment experiment. The historical ordinary receipt lacks its own raw-log hash; current input binding preserves the consumed historical bytes without upgrading their original provenance.
+
+Compiler executables are hashed; complete C inputs, Go installation contents and cache contents are not qualified. Source checks do not supply supported-native qualification. The fn-128/fn-149 deferrals remain intact, and still-red source acceptance remains open.
+
+Review was read-only, with no Go/build/lint/vet/checker execution or mutations. Requested reviewer/writer routing is GPT Sol at high, from the same GPT family; actual execution-model telemetry is unobserved.
