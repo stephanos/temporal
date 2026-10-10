@@ -2,9 +2,9 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.Deadline
+import temporal.capabilities.Expirable
 
-object DeadlineFixture:
+object ExpirableFixture:
   enum Phase derives Finite:
     case active extends Phase, Held
     case waiting extends Phase, Waiting
@@ -41,7 +41,7 @@ object DeadlineFixture:
     val init = Snapshot(Phase.active, UpTo[1](0), true, true, false, false)
 
     object rules extends Rules
-    val deadline = Deadline[Snapshot, Phase, Held, DeadlineFixture.Fact](
+    val deadline = Expirable[Snapshot, Phase, Held, ExpirableFixture.Fact](
       expired,
       armed,
       timeout,
@@ -63,7 +63,7 @@ object DeadlineFixture:
     val init = TerminalState(TerminalPhase.active)
 
     object rules extends Rules
-    val deadline = Deadline[TerminalState, TerminalPhase, Held, DeadlineFixture.Fact](
+    val deadline = Expirable[TerminalState, TerminalPhase, Held, ExpirableFixture.Fact](
       expired,
       _ => true,
       timeout,
@@ -84,7 +84,7 @@ object DeadlineFixture:
     object rules extends Rules
     def remaining(s: RetryState): Boolean =
       s.phase == RetryPhase.active // scalafix:ok DisableSyntax.==
-    val deadline = Deadline[RetryState, RetryPhase, Held, DeadlineFixture.Fact](
+    val deadline = Expirable[RetryState, RetryPhase, Held, ExpirableFixture.Fact](
       expired,
       _ => true,
       timeout,
@@ -92,15 +92,15 @@ object DeadlineFixture:
       retryable = true,
       retriesRemaining = Some(remaining)
     )
-    val returns = Deadline.deadlineReturnsToWaiting(this)(
+    val returns = Expirable.deadlineReturnsToWaiting(this)(
       expired,
       true,
       remaining,
       timeoutFacts
     )
 
-class CapabilityDeadlineSuite extends munit.FunSuite:
-  import DeadlineFixture.*
+class CapabilityExpirableSuite extends munit.FunSuite:
+  import ExpirableFixture.*
 
   private def transition(
       p: Property[Snapshot]
@@ -111,7 +111,7 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
 
   test("every firing requires the before-state armed predicate and covered role without a fact"):
     import Record.given
-    val property = Deadline.firesInWindow[Snapshot, Phase, Held](Record)(expired, armed)
+    val property = Expirable.firesInWindow[Snapshot, Phase, Held](Record)(expired, armed)
     assert(property.decl.when.contains(expired))
     val holds = transition(property)
     val states = Finite[Snapshot].values
@@ -129,8 +129,8 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
     assertEquals(states.size, 160)
     for retryable <- Finite[Boolean].values do
       val properties = Seq(
-        Deadline.deadlineTimesOut(Record)(expired, retryable, timeout, remaining, pendingCancel),
-        Deadline.deadlineReturnsToWaiting(Record)(
+        Expirable.deadlineTimesOut(Record)(expired, retryable, timeout, remaining, pendingCancel),
+        Expirable.deadlineReturnsToWaiting(Record)(
           expired,
           retryable,
           remaining,
@@ -138,7 +138,7 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
           pendingPause,
           pendingCancel
         ),
-        Deadline.deadlinePauses(Record)(
+        Expirable.deadlinePauses(Record)(
           expired,
           retryable,
           remaining,
@@ -194,9 +194,9 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
     )
     for family <- malformed do
       intercept[IllegalArgumentException]:
-        Deadline[Snapshot, Phase, Held, Fact](expired, armed, timeout, family)
+        Expirable[Snapshot, Phase, Held, Fact](expired, armed, timeout, family)
     intercept[IllegalArgumentException] {
-      Deadline[Snapshot, Phase, Held, Fact](
+      Expirable[Snapshot, Phase, Held, Fact](
         expired,
         armed,
         timeout,
@@ -205,7 +205,7 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
       )
     }: Unit
     intercept[IllegalArgumentException] {
-      Deadline[Snapshot, Phase, Held, Fact](
+      Expirable[Snapshot, Phase, Held, Fact](
         expired,
         armed,
         timeout,
@@ -215,7 +215,7 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
     }: Unit
     for (pause, cancel) <- Seq((Some(pendingPause), None), (None, Some(pendingCancel))) do
       intercept[IllegalArgumentException]:
-        Deadline[Snapshot, Phase, Held, Fact](
+        Expirable[Snapshot, Phase, Held, Fact](
           expired,
           armed,
           timeout,

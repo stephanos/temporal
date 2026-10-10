@@ -2602,7 +2602,7 @@ class Fixtures extends munit.FunSuite:
       assertEquals(p.path("origin").path("position").path("file").asText(), at)
       assertEquals(p.path("position").path("file").asText(), at)
 
-  test("Retries instances bind their own fields and generate bounded free transition verifies"):
+  test("Retryable instances bind their own fields and generate bounded free transition verifies"):
     val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("retryCapabilities"))
     val properties = model.path("properties").elements().asScala.toSeq
     val names = properties.map(_.path("name").asText()).toSet
@@ -2622,7 +2622,7 @@ class Fixtures extends munit.FunSuite:
       val property = p.path("name").asText().split('.').last
       assertEquals(
         p.path("origin").path("name").asText(),
-        s"temporal.capabilities.Retries.$property"
+        s"temporal.capabilities.Retryable.$property"
       )
       if property.startsWith("failure") then
         assert(p.path("transition").asBoolean())
@@ -2682,7 +2682,7 @@ class Fixtures extends munit.FunSuite:
     val overridden = property("selectedFailures.fatal.failureEndsFailed")
     assertEquals(
       overridden.path("origin").path("name").asText(),
-      "temporal.capabilities.Retries.failureEndsFailed"
+      "temporal.capabilities.Retryable.failureEndsFailed"
     )
     def body(name: String) =
       val f = functions(property(name).path("holds").asText())
@@ -2712,7 +2712,7 @@ class Fixtures extends munit.FunSuite:
       assertEquals(queries(name).path("total"), base.path("total"))
 
   test(
-    "Retries declarations refuse missing roles and invalid or ambiguous bindings at their lines"
+    "Retryable declarations refuse missing roles and invalid or ambiguous bindings at their lines"
   ):
     val cases = Seq(
       ("NoPhase", "capabilities", "noPhase", "no phase"),
@@ -2754,7 +2754,7 @@ class Fixtures extends munit.FunSuite:
       assert(error.contains(machine), error)
       assert(error.contains(field), error)
 
-  test("Deadline instances retain their selected timer, own role, armed predicate and typed fact"):
+  test("Expirable instances retain their selected timer, own role, armed predicate and typed fact"):
     val model =
       new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("deadlineCapabilities"))
     val properties = model.path("properties").elements().asScala.toSeq
@@ -2777,7 +2777,7 @@ class Fixtures extends munit.FunSuite:
       assert(p.has("whenClass"))
       assertEquals(
         p.path("origin").path("name").asText(),
-        s"temporal.capabilities.Deadline.${name.split('.').last}"
+        s"temporal.capabilities.Expirable.${name.split('.').last}"
       )
       assertEquals(
         p.path("position").path("file").asText(),
@@ -2785,7 +2785,7 @@ class Fixtures extends munit.FunSuite:
       )
       assertEquals(
         p.path("origin").path("position").path("file").asText(),
-        "model/temporal/capabilities/Deadline.scala"
+        "model/temporal/capabilities/Expirable.scala"
       )
     for (instance, predicate, phase, kind) <- Seq(
         ("schedule", "dispatchArmed", "waiting", "schedule"),
@@ -2865,7 +2865,7 @@ class Fixtures extends munit.FunSuite:
       val combinations = if name.startsWith("deadlineTimers.") then 128L * 15L else 2L
       assertEquals(q.path("total").asText().toLong, combinations * steps)
 
-  test("Deadline refuses missing roles, invalid timer bindings and malformed typed fact families"):
+  test("Expirable refuses missing roles, invalid timer bindings and malformed typed fact families"):
     for root <- Seq("NativeTerminalRoles", "CompleteSubtypeBinding", "CompleteIntersectionBinding")
     do
       val terminalOut = lifted(s"deadline-positive-$root")

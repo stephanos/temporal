@@ -5,7 +5,7 @@ import framework.*
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
 
-final case class Retries[S, P, N <: Int](
+final case class Retryable[S, P, N <: Int](
     failure: ClassRef,
     retryable: Boolean,
     attemptCount: S => Int,
@@ -21,7 +21,7 @@ final case class Retries[S, P, N <: Int](
     @unused phaseType: ClassTag[P]
 ) extends CapabilityOf[S, Nothing, Nothing]
 
-object Retries extends CapabilityKind:
+object Retryable extends CapabilityKind:
   type Waiting = framework.Waiting
   type Failed = framework.Failed
 
