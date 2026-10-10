@@ -94,6 +94,9 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       case MaxAttempts.one       => s.attempts < 1
       case MaxAttempts.two       => s.attempts < attemptBound
 
+    def exhausted(s: State): Boolean = !retriesRemaining(s)
+    def endsTerminally(s: State): Boolean = pendingCancel(s) || exhausted(s)
+
     def attemptCount(s: State): Int = s.attempts
 
     def maximumAttempts(s: State): Option[UpTo[MaxAttempts.Bound]] = s.maxAttempts match
@@ -104,6 +107,12 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     def pendingPause(s: State): Boolean = s.phase == pauseRequested
     def pendingCancel(s: State): Boolean = s.phase == cancelRequested
     def pendingReset(s: State): Boolean = s.phase.in(resetRequested, resetKeepingPause)
+
+    def landingPhase(s: State): Phase =
+      if s.phase.in(pauseRequested, resetKeepingPause) then paused else scheduled
+
+    def landingStatus(s: State): Fact =
+      if landingPhase(s) == paused then Fact.statusPaused else Fact.statusScheduled
 
     // A reset discards a retry backoff but keeps a start delay (operator_commands.go:410-416).
     def resetDispatch(d: Dispatch): Dispatch = if d == Dispatch.backoff then Dispatch.now else d
@@ -131,6 +140,9 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
     val nominalTimeWindow =
       "The configured time window is nominal, not proof that a real timer fired; the rule's guards select its applicability. Scheduling deadlines start after start delay; schedule-to-start also waits through retry backoff (chasm/lib/activity/model/model.go:300-310,312-335,355-376)."
+
+    val pendingResetReason =
+      "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)"
 
   // The System refines the product: what each of its states reads as there.
   object refinement extends Refinement(ActivityProduct):
@@ -199,10 +211,12 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     def complete(s: State) = enter(s.copy(phase = completed), statusCompleted)
     def heartbeat(s: State) = enter(s, heartbeatReceived)
     def heartbeatBackOff(s: State) =
-      enter(states.afterRetry(s, scheduled), statusScheduled, Fact.attemptCount, heartbeatTimedOut)
-        .because(states.nominalTimeWindow)
-    def heartbeatBackOffPaused(s: State) =
-      enter(states.afterRetry(s, paused), statusPaused, Fact.attemptCount, heartbeatTimedOut)
+      enter(
+        states.afterRetry(s, states.landingPhase(s)),
+        states.landingStatus(s),
+        Fact.attemptCount,
+        heartbeatTimedOut
+      )
         .because(states.nominalTimeWindow)
     def heartbeatTimeOut(s: State) =
       enter(s.copy(phase = timedOut), statusTimedOut(TimeoutType.heartbeat), heartbeatTimedOut)
@@ -213,22 +227,26 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // A retryable failure backs a started attempt off: read as scheduled again, one attempt higher.
     def backOff(s: State) =
       enter(
-        states.afterRetry(s, scheduled),
-        statusScheduled,
+        states.afterRetry(s, states.landingPhase(s)),
+        states.landingStatus(s),
         Fact.attemptCount
       )
         .because("a retryable attempt backs off; the client reads scheduled again")
 
     // A pause requested during the attempt takes effect on its delayed retry (model.go:130-137).
     def backOffPaused(s: State) =
-      enter(states.afterRetry(s, paused), statusPaused, Fact.attemptCount)
+      enter(
+        states.afterRetry(s, states.landingPhase(s)),
+        states.landingStatus(s),
+        Fact.attemptCount
+      )
 
     def backOffAfterDeadline(s: State) =
-      enter(states.afterRetry(s, scheduled), statusScheduled, Fact.attemptCount)
-        .because(states.nominalTimeWindow)
-
-    def backOffPausedAfterDeadline(s: State) =
-      enter(states.afterRetry(s, paused), statusPaused, Fact.attemptCount)
+      enter(
+        states.afterRetry(s, states.landingPhase(s)),
+        states.landingStatus(s),
+        Fact.attemptCount
+      )
         .because(states.nominalTimeWindow)
 
     def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
@@ -278,29 +296,15 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // dispatched at once (attempt.go:201-216, statemachine.go:317-345).
     def applyReset(s: State) =
       enter(
-        s.copy(phase = scheduled, attempts = UpTo(0), dispatch = Dispatch.now),
-        statusScheduled,
-        Fact.attemptCount
-      )
-        .because("the deferred reset applies as the attempt ends")
-    def applyResetPaused(s: State) =
-      enter(
-        s.copy(phase = paused, attempts = UpTo(0), dispatch = Dispatch.now),
-        statusPaused,
+        s.copy(phase = states.landingPhase(s), attempts = UpTo(0), dispatch = Dispatch.now),
+        states.landingStatus(s),
         Fact.attemptCount
       )
         .because("the deferred reset applies as the attempt ends")
     def applyResetOnHeartbeat(s: State) =
       enter(
-        s.copy(phase = scheduled, attempts = UpTo(0), dispatch = Dispatch.now),
-        statusScheduled,
-        Fact.attemptCount,
-        heartbeatTimedOut
-      ).because(states.nominalTimeWindow)
-    def applyResetPausedOnHeartbeat(s: State) =
-      enter(
-        s.copy(phase = paused, attempts = UpTo(0), dispatch = Dispatch.now),
-        statusPaused,
+        s.copy(phase = states.landingPhase(s), attempts = UpTo(0), dispatch = Dispatch.now),
+        states.landingStatus(s),
         Fact.attemptCount,
         heartbeatTimedOut
       ).because(states.nominalTimeWindow)
@@ -399,7 +403,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       // A pending reset applies on either failure, before its retryability is read.
       on(respondFailed) {
         when(resetRequested) ~> effects.applyReset
-        when(resetKeepingPause) ~> effects.applyResetPaused
+        when(resetKeepingPause) ~> effects.applyReset
       }
       on(respondFailed(Failure.fatal)) {
         when(started, pauseRequested, cancelRequested) ~> effects.fail
@@ -409,7 +413,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(started).where(states.retriesRemaining) ~> effects.backOff
         when(cancelRequested) ~> effects.cancel
         when(pauseRequested).where(states.retriesRemaining) ~> effects.backOffPaused
-        when(started, pauseRequested).where(s => !states.retriesRemaining(s)) ~> effects.fail
+        when(started, pauseRequested).where(states.exhausted) ~> effects.fail
       }
       on(respondCanceled) {
         when(cancelRequested) ~> effects.cancel
@@ -431,7 +435,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       }
       on(respondFailedByID) {
         when(resetRequested) ~> effects.applyReset
-        when(resetKeepingPause) ~> effects.applyResetPaused
+        when(resetKeepingPause) ~> effects.applyReset
       }
       on(respondFailedByID(Failure.fatal)) {
         when(started, pauseRequested, cancelRequested) ~> effects.fail
@@ -439,7 +443,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       on(respondFailedByID(Failure.retryable)) {
         when(started).where(states.retriesRemaining) ~> effects.backOff
         when(pauseRequested).where(states.retriesRemaining) ~> effects.backOffPaused
-        when(started, pauseRequested).where(s => !states.retriesRemaining(s)) ~> effects.fail
+        when(started, pauseRequested).where(states.exhausted) ~> effects.fail
         when(cancelRequested) ~> effects.cancel
       }
       on(respondFailedByID, respondCanceledByID) {
@@ -477,53 +481,44 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
       // Started and not over: the phases a deadline can fire in.
       on(scheduleToClose) {
-        when[Live].where(s =>
-          s.scheduleToClose == Timeout.expires && s.dispatch != Dispatch.startDelay
-        ) ~> (effects.timeOut(
+        when[Live].where(states.scheduleToCloseArmed) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToClose
         ))
       }
       // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
       on(scheduleToStart) {
-        when[Waiting].where(s =>
-          s.scheduleToStart == Timeout.expires && s.dispatch == Dispatch.now
-        ) ~> (effects.timeOut(
+        when[Waiting].where(states.scheduleToStartArmed) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToStart
         ))
       }
       on(startToClose) {
         when(started).where(s =>
-          s.startToClose == Timeout.expires && states.retriesRemaining(s)
+          states.startToCloseArmed(s) && states.retriesRemaining(s)
         ) ~> effects.backOffAfterDeadline
         when(pauseRequested).where(s =>
-          s.startToClose == Timeout.expires && states.retriesRemaining(s)
-        ) ~> effects.backOffPausedAfterDeadline
+          states.startToCloseArmed(s) && states.retriesRemaining(s)
+        ) ~> effects.backOffAfterDeadline
         when(started, pauseRequested, cancelRequested)
-          .where(s =>
-            s.startToClose == Timeout.expires &&
-              (s.phase == cancelRequested || !states.retriesRemaining(s))
-          ) ~> (effects.timeOut(
+          .where(s => states.startToCloseArmed(s) && states.endsTerminally(s)) ~> (effects.timeOut(
           _,
           TimeoutType.startToClose
         ))
-        when(resetRequested).where(_.startToClose == Timeout.expires) ~> effects.applyReset
-        when(resetKeepingPause).where(_.startToClose == Timeout.expires) ~> effects.applyResetPaused
+        when(resetRequested).where(states.startToCloseArmed) ~> effects.applyReset
+        when(resetKeepingPause).where(states.startToCloseArmed) ~> effects.applyReset
       }
       on(heartbeat) {
-        when(started).where(s => s.heartbeat == Timeout.expires && states.retriesRemaining(s)) ~>
+        when(started).where(s => states.heartbeatArmed(s) && states.retriesRemaining(s)) ~>
           effects.heartbeatBackOff
         when(pauseRequested).where(s =>
-          s.heartbeat == Timeout.expires && states.retriesRemaining(s)
-        ) ~> effects.heartbeatBackOffPaused
+          states.heartbeatArmed(s) && states.retriesRemaining(s)
+        ) ~> effects.heartbeatBackOff
         when(started, pauseRequested, cancelRequested).where(s =>
-          s.heartbeat == Timeout.expires &&
-            (s.phase == cancelRequested || !states.retriesRemaining(s))
+          states.heartbeatArmed(s) && states.endsTerminally(s)
         ) ~> effects.heartbeatTimeOut
-        when(resetRequested).where(_.heartbeat == Timeout.expires) ~> effects.applyResetOnHeartbeat
-        when(resetKeepingPause).where(_.heartbeat == Timeout.expires) ~>
-          effects.applyResetPausedOnHeartbeat
+        when(resetRequested).where(states.heartbeatArmed) ~> effects.applyResetOnHeartbeat
+        when(resetKeepingPause).where(states.heartbeatArmed) ~> effects.applyResetOnHeartbeat
       }
     }
 
@@ -559,22 +554,15 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         !after.records(Fact.statusTimedOut(TimeoutType.scheduleToStart)) &&
         !after.records(Fact.statusTimedOut(TimeoutType.startToClose)) &&
         !after.records(Fact.statusTimedOut(TimeoutType.heartbeat))
-      if before.phase == Phase.resetRequested then
+      if states.pendingReset(before) then
         after.state == before ||
         (after.state.phase == Phase.completed && after.records(Fact.statusCompleted)) ||
         after.state.phase == Phase.cancelRequested ||
         after.state.phase == Phase.terminated ||
         (after.state.phase == Phase.timedOut &&
           after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))) ||
-        (restarted && after.state.phase == Phase.scheduled && after.records(Fact.statusScheduled))
-      else if before.phase == Phase.resetKeepingPause then
-        after.state == before ||
-        (after.state.phase == Phase.completed && after.records(Fact.statusCompleted)) ||
-        after.state.phase == Phase.cancelRequested ||
-        after.state.phase == Phase.terminated ||
-        (after.state.phase == Phase.timedOut &&
-          after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))) ||
-        (restarted && after.state.phase == Phase.paused && after.records(Fact.statusPaused))
+        (restarted && after.state.phase == states.landingPhase(before) &&
+          after.records(states.landingStatus(before)))
       else
         before.phase == Phase.unstarted || after.state.attempts >= before.attempts ||
         (before.phase.in(Phase.scheduled, Phase.paused) &&
@@ -590,7 +578,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         (after.state == before.copy(
           phase = Phase.scheduled,
           attempts = UpTo(0),
-          dispatch = if before.dispatch == Dispatch.backoff then Dispatch.now else before.dispatch
+          dispatch = states.resetDispatch(before.dispatch)
         ) && after.records(Fact.statusScheduled))
     }
 
@@ -600,7 +588,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         !before.phase.in(Phase.scheduled, Phase.paused) ||
         (after.state == before.copy(
           attempts = UpTo(0),
-          dispatch = if before.dispatch == Dispatch.backoff then Dispatch.now else before.dispatch
+          dispatch = states.resetDispatch(before.dispatch)
         ) && after.records(
           if before.phase == Phase.paused then Fact.statusPaused else Fact.statusScheduled
         ))
@@ -773,35 +761,35 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // schedule-to-close deadline keeps its terminal law.
     overriding(
       Retries.failureReturnsToWaiting[State, Phase] -> properties.resetFailureReturnsToWaiting,
-      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      because = states.pendingResetReason,
       of = Seq(retryableFailure, fatalFailure)
     )
     overriding(
       Retries.failureEndsFailed[State, Phase] -> properties.resetFailureEndsFailed,
-      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      because = states.pendingResetReason,
       of = Seq(retryableFailure, fatalFailure)
     )
     overriding(
       Retries.failurePauses[State, Phase] -> properties.resetFailurePauses,
-      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      because = states.pendingResetReason,
       of = Seq(retryableFailure, fatalFailure)
     )
     overriding(
       (Deadline.deadlineTimesOut[State, Phase]: AnyRef) ->
         (properties.resetDeadlineTimesOut: AnyRef),
-      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      because = states.pendingResetReason,
       of = Seq(startToCloseDeadline, heartbeatDeadline)
     )
     overriding(
       (Deadline.deadlineReturnsToWaiting[State, Phase]: AnyRef) ->
         (properties.resetDeadlineReturnsToWaiting: AnyRef),
-      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      because = states.pendingResetReason,
       of = Seq(startToCloseDeadline, heartbeatDeadline)
     )
     overriding(
       (Deadline.deadlinePauses[State, Phase]: AnyRef) ->
         (properties.resetDeadlinePauses: AnyRef),
-      because = "a pending reset applies first (chasm/lib/activity/attempt.go:201-216)",
+      because = states.pendingResetReason,
       of = Seq(startToCloseDeadline, heartbeatDeadline)
     )
 
