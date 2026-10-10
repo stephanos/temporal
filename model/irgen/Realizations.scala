@@ -411,6 +411,47 @@ private[irgen] trait Realizations:
     d.findFieldByName(name)
       .getOrElse(fail(at, s"${d.name} has no $name in the IR"))
 
+  // ### Elapsed bounds
+  //
+  // An elapsed bound is written in whole milliseconds, as a parameter `<field>Ms` of the IR's
+  // protobuf Duration `<field>`, and 0 leaves the field unset, as the IR's integer milliseconds
+  // always did. The lifter writes the exact Duration and refuses a value no Duration represents;
+  // the reader's admission checks each field's sign and presence.
+  private val durationMessage = com.google.protobuf.duration.Duration.scalaDescriptor.fullName
+
+  private def isElapsed(f: FieldDescriptor): Boolean = f.scalaType match
+    case ScalaType.Message(d) => d.fullName == durationMessage // scalafix:ok DisableSyntax.==; typed equality
+    case _                    => false
+
+  // The IR field a parameter of a declaration writes: the one of its name, or the Duration a
+  // `<field>Ms` parameter writes.
+  def authoredField(d: Descriptor, parameter: String): Option[FieldDescriptor] =
+    d.findFieldByName(snake(parameter))
+      .orElse(
+        Option
+          .when(parameter.endsWith("Ms"))(d.findFieldByName(snake(parameter.stripSuffix("Ms"))))
+          .flatten
+          .filter(isElapsed)
+      )
+
+  // The largest number of seconds a protobuf Duration holds, about 10,000 years.
+  private val maxDurationSeconds = 315576000000L
+
+  // `milliseconds` as the Duration of an elapsed bound: none for 0, and refused at `at` where it is
+  // outside the range of a protobuf Duration.
+  private def elapsed(milliseconds: Long, at: Tree): Option[com.google.protobuf.duration.Duration] =
+    val seconds = milliseconds / 1000
+    if seconds < -maxDurationSeconds || seconds > maxDurationSeconds then
+      fail(at, s"$milliseconds milliseconds is outside the range of a protobuf Duration")
+    Option.when(milliseconds != 0)( // scalafix:ok DisableSyntax.!=; typed equality
+      com.google.protobuf.duration.Duration(seconds, ((milliseconds % 1000) * 1000000).toInt)
+    )
+
+  // The elapsed bound a term writes, an integer constant in milliseconds.
+  private def elapsedOf(b: Bound): Option[PMessage] =
+    val t = reduce(b).term
+    elapsed(constInt(t), t).map(_.toPMessage)
+
   def irMessage(f: FieldDescriptor, at: Tree): Descriptor = f.scalaType match
     case ScalaType.Message(d) => d
     case _                    => fail(at, s"${f.name} is no IR message")
@@ -927,7 +968,8 @@ private[irgen] trait Realizations:
 
   // Sets the field a parameter names. An optional argument that is `None` leaves it unset.
   def fieldOf(into: Message, f: FieldDescriptor, b: Bound): Unit =
-    if f.isRepeated && f.name == "when" && into.descriptor.name == "Item" then // scalafix:ok DisableSyntax.==; typed equality
+    if isElapsed(f) then elapsedOf(b).foreach(into.set(f, _))
+    else if f.isRepeated && f.name == "when" && into.descriptor.name == "Item" then // scalafix:ok DisableSyntax.==; typed equality
       whenClasses(b).foreach(into.add(f, _))
     else if f.isRepeated then itemsOf(b).foreach(i => into.add(f, valueOf(f, i)))
     else
@@ -1002,7 +1044,7 @@ private[irgen] trait Realizations:
       ): Unit =
         val md = m.descriptor
         for (p, a) <- as do
-          md.findFieldByName(snake(p)) match
+          authoredField(md, p) match
             case Some(f)
                 if p == "path" && // scalafix:ok DisableSyntax.==; typed equality
                   isNamed(a.term.tpe, "framework.realize.Field") &&
@@ -1274,8 +1316,7 @@ private[irgen] trait Realizations:
           Map(
             irField(d, "evidence", t) -> id,
             irField(d, "role", t) -> valueOf(irField(d, "role", t), baseRole(calls).get),
-            irField(d, "until", t) -> until,
-            irField(d, "interval_ms", t) -> PLong(0)
+            irField(d, "until", t) -> until
           ) ++ Option.when(assigned.nonEmpty)(
             irField(d, "assign", t) -> PRepeated(assigned.toVector)
           )
@@ -1979,7 +2020,7 @@ private[irgen] trait Realizations:
       stated: List[(Bound, ir.ServerStep)],
       at: Tree
   ): Seq[ir.ServerStep] =
-    def ms(name: String) = constInt(Ref(kitSymbol("Kit", name)))
+    def timer(name: String) = elapsed(constInt(Ref(kitSymbol("Kit", name))), at)
     val position = Some(pos(at))
     val timers = machine.steps.map(_.action).filter(a => actions.get(a).exists(_.timer))
     val activities = r.scripts.filter(_.activation.isActivity)
@@ -1993,7 +2034,7 @@ private[irgen] trait Realizations:
           position,
           Some(ir.ActionClass(a)),
           ir.CauseKind.CAUSE_KIND_TIMER,
-          ms("firstRetryBackoffMs")
+          timer("firstRetryBackoffMs")
         )
       )
     val expired = (for
@@ -2017,7 +2058,7 @@ private[irgen] trait Realizations:
           position,
           Some(ir.ActionClass(a)),
           ir.CauseKind.CAUSE_KIND_TIMER,
-          ms("deadlineMs"),
+          timer("deadlineMs"),
           bases.head
         )
       }
@@ -2318,7 +2359,8 @@ private[irgen] trait Realizations:
         m.set(f, pollValue(i, irMessage(f, i.term)))
       case Some((other, _)) => fail(i.term, s"$other is no instruction")
       case None             => declaration(i, m)
-    for (p, a) <- named do fieldOf(m, irField(d, snake(p), a.term), a)
+    for (p, a) <- named do
+      fieldOf(m, authoredField(d, p).getOrElse(fail(a.term, s"${d.name} has no $p in the IR")), a)
     m.set(irField(d, "position", b.term), pos(b.term).toPMessage)
     m.written
 
@@ -2387,9 +2429,9 @@ private[irgen] trait Realizations:
           base.fold(value("role", role))(r =>
             irField(d, "role", b.term) -> valueOf(irField(d, "role", b.term), r)
           ),
-          value("until", until),
-          value("interval_ms", interval)
+          value("until", until)
         ) ++
+          elapsedOf(Bound(interval, b.env)).map(irField(d, "interval", b.term) -> _) ++
           Option.when(assigned.nonEmpty)(
             irField(d, "assign", b.term) -> PRepeated(assigned.toVector)
           )
