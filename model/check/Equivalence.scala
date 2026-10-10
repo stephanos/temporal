@@ -274,27 +274,48 @@ object Equivalence:
   def declarations(dir: Path, map: RenameMap): (Map[String, String], Vector[String]) =
     val found = mutable.LinkedHashMap.empty[String, (String, String)]
     val conflicts = mutable.ArrayBuffer.empty[String]
+    def strings(v: Any): Map[String, String] = v match
+      case m: Map[?, ?] => m.collect { case (k: String, s: String) => k -> s }.toMap
+      case _            => Map.empty
     for file <- jsonFiles(dir, n => n.endsWith(".json") && !n.endsWith(".lint.json")) do
       val name = map(file.getFileName.toString)
-      for
-        (section, items) <- Json.fields(Json.parse(Files.readString(file)), file.toString).toVector
-        if !section.equals("source")
-        item <- items match
-          case xs: Vector[?] => xs
-          case _             => Vector.empty
-      do
-        val normalized = normalize(item, map)
-        val identity = normalized match
-          case m: Map[?, ?] =>
-            val fields: Map[String, String] = m.collect { case (k: String, s: String) =>
-              k -> s
-            }.toMap
-            Seq("family", "machine", "owner", "name", "id")
-              .flatMap(f => fields.get(f).map(s => s"$f=$s"))
-              .mkString(" ")
-          case other => canonical(other)
+      val sections = Json
+        .fields(normalize(Json.parse(Files.readString(file)), map), file.toString)
+        .filterNot(_._1.equals("source"))
+        .map((section, items) =>
+          section -> (items match
+            case xs: Vector[?] => xs
+            case _             => Vector.empty)
+        )
+      // Two IR files may each hold a different machine of one name, so a declaration is qualified
+      // by the family of the machine it belongs to: its own, or that of the machine it names, by
+      // field, through its Property or Scenario, or as the first part of its name.
+      val families = Seq("machines", "compositions")
+        .flatMap(sections.getOrElse(_, Vector.empty))
+        .map(strings)
+        .flatMap(f => f.get("name").map(_ -> f.getOrElse("family", "")))
+        .toMap
+      def family(item: Any): String =
+        val fields = strings(item)
+        val all: Map[String, Any] = item match
+          case m: Map[?, ?] => m.collect { case (k: String, v) => k -> v }.toMap
+          case _            => Map.empty
+        val nested = Seq("scenario", "property").flatMap(all.get)
+        fields
+          .get("family")
+          .orElse(fields.get("machine").flatMap(families.get))
+          .orElse(nested.flatMap(n => strings(n).get("machine")).flatMap(families.get).headOption)
+          .orElse(fields.get("name").map(_.takeWhile(_ != '.')).flatMap(families.get))
+          .getOrElse("")
+      for (section, items) <- sections.toVector; item <- items do
+        val fields = strings(item)
+        val identity =
+          if fields.isEmpty then canonical(item)
+          else
+            (s"in=${family(item)}" +: Seq("family", "machine", "owner", "name", "id")
+              .flatMap(f => fields.get(f).map(s => s"$f=$s"))).mkString(" ")
         val key = s"$section $identity"
-        val text = canonical(normalized)
+        val text = canonical(item)
         found.get(key) match
           case Some((t, other)) if !t.equals(text) =>
             conflicts += s"$key differs between $other and $name"

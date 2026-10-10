@@ -210,6 +210,21 @@ class EquivalenceSuite extends munit.FunSuite:
       "a.lint.json" -> """{"accepted":[{"kind":"k","owner":"activityProduct","subjects":["q"],"because":"c"}]}"""
     )
     val found = project(ir, baseCases, "unusedName other\n")
-    assert(found.exists(_.startsWith("IR machines family=f name=activityProduct differs")), found)
+    assert(
+      found.exists(d => d.startsWith("IR machines") && d.contains("name=activityProduct differs")),
+      found
+    )
     assert(found.exists(_.startsWith("accepted lint finding")), found)
     assert(found.exists(_.contains("the rename unusedName matches nothing")), found)
+
+  test("declarations of one name in two families are two, each qualified by its machine's family"):
+    def file(family: String, total: Int) =
+      s"""{"machines":[{"family":"$family","name":"nexusSystem"}],"functions":[{"name":"nexusSystem.rules.reply","body":"$family"}],"queries":[{"name":"q","scenario":{"machine":"nexusSystem","name":"s"},"total":"$total"}]}"""
+    val two = tree("standalone.json" -> file("a", 42), "workflow.json" -> file("b", 576))
+    val (declared, conflicts) = Equivalence.declarations(two, RenameMap.empty)
+    assertEquals(conflicts, Vector.empty)
+    assertEquals(declared.size, 6)
+    assertEquals(
+      Equivalence.compareProjection(two, baseCases, two, baseCases, RenameMap.empty),
+      Vector.empty
+    )
