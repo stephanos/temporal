@@ -272,8 +272,8 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
       _.path("cause").asText() == "CAUSE_KIND_ACTIVITY_HEARTBEAT"
     ) // scalafix:ok DisableSyntax.==; typed equality
     assertEquals(heartbeat.size, 1)
-    assertEquals(heartbeat.head.path("eventuallyWithin").path("intervalMs").asText(), "250")
-    assertEquals(heartbeat.head.path("eventuallyWithin").path("atMostMs").asText(), "2000")
+    assertEquals(heartbeat.head.path("eventuallyWithin").path("interval").asText(), "0.250s")
+    assertEquals(heartbeat.head.path("eventuallyWithin").path("atMost").asText(), "2s")
 
 class Fixtures extends munit.FunSuite:
   // A test builds a fixture with scala-cli and lifts it in a JVM of its own.
@@ -657,7 +657,8 @@ class Fixtures extends munit.FunSuite:
 
   // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).
   private val hintRejects: Seq[String] =
-    Seq("builtWrite", "builtRead").map("fixture.hintrejects.HintRejects$package$." + _)
+    Seq("builtWrite", "builtRead", "elapsedOutOfRange")
+      .map("fixture.hintrejects.HintRejects$package$." + _)
 
   // fn-126 decision 20: what a machine is for, as its markers say (lifts/MarkerRejects.scala).
   private val markerRejects: Seq[String] =
