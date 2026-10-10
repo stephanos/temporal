@@ -1,42 +1,77 @@
 # Model views
 
-## Goal
+> HTML render lens: open `.flow/artifacts/fn-130-model-views/spec.html` locally — regenerable, markdown is the record; the artifact is gitignored. <!-- flow-next:artifact-link -->
 
-Help engineers understand a Model and review changes to it. Every Model gets a small, fixed set of rendered views. Each view is checked in as a `.d2` source plus an `.svg`, regenerated and gated like `model/ir` and `model/cases`, so a pull request that changes behaviour also shows the change in a picture and in a reviewable text diff. Source: `.plans/MODEL_VISUALIZATION.md`.
+## Goal & Context
 
-**Deferred** by the owner on 2026-10-05, before task planning. When revived, start after fn-126 closes, so views render the final layout, IDs and names.
+Engineers can understand a Model and review its changes through a fixed set of rendered views. Each graphical view has checked-in D2 source and SVG; expecting-find witnesses use Mermaid text. Generation and the model gate keep these artifacts current alongside IR and Cases. The D2 diff carries every explanation even when a viewer does not show SVG tooltips.
 
-## Decisions taken from the research
+The owner deferred this spec on 2026-10-05. This planning pass prepares intentional tasks under the renewed all-milestones objective and retains the implementation deferral. The sole feature prerequisite, fn-126, has committed closure. Future delivery is proposed after Batch 5, alongside the separately scheduled property examples pilot. Root must explicitly admit execution and re-anchor the actual baseline; preparation does not establish readiness or a passing production gate.
 
-- **Renderer.** D2 used as a Go library, with the ELK layout engine (or dagre), version pinned. Deterministic content-hashed IDs, `OmitVersion`, and a fixed theme and font. TALA is open source since D2 0.9.0, but its layout is randomized by design, so it is used at most for the signature view.
-- **No DSL declaration.** Views follow convention and are a pure function of the IR, read through the Go reader and lint tables. They are never IR data. Authors declare nothing.
-- **Review artifact.** The `.d2` text diff is the reviewable delta. The SVG is a visual aid and is marked `linguist-generated`.
-- **Interactivity.** SVG `<title>` tooltips only in checked-in SVGs. GitHub strips scripts. An HTML viewer is optional and later.
+## Acceptance Criteria
 
-## Requirements
+- **R1:** Generate all seven original views. (1) A signature per IR file shows actors, actions and entities, with schemas, inputs, examples and positions. (2) Every machine has a phase/projection diagram; action-class edges retain facts, `because`, guards, predicates and available source positions. Phase tooltips retain disabled pairs, their lint kinds and matched acceptance reasons. (3) Refinement diagrams show the checked System-to-Product state mapping, carriers and stutters. (4) Composition diagrams show members, substitutions and paired sync actions. (5) Derived-design comparisons show a diff against an inferred compatible base, including changed results, enabled/disabled cells and reachable-state differences. (6) Every `find` Query with an expected Run has an actual replay-validated witness sequence as Mermaid text, or its truthful non-found/incomplete/error standing. (7) A per-IR overview README links every applicable view and records lint coverage. Errors and boundaries: malformed IR or acceptance metadata, missing references, holes, unsupported owners, rejected/incomplete refinement, ambiguous witness explanations and absent bases remain attributed. Empty collections and non-applicable views are explicit; no omission silently earns coverage. No invented sync line, inheritance, fired-clause identity or successful witness is permitted.
+- **R2:** Provide `tools/umpire/render` and `umpire-render --check|--update`, with artifacts under `model/views/<irfile>/`. `umpire-gen-model` regenerates them and the model gate checks them even under `--skip-go-checks`. Check is read-only and detects missing, changed and obsolete managed artifacts; update validates a complete selected tree before publishing it. Errors: conflicting modes, missing inputs, empty default inventory, duplicate/colliding paths, unsafe path/symlink targets, compile/write failures and orphan artifacts fail with attributed diagnostics. Scoped IR arguments never delete another IR file's views. A failed generation publishes no successful-looking partial tree.
+- **R3:** Give every machine a usable projection. Prefer an enum state itself or a top-level enum phase; otherwise follow a unique typed record path to an enum phase, including lostStartAnswer's record.phase. Explicitly cover queue custody and outstanding projections. Choose the original two-field-label option for the close policy, using caller and handler, and disclose aggregation over intent, channel, retained and known. Valid states lacking a unique preferred projection use deterministic full-state labels with an attributed fallback, not exclusion. Diagnose invalid typed paths and expose competing candidates. Preserve partial enabled/disabled cells, distinct outcomes and annotated self-loops for hidden-field changes, including lostStartAnswer's lossAvailable changes. A single label must not imply identical concrete behavior. No IR/lifter projection field is added by this plan.
+- **R4:** Fixed admitted IR, matching lint acceptance metadata and pinned renderer settings produce byte-identical D2, SVG and Mermaid/README output across repeated runs. Use pinned D2 as a Go library with deterministic ELK or dagre, stable content-derived IDs, fixed ordering/theme/font and `OmitVersion`. Measure and contain changed-glyph font-subset noise using a fixed font or validated stripping of font-face data. Errors: ambiguous ordering, escaping collisions, duplicate IDs, changed engine/font inputs, Unicode and malicious label/tooltip syntax have regressions. SVGs carry inert title text, with all explanation text also present in D2. GitHub tooltip behavior is separately observed, never assumed.
+- **R5:** Rendering imports only the current public reader packages and lint among Umpire owners; D2 imports are permitted only within render. No private engine/producer, lowering, Testpilot or alternate evaluator enters rendering. Reuse the existing foreground reader/check/lint work for gate integration; independent replay remains independent and consumer inputs remain immutable. The full added gate cost remains within a few seconds, concretely at most five elapsed seconds on equivalent inputs and runner conditions, measured separately from the unchanged baseline. Report cold compilation/dependency weight and warm rendering separately. Errors: crossed-owner imports, mutation leakage, missing replay, duplicated native work and budget overrun fail the proof. Reduced Models, machines, Queries, views, limits, assertions or concurrency, persistent caches and runtime memory tuning do not satisfy this requirement.
 
-- **R1 Views:**
-  1. Signature per IR file: who can do what to which entity.
-  2. Phase diagram per machine. Edges are action classes. Hover shows facts, `because`, guards and the source line; a phase's hover shows its disabled pairs with their lint kind and reason.
-  3. Refinement: System phase to Product phase.
-  4. Composition and syncs.
-  5. Derived-design diff against the inferred base.
-  6. Query witness path as a sequence diagram (Mermaid text).
-  7. A generated overview README per IR file.
-- **R2 Generator.** A Go package `tools/umpire/render` and a command `umpire-render --check|--update`. It is run by `umpire-gen-model` and checked by the model gate. Artifacts go under `model/views/<irfile>/`.
-- **R3 Projection.** Machines without a phase field (the close policy) get a usable projection. Either the lifter emits the `Rules(_.phase)` projection as an optional IR field, or the view uses a two-field label. Decide and record.
-- **R4 Stability.** The same IR renders byte-identical artifacts. Font-subset diff noise is measured and contained (fixed font file, or stripped `@font-face`).
-- **R5 Boundaries.** `render` imports only the reader and lint; the ownership test permits D2 there only. The gate's added time stays within a few seconds.
+## Early proof point
 
-## Open questions
+Task fn-130-model-views.1 proves the pinned renderer, truthful projection inputs and foreground sharing strategy with a disposable vertical prototype and full-workload cost evidence. If byte stability, usable projection or the original added-time bound cannot be demonstrated, stop the production implementation lane and preserve the failure; do not replace the seven-view requirement with a smaller workload.
 
-- Whether tooltips fire in GitHub's blob and rich-diff views (unverified).
-- Doc comments on hover need a `doc` field in the IR (deferred idea).
-- An optional HTML viewer (hover panels, source links, a witness player) on GitHub Pages.
+## Architecture & Data Models
 
-## Outline
+The current reader consists of public IR, interpretation, checking and realization packages. Render reads those public APIs plus lint's typed cells, results, tallies and exact acceptance matching. It parses no presentation-only rule text and no Scala source. Commands own composition of consumers and filesystem publication.
 
-- **Spike (1–2 days):** render `activityProduct`'s phase view twice, then check byte stability, font noise and PR rendering.
-- **Core views and gate (4–6 days).**
-- **Derived views (3–4 days).**
-- **Optional HTML viewer (3–5 days).**
+Lint already calls Interpreter.Why once per cell. Retain typed branch explanations from that same call before enabled, disabled or hole returns: ordered guards/selected match conditions, taken-branch information, source positions, state/input and nested markers, and called predicates. Reuse lint's expression-spelling helpers without another evaluation. Keep existing Cell.Guard and rule grouping semantics unchanged. Decision-free rows explicitly have no branch guards; unmatched cases and holes remain attributed. Explanations are cell-wide evaluation evidence, not invented per-result fired-clause identities; multiple results retain that scope and any unresolved attribution. Render consumes immutable retained explanations, never calls Why again.
+
+Expose the existing checked refinement state map through a narrow public reader method rather than evaluating the mapping again in render. A small foreground sharing seam may supply the same admitted reader and existing checked reports to lint and render. It must reuse existing checking logic and preserve its fresh independent replay. The first integration candidate combines lint and rendering in one foreground command while retaining standalone `umpire-render`. Moving Case generation or changing its overlap is outside this plan.
+
+The renderer projects full concrete cells/results before grouping labels. Derived-base inference compares compatible catalogs and action-to-function bindings. It records all maximum-overlap candidates in deterministic order, labels a selected comparison as inferred, and treats identical siblings as equivalence rather than ancestry. A stable representative can be chosen for a comparison, but ties and absent evidence remain visible. No recursive inheritance chain is inferred.
+
+Projection follows declared record field names/types and concrete interpreter values, not lint.Table.Field's first-top-level-enum shortcut. Guard against recursive/invalid type traversal; deterministic full-state fallback preserves coverage when no unique phase exists. Freeze an independently authored expected projection inventory for every admitted machine. Mandatory examples include Activity Product, nested lostStartAnswer, taskQueueSystem's custody, taskQueueProduct's outstanding and close policy's caller/handler. Grouping discloses all hidden fields and preserves cells/results before aggregation.
+
+Witness diagrams use the declared Query, checked standing, initial state, ordered rows, results, outcome, facts and available positions. Matching alternatives with different explanations are listed as ambiguous. Query-wide `Exercised` remains query-wide; the renderer does not invent per-step clause IDs. Actual action metadata distinguishes actors, timer/internal actions and entities.
+
+## Boundaries
+
+In scope are all original fixed views, deterministic local generation, managed artifacts, existing model-gate integration, focused ownership tests, docs and the complete preservation/cost proof. This is explanatory tooling and does not change modeled behavior, table/receipt/replay identities or Case contents.
+
+The optional HTML viewer, GitHub Pages deployment, doc-comment IR fields, DSL view declarations, opt-out/configuration systems, TALA, new backends, persistent caching, broad generated API drift checks and new CI coverage stay out of scope. Property illustrations remain owned by fn-153. Native lifetime repairs and resource provisioning remain separate obligations of fn-157; this plan does not release its oracle gate.
+
+## Decision Context
+
+- Preserve R1-R5 and the original seven-view scope. The historical research's retired reader paths and field spellings are not current interfaces.
+- Public checking is part of the reader boundary. A lint facade solely to hide check would add another interface without satisfying a separate requirement.
+- Choose the original two-field projection option to avoid coupling explanatory output to an IR/lifter migration. Demonstrate its usability before production rollout.
+- Prefer narrow foreground lint/render sharing. Combining Case generation, lint and views changes gate ownership/overlap and is not admitted without a separately justified decision.
+- The only feature dependency remains fn-126; fn-141, fn-149 and fn-153 are coordination points. Post-Batch-5 delivery is scheduling, not invented feature edges.
+- The declined generated-API drift concept remains excluded. See the project's declined ledger; focused freshness of these explicitly requested artifacts stays required.
+
+## Evidence and unresolved observations
+
+The inspected managed inventory has seven IR files, 52 machine occurrences, nine composition occurrences and 30 expecting-find Queries. These counts locate the current planning workload; they do not prove freshness against Scala. Execution freezes and independently checks the actual input inventory after re-anchor. Historical native captures, managed files and fresh lifted candidates retain separate provenance.
+
+The original research recorded 500-second lint observation timeouts. Current lint constructs a realizer and separately checks verify Queries; a naive standalone renderer would duplicate that work and cannot be presumed to meet R5. Task .1 measures feasibility before production changes. Full gates, source freshness and successful capacity remain unproven during planning.
+
+D2 is not yet pinned in the repository manifest. The spike resolves the exact reachable module/version and uses its authoritative API and tests. Current [D2 interactive documentation](https://d2lang.com/tour/interactive/) documents title-based tooltip text; actual local and GitHub rendering remain observations to record. No new PR or external write is authorized solely to inspect a tooltip.
+
+## Quick commands
+
+```bash
+python3 /home/agent/.codex/scripts/flowctl.py validate --spec fn-130-model-views --coverage --json
+mise exec -- go test -tags test_dep ./tools/umpire/ir -run '^(TestLiveModelDependencyGraph|TestModelDependencyGraphRejectsCrossedOwners|TestEveryToolingPackageHasALiveCaller)$'
+```
+
+Each task adds its own focused Quick command against actual files and tests. The final task retains the canonical full Go, model, Case, golden, lint and dependency checks; the added-time test never substitutes for them.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Generate all seven original views. (1) A signature per IR file shows actors, actions and entities, with schemas, inputs, examples and positions. (2) Every machine has a phase/projection diagram; action-class edges retain facts, `because`, guards, predicates and available source positions. Phase tooltips retain disabled pairs, their lint kinds and matched acceptance reasons. (3) Refinement diagrams show the checked System-to-Product state mapping, carriers and stutters. (4) Composition diagrams show members, substitutions and paired sync actions. (5) Derived-design comparisons show a diff against an inferred compatible base, including changed results, enabled/disabled cells and reachable-state differences. (6) Every `find` Query with an expected Run has an actual replay-validated witness sequence as Mermaid text, or its truthful non-found/incomplete/error standing. (7) A per-IR overview README links every applicable view and records lint coverage. Errors and boundaries: malformed IR or acceptance metadata, missing references, holes, unsupported owners, rejected/incomplete refinement, ambiguous witness explanations and absent bases remain attributed. Empty collections and non-applicable views are explicit; no omission silently earns coverage. No invented sync line, inheritance, fired-clause identity or successful witness is permitted. | fn-130-model-views.1, fn-130-model-views.2, fn-130-model-views.3, fn-130-model-views.4, fn-130-model-views.5, fn-130-model-views.6, fn-130-model-views.7 | — |
+| R2 | Provide `tools/umpire/render` and `umpire-render --check\|--update`, with artifacts under `model/views/<irfile>/`. `umpire-gen-model` regenerates them and the model gate checks them even under `--skip-go-checks`. Check is read-only and detects missing, changed and obsolete managed artifacts; update validates a complete selected tree before publishing it. Errors: conflicting modes, missing inputs, empty default inventory, duplicate/colliding paths, unsafe path/symlink targets, compile/write failures and orphan artifacts fail with attributed diagnostics. Scoped IR arguments never delete another IR file's views. A failed generation publishes no successful-looking partial tree. | fn-130-model-views.2, fn-130-model-views.7 | — |
+| R3 | Give every machine a usable projection. Prefer an enum state itself or a top-level enum phase; otherwise follow a unique typed record path to an enum phase, including lostStartAnswer's record.phase. Explicitly cover queue custody and outstanding projections. Choose the original two-field-label option for the close policy, using caller and handler, and disclose aggregation over intent, channel, retained and known. Valid states lacking a unique preferred projection use deterministic full-state labels with an attributed fallback, not exclusion. Diagnose invalid typed paths and expose competing candidates. Preserve partial enabled/disabled cells, distinct outcomes and annotated self-loops for hidden-field changes, including lostStartAnswer's lossAvailable changes. A single label must not imply identical concrete behavior. No IR/lifter projection field is added by this plan. | fn-130-model-views.1, fn-130-model-views.2, fn-130-model-views.7 | — |
+| R4 | Fixed admitted IR, matching lint acceptance metadata and pinned renderer settings produce byte-identical D2, SVG and Mermaid/README output across repeated runs. Use pinned D2 as a Go library with deterministic ELK or dagre, stable content-derived IDs, fixed ordering/theme/font and `OmitVersion`. Measure and contain changed-glyph font-subset noise using a fixed font or validated stripping of font-face data. Errors: ambiguous ordering, escaping collisions, duplicate IDs, changed engine/font inputs, Unicode and malicious label/tooltip syntax have regressions. SVGs carry inert title text, with all explanation text also present in D2. GitHub tooltip behavior is separately observed, never assumed. | fn-130-model-views.1, fn-130-model-views.2, fn-130-model-views.3, fn-130-model-views.4, fn-130-model-views.5, fn-130-model-views.6, fn-130-model-views.7 | — |
+| R5 | Rendering imports only the current public reader packages and lint among Umpire owners; D2 imports are permitted only within render. No private engine/producer, lowering, Testpilot or alternate evaluator enters rendering. Reuse the existing foreground reader/check/lint work for gate integration; independent replay remains independent and consumer inputs remain immutable. The full added gate cost remains within a few seconds, concretely at most five elapsed seconds on equivalent inputs and runner conditions, measured separately from the unchanged baseline. Report cold compilation/dependency weight and warm rendering separately. Errors: crossed-owner imports, mutation leakage, missing replay, duplicated native work and budget overrun fail the proof. Reduced Models, machines, Queries, views, limits, assertions or concurrency, persistent caches and runtime memory tuning do not satisfy this requirement. | fn-130-model-views.1, fn-130-model-views.2, fn-130-model-views.4, fn-130-model-views.6, fn-130-model-views.7 | — |

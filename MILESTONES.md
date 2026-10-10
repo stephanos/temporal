@@ -619,9 +619,29 @@ Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 
 ### fn-130: Model views
 
-Deferred 2026-10-05 before task planning; the spec has no tasks yet. When revived, starts after fn-126 closes. Evidence: `.plans/MODEL_VISUALIZATION.md`.
+Execution remains owner-deferred from 2026-10-05. Preparation now has seven tasks covering the
+original R1-R5; independent plan review returned SHIP after fixing nested phase/queue projection
+coverage and enabled-guard retention from lint's existing evaluation. Fn-126's committed closure satisfies the
+sole feature dependency. The proposed delivery placement is after Batch 5, with actual admission
+and baseline re-anchor still conductor-owned. Preparation grants no production gate credit.
+Evidence: `.plans/MODEL_VISUALIZATION.md`.
 
 Rendered views per Model (signature, phase diagram, refinement, compositions, derived-design diff, witness paths), checked in as `.d2` plus `.svg` under `model/views/` and gated; D2 as a Go library with ELK; no DSL declaration.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-130.1 | ⬜ todo | Disposable renderer/projection proof and full-workload added-cost feasibility; no production rollout on a failed proof |
+| fn-130.2 | ⬜ todo | Pinned phase renderer, nested/queue projections, retained enabled guards and live command/ownership foundation |
+| fn-130.3 | ⬜ todo | Signature and composition/sync views with actual actor/substitution/source metadata |
+| fn-130.4 | ⬜ todo | Existing checked state-map public seam and refinement/carrier/stutter views |
+| fn-130.5 | ⬜ todo | Inferred comparison bases, truthful ties/identical siblings and full concrete-result diffs |
+| fn-130.6 | ⬜ todo | Actual replay-validated expecting-find witnesses and complete per-IR overviews |
+| fn-130.7 | ⬜ todo | Safe complete-tree freshness/publication, foreground reuse, docs and original full gates/cost/preservation proof |
+
+The historical research names a retired reader package. Tasks use the current public reader and
+lint owners; they add no alternate evaluator or IR view declarations. The original few-seconds
+added gate target, all seven view families, complete inventories and independent replay remain
+required. Native repair/oracle holds, owner deferrals and the delivery chain are unchanged.
 
 ### fn-151: Nexus matching model and bug-finding evidence
 
