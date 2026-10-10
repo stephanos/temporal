@@ -166,6 +166,7 @@ func explorationRanks(t *testing.T, strategy Strategy) map[uint64]uint64 {
 	config, executor, configDependencies := unorderedRetentionCampaign(t, strategy, false, false)
 	keepSuccesses(&config, KeepSuccessesNovel)
 	executor.shape = rankProbes(t, probes...)
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -485,6 +486,7 @@ func TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy(t *testing.T) {
 					}
 					executor.shape = rankProbes(t, test.probes[:]...)
 					executor.after = order
+					configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 					summary, err := exploreWith(context.Background(), config, configDependencies)
 					observed, projection := observeRetention(t, summary, err)
 					if !reflect.DeepEqual(observed, want) {
