@@ -1006,20 +1006,21 @@ var correlationFields = map[protoreflect.Name]func(a *accounting, c *umpirespb.C
 // derived is the parts of a Case no declaration of the realization accounts for, and what they are
 // derived from instead.
 var derived = map[string]string{
-	"case_id":                                  "the Case's identity",
-	"version":                                  "the Case format",
-	"program.program_id":                       "the Case's identity",
-	"contract.contract_id":                     "the Case's identity",
-	"provenance.sources":                       "where the Query was written",
-	"provenance.known_gaps":                    "the steps of the witness that record nothing",
-	"provenance.correlated_rules":              "the Property's clauses",
-	"provenance.local_names":                   "the Case's own names",
-	"provenance.abstraction_claims":            "the examples of the machine's actions",
-	"contract.correlated.initial_state":        "the Scenario's start",
-	"contract.correlated.initial_state_fields": "the Scenario's start",
-	"contract.correlated.transitions":          "the machine's rows",
-	"contract.correlated.projection_rules":     "the witness and the machine's evidence",
-	"contract.correlated.rules":                "the Property's clauses",
+	"case_id":                              "the Case's identity",
+	"version":                              "the Case format",
+	"program.program_id":                   "the Case's identity",
+	"contract.contract_id":                 "the Case's identity",
+	"provenance.sources":                   "where the Query was written",
+	"provenance.known_gaps":                "the steps of the witness that record nothing",
+	"provenance.correlated_rules":          "the Property's clauses",
+	"provenance.local_names":               "the Case's own names",
+	"provenance.abstraction_claims":        "the examples of the machine's actions",
+	"contract.correlated.initial_state_id": "the Scenario's start",
+	"contract.correlated.states":           "the Scenario's start and the machine's rows",
+	"contract.correlated.results":          "the machine's rows",
+	"contract.correlated.transitions":      "the machine's rows",
+	"contract.correlated.projection_rules": "the witness and the machine's evidence",
+	"contract.correlated.rules":            "the Property's clauses",
 }
 
 // inventory accounts for every declaration of the realization against the Case, and for every part of
