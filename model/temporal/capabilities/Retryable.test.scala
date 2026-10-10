@@ -2,7 +2,7 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.Retries
+import temporal.capabilities.Retryable
 import scala.annotation.unused
 
 object RetryFixture:
@@ -36,7 +36,7 @@ object RetryFixture:
     val init = Snapshot(Phase.waiting, UpTo[2](0), false, false)
 
     object rules extends Rules
-    val retries = Retries(
+    val retries = Retryable(
       failure = failure,
       retryable = true,
       attemptCount = count,
@@ -60,17 +60,17 @@ object RetryFixture:
     val init = WaitingState(WaitingPhase.waiting)
 
     object rules extends Rules
-    val retries = Retries(
+    val retries = Retryable(
       failure = failure,
       retryable = true,
       attemptCount = waitingCount,
       maximumAttempts = waitingMaximum,
       retriesRemaining = waitingRemaining
     )
-    val returns = Retries.failureReturnsToWaiting(this)(failure, true, waitingRemaining)
-    val fails = Retries.failureEndsFailed(this)(failure, true, waitingRemaining)
+    val returns = Retryable.failureReturnsToWaiting(this)(failure, true, waitingRemaining)
+    val fails = Retryable.failureEndsFailed(this)(failure, true, waitingRemaining)
 
-class CapabilityRetriesSuite extends munit.FunSuite:
+class CapabilityRetryableSuite extends munit.FunSuite:
   import RetryFixture.*
 
   private def transition(
@@ -86,16 +86,16 @@ class CapabilityRetriesSuite extends munit.FunSuite:
     assertEquals(states.size, 48)
     for retryable <- Finite[Boolean].values do
       val properties = Seq(
-        Retries.failureReturnsToWaiting(Record)(
+        Retryable.failureReturnsToWaiting(Record)(
           failure,
           retryable,
           remaining,
           pendingPause,
           pendingCancel
         ),
-        Retries.failureEndsFailed(Record)(failure, retryable, remaining, pendingCancel),
-        Retries.failurePauses(Record)(failure, retryable, remaining, pendingPause, pendingCancel),
-        Retries.failureCancels(Record)(failure, retryable, pendingCancel)
+        Retryable.failureEndsFailed(Record)(failure, retryable, remaining, pendingCancel),
+        Retryable.failurePauses(Record)(failure, retryable, remaining, pendingPause, pendingCancel),
+        Retryable.failureCancels(Record)(failure, retryable, pendingCancel)
       )
       assert(properties.forall(_.decl.when.contains(failure)))
       for before <- states; after <- states do
@@ -115,7 +115,7 @@ class CapabilityRetriesSuite extends munit.FunSuite:
     val policies: Seq[(Snapshot => Option[UpTo[2]], Boolean)] =
       Seq(one -> false, two -> true, unlimited -> true)
     for (maximum, expected) <- policies do
-      val p = Retries.attemptCountIsWithinPolicy(Record)(count, maximum)
+      val p = Retryable.attemptCountIsWithinPolicy(Record)(count, maximum)
       val holds = p.decl.holds.get.asInstanceOf[
         Step[Snapshot, Answer, Nothing] => Boolean
       ] // scalafix:ok DisableSyntax.asInstanceOf

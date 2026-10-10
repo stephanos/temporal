@@ -5,7 +5,7 @@ import framework.{
   Capabilities,
   CapabilityKind,
   CapabilityOf,
-  DeadlineFixture,
+  ExpirableFixture,
   Machine,
   Property,
   RetryFixture
@@ -33,21 +33,21 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   )
 
   val companions =
-    Seq(Closable, Terminable, Pausable, Pollable, Describable, Retries, Deadline)
+    Seq(Closable, Terminable, Pausable, Pollable, Describable, Retryable, Expirable)
   val properties = Seq(
     Brought("Closable.terminalStatesAreFinal", Set(Closable)),
     Brought("Closable.closedIsRejectedUniformly", Set(Closable)),
     Brought("Terminable.terminateSettles", Set(Terminable)),
     Brought("Pausable.pausedIsNotDispatched", Set(Pausable, Pollable)),
-    Brought("Retries.failureReturnsToWaiting", Set(Retries)),
-    Brought("Retries.failureEndsFailed", Set(Retries)),
-    Brought("Retries.failurePauses", Set(Retries)),
-    Brought("Retries.failureCancels", Set(Retries)),
-    Brought("Retries.attemptCountIsWithinPolicy", Set(Retries)),
-    Brought("Deadline.firesInWindow", Set(Deadline)),
-    Brought("Deadline.deadlineTimesOut", Set(Deadline)),
-    Brought("Deadline.deadlineReturnsToWaiting", Set(Deadline)),
-    Brought("Deadline.deadlinePauses", Set(Deadline))
+    Brought("Retryable.failureReturnsToWaiting", Set(Retryable)),
+    Brought("Retryable.failureEndsFailed", Set(Retryable)),
+    Brought("Retryable.failurePauses", Set(Retryable)),
+    Brought("Retryable.failureCancels", Set(Retryable)),
+    Brought("Retryable.attemptCountIsWithinPolicy", Set(Retryable)),
+    Brought("Expirable.firesInWindow", Set(Expirable)),
+    Brought("Expirable.deadlineTimesOut", Set(Expirable)),
+    Brought("Expirable.deadlineReturnsToWaiting", Set(Expirable)),
+    Brought("Expirable.deadlinePauses", Set(Expirable))
   )
 
   def declaring[S, O, F](m: Machine[S, O, F], section: Capabilities[S, O, F]): Declared =
@@ -58,16 +58,16 @@ class CapabilityPropertiesTest extends munit.FunSuite:
       case binding: Product =>
         val fields = binding.productElementNames.zip(binding.productIterator).toMap
         binding.productPrefix match
-          case "Retries" =>
+          case "Retryable" =>
             Seq("failureReturnsToWaiting", "failureEndsFailed", "attemptCountIsWithinPolicy")
               .concat(Option.when(present(fields("pendingPause")))("failurePauses"))
               .concat(Option.when(present(fields("pendingCancel")))("failureCancels"))
-              .map("Retries." + _)
-          case "Deadline" =>
+              .map("Retryable." + _)
+          case "Expirable" =>
             Seq("firesInWindow", "deadlineTimesOut")
               .concat(Option.when(enabled(fields("retryable")))("deadlineReturnsToWaiting"))
               .concat(Option.when(present(fields("pendingPause")))("deadlinePauses"))
-              .map("Deadline." + _)
+              .map("Expirable." + _)
           case _ => Seq.empty
       case _ => Seq.empty
     }.toSet
@@ -91,31 +91,31 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     Declared(
       "retryFixture",
       classOf[RetryFixture.Snapshot].getName,
-      Set("Retries"),
-      Set("Retries.failurePauses", "Retries.failureCancels", "Retries.attemptCountIsWithinPolicy")
+      Set("Retryable"),
+      Set("Retryable.failurePauses", "Retryable.failureCancels", "Retryable.attemptCountIsWithinPolicy")
     ),
     Declared(
       "deadlineFixture",
-      classOf[DeadlineFixture.Snapshot].getName,
-      Set("Deadline"),
-      Set("Deadline.deadlineReturnsToWaiting", "Deadline.deadlinePauses")
+      classOf[ExpirableFixture.Snapshot].getName,
+      Set("Expirable"),
+      Set("Expirable.deadlineReturnsToWaiting", "Expirable.deadlinePauses")
     )
   )
 
-  test("Activity and workflow Nexus both declare Retries and Deadline") {
+  test("Activity and workflow Nexus both declare Retryable and Expirable") {
     for machine <- declared.filter(d =>
         Set("activitySystem", "nexusSystem").contains(d.machine) &&
           Set(classOf[system.State].getName, WorkflowNexusSystem.init.getClass.getName)
             .contains(d.state)
       )
-    do assert(Set("Retries", "Deadline").subsetOf(machine.capabilities), s"$machine")
+    do assert(Set("Retryable", "Expirable").subsetOf(machine.capabilities), s"$machine")
   }
 
   def instantiating(p: Brought, machines: Seq[Declared]): Seq[String] =
     machines
       .filter(d =>
         p.by.map(_.name).subsetOf(d.capabilities) &&
-          (!(only(p.by, Retries) || only(p.by, Deadline)) || d.applicable.contains(p.name))
+          (!(only(p.by, Retryable) || only(p.by, Expirable)) || d.applicable.contains(p.name))
       )
       .map(_.state)
       .distinct
@@ -142,7 +142,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("every capability Property has two declared machines with their own state types") {
     assertEquals(underInstantiated(properties, declared ++ conditionalFixtures), Seq.empty)
     val finitePolicy = properties
-      .find(_.name == "Retries.attemptCountIsWithinPolicy")
+      .find(_.name == "Retryable.attemptCountIsWithinPolicy")
       .get // scalafix:ok DisableSyntax.==
     val finitePolicySites = declared.filterNot(
       _.state == WorkflowNexusSystem.init.getClass.getName
@@ -160,18 +160,18 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     assertEquals(
       nexus.applicable,
       Set(
-        "Retries.failureReturnsToWaiting",
-        "Retries.failureEndsFailed",
-        "Retries.attemptCountIsWithinPolicy",
-        "Deadline.firesInWindow",
-        "Deadline.deadlineTimesOut"
+        "Retryable.failureReturnsToWaiting",
+        "Retryable.failureEndsFailed",
+        "Retryable.attemptCountIsWithinPolicy",
+        "Expirable.firesInWindow",
+        "Expirable.deadlineTimesOut"
       )
     )
     val activity =
       declared.find(_.state == classOf[system.State].getName).get // scalafix:ok DisableSyntax.==
     assertEquals(
       activity.applicable,
-      properties.filter(p => only(p.by, Retries) || only(p.by, Deadline)).map(_.name).toSet
+      properties.filter(p => only(p.by, Retryable) || only(p.by, Expirable)).map(_.name).toSet
     )
   }
 
