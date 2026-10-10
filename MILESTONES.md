@@ -570,6 +570,11 @@ was not retried for a disk-only improvement. No successful full-gate scratch pea
 Measurement .1 remains held on the complete independent oracle; root has resumed only the
 remaining independent error/replay/isolation controls and safe whole-Model captures. The primary
 Producer and unchanged ordinary gate are not retried without material memory improvement.
+Receipt precedence and replay-error controls passed. A pinned `activityProduct` caller-mutation
+control failed naturally: repeated interpreter builds retain shared nested `Row.Results`, despite
+distinct outer rows; a fresh interpreter remains independent in that control. The RED assertion
+is retained under the task worktree's `controls-resume/` evidence. This is an additional ownership
+obligation for the held repair, not a complete oracle, accepted strategy or passing full gate.
 Its earlier terminal handover preserves
 52 probes/412.923 measured wall seconds and 34 missing surfaces/controls; the one-hour limit was
 not reached. Root verified all 574 sealed evidence files. Revisit on capacity sufficient for the
