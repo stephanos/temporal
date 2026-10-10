@@ -1,0 +1,136 @@
+{
+  "commits": [],
+  "base_commit": "b32dad53fc544ab75d56f6b9c41fba9b99a75858",
+  "tests": [
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json ./runner -run '^TestRun(ReportsPreparationProgressAndCompletedCounts|ReportsPeriodicProgressWhileTargetIsRunning|ReportsPassiveSemanticCoverage|FailsWhenRequiredSemanticProbeIsMissing|RetainsOnlyProbeNovelSuccessesWithinExplicitBounds|RetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures|MergesParallelCompletionsInSelectionOrdinalOrder|FailsClosedWhenSuccessRetentionCountIsExhausted|RejectsSuccessfulRetentionWithoutReplayTranscript|CollectsBoundedQualificationEvidenceForOneSeed)$'",
+    "bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config ../../.github/.golangci.yml ./runner'",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json ./runner ./deterministicio -run '^(TestRun(ReportsPreparationProgressAndCompletedCounts|ReportsPeriodicProgressWhileTargetIsRunning|ReportsPassiveSemanticCoverage|FailsWhenRequiredSemanticProbeIsMissing|RetainsOnlyProbeNovelSuccessesWithinExplicitBounds|RetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures|MergesParallelCompletionsInSelectionOrdinalOrder|FailsClosedWhenSuccessRetentionCountIsExhausted|RejectsSuccessfulRetentionWithoutReplayTranscript|CollectsBoundedQualificationEvidenceForOneSeed|PreparesOnceBoundsParallelismAndGroupsMatchingFailures|PublishesConnectedWorldBundle|ClassifiesConnectedWorldDeadlock|CountsConnectedWorldReplayDivergence|RejectsInvalidConnectedWorldBeforePublication|RejectsPreparedTargetMutationBeforeFailurePublication|PreparationFailureLeavesClassifiedPartial)|TestPreparationDependencies(ForwardRealFixtureInputs|OperationErrorsRemainUnchanged|FailuresStopAtOriginalStages|KeepRealDefaultsAndBootstrapGuard)|TestInjectionCharacterization(IsolatedPreparationDependencies|IsolatedExploreRejectsEverySubstitution)|TestWaitForProgressStart(ObservesPreparationFailure)?|TestLocal(CampaignPreparationShortCircuits|CompletionErrorPrecedence|FinalizationPreservesHostFailureBeforePublication|FinalizationClassifiesPublicationFailure|StoppedCancellationPreservesPriorFailure)|TestPortableProfilePublicGuardsRemainFirst)$'",
+    "bash -c 'test -z \"$(gofmt -l tools/gomad3/runner/runner_test.go)\" && perl .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-66/preserve.pl && git diff --check'",
+    "go -C tools/gomad3 vet -tags test_dep ./runner",
+    "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner",
+    "bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config ../../.github/.golangci.yml ./runner'",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=b32dad53fc544ab75d56f6b9c41fba9b99a75858 GOLANGCI_LINT_FIX=false ALL_TEST_TAGS=test_dep LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "bash -c 'go version && go env GOOS GOARCH GOROOT GOCACHE GOMODCACHE GOPROXY GOSUMDB GOENV GOWORK GOTOOLCHAIN GOFLAGS CGO_ENABLED CC CXX && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 version'"
+  ],
+  "prs": [],
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/fixtures",
+  "frozen_product": {
+    "path": "tools/gomad3/runner/runner_test.go",
+    "sha256": "7045165b88318f57fb147882b051cb7bfd2aac8c3182039a0cca0fce6f5af8e0",
+    "insertions": 10,
+    "deletions": 0
+  },
+  "observations": [
+    {
+      "receipt": "baseline-ten.json",
+      "exit": 1,
+      "elapsed_seconds": 2,
+      "source_match_exit": 0
+    },
+    {
+      "receipt": "baseline-runner-lint.json",
+      "exit": 1,
+      "elapsed_seconds": 3,
+      "source_match_exit": 0
+    },
+    {
+      "receipt": "final-focused.json",
+      "exit": 0,
+      "elapsed_seconds": 3,
+      "source_match_exit": 0
+    },
+    {
+      "receipt": "final-format-preservation.json",
+      "exit": 0,
+      "elapsed_seconds": 1,
+      "source_match_exit": 0
+    },
+    {
+      "receipt": "final-vet.json",
+      "exit": 0,
+      "elapsed_seconds": 1,
+      "source_match_exit": 0
+    },
+    {
+      "receipt": "final-errortype.json",
+      "exit": 0,
+      "elapsed_seconds": 1,
+      "source_match_exit": 0
+    },
+    {
+      "receipt": "final-runner-lint.json",
+      "exit": 1,
+      "elapsed_seconds": 4,
+      "source_match_exit": 0
+    },
+    {
+      "receipt": "final-fast-lint.json",
+      "exit": 0,
+      "elapsed_seconds": 12,
+      "source_match_exit": 0
+    },
+    {
+      "receipt": "final-tool-identity.json",
+      "exit": 0,
+      "elapsed_seconds": 0,
+      "source_match_exit": 0
+    }
+  ],
+  "source_manifests": {
+    "baseline": "290b1cf79ff64ec2dd7c158992f80d33c4dd1b0a9a6f8a6f25550b4263911834",
+    "final": "a78a1e02730a49cc9efd55190dba822c0d857160967a6d1e97889d79f9698f6e"
+  },
+  "focused_outcomes": {
+    "top_level_pass": 31,
+    "all_level_pass": 62,
+    "fail": 0,
+    "skip": 0
+  },
+  "runner_lint": {
+    "baseline_findings": 6,
+    "final_findings": 6,
+    "resolved": 0,
+    "introduced": 0,
+    "full_diagnostic_blocks_sha256": "4e905b19bae9c608e3c670618155f6577970e58db1a433cb33a096c4f8140514"
+  },
+  "boundary_reconciliation": {
+    "receipt": "boundary-reconciliation.log",
+    "inputs": "boundary-consumed-inputs.sha256",
+    "input_count": 554,
+    "input_manifest_sha256": "9eba99f2a09ee4566132b69a1cf6b9f3aee73a9981d61f206ce44f56042c2981",
+    "claim": "Only unaffected consumed source boundary inputs reconciled; no fresh boundary execution or closure of prior acceptance gaps."
+  },
+  "preservation": {
+    "script": "preserve.pl",
+    "script_sha256": "2f0b450ec8eb24b83419ace11bdca273c63ea3897146c89f5b1227488d7af99d",
+    "receipt": "preservation.log",
+    "receipt_sha256": "9a541af830c398fe36a277b2372b4c3a04498a4b5cd165cc2f7b2851ac30aba8"
+  },
+  "environment_limits": [
+    "Wrapper selectively clears Go architecture/runtime settings and Gomad seeds. CGO_ENABLED, TMPDIR and TZ remain inherited; the baseline and final observations are not a hermetic or controlled-identical-environment experiment.",
+    "Per-command environment manifests capture selected variables including TMPDIR, but omit TZ. After gates, ambient TMPDIR was /home/agent/.cache/codex-build/tmp and TZ was PDT7; this is a later observation, not a per-command TZ receipt.",
+    "Final effective Go environment records CGO_ENABLED=1, CC=gcc and CXX=g++. C binaries were hashed after gate execution; headers, libc, full tool installations and complete cache contents remain unqualified.",
+    "Pinned stock Go1.27.1 on developmental linux/arm64 supplies no supported-native qualification or full native test-host pass."
+  ],
+  "post_gate_c_binary_hashes": {
+    "/usr/bin/gcc": "5b06a5b85cab901e2af3e8f351a6d4e8e6a93af24797bd8c01e5391ac6b4e63b",
+    "/usr/bin/g++": "1b6148236631210472bf87126432464b8c694acd02fb27e11eb8c607820fc817"
+  },
+  "remaining_requirements": [
+    "Conductor-owned combined ordinary Runner named-outcome and original-base full lint comparisons.",
+    "Current aggregate52 inherited findings remain unresolved; fast lint uses a diff filter and supplies no aggregate-green claim.",
+    "Independent integrated review and source acceptance for fn-109.63/fn-112.10 remain open; task66 stays in_progress.",
+    "Native fn-128/fn-149 remain deferred and unverified."
+  ],
+  "handles_terminal": true,
+  "lane_released": true,
+  "review": "conductor-owned; worker issued no verdict",
+  "commit_authority": "Conductor subsequently authorized a local task-specific checkpoint after handovers and frozen-source checks. The return names its commit; conductor updates IDs after integration.",
+  "commit_capture": "This evidence was prepared before that checkpoint. Historical gate HEAD fields remain unchanged.",
+  "independent_reviews": {
+    "independent-correctness-review.md": "a7cf3b20b0b5c6ad0b411fcc0b79bad13451e41f9f01d471926bb5ef72c1356b",
+    "independent-correctness-appendix.md": "bfd99f15e9d7c3fe9e7dd23a9d6927f2a9fe958ef05f58e0734998a559d1c2f0",
+    "independent-standards-review.md": "8866ac7943323aeb869dad10dd431d5ae1e484a239e44218db92880ad8257d8e"
+  }
+}

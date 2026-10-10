@@ -1,0 +1,20 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/fixtures",
+  "argv": [
+    "bash",
+    "-c",
+    "go version && go env GOOS GOARCH GOROOT GOCACHE GOMODCACHE GOPROXY GOSUMDB GOENV GOWORK GOTOOLCHAIN GOFLAGS CGO_ENABLED CC CXX && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 version"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T01:29:18Z",
+  "ended": "2026-10-10T01:29:18Z",
+  "elapsed_seconds": 0,
+  "head": "b32dad53fc544ab75d56f6b9c41fba9b99a75858",
+  "source_manifest_sha256": "a78a1e02730a49cc9efd55190dba822c0d857160967a6d1e97889d79f9698f6e",
+  "post_source_manifest_sha256": "a78a1e02730a49cc9efd55190dba822c0d857160967a6d1e97889d79f9698f6e",
+  "tools_manifest_sha256": "b0c1fd102f989168a70ebaf40c8cbed12f92267271e5e2b160125b7d540cb6b4",
+  "wrapper_sha256": "2cd39403982ba05f65624fd0efec05a9fde2c59b65af8a28cbef943281349cc3",
+  "environment_sha256": "308b63e5099daa8a7c4c43f1f9cf24e4acc5bf3241d5bffeefe639f04ed0ad78",
+  "raw_log_sha256": "121276ffdeef7dcdb994636b81117016a9e62938fb434db2dd4b460f35a3135e",
+  "post_source_match_exit": 0
+}

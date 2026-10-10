@@ -1,0 +1,20 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/fixtures",
+  "argv": [
+    "bash",
+    "-c",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config ../../.github/.golangci.yml ./runner"
+  ],
+  "exit": 1,
+  "started": "2026-10-10T01:23:50Z",
+  "ended": "2026-10-10T01:23:53Z",
+  "elapsed_seconds": 3,
+  "head": "b32dad53fc544ab75d56f6b9c41fba9b99a75858",
+  "source_manifest_sha256": "290b1cf79ff64ec2dd7c158992f80d33c4dd1b0a9a6f8a6f25550b4263911834",
+  "post_source_manifest_sha256": "290b1cf79ff64ec2dd7c158992f80d33c4dd1b0a9a6f8a6f25550b4263911834",
+  "tools_manifest_sha256": "b0c1fd102f989168a70ebaf40c8cbed12f92267271e5e2b160125b7d540cb6b4",
+  "wrapper_sha256": "2cd39403982ba05f65624fd0efec05a9fde2c59b65af8a28cbef943281349cc3",
+  "environment_sha256": "308b63e5099daa8a7c4c43f1f9cf24e4acc5bf3241d5bffeefe639f04ed0ad78",
+  "raw_log_sha256": "11421340096419ca58f64ab9d5984c3cf5b367ef8f21d789b4042c14c325d8a2",
+  "post_source_match_exit": 0
+}

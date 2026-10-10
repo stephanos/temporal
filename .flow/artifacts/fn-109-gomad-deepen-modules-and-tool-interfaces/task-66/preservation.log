@@ -1,0 +1,4 @@
+base=b32dad53fc544ab75d56f6b9c41fba9b99a75858
+original_sha256=a660c19b148dac877658be08eeb684325b381ff5611a6d9a03b7dcf25cc2adc7
+current_sha256=7045165b88318f57fb147882b051cb7bfd2aac8c3182039a0cca0fce6f5af8e0
+PASS: whole original file reproduced by removing exactly one assignment in each of ten admitted functions; six old calls intact; periodic assignment before goroutine

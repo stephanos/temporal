@@ -106,6 +106,7 @@ func TestRunReportsPreparationProgressAndCompletedCounts(t *testing.T) {
 		progress = append(progress, update)
 		return nil
 	}
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -142,6 +143,7 @@ func TestRunReportsPeriodicProgressWhileTargetIsRunning(t *testing.T) {
 	completed := make(chan error, 1)
 	startupDeadline := time.NewTimer(config.OverallTimeout + config.TerminateGrace)
 	defer startupDeadline.Stop()
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	go func() {
 		_, err := exploreWith(context.Background(), config, configDependencies)
 		completed <- err
@@ -175,6 +177,7 @@ func TestRunReportsPassiveSemanticCoverage(t *testing.T) {
 	}}
 	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
 	config.Coverage = CoverageSemantic
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -188,6 +191,7 @@ func TestRunFailsWhenRequiredSemanticProbeIsMissing(t *testing.T) {
 	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
 	config.Coverage = CoverageSemantic
 	config.RequiredSemanticProbes = []string{"stdlib.os.openfile"}
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	_, err := exploreWith(context.Background(), config, configDependencies)
 	var missing *deterministicio.MissingSemanticProbesError
 	if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
@@ -210,6 +214,7 @@ func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
 	config.KeepSuccesses = KeepSuccessesNovel
 	config.SuccessArtifactLimit = 2
 	config.SuccessBytesLimit = 64 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -259,6 +264,7 @@ func TestRunRetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures(t *testing.T)
 	config.KeepSuccesses = KeepSuccessesNovel
 	config.SuccessArtifactLimit = 2
 	config.SuccessBytesLimit = 64 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -287,6 +293,7 @@ func TestRunMergesParallelCompletionsInSelectionOrdinalOrder(t *testing.T) {
 	config.KeepSuccesses = KeepSuccessesNovel
 	config.SuccessArtifactLimit = 2
 	config.SuccessBytesLimit = 64 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -411,6 +418,7 @@ func TestRunFailsClosedWhenSuccessRetentionCountIsExhausted(t *testing.T) {
 	config.KeepSuccesses = KeepSuccessesAll
 	config.SuccessArtifactLimit = 1
 	config.SuccessBytesLimit = 64 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "success_retention_capacity" || summary.RetainedSuccesses != 1 {
@@ -423,6 +431,7 @@ func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
 	config.KeepSuccesses = KeepSuccessesAll
 	config.SuccessArtifactLimit = 1
 	config.SuccessBytesLimit = 1 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "success_artifact_publication" || !strings.Contains(err.Error(), "complete I/O transcript") {
@@ -442,6 +451,7 @@ func TestRunCollectsBoundedQualificationEvidenceForOneSeed(t *testing.T) {
 	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "7", PolicyAll, 1)
 	config.Coverage = CoverageSemantic
 	config.CollectExecutionEvidence = true
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
