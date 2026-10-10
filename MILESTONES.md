@@ -153,7 +153,15 @@ and the pending-control remodel.
 | fn-155.3 | ✅ done | Product Recorded effects/shared reasons/examples; 20 fresh Cases byte-exact, complete guarded structural proof, three-axis SHIP and integrated Activity tests/lint pass |
 | fn-155.4 | ✅ done | Proven R5 fallbacks retained; shared waiver reasons; 23 complete tables/1,361,467 records equal, three-axis SHIP and integrated lint/Scala checks pass |
 | fn-155.5 | ✅ done | Realization evidence builders; reviewed twelve-leaf provenance proof, three-axis SHIP, integrated 24 realization/lowering tests and lint pass |
-| fn-155.6 | 🔄 in progress | Joined regeneration/provenance proof, Go test and fixture updates, gates and review; mapping handed to fn-140 and fn-129.3 |
+| fn-155.6 | ⏸️ deferred | Canonical regeneration/validation exceeds the one-hour rule; scoped fixtures, tests and mapping preserved; complete R7/all31/whole-manifest proof and gates remain required |
+
+Final validation remains deferred, not passed. Canonical generation attempts retain at least
+2,380 executed seconds and a 3h46m unresolved wall span; the fourth wrapper receipt is missing.
+The focused four-test QualifiedNames retry passed unchanged, while complete scratch lowering was
+killed and produced no Cases. Evidence and revisit conditions are recorded in fn-155.6's Flow
+block reason and its preserved task6 worktree. The seventeen passing scoped partitions grant no
+whole-artifact or closure credit. Fn-155 stays open and continues to hold fn-156; independently
+verifiable work may proceed without relaxing its complete provenance contract.
 
 ### Batch 1c, compiler and lint: fn-156
 
@@ -472,30 +480,34 @@ Runs after fn-138. Tasks run in order.
 | fn-129.4 | ⬜ todo | Exploration on the activity's `find` Queries |
 | fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
 
-## Planned, not yet scheduled
+## Independent lane while fn-155 validation is deferred
 
 ### fn-150: Bounded liveness across composed machines
 
 [Spec](.flow/specs/fn-150-bounded-liveness-across-composed.md) planned with five M-sized tasks covering
-all five acceptance criteria; not marked ready. Let a composition own bounded progress claims over multiple
+all five acceptance criteria. Task .1 is admitted as an independent checker proof while fn-155's
+canonical validation is deferred. Let a composition own bounded progress claims over multiple
 member states. Count composed steps, resolve fairness against synchronized and member-only actions,
 and preserve deadlock, cycle, deadline and incomplete-check distinctions. Include one concrete
 Temporal composition with passing and negative examples.
 
 Related to fn-149's safety/liveness groups. Coordinate with fn-141 and the queued schema changes;
-execution remains unscheduled. Live Case generation for compositions is outside this spec.
+the later schema/authoring/example tasks re-anchor before their own admission. Live Case
+generation for compositions is outside this spec.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-150.1 | ⬜ todo | Composition progress admission and existing-checker proof |
+| fn-150.1 | 🔄 in progress | Composition progress admission and existing-checker proof on the integrated local baseline |
 | fn-150.2 | ⬜ todo | Structured fairness references, inherited/replacement mapping |
 | fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
 | fn-150.4 | ⬜ todo | Bound, fairness, holes, starts and witness-replay regressions |
 | fn-150.5 | ⬜ todo | Temporal positive/negative example, docs and integrated gates |
 
 Waves: `.1` then `.2`; `.3` and `.4` are parallel candidates; `.5` joins them.
-Fn-150 has no hard dependency on fn-149. Its placement remains open; serialize overlapping edits
-and regeneration with the approved delivery chain and re-anchor paths after completed migrations.
+Fn-150 has no hard dependency on fn-149. Its hand-authored Go checker proof changes no Model source,
+schema or managed artifacts and is disjoint from fn-155's remaining fixture/test work. Serialize
+later overlapping edits and regeneration with the approved delivery chain and re-anchor their
+paths before dispatch. This admission does not release fn-156's fn-155 closure dependency.
 
 ## Deferred
 

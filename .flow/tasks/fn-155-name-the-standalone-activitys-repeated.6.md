@@ -45,8 +45,18 @@ Closes the spec: one regeneration, the projection proof, Go test and fixture upd
 - [ ] TBD
 
 ## Done summary
-TBD
+Blocked:
+# Deferred fn-155 final validation
 
+Deferred under MILESTONES.md's one-hour stuck-validation rule. Fn-155 remains open, and its full R7 and task .6 acceptance remain unchanged. Fn-156's committed-closure prerequisite remains unsatisfied.
+
+Command `make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks` failed in attempts 1 through 3 after a total 1,480.0276258 executed seconds. Attempt 4 has a retained terminal class-loading failure log and a 900-second fixture stage, but its wrapper exit/wall receipt is missing. The observed executed-time lower bound is 2,380.0276258 seconds; the unresolved validation wall span from 2026-10-10 02:27:21 UTC to 06:13:53 UTC is 3 hours, 46 minutes and 32 seconds, including pauses and unobserved time.
+
+Evidence lives at `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task6/.flow/tmp/fn-155/task6/`. Preserve generation1 through generation4 logs/receipts, `generation4-observation.json`, `qualifiednames-diagnostic.json`, `scratch-generation2.json`, `scoped-partitions.json` and the worker's mapping/handover. The unchanged focused QualifiedNames suite passed four tests in 103.0023378 seconds. The full scratch lower.GenerateCases attempt was killed after 59.4813334 seconds and wrote no Cases. Seventeen scoped declaration partitions matched their joined full IR in 227.547 seconds; this establishes neither complete native table equality nor whole Case/manifest freshness.
+
+Defer unchanged canonical retries, the dependent model/managed Case gates and full Go validation. All 46 complete table comparisons, all 31 original raw files, the whole fresh manifest, the exact twelve allowed source-coordinate leaves, production identities/bindings/diagnostics, historical companion retention, independent controls and required full gates remain follow-up obligations. No passing gate, live execution, matching replay or fn-155 closure credit is granted by this deferral.
+
+Revisit after a separately scoped tooling/resource diagnosis verifies a remedy on the unchanged full domains, default memory policy and normal command overlap, or runner provisioning supplies those conditions. Then run normal generation once and establish the complete joined proofs and gates. Keep all RED and inconclusive receipts. Independently verifiable work remains available, so the exception permitting continued retries beyond one hour does not apply.
 ## Evidence
 - Commits:
 - Tests:
