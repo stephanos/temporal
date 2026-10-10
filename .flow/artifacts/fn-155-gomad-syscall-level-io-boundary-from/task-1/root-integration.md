@@ -76,3 +76,19 @@ The [routing source audit](routing-source-audit.md), SHA-256 `c37a922adae480eac6
 The correction checks the shared literal's directories and ancestors before inventory, including ancestors of absent children. Actual fast/full Make regressions failed before that fix and passed afterward. Root independently rehashed the four final routing files and four retained audit logs, then read the final post-spelling symlink regression and staged-new-files canonical lint logs. The former is `aaf7afc89dd3c58b4f6301db7b6d191286c343abf9aff3b1ae1b3becd162f88a`; the latter is `6152ed8a8a0f30e9ae3d00556468160a119d5c1fc0fc40537373147debda6560`. Parent reports exit 0 for both. Canonical lint routes one root package and 57 Gomad host packages and filters the 50 inherited findings by its comparison revision. This is a new-issue gate, not full original-base lint acceptance.
 
 The compiled initial routing RED belongs to `fn155-routing-lint-red-2.log`; `red.log` is an earlier build failure and receives no behavioral RED credit. The post-style full lintcode suite's default-goal clock-skew failure remains unresolved. Source audits supply no formal implementation-review verdict or native proof. Root authorized only the 18-path source checkpoint and compact worker receipts, with task .1 still in progress.
+
+## Integrated fixture handover
+
+Root integrated the fixture source and evidence with normal cherry-picks after the worker returned clean and released its Go lane.
+
+| Checkpoint | Worker | Primary |
+| --- | --- | --- |
+| Fixture source, 18 paths | `069f79879303c2456430f73d3bd292f60300aaa4` | `d5374728a752f98e23023d2ae79123e9ade36ba8` |
+| Fixture handover, 2 paths | `396e52c29c1acf4dd93777cd06fdc491fad1dba7` | `f821d302f86115e0b0f27807a32f91cb76d4d7f8` |
+
+Root read the complete [fixture summary](pointer-worker/summary.md) and [evidence](pointer-worker/evidence.json). Independent hash checks cover all 18 product files, 26 retained logs, six tool/wrapper inputs, three source reports and both private overlay manifests and instrumented sources. The handover commit changes only its two artifact paths and names the preceding source commit. Both primary handover blobs match the worker. All 1,151 tracked files across Gomad's tool, simulation, integration and functional-test trees match the frozen worker, with sorted path/file SHA-256 listing digest `2696d468db8abf77e3dbc3b6d31d07b9a21a3bd13c5079672d9b535aa3566f38`; the two root lintcode files also match. These checks bind retained source evidence and do not claim fresh primary test execution.
+
+Root verified an empty primary index, unchanged 39 protected non-milestone files and preserved normalized milestone content after integration. Flow validation still passes for eight tasks without warnings. Shipped runtime/patch/version inputs remain unchanged by this follow-up. The worker's canonical staged lint, focused host regressions, generation/validation and both syscall source-set compiles retain their documented scope. Native execution, the first-platform gate, full Quick and the whole lintcode suite's clock-skew failure remain open. Task .1 remains in progress and no dependent task is admitted.
+
+stage: wave-join - ran (fixture source and handover integrated; protected-state and candidate-equality checks passed)
+stage: impl-review - skipped(policy: still-owned native/full Quick gates unqualified; source audits only)
