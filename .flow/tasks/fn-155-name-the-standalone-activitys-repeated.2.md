@@ -58,9 +58,25 @@ The evidence preserves exact declaration and rule-arm order, outcomes, landing s
 - [ ] TBD
 
 ## Done summary
-TBD
+# System integration
 
+Named the held-attempt landing phase/status, exhaustion and terminal guards, and made every deadline rule read its declared armed predicate. Four effect pairs now share their landing calculation while preserving ordered facts and reasons; backOff and backOffPaused remain separate because their texts differ. The six reset-aware overrides use one unchanged reason, resetSettles reuses the reset-dispatch/landing predicate, and fixed expected states derive from the unchanged initial state.
+
+Worker base: 9a146bb59e7ee7ae2fc249d4017bdda77aca488e. Worker source: 8e0d0f594b621254dd461dc945f5973fa880e623. Normalized source base: 2756d40478d37414949c7da2328df2673dc7f4dc; original integrated source head: cb0f13cccf1aa41e510ca64027e0c926a555b259. Reviewed provenance-plan and evidence-context commits extend this source with Flow files only through 4905066f1ec6ca392ca6d384f4c14293f0ee9ad2. Review ledger a209c07b09a2460077be4951deea533a08b00e15 is integrated. Only System.scala, Reset.scala and RetryFailures.scala changed in this task's source range.
+
+The unchanged original comparator passed all 46 tables and 13,891,948 ordered records, covering 36 machine and eight composition occurrences plus the two Scala Pins tables. All finite domains, disabled rows, result order, StateFields, facts, Because text, monitors, refinements and realizations are retained. Root independently verified the 537-file worker seal. The first natural comparator timeout remains archived; the single subsequent attempt passed, with cumulative execution time 1,313.655 seconds and no reduced scope or third attempt.
+
+The original projection's nine resetSettles expression-tree differences remain explicit structural-review entries. The sealed symbolic proof specializes every one of 13 before-state phases with remaining fields and ordered facts arbitrary, and rejects the seeded wrong landing. Five other complete IR/lint projections compare equal. No Case-coordinate exception is added by this task; final fresh generated Cases remain task 6's obligation.
+
+Fresh-context codex:gpt-6.1-sol:high implementation review returned SHIP on correctness, contracts and integration with no findings or unaddressed requirements (same GPT family disclosed). RID d01a988590a6492eae5b3307f696afff; receipt in agent/fn155-task2-review at .flow/tmp/fn155-task2-review/impl-review-receipt.json, SHA256 074538b32976cad7c99c65b0cf9a34490cf9a9d004effdaeefa15fffa6336b5b. All six earlier attempts remain an exact prefix in the integrated ledger.
+
+Immediately after review integration at a209c07b09a2460077be4951deea533a08b00e15, fresh integrated 56 Activity tests and nine capability tests passed in 74.647 seconds, and model lint passed in 34.125 seconds after a 73.170-second lock wait. Both commands exited naturally 0 with unchanged source inputs. Receipts are .flow/tmp/fn155-integration/task2-post-review-focused.json and task2-post-review-lint.json; source pins were independently rechecked. Earlier pre-review receipts remain retained.
+
+stage: memory-capture - skipped(clean first-round SHIP; no review fixes)
+stage: plan-sync - skipped(policy: rolling route)
+
+Original canonical Model/Case/fixture/Go RED receipts remain RED. This task supplies no production regeneration, full-suite, successful live execution or replay credit; task 6 and the named deferred specs/batch retain those obligations. All task-attributable commands have exited naturally.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8e0d0f594b621254dd461dc945f5973fa880e623, cb0f13cccf1aa41e510ca64027e0c926a555b259, 4905066f1ec6ca392ca6d384f4c14293f0ee9ad2, a209c07b09a2460077be4951deea533a08b00e15
+- Tests: mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/framework model/temporal --require-tests --test-only "framework.*Activity*" && mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/framework model/temporal --require-tests --test-only framework.CapabilityRetryDeadlineFeatures, make lint-model, Original complete 46-table/13891948-record native/Pins comparator passed; original first timeout retained; cumulative 1313.655 seconds, no reduced domains, Original six-artifact projection: five equal, resetSettles nine structural paths retained; exact 13-phase symbolic equivalence and seeded wrong-landing rejection passed, Root independently verified all 537 worker proof-seal files and post-review integrated source-input hashes, Codex gpt-6.1-sol high implementation review: correctness/contracts/integration SHIP, no findings; RID d01a988590a6492eae5b3307f696afff, Inherited canonical Model/Case/fixture/Go gates remain RED/deferred, canonical_gate_credit=false; no production generation, full-suite, live or replay credit
 - PRs:
