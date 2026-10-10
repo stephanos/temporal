@@ -1,0 +1,52 @@
+{
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "vet",
+    "-tags",
+    "test_dep",
+    "./runner",
+    "./internal/gomadtool/conformance",
+    "./runner/internal/execution"
+  ],
+  "elapsed_seconds": 1.262632666999707,
+  "environment_overrides": {
+    "CGO_ENABLED": "0",
+    "GOARCH": "arm64",
+    "GOOS": "darwin"
+  },
+  "exit": 0,
+  "handle_terminal": true,
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "make_tool_routes_after": {
+    "grep_resolved_target": "/usr/bin/grep",
+    "grep_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "grep_selected_path": "/usr/bin/grep",
+    "shell_link_target": "dash",
+    "shell_path": "/bin/sh",
+    "shell_resolved_target": "/usr/bin/dash"
+  },
+  "make_tool_routes_after_manifest_sha256": "f5e7079af20f0759073946fd8ce40522c61d1e25a5ecb5ced128eaad28cfcab0",
+  "make_tool_routes_before": {
+    "grep_resolved_target": "/usr/bin/grep",
+    "grep_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "grep_selected_path": "/usr/bin/grep",
+    "shell_link_target": "dash",
+    "shell_path": "/bin/sh",
+    "shell_resolved_target": "/usr/bin/dash"
+  },
+  "make_tool_routes_before_after_equal": true,
+  "make_tool_routes_before_manifest_sha256": "f5e7079af20f0759073946fd8ce40522c61d1e25a5ecb5ced128eaad28cfcab0",
+  "name": "vet-darwin-arm64",
+  "outer_timeout_seconds": 900,
+  "run_binding_sha256": "de8508bb43da88ed2521b62ec64527d8c5d48ef6602e695ec98947c3b4ed2e58",
+  "source_after_manifest_sha256": "d73b8d89ebd7a9435cf1b2885d6ac832bd0ed559af4a8eebb27ab65bea4304d6",
+  "source_before_after_equal": true,
+  "source_before_manifest_sha256": "d73b8d89ebd7a9435cf1b2885d6ac832bd0ed559af4a8eebb27ab65bea4304d6",
+  "tools_after_manifest_sha256": "d3c8742fc25dd64aa96ca9ed15581d2951b06504cc3458ee4f632f47ddf8a588",
+  "tools_before_after_equal": true,
+  "tools_before_manifest_sha256": "d3c8742fc25dd64aa96ca9ed15581d2951b06504cc3458ee4f632f47ddf8a588",
+  "utc_end": "2026-10-10T04:13:15.743112+00:00",
+  "utc_start": "2026-10-10T04:13:14.480495+00:00"
+}

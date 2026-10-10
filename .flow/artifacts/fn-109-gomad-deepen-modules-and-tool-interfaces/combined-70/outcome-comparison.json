@@ -1,0 +1,189 @@
+{
+  "admitted_original_names": [
+    "TestRunChoiceExplorationDivergencePoliciesAndInspection",
+    "TestRunChoiceExplorationDivergencePoliciesAndInspection/all",
+    "TestRunChoiceExplorationDivergencePoliciesAndInspection/budget",
+    "TestRunChoiceExplorationDivergencePoliciesAndInspection/first",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/alternative_capacity",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/cancelled",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/duplicate_identity",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/joined_failure",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_observed",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_trace",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/missing_identity",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/normal_error",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/overflow",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/tape_exhaustion",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_cancelled",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_watchdog",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/unterminated_trace",
+    "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/wrong_prefix",
+    "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons",
+    "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternative_set",
+    "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternatives",
+    "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/kind",
+    "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/observation",
+    "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/selected",
+    "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/site",
+    "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/tape_unconsumed"
+  ],
+  "baseline_counts": {
+    "fail": 267,
+    "pass": 394,
+    "skip": 12
+  },
+  "baseline_log_sha256": "73ceada3c52c462a03f655c0be752b2c191d7a3925d0f30f624ef48aa0c438d9",
+  "baseline_non_json_lines": [],
+  "comparison_requirement": "Exactly the 27 listed emitted original parent/child names change fail to pass; all 673 original names remain present; no new names or other outcome changes are admitted.",
+  "comparison_valid": true,
+  "current_counts": {
+    "fail": 240,
+    "pass": 421,
+    "skip": 12
+  },
+  "current_log_sha256": "5c51d0d093fa218cb42d26b30bcb5c039c30c63272144f0a3ca59db2f3f28089",
+  "current_non_json_lines": [],
+  "missing_original_outcomes": [],
+  "new_control_outcomes": {},
+  "newly_reached_original_subtests": {},
+  "original_changes": [
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationDivergencePoliciesAndInspection"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationDivergencePoliciesAndInspection/all"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationDivergencePoliciesAndInspection/budget"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationDivergencePoliciesAndInspection/first"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/alternative_capacity"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/cancelled"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/duplicate_identity"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/joined_failure"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_observed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_trace"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/missing_identity"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/normal_error"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/overflow"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/tape_exhaustion"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_cancelled"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_watchdog"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/unterminated_trace"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/wrong_prefix"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternative_set"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternatives"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/kind"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/observation"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/selected"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/site"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/tape_unconsumed"
+    }
+  ],
+  "unadmitted_newly_reached_original_subtests": {},
+  "unadmitted_original_changes": []
+}

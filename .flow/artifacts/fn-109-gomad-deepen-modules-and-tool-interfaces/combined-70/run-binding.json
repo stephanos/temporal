@@ -1,0 +1,57 @@
+{
+  "actual_go_settings_pre_gate_sha256": "f2e8e378fa54635f4284f654abc883d4d1f5b44cb5a17acb51309d43d6852910",
+  "baseline_frozen_head": "c668243e0ecab6e4080aa7dad0810ccc2cedb08f",
+  "baseline_named_counts": {
+    "fail": 267,
+    "pass": 394,
+    "skip": 12
+  },
+  "baseline_postcapture_seal_sha256": "71b566f5f17961cb370c3791a8008116241503b0cc31f4b00f9fa406c06fa0b5",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence",
+  "environment_comparison_pre_gate_sha256": "83aa92212614bc4e009833062bf98e1c80a0d6061fec54eb272663db7edd12e4",
+  "environment_sha256": "ab7e8a493432573668f7303f152d2b590987a8589d0e6c8c1a9cc4c8794807e9",
+  "free_bytes_start": 11471065088,
+  "head": "b4047ac5451693e01b0fc220b58650b600fddcca",
+  "host": {
+    "machine": "aarch64",
+    "system": "Linux"
+  },
+  "joined_historical_owner_spec_sha256": "0866b495ef6150bd0341aa904358f5de49ab4977e88da25c67e9df1531106f8a",
+  "limits": [
+    "Existing stock Go installation; tool binaries hashed, entire Go installation not recursively hashed.",
+    "Existing build and module caches reused; complete cache contents not independently requalified.",
+    "Only selected environment variables are recorded; other inherited variables are not bound and execution is not claimed hermetic.",
+    "Ordinary and lint gates use captured default CGO settings; cross-source vet explicitly uses CGO_ENABLED=0. C compiler executables are hashed when resolvable, but C headers, libc/tool installation internals and complete C inputs are not inventoried.",
+    "No patched native toolchain installed or qualified; linux/arm64 host supplies no supported-native test-host pass.",
+    "Any observed ordinary Runner or original-base lint failures remain source-owned; transferred native owners stay deferred."
+  ],
+  "make_tool_routes": {
+    "grep_resolved_target": "/usr/bin/grep",
+    "grep_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "grep_selected_path": "/usr/bin/grep",
+    "shell_link_target": "dash",
+    "shell_path": "/bin/sh",
+    "shell_resolved_target": "/usr/bin/dash"
+  },
+  "make_tool_routes_pre_gate_sha256": "f5e7079af20f0759073946fd8ce40522c61d1e25a5ecb5ced128eaad28cfcab0",
+  "original_inventory_plus_new_source_count": 1078,
+  "primary_owner_spec_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+  "primary_owner_spec_sha256": "851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c",
+  "prior_manifest_sha256": "5b3b2d323f46cc75b1550b9926b71bc69bdc878661185deb897afc890dce2bfe",
+  "relevant_source_count": 1132,
+  "source_count": 1326,
+  "source_manifest_sha256": "d73b8d89ebd7a9435cf1b2885d6ac832bd0ed559af4a8eebb27ab65bea4304d6",
+  "tools_manifest_sha256": "d3c8742fc25dd64aa96ca9ed15581d2951b06504cc3458ee4f632f47ddf8a588",
+  "wrapper_argv": [
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-70/run-gates.py",
+    "--lane-granted",
+    "root-explicit-combined70",
+    "--frozen-head",
+    "b4047ac5451693e01b0fc220b58650b600fddcca",
+    "--baseline-frozen-head",
+    "c668243e0ecab6e4080aa7dad0810ccc2cedb08f",
+    "--baseline-seal-sha256",
+    "71b566f5f17961cb370c3791a8008116241503b0cc31f4b00f9fa406c06fa0b5"
+  ],
+  "wrapper_sha256": "4e6b60947ed52b9ee090823a78669be987ba4b8dddc23afe35422202085a4105"
+}

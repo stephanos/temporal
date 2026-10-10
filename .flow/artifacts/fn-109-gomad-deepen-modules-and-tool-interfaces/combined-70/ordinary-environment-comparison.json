@@ -1,0 +1,99 @@
+{
+  "argv_equal": true,
+  "baseline_actual_go_settings_sha256": "05ebcdff3fd1e5e19cee9761892c385fba810772d2cf5b6c964cec5508ba32ae",
+  "baseline_argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./runner"
+  ],
+  "baseline_effective_go_settings": {
+    "CC": "gcc",
+    "CGO_ENABLED": "1",
+    "CXX": "g++",
+    "GOARCH": "arm64",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOOS": "linux",
+    "GOROOT": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64",
+    "GOVERSION": "go1.27.1"
+  },
+  "baseline_environment_sha256": "dfb9464cb9f529c6a6682e3e9eb550b4c18f3263a3bbe70bb0b96a29a5879f51",
+  "baseline_explicit_make_shell_arguments": [],
+  "baseline_integrated_lint_argv": [
+    "make",
+    "lint-code-gomad3",
+    "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "ALL_TEST_TAGS=test_dep"
+  ],
+  "baseline_make_tool_routes": null,
+  "baseline_tools_manifest_sha256": "ffee63e3a581ac37ffa97b7af4eec395132d29dfacd519bcc2d24a60f5383a97",
+  "baseline_working_directory": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success",
+  "current_actual_go_settings_sha256": "f2e8e378fa54635f4284f654abc883d4d1f5b44cb5a17acb51309d43d6852910",
+  "current_argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./runner"
+  ],
+  "current_effective_go_settings": {
+    "CC": "gcc",
+    "CGO_ENABLED": "1",
+    "CXX": "g++",
+    "GOARCH": "arm64",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOOS": "linux",
+    "GOROOT": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64",
+    "GOVERSION": "go1.27.1"
+  },
+  "current_environment_sha256": "ab7e8a493432573668f7303f152d2b590987a8589d0e6c8c1a9cc4c8794807e9",
+  "current_explicit_make_shell_argument": "SHELL=/bin/sh",
+  "current_make_tool_routes": {
+    "grep_resolved_target": "/usr/bin/grep",
+    "grep_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "grep_selected_path": "/usr/bin/grep",
+    "shell_link_target": "dash",
+    "shell_path": "/bin/sh",
+    "shell_resolved_target": "/usr/bin/dash"
+  },
+  "current_tools_manifest_sha256": "d3c8742fc25dd64aa96ca9ed15581d2951b06504cc3458ee4f632f47ddf8a588",
+  "current_working_directory": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence",
+  "effective_go_setting_differences": {},
+  "historical_metadata_binding_limit": "The combined69 baseline prebound actual Go settings and its environment comparison and retained the verified explicit 20-member postcapture seal. Later outcome/lint comparisons remain postcapture outputs; the seal makes no retroactive pre-execution output-binding claim.",
+  "historical_selected_tools_limit": "Retained historical tool manifests bind only their listed paths and retained route metadata. Missing shell routes or grep entries cannot establish historical execution identities; current additions do not retroactively bind older runs.",
+  "limits": "Selective environment capture preserves unset CGO configuration and records effective defaults for both batches. Inherited nonselected variables and C headers are not bound; no hermetic execution claim.",
+  "recorded_setting_differences": {
+    "SANDBOX_START_DIR": {
+      "baseline": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success",
+      "current": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence"
+    }
+  },
+  "recorded_tool_identity_differences": {
+    "/bin/sh": {
+      "baseline": null,
+      "current": "87630eb41654f7888e28fa5ef3ed0a351682e939d382b9239a24a8aefe84aeb9"
+    },
+    "/usr/bin/dash": {
+      "baseline": null,
+      "current": "87630eb41654f7888e28fa5ef3ed0a351682e939d382b9239a24a8aefe84aeb9"
+    },
+    "/usr/bin/grep": {
+      "baseline": null,
+      "current": "459c506139e7efbdfdad6fffac5e39540854b687f4fd5d8eb187ea3512b1ff76"
+    }
+  }
+}
