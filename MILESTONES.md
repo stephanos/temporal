@@ -484,7 +484,7 @@ Runs after fn-138. Tasks run in order.
 | fn-129.4 | ⬜ todo | Exploration on the activity's `find` Queries |
 | fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
 
-## Independent lane while fn-155 validation is deferred
+## Independent work while fn-155 validation is deferred
 
 ### fn-150: Bounded liveness across composed machines
 
@@ -501,7 +501,7 @@ generation for compositions is outside this spec.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-150.1 | 🔄 in progress | Composition progress admission and existing-checker proof on the integrated local baseline |
+| fn-150.1 | ⏸️ deferred | Complete scoped implementation checkpoint; 29 focused tests and lint pass, original Quick OOM before/after; review and closure held |
 | fn-150.2 | ⬜ todo | Structured fairness references, inherited/replacement mapping |
 | fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
 | fn-150.4 | ⬜ todo | Bound, fairness, holes, starts and witness-replay regressions |
@@ -512,6 +512,38 @@ Fn-150 has no hard dependency on fn-149. Its hand-authored Go checker proof chan
 schema or managed artifacts and is disjoint from fn-155's remaining fixture/test work. Serialize
 later overlapping edits and regeneration with the approved delivery chain and re-anchor their
 paths before dispatch. This admission does not release fn-156's fn-155 closure dependency.
+
+Task .1's original Quick remains RED. Checkpoint `2d64387595` stays unintegrated and unreviewed
+on its task branch; its Flow block reason links the complete scoped proof and unchanged full
+verification obligation. Task .2 cannot start until .1 is verified and closed.
+
+### fn-157: Bound native verification memory and scratch storage
+
+[Spec](.flow/specs/fn-157-bound-native-verification-memory-and.md) has five reviewed tasks.
+The conductor activates measurement .1 on committed integrated baseline `551bf89c68`, with a
+documented initial runner budget, because global OOM now holds fn-155 and fn-150 verification.
+This follows the owner's recommendation mandate; it does not grant a passing gate or authorize
+production repair before the complete independent oracle and causal measurements.
+
+The host reports 16,593,792 KiB RAM, no swap and no cgroup memory maximum. Initial snapshots
+separate overlay inode shortage from available host scratch; .1 must measure actual demand
+and allocation ownership. Victim RSS and later free-space snapshots are not those measurements.
+Preserve every table, Query, receipt, replay identity, strict assertion and canonical `-p 2`
+concurrency. Full restored gates remain required; Quint JSON work stays with fn-154, strict
+Activity semantic debt with Batch 5, and Canary failures retain their separate attribution.
+
+Retained fn-151 RED commands and input pins remain in its task3 proof archive. Fn-155's later
+global-OOM excerpts and full failure/partial handover also remain recoverable. No shared daemon,
+broad cache or unowned scratch cleanup is authorized. Measurement .1 precedes native .2/.3 and
+the separate scratch .4 lane; .5 joins complete preservation and exact no-update gate receipts.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-157.1 | 🔄 in progress | Pin committed activation baseline, seal complete independent oracle and measure native/scratch ownership |
+| fn-157.2 | ⬜ todo | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
+| fn-157.3 | ⬜ todo | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
+| fn-157.4 | ⬜ todo | Repair owned gate/lift scratch lifetimes or establish provisioned capacity with ordinary overlap |
+| fn-157.5 | ⬜ todo | Join full preservation, execute interrupted tests and restore exact native gates and measured capacity |
 
 ## Deferred
 
@@ -590,41 +622,6 @@ The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeou
 | Task | Status | What |
 | --- | --- | --- |
 | fn-154.1 | ⏸️ deferred | Incremental JSON generation and consumption, preserved full coverage and measured concurrent memory fit before restoring the deferred gate |
-
-### fn-157: Bound native verification memory and scratch storage
-
-⏸️ Deferred 2026-10-09 under the one-hour stuck-gate rule; five reviewed tasks, not ready.
-[Spec](.flow/specs/fn-157-bound-native-verification-memory-and.md).
-
-Measure native interpreter, Check, Producer and seven-Model generator lifetimes before choosing a
-repair. Preserve complete tables, Queries, receipts, replay identities, negative controls, strict
-assertions and canonical package concurrency `-p 2`. Diagnose scratch file/inode exhaustion
-separately. This changes fn-151 R4 and task .3's gate acceptance so independent complete equivalence
-and review can close the structural split; it grants no passing-gate or memory-fit credit.
-
-Retained RED commands from fn-151 are the canonical Go suite (five kernel-confirmed OOM victims),
-`make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` (generator OOM and scratch exhaustion),
-`make umpire-check-cases` and `make umpire-check-fixtures` (standalone generator OOMs), and the exact
-completion guard negative (OOM before its assertion). Receipts,
-input pins and kernel logs remain under the fn-151 worker's `.flow/tmp/fn151/task3/` and must survive
-worktree cleanup. Restore those exact complete gates after a measured repair or runner provisioning;
-isolated passes and reduced domains cannot replace them. Complete Canary controller/publication
-packages passed with restored source and corrected test-runtime temp selection; their original
-canonical RED remains, and the low-level file-sync cause is unknown. Quint JSON work stays in fn-154,
-and strict Activity semantic debt stays in Batch 5.
-
-The preparation plan passed independent review; activation still needs a committed source baseline
-and measured runner budget. Measurement .1 precedes native .2/.3 and the separate scratch .4 lane;
-.5 joins their complete preservation proof and exact gate receipts. No allocation owner or storage
-cause is inferred from historical RSS or later free-space snapshots.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-157.1 | ⏸️ deferred | Pin the activated baseline, seal the independent complete oracle, measure native owners and scratch bytes/inodes |
-| fn-157.2 | ⏸️ deferred | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
-| fn-157.3 | ⏸️ deferred | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
-| fn-157.4 | ⏸️ deferred | Repair owned Scala gate/lift scratch lifetimes or establish provisioned capacity, preserving ordinary overlap |
-| fn-157.5 | ⏸️ deferred | Join full preservation, execute interrupted tests, restore exact native gates and document measured capacity |
 
 ### Other deferred items
 

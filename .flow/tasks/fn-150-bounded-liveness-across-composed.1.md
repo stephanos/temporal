@@ -39,8 +39,16 @@ go test -tags test_dep ./tools/umpire/ir ./tools/umpire/check -run 'Test.*(Progr
 - [ ] Synchronized step counting and multiple starts are tested; existing machine progress and composition safety pins remain unchanged.
 
 ## Done summary
-TBD
+Blocked:
+# fn-150.1 implementation preserved; canonical verification blocked
 
+The worker committed the complete task-local hand-authored composition-progress implementation at `2d643875956c1f90efffb0c0a76cffe2010634db` on `fn-150-bounded-liveness-across-composed`, based on integrated `2d39120b3e`. It changes only the declared reader/binder and admission/composed-progress tests. The checkpoint remains unintegrated and unreviewed; task acceptance and downstream dependencies remain intact.
+
+Focused development checks passed 19 reader and 10 checker top-level tests with new synchronization, all-start, error/type/monitor/fairness and witness-replay controls. Existing targeted machine progress and composition safety pins passed before and after the edit. Changed-package lint, depguard and errortype vet passed. These checks provide scoped evidence, not canonical Quick or full-suite credit.
+
+The original Quick is `go test -tags test_dep ./tools/umpire/ir ./tools/umpire/check -run 'Test.*(Progress|Composed|Admission)'`. It failed before edits with `check` killed after 20.489 seconds and failed once after edits under the shared lock/default memory with `check` killed after 16.403 seconds (outer wall 16 seconds). The reader passed both times. The task worktree's `.flow/tmp/fn150/task1/` retains baseline, pins, TDD, post-edit Quick, lint and handover evidence. An intervening memory-tuned attempt was cancelled and earns no passing credit; runtime-memory tuning is excluded from the accepted strategy.
+
+Root keeps the task blocked rather than dispatch implementation review on a RED tree, changing the original Quick selection or marking it done. Canonical verification resumes after resource provisioning or fn-157's measured preservation-safe repair supplies adequate capacity. Run the original Quick with default memory, preserve its original RED results, independently review the integrated diff, and verify task acceptance before completion. Later task .2 remains held. All worker commands are terminal, and the committed workspace is clean.
 ## Evidence
 - Commits:
 - Tests:
