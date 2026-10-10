@@ -1,0 +1,62 @@
+{
+  "argv_equal": true,
+  "baseline_actual_go_settings_sha256": "f3012d737bb94074833773a1d698c0f290ea002cb9d4e084a21a092e1a17268c",
+  "baseline_argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./runner"
+  ],
+  "baseline_effective_go_settings": {
+    "CC": "gcc",
+    "CGO_ENABLED": "1",
+    "CXX": "g++",
+    "GOARCH": "arm64",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOOS": "linux",
+    "GOROOT": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64",
+    "GOVERSION": "go1.27.1"
+  },
+  "baseline_environment_sha256": "c8bca0a1dae855e252d58d675bcfdac4b6edd8398701825607df0446ba9ba2b0",
+  "baseline_working_directory": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/joined-current",
+  "current_actual_go_settings_sha256": "0c3a208a3af85eba1264ccbc06b0e3da55827350a553f54439777fb078c184da",
+  "current_argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./runner"
+  ],
+  "current_effective_go_settings": {
+    "CC": "gcc",
+    "CGO_ENABLED": "1",
+    "CXX": "g++",
+    "GOARCH": "arm64",
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOOS": "linux",
+    "GOROOT": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64",
+    "GOVERSION": "go1.27.1"
+  },
+  "current_environment_sha256": "16e1ea5c7c081fa5e32d4e2ac969cac2e12cc27a9a11553a7d4469bec413dd3c",
+  "current_working_directory": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/fixtures",
+  "effective_go_setting_differences": {},
+  "historical_metadata_binding_limit": "The original prior-run wrapper did not prebind actual-go-settings or derived comparisons. Root later retained an explicit 25-member post-capture-seal.json, verified and bound here. That later seal preserves captured bytes and does not retroactively establish execution-time output binding.",
+  "limits": "Selective environment capture preserves unset CGO configuration and records effective defaults for both batches. Inherited nonselected variables and C headers are not bound; no hermetic execution claim.",
+  "recorded_setting_differences": {
+    "SANDBOX_START_DIR": {
+      "baseline": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/joined-current",
+      "current": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/fixtures"
+    }
+  }
+}

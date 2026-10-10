@@ -1,0 +1,133 @@
+{
+  "aggregate_gate_exits_all_zero": false,
+  "all_handles_terminal": true,
+  "comparison_valid": true,
+  "head": "f699252450b8e67f1edb50ed8e4cff4cb6e644c0",
+  "lint_comparison_valid": true,
+  "lint_count": 50,
+  "lint_introduced_count": 0,
+  "lint_mapping_gaps": [],
+  "lint_removed_count": 2,
+  "native_qualification": "unverified",
+  "new_controls": {},
+  "newly_reached_original_subtests": {},
+  "ordinary_comparison_valid": true,
+  "ordinary_counts": {
+    "fail": 272,
+    "pass": 389,
+    "skip": 12
+  },
+  "original_inventory_plus_new_source_count": 1078,
+  "receipts": [
+    {
+      "argv": [
+        "go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "./runner"
+      ],
+      "elapsed_seconds": 13.211667173003661,
+      "environment_overrides": {},
+      "exit": 1,
+      "handle_terminal": true,
+      "log_sha256": "f97441bc0b8f4ebc4da6673b0e3b097a9420fe6e5bd1c1871de83c6f333eb032",
+      "name": "ordinary-runner",
+      "outer_timeout_seconds": 900,
+      "run_binding_sha256": "45f31ddfd586858fda9d0b9afb76e421a0f989c659957ba0727fe23f55073bb5",
+      "source_before_after_equal": true,
+      "utc_end": "2026-10-10T01:41:10.732283+00:00",
+      "utc_start": "2026-10-10T01:40:57.520667+00:00"
+    },
+    {
+      "argv": [
+        "make",
+        "lint-code-gomad3",
+        "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "elapsed_seconds": 5.528132628009189,
+      "environment_overrides": {},
+      "exit": 2,
+      "handle_terminal": true,
+      "log_sha256": "d4c923d760758b4391c1580bc49abede76a47d7a49f6a70c65ffe2f665aa01a3",
+      "name": "integrated-lint",
+      "outer_timeout_seconds": 900,
+      "run_binding_sha256": "45f31ddfd586858fda9d0b9afb76e421a0f989c659957ba0727fe23f55073bb5",
+      "source_before_after_equal": true,
+      "utc_end": "2026-10-10T01:41:16.541216+00:00",
+      "utc_start": "2026-10-10T01:41:11.013171+00:00"
+    },
+    {
+      "argv": [
+        "go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "./internal/gomadtool/conformance",
+        "./runner/internal/execution"
+      ],
+      "elapsed_seconds": 3.1087963759928243,
+      "environment_overrides": {
+        "CGO_ENABLED": "0",
+        "GOARCH": "arm64",
+        "GOOS": "darwin"
+      },
+      "exit": 0,
+      "handle_terminal": true,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "vet-darwin-arm64",
+      "outer_timeout_seconds": 900,
+      "run_binding_sha256": "45f31ddfd586858fda9d0b9afb76e421a0f989c659957ba0727fe23f55073bb5",
+      "source_before_after_equal": true,
+      "utc_end": "2026-10-10T01:41:19.979936+00:00",
+      "utc_start": "2026-10-10T01:41:16.871162+00:00"
+    },
+    {
+      "argv": [
+        "go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "./internal/gomadtool/conformance",
+        "./runner/internal/execution"
+      ],
+      "elapsed_seconds": 3.435267085005762,
+      "environment_overrides": {
+        "CGO_ENABLED": "0",
+        "GOARCH": "amd64",
+        "GOOS": "linux"
+      },
+      "exit": 0,
+      "handle_terminal": true,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "vet-linux-amd64",
+      "outer_timeout_seconds": 900,
+      "run_binding_sha256": "45f31ddfd586858fda9d0b9afb76e421a0f989c659957ba0727fe23f55073bb5",
+      "source_before_after_equal": true,
+      "utc_end": "2026-10-10T01:41:23.734486+00:00",
+      "utc_start": "2026-10-10T01:41:20.299254+00:00"
+    }
+  ],
+  "relevant_source_count": 1132,
+  "root_owns_execution_lane_release": true,
+  "source_before_after_equal": true,
+  "source_count": 1166,
+  "static_vet_exits_all_zero": true,
+  "unadmitted_lint_removals": [],
+  "unadmitted_newly_reached_original_subtests": {},
+  "unadmitted_original_changes": []
+}

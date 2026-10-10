@@ -1,0 +1,87 @@
+{
+  "admitted_original_names": [
+    "TestRunCollectsBoundedQualificationEvidenceForOneSeed",
+    "TestRunFailsClosedWhenSuccessRetentionCountIsExhausted",
+    "TestRunFailsWhenRequiredSemanticProbeIsMissing",
+    "TestRunMergesParallelCompletionsInSelectionOrdinalOrder",
+    "TestRunRejectsSuccessfulRetentionWithoutReplayTranscript",
+    "TestRunReportsPassiveSemanticCoverage",
+    "TestRunReportsPeriodicProgressWhileTargetIsRunning",
+    "TestRunReportsPreparationProgressAndCompletedCounts",
+    "TestRunRetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures",
+    "TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds"
+  ],
+  "baseline_counts": {
+    "fail": 282,
+    "pass": 379,
+    "skip": 12
+  },
+  "baseline_log_sha256": "5edaf1c5af2896a15c8cfe4bf92cb48aea0a67c838b1a73449403593b109a7cc",
+  "baseline_non_json_lines": [],
+  "comparison_requirement": "Exactly the ten admitted original top tests change fail to pass; all other original outcomes remain present and equal; newly reached original subtests require an admitted parent.",
+  "comparison_valid": true,
+  "current_counts": {
+    "fail": 272,
+    "pass": 389,
+    "skip": 12
+  },
+  "current_log_sha256": "f97441bc0b8f4ebc4da6673b0e3b097a9420fe6e5bd1c1871de83c6f333eb032",
+  "current_non_json_lines": [],
+  "missing_original_outcomes": [],
+  "new_control_outcomes": {},
+  "newly_reached_original_subtests": {},
+  "original_changes": [
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunCollectsBoundedQualificationEvidenceForOneSeed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunFailsClosedWhenSuccessRetentionCountIsExhausted"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunFailsWhenRequiredSemanticProbeIsMissing"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunMergesParallelCompletionsInSelectionOrdinalOrder"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunRejectsSuccessfulRetentionWithoutReplayTranscript"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunReportsPassiveSemanticCoverage"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunReportsPeriodicProgressWhileTargetIsRunning"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunReportsPreparationProgressAndCompletedCounts"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunRetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds"
+    }
+  ],
+  "unadmitted_newly_reached_original_subtests": {},
+  "unadmitted_original_changes": []
+}

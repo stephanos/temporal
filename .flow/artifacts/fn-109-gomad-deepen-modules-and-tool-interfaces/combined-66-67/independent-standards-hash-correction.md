@@ -1,0 +1,1 @@
+Additive correction: independently verified `run-binding.json` SHA-256 is `45f31ddfd586858fda9d0b9afb76e421a0f989c659957ba0727fe23f55073bb5`; the original report’s Execution binding row omitted one `9`, a resolved transcription issue that leaves the evidence and bounded verdict unchanged.
