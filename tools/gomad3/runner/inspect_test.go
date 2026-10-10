@@ -53,6 +53,7 @@ func TestOpenReportsSimulationExplorationEvidence(t *testing.T) {
 	config.MaxExplorationBytes = 1 << 20
 	config.MaxExplorationResultBytes = 1 << 20
 	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1}
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
@@ -155,6 +156,7 @@ func TestOpenReportsSimulationExplorationBoundsAndRemainingWork(t *testing.T) {
 	config.MaxExplorationBytes = 1 << 20
 	config.MaxExplorationResultBytes = 1 << 20
 	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 1, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {

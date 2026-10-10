@@ -54,6 +54,7 @@ func TestDiagnosticsRetainedWhenSuccessArtifactsAreDiscarded(t *testing.T) {
 	config.ChoiceTraceLimit = 1 << 20
 	config.CollectExecutionEvidence = true
 	config.Coverage = CoverageSemanticChoice
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)

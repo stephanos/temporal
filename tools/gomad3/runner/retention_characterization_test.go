@@ -519,6 +519,7 @@ func TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy(t *testing.T) {
 			if parallel {
 				executor.after = reverseRankOrder(strategy)
 			}
+			configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 			summary, err := exploreWith(context.Background(), config, configDependencies)
 			observed, _ := observeRetention(t, summary, err)
 			return summary, observed
@@ -560,6 +561,7 @@ func TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy(t *testing.T) {
 			keepSuccesses(&config, KeepSuccessesAll)
 			config.SuccessBytesLimit = limit
 			executor.shape = rankProbes(t, probeA, probeA, probeB)
+			configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 			summary, err := exploreWith(context.Background(), config, configDependencies)
 			observed, _ := observeRetention(t, summary, err)
 			var capacity *artifact.CapacityError
@@ -890,6 +892,7 @@ func TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs(t *testing.
 		config, configDependencies := testConfig(t, newFakePreparer(t), executor, fmt.Sprintf("1-%d", jobs), PolicyAll, 2)
 		config.OverallTimeout = time.Minute
 		configure(&config)
+		configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 		summary, err := exploreWith(context.Background(), config, configDependencies)
 		observed := bounded{Attempted: summary.Attempted, Retained: summary.RetainedSuccesses, MaximumActive: executor.maximumActive}
 		var hostError *HostError
