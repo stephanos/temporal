@@ -607,7 +607,7 @@ func TestAssessmentFailureIsReportedAndKeepsEstablishedViolations(t *testing.T) 
 			require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 			require.Equal(t, plainRun.GetDisposition(), run.GetDisposition())
 			protorequire.ProtoSliceEqual(t, plainRun.GetDiagnostics(), run.GetDiagnostics())
-			require.Nil(t, run.EvaluationFailure)
+			require.Nil(t, run.EvaluationFailureSequence)
 
 			replayed, evaluation, err := assessed.Evaluate(t.Context(), run, assessment)
 			require.NoError(t, err)

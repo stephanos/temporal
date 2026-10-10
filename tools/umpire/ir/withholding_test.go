@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -64,7 +65,7 @@ func TestWithholdingRequiresOneActivityScriptServerTimer(t *testing.T) {
 		}, "without an armed bounded server timer"},
 		{"unbounded timer", func(r *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {
 			for _, step := range withholdingTimers(r, item) {
-				step.DeadlineMs = 0
+				step.Deadline = duration.FromMilliseconds(0)
 			}
 		}, "withholds an attempt without an armed bounded server timer"},
 		{"non timer cause", func(_ *umpirespb.Realization, _ *umpirespb.Script, item *umpirespb.Item) {

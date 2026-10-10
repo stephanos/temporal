@@ -18,6 +18,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // activityEntrypoint is the entrypoint an activity realization lowers to (tools/umpire/lower):
@@ -49,7 +50,7 @@ func failingAttempt(id, failureType string, nonRetryable bool) *testpilotspb.Ins
 func cancelingAttempt(id string) *testpilotspb.InstructionNode {
 	return &testpilotspb.InstructionNode{
 		InstructionId: id,
-		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}},
+		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{ActivityAttemptCancellation: &emptypb.Empty{}}},
 		Limits:        facadetest.Bounds(),
 	}
 }

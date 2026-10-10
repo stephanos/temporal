@@ -21,6 +21,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/ir"
@@ -234,7 +235,7 @@ func TestTheHeldRaceIsReadByItsEvidenceAndNotItsClock(t *testing.T) {
 
 	skewed := proto.CloneOf(run)
 	for _, event := range skewed.GetEvents() {
-		event.ElapsedMilliseconds = 86400000 * (event.GetSequence() - 1)
+		event.Elapsed = duration.FromMilliseconds(86400000 * (event.GetSequence() - 1))
 	}
 	replayed, evaluation, err := b.assessed.Evaluate(t.Context(), skewed, live)
 	require.NoError(t, err)

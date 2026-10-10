@@ -87,6 +87,15 @@ const (
 	ProgressSubject    Subject = "progress"
 )
 
+// ClaimClassification describes the declaration a claim checks, independently of the Query form
+// and the receipt's verdict. Finding a witness for a safety Property establishes no progress.
+type ClaimClassification string
+
+const (
+	Safety          ClaimClassification = "safety"
+	BoundedLiveness ClaimClassification = "bounded-liveness"
+)
+
 // ClaimKey names a declaration by the family and the machine or composition it belongs to and its
 // own name there. Two machines of one family may each declare a claim of one name, which share a
 // Definition ID (`PropertyDecl.PropertyID`) and stay two keys.
@@ -151,7 +160,10 @@ type Receipt struct {
 	// Limits are the limits the check ran within, and Bound the ceiling that refused it.
 	Limits Limits
 	Bound  *ResourceBound
-	// Assumptions names what the result relies on.
+	// Within is a progress claim's declared step bound, independently of the check's Limits.
+	Within int32
+	// Assumptions names what the result relies on. An unchecked progress declaration retains its
+	// declared assumptions, without asserting that the check applied them.
 	Assumptions []string
 
 	// Explored counts the check's work: the product states a search visited, the units a progress
@@ -179,6 +191,19 @@ type Receipt struct {
 	Cause error
 	// Also holds the results folded into this one whose witnesses it does not carry itself.
 	Also []Receipt
+}
+
+// Classification derives the claim's kind from its subject. Receipts about admission, machines,
+// refinements and composition construction are not claim classifications and return the empty value.
+func (r Receipt) Classification() ClaimClassification {
+	switch r.Subject {
+	case QuerySubject:
+		return Safety
+	case ProgressSubject:
+		return BoundedLiveness
+	default:
+		return ""
+	}
 }
 
 // precedence orders the kinds for a receipt made of several results, the highest first: an error is
@@ -675,12 +700,25 @@ func (c *checker) claim(ref *umpirespb.ClaimRef) ClaimKey {
 func (c *checker) progress(p *umpirespb.Progress) []Receipt {
 	s := c.first.subject(p.GetMachine())
 	r := receipt(ProgressSubject, ClaimKey{Family: s.family, Owner: p.GetMachine(), Name: p.GetName()}, p.GetPosition())
-	r.Limits = c.scope.Progress
+	r.Limits, r.Within = c.scope.Progress, p.GetWithin()
+	for _, id := range p.GetAssumptions() {
+		for _, a := range c.first.model.GetAssumptions() {
+			if a.GetId() == id {
+				r.Assumptions = append(r.Assumptions, a.GetName())
+			}
+		}
+	}
 	claim, _, err := c.first.progress(p)
 	if err != nil {
 		return []Receipt{c.failed(r, err)}
 	}
+	declared := r.Assumptions
 	r = c.reads(r, s.table)
+	for _, name := range declared {
+		if !slices.Contains(r.Assumptions, name) {
+			r.Assumptions = append(r.Assumptions, name)
+		}
+	}
 	a, err := umpire.CheckProgress(s.table, claim, c.scope.Progress)
 	if err != nil {
 		return []Receipt{c.failed(r, err)}

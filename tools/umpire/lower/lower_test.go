@@ -191,7 +191,7 @@ func TestALoweredCaseCarriesWhatTheScalaDeclares(t *testing.T) {
 			require.Equal(t, workflowType, lowered.GetProgram().GetEntrypoints()[1].GetWorkflow().GetWorkflowType())
 			started := instruction(t, lowered, "controller", "start-workflow").GetInstruction().GetInvokeRpc().GetRequestAssignments()
 			require.Equal(t, "workflow_type.name", started[2].GetTarget())
-			require.Equal(t, workflowType, started[2].GetValue().GetLiteral().GetTextValue())
+			require.Equal(t, workflowType, started[2].GetValue().GetCel().GetExpr().GetConstExpr().GetStringValue())
 			require.Equal(t, "temporal.features.nexus.workflow.testpilot", lowered.GetProvenance().GetProducerId())
 		})
 	}
@@ -434,7 +434,7 @@ func TestEveryQueryHasAStanding(t *testing.T) {
 func TestALiftCarriesTheHistoryKindsOfThePathOrIsLeftOut(t *testing.T) {
 	observed := cp.ObservationTarget("history-event")
 	node := cp.Node("history", cp.InvokeRPC("service", "/method", nil, []*testpilotspb.ResponseRead{
-		cp.ResponseRead("history.events[*]", testpilotspb.READ_CARDINALITY_EMIT_EACH, observed,
+		cp.ResponseRead("history.events[*]", observed,
 			&testpilotspb.ReadTarget{Target: &testpilotspb.ReadTarget_CorrelatedEvidence{
 				CorrelatedEvidence: &testpilotspb.CorrelatedEvidenceProjection{ObservationId: "correlated-evidence"}}})}))
 	read := &cp.EvidenceSource{KindID: "polled", Recorded: cp.Recorded{Method: "/method", Path: "items"}}

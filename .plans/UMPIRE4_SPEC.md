@@ -344,7 +344,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   complete managed tree under a temporary root before comparison or publication. Verification and
   reviewed promotion MUST be separate actions; ordinary tests MUST invoke neither a front end's
   toolchain nor rewrite fixtures.
-- **ART-13 — Explicit environment binding.** Exact Case 1.0 is the only admitted and generated
+- **ART-13 — Explicit environment binding.** Exact Case 4.0 is the only admitted and generated
   format. A resource-free Program MAY have an empty environment; every Program that uses a physical
   resource MUST declare a complete closed graph of symbolic text bindings. The Case owns only
   symbolic IDs and references; the Profile owns their physical namespace, task-queue, and named Nexus
@@ -437,7 +437,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **EVD-21 — Deadline units.** *(approved 2026-09-10 under GOV-02.)* A bounded-liveness rule MUST
   declare exactly one positive Deadline bound. `rule_events` counts the Run Events the rule evaluated
   since its last transition and is the bound a conclusion may rest on, because it counts only what
-  the Run recorded. `elapsed_milliseconds` remains admitted and is host-clock dependent, so a Case
+  the Run recorded. `elapsed` is an exact whole-millisecond protobuf Duration and is host-clock dependent, so a Case
   whose verdict must not depend on the machine that produced it SHOULD declare the event count
   instead; EVD-07 already forbids resting a conclusion on synchronized wall clocks. Both bounds MUST
   be ticked through one shared helper, so the online and the offline evaluation of the same Run

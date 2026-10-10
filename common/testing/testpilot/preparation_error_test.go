@@ -7,9 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -67,12 +69,12 @@ func TestPreparationErrorCase(t *testing.T) {
 		{"program ceiling", func(_ *testpilotspb.Case, p *testpilot.ProfileSpec) { p.ProgramLimits.MaxNodes = 0 }, testpilot.PreparationLimitExceeded, "max_nodes", "limit is outside the positive Driver ceiling", ""},
 		{"unknown declaration", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Rules[0].InitialStateId = "missing" }, testpilot.PreparationUnknown, "contract", "initial state is not declared", "rule safety: "},
 		{"type mismatch", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
-			c.Contract.Rules[0].Transitions[0].Predicate.GetLiteral().Value = &testpilotspb.Value_TextValue{TextValue: "text"}
+			c.Contract.Rules[0].Transitions[0].Predicate = cel.Literal(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "text"}})
 		}, testpilot.PreparationTypeMismatch, "literal", "literal does not match its declared type", "rule safety: "},
 		{"unavailable observation", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "result", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_BOOLEAN}}}}}}}
-			c.Contract.Rules[0].Transitions[0].Predicate = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "result"}}}}
-		}, testpilot.PreparationUnavailable, "expression", "reference or path read requires an explicit presence guard", "rule safety: "},
+			c.Contract.Rules[0].Transitions[0].Predicate = cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "result"}})
+		}, testpilot.PreparationUnavailable, "contract.rules[safety].transitions[complete].predicate", "reference or path read requires an explicit presence guard", "rule safety: "},
 		{"unsupported version", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Version.Major++ }, testpilot.PreparationUnsupported, "version", "unsupported Case version", ""},
 		{"unsupported capability bounded path", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Program.Entrypoints[0].EntrypointId = strings.Repeat("e", 256)
@@ -98,7 +100,7 @@ func TestPreparationErrorCase(t *testing.T) {
 }
 
 func diagnosticCorrelatedContract() *testpilotspb.CorrelatedContract {
-	return &testpilotspb.CorrelatedContract{ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: &testpilotspb.ModelValue{DefinitionId: "state"}, EvidenceObservationId: "evidence"}
+	return &testpilotspb.CorrelatedContract{ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialStateId: "ready", States: []*testpilotspb.CorrelatedState{{StateId: "ready", Atom: &testpilotspb.ModelValue{DefinitionId: "state"}}}, EvidenceObservationId: "evidence"}
 }
 
 func TestPreparationErrorCorrelatedLimits(t *testing.T) {

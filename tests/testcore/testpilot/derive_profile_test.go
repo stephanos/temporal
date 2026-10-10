@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	temporaldriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"google.golang.org/protobuf/proto"
 )
@@ -183,7 +184,7 @@ func TestDeriveProfileRejectsWhatItCannotRead(t *testing.T) {
 			c.Program.Entrypoints[0].Instructions[0].Instruction = &testpilotspb.Instruction{}
 		},
 		"unclaimed environment binding": func(c *testpilotspb.Case) {
-			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: "orphan"}}}}
+			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value = cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: "orphan"}})
 		},
 		"unset activation": func(c *testpilotspb.Case) { c.Program.Entrypoints[0].Activation = nil },
 	} {

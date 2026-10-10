@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -84,7 +85,7 @@ func externalRealization(method string) *umpirespb.Realization {
 	if method == "RespondActivityTaskCompletedById" {
 		scripts = []*umpirespb.Script{controller}
 	}
-	return &umpirespb.Realization{Cleanup: "cleanup", Scripts: scripts, Evidence: []*umpirespb.Evidence{{Id: "held", From: &umpirespb.Evidence_Single{Single: &umpirespb.ReadSource{Method: activityService + "DescribeActivityExecution", Path: "info"}}}, {Id: "settled", From: &umpirespb.Evidence_Single{Single: &umpirespb.ReadSource{Method: activityService + "DescribeActivityExecution", Path: "info"}}}}, ExternalSettlements: []*umpirespb.ActivityExternalSettlement{e}, Behavior: &umpirespb.ApiBehavior{InstructionDefaults: &umpirespb.InstructionLimit{TimeoutMs: 1000, Attempts: 1}}}
+	return &umpirespb.Realization{Cleanup: "cleanup", Scripts: scripts, Evidence: []*umpirespb.Evidence{{Id: "held", From: &umpirespb.Evidence_Single{Single: &umpirespb.ReadSource{Method: activityService + "DescribeActivityExecution", Path: "info"}}}, {Id: "settled", From: &umpirespb.Evidence_Single{Single: &umpirespb.ReadSource{Method: activityService + "DescribeActivityExecution", Path: "info"}}}}, ExternalSettlements: []*umpirespb.ActivityExternalSettlement{e}, Behavior: &umpirespb.ApiBehavior{InstructionDefaults: &umpirespb.InstructionLimit{Timeout: duration.FromMilliseconds(1000), Attempts: 1}}}
 }
 
 func cloneExternalAssignments(in []*umpirespb.Assignment) []*umpirespb.Assignment {

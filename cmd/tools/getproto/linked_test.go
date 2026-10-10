@@ -27,6 +27,9 @@ func TestLinkedModelDescriptors(t *testing.T) {
 	require.Equal(t, names, again)
 	require.Contains(t, names, "temporal/api/workflowservice/v1/service.proto")
 	require.Contains(t, names, "temporal/server/api/testpilot/v1/case.proto")
+	require.Contains(t, names, "temporal/server/api/testpilot/v1/evidence.proto")
+	require.Contains(t, names, "cel/expr/syntax.proto")
+	require.Contains(t, names, "cel/expr/value.proto")
 	for _, name := range names {
 		require.False(t, isUmpireSchema(name), "%s is generated into ir-scalapb.jar", name)
 	}

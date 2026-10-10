@@ -253,12 +253,16 @@ func mustSource(t *testing.T) *testpilotspb.Case {
 // version is read as an alias of the pinned one.
 func TestBindRefusesEveryOtherCaseVersion(t *testing.T) {
 	for name, version := range map[string]string{
-		"the prior major version": `"version":{"major":0}`,
-		"the next major version":  `"version":{"major":2}`,
-		"a minor version":         `"version":{"major":1,"minor":1}`,
+		"an unknown zero version": `"version":{"major":0}`,
+		"retired version one":     `"version":{"major":1}`,
+		"retired version two":     `"version":{"major":2}`,
+		"retired version three":   `"version":{"major":3}`,
+		"the next major version":  `"version":{"major":5}`,
+		"a minor version":         `"version":{"major":4,"minor":1}`,
 	} {
 		t.Run(name, func(t *testing.T) {
-			changed := bytes.Replace(Case(), []byte(`"version":{"major":1}`), []byte(version), 1)
+			require.Contains(t, string(Case()), `"version":{"major":4}`)
+			changed := bytes.Replace(Case(), []byte(`"version":{"major":4}`), []byte(version), 1)
 			require.False(t, bytes.Equal(changed, pinned))
 			identity, err := recordedrun.CaseIdentity(changed)
 			require.NoError(t, err)

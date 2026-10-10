@@ -12,6 +12,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -84,7 +85,7 @@ func newScheduler(p *PreparedProgram, runID, caseID string, session contract.Ses
 	if err != nil {
 		return nil, err
 	}
-	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, attemptFacts: map[string]priorAttempt{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.MaxCleanupDurationMilliseconds) * time.Millisecond, runEventOrdinals: map[string]int64{}}, nil
+	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, attemptFacts: map[string]priorAttempt{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.CleanupDuration.AsDuration().Milliseconds()) * time.Millisecond, runEventOrdinals: map[string]int64{}}, nil
 }
 
 // performsNothing reports whether the named entrypoint of the source Program carries no instruction
@@ -828,7 +829,7 @@ func (s *scheduler) prepareInput(ctx context.Context, task scheduledNode) (proto
 	if err != nil {
 		return nil, false, err
 	}
-	_, enabled, err := n.evaluateGuarded(func(e *ir.Expression) (*testpilotspb.Value, error) { return a.evaluate(work, e) })
+	_, enabled, err := n.evaluateGuarded(func(e *ir.Expression) (*celpb.Value, error) { return a.evaluate(work, e) })
 	return nil, enabled, err
 }
 func (s *scheduler) reserve(ctx context.Context, task scheduledNode) ([]contract.EffectHandle, []scheduledReservation, error) {
@@ -1128,7 +1129,7 @@ func expiryDetail(n *node, scale contract.BoundScale, limit int) string {
 	}
 	hints := n.source.GetWaitHints()
 	if len(hints) > 0 && scale.Scaled() {
-		fmt.Fprintf(&b, " (declared %d ms, scaled by %d%%)", n.source.GetLimits().GetTimeoutMilliseconds(), scale.Percent())
+		fmt.Fprintf(&b, " (declared %d ms, scaled by %d%%)", n.source.GetLimits().GetTimeout().AsDuration().Milliseconds(), scale.Percent())
 	}
 	for i, hint := range hints {
 		if b.Len() > limit {
@@ -1138,7 +1139,7 @@ func expiryDetail(n *node, scale contract.BoundScale, limit int) string {
 		if i == 0 {
 			separator = "; hints: "
 		}
-		fmt.Fprintf(&b, "%s%s (%s:%d) %d ms", separator, hint.GetHintId(), hint.GetSource().GetPath(), hint.GetSource().GetLine(), hint.GetAtMostMilliseconds())
+		fmt.Fprintf(&b, "%s%s (%s:%d) %d ms", separator, hint.GetHintId(), hint.GetSource().GetPath(), hint.GetSource().GetLine(), hint.GetAtMost().AsDuration().Milliseconds())
 	}
 	return truncateDetail(b.String(), limit)
 }
@@ -1187,65 +1188,7 @@ func (r *conditionRenderer) write(parts ...string) {
 	}
 }
 
-func (r *conditionRenderer) expression(e *testpilotspb.Expression, depth int) {
-	if r.full() {
-		return
-	}
-	if depth >= conditionRenderDepth {
-		r.write("...")
-		return
-	}
-	switch arm := e.GetExpression().(type) {
-	case *testpilotspb.Expression_Literal:
-		r.value(arm.Literal, depth)
-	case *testpilotspb.Expression_Reference:
-		r.reference(arm.Reference)
-	case *testpilotspb.Expression_Path:
-		r.expression(arm.Path.GetOperand(), depth+1)
-		if arm.Path.GetPath() != "" {
-			r.write(".", arm.Path.GetPath())
-		}
-	case *testpilotspb.Expression_Present:
-		r.call("present", depth, arm.Present.GetOperand())
-	case *testpilotspb.Expression_Compare:
-		r.operand(arm.Compare.GetLeft(), depth)
-		r.write(" ", comparisonSymbol(arm.Compare.GetOperator()), " ")
-		r.operand(arm.Compare.GetRight(), depth)
-	case *testpilotspb.Expression_Not:
-		r.call("not", depth, arm.Not.GetOperand())
-	case *testpilotspb.Expression_All:
-		r.call("all", depth, arm.All.GetOperands()...)
-	case *testpilotspb.Expression_Any:
-		r.call("any", depth, arm.Any.GetOperands()...)
-	default:
-		r.write("<absent>")
-	}
-}
-
 // operand renders one side of a comparison, parenthesized when it is a comparison itself.
-func (r *conditionRenderer) operand(e *testpilotspb.Expression, depth int) {
-	if e.GetCompare() == nil {
-		r.expression(e, depth+1)
-		return
-	}
-	r.write("(")
-	r.expression(e, depth+1)
-	r.write(")")
-}
-
-func (r *conditionRenderer) call(name string, depth int, operands ...*testpilotspb.Expression) {
-	r.write(name, "(")
-	for i, operand := range operands {
-		if r.full() {
-			return
-		}
-		if i > 0 {
-			r.write(", ")
-		}
-		r.expression(operand, depth+1)
-	}
-	r.write(")")
-}
 
 func (r *conditionRenderer) reference(reference *testpilotspb.Reference) {
 	message := reference.ProtoReflect()
@@ -1265,25 +1208,25 @@ func (r *conditionRenderer) reference(reference *testpilotspb.Reference) {
 	}
 }
 
-func (r *conditionRenderer) value(value *testpilotspb.Value, depth int) {
-	switch arm := value.GetValue().(type) {
-	case *testpilotspb.Value_TextValue:
-		r.write(strconv.Quote(truncateDetail(arm.TextValue, conditionRenderBytes)))
-	case *testpilotspb.Value_BoolValue:
+func (r *conditionRenderer) value(value *celpb.Value, depth int) {
+	switch arm := value.GetKind().(type) {
+	case *celpb.Value_StringValue:
+		r.write(strconv.Quote(truncateDetail(arm.StringValue, conditionRenderBytes)))
+	case *celpb.Value_BoolValue:
 		r.write(strconv.FormatBool(arm.BoolValue))
-	case *testpilotspb.Value_BytesValue:
+	case *celpb.Value_BytesValue:
 		r.write("bytes(", strconv.Itoa(len(arm.BytesValue)), ")")
-	case *testpilotspb.Value_SignedIntegerValue:
-		r.write(arm.SignedIntegerValue)
-	case *testpilotspb.Value_UnsignedIntegerValue:
-		r.write(arm.UnsignedIntegerValue)
-	case *testpilotspb.Value_FloatingPointValue:
-		r.write(strconv.FormatFloat(arm.FloatingPointValue, 'g', -1, 64))
-	case *testpilotspb.Value_EnumValue:
-		r.write(arm.EnumValue.GetName())
-	case *testpilotspb.Value_MessageValue:
-		r.write("message(", arm.MessageValue.GetTypeUrl(), ")")
-	case *testpilotspb.Value_ListValue:
+	case *celpb.Value_Int64Value:
+		r.write(strconv.FormatInt(arm.Int64Value, 10))
+	case *celpb.Value_Uint64Value:
+		r.write(strconv.FormatUint(arm.Uint64Value, 10))
+	case *celpb.Value_DoubleValue:
+		r.write(strconv.FormatFloat(arm.DoubleValue, 'g', -1, 64))
+	case *celpb.Value_EnumValue:
+		r.write(arm.EnumValue.GetType(), "(", strconv.FormatInt(int64(arm.EnumValue.GetValue()), 10), ")")
+	case *celpb.Value_ObjectValue:
+		r.write("message(", arm.ObjectValue.GetTypeUrl(), ")")
+	case *celpb.Value_ListValue:
 		if depth+1 >= conditionRenderDepth {
 			r.write("[...]")
 			return
@@ -1299,28 +1242,75 @@ func (r *conditionRenderer) value(value *testpilotspb.Value, depth int) {
 			r.value(element, depth+1)
 		}
 		r.write("]")
-	case *testpilotspb.Value_MapValue:
+	case *celpb.Value_MapValue:
 		r.write("map(", strconv.Itoa(len(arm.MapValue.GetEntries())), " entries)")
 	default:
 		r.write("<absent>")
 	}
 }
 
-func comparisonSymbol(operator testpilotspb.ComparisonOperator) string {
-	switch operator {
-	case testpilotspb.COMPARISON_OPERATOR_EQUAL:
-		return "=="
-	case testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL:
-		return "!="
-	case testpilotspb.COMPARISON_OPERATOR_LESS_THAN:
-		return "<"
-	case testpilotspb.COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL:
-		return "<="
-	case testpilotspb.COMPARISON_OPERATOR_GREATER_THAN:
-		return ">"
-	case testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL:
-		return ">="
+func (r *conditionRenderer) expression(e *testpilotspb.Expression, depth int) {
+	r.celNode(e.GetCel().GetExpr(), e.GetBindings(), depth)
+}
+
+func (r *conditionRenderer) celNode(node *celpb.Expr, bindings []*testpilotspb.ExpressionBinding, depth int) {
+	if r.full() {
+		return
+	}
+	if depth >= conditionRenderDepth {
+		r.write("...")
+		return
+	}
+	switch arm := node.GetExprKind().(type) {
+	case *celpb.Expr_ConstExpr:
+		r.value(expressionLiteral(&testpilotspb.Expression{Cel: &celpb.ParsedExpr{Expr: node}}), depth)
+	case *celpb.Expr_IdentExpr:
+		for _, binding := range bindings {
+			if binding.GetVariable() != arm.IdentExpr.GetName() {
+				continue
+			}
+			if literal := binding.GetLiteral(); literal != nil {
+				r.value(literal, depth)
+			} else {
+				r.reference(binding.GetReference())
+			}
+			if binding.Path != "" {
+				r.write(".", binding.Path)
+			}
+			return
+		}
+		r.write(arm.IdentExpr.GetName())
+	case *celpb.Expr_CallExpr:
+		call := arm.CallExpr
+		if call.Target != nil && len(call.Args) == 0 && (call.Function == "value" || call.Function == "hasValue") {
+			if call.Function == "hasValue" {
+				r.write("present(")
+			}
+			r.celNode(call.Target, bindings, depth+1)
+			if call.Function == "hasValue" {
+				r.write(")")
+			}
+			return
+		}
+		if symbol := map[string]string{"_==_": "==", "_!=_": "!=", "_<_": "<", "_<=_": "<=", "_>_": ">", "_>=_": ">="}[call.Function]; symbol != "" && len(call.Args) == 2 {
+			r.celNode(call.Args[0], bindings, depth+1)
+			r.write(" ", symbol, " ")
+			r.celNode(call.Args[1], bindings, depth+1)
+			return
+		}
+		name := call.Function
+		if display := map[string]string{"!_": "not", "_&&_": "all", "_||_": "any"}[name]; display != "" {
+			name = display
+		}
+		r.write(name, "(")
+		for index, argument := range call.Args {
+			if index > 0 {
+				r.write(", ")
+			}
+			r.celNode(argument, bindings, depth+1)
+		}
+		r.write(")")
 	default:
-		return "?"
+		r.write("<absent>")
 	}
 }

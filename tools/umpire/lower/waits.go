@@ -31,6 +31,7 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	"go.temporal.io/server/tools/umpire/realization"
 	"google.golang.org/protobuf/proto"
@@ -344,9 +345,9 @@ func (w *waiting) script(s *umpirespb.Script) {
 		// nothing more. A call that reads is checked only against a declared behavior: a realization
 		// no kit declares one for reads as it is written, as before hints existed.
 		switch {
-		case poll != nil && poll.GetIntervalMs() == 0 && len(r.c.GetCloses()) > 0:
+		case poll != nil && durationMilliseconds(poll.GetInterval()) == 0 && len(r.c.GetCloses()) > 0:
 			w.waits[s.GetId()+"/"+r.id] = derivedWait{once: true}
-		case len(r.c.GetCloses()) == 0 && poll.GetIntervalMs() == 0 && (poll != nil || w.l.a.r.GetBehavior() != nil):
+		case len(r.c.GetCloses()) == 0 && durationMilliseconds(poll.GetInterval()) == 0 && (poll != nil || w.l.a.r.GetBehavior() != nil):
 			window := span{fromCommand: from.fromCommand, atCommand: i, fromStep: from.fromStep, toStep: end}
 			w.read(s, r, c.method, target, w.window(s, window), poll != nil)
 		default:
@@ -469,9 +470,9 @@ type reading struct {
 
 // bound adds a hint's bound to the wait, which then looks at the smallest interval of its hints.
 func (r *reading) bound(id string, at *umpirespb.Position, b *umpirespb.WaitBound) {
-	r.hints = append(r.hints, waitHint(id, at, b.GetAtMostMs()))
-	if r.interval == 0 || b.GetIntervalMs() < r.interval {
-		r.interval = b.GetIntervalMs()
+	r.hints = append(r.hints, waitHint(id, at, durationMilliseconds(b.GetAtMost())))
+	if r.interval == 0 || durationMilliseconds(b.GetInterval()) < r.interval {
+		r.interval = durationMilliseconds(b.GetInterval())
 	}
 }
 
@@ -571,7 +572,7 @@ func (w *waiting) causes(r *reading, window []event) {
 		if e.server != nil {
 			r.used = append(r.used, "server_steps:"+w.l.keys[e.step])
 			if e.kind == umpirespb.CAUSE_KIND_TIMER {
-				r.hints = append(r.hints, waitHint("deadline."+hintName(w.l.keys[e.step]), e.server.GetPosition(), e.server.GetDeadlineMs()))
+				r.hints = append(r.hints, waitHint("deadline."+hintName(w.l.keys[e.step]), e.server.GetPosition(), durationMilliseconds(e.server.GetDeadline())))
 			}
 		}
 		r.used = append(r.used, "behavior:"+cause.GetId())
@@ -598,7 +599,7 @@ func (w *waiting) written(c call) string {
 
 // waitHint is one hint a wait's bound is the sum of, where it is declared.
 func waitHint(id string, at *umpirespb.Position, ms int64) *testpilotspb.WaitHint {
-	return &testpilotspb.WaitHint{HintId: id, AtMostMilliseconds: ms,
+	return &testpilotspb.WaitHint{HintId: id, AtMost: duration.FromMilliseconds(ms),
 		Source: &testpilotspb.SourceLocation{Path: at.GetFile(), Line: at.GetLine(), Provenance: "scala-model"}}
 }
 

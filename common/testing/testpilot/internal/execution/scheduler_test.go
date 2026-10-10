@@ -6,10 +6,12 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	failurepb "go.temporal.io/api/failure/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
@@ -36,7 +38,7 @@ func TestSchedulerProjectsActualValues(t *testing.T) {
 	s, err := newScheduler(p, "run", "case", h, schedulerMonitor{}, time.Now)
 	require.NoError(t, err)
 	require.NoError(t, s.execute(context.Background()))
-	require.Equal(t, "kept", s.values.slots["text"].GetTextValue())
+	require.Equal(t, "kept", s.values.slots["text"].GetStringValue())
 	require.Len(t, s.outstanding(), 1)
 	require.Equal(t, testpilotspb.RUN_EVENT_KIND_ACTIVATION_CLOSED, s.recorder.run.Events[len(s.recorder.run.Events)-1].Kind)
 	require.Error(t, s.execute(context.Background()))
@@ -45,15 +47,15 @@ func TestSchedulerProjectsActualValues(t *testing.T) {
 func TestSchedulerDependencyConcurrencyGuardsAndIsolation(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	first := c.Program.Entrypoints[0].Instructions[0]
-	first.Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 3}
+	first.Limits.MaxAttempts = proto.Int64(3)
 	second := rpcNode("second")
 	second.After = runsAfter("controller")
 	skipped := rpcNode("skipped")
 	skipped.After = runsAfter("controller")
-	skipped.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
+	skipped.Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: false}})
 	consumer := rpcNode("consumer")
 	consumer.After = runsAfter("controller", "call", "skipped")
-	consumer.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "skipped"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}})}}}
+	consumer.Guard = cel.Not(present(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "skipped"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}})))
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, second, skipped, consumer)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -100,7 +102,7 @@ func TestSchedulerAdmitsAnUnusedReservationOfAnEmptyEntrypoint(t *testing.T) {
 			second := proto.CloneOf(c.Program.Entrypoints[1])
 			second.EntrypointId = "workflow_second"
 			if mode == "performing" {
-				second.Instructions = []*testpilotspb.InstructionNode{{InstructionId: "finish", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: textValue("done")}}}}}, Limits: rpcNode("finish").Limits}}
+				second.Instructions = []*testpilotspb.InstructionNode{{InstructionId: "finish", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: cel.Literal(textValue("done"))}}}, Limits: rpcNode("finish").Limits}}
 			}
 			c.Program.Entrypoints = append(c.Program.Entrypoints, second)
 			p, err := Prepare(c, catalog, policy)
@@ -223,10 +225,10 @@ func TestSchedulerTimeoutAndProtocolBranches(t *testing.T) {
 	for _, status := range []testpilotspb.InstructionOutcomeStatus{testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE} {
 		t.Run(status.String(), func(t *testing.T) {
 			c, catalog, policy := fixture(t)
-			c.Program.Entrypoints[0].Instructions[0].Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 3}
+			c.Program.Entrypoints[0].Instructions[0].Limits.MaxAttempts = proto.Int64(3)
 			branch := rpcNode("branch")
 			branch.Guard = succeeded("controller", "call")
-			branch.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Name = testpilotspb.InstructionOutcomeStatus_name[int32(status)]
+			branch.Guard = cel.Compare("_==_", cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "call"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}), cel.Literal(cel.Enum(status)))
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, branch)
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
@@ -306,7 +308,7 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	rpc := c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc()
 	rpc.RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: textLiteral("constructed")}}
-	rpc.ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}, {Path: "items[*]", Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
+	rpc.ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}, {Path: "items[*]", Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	wait := rpcNode("wait")
 	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "text"}}}
 	wait.After = runsAfter("controller")
@@ -333,11 +335,11 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	for i, event := range s.recorder.run.Events {
 		require.Equal(t, int64(i+1), event.Sequence)
 		if i > 0 {
-			require.GreaterOrEqual(t, event.ElapsedMilliseconds, s.recorder.run.Events[i-1].ElapsedMilliseconds)
+			require.GreaterOrEqual(t, event.Elapsed.AsDuration().Milliseconds(), s.recorder.run.Events[i-1].Elapsed.AsDuration().Milliseconds())
 		}
 		if len(event.Observations) > 0 {
 			indexes = append(indexes, event.Coordinates.EmittedIndex)
-			observations = append(observations, event.Observations[0].Value.GetTextValue())
+			observations = append(observations, event.Observations[0].Value.GetStringValue())
 			require.Equal(t, []string{"scheduler.g0.n0.a1.completed"}, event.CausalSourceIds)
 		}
 	}
@@ -350,7 +352,7 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	require.Error(t, err)
 	require.True(t, proto.Equal(snapshot, run))
 	require.True(t, s.values.sealed)
-	require.Equal(t, "slot", s.values.slots["text"].GetTextValue())
+	require.Equal(t, "slot", s.values.slots["text"].GetStringValue())
 }
 
 func TestSchedulerLateOrdinaryCancellationDoesNotFailCleanupSettlement(t *testing.T) {

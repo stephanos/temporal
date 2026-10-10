@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
@@ -314,7 +315,7 @@ func TestExplicitWaits(t *testing.T) {
 
 	explicit := func(ir *umpirespb.Model) {
 		for _, c := range commandsNamed(realization(ir, "activitySystem"), "await-completed") {
-			c.GetPoll().IntervalMs = 250
+			c.GetPoll().Interval = duration.FromMilliseconds(250)
 		}
 	}
 	r = run(t, read(t, activityIR, explicit), explicitWaits)

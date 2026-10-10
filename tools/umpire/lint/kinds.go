@@ -394,9 +394,9 @@ func explicitWaits(m *Model) ([]Tally, error) {
 				}
 				for _, c := range cs {
 					if poll := c.GetPoll(); poll != nil {
-						t.add(r.GetMachine(), poll.GetIntervalMs() == 0, s.GetId()+"/"+c.GetId(), c.GetPosition(),
-							"command %s/%s of %s polls every %d milliseconds, though its realization declares the API behavior a read's wait is derived from",
-							s.GetId(), c.GetId(), r.GetName(), poll.GetIntervalMs())
+						t.add(r.GetMachine(), poll.GetInterval() == nil, s.GetId()+"/"+c.GetId(), c.GetPosition(),
+							"command %s/%s of %s polls every %s, though its realization declares the API behavior a read's wait is derived from",
+							s.GetId(), c.GetId(), r.GetName(), poll.GetInterval())
 					}
 				}
 			}

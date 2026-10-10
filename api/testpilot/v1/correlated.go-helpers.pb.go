@@ -44,6 +44,80 @@ func (this *CorrelatedContract) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type CorrelatedState to the protobuf v3 wire format
+func (val *CorrelatedState) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type CorrelatedState from the protobuf v3 wire format
+func (val *CorrelatedState) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *CorrelatedState) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two CorrelatedState values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *CorrelatedState) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *CorrelatedState
+	switch t := that.(type) {
+	case *CorrelatedState:
+		that1 = t
+	case CorrelatedState:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type CorrelatedResult to the protobuf v3 wire format
+func (val *CorrelatedResult) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type CorrelatedResult from the protobuf v3 wire format
+func (val *CorrelatedResult) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *CorrelatedResult) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two CorrelatedResult values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *CorrelatedResult) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *CorrelatedResult
+	switch t := that.(type) {
+	case *CorrelatedResult:
+		that1 = t
+	case CorrelatedResult:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type CorrelatedTransition to the protobuf v3 wire format
 func (val *CorrelatedTransition) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -266,228 +340,6 @@ func (this *CorrelatedLimits) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type CorrelatedEvidenceProjection to the protobuf v3 wire format
-func (val *CorrelatedEvidenceProjection) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedEvidenceProjection from the protobuf v3 wire format
-func (val *CorrelatedEvidenceProjection) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedEvidenceProjection) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedEvidenceProjection values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedEvidenceProjection) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedEvidenceProjection
-	switch t := that.(type) {
-	case *CorrelatedEvidenceProjection:
-		that1 = t
-	case CorrelatedEvidenceProjection:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedEvidenceRule to the protobuf v3 wire format
-func (val *CorrelatedEvidenceRule) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedEvidenceRule from the protobuf v3 wire format
-func (val *CorrelatedEvidenceRule) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedEvidenceRule) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedEvidenceRule values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedEvidenceRule) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedEvidenceRule
-	switch t := that.(type) {
-	case *CorrelatedEvidenceRule:
-		that1 = t
-	case CorrelatedEvidenceRule:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type NamedExpression to the protobuf v3 wire format
-func (val *NamedExpression) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type NamedExpression from the protobuf v3 wire format
-func (val *NamedExpression) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *NamedExpression) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two NamedExpression values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *NamedExpression) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *NamedExpression
-	switch t := that.(type) {
-	case *NamedExpression:
-		that1 = t
-	case NamedExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedEvidence to the protobuf v3 wire format
-func (val *CorrelatedEvidence) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedEvidence from the protobuf v3 wire format
-func (val *CorrelatedEvidence) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedEvidence) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedEvidence values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedEvidence) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedEvidence
-	switch t := that.(type) {
-	case *CorrelatedEvidence:
-		that1 = t
-	case CorrelatedEvidence:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedIdentity to the protobuf v3 wire format
-func (val *CorrelatedIdentity) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedIdentity from the protobuf v3 wire format
-func (val *CorrelatedIdentity) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedIdentity) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedIdentity values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedIdentity) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedIdentity
-	switch t := that.(type) {
-	case *CorrelatedIdentity:
-		that1 = t
-	case CorrelatedIdentity:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type NamedValue to the protobuf v3 wire format
-func (val *NamedValue) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type NamedValue from the protobuf v3 wire format
-func (val *NamedValue) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *NamedValue) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two NamedValue values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *NamedValue) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *NamedValue
-	switch t := that.(type) {
-	case *NamedValue:
-		that1 = t
-	case NamedValue:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
 var (
 	CorrelatedEvidenceMeaning_shorthandValue = map[string]int32{
 		"Unspecified": 0,
@@ -526,24 +378,6 @@ func CorrelatedFieldDispositionFromString(s string) (CorrelatedFieldDisposition,
 		return CorrelatedFieldDisposition(v), nil
 	}
 	return CorrelatedFieldDisposition(0), fmt.Errorf("%s is not a valid CorrelatedFieldDisposition", s)
-}
-
-var (
-	CorrelatedClock_shorthandValue = map[string]int32{
-		"Unspecified":          0,
-		"OperationTransitions": 1,
-	}
-)
-
-// CorrelatedClockFromString parses a CorrelatedClock value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to CorrelatedClock
-func CorrelatedClockFromString(s string) (CorrelatedClock, error) {
-	if v, ok := CorrelatedClock_value[s]; ok {
-		return CorrelatedClock(v), nil
-	} else if v, ok := CorrelatedClock_shorthandValue[s]; ok {
-		return CorrelatedClock(v), nil
-	}
-	return CorrelatedClock(0), fmt.Errorf("%s is not a valid CorrelatedClock", s)
 }
 
 var (

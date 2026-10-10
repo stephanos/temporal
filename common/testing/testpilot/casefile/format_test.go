@@ -7,11 +7,11 @@ import (
 )
 
 func TestCELFormatBoundary(t *testing.T) {
-	require.NoError(t, checkVersion(CELMajor, CELMinor, CELMajor, CELMinor))
+	require.NoError(t, CheckVersion(4, 0))
 	for _, major := range []int32{0, 1, 2, 3, 5, 99} {
-		require.Error(t, checkVersion(major, 0, CELMajor, CELMinor))
+		require.Error(t, CheckVersion(major, 0))
 	}
-	require.Error(t, checkVersion(CELMajor, 1, CELMajor, CELMinor))
+	require.Error(t, CheckVersion(4, 1))
 }
 
 func TestFormatEnvelopePreservesProtoJSONNumbers(t *testing.T) {

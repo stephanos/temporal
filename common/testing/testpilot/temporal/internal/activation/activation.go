@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"google.golang.org/protobuf/proto"
@@ -16,7 +17,7 @@ type State struct {
 	instructions []testpilot.InstructionPlan
 	states       []instructionState
 	remaining    int64
-	values       map[testpilot.ValueReference]*testpilotspb.Value
+	values       map[testpilot.ValueReference]*celpb.Value
 }
 
 type instructionState uint8
@@ -40,11 +41,11 @@ func New(plan testpilot.EntrypointPlan) (*State, error) {
 	return &State{
 		entrypoint: plan.ID(), instructions: instructions,
 		states: make([]instructionState, len(instructions)), remaining: plan.RuntimeWorkLimit(),
-		values: make(map[testpilot.ValueReference]*testpilotspb.Value),
+		values: make(map[testpilot.ValueReference]*celpb.Value),
 	}, nil
 }
 
-func (s *State) Evaluate(ctx context.Context, index int) (*testpilotspb.Value, bool, error) {
+func (s *State) Evaluate(ctx context.Context, index int) (*celpb.Value, bool, error) {
 	if err := s.check(index, unevaluated); err != nil {
 		return nil, false, err
 	}
@@ -107,6 +108,6 @@ func (s *State) consume(work int64) error {
 	return nil
 }
 
-func (s *State) lookup(reference testpilot.ValueReference) *testpilotspb.Value {
+func (s *State) lookup(reference testpilot.ValueReference) *celpb.Value {
 	return proto.CloneOf(s.values[reference])
 }

@@ -1,50 +1,134 @@
 package ir
 
 import (
-	"cmp"
 	"context"
-	"math"
-	"strconv"
+	"fmt"
+	"math/bits"
+	"strings"
 
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	engine "cel.dev/cel-go/cel"
+	"cel.dev/cel-go/common/types"
+	"cel.dev/cel-go/common/types/ref"
+	"cel.dev/cel-go/common/types/traits"
+	"cel.dev/cel-go/interpreter"
+	celpb "cel.dev/expr"
 	"google.golang.org/protobuf/proto"
 )
 
-// Evaluate reads already type-checked immutable values. A nil resolved value denotes absence.
-// The returned value is independent of the resolver and prepared expression.
-func (e *Expression) Evaluate(ctx context.Context, resolve func(Reference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, int64, error) {
+func (e *Expression) Evaluate(ctx context.Context, resolve func(Reference) *celpb.Value, limit int64) (*celpb.Value, int64, error) {
 	return e.evaluate(ctx, resolve, limit, false)
 }
-
-// EvaluateExecution shares Evaluate's semantics and charges intermediate ownership copies.
-// Evaluate retains the accounting units used by already-admitted Contract work bounds.
-func (e *Expression) EvaluateExecution(ctx context.Context, resolve func(Reference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, int64, error) {
+func (e *Expression) EvaluateExecution(ctx context.Context, resolve func(Reference) *celpb.Value, limit int64) (*celpb.Value, int64, error) {
 	return e.evaluate(ctx, resolve, limit, true)
 }
-func (e *Expression) evaluate(ctx context.Context, resolve func(Reference) *testpilotspb.Value, limit int64, copies bool) (*testpilotspb.Value, int64, error) {
-	r := runtimeExpression{ctx: ctx, resolve: resolve, limit: limit, copyWork: copies}
-	if ctx == nil || resolve == nil || e == nil || limit <= 0 {
-		return nil, 0, Invalid(Malformed, "expression", "context, expression, resolver and positive work required")
+func (e *Expression) evaluate(ctx context.Context, resolve func(Reference) *celpb.Value, limit int64, copies bool) (*celpb.Value, int64, error) {
+	if ctx == nil || resolve == nil || e == nil || e.checked == nil || limit <= 0 {
+		return nil, 0, Invalid(Malformed, "expression", "context, prepared expression, resolver and positive work required")
 	}
-	v, err := r.eval(e)
-	if err == nil && v == nil {
-		err = Invalid(Unavailable, "expression", "unguarded absent value")
+	r := &runtimeExpression{ctx: ctx, resolve: resolve, limit: limit, copyWork: copies}
+	if err := r.charge(1); err != nil {
+		return nil, r.work, err
 	}
-	if err == nil {
-		if _, scalar := v.GetValue().(*testpilotspb.Value_BoolValue); !scalar || copies {
-			err = r.charge(int64(proto.Size(v)))
-		}
-	}
+	program, err := e.environment.Program(e.checked, engine.CostLimit(uint64(limit-r.work)), engine.CostTracking(nil), engine.InterruptCheckFrequency(1))
 	if err != nil {
 		return nil, r.work, err
 	}
-	return proto.CloneOf(v), r.work, nil
+	activation := &expressionActivation{expression: e, runtime: r, values: map[string]ref.Val{}}
+	value, details, evalErr := program.ContextEval(ctx, activation)
+	if details != nil && details.ActualCost() != nil {
+		if err = r.charge(int64(*details.ActualCost())); err != nil {
+			return nil, r.work, err
+		}
+	}
+	if activation.failure != nil {
+		return nil, r.work, activation.failure
+	}
+	if ctx.Err() != nil {
+		return nil, r.work, ctx.Err()
+	}
+	if evalErr != nil {
+		category := Unavailable
+		if strings.Contains(evalErr.Error(), "cost limit") {
+			category = LimitExceeded
+		}
+		return nil, r.work, Invalid(category, e.site.Path, evalErr.Error())
+	}
+	if err := r.chargeResult(value, e.typ); err != nil {
+		return nil, r.work, err
+	}
+	result, err := fromCEL(value, e.typ)
+	if err != nil {
+		return nil, r.work, err
+	}
+	if err = r.charge(int64(proto.Size(result))); err != nil {
+		return nil, r.work, err
+	}
+	return result, r.work, nil
+}
+
+func (r *runtimeExpression) chargeResult(value ref.Val, typ Type) error {
+	if err := r.charge(1); err != nil {
+		return err
+	}
+	if typ.cardinality == Repeated {
+		list, ok := value.(traits.Lister)
+		if !ok {
+			return literalMismatch()
+		}
+		iterator := list.Iterator()
+		for iterator.HasNext() == types.True {
+			if err := r.chargeResult(iterator.Next(), typ.Element()); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if typ.cardinality == Map {
+		mapping, ok := value.(traits.Mapper)
+		if !ok {
+			return literalMismatch()
+		}
+		iterator := mapping.Iterator()
+		var count int64
+		for iterator.HasNext() == types.True {
+			key := iterator.Next()
+			if err := r.chargeResult(key, typ.catalog.scalarType(typ.key)); err != nil {
+				return err
+			}
+			if err := r.chargeResult(mapping.Get(key), typ.Element()); err != nil {
+				return err
+			}
+			count++
+		}
+		return r.charge(count * int64(bits.Len64(uint64(count))+1))
+	}
+	if typ.message != nil {
+		message, ok := value.Value().(proto.Message)
+		if !ok {
+			return literalMismatch()
+		}
+		return r.charge(2*int64(proto.Size(message)) + int64(len(typ.message.FullName())) + 16)
+	}
+	if typ.any {
+		envelope, ok := value.(opaqueAny)
+		if !ok {
+			return literalMismatch()
+		}
+		return r.charge(int64(proto.Size(envelope.envelope)) + 16)
+	}
+	switch scalar := value.(type) {
+	case types.String:
+		return r.charge(int64(len(scalar)))
+	case types.Bytes:
+		return r.charge(int64(len(scalar)))
+	}
+	return nil
 }
 
 type runtimeExpression struct {
 	copyWork    bool
 	ctx         context.Context
-	resolve     func(Reference) *testpilotspb.Value
+	resolve     func(Reference) *celpb.Value
 	limit, work int64
 }
 
@@ -58,210 +142,73 @@ func (r *runtimeExpression) charge(n int64) error {
 	r.work += n
 	return nil
 }
-func boolValue(v bool) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: v}}
-}
-func (r *runtimeExpression) eval(e *Expression) (*testpilotspb.Value, error) {
-	if err := r.charge(1); err != nil {
-		return nil, err
-	}
-	switch e.operator {
-	case Literal:
-		if err := r.charge(int64(proto.Size(e.literal))); err != nil {
-			return nil, err
-		}
-		return e.literal, nil
-	case ReferenceValue:
-		v := r.resolve(e.reference)
-		// An instance value stands for the literal its Rule instance inlines, so it costs what that
-		// literal costs and a Rule instance's remaining work matches its expansion's.
-		if e.reference.Kind == InstanceValueReference && v != nil {
-			if err := r.charge(int64(proto.Size(v))); err != nil {
-				return nil, err
-			}
-		}
-		return v, nil
-	case ReadPath:
-		v, err := r.eval(e.children[0])
-		if err != nil {
-			return nil, err
-		}
-		return r.readPath(e.path, v, e.children[0].typ)
-	case IsPresent:
-		v, err := r.eval(e.children[0])
-		return boolValue(v != nil), err
-	case Not:
-		v, err := r.eval(e.children[0])
-		if err != nil {
-			return nil, err
-		}
-		if v == nil {
-			return nil, Invalid(Unavailable, "expression", "absent boolean")
-		}
-		return boolValue(!v.GetBoolValue()), nil
-	case All, Any:
-		continuing := e.operator == All
-		for _, child := range e.children {
-			v, err := r.eval(child)
-			if err != nil {
-				return nil, err
-			}
-			if v == nil {
-				return nil, Invalid(Unavailable, "expression", "absent boolean")
-			}
-			if v.GetBoolValue() != continuing {
-				return boolValue(!continuing), nil
-			}
-		}
-		return boolValue(continuing), nil
-	case Compare:
-		return r.binary(e)
-	default:
-		return nil, Invalid(Unsupported, "expression", "unknown prepared operator")
-	}
-}
-func (r *runtimeExpression) binary(e *Expression) (*testpilotspb.Value, error) {
-	a, err := r.eval(e.children[0])
-	if err != nil {
-		return nil, err
-	}
-	b, err := r.eval(e.children[1])
-	if err != nil {
-		return nil, err
-	}
-	// Every operator is false on an absent operand, so NOT_EQUAL is the negation of EQUAL only
-	// between present operands.
-	if a == nil || b == nil {
-		return boolValue(false), nil
-	}
-	if err := r.charge(int64(proto.Size(a)) + int64(proto.Size(b))); err != nil {
-		return nil, err
-	}
-	// Between present operands NOT_EQUAL is the negation of EQUAL, so the two share one equality.
-	if e.comparison == testpilotspb.COMPARISON_OPERATOR_EQUAL || e.comparison == testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL {
-		same, err := r.equal(a, b, e.children[0].typ)
-		return boolValue(same == (e.comparison == testpilotspb.COMPARISON_OPERATOR_EQUAL)), err
-	}
-	ordering, unordered, err := compareValues(a, b, e.children[0].typ)
-	if err != nil {
-		return nil, err
-	}
-	if unordered {
-		return boolValue(false), nil
-	}
-	switch e.comparison {
-	case testpilotspb.COMPARISON_OPERATOR_LESS_THAN:
-		return boolValue(ordering < 0), nil
-	case testpilotspb.COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL:
-		return boolValue(ordering <= 0), nil
-	case testpilotspb.COMPARISON_OPERATOR_GREATER_THAN:
-		return boolValue(ordering > 0), nil
-	case testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL:
-		return boolValue(ordering >= 0), nil
-	default:
-		return nil, Invalid(Unsupported, "expression", "unknown comparison")
-	}
-}
-func compareValues(a, b *testpilotspb.Value, typ Type) (int, bool, error) {
-	switch v := a.Value.(type) {
-	case *testpilotspb.Value_SignedIntegerValue:
-		x, err := strconv.ParseInt(v.SignedIntegerValue, 10, 64)
-		if err != nil {
-			return 0, false, err
-		}
-		y, err := strconv.ParseInt(b.GetSignedIntegerValue(), 10, 64)
-		return cmp.Compare(x, y), false, err
-	case *testpilotspb.Value_UnsignedIntegerValue:
-		x, err := strconv.ParseUint(v.UnsignedIntegerValue, 10, 64)
-		if err != nil {
-			return 0, false, err
-		}
-		y, err := strconv.ParseUint(b.GetUnsignedIntegerValue(), 10, 64)
-		return cmp.Compare(x, y), false, err
-	case *testpilotspb.Value_FloatingPointValue:
-		x, y := v.FloatingPointValue, b.GetFloatingPointValue()
-		if typ.scalar == testpilotspb.SCALAR_KIND_FLOAT {
-			x, y = float64(float32(x)), float64(float32(y))
-		}
-		return cmp.Compare(x, y), math.IsNaN(x) || math.IsNaN(y), nil
-	default:
-		return 0, false, Invalid(TypeMismatch, "expression", "ordered scalar required")
-	}
-}
-func (r *runtimeExpression) equal(a, b *testpilotspb.Value, typ Type) (bool, error) {
-	if err := r.ctx.Err(); err != nil {
-		return false, err
-	}
-	if typ.cardinality == Repeated {
-		x, y := a.GetListValue().GetValues(), b.GetListValue().GetValues()
-		if len(x) != len(y) {
-			return false, nil
-		}
-		for i := range x {
-			same, err := r.equal(x[i], y[i], typ.Element())
-			if err != nil || !same {
-				return same, err
-			}
-		}
-		return true, nil
-	}
-	if typ.cardinality == Map {
-		return r.equalMap(a, b, typ)
-	}
-	if typ.message != nil {
-		if r.copyWork {
-			if err := r.charge(2 * (int64(proto.Size(a)) + int64(proto.Size(b)))); err != nil {
-				return false, err
-			}
-		}
-		x, err := decodeMessage(a, typ.message)
-		if err != nil {
-			return false, err
-		}
-		y, err := decodeMessage(b, typ.message)
-		if err != nil {
-			return false, err
-		}
-		return proto.Equal(x.Interface(), y.Interface()), nil
-	}
-	if typ.scalar == testpilotspb.SCALAR_KIND_FLOAT {
-		x, y := float32(a.GetFloatingPointValue()), float32(b.GetFloatingPointValue())
-		return x == y || math.IsNaN(float64(x)) && math.IsNaN(float64(y)), nil
-	}
-	return proto.Equal(a, b), nil
+func boolValue(value bool) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: value}}
 }
 
-func (r *runtimeExpression) equalMap(a, b *testpilotspb.Value, typ Type) (bool, error) {
-	x, y := a.GetMapValue().GetEntries(), b.GetMapValue().GetEntries()
-	if len(x) != len(y) {
-		return false, nil
+type expressionActivation struct {
+	expression *Expression
+	runtime    *runtimeExpression
+	values     map[string]ref.Val
+	failure    error
+}
+
+func (a *expressionActivation) Parent() interpreter.Activation { return nil }
+func (a *expressionActivation) ResolveName(name string) (any, bool) {
+	binding, ok := a.expression.variables[name]
+	if !ok {
+		return nil, false
 	}
-	indexed := make(map[string]*testpilotspb.Value, len(y))
-	for _, entry := range y {
-		if err := r.ctx.Err(); err != nil {
-			return false, err
-		}
-		if r.copyWork {
-			if err := r.charge(8*int64(proto.Size(entry.Key)) + 1); err != nil {
-				return false, err
+	value, cached := a.values[name]
+	if !cached {
+		source, err := a.read(binding)
+		if err == nil && source != nil {
+			limits := a.expression.limits
+			limits.Work = a.runtime.limit - a.runtime.work
+			var snapshot *celpb.Value
+			var work int64
+			snapshot, work, err = SnapshotValue(a.runtime.ctx, source, binding.typ, limits)
+			if chargeErr := a.runtime.charge(work); chargeErr != nil {
+				err = chargeErr
+			}
+			if err == nil {
+				value, err = toCEL(snapshot, binding.typ, a.expression.registry)
 			}
 		}
-		indexed[entry.Key.String()] = entry.Value
+		if err != nil {
+			a.failure = err
+			value = types.NewErr("%v", err)
+		} else if source == nil {
+			value = types.OptionalNone
+		} else if binding.optional {
+			value = types.OptionalOf(value)
+		}
+		a.values[name] = value
 	}
-	for _, entry := range x {
-		if r.copyWork {
-			if err := r.charge(8*int64(proto.Size(entry.Key)) + 1); err != nil {
-				return false, err
-			}
-		}
-		other := indexed[entry.Key.String()]
-		if other == nil {
-			return false, nil
-		}
-		same, err := r.equal(entry.Value, other, typ.Element())
-		if err != nil || !same {
-			return same, err
-		}
+	return value, true
+}
+func (a *expressionActivation) read(binding *Expression) (*celpb.Value, error) {
+	if err := a.runtime.charge(1); err != nil {
+		return nil, err
 	}
-	return true, nil
+	switch binding.operator {
+	case Literal:
+		return binding.literal, nil
+	case ReferenceValue:
+		return a.runtime.resolve(binding.reference), nil
+	case ReadPath:
+		if binding.path == nil {
+			return nil, Invalid(Malformed, "binding", "a bound path is required")
+		}
+		value, err := a.read(binding.children[0])
+		if err != nil {
+			return nil, err
+		}
+		if value == nil {
+			return nil, nil
+		}
+		return a.runtime.readPath(binding.path, value, binding.children[0].typ)
+	default:
+		return nil, fmt.Errorf("unsupported bound input %d", binding.operator)
+	}
 }

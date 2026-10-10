@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -60,13 +61,13 @@ func TestRecorderCoordinatesDeduplicationAndSnapshots(t *testing.T) {
 	*now = now.Add(5 * time.Millisecond)
 	fact := recorderFact("timeout")
 	fact.Sequence = 999
-	fact.ElapsedMilliseconds = 999
+	fact.Elapsed = pbduration.FromMilliseconds(999)
 	_, err := r.publish(context.Background(), []*testpilotspb.RunEvent{fact}, nil)
 	require.NoError(t, err)
 	*now = now.Add(time.Second)
 	duplicate := proto.CloneOf(fact)
 	duplicate.Sequence = 123
-	duplicate.ElapsedMilliseconds = 123
+	duplicate.Elapsed = pbduration.FromMilliseconds(123)
 	_, err = r.publish(context.Background(), []*testpilotspb.RunEvent{duplicate}, func() error { t.Fatal("duplicate committed twice"); return nil })
 	require.NoError(t, err)
 	require.Len(t, observed, 2)
@@ -75,7 +76,7 @@ func TestRecorderCoordinatesDeduplicationAndSnapshots(t *testing.T) {
 	*now = now.Add(-2 * time.Second)
 	run := closeRecorder(t, r)
 	require.Equal(t, []int64{1, 2, 3}, []int64{run.Events[0].Sequence, run.Events[1].Sequence, run.Events[2].Sequence})
-	require.Equal(t, []int64{0, 5, 5}, []int64{run.Events[0].ElapsedMilliseconds, run.Events[1].ElapsedMilliseconds, run.Events[2].ElapsedMilliseconds})
+	require.Equal(t, []int64{0, 5, 5}, []int64{run.Events[0].Elapsed.AsDuration().Milliseconds(), run.Events[1].Elapsed.AsDuration().Milliseconds(), run.Events[2].Elapsed.AsDuration().Milliseconds()})
 	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, run.Events[1].GetOutcome().Status)
 	require.Equal(t, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, run.Events[2].Kind)
 	run.Verdict.Status = testpilotspb.VERDICT_STATUS_VIOLATED
@@ -143,7 +144,7 @@ func TestRecorderObserveCommitBoundary(t *testing.T) {
 				require.Equal(t, int64(2), run.GetEvaluationFailureSequence())
 				require.Equal(t, 2, count)
 			} else {
-				require.Nil(t, run.EvaluationFailure)
+				require.Nil(t, run.EvaluationFailureSequence)
 				require.Equal(t, 3, count)
 			}
 		})

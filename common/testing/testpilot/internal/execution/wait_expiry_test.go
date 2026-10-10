@@ -9,7 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/protorequire"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
@@ -19,17 +21,17 @@ import (
 // withWaitHints makes the fixture's poll wait within two declared bounds, 30 and 20 ms.
 func withWaitHints(source *testpilotspb.Case) {
 	poll := source.Program.Entrypoints[0].Instructions[0]
-	poll.Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 50}
+	poll.Limits.Timeout = pbduration.FromMilliseconds(50)
 	poll.WaitHints = []*testpilotspb.WaitHint{
-		{HintId: "visibility.describe", Source: &testpilotspb.SourceLocation{Path: "model/Behavior.scala", Line: 12}, AtMostMilliseconds: 30},
-		{HintId: "cause.timer", Source: &testpilotspb.SourceLocation{Path: "model/Behavior.scala", Line: 20}, AtMostMilliseconds: 20},
+		{HintId: "visibility.describe", Source: &testpilotspb.SourceLocation{Path: "model/Behavior.scala", Line: 12}, AtMost: pbduration.FromMilliseconds(30)},
+		{HintId: "cause.timer", Source: &testpilotspb.SourceLocation{Path: "model/Behavior.scala", Line: 20}, AtMost: pbduration.FromMilliseconds(20)},
 	}
 }
 
 // asReadOnce makes the fixture's poll a read once.
 func asReadOnce(source *testpilotspb.Case) {
 	read := source.Program.Entrypoints[0].Instructions[0].Instruction.GetReadEvidence()
-	read.PollIntervalMilliseconds, read.Once = 0, true
+	read.Interval = nil
 }
 
 // readOnce answers a read as the Driver contract says a zero interval does: one call, the condition
@@ -80,7 +82,7 @@ func withoutDetail(run *testpilotspb.Run) []*testpilotspb.RunEvent {
 	var events []*testpilotspb.RunEvent
 	for _, event := range run.GetEvents() {
 		event = proto.CloneOf(event)
-		event.ElapsedMilliseconds = 0
+		event.Elapsed = pbduration.FromMilliseconds(0)
 		if outcome := event.GetOutcome(); outcome != nil {
 			outcome.Detail = ""
 		}
@@ -135,7 +137,7 @@ func TestAnExpiredHintedPollNamesItsConditionBoundAndHints(t *testing.T) {
 // A poll that declares no hint times out as it always has: its outcome carries no detail.
 func TestAnExpiredUnhintedPollCarriesNoDetail(t *testing.T) {
 	source, catalog, policy := reportFixture(t)
-	source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 50}
+	source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = pbduration.FromMilliseconds(50)
 	var answers []bool
 	run := runReport(t, source, catalog, policy, &testsupport.Session{OnPollRPC: polled(&answers, report(t, catalog, &reportItem{"a", 1}))})
 	protorequire.ProtoSliceEqual(t, []*testpilotspb.InstructionOutcome{{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}}, recordedOutcomes(run))
@@ -157,7 +159,7 @@ func TestAReadOnceThatDoesNotHoldRecordsAsATimedOutPoll(t *testing.T) {
 		Detail: "evidence itemSettled: until value.state > 1 did not hold when read once, within 1000 ms"}}, recordedOutcomes(once))
 
 	source, catalog, policy = reportFixture(t)
-	source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 50}
+	source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = pbduration.FromMilliseconds(50)
 	var answers []bool
 	poll := runReport(t, source, catalog, policy, &testsupport.Session{OnPollRPC: polled(&answers, report(t, catalog, &reportItem{"a", 1}))})
 	protorequire.ProtoSliceEqual(t, withoutDetail(poll), withoutDetail(once))
@@ -184,13 +186,13 @@ func TestAReadOnceThatHoldsLiftsWhatAPollWould(t *testing.T) {
 // within its bound however deep or long it is.
 func TestAnExpiryNamesItsConditionDeterministically(t *testing.T) {
 	text := func(value string) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: textValue(value)}}
+		return cel.Literal(textValue(value))
 	}
 	not := func(operand *testpilotspb.Expression) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: operand}}}
+		return cel.Not(operand)
 	}
 	anyOf := func(operands ...*testpilotspb.Expression) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Any{Any: &testpilotspb.AnyExpression{Operands: operands}}}
+		return cel.Any(operands...)
 	}
 	nested := projected("state")
 	for range conditionRenderDepth {
@@ -201,8 +203,8 @@ func TestAnExpiryNamesItsConditionDeterministically(t *testing.T) {
 		rendered  string
 	}{
 		"every arm": {
-			all(present(projected("item.key")), not(compare(testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL, projected("key"), textValue("a"))), anyOf(compare(testpilotspb.COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL, projected(""), integer("-3")), text("b"))),
-			`all(present(value.item.key), not(value.key != "a"), any(value <= -3, "b"))`,
+			all(present(projected("item.key")), not(compare("_!=_", projected("key"), textValue("a"))), anyOf(compare("_<=_", projected(""), integer("-3")), text("b"))),
+			`all(present(value.item.key), all(not(value.key != "a"), any(value <= -3, "b")))`,
 		},
 		"too deep": {nested, "not(not(not(not(not(not(not(not(...))))))))"},
 		"too long": {text(strings.Repeat("x", 2*conditionRenderBytes)), `"` + strings.Repeat("x", conditionRenderBytes-4) + "..."},

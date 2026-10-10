@@ -7,6 +7,7 @@ import (
 	"context"
 	"time"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -126,7 +127,7 @@ type ValueReference struct {
 // OutcomeSnapshot transfers independent outcome and declared-field values to one activation.
 type OutcomeSnapshot struct {
 	Outcome *testpilotspb.InstructionOutcome
-	Fields  map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value
+	Fields  map[testpilotspb.InstructionOutcomeField]*celpb.Value
 }
 
 type ReservationCarrierPlan struct {

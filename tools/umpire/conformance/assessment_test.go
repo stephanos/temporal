@@ -9,6 +9,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
@@ -375,7 +376,7 @@ func TestClockSkewChangesNoAssessment(t *testing.T) {
 			skewed := proto.CloneOf(run)
 			for i, event := range skewed.GetEvents() {
 				if i > 0 {
-					event.ElapsedMilliseconds = event.GetElapsedMilliseconds()*1000 + int64(i)*86400000
+					event.Elapsed = duration.FromMilliseconds(event.GetElapsed().AsDuration().Milliseconds()*1000 + int64(i)*86400000)
 				}
 			}
 			require.False(t, proto.Equal(run, skewed))

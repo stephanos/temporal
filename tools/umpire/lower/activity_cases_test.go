@@ -17,6 +17,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/ir"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
@@ -264,7 +265,7 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 			for _, rule := range c.GetContract().GetCorrelated().GetProjectionRules() {
 				require.Equal(t, testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED, rule.GetMeaning())
 				steps := []string{}
-				for _, output := range rule.GetOutputs() {
+				for _, output := range correlatedResults(c.GetContract().GetCorrelated(), rule) {
 					steps = append(steps, output.GetAction().GetValue())
 				}
 				confirmed[strings.TrimPrefix(defined(names, rule.GetKind()), activityEvidence)] = steps
@@ -361,13 +362,13 @@ func TestTheRetryCaseFailsItsFirstAttemptAndReadsItsSecondFromTheRunsRecord(t *t
 	declared := map[string]*testpilotspb.EvidenceDeclaration{}
 	for _, d := range c.GetProgram().GetEvidence() {
 		bare := proto.CloneOf(d)
-		bare.EvidenceId, bare.EvidenceSource, bare.Scope = "", "", nil
+		bare.EvidenceId, bare.EvidenceSource, bare.Kind, bare.Scope = "", "", "", nil
 		declared[strings.TrimPrefix(defined(names, d.GetEvidenceId()), activityEvidence)] = bare
 	}
 	require.ElementsMatch(t, []string{"statusScheduled", "statusStarted", "attemptCount", "statusCompleted"}, slices.Collect(maps.Keys(declared)))
 
 	all := func(operands ...*testpilotspb.Expression) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: operands}}}
+		return cel.All(operands...)
 	}
 	attempt := func(number int64) *testpilotspb.EvidenceDeclaration {
 		projected := func(path string) *testpilotspb.Expression { return cp.Path(cp.ProjectedValue(), path) }
@@ -378,12 +379,11 @@ func TestTheRetryCaseFailsItsFirstAttemptAndReadsItsSecondFromTheRunsRecord(t *t
 				RunKeyed:    true,
 				// The guard the realization writes, a delivered attempt, and then the attempt the record is
 				// declared of, which the lowering states so that the runtime selects the record by it.
-				Guard: all(
-					all(cp.Present(projected("activity_attempt")), &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{
-						Operand: cp.Equal(projected("activity_attempt.delivery_id"), cp.Literal(cp.Text("")))}}}),
-					cp.Equal(projected("activity_attempt.sdk_attempt"), cp.Literal(cp.SignedInteger(number))))}},
-			Fields: []*testpilotspb.EvidenceFieldDeclaration{{FieldId: "attempt", Path: "activity_attempt.sdk_attempt"},
-				{FieldId: "delivery", Path: "activity_attempt.delivery_id"}, {FieldId: "activityRun", Path: "activity_attempt.activity_run_id"}},
+			}},
+			Operation: cp.Literal(cp.Text(c.GetProgram().GetEvidence()[0].GetScope()[0].GetValue().GetCel().GetExpr().GetConstExpr().GetStringValue())),
+			Guard:     all(all(cp.Present(projected("activity_attempt")), cel.Not(cp.Equal(projected("activity_attempt.delivery_id"), cp.Literal(cp.Text(""))))), cp.Equal(projected("activity_attempt.sdk_attempt"), cp.Literal(cp.SignedInteger(number)))),
+			Fields: []*testpilotspb.NamedExpression{{FieldId: "attempt", Value: projected("activity_attempt.sdk_attempt")},
+				{FieldId: "delivery", Value: projected("activity_attempt.delivery_id")}, {FieldId: "activityRun", Value: projected("activity_attempt.activity_run_id")}},
 		}
 	}
 	protorequire.ProtoEqual(t, attempt(1), declared["statusStarted"])
@@ -392,10 +392,12 @@ func TestTheRetryCaseFailsItsFirstAttemptAndReadsItsSecondFromTheRunsRecord(t *t
 		Kind:        testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED,
 		Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "start-activity"},
 		RunKeyed:    true,
-		Guard:       cp.Equal(cp.Path(cp.ProjectedValue(), "status"), cp.Literal(cp.Enum("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED")))}}},
+	}},
+		Operation: cp.Literal(cp.Text(c.GetProgram().GetEvidence()[0].GetScope()[0].GetValue().GetCel().GetExpr().GetConstExpr().GetStringValue())),
+		Guard:     cp.Equal(cp.Path(cp.ProjectedValue(), "status"), cp.Literal(cp.Enum("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED")))},
 		declared["statusScheduled"])
-	protorequire.ProtoEqual(t, &testpilotspb.EvidenceDeclaration{Operation: "activity_id",
-		Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describeActivity, Path: "info", Single: true}}},
+	protorequire.ProtoEqual(t, &testpilotspb.EvidenceDeclaration{Operation: cp.Path(cp.ProjectedValue(), "activity_id"),
+		Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describeActivity, Path: "info"}}},
 		declared["statusCompleted"])
 
 	retained := func(id string, kind testpilotspb.ScalarKind) *testpilotspb.CorrelatedFieldPolicy {

@@ -1,6 +1,7 @@
 package execution
 
 import (
+	celpb "cel.dev/expr"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -35,7 +36,7 @@ func (s *valueStore) externalPublication(id contract.ReservationIdentity, attemp
 		if err != nil {
 			return "", nil, err
 		}
-		value := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: encoded}}
+		value := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: encoded}}
 		slot := b.source.PendingSlotId
 		return slot, func() error {
 			s.mu.Lock()
@@ -43,7 +44,7 @@ func (s *valueStore) externalPublication(id contract.ReservationIdentity, attemp
 			if s.sealed || s.slots[slot] != nil || s.pendingWrites[slot] != nil {
 				return ir.Invalid(ir.Malformed, "activity_publication", "closed or duplicate pending publication")
 			}
-			if learned := s.slots[b.runSlot]; learned != nil && learned.GetTextValue() != attempt.ActivityRunId {
+			if learned := s.slots[b.runSlot]; learned != nil && learned.GetStringValue() != attempt.ActivityRunId {
 				return ir.Invalid(ir.Malformed, "activity_publication", "pending activity run differs from learned carrier run")
 			}
 			carrier := s.externalRequests[b.carrier]
@@ -51,7 +52,7 @@ func (s *valueStore) externalPublication(id contract.ReservationIdentity, attemp
 				return ir.Invalid(ir.Malformed, "activity_publication", "pending namespace name or activity ID differs from carrier")
 			}
 			if s.pendingWrites == nil {
-				s.pendingWrites = map[string]*testpilotspb.Value{}
+				s.pendingWrites = map[string]*celpb.Value{}
 			}
 			s.pendingWrites[slot] = value
 			return nil
@@ -70,13 +71,13 @@ func (s *valueStore) checkExternalCarrierBatch(n *node, batch *valueBatch) error
 		if n != b.carrier {
 			continue
 		}
-		run := batch.writes[b.runSlot].GetTextValue()
+		run := batch.writes[b.runSlot].GetStringValue()
 		if run == "" {
 			return ir.Invalid(ir.Malformed, "activity_external_carrier", "carrier must return its actual nonempty activity run")
 		}
 		if value := s.slots[b.source.PendingSlotId]; value != nil {
 			pending := &testpilotspb.ActivityAttempt{}
-			if anypb.UnmarshalTo(value.GetMessageValue(), pending, proto.UnmarshalOptions{}) != nil || pending.ActivityRunId != run {
+			if anypb.UnmarshalTo(value.GetObjectValue(), pending, proto.UnmarshalOptions{}) != nil || pending.ActivityRunId != run {
 				return ir.Invalid(ir.Malformed, "activity_external_carrier", "learned carrier run differs from published pending delivery")
 			}
 		}
@@ -131,14 +132,14 @@ func (s *valueStore) admitExternalRequest(n *node, request proto.Message) error 
 			return invalid("exact typed external request required")
 		}
 		carrier := s.externalRequests[b.carrier]
-		run := s.slots[b.runSlot].GetTextValue()
+		run := s.slots[b.runSlot].GetStringValue()
 		if run == "" || externalText(request, "namespace") != externalText(carrier, "namespace") || externalText(request, "activity_id") != externalText(carrier, "activity_id") || externalText(request, "run_id") != run || externalText(request, "workflow_id") != "" {
 			return invalid("external request differs from actual standalone activity identity")
 		}
 		if b.held != nil && n != b.cleanup {
 			pending := &testpilotspb.ActivityAttempt{}
 			value := s.slots[b.source.PendingSlotId]
-			if value == nil || anypb.UnmarshalTo(value.GetMessageValue(), pending, proto.UnmarshalOptions{}) != nil || pending.ActivityRunId != run || pending.NamespaceName != externalText(request, "namespace") || pending.ActivityId != externalText(request, "activity_id") {
+			if value == nil || anypb.UnmarshalTo(value.GetObjectValue(), pending, proto.UnmarshalOptions{}) != nil || pending.ActivityRunId != run || pending.NamespaceName != externalText(request, "namespace") || pending.ActivityId != externalText(request, "activity_id") {
 				return invalid("external effect requires a successfully published actual pending identity")
 			}
 			if n == b.held && b.cancel != nil && !s.externalSucceeded[b.cancel] {

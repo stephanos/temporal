@@ -63,7 +63,7 @@ func proposalFor(identity, path string) campaign.Counterexample {
 
 func sampleCase(caseID string) json.RawMessage {
 	encoded, err := protojson.Marshal(&testpilotspb.Case{
-		Version:  &testpilotspb.FormatVersion{Major: 1},
+		Version:  &testpilotspb.FormatVersion{Major: 4},
 		CaseId:   caseID,
 		Program:  &testpilotspb.Program{ProgramId: caseID + ".program"},
 		Contract: &testpilotspb.Contract{ContractId: caseID + ".contract"},

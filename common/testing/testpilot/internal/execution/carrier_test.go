@@ -4,8 +4,10 @@ import (
 	"math"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -27,7 +29,7 @@ func carrierFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 	source, catalog, policy := carrierFixture(t)
 	workflow := source.Program.Entrypoints[1]
-	workflow.Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
+	workflow.Instructions[0].Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: false}})
 	secondStart := proto.CloneOf(workflow.Instructions[0])
 	secondStart.InstructionId = "start_second"
 	secondStart.Guard = nil

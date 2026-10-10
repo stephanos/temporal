@@ -12,8 +12,10 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
+	expr "cel.dev/expr"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -22,70 +24,6 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
-
-// ContractRuleKind names whether a rule is a safety rule or a bounded-liveness rule.
-// Contract lifecycle enums use the public Testpilot Status vocabulary.
-// (-- api-linter: core::0191::file-layout=disabled
-//
-//	core::0216::synonyms=disabled --)
-type ContractRuleKind int32
-
-const (
-	CONTRACT_RULE_KIND_UNSPECIFIED      ContractRuleKind = 0
-	CONTRACT_RULE_KIND_SAFETY           ContractRuleKind = 1
-	CONTRACT_RULE_KIND_BOUNDED_LIVENESS ContractRuleKind = 2
-)
-
-// Enum value maps for ContractRuleKind.
-var (
-	ContractRuleKind_name = map[int32]string{
-		0: "CONTRACT_RULE_KIND_UNSPECIFIED",
-		1: "CONTRACT_RULE_KIND_SAFETY",
-		2: "CONTRACT_RULE_KIND_BOUNDED_LIVENESS",
-	}
-	ContractRuleKind_value = map[string]int32{
-		"CONTRACT_RULE_KIND_UNSPECIFIED":      0,
-		"CONTRACT_RULE_KIND_SAFETY":           1,
-		"CONTRACT_RULE_KIND_BOUNDED_LIVENESS": 2,
-	}
-)
-
-func (x ContractRuleKind) Enum() *ContractRuleKind {
-	p := new(ContractRuleKind)
-	*p = x
-	return p
-}
-
-func (x ContractRuleKind) String() string {
-	switch x {
-	case CONTRACT_RULE_KIND_UNSPECIFIED:
-		return "Unspecified"
-	case CONTRACT_RULE_KIND_SAFETY:
-		return "Safety"
-	case CONTRACT_RULE_KIND_BOUNDED_LIVENESS:
-		return "BoundedLiveness"
-	default:
-		return strconv.Itoa(int(x))
-	}
-
-}
-
-func (ContractRuleKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[0].Descriptor()
-}
-
-func (ContractRuleKind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[0]
-}
-
-func (x ContractRuleKind) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use ContractRuleKind.Descriptor instead.
-func (ContractRuleKind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{0}
-}
 
 // ContractStateStatus says whether a state is pending or decides the rule. Only pending states have
 // outgoing transitions, and a rule starts in one.
@@ -138,11 +76,11 @@ func (x ContractStateStatus) String() string {
 }
 
 func (ContractStateStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[1].Descriptor()
+	return file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[0].Descriptor()
 }
 
 func (ContractStateStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[1]
+	return &file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[0]
 }
 
 func (x ContractStateStatus) Number() protoreflect.EnumNumber {
@@ -151,68 +89,7 @@ func (x ContractStateStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ContractStateStatus.Descriptor instead.
 func (ContractStateStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{1}
-}
-
-// ContractSupportKind says whether a transition's matching Run Event joins the rule's and the
-// Verdict's supporting event sequences.
-type ContractSupportKind int32
-
-const (
-	CONTRACT_SUPPORT_KIND_UNSPECIFIED    ContractSupportKind = 0
-	CONTRACT_SUPPORT_KIND_NONE           ContractSupportKind = 1
-	CONTRACT_SUPPORT_KIND_MATCHING_EVENT ContractSupportKind = 2
-)
-
-// Enum value maps for ContractSupportKind.
-var (
-	ContractSupportKind_name = map[int32]string{
-		0: "CONTRACT_SUPPORT_KIND_UNSPECIFIED",
-		1: "CONTRACT_SUPPORT_KIND_NONE",
-		2: "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
-	}
-	ContractSupportKind_value = map[string]int32{
-		"CONTRACT_SUPPORT_KIND_UNSPECIFIED":    0,
-		"CONTRACT_SUPPORT_KIND_NONE":           1,
-		"CONTRACT_SUPPORT_KIND_MATCHING_EVENT": 2,
-	}
-)
-
-func (x ContractSupportKind) Enum() *ContractSupportKind {
-	p := new(ContractSupportKind)
-	*p = x
-	return p
-}
-
-func (x ContractSupportKind) String() string {
-	switch x {
-	case CONTRACT_SUPPORT_KIND_UNSPECIFIED:
-		return "Unspecified"
-	case CONTRACT_SUPPORT_KIND_NONE:
-		return "None"
-	case CONTRACT_SUPPORT_KIND_MATCHING_EVENT:
-		return "MatchingEvent"
-	default:
-		return strconv.Itoa(int(x))
-	}
-
-}
-
-func (ContractSupportKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[2].Descriptor()
-}
-
-func (ContractSupportKind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[2]
-}
-
-func (x ContractSupportKind) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use ContractSupportKind.Descriptor instead.
-func (ContractSupportKind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{0}
 }
 
 // Contract contains only closed deterministic monitor machines over declared Run Observations.
@@ -280,18 +157,17 @@ func (x *Contract) GetCorrelated() *CorrelatedContract {
 type ContractRule struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	RuleId         string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	Kind           ContractRuleKind       `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.ContractRuleKind" json:"kind,omitempty"`
-	InitialStateId string                 `protobuf:"bytes,3,opt,name=initial_state_id,json=initialStateId,proto3" json:"initial_state_id,omitempty"`
-	States         []*ContractState       `protobuf:"bytes,4,rep,name=states,proto3" json:"states,omitempty"`
+	InitialStateId string                 `protobuf:"bytes,2,opt,name=initial_state_id,json=initialStateId,proto3" json:"initial_state_id,omitempty"`
+	States         []*ContractState       `protobuf:"bytes,3,rep,name=states,proto3" json:"states,omitempty"`
 	// Values local to one Rule instance that its transitions assign.
-	Captures    []*ContractCapture    `protobuf:"bytes,5,rep,name=captures,proto3" json:"captures,omitempty"`
-	Transitions []*ContractTransition `protobuf:"bytes,6,rep,name=transitions,proto3" json:"transitions,omitempty"`
+	Captures    []*ContractCapture    `protobuf:"bytes,4,rep,name=captures,proto3" json:"captures,omitempty"`
+	Transitions []*ContractTransition `protobuf:"bytes,5,rep,name=transitions,proto3" json:"transitions,omitempty"`
 	// A bounded-liveness rule has one deadline; a safety rule has none.
-	Deadline *Deadline `protobuf:"bytes,7,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	Deadline *Deadline `protobuf:"bytes,6,opt,name=deadline,proto3" json:"deadline,omitempty"`
 	// Values each Rule instance assigns; a predicate reads one through Reference.instance_value_id.
-	InstanceValues []*ContractInstanceValue `protobuf:"bytes,8,rep,name=instance_values,json=instanceValues,proto3" json:"instance_values,omitempty"`
+	InstanceValues []*ContractInstanceValue `protobuf:"bytes,7,rep,name=instance_values,json=instanceValues,proto3" json:"instance_values,omitempty"`
 	// Empty: the Rule is evaluated once under rule_id. Otherwise once per instance, never under rule_id.
-	Instances     []*ContractRuleInstance `protobuf:"bytes,9,rep,name=instances,proto3" json:"instances,omitempty"`
+	Instances     []*ContractRuleInstance `protobuf:"bytes,8,rep,name=instances,proto3" json:"instances,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -331,13 +207,6 @@ func (x *ContractRule) GetRuleId() string {
 		return x.RuleId
 	}
 	return ""
-}
-
-func (x *ContractRule) GetKind() ContractRuleKind {
-	if x != nil {
-		return x.Kind
-	}
-	return CONTRACT_RULE_KIND_UNSPECIFIED
 }
 
 func (x *ContractRule) GetInitialStateId() string {
@@ -505,7 +374,7 @@ type ContractInstanceAssignment struct {
 	// The declared instance value this assignment gives a value.
 	InstanceValueId string `protobuf:"bytes,1,opt,name=instance_value_id,json=instanceValueId,proto3" json:"instance_value_id,omitempty"`
 	// A value of the instance value's declared type.
-	Value         *Value `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Value         *expr.Value `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -547,7 +416,7 @@ func (x *ContractInstanceAssignment) GetInstanceValueId() string {
 	return ""
 }
 
-func (x *ContractInstanceAssignment) GetValue() *Value {
+func (x *ContractInstanceAssignment) GetValue() *expr.Value {
 	if x != nil {
 		return x.Value
 	}
@@ -669,7 +538,7 @@ type ContractTransition struct {
 	SourceStateId string                 `protobuf:"bytes,2,opt,name=source_state_id,json=sourceStateId,proto3" json:"source_state_id,omitempty"`
 	TargetStateId string                 `protobuf:"bytes,3,opt,name=target_state_id,json=targetStateId,proto3" json:"target_state_id,omitempty"`
 	// Whether the matching Run Event supports the rule's conclusion.
-	SupportKind        ContractSupportKind          `protobuf:"varint,4,opt,name=support_kind,json=supportKind,proto3,enum=temporal.server.api.testpilot.v1.ContractSupportKind" json:"support_kind,omitempty"`
+	SupportsEvent      *bool                        `protobuf:"varint,4,opt,name=supports_event,json=supportsEvent,proto3,oneof" json:"supports_event,omitempty"`
 	CaptureAssignments []*ContractCaptureAssignment `protobuf:"bytes,5,rep,name=capture_assignments,json=captureAssignments,proto3" json:"capture_assignments,omitempty"`
 	// The Run Event kinds the transition considers; never empty.
 	EventFilter *RunEventFilter `protobuf:"bytes,6,opt,name=event_filter,json=eventFilter,proto3" json:"event_filter,omitempty"`
@@ -730,11 +599,11 @@ func (x *ContractTransition) GetTargetStateId() string {
 	return ""
 }
 
-func (x *ContractTransition) GetSupportKind() ContractSupportKind {
-	if x != nil {
-		return x.SupportKind
+func (x *ContractTransition) GetSupportsEvent() bool {
+	if x != nil && x.SupportsEvent != nil {
+		return *x.SupportsEvent
 	}
-	return CONTRACT_SUPPORT_KIND_UNSPECIFIED
+	return false
 }
 
 func (x *ContractTransition) GetCaptureAssignments() []*ContractCaptureAssignment {
@@ -820,7 +689,7 @@ type Deadline struct {
 	// Types that are valid to be assigned to Bound:
 	//
 	//	*Deadline_RuleEvents
-	//	*Deadline_ElapsedMilliseconds
+	//	*Deadline_Elapsed
 	Bound         isDeadline_Bound `protobuf_oneof:"bound"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -879,13 +748,13 @@ func (x *Deadline) GetRuleEvents() int64 {
 	return 0
 }
 
-func (x *Deadline) GetElapsedMilliseconds() int64 {
+func (x *Deadline) GetElapsed() *durationpb.Duration {
 	if x != nil {
-		if x, ok := x.Bound.(*Deadline_ElapsedMilliseconds); ok {
-			return x.ElapsedMilliseconds
+		if x, ok := x.Bound.(*Deadline_Elapsed); ok {
+			return x.Elapsed
 		}
 	}
-	return 0
+	return nil
 }
 
 type isDeadline_Bound interface {
@@ -900,15 +769,15 @@ type Deadline_RuleEvents struct {
 	RuleEvents int64 `protobuf:"varint,2,opt,name=rule_events,json=ruleEvents,proto3,oneof"`
 }
 
-type Deadline_ElapsedMilliseconds struct {
+type Deadline_Elapsed struct {
 	// Expires the rule at the first Run Event whose elapsed coordinate reaches it; that coordinate is
 	// derived from the recording host's clock, so a bound expressed in it is host-clock dependent.
-	ElapsedMilliseconds int64 `protobuf:"varint,3,opt,name=elapsed_milliseconds,json=elapsedMilliseconds,proto3,oneof"`
+	Elapsed *durationpb.Duration `protobuf:"bytes,3,opt,name=elapsed,proto3,oneof"`
 }
 
 func (*Deadline_RuleEvents) isDeadline_Bound() {}
 
-func (*Deadline_ElapsedMilliseconds) isDeadline_Bound() {}
+func (*Deadline_Elapsed) isDeadline_Bound() {}
 
 // ContractLimits are a Profile's resource ceilings on every Contract it admits, its correlated
 // contract included. A Case declares none of them.
@@ -1024,58 +893,58 @@ var File_temporal_server_api_testpilot_v1_contract_proto protoreflect.FileDescri
 
 const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\n" +
-	"/temporal/server/api/testpilot/v1/contract.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a,temporal/server/api/testpilot/v1/event.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xc7\x01\n" +
+	"/temporal/server/api/testpilot/v1/contract.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a,temporal/server/api/testpilot/v1/event.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\x1a\x14cel/expr/value.proto\x1a\x1egoogle/protobuf/duration.proto\"\xc7\x01\n" +
 	"\bContract\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\tR\n" +
 	"contractId\x12D\n" +
 	"\x05rules\x18\x02 \x03(\v2..temporal.server.api.testpilot.v1.ContractRuleR\x05rules\x12T\n" +
 	"\n" +
 	"correlated\x18\x03 \x01(\v24.temporal.server.api.testpilot.v1.CorrelatedContractR\n" +
-	"correlated\"\x89\x05\n" +
+	"correlated\"\xc7\x04\n" +
 	"\fContractRule\x12\x17\n" +
-	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12F\n" +
-	"\x04kind\x18\x02 \x01(\x0e22.temporal.server.api.testpilot.v1.ContractRuleKindR\x04kind\x12(\n" +
-	"\x10initial_state_id\x18\x03 \x01(\tR\x0einitialStateId\x12G\n" +
-	"\x06states\x18\x04 \x03(\v2/.temporal.server.api.testpilot.v1.ContractStateR\x06states\x12M\n" +
-	"\bcaptures\x18\x05 \x03(\v21.temporal.server.api.testpilot.v1.ContractCaptureR\bcaptures\x12V\n" +
-	"\vtransitions\x18\x06 \x03(\v24.temporal.server.api.testpilot.v1.ContractTransitionR\vtransitions\x12F\n" +
-	"\bdeadline\x18\a \x01(\v2*.temporal.server.api.testpilot.v1.DeadlineR\bdeadline\x12`\n" +
-	"\x0finstance_values\x18\b \x03(\v27.temporal.server.api.testpilot.v1.ContractInstanceValueR\x0einstanceValues\x12T\n" +
-	"\tinstances\x18\t \x03(\v26.temporal.server.api.testpilot.v1.ContractRuleInstanceR\tinstances\"\x87\x01\n" +
+	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12(\n" +
+	"\x10initial_state_id\x18\x02 \x01(\tR\x0einitialStateId\x12G\n" +
+	"\x06states\x18\x03 \x03(\v2/.temporal.server.api.testpilot.v1.ContractStateR\x06states\x12M\n" +
+	"\bcaptures\x18\x04 \x03(\v21.temporal.server.api.testpilot.v1.ContractCaptureR\bcaptures\x12V\n" +
+	"\vtransitions\x18\x05 \x03(\v24.temporal.server.api.testpilot.v1.ContractTransitionR\vtransitions\x12F\n" +
+	"\bdeadline\x18\x06 \x01(\v2*.temporal.server.api.testpilot.v1.DeadlineR\bdeadline\x12`\n" +
+	"\x0finstance_values\x18\a \x03(\v27.temporal.server.api.testpilot.v1.ContractInstanceValueR\x0einstanceValues\x12T\n" +
+	"\tinstances\x18\b \x03(\v26.temporal.server.api.testpilot.v1.ContractRuleInstanceR\tinstancesR\x04kind\"\x87\x01\n" +
 	"\x15ContractInstanceValue\x12*\n" +
 	"\x11instance_value_id\x18\x01 \x01(\tR\x0finstanceValueId\x12B\n" +
 	"\x04type\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeR\x04type\"\x8f\x01\n" +
 	"\x14ContractRuleInstance\x12\x17\n" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12^\n" +
-	"\vassignments\x18\x02 \x03(\v2<.temporal.server.api.testpilot.v1.ContractInstanceAssignmentR\vassignments\"\x87\x01\n" +
+	"\vassignments\x18\x02 \x03(\v2<.temporal.server.api.testpilot.v1.ContractInstanceAssignmentR\vassignments\"o\n" +
 	"\x1aContractInstanceAssignment\x12*\n" +
-	"\x11instance_value_id\x18\x01 \x01(\tR\x0finstanceValueId\x12=\n" +
-	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"y\n" +
+	"\x11instance_value_id\x18\x01 \x01(\tR\x0finstanceValueId\x12%\n" +
+	"\x05value\x18\x02 \x01(\v2\x0f.cel.expr.ValueR\x05value\"y\n" +
 	"\rContractState\x12\x19\n" +
 	"\bstate_id\x18\x01 \x01(\tR\astateId\x12M\n" +
 	"\x06status\x18\x02 \x01(\x0e25.temporal.server.api.testpilot.v1.ContractStateStatusR\x06status\"t\n" +
 	"\x0fContractCapture\x12\x1d\n" +
 	"\n" +
 	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12B\n" +
-	"\x04type\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeR\x04type\"\xf2\x03\n" +
+	"\x04type\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeR\x04type\"\xd7\x03\n" +
 	"\x12ContractTransition\x12#\n" +
 	"\rtransition_id\x18\x01 \x01(\tR\ftransitionId\x12&\n" +
 	"\x0fsource_state_id\x18\x02 \x01(\tR\rsourceStateId\x12&\n" +
-	"\x0ftarget_state_id\x18\x03 \x01(\tR\rtargetStateId\x12X\n" +
-	"\fsupport_kind\x18\x04 \x01(\x0e25.temporal.server.api.testpilot.v1.ContractSupportKindR\vsupportKind\x12l\n" +
+	"\x0ftarget_state_id\x18\x03 \x01(\tR\rtargetStateId\x12*\n" +
+	"\x0esupports_event\x18\x04 \x01(\bH\x00R\rsupportsEvent\x88\x01\x01\x12l\n" +
 	"\x13capture_assignments\x18\x05 \x03(\v2;.temporal.server.api.testpilot.v1.ContractCaptureAssignmentR\x12captureAssignments\x12S\n" +
 	"\fevent_filter\x18\x06 \x01(\v20.temporal.server.api.testpilot.v1.RunEventFilterR\veventFilter\x12J\n" +
-	"\tpredicate\x18\a \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\tpredicate\"a\n" +
+	"\tpredicate\x18\a \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\tpredicateB\x11\n" +
+	"\x0f_supports_event\"a\n" +
 	"\x19ContractCaptureAssignment\x12\x1d\n" +
 	"\n" +
 	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12%\n" +
-	"\x0eobservation_id\x18\x02 \x01(\tR\robservationId\"\x99\x01\n" +
+	"\x0eobservation_id\x18\x02 \x01(\tR\robservationId\"\xb1\x01\n" +
 	"\bDeadline\x12,\n" +
 	"\x12violation_state_id\x18\x01 \x01(\tR\x10violationStateId\x12!\n" +
 	"\vrule_events\x18\x02 \x01(\x03H\x00R\n" +
-	"ruleEvents\x123\n" +
-	"\x14elapsed_milliseconds\x18\x03 \x01(\x03H\x00R\x13elapsedMillisecondsB\a\n" +
-	"\x05bound\"\xc9\x02\n" +
+	"ruleEvents\x125\n" +
+	"\aelapsed\x18\x03 \x01(\v2\x19.google.protobuf.DurationH\x00R\aelapsedB\a\n" +
+	"\x05boundR\x14elapsed_milliseconds\"\xc9\x02\n" +
 	"\x0eContractLimits\x12\x1b\n" +
 	"\tmax_rules\x18\x01 \x01(\x03R\bmaxRules\x12\x1d\n" +
 	"\n" +
@@ -1085,20 +954,12 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x12max_work_per_event\x18\x05 \x01(\x03R\x0fmaxWorkPerEvent\x12$\n" +
 	"\x0emax_total_work\x18\x06 \x01(\x03R\fmaxTotalWork\x12!\n" +
 	"\fmax_captures\x18\a \x01(\x03R\vmaxCaptures\x12*\n" +
-	"\x11max_capture_bytes\x18\b \x01(\x03R\x0fmaxCaptureBytes*~\n" +
-	"\x10ContractRuleKind\x12\"\n" +
-	"\x1eCONTRACT_RULE_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
-	"\x19CONTRACT_RULE_KIND_SAFETY\x10\x01\x12'\n" +
-	"#CONTRACT_RULE_KIND_BOUNDED_LIVENESS\x10\x02*\xa8\x01\n" +
+	"\x11max_capture_bytes\x18\b \x01(\x03R\x0fmaxCaptureBytes*\xa8\x01\n" +
 	"\x13ContractStateStatus\x12%\n" +
 	"!CONTRACT_STATE_STATUS_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dCONTRACT_STATE_STATUS_PENDING\x10\x01\x12#\n" +
 	"\x1fCONTRACT_STATE_STATUS_SATISFIED\x10\x02\x12\"\n" +
-	"\x1eCONTRACT_STATE_STATUS_VIOLATED\x10\x03*\x86\x01\n" +
-	"\x13ContractSupportKind\x12%\n" +
-	"!CONTRACT_SUPPORT_KIND_UNSPECIFIED\x10\x00\x12\x1e\n" +
-	"\x1aCONTRACT_SUPPORT_KIND_NONE\x10\x01\x12(\n" +
-	"$CONTRACT_SUPPORT_KIND_MATCHING_EVENT\x10\x02B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\x1eCONTRACT_STATE_STATUS_VIOLATED\x10\x03B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_contract_proto_rawDescOnce sync.Once
@@ -1112,53 +973,51 @@ func file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_contract_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_temporal_server_api_testpilot_v1_contract_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_temporal_server_api_testpilot_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_temporal_server_api_testpilot_v1_contract_proto_goTypes = []any{
-	(ContractRuleKind)(0),              // 0: temporal.server.api.testpilot.v1.ContractRuleKind
-	(ContractStateStatus)(0),           // 1: temporal.server.api.testpilot.v1.ContractStateStatus
-	(ContractSupportKind)(0),           // 2: temporal.server.api.testpilot.v1.ContractSupportKind
-	(*Contract)(nil),                   // 3: temporal.server.api.testpilot.v1.Contract
-	(*ContractRule)(nil),               // 4: temporal.server.api.testpilot.v1.ContractRule
-	(*ContractInstanceValue)(nil),      // 5: temporal.server.api.testpilot.v1.ContractInstanceValue
-	(*ContractRuleInstance)(nil),       // 6: temporal.server.api.testpilot.v1.ContractRuleInstance
-	(*ContractInstanceAssignment)(nil), // 7: temporal.server.api.testpilot.v1.ContractInstanceAssignment
-	(*ContractState)(nil),              // 8: temporal.server.api.testpilot.v1.ContractState
-	(*ContractCapture)(nil),            // 9: temporal.server.api.testpilot.v1.ContractCapture
-	(*ContractTransition)(nil),         // 10: temporal.server.api.testpilot.v1.ContractTransition
-	(*ContractCaptureAssignment)(nil),  // 11: temporal.server.api.testpilot.v1.ContractCaptureAssignment
-	(*Deadline)(nil),                   // 12: temporal.server.api.testpilot.v1.Deadline
-	(*ContractLimits)(nil),             // 13: temporal.server.api.testpilot.v1.ContractLimits
-	(*CorrelatedContract)(nil),         // 14: temporal.server.api.testpilot.v1.CorrelatedContract
-	(*SingularType)(nil),               // 15: temporal.server.api.testpilot.v1.SingularType
-	(*Value)(nil),                      // 16: temporal.server.api.testpilot.v1.Value
-	(*RunEventFilter)(nil),             // 17: temporal.server.api.testpilot.v1.RunEventFilter
-	(*Expression)(nil),                 // 18: temporal.server.api.testpilot.v1.Expression
+	(ContractStateStatus)(0),           // 0: temporal.server.api.testpilot.v1.ContractStateStatus
+	(*Contract)(nil),                   // 1: temporal.server.api.testpilot.v1.Contract
+	(*ContractRule)(nil),               // 2: temporal.server.api.testpilot.v1.ContractRule
+	(*ContractInstanceValue)(nil),      // 3: temporal.server.api.testpilot.v1.ContractInstanceValue
+	(*ContractRuleInstance)(nil),       // 4: temporal.server.api.testpilot.v1.ContractRuleInstance
+	(*ContractInstanceAssignment)(nil), // 5: temporal.server.api.testpilot.v1.ContractInstanceAssignment
+	(*ContractState)(nil),              // 6: temporal.server.api.testpilot.v1.ContractState
+	(*ContractCapture)(nil),            // 7: temporal.server.api.testpilot.v1.ContractCapture
+	(*ContractTransition)(nil),         // 8: temporal.server.api.testpilot.v1.ContractTransition
+	(*ContractCaptureAssignment)(nil),  // 9: temporal.server.api.testpilot.v1.ContractCaptureAssignment
+	(*Deadline)(nil),                   // 10: temporal.server.api.testpilot.v1.Deadline
+	(*ContractLimits)(nil),             // 11: temporal.server.api.testpilot.v1.ContractLimits
+	(*CorrelatedContract)(nil),         // 12: temporal.server.api.testpilot.v1.CorrelatedContract
+	(*SingularType)(nil),               // 13: temporal.server.api.testpilot.v1.SingularType
+	(*expr.Value)(nil),                 // 14: cel.expr.Value
+	(*RunEventFilter)(nil),             // 15: temporal.server.api.testpilot.v1.RunEventFilter
+	(*Expression)(nil),                 // 16: temporal.server.api.testpilot.v1.Expression
+	(*durationpb.Duration)(nil),        // 17: google.protobuf.Duration
 }
 var file_temporal_server_api_testpilot_v1_contract_proto_depIdxs = []int32{
-	4,  // 0: temporal.server.api.testpilot.v1.Contract.rules:type_name -> temporal.server.api.testpilot.v1.ContractRule
-	14, // 1: temporal.server.api.testpilot.v1.Contract.correlated:type_name -> temporal.server.api.testpilot.v1.CorrelatedContract
-	0,  // 2: temporal.server.api.testpilot.v1.ContractRule.kind:type_name -> temporal.server.api.testpilot.v1.ContractRuleKind
-	8,  // 3: temporal.server.api.testpilot.v1.ContractRule.states:type_name -> temporal.server.api.testpilot.v1.ContractState
-	9,  // 4: temporal.server.api.testpilot.v1.ContractRule.captures:type_name -> temporal.server.api.testpilot.v1.ContractCapture
-	10, // 5: temporal.server.api.testpilot.v1.ContractRule.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransition
-	12, // 6: temporal.server.api.testpilot.v1.ContractRule.deadline:type_name -> temporal.server.api.testpilot.v1.Deadline
-	5,  // 7: temporal.server.api.testpilot.v1.ContractRule.instance_values:type_name -> temporal.server.api.testpilot.v1.ContractInstanceValue
-	6,  // 8: temporal.server.api.testpilot.v1.ContractRule.instances:type_name -> temporal.server.api.testpilot.v1.ContractRuleInstance
-	15, // 9: temporal.server.api.testpilot.v1.ContractInstanceValue.type:type_name -> temporal.server.api.testpilot.v1.SingularType
-	7,  // 10: temporal.server.api.testpilot.v1.ContractRuleInstance.assignments:type_name -> temporal.server.api.testpilot.v1.ContractInstanceAssignment
-	16, // 11: temporal.server.api.testpilot.v1.ContractInstanceAssignment.value:type_name -> temporal.server.api.testpilot.v1.Value
-	1,  // 12: temporal.server.api.testpilot.v1.ContractState.status:type_name -> temporal.server.api.testpilot.v1.ContractStateStatus
-	15, // 13: temporal.server.api.testpilot.v1.ContractCapture.type:type_name -> temporal.server.api.testpilot.v1.SingularType
-	2,  // 14: temporal.server.api.testpilot.v1.ContractTransition.support_kind:type_name -> temporal.server.api.testpilot.v1.ContractSupportKind
-	11, // 15: temporal.server.api.testpilot.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
-	17, // 16: temporal.server.api.testpilot.v1.ContractTransition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
-	18, // 17: temporal.server.api.testpilot.v1.ContractTransition.predicate:type_name -> temporal.server.api.testpilot.v1.Expression
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	2,  // 0: temporal.server.api.testpilot.v1.Contract.rules:type_name -> temporal.server.api.testpilot.v1.ContractRule
+	12, // 1: temporal.server.api.testpilot.v1.Contract.correlated:type_name -> temporal.server.api.testpilot.v1.CorrelatedContract
+	6,  // 2: temporal.server.api.testpilot.v1.ContractRule.states:type_name -> temporal.server.api.testpilot.v1.ContractState
+	7,  // 3: temporal.server.api.testpilot.v1.ContractRule.captures:type_name -> temporal.server.api.testpilot.v1.ContractCapture
+	8,  // 4: temporal.server.api.testpilot.v1.ContractRule.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransition
+	10, // 5: temporal.server.api.testpilot.v1.ContractRule.deadline:type_name -> temporal.server.api.testpilot.v1.Deadline
+	3,  // 6: temporal.server.api.testpilot.v1.ContractRule.instance_values:type_name -> temporal.server.api.testpilot.v1.ContractInstanceValue
+	4,  // 7: temporal.server.api.testpilot.v1.ContractRule.instances:type_name -> temporal.server.api.testpilot.v1.ContractRuleInstance
+	13, // 8: temporal.server.api.testpilot.v1.ContractInstanceValue.type:type_name -> temporal.server.api.testpilot.v1.SingularType
+	5,  // 9: temporal.server.api.testpilot.v1.ContractRuleInstance.assignments:type_name -> temporal.server.api.testpilot.v1.ContractInstanceAssignment
+	14, // 10: temporal.server.api.testpilot.v1.ContractInstanceAssignment.value:type_name -> cel.expr.Value
+	0,  // 11: temporal.server.api.testpilot.v1.ContractState.status:type_name -> temporal.server.api.testpilot.v1.ContractStateStatus
+	13, // 12: temporal.server.api.testpilot.v1.ContractCapture.type:type_name -> temporal.server.api.testpilot.v1.SingularType
+	9,  // 13: temporal.server.api.testpilot.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
+	15, // 14: temporal.server.api.testpilot.v1.ContractTransition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
+	16, // 15: temporal.server.api.testpilot.v1.ContractTransition.predicate:type_name -> temporal.server.api.testpilot.v1.Expression
+	17, // 16: temporal.server.api.testpilot.v1.Deadline.elapsed:type_name -> google.protobuf.Duration
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_contract_proto_init() }
@@ -1170,16 +1029,17 @@ func file_temporal_server_api_testpilot_v1_contract_proto_init() {
 	file_temporal_server_api_testpilot_v1_event_proto_init()
 	file_temporal_server_api_testpilot_v1_expression_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
+	file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[7].OneofWrappers = []any{}
 	file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[9].OneofWrappers = []any{
 		(*Deadline_RuleEvents)(nil),
-		(*Deadline_ElapsedMilliseconds)(nil),
+		(*Deadline_Elapsed)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_contract_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_contract_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      1,
 			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,

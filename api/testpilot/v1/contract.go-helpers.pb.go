@@ -415,25 +415,6 @@ func (this *ContractLimits) Equal(that interface{}) bool {
 }
 
 var (
-	ContractRuleKind_shorthandValue = map[string]int32{
-		"Unspecified":     0,
-		"Safety":          1,
-		"BoundedLiveness": 2,
-	}
-)
-
-// ContractRuleKindFromString parses a ContractRuleKind value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ContractRuleKind
-func ContractRuleKindFromString(s string) (ContractRuleKind, error) {
-	if v, ok := ContractRuleKind_value[s]; ok {
-		return ContractRuleKind(v), nil
-	} else if v, ok := ContractRuleKind_shorthandValue[s]; ok {
-		return ContractRuleKind(v), nil
-	}
-	return ContractRuleKind(0), fmt.Errorf("%s is not a valid ContractRuleKind", s)
-}
-
-var (
 	ContractStateStatus_shorthandValue = map[string]int32{
 		"Unspecified": 0,
 		"Pending":     1,
@@ -451,23 +432,4 @@ func ContractStateStatusFromString(s string) (ContractStateStatus, error) {
 		return ContractStateStatus(v), nil
 	}
 	return ContractStateStatus(0), fmt.Errorf("%s is not a valid ContractStateStatus", s)
-}
-
-var (
-	ContractSupportKind_shorthandValue = map[string]int32{
-		"Unspecified":   0,
-		"None":          1,
-		"MatchingEvent": 2,
-	}
-)
-
-// ContractSupportKindFromString parses a ContractSupportKind value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ContractSupportKind
-func ContractSupportKindFromString(s string) (ContractSupportKind, error) {
-	if v, ok := ContractSupportKind_value[s]; ok {
-		return ContractSupportKind(v), nil
-	} else if v, ok := ContractSupportKind_shorthandValue[s]; ok {
-		return ContractSupportKind(v), nil
-	}
-	return ContractSupportKind(0), fmt.Errorf("%s is not a valid ContractSupportKind", s)
 }

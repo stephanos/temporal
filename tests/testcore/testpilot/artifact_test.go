@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
@@ -18,6 +19,7 @@ import (
 	"go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -25,6 +27,7 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
@@ -54,7 +57,7 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 		require.Empty(t, role.ReservationCarriers)
 	}
 
-	message := syntheticResult(source).GetMessageValue()
+	message := syntheticResult(source).GetObjectValue()
 	require.Equal(t, "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion", message.GetTypeUrl())
 	require.Equal(t, []byte{8, 1, 16, 2}, message.GetValue())
 	require.True(t, proto.Equal(&testpilotspb.CaseProvenance{ProducerId: "standalone.lean.testpilot", ProducerVersion: "1"}, source.GetProvenance()))
@@ -65,7 +68,7 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 	typed.Provenance.Sources = []*testpilotspb.SourceLocation{location}
 	typed.Provenance.KnownGaps = []*testpilotspb.KnownGap{
 		{Kind: testpilotspb.KNOWN_GAP_KIND_INPUT, Code: "g"},
-		{Kind: testpilotspb.KNOWN_GAP_KIND_CLAIM, Code: "h", SubjectPresence: &testpilotspb.KnownGap_Subject{Subject: "p"}, DetailPresence: &testpilotspb.KnownGap_Detail{}},
+		{Kind: testpilotspb.KNOWN_GAP_KIND_CLAIM, Code: "h", Subject: proto.String("p"), Detail: proto.String("")},
 	}
 	typed.Provenance.CorrelatedRules = []*testpilotspb.CorrelatedRuleBinding{{RuleId: "r", PropertyId: "p", PropertyFingerprint: "f", ProjectionId: "j", ProjectionFingerprint: "h", Source: location}}
 	typedJSON, err := protojson.Marshal(typed)
@@ -74,8 +77,8 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, proto.Equal(typed, typedRoundTrip))
 	// An empty detail stays present, so it is not an absent one.
-	require.NotNil(t, typedRoundTrip.GetProvenance().GetKnownGaps()[1].GetDetailPresence())
-	require.Nil(t, typedRoundTrip.GetProvenance().GetKnownGaps()[0].GetDetailPresence())
+	require.NotNil(t, typedRoundTrip.GetProvenance().GetKnownGaps()[1].Detail)
+	require.Nil(t, typedRoundTrip.GetProvenance().GetKnownGaps()[0].Detail)
 }
 
 func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
@@ -102,23 +105,19 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 		mutate func(*testpilotspb.Case)
 	}{
 		{name: "malformed message wire", want: "invalid wire tag", mutate: func(candidate *testpilotspb.Case) {
-			syntheticResult(candidate).GetMessageValue().Value = []byte{0xff}
+			syntheticResult(candidate).GetObjectValue().Value = []byte{0xff}
 		}},
 		{name: "unknown descriptor", want: "unknown message", mutate: func(candidate *testpilotspb.Case) {
-			syntheticResult(candidate).GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
+			syntheticResult(candidate).GetObjectValue().TypeUrl = "type.googleapis.com/example.Missing"
 		}},
 		{name: "invalid bounds", want: "instruction bounds exceed Profile ceilings", mutate: func(candidate *testpilotspb.Case) {
-			candidate.Program.Entrypoints[0].Instructions[0].Limits = &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 0}}
+			candidate.Program.Entrypoints[0].Instructions[0].Limits = &testpilotspb.InstructionLimits{Timeout: durationpb.New(time.Duration(0) * time.Millisecond)}
 		}},
 		{name: "invalid identity", want: "invalid Program identity", mutate: func(candidate *testpilotspb.Case) {
 			candidate.Program.ProgramId = "invalid/program"
 		}},
 		{name: "unbound scope", want: "reference is not declared in this environment", mutate: func(candidate *testpilotspb.Case) {
-			candidate.Contract.Rules[0].Transitions[0].Predicate = &testpilotspb.Expression{
-				Expression: &testpilotspb.Expression_Reference{
-					Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "missing"}},
-				},
-			}
+			candidate.Contract.Rules[0].Transitions[0].Predicate = cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "missing"}})
 		}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -134,12 +133,7 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 // declared before ceilings moved to the Profile; they are far below the Temporal defaults, so the
 // no-I/O admission they back stays as tight as it was.
 func syntheticProgramCeilings() *testpilotspb.ProgramLimits {
-	return &testpilotspb.ProgramLimits{
-		MaxEntrypoints: 1, MaxNodes: 1, MaxEdges: 1, MaxActivations: 1, MaxAttempts: 1, MaxRunEvents: 8,
-		MaxExpressionDepth: 8, MaxPathFanout: 4, MaxRequestBytes: 1024, MaxResponseBytes: 1024,
-		MaxTotalDurationMilliseconds: 1000, MaxCleanupDurationMilliseconds: 1000,
-		MaxInstructionEmittedEvents: 1, MaxInstructionResponseBytes: 1024,
-	}
+	return &testpilotspb.ProgramLimits{MaxEntrypoints: 1, MaxNodes: 1, MaxEdges: 1, MaxActivations: 1, MaxAttempts: 1, MaxRunEvents: 8, MaxExpressionDepth: 8, MaxPathFanout: 4, MaxRequestBytes: 1024, MaxResponseBytes: 1024, MaxDuration: durationpb.New(time.Duration(1000) * time.Millisecond), CleanupDuration: durationpb.New(time.Duration(1000) * time.Millisecond), MaxInstructionEmittedEvents: 1, MaxInstructionResponseBytes: 1024}
 }
 
 func syntheticContractCeilings() *testpilotspb.ContractLimits {
@@ -149,9 +143,9 @@ func syntheticContractCeilings() *testpilotspb.ContractLimits {
 	}
 }
 
-func syntheticResult(source *testpilotspb.Case) *testpilotspb.Value {
+func syntheticResult(source *testpilotspb.Case) *celpb.Value {
 	return source.GetProgram().GetEntrypoints()[0].GetInstructions()[0].GetInstruction().
-		GetFinish().GetResult().GetLiteral()
+		GetFinish().GetResult().GetBindings()[0].GetLiteral()
 }
 
 // Decoding, preparing and identity for every fixture live in the shared table
@@ -222,7 +216,7 @@ func (d *validatingArtifactDriver) Open(ctx context.Context, runID string, progr
 
 func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *testing.T) {
 	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
-	require.Equal(t, int32(1), source.GetVersion().GetMajor())
+	require.Equal(t, int32(4), source.GetVersion().GetMajor())
 	require.Equal(t, int32(0), source.GetVersion().GetMinor())
 	require.Equal(t, []string{
 		NexusCallerWorkerNamespaceBindingID,
@@ -249,11 +243,11 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 		}
 	}
 	require.Equal(t, NexusCallerWorkerNamespaceBindingID,
-		startAssignments[0].GetValue().GetReference().GetEnvironmentBindingId())
+		startAssignments[0].GetValue().GetBindings()[0].GetReference().GetEnvironmentBindingId())
 	require.Equal(t, NexusCallerTaskQueueBindingID,
-		startAssignments[3].GetValue().GetReference().GetEnvironmentBindingId())
+		startAssignments[3].GetValue().GetBindings()[0].GetReference().GetEnvironmentBindingId())
 	require.Equal(t, NexusCallerWorkerNamespaceBindingID,
-		historyAssignments[0].GetValue().GetReference().GetEnvironmentBindingId())
+		historyAssignments[0].GetValue().GetBindings()[0].GetReference().GetEnvironmentBindingId())
 
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
@@ -406,7 +400,7 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 			// Fewer than the three steps a satisfied Run supports: the completion is never admitted.
 			require.Less(t, len(verdict.GetSupportingEventSequences()), 3)
-			require.Equal(t, test.status == testpilotspb.RUN_DISPOSITION_INCOMPLETE, actual.GetEvaluationFailure() != nil)
+			require.Equal(t, test.status == testpilotspb.RUN_DISPOSITION_INCOMPLETE, actual.EvaluationFailureSequence != nil)
 		})
 	}
 }

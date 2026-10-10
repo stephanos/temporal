@@ -2,23 +2,26 @@ package execution
 
 import (
 	"fmt"
-	"math"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
 	pollPath         = "program.entrypoints[controller].instructions[pending-attempts]"
-	pollTimeoutPath  = pollPath + ".limits.timeout_milliseconds"
-	pollIntervalPath = pollPath + ".instruction.read_evidence.poll_interval_milliseconds"
+	pollTimeoutPath  = pollPath + ".limits.timeout"
+	pollIntervalPath = pollPath + ".instruction.read_evidence.interval"
 )
 
 func waitHint(id string, line int32, atMost int64) *testpilotspb.WaitHint {
-	return &testpilotspb.WaitHint{HintId: id, Source: &testpilotspb.SourceLocation{Path: "model/temporal/realize/Behavior.scala", Line: line}, AtMostMilliseconds: atMost}
+	return &testpilotspb.WaitHint{HintId: id, Source: &testpilotspb.SourceLocation{Path: "model/temporal/realize/Behavior.scala", Line: line}, AtMost: durationpb.New(time.Duration(atMost) * time.Millisecond)}
 }
 
 // hintedFixture is evidenceFixture with its poll bounded by two hints whose bounds sum to the
@@ -29,7 +32,7 @@ func hintedFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	source, catalog, policy := evidenceFixture(t)
 	policy.InstructionDefaults = contract.InstructionDefaults{TimeoutMilliseconds: 10000, MaxAttempts: 2}
 	poll := source.Program.Entrypoints[0].Instructions[2]
-	poll.Limits = &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 3000}}
+	poll.Limits = &testpilotspb.InstructionLimits{Timeout: durationpb.New(time.Duration(3000) * time.Millisecond)}
 	poll.WaitHints = []*testpilotspb.WaitHint{
 		waitHint("temporal.realize.cause.delivery", 12, 2000),
 		waitHint("temporal.realize.visibility.pauseActivityExecution.describeActivityExecution", 20, 1000),
@@ -42,7 +45,7 @@ func hintedPoll(c *testpilotspb.Case) *testpilotspb.InstructionNode {
 }
 
 func setTimeout(n *testpilotspb.InstructionNode, timeout int64) {
-	n.Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: timeout}
+	n.Limits.Timeout = pbduration.FromMilliseconds(timeout)
 }
 
 func TestPrepareAdmitsHintedPollAtTheSumOfItsHints(t *testing.T) {
@@ -70,6 +73,8 @@ func TestPrepareRejectsHintedWaits(t *testing.T) {
 	hintPath := func(i int, field string) string {
 		return fmt.Sprintf("%s.wait_hints[%d].%s", pollPath, i, field)
 	}
+	invalidDuration := &durationpb.Duration{Seconds: 315576000001}
+	_, invalidErr := pbduration.Milliseconds(hintPath(0, "at_most"), invalidDuration)
 	for _, tc := range []struct {
 		name     string
 		mutate   func(*testpilotspb.Case, *Profile)
@@ -79,13 +84,17 @@ func TestPrepareRejectsHintedWaits(t *testing.T) {
 			ir.Error{Category: ir.Malformed, Path: pollTimeoutPath, Detail: "a hinted wait writes its own timeout; no Profile default applies to it"}},
 		{"timeout other than the sum", func(c *testpilotspb.Case, _ *Profile) { setTimeout(hintedPoll(c), 3001) },
 			ir.Error{Category: ir.Malformed, Path: pollTimeoutPath, Detail: "hinted wait timeout 3001 ms is not 3000 ms, the sum of its wait hints' bounds"}},
-		{"zero bound", func(c *testpilotspb.Case, _ *Profile) { hintedPoll(c).WaitHints[1].AtMostMilliseconds = 0 },
-			ir.Error{Category: ir.Malformed, Path: hintPath(1, "at_most_milliseconds"), Detail: "wait hint requires a positive bound"}},
-		{"negative bound", func(c *testpilotspb.Case, _ *Profile) { hintedPoll(c).WaitHints[1].AtMostMilliseconds = -1 },
-			ir.Error{Category: ir.Malformed, Path: hintPath(1, "at_most_milliseconds"), Detail: "wait hint requires a positive bound"}},
-		{"bounds overflowing their sum", func(c *testpilotspb.Case, _ *Profile) {
-			hintedPoll(c).WaitHints[0].AtMostMilliseconds = math.MaxInt64
-		}, ir.Error{Category: ir.LimitExceeded, Path: hintPath(1, "at_most_milliseconds"), Detail: "wait hint bounds overflow their sum"}},
+		{"zero bound", func(c *testpilotspb.Case, _ *Profile) {
+			hintedPoll(c).WaitHints[1].AtMost = pbduration.FromMilliseconds(0)
+		},
+			ir.Error{Category: ir.Malformed, Path: hintPath(1, "at_most"), Detail: "wait hint requires a positive bound"}},
+		{"negative bound", func(c *testpilotspb.Case, _ *Profile) {
+			hintedPoll(c).WaitHints[1].AtMost = pbduration.FromMilliseconds(-1)
+		},
+			ir.Error{Category: ir.Malformed, Path: hintPath(1, "at_most"), Detail: hintPath(1, "at_most") + ": Duration must be nonnegative"}},
+		{"invalid oversized Duration", func(c *testpilotspb.Case, _ *Profile) {
+			hintedPoll(c).WaitHints[0].AtMost = invalidDuration
+		}, ir.Error{Category: ir.Malformed, Path: hintPath(0, "at_most"), Detail: invalidErr.Error()}},
 		{"missing source", func(c *testpilotspb.Case, _ *Profile) { hintedPoll(c).WaitHints[0].Source = nil },
 			ir.Error{Category: ir.Malformed, Path: hintPath(0, "source"), Detail: "wait hint requires the source path and line it is declared at"}},
 		{"source without a path", func(c *testpilotspb.Case, _ *Profile) { hintedPoll(c).WaitHints[0].Source.Path = "" },
@@ -103,29 +112,29 @@ func TestPrepareRejectsHintedWaits(t *testing.T) {
 		}, ir.Error{Category: ir.Unsupported, Path: "program.entrypoints[controller].instructions[history].wait_hints", Detail: "only a polling ReadEvidence waits within wait hints"}},
 		{"hints on a read once", func(c *testpilotspb.Case, _ *Profile) {
 			read := hintedPoll(c).Instruction.GetReadEvidence()
-			read.Once, read.PollIntervalMilliseconds = true, 0
+			read.Interval = nil
 		}, ir.Error{Category: ir.Malformed, Path: pollPath + ".wait_hints", Detail: "a read once does not wait, so no wait hint bounds it"}},
 		{"bound above the ceiling", func(c *testpilotspb.Case, _ *Profile) {
-			hintedPoll(c).WaitHints[0].AtMostMilliseconds = 29001
+			hintedPoll(c).WaitHints[0].AtMost = pbduration.FromMilliseconds(29001)
 			setTimeout(hintedPoll(c), 30001)
 		}, ir.Error{Category: ir.LimitExceeded, Path: pollTimeoutPath, Detail: "wait bound 30001 ms exceeds the Profile total duration ceiling 30000 ms"}},
 		{"scaled bound above the scaled ceiling", func(c *testpilotspb.Case, p *Profile) {
 			p.BoundScale = 150
-			hintedPoll(c).WaitHints[0].AtMostMilliseconds = 29001
+			hintedPoll(c).WaitHints[0].AtMost = pbduration.FromMilliseconds(29001)
 			setTimeout(hintedPoll(c), 30001)
 		}, ir.Error{Category: ir.LimitExceeded, Path: pollTimeoutPath, Detail: "scaled wait bound 45002 ms (30001 ms declared, scaled by 150%) exceeds the scaled Profile total duration ceiling 45000 ms"}},
 		{"cleanup bound above the cleanup ceiling", func(c *testpilotspb.Case, _ *Profile) {
 			poll := hintedPoll(c)
 			c.Program.Entrypoints[0].Instructions = c.Program.Entrypoints[0].Instructions[:2]
 			c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{poll}
-			poll.WaitHints[0].AtMostMilliseconds = 4001
+			poll.WaitHints[0].AtMost = pbduration.FromMilliseconds(4001)
 			setTimeout(poll, 5001)
-		}, ir.Error{Category: ir.LimitExceeded, Path: "program.cleanup.instructions[pending-attempts].limits.timeout_milliseconds", Detail: "wait bound 5001 ms exceeds the Profile cleanup duration ceiling 5000 ms"}},
+		}, ir.Error{Category: ir.LimitExceeded, Path: "program.cleanup.instructions[pending-attempts].limits.timeout", Detail: "wait bound 5001 ms exceeds the Profile cleanup duration ceiling 5000 ms"}},
 		{"interval above the declared timeout, within the scaled one", func(c *testpilotspb.Case, p *Profile) {
 			// The interval is declared against the declared bound, so a scale admits no Case it
 			// would refuse unscaled.
 			p.BoundScale = 150
-			hintedPoll(c).Instruction.GetReadEvidence().PollIntervalMilliseconds = 3001
+			hintedPoll(c).Instruction.GetReadEvidence().Interval = pbduration.FromMilliseconds(3001)
 		}, ir.Error{Category: ir.LimitExceeded, Path: pollIntervalPath, Detail: "poll interval exceeds the instruction timeout"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -141,8 +150,7 @@ func TestPrepareRejectsHintedWaits(t *testing.T) {
 
 func TestPrepareAdmitsReadOnceWithoutInterval(t *testing.T) {
 	source, catalog, policy := evidenceFixture(t)
-	hintedPoll(source).Instruction.GetReadEvidence().Once = true
-	hintedPoll(source).Instruction.GetReadEvidence().PollIntervalMilliseconds = 0
+	hintedPoll(source).Instruction.GetReadEvidence().Interval = nil
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
 	read := prepared.graphs[0].nodes[2]
@@ -155,17 +163,15 @@ func TestPrepareAdmitsReadOnceWithoutInterval(t *testing.T) {
 func TestPrepareRejectsReadIntervals(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
-		once     bool
 		interval int64
 		expected ir.Error
 	}{
-		{"read once with an interval", true, 10, ir.Error{Category: ir.Malformed, Path: pollIntervalPath, Detail: "a read once has no poll interval"}},
-		{"poll without an interval", false, 0, ir.Error{Category: ir.Malformed, Path: pollIntervalPath, Detail: "ReadEvidence requires a positive poll interval"}},
+		{"present zero interval", 0, ir.Error{Category: ir.Malformed, Path: pollIntervalPath, Detail: "ReadEvidence requires a positive poll interval"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			source, catalog, policy := evidenceFixture(t)
 			read := hintedPoll(source).Instruction.GetReadEvidence()
-			read.Once, read.PollIntervalMilliseconds = tc.once, tc.interval
+			read.Interval = pbduration.FromMilliseconds(tc.interval)
 			_, err := Prepare(source, catalog, policy)
 			var diagnostic *ir.Error
 			require.ErrorAs(t, err, &diagnostic)
@@ -179,7 +185,7 @@ func TestPrepareRejectsReadIntervals(t *testing.T) {
 func TestPrepareScalesOnlyHintedTimeouts(t *testing.T) {
 	source, catalog, policy := hintedFixture(t)
 	policy.BoundScale = 150
-	hintedPoll(source).WaitHints[0].AtMostMilliseconds = 2001
+	hintedPoll(source).WaitHints[0].AtMost = pbduration.FromMilliseconds(2001)
 	setTimeout(hintedPoll(source), 3001)
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
@@ -187,9 +193,9 @@ func TestPrepareScalesOnlyHintedTimeouts(t *testing.T) {
 	require.EqualValues(t, 4502, nodes[2].timeoutMilliseconds)
 	require.EqualValues(t, 1000, nodes[0].timeoutMilliseconds)
 	require.EqualValues(t, 1000, nodes[1].timeoutMilliseconds)
-	require.EqualValues(t, 45000, prepared.limits.MaxTotalDurationMilliseconds)
-	require.EqualValues(t, 7500, prepared.limits.MaxCleanupDurationMilliseconds)
-	require.EqualValues(t, 30000, policy.Limits.MaxTotalDurationMilliseconds, "the Profile's own limits stay as declared")
+	require.EqualValues(t, 45000, prepared.limits.MaxDuration.AsDuration().Milliseconds())
+	require.EqualValues(t, 7500, prepared.limits.CleanupDuration.AsDuration().Milliseconds())
+	require.EqualValues(t, 30000, policy.Limits.MaxDuration.AsDuration().Milliseconds(), "the Profile's own limits stay as declared")
 }
 
 // An unhinted Case prepares the same instruction limits under every bound scale.
@@ -213,7 +219,7 @@ func TestPrepareLeavesUnhintedCasesUnscaled(t *testing.T) {
 					require.Equal(t, n.timeoutMilliseconds, other.timeoutMilliseconds, n.source.InstructionId)
 					require.Equal(t, n.maxAttempts, other.maxAttempts, n.source.InstructionId)
 					require.Equal(t, n.pollIntervalMilliseconds, other.pollIntervalMilliseconds, n.source.InstructionId)
-					require.Equal(t, n.source.GetLimits().GetTimeoutMilliseconds(), n.timeoutMilliseconds, n.source.InstructionId)
+					require.Equal(t, n.source.GetLimits().GetTimeout().AsDuration().Milliseconds(), n.timeoutMilliseconds, n.source.InstructionId)
 				}
 			}
 		})
@@ -227,7 +233,7 @@ func TestPrepareAdmitsUnhintedTimeoutsUnderTheDeclaredCeiling(t *testing.T) {
 		source, catalog, policy := evidenceFixture(t)
 		policy.BoundScale = scale
 		poll := source.Program.Entrypoints[0].Instructions[2]
-		poll.Limits = &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: policy.Limits.MaxTotalDurationMilliseconds + 1}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}
+		poll.Limits = &testpilotspb.InstructionLimits{Timeout: durationpb.New(time.Duration(policy.Limits.MaxDuration.AsDuration().Milliseconds()+1) * time.Millisecond), MaxAttempts: proto.Int64(1)}
 		_, err := Prepare(source, catalog, policy)
 		require.ErrorContains(t, err, "instruction bounds exceed Profile ceilings", "scale %d", scale)
 	}

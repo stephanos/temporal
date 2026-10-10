@@ -17,6 +17,7 @@ import (
 
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -684,7 +685,7 @@ type Command struct {
 	// The commands of its script it runs after. Unset, it runs after the command before it.
 	After *After `protobuf:"bytes,3,opt,name=after,proto3" json:"after,omitempty"`
 	// Its deadline in milliseconds, or 0 for the run's default.
-	TimeoutMs int64 `protobuf:"varint,4,opt,name=timeout_ms,json=timeoutMs,proto3" json:"timeout_ms,omitempty"`
+	Timeout *durationpb.Duration `protobuf:"bytes,4,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	// Whether it runs whatever became of the commands it runs after.
 	Regardless bool `protobuf:"varint,5,opt,name=regardless,proto3" json:"regardless,omitempty"`
 	// Types that are valid to be assigned to Instruction:
@@ -764,11 +765,11 @@ func (x *Command) GetAfter() *After {
 	return nil
 }
 
-func (x *Command) GetTimeoutMs() int64 {
+func (x *Command) GetTimeout() *durationpb.Duration {
 	if x != nil {
-		return x.TimeoutMs
+		return x.Timeout
 	}
-	return 0
+	return nil
 }
 
 func (x *Command) GetRegardless() bool {
@@ -1474,11 +1475,11 @@ func (*Target_Lift) isTarget_Target() {}
 type Poll struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// An Evidence, by id.
-	Evidence      string        `protobuf:"bytes,1,opt,name=evidence,proto3" json:"evidence,omitempty"`
-	Role          string        `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
-	Assign        []*Assignment `protobuf:"bytes,3,rep,name=assign,proto3" json:"assign,omitempty"`
-	Until         *Operand      `protobuf:"bytes,4,opt,name=until,proto3" json:"until,omitempty"`
-	IntervalMs    int64         `protobuf:"varint,5,opt,name=interval_ms,json=intervalMs,proto3" json:"interval_ms,omitempty"`
+	Evidence      string               `protobuf:"bytes,1,opt,name=evidence,proto3" json:"evidence,omitempty"`
+	Role          string               `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
+	Assign        []*Assignment        `protobuf:"bytes,3,rep,name=assign,proto3" json:"assign,omitempty"`
+	Until         *Operand             `protobuf:"bytes,4,opt,name=until,proto3" json:"until,omitempty"`
+	Interval      *durationpb.Duration `protobuf:"bytes,5,opt,name=interval,proto3" json:"interval,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1541,11 +1542,11 @@ func (x *Poll) GetUntil() *Operand {
 	return nil
 }
 
-func (x *Poll) GetIntervalMs() int64 {
+func (x *Poll) GetInterval() *durationpb.Duration {
 	if x != nil {
-		return x.IntervalMs
+		return x.Interval
 	}
-	return 0
+	return nil
 }
 
 // Completes with a result: the workflow a workflow script runs in, or the attempt a command of an
@@ -1849,7 +1850,7 @@ var File_temporal_server_api_umpire_v1_script_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_umpire_v1_script_proto_rawDesc = "" +
 	"\n" +
-	"*temporal/server/api/umpire/v1/script.proto\x12\x1dtemporal.server.api.umpire.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a*temporal/server/api/umpire/v1/common.proto\x1a+temporal/server/api/umpire/v1/machine.proto\x1a+temporal/server/api/umpire/v1/operand.proto\"\xe0\x03\n" +
+	"*temporal/server/api/umpire/v1/script.proto\x12\x1dtemporal.server.api.umpire.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/duration.proto\x1a*temporal/server/api/umpire/v1/common.proto\x1a+temporal/server/api/umpire/v1/machine.proto\x1a+temporal/server/api/umpire/v1/operand.proto\"\xe0\x03\n" +
 	"\x06Script\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12C\n" +
 	"\bposition\x18\x02 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x128\n" +
@@ -1887,14 +1888,13 @@ const file_temporal_server_api_umpire_v1_script_proto_rawDesc = "" +
 	"\vPerformance\x12C\n" +
 	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12>\n" +
 	"\x04step\x18\x02 \x01(\v2*.temporal.server.api.umpire.v1.ActionClassR\x04step\x12@\n" +
-	"\acommand\x18\x03 \x01(\v2&.temporal.server.api.umpire.v1.CommandR\acommand\"\x96\n" +
+	"\acommand\x18\x03 \x01(\v2&.temporal.server.api.umpire.v1.CommandR\acommand\"\xac\n" +
 	"\n" +
 	"\aCommand\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12C\n" +
 	"\bposition\x18\x02 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12:\n" +
-	"\x05after\x18\x03 \x01(\v2$.temporal.server.api.umpire.v1.AfterR\x05after\x12\x1d\n" +
-	"\n" +
-	"timeout_ms\x18\x04 \x01(\x03R\ttimeoutMs\x12\x1e\n" +
+	"\x05after\x18\x03 \x01(\v2$.temporal.server.api.umpire.v1.AfterR\x05after\x123\n" +
+	"\atimeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\atimeout\x12\x1e\n" +
 	"\n" +
 	"regardless\x18\x05 \x01(\bR\n" +
 	"regardless\x126\n" +
@@ -1946,14 +1946,13 @@ const file_temporal_server_api_umpire_v1_script_proto_rawDesc = "" +
 	"\aobserve\x18\x01 \x01(\tH\x00R\aobserve\x12\x14\n" +
 	"\x04bind\x18\x02 \x01(\tH\x00R\x04bind\x12\x14\n" +
 	"\x04lift\x18\x03 \x01(\tH\x00R\x04liftB\b\n" +
-	"\x06target\"\xd8\x01\n" +
+	"\x06target\"\xee\x01\n" +
 	"\x04Poll\x12\x1a\n" +
 	"\bevidence\x18\x01 \x01(\tR\bevidence\x12\x12\n" +
 	"\x04role\x18\x02 \x01(\tR\x04role\x12A\n" +
 	"\x06assign\x18\x03 \x03(\v2).temporal.server.api.umpire.v1.AssignmentR\x06assign\x12<\n" +
-	"\x05until\x18\x04 \x01(\v2&.temporal.server.api.umpire.v1.OperandR\x05until\x12\x1f\n" +
-	"\vinterval_ms\x18\x05 \x01(\x03R\n" +
-	"intervalMs\"H\n" +
+	"\x05until\x18\x04 \x01(\v2&.temporal.server.api.umpire.v1.OperandR\x05until\x125\n" +
+	"\binterval\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\binterval\"H\n" +
 	"\x06Finish\x12>\n" +
 	"\x06result\x18\x01 \x01(\v2&.temporal.server.api.umpire.v1.OperandR\x06result\"P\n" +
 	"\x0eAttemptFailure\x12>\n" +
@@ -2023,8 +2022,9 @@ var file_temporal_server_api_umpire_v1_script_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),          // 25: google.protobuf.Empty
 	(*Name)(nil),                   // 26: temporal.server.api.umpire.v1.Name
 	(*ActionClass)(nil),            // 27: temporal.server.api.umpire.v1.ActionClass
-	(*Proto)(nil),                  // 28: temporal.server.api.umpire.v1.Proto
-	(*Operand)(nil),                // 29: temporal.server.api.umpire.v1.Operand
+	(*durationpb.Duration)(nil),    // 28: google.protobuf.Duration
+	(*Proto)(nil),                  // 29: temporal.server.api.umpire.v1.Proto
+	(*Operand)(nil),                // 30: temporal.server.api.umpire.v1.Operand
 }
 var file_temporal_server_api_umpire_v1_script_proto_depIdxs = []int32{
 	24, // 0: temporal.server.api.umpire.v1.Script.position:type_name -> temporal.server.api.umpire.v1.Position
@@ -2045,37 +2045,39 @@ var file_temporal_server_api_umpire_v1_script_proto_depIdxs = []int32{
 	9,  // 15: temporal.server.api.umpire.v1.Performance.command:type_name -> temporal.server.api.umpire.v1.Command
 	24, // 16: temporal.server.api.umpire.v1.Command.position:type_name -> temporal.server.api.umpire.v1.Position
 	12, // 17: temporal.server.api.umpire.v1.Command.after:type_name -> temporal.server.api.umpire.v1.After
-	13, // 18: temporal.server.api.umpire.v1.Command.rpc:type_name -> temporal.server.api.umpire.v1.Rpc
-	17, // 19: temporal.server.api.umpire.v1.Command.poll:type_name -> temporal.server.api.umpire.v1.Poll
-	18, // 20: temporal.server.api.umpire.v1.Command.finish:type_name -> temporal.server.api.umpire.v1.Finish
-	20, // 21: temporal.server.api.umpire.v1.Command.fault:type_name -> temporal.server.api.umpire.v1.Fault
-	21, // 22: temporal.server.api.umpire.v1.Command.workflow_command:type_name -> temporal.server.api.umpire.v1.WorkflowCommand
-	22, // 23: temporal.server.api.umpire.v1.Command.nexus_reply:type_name -> temporal.server.api.umpire.v1.NexusReply
-	23, // 24: temporal.server.api.umpire.v1.Command.nexus_completion:type_name -> temporal.server.api.umpire.v1.NexusCompletion
-	19, // 25: temporal.server.api.umpire.v1.Command.attempt_failure:type_name -> temporal.server.api.umpire.v1.AttemptFailure
-	25, // 26: temporal.server.api.umpire.v1.Command.attempt_canceled:type_name -> google.protobuf.Empty
-	11, // 27: temporal.server.api.umpire.v1.Command.attempt_withheld:type_name -> temporal.server.api.umpire.v1.AttemptWithheld
-	10, // 28: temporal.server.api.umpire.v1.Command.attempt_heartbeat:type_name -> temporal.server.api.umpire.v1.AttemptHeartbeat
-	28, // 29: temporal.server.api.umpire.v1.AttemptHeartbeat.details:type_name -> temporal.server.api.umpire.v1.Proto
-	0,  // 30: temporal.server.api.umpire.v1.AttemptWithheld.mode:type_name -> temporal.server.api.umpire.v1.WithholdingMode
-	14, // 31: temporal.server.api.umpire.v1.Rpc.assign:type_name -> temporal.server.api.umpire.v1.Assignment
-	15, // 32: temporal.server.api.umpire.v1.Rpc.reads:type_name -> temporal.server.api.umpire.v1.ResponseRead
-	29, // 33: temporal.server.api.umpire.v1.Assignment.value:type_name -> temporal.server.api.umpire.v1.Operand
-	1,  // 34: temporal.server.api.umpire.v1.ResponseRead.cardinality:type_name -> temporal.server.api.umpire.v1.ResponseRead.Cardinality
-	16, // 35: temporal.server.api.umpire.v1.ResponseRead.targets:type_name -> temporal.server.api.umpire.v1.Target
-	14, // 36: temporal.server.api.umpire.v1.Poll.assign:type_name -> temporal.server.api.umpire.v1.Assignment
-	29, // 37: temporal.server.api.umpire.v1.Poll.until:type_name -> temporal.server.api.umpire.v1.Operand
-	29, // 38: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.Operand
-	28, // 39: temporal.server.api.umpire.v1.AttemptFailure.failure:type_name -> temporal.server.api.umpire.v1.Proto
-	2,  // 40: temporal.server.api.umpire.v1.Fault.kind:type_name -> temporal.server.api.umpire.v1.Fault.Kind
-	28, // 41: temporal.server.api.umpire.v1.WorkflowCommand.command:type_name -> temporal.server.api.umpire.v1.Proto
-	28, // 42: temporal.server.api.umpire.v1.NexusReply.reply:type_name -> temporal.server.api.umpire.v1.Proto
-	28, // 43: temporal.server.api.umpire.v1.NexusCompletion.result:type_name -> temporal.server.api.umpire.v1.Proto
-	44, // [44:44] is the sub-list for method output_type
-	44, // [44:44] is the sub-list for method input_type
-	44, // [44:44] is the sub-list for extension type_name
-	44, // [44:44] is the sub-list for extension extendee
-	0,  // [0:44] is the sub-list for field type_name
+	28, // 18: temporal.server.api.umpire.v1.Command.timeout:type_name -> google.protobuf.Duration
+	13, // 19: temporal.server.api.umpire.v1.Command.rpc:type_name -> temporal.server.api.umpire.v1.Rpc
+	17, // 20: temporal.server.api.umpire.v1.Command.poll:type_name -> temporal.server.api.umpire.v1.Poll
+	18, // 21: temporal.server.api.umpire.v1.Command.finish:type_name -> temporal.server.api.umpire.v1.Finish
+	20, // 22: temporal.server.api.umpire.v1.Command.fault:type_name -> temporal.server.api.umpire.v1.Fault
+	21, // 23: temporal.server.api.umpire.v1.Command.workflow_command:type_name -> temporal.server.api.umpire.v1.WorkflowCommand
+	22, // 24: temporal.server.api.umpire.v1.Command.nexus_reply:type_name -> temporal.server.api.umpire.v1.NexusReply
+	23, // 25: temporal.server.api.umpire.v1.Command.nexus_completion:type_name -> temporal.server.api.umpire.v1.NexusCompletion
+	19, // 26: temporal.server.api.umpire.v1.Command.attempt_failure:type_name -> temporal.server.api.umpire.v1.AttemptFailure
+	25, // 27: temporal.server.api.umpire.v1.Command.attempt_canceled:type_name -> google.protobuf.Empty
+	11, // 28: temporal.server.api.umpire.v1.Command.attempt_withheld:type_name -> temporal.server.api.umpire.v1.AttemptWithheld
+	10, // 29: temporal.server.api.umpire.v1.Command.attempt_heartbeat:type_name -> temporal.server.api.umpire.v1.AttemptHeartbeat
+	29, // 30: temporal.server.api.umpire.v1.AttemptHeartbeat.details:type_name -> temporal.server.api.umpire.v1.Proto
+	0,  // 31: temporal.server.api.umpire.v1.AttemptWithheld.mode:type_name -> temporal.server.api.umpire.v1.WithholdingMode
+	14, // 32: temporal.server.api.umpire.v1.Rpc.assign:type_name -> temporal.server.api.umpire.v1.Assignment
+	15, // 33: temporal.server.api.umpire.v1.Rpc.reads:type_name -> temporal.server.api.umpire.v1.ResponseRead
+	30, // 34: temporal.server.api.umpire.v1.Assignment.value:type_name -> temporal.server.api.umpire.v1.Operand
+	1,  // 35: temporal.server.api.umpire.v1.ResponseRead.cardinality:type_name -> temporal.server.api.umpire.v1.ResponseRead.Cardinality
+	16, // 36: temporal.server.api.umpire.v1.ResponseRead.targets:type_name -> temporal.server.api.umpire.v1.Target
+	14, // 37: temporal.server.api.umpire.v1.Poll.assign:type_name -> temporal.server.api.umpire.v1.Assignment
+	30, // 38: temporal.server.api.umpire.v1.Poll.until:type_name -> temporal.server.api.umpire.v1.Operand
+	28, // 39: temporal.server.api.umpire.v1.Poll.interval:type_name -> google.protobuf.Duration
+	30, // 40: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.Operand
+	29, // 41: temporal.server.api.umpire.v1.AttemptFailure.failure:type_name -> temporal.server.api.umpire.v1.Proto
+	2,  // 42: temporal.server.api.umpire.v1.Fault.kind:type_name -> temporal.server.api.umpire.v1.Fault.Kind
+	29, // 43: temporal.server.api.umpire.v1.WorkflowCommand.command:type_name -> temporal.server.api.umpire.v1.Proto
+	29, // 44: temporal.server.api.umpire.v1.NexusReply.reply:type_name -> temporal.server.api.umpire.v1.Proto
+	29, // 45: temporal.server.api.umpire.v1.NexusCompletion.result:type_name -> temporal.server.api.umpire.v1.Proto
+	46, // [46:46] is the sub-list for method output_type
+	46, // [46:46] is the sub-list for method input_type
+	46, // [46:46] is the sub-list for extension type_name
+	46, // [46:46] is the sub-list for extension extendee
+	0,  // [0:46] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_script_proto_init() }

@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	exprpb "cel.dev/expr"
 	_ "go.temporal.io/api/workflowservice/v1"
 	_ "go.temporal.io/server/api/testpilot/v1"
 	_ "go.temporal.io/server/api/umpire/v1"
@@ -55,6 +56,7 @@ func findProtoImports() []string {
 				if match := matchImport.FindStringSubmatch(line); len(match) > 0 {
 					i := match[1]
 					if strings.HasPrefix(i, "temporal/api/") ||
+						strings.HasPrefix(i, "cel/expr/") ||
 						strings.HasPrefix(i, "google/") ||
 						strings.HasPrefix(i, "nexus/") {
 						importMap[i] = struct{}{}
@@ -92,6 +94,9 @@ func genFileList(protoImports []string) {
 			importName := getImportName(goImport)
 			goImportsMap[goImport] = importName
 			protoToPackage[i] = importName
+		} else if strings.HasPrefix(i, "cel/expr/") {
+			goImportsMap["cel.dev/expr"] = "exprpb"
+			protoToPackage[i] = "exprpb"
 		} else if strings.HasPrefix(i, "google/") {
 			base := strings.TrimSuffix(filepath.Base(i), ".proto") + "pb"
 			base = strings.ReplaceAll(base, "field_mask", "fieldmask")
@@ -167,7 +172,7 @@ func checkImports(files map[string]protoreflect.FileDescriptor) {
 		num := imports.Len()
 		for i := range num {
 			imp := imports.Get(i).Path()
-			if strings.HasPrefix(imp, "temporal/api/") || strings.HasPrefix(imp, "google/") || strings.HasPrefix(imp, "nexus/") {
+			if strings.HasPrefix(imp, "temporal/api/") || strings.HasPrefix(imp, "cel/expr/") || strings.HasPrefix(imp, "google/") || strings.HasPrefix(imp, "nexus/") {
 				if _, ok := files[imp]; !ok {
 					missing[imp] = struct{}{}
 				}
@@ -304,6 +309,8 @@ func main() {
 	if len(importMap) == 0 {
 		initSeeds() // doesn't return
 	}
+	importMap["cel/expr/syntax.proto"] = exprpb.File_cel_expr_syntax_proto
+	importMap["cel/expr/value.proto"] = exprpb.File_cel_expr_value_proto
 
 	checkImports(importMap) // doesn't return if any errors
 

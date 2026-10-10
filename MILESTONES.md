@@ -234,6 +234,10 @@ source edits by file ownership rather than serializing the entire rollout agains
 Task .1 proves sound equality evidence and byte-preserving exhaustive-match lowering before
 rollout; an infeasible proof stops that source lane without relaxing acceptance. The
 compile-versus-lift items from the same review remain notes on fn-141.
+The current compiler-only comparison preserves all eleven fresh raw outputs against the immutable
+pre-edit lift, including positions; root independently verified the bytes and jar hashes. This
+is not the complete managed IR/Case regeneration or R9 closure. Fixture pattern compatibility,
+precise module ownership checks and the counted explicit-nulls disposition remain source follow-ups.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -289,8 +293,13 @@ documentation and disjoint conversion work may run in parallel. Task 6 joins the
 #### fn-149: Safety and liveness groups for object properties
 
 [Spec](.flow/specs/fn-149-safety-and-liveness-groups-for-object.md) has five M tasks covering all six
-criteria. Its refreshed plan passed independent review on 2026-10-10; implementation is not started.
-It follows fn-140's witness seal, before fault work, and shares closure at fn-123.8.
+criteria. Its refreshed plan passed independent review on 2026-10-10. The independent Go report
+lane (.3) is admitted as work-ahead on a pinned integrated baseline; it changes no Scala,
+schema or managed artifact. Grouping integration follows fn-140's witness seal, before fault
+work, and closure remains shared at fn-123.8.
+The report checkpoint is integrated as `da8f78204a`: classification is derived, and progress
+receipts expose their declared `within` separately from exploration limits. Focused integrated
+checks preserve witness verdicts and independent safety failures; the full checker gate remains open.
 
 Split authored claims into `properties.safety` and `properties.liveness`, enforce declaration kinds,
 and carry the distinction into existing diagnostics and reports. Liveness retains explicit bounds
@@ -304,7 +313,7 @@ linked at fn-123.8, even after its committed source seal releases fault implemen
 | --- | --- | --- |
 | fn-149.1 | ⬜ todo | Group discovery and independent runtime/lifter registration proof |
 | fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
-| fn-149.3 | ⬜ todo | Derived safety/liveness classification in existing reports |
+| fn-149.3 | 🔄 in progress | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
 | fn-149.4 | ⬜ todo | Model/capability migration with complete independent behavior and identity seal |
 | fn-149.5 | ⬜ todo | Author docs and final grouping seal before fn-123; shared gate/review/live close at fn-123.8 |
 
@@ -367,6 +376,12 @@ On 2026-10-10 the owner authorized this Testpilot implementation lane in paralle
 Task .1 can establish its format/identity boundary against the integrated local baseline.
 Authoring predecessors remain final integration holds, especially for .6; format 4.0 activation
 still belongs exclusively to fn-148.6. CEL adoption is decided; no additional prototype is planned.
+
+The coordinated Go/schema/generated-API source checkpoint is integrated as `49f6809ae9`.
+Fifteen focused native CEL, Duration and captured-message roundtrip tests pass on the integrated
+tree, including current-format offline admission and companion rejection controls. Owned lint
+and precise module-import inventory corrections remain in the source lane. Scala proposals await
+the compiler-only seal; managed artifacts, full gates, live corpus and shared review remain open.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -566,21 +581,31 @@ generation for compositions is outside this spec.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-150.1 | ⏸️ deferred | Complete scoped implementation checkpoint; 29 focused tests and lint pass, original Quick OOM before/after and after private daemon exit; review and closure held |
-| fn-150.2 | ⬜ todo | Structured fairness references, inherited/replacement mapping |
+| fn-150.1 | ⏸️ deferred | Scoped admission/checker checkpoint integrated; original Quick OOM retained, review and closure held |
+| fn-150.2 | 🔄 in progress | Structured fairness references and inherited/replacement mapping; finite proto/Go work-ahead, Scala closure awaits compiler seal |
 | fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
-| fn-150.4 | 🔄 in progress | Independent bound/fairness/hole/start/replay regressions on preserved checker checkpoint; batch-first work-ahead, no full-gate credit |
+| fn-150.4 | 🔄 in progress | Boundary and typed replay checkpoint integrated; focused pins, engine suite and lint evidence retained; structured fairness and integrated acceptance remain |
 | fn-150.5 | ⬜ todo | Temporal positive/negative example, docs and integrated gates |
 
-Waves: `.1` then `.2`; `.3` and `.4` are parallel candidates; `.5` joins them.
+Integration order: `.1` then `.2`; `.3` and `.4` join before `.5`. Source work may overlap
+under the batch-first strategy rather than waiting for per-task closure.
 Fn-150 has no hard dependency on fn-149. Its hand-authored Go checker proof changes no Model source,
 schema or managed artifacts and is disjoint from fn-155's remaining fixture/test work. Serialize
 later overlapping edits and regeneration with the approved delivery chain and re-anchor their
 paths before dispatch. This admission does not release fn-156's fn-155 closure dependency.
 
-Task .1's original Quick remains RED. Checkpoint `2d64387595` stays unintegrated and unreviewed
-on its task branch; its Flow block reason links the complete scoped proof and unchanged full
-verification obligation. Task .2 cannot start until .1 is verified and closed.
+Task .1's original Quick remains RED. Its source checkpoint is integrated as `9c47f975a0`,
+with task .4's boundary/replay checkpoint as `d01aefebf1`; neither integration grants review,
+gate or completion credit. The Flow block reason retains the original verification obligation.
+Task .2 is admitted on this pinned baseline with a recorded work-ahead exception. Its finite
+assumption/progress schema leaves do not overlap the format lane's realization/script schemas;
+compiler-owned Scala packaging and typed authoring wait for the compiler-only equivalence seal.
+The conductor's integrated task .4 Quick is recorded under `.flow/tmp/fn150/integrated/`.
+That run exited 1: the engine package passed, but the unchanged Activity property-row checker
+hit the canonical 30-minute timeout during `startedByPollingWorker_is_about_the_backoff`.
+The checker package elapsed 1,846.865 seconds. Its terminal log and result are retained;
+this is not a restored full gate. Structured fairness work continues independently, and
+fn-157's owner deferral remains in force.
 
 The one unchanged Quick retry after the private fn-155 compiler daemon exited also failed
 naturally: exit 1 after 39.102 seconds, checker killed after 36.698 seconds and reader cached pass.

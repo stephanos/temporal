@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/sdk/activity"
@@ -60,7 +61,7 @@ type workflowInterpreter struct {
 	futures map[string]workflow.Future
 }
 
-func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
+func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activation) (*celpb.Value, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
 	if !exists || entry.plan.Kind() != testpilot.WorkflowEntrypoint {
 		return nil, ErrInvalid
@@ -90,7 +91,7 @@ func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activ
 	return nil, errors.New("workflow entrypoint completed without Finish")
 }
 
-func (i *workflowInterpreter) execute(index int, instruction testpilot.InstructionPlan, input *testpilotspb.Value) (*testpilotspb.Value, bool, error) {
+func (i *workflowInterpreter) execute(index int, instruction testpilot.InstructionPlan, input *celpb.Value) (*celpb.Value, bool, error) {
 	switch instruction.Opcode() {
 	case testpilot.WorkflowCommand:
 		return nil, false, i.issueCommand(index, instruction)
@@ -112,7 +113,7 @@ func (i *workflowInterpreter) await(index int, instruction testpilot.Instruction
 	if future == nil {
 		return ErrInvalid
 	}
-	var result *testpilotspb.Value
+	var result *celpb.Value
 	ready := future.IsReady()
 	var err error
 	if !ready {
@@ -238,7 +239,7 @@ func (s *Session) awaitEarlierAttempts(ctx context.Context, delivered delivery.A
 // ActivityAttemptCancellation answers it as canceled once the server has asked for that, and an
 // ActivityAttemptWithholding either waits for its deadline or returns the SDK pending sentinel. An attempt
 // whose instruction is disabled has nothing declared for it and is a failed activation.
-func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
+func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activation) (*celpb.Value, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
 	if !exists || entry.plan.Kind() != testpilot.ActivityEntrypoint {
 		return nil, ErrInvalid

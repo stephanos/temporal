@@ -3,7 +3,7 @@ package execution
 import (
 	"context"
 
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	celpb "cel.dev/expr"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -12,7 +12,7 @@ import (
 // evaluateGuarded evaluates the node's guard and, when it holds, the node's input, through evaluate,
 // which charges both to one work bucket. A false guard disables the node and leaves the input
 // unevaluated; a node without an input yields nil.
-func (n *node) evaluateGuarded(evaluate func(*ir.Expression) (*testpilotspb.Value, error)) (*testpilotspb.Value, bool, error) {
+func (n *node) evaluateGuarded(evaluate func(*ir.Expression) (*celpb.Value, error)) (*celpb.Value, bool, error) {
 	if n.guard != nil {
 		guard, err := evaluate(n.guard)
 		if err != nil || !guard.GetBoolValue() {
@@ -41,7 +41,7 @@ func (a *activationValues) request(ctx context.Context, c contract.Coordinate, l
 	if n.opcode != contract.InvokeRPC && n.opcode != contract.ReadEvidence {
 		return nil, false, 0, ir.Invalid(ir.TypeMismatch, "request", "RPC instruction required")
 	}
-	if _, enabled, err := n.evaluateGuarded(func(e *ir.Expression) (*testpilotspb.Value, error) { return a.evaluate(w, e) }); err != nil || !enabled {
+	if _, enabled, err := n.evaluateGuarded(func(e *ir.Expression) (*celpb.Value, error) { return a.evaluate(w, e) }); err != nil || !enabled {
 		return nil, false, w.work, err
 	}
 	writes := make([]ir.Write, 0, len(n.assignments))

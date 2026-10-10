@@ -4,6 +4,7 @@ import (
 	"math"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -89,15 +90,18 @@ type InstructionDefaults struct {
 
 // Resolve returns an instruction's limits: each one limits writes, or the default where it writes
 // none. A zero result is a limit neither supplies.
-func (d InstructionDefaults) Resolve(limits *testpilotspb.InstructionLimits) (timeoutMilliseconds, maxAttempts int64) {
+func (d InstructionDefaults) Resolve(limits *testpilotspb.InstructionLimits) (timeoutMilliseconds, maxAttempts int64, err error) {
 	timeoutMilliseconds, maxAttempts = d.TimeoutMilliseconds, d.MaxAttempts
 	if limits.GetTimeout() != nil {
-		timeoutMilliseconds = limits.GetTimeoutMilliseconds()
+		timeoutMilliseconds, err = pbduration.Milliseconds("instruction.limits.timeout", limits.GetTimeout())
+		if err != nil {
+			return 0, 0, err
+		}
 	}
-	if limits.GetAttempts() != nil {
+	if limits != nil && limits.MaxAttempts != nil {
 		maxAttempts = limits.GetMaxAttempts()
 	}
-	return timeoutMilliseconds, maxAttempts
+	return timeoutMilliseconds, maxAttempts, nil
 }
 
 // BoundScale is how much more time than declared an environment needs, in percent. It scales every
@@ -138,8 +142,13 @@ func (s BoundScale) Ceilings(limits *testpilotspb.ProgramLimits) *testpilotspb.P
 		return limits
 	}
 	scaled := proto.CloneOf(limits)
-	scaled.MaxTotalDurationMilliseconds = s.Apply(limits.MaxTotalDurationMilliseconds)
-	scaled.MaxCleanupDurationMilliseconds = s.Apply(limits.MaxCleanupDurationMilliseconds)
+	maxDuration, maxErr := pbduration.Milliseconds("max_duration", limits.MaxDuration)
+	cleanupDuration, cleanupErr := pbduration.Milliseconds("cleanup_duration", limits.CleanupDuration)
+	if maxErr != nil || cleanupErr != nil {
+		return scaled
+	}
+	scaled.MaxDuration = pbduration.FromMilliseconds(s.Apply(maxDuration))
+	scaled.CleanupDuration = pbduration.FromMilliseconds(s.Apply(cleanupDuration))
 	return scaled
 }
 

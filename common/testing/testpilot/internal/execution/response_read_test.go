@@ -19,7 +19,7 @@ func TestResponseReadStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.
 	n := c.Program.Entrypoints[0].Instructions[0]
 	policy.Limits.MaxInstructionEmittedEvents = 2
 	path := "items[*]"
-	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: path, Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
+	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: path, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -37,8 +37,8 @@ func TestResponseReadStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.
 	require.Len(t, batch.facts, 2)
 	require.Equal(t, int64(0), batch.facts[0].index)
 	require.Equal(t, int64(1), batch.facts[1].index)
-	require.Equal(t, "b", batch.facts[0].observations[0].Value.GetTextValue())
-	require.Equal(t, "a", batch.facts[1].observations[0].Value.GetTextValue())
+	require.Equal(t, "b", batch.facts[0].observations[0].Value.GetStringValue())
+	require.Equal(t, "a", batch.facts[1].observations[0].Value.GetStringValue())
 	_, _, err = values.stage(context.Background(), coord, raw, work)
 	require.NoError(t, err)
 	for _, mutate := range []func(){func() { list.Append(protoreflect.ValueOfString("overflow")) }, func() { list.Truncate(2); p.limits.MaxInstructionEmittedEvents = 1 }, func() {

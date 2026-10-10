@@ -625,16 +625,11 @@ type KnownGap struct {
 	Kind  KnownGapKind           `protobuf:"varint,1,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.KnownGapKind" json:"kind,omitempty"`
 	// The Known Gap's Definition ID.
 	Code string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-	// Types that are valid to be assigned to SubjectPresence:
-	//
-	//	*KnownGap_Subject
-	SubjectPresence isKnownGap_SubjectPresence `protobuf_oneof:"subject_presence"`
-	// Types that are valid to be assigned to DetailPresence:
-	//
-	//	*KnownGap_Detail
-	DetailPresence isKnownGap_DetailPresence `protobuf_oneof:"detail_presence"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// The Definition ID of the definition the gap limits.
+	Subject       *string `protobuf:"bytes,3,opt,name=subject,proto3,oneof" json:"subject,omitempty"`
+	Detail        *string `protobuf:"bytes,4,opt,name=detail,proto3,oneof" json:"detail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *KnownGap) Reset() {
@@ -681,58 +676,19 @@ func (x *KnownGap) GetCode() string {
 	return ""
 }
 
-func (x *KnownGap) GetSubjectPresence() isKnownGap_SubjectPresence {
-	if x != nil {
-		return x.SubjectPresence
-	}
-	return nil
-}
-
 func (x *KnownGap) GetSubject() string {
-	if x != nil {
-		if x, ok := x.SubjectPresence.(*KnownGap_Subject); ok {
-			return x.Subject
-		}
+	if x != nil && x.Subject != nil {
+		return *x.Subject
 	}
 	return ""
-}
-
-func (x *KnownGap) GetDetailPresence() isKnownGap_DetailPresence {
-	if x != nil {
-		return x.DetailPresence
-	}
-	return nil
 }
 
 func (x *KnownGap) GetDetail() string {
-	if x != nil {
-		if x, ok := x.DetailPresence.(*KnownGap_Detail); ok {
-			return x.Detail
-		}
+	if x != nil && x.Detail != nil {
+		return *x.Detail
 	}
 	return ""
 }
-
-type isKnownGap_SubjectPresence interface {
-	isKnownGap_SubjectPresence()
-}
-
-type KnownGap_Subject struct {
-	// The Definition ID of the definition the gap limits.
-	Subject string `protobuf:"bytes,3,opt,name=subject,proto3,oneof"`
-}
-
-func (*KnownGap_Subject) isKnownGap_SubjectPresence() {}
-
-type isKnownGap_DetailPresence interface {
-	isKnownGap_DetailPresence()
-}
-
-type KnownGap_Detail struct {
-	Detail string `protobuf:"bytes,4,opt,name=detail,proto3,oneof"`
-}
-
-func (*KnownGap_Detail) isKnownGap_DetailPresence() {}
 
 // CorrelatedRuleBinding ties one Correlated Rule of the Contract to the Property and Projection it
 // was compiled from.
@@ -984,14 +940,15 @@ const file_temporal_server_api_testpilot_v1_case_proto_rawDesc = "" +
 	"\x11DefinitionBinding\x12#\n" +
 	"\rdefinition_id\x18\x01 \x01(\tR\fdefinitionId\x121\n" +
 	"\x14behavior_fingerprint\x18\x02 \x01(\tR\x13behaviorFingerprint\x12D\n" +
-	"\x04kind\x18\x03 \x01(\x0e20.temporal.server.api.testpilot.v1.DefinitionKindR\x04kind\"\xbf\x01\n" +
+	"\x04kind\x18\x03 \x01(\x0e20.temporal.server.api.testpilot.v1.DefinitionKindR\x04kind\"\xb5\x01\n" +
 	"\bKnownGap\x12B\n" +
 	"\x04kind\x18\x01 \x01(\x0e2..temporal.server.api.testpilot.v1.KnownGapKindR\x04kind\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\tR\x04code\x12\x1a\n" +
-	"\asubject\x18\x03 \x01(\tH\x00R\asubject\x12\x18\n" +
-	"\x06detail\x18\x04 \x01(\tH\x01R\x06detailB\x12\n" +
-	"\x10subject_presenceB\x11\n" +
-	"\x0fdetail_presence\"\xaa\x02\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x1d\n" +
+	"\asubject\x18\x03 \x01(\tH\x00R\asubject\x88\x01\x01\x12\x1b\n" +
+	"\x06detail\x18\x04 \x01(\tH\x01R\x06detail\x88\x01\x01B\n" +
+	"\n" +
+	"\b_subjectB\t\n" +
+	"\a_detail\"\xaa\x02\n" +
 	"\x15CorrelatedRuleBinding\x12\x17\n" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12\x1f\n" +
 	"\vproperty_id\x18\x02 \x01(\tR\n" +
@@ -1095,10 +1052,7 @@ func file_temporal_server_api_testpilot_v1_case_proto_init() {
 	file_temporal_server_api_testpilot_v1_contract_proto_init()
 	file_temporal_server_api_testpilot_v1_program_proto_init()
 	file_temporal_server_api_testpilot_v1_source_proto_init()
-	file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5].OneofWrappers = []any{
-		(*KnownGap_Subject)(nil),
-		(*KnownGap_Detail)(nil),
-	}
+	file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -8,6 +8,7 @@ option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
 option java_multiple_files = true;
 option java_package = "io.temporal.server.api.umpire.v1";
 
+import "google/protobuf/duration.proto";
 import "temporal/server/api/umpire/v1/common.proto";
 import "temporal/server/api/umpire/v1/machine.proto";
 import "temporal/server/api/umpire/v1/operand.proto";
@@ -120,7 +121,7 @@ message AttemptNumbering {
 // The limits of one instruction: its deadline in milliseconds, and the attempts it may take.
 message InstructionLimit {
   Position position = 1;
-  int64 timeout_ms = 2;
+  google.protobuf.Duration timeout = 2;
   int64 attempts = 3;
 }
 
@@ -146,10 +147,10 @@ message Visibility {
 // and the interval no greater than the bound.
 message WaitBound {
   Position position = 1;
-  int64 interval_ms = 2;
+  google.protobuf.Duration interval = 2;
   // (-- api-linter: core::0140::prepositions=disabled
   //     aip.dev/not-precedent: The name is the bound's own "at most"; the IR is internal to Umpire. --)
-  int64 at_most_ms = 3;
+  google.protobuf.Duration at_most = 3;
 }
 
 // How long one kind of asynchronous cause may take, once, from the step before it.
@@ -186,7 +187,7 @@ message ServerStep {
   CauseKind kind = 3;
   // For a timer: the deadline the realization set for this class, written from the same kit value
   // its request carries. A wait for it is this deadline plus the timer's CauseBound, the slack.
-  int64 deadline_ms = 4;
+  google.protobuf.Duration deadline = 4;
   // The typed request field whose timeout supplies this timer, retained by lifting deadlines.
   TimeoutBasis timeout_basis = 5;
 }

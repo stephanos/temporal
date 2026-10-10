@@ -10,10 +10,12 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/casefile"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type admission struct {
@@ -212,14 +214,18 @@ func programInstructionDefaults(profile contract.InstructionDefaults, declared *
 	if declared == nil {
 		return profile, nil
 	}
-	if declared.GetTimeout() != nil && declared.GetTimeoutMilliseconds() <= 0 || declared.GetAttempts() != nil && declared.GetMaxAttempts() <= 0 {
+	timeout, err := ir.DurationMilliseconds("program.instruction_defaults.timeout", declared.GetTimeout())
+	if err != nil {
+		return contract.InstructionDefaults{}, err
+	}
+	if declared.GetTimeout() != nil && timeout <= 0 || declared.MaxAttempts != nil && declared.GetMaxAttempts() <= 0 {
 		return contract.InstructionDefaults{}, ir.Invalid(ir.Malformed, "program.instruction_defaults", "a declared instruction default is positive")
 	}
 	defaults := profile
 	if declared.GetTimeout() != nil {
-		defaults.TimeoutMilliseconds = declared.GetTimeoutMilliseconds()
+		defaults.TimeoutMilliseconds = timeout
 	}
-	if declared.GetAttempts() != nil {
+	if declared.MaxAttempts != nil {
 		defaults.MaxAttempts = declared.GetMaxAttempts()
 	}
 	if err := checkInstructionDefaults(defaults, limits); err != nil {
@@ -234,7 +240,7 @@ func checkInstructionDefaults(defaults contract.InstructionDefaults, limits *tes
 	if defaults.TimeoutMilliseconds < 0 || defaults.MaxAttempts < 0 {
 		return ir.Invalid(ir.Malformed, "policy.instruction_defaults", "negative instruction default")
 	}
-	if defaults.TimeoutMilliseconds > max(limits.MaxTotalDurationMilliseconds, limits.MaxCleanupDurationMilliseconds) || defaults.MaxAttempts > limits.MaxAttempts {
+	if defaults.TimeoutMilliseconds > max(limits.MaxDuration.AsDuration().Milliseconds(), limits.CleanupDuration.AsDuration().Milliseconds()) || defaults.MaxAttempts > limits.MaxAttempts {
 		return ir.Invalid(ir.LimitExceeded, "policy.instruction_defaults", "instruction default exceeds the Profile ceiling")
 	}
 	return nil
@@ -680,11 +686,8 @@ func resolveAfter(g *graph, i int) ([]int, error) {
 	dependencies := make([]int, 0, len(after.GetInstructions()))
 	for k, reference := range after.GetInstructions() {
 		path := expressionPath(g, n, fmt.Sprintf("after.instructions[%d]", k))
-		if !ir.ValidID(reference.GetEntrypointId()) || !ir.ValidID(reference.GetInstructionId()) {
+		if !ir.ValidID(reference.GetInstructionId()) {
 			return nil, ir.Invalid(ir.Malformed, path, "invalid instruction reference")
-		}
-		if reference.GetEntrypointId() != g.id {
-			return nil, ir.Invalid(ir.Unsupported, path, "after names an instruction of another entrypoint")
 		}
 		j, exists := g.index[reference.GetInstructionId()]
 		switch {
@@ -706,7 +709,7 @@ func resolveAfter(g *graph, i int) ([]int, error) {
 // regardless, exactly like a node with no dependencies and no guard.
 func effectiveGuard(g *graph, n *node) *testpilotspb.Expression {
 	if guard := n.source.GetGuard(); guard != nil {
-		if literal, ok := guard.GetLiteral().GetValue().(*testpilotspb.Value_BoolValue); ok && literal.BoolValue {
+		if constant := guard.GetCel().GetExpr().GetConstExpr(); constant != nil && constant.GetBoolValue() {
 			return nil
 		}
 		return guard
@@ -721,7 +724,7 @@ func effectiveGuard(g *graph, n *node) *testpilotspb.Expression {
 	for k, j := range n.dependencies {
 		operands[k] = dependencySucceeded(g.id, g.nodes[j].source.GetInstructionId())
 	}
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: operands}}}
+	return cel.All(operands...)
 }
 
 // dependencySucceeded holds when the instruction recorded a SUCCEEDED outcome. A skipped dependency
@@ -729,16 +732,10 @@ func effectiveGuard(g *graph, n *node) *testpilotspb.Expression {
 // dependent the status's presence fact, which a comparison does not.
 func dependencySucceeded(entrypointID, instructionID string) *testpilotspb.Expression {
 	status := func() *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{
-			Instruction: &testpilotspb.InstructionReference{EntrypointId: entrypointID, InstructionId: instructionID},
-			Field:       testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS,
-		}}}}}
+		return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: entrypointID, InstructionId: instructionID}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}})
 	}
-	succeeded := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: ir.EnumName(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}}
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
-		{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: status()}}},
-		{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: status(), Right: succeeded}}},
-	}}}}
+	succeeded := cel.Literal(cel.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED))
+	return cel.All(cel.Present(status()), cel.Compare("_==_", status(), succeeded))
 }
 func (a *admission) expressionLimits() ir.Limits {
 	limits := ir.DefaultLimits()
@@ -796,7 +793,7 @@ func (a *admission) reservationCount(g *graph, n *node) (int64, error) {
 }
 func messageType(catalog *ir.Catalog, descriptor protoreflect.MessageDescriptor) (ir.Type, error) {
 	if descriptor.FullName() == "google.protobuf.Any" {
-		return catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}}}})
+		return catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &emptypb.Empty{}}}}})
 	}
 	return catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: string(descriptor.FullName())}}}}})
 }

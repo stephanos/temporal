@@ -41,7 +41,7 @@ func (c *ModelCase) WithoutDurableEvidence(run *testpilotspb.Run) (*testpilotspb
 		kept := event.GetObservations()[:0]
 		for _, observation := range event.GetObservations() {
 			evidence := &testpilotspb.CorrelatedEvidence{}
-			if packed := observation.GetValue().GetMessageValue(); packed.MessageIs(evidence) {
+			if packed := observation.GetValue().GetObjectValue(); packed.MessageIs(evidence) {
 				if err := packed.UnmarshalTo(evidence); err != nil {
 					return nil, err
 				}

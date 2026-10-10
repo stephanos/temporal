@@ -27,14 +27,14 @@ func TestWorkerOutageCaseDeclaresAnEventCountDeadline(t *testing.T) {
 
 	var liveness *testpilotspb.ContractRule
 	for _, rule := range source.GetContract().GetRules() {
-		if rule.GetKind() == testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
+		if rule.GetDeadline() != nil {
 			liveness = rule
 		}
 	}
 	require.NotNil(t, liveness)
 	require.Equal(t, WorkerOutageRuleID, liveness.GetRuleId())
 	require.Positive(t, liveness.GetDeadline().GetRuleEvents())
-	require.Zero(t, liveness.GetDeadline().GetElapsedMilliseconds())
+	require.Nil(t, liveness.GetDeadline().GetElapsed())
 	require.Equal(t, "expired", liveness.GetDeadline().GetViolationStateId())
 	require.Len(t, source.GetContract().GetRules(), 1)
 	require.NotNil(t, source.GetContract().GetCorrelated())

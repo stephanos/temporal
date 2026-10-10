@@ -16,6 +16,7 @@ import (
 	sdkpb "go.temporal.io/api/sdk/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -293,10 +294,10 @@ func scheduledActivityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Pr
 	start.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_WorkflowCommand{WorkflowCommand: &testpilotspb.WorkflowCommand{Command: activityScheduleCommand()}}}
 	await := rpcNode("await")
 	await.Guard = alwaysRuns()
-	await.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "start"}}}}
+	await.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.LocalInstructionReference{InstructionId: "start"}}}}
 	finish := rpcNode("finish")
 	finish.Guard = succeeded("workflow", "await")
-	finish.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}}
+	finish.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}})}}}
 	c.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{start, await, finish}
 	return c, catalog, p
 }

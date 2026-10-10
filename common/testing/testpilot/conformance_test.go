@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -18,11 +19,13 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 const facadeCorpusRoot = "testdata/case-runtime-conformance"
@@ -214,13 +217,7 @@ func facadeProfile(t testing.TB) testpilot.ProfileSpec {
 	// Testpilot protocol beside the service the Cases invoke.
 	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto, testpilotspb.File_temporal_server_api_testpilot_v1_run_proto))
 	require.NoError(t, err)
-	programLimits := &testpilotspb.ProgramLimits{
-		MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16,
-		MaxRunEvents: 512, MaxExpressionDepth: 12, MaxPathFanout: 32,
-		MaxRequestBytes: 32768, MaxResponseBytes: 8192,
-		MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 20000,
-		MaxInstructionEmittedEvents: 128, MaxInstructionResponseBytes: 8192,
-	}
+	programLimits := &testpilotspb.ProgramLimits{MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16, MaxRunEvents: 512, MaxExpressionDepth: 12, MaxPathFanout: 32, MaxRequestBytes: 32768, MaxResponseBytes: 8192, MaxDuration: durationpb.New(time.Duration(30000) * time.Millisecond), CleanupDuration: durationpb.New(time.Duration(20000) * time.Millisecond), MaxInstructionEmittedEvents: 128, MaxInstructionResponseBytes: 8192}
 	contractLimits := &testpilotspb.ContractLimits{
 		MaxRules: 4, MaxStates: 16, MaxTransitions: 64, MaxExpressionDepth: 12,
 		MaxWorkPerEvent: 4000000, MaxTotalWork: 1000000000, MaxCaptures: 64, MaxCaptureBytes: 65536,
@@ -354,8 +351,11 @@ func validateFacadeDynamicFields(t testing.TB, run *testpilotspb.Run) {
 	var elapsed int64
 	for index, event := range run.GetEvents() {
 		require.Equal(t, int64(index+1), event.GetSequence())
-		require.GreaterOrEqual(t, event.GetElapsedMilliseconds(), elapsed)
-		elapsed = event.GetElapsedMilliseconds()
+		require.NotNil(t, event.GetElapsed())
+		coordinate, err := duration.Milliseconds("run.events.elapsed", event.GetElapsed())
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, coordinate, elapsed)
+		elapsed = coordinate
 		require.NotEmpty(t, event.GetSourceId())
 		require.NotContains(t, sources, event.GetSourceId())
 		for _, cause := range event.GetCausalSourceIds() {

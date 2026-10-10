@@ -16,11 +16,14 @@ import (
 	nexuspb "go.temporal.io/api/nexus/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/tools/umpire/internal/runtimecel"
 	"go.temporal.io/server/tools/umpire/interp"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	"go.temporal.io/server/tools/umpire/realization"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // adapter translates one realization for one Case identity, checking what it writes and reads
@@ -135,10 +138,7 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 			continue
 		}
 		node := cleanup.with(e.GetCleanup().GetId(), nil)
-		node.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
-			externalSucceeded(binding.GetCarrier()),
-			{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: externalSucceeded(binding.GetSettlement())}}},
-		}}}}
+		node.Guard = cel.All(externalSucceeded(binding.GetCarrier()), cel.Not(externalSucceeded(binding.GetSettlement())))
 		out.Plan.Cleanup.Instructions = append(out.Plan.Cleanup.Instructions, node)
 	}
 	for _, e := range a.r.GetResetSettlements() {
@@ -162,10 +162,7 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 			continue
 		}
 		node := cleanup.with(e.GetCleanup().GetId(), nil)
-		node.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
-			externalSucceeded(binding.GetCarrier()),
-			{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: externalSucceeded(binding.GetSettlement())}}},
-		}}}}
+		node.Guard = cel.All(externalSucceeded(binding.GetCarrier()), cel.Not(externalSucceeded(binding.GetSettlement())))
 		out.Plan.Cleanup.Instructions = append(out.Plan.Cleanup.Instructions, node)
 	}
 	for _, s := range a.r.GetRequiredSettings() {
@@ -174,8 +171,7 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 	behavior := a.r.GetBehavior()
 	if d := behavior.GetInstructionDefaults(); d != nil {
 		out.Plan.InstructionDefaults = &testpilotspb.InstructionLimits{
-			Timeout:  &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: d.GetTimeoutMs()},
-			Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: d.GetAttempts()}}
+			Timeout: proto.CloneOf(d.GetTimeout()), MaxAttempts: proto.Int64(d.GetAttempts())}
 	}
 	out.Plan.RunOrderIsCausal = behavior.GetRunOrderIsCausal()
 	return out, problems
@@ -311,8 +307,7 @@ func (a *adapter) guardOf(e *umpirespb.Evidence, source *umpirespb.RunEventSourc
 	if guard == nil {
 		return numbered, nil
 	}
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{
-		Operands: []*testpilotspb.Expression{guard, numbered}}}}, nil
+	return cel.All(guard, numbered), nil
 }
 
 // readFrom is the message a kind of evidence is read from at a path of a method's response: the
@@ -536,7 +531,7 @@ func (a *adapter) activation(s *umpirespb.Script) (func() *testpilotspb.Entrypoi
 	switch act := s.GetActivation().(type) {
 	case *umpirespb.Script_Controller:
 		return func() *testpilotspb.Entrypoint {
-			return &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}
+			return &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}}
 		}, nil
 	case *umpirespb.Script_Workflow:
 		workflowType := a.w.name(act.Workflow.GetWorkflowType())
@@ -580,8 +575,8 @@ func (a *adapter) command(s *umpirespb.Script, c *umpirespb.Command) (built, err
 		return built{}, err
 	}
 	var opts []cp.NodeOption
-	if c.GetTimeoutMs() > 0 {
-		opts = append(opts, cp.TimeoutMilliseconds(c.GetTimeoutMs()))
+	if c.GetTimeout() != nil {
+		opts = append(opts, cp.TimeoutMilliseconds(durationMilliseconds(c.GetTimeout())))
 	}
 	if c.GetRegardless() {
 		opts = append(opts, cp.Guard(cp.Literal(cp.Bool(true))))
@@ -594,7 +589,7 @@ func (a *adapter) command(s *umpirespb.Script, c *umpirespb.Command) (built, err
 		}
 		guard := present[0]
 		if len(present) > 1 {
-			guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: present}}}
+			guard = cel.All(present...)
 		}
 		opts = append(opts, cp.Guard(guard))
 	}
@@ -631,21 +626,20 @@ func (a *adapter) command(s *umpirespb.Script, c *umpirespb.Command) (built, err
 		if len(guards) == 1 {
 			node.Guard = guards[0]
 		} else if len(guards) > 1 {
-			node.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: guards}}}
+			node.Guard = cel.All(guards...)
 		}
 	}
 	if c.GetAfter() != nil {
 		node.After = &testpilotspb.After{}
 		for _, id := range c.GetAfter().GetCommands() {
-			node.After.Instructions = append(node.After.Instructions, &testpilotspb.InstructionReference{EntrypointId: s.GetId(), InstructionId: id})
+			node.After.Instructions = append(node.After.Instructions, &testpilotspb.LocalInstructionReference{InstructionId: id})
 		}
 	}
 	return built{node}, nil
 }
 
 func slot(id string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{
-		Reference: &testpilotspb.Reference_SlotId{SlotId: id}}}}
+	return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}})
 }
 
 // learnedBy is the learned texts a command's operands read, each once, in the order it reads them.
@@ -701,7 +695,7 @@ func (a *adapter) instruction(s *umpirespb.Script, c *umpirespb.Command) (*testp
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: in.AwaitActivityPublication}}}, nil
 	case *umpirespb.Command_AwaitCommand:
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{
-			Instruction: &testpilotspb.InstructionReference{EntrypointId: s.GetId(), InstructionId: in.AwaitCommand}}}}, nil
+			Instruction: &testpilotspb.LocalInstructionReference{InstructionId: in.AwaitCommand}}}}, nil
 	case *umpirespb.Command_Finish:
 		result, err := a.operand(at, in.Finish.GetResult(), nil)
 		if err != nil {
@@ -755,7 +749,7 @@ func (a *adapter) instruction(s *umpirespb.Script, c *umpirespb.Command) (*testp
 			RoleId: control.GetRole(), Kind: kind}}}, nil
 	case *umpirespb.Command_AttemptCanceled:
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{
-			ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}}, nil
+			ActivityAttemptCancellation: &emptypb.Empty{}}}, nil
 	case *umpirespb.Command_AttemptWithheld:
 		var external *testpilotspb.InstructionReference
 		if id := in.AttemptWithheld.GetExternalSettlement(); id != "" {
@@ -912,9 +906,7 @@ func (a *adapter) rpc(c *umpirespb.Command, rpc *umpirespb.Rpc) (*testpilotspb.I
 		if err != nil {
 			return nil, err
 		}
-		cardinality := testpilotspb.READ_CARDINALITY_ONE
 		if read.GetCardinality() == umpirespb.ResponseRead_CARDINALITY_EACH {
-			cardinality = testpilotspb.READ_CARDINALITY_EMIT_EACH
 			if !end.fanned && !end.field.IsList() {
 				return nil, errorAt(at, "command %s reads each element of %s, which is one value of %s", c.GetId(), read.GetPath(), method.Output().FullName())
 			}
@@ -927,7 +919,7 @@ func (a *adapter) rpc(c *umpirespb.Command, rpc *umpirespb.Rpc) (*testpilotspb.I
 			}
 			targets = append(targets, lowered)
 		}
-		reads = append(reads, cp.ResponseRead(read.GetPath(), cardinality, targets...))
+		reads = append(reads, cp.ResponseRead(read.GetPath(), targets...))
 	}
 	return cp.InvokeRPC(rpc.GetRole(), rpc.GetMethod(), assignments, reads), nil
 }
@@ -991,25 +983,7 @@ func (a *adapter) poll(c *umpirespb.Command, poll *umpirespb.Poll) (*testpilotsp
 	if err != nil {
 		return nil, err
 	}
-	return cp.ReadEvidence(poll.GetEvidence(), poll.GetRole(), assignments, until, poll.GetIntervalMs()), nil
-}
-
-// literal is a value an operand writes out, as the expression of it.
-func (a *adapter) literal(at *umpirespb.Position, written *umpirespb.ProtoValue) (*testpilotspb.Expression, error) {
-	switch v := written.GetKind().(type) {
-	case *umpirespb.ProtoValue_Text:
-		return cp.Literal(cp.Text(v.Text)), nil
-	case *umpirespb.ProtoValue_Named:
-		return cp.Literal(cp.Text(a.w.name(v.Named))), nil
-	case *umpirespb.ProtoValue_Flag:
-		return cp.Literal(cp.Bool(v.Flag)), nil
-	case *umpirespb.ProtoValue_Number:
-		return cp.Literal(cp.SignedInteger(v.Number)), nil
-	case *umpirespb.ProtoValue_EnumName:
-		return cp.Literal(cp.Enum(v.EnumName)), nil
-	default:
-		return nil, errorAt(at, "a literal operand is a text, a flag, a number, an enum value or a name")
-	}
+	return cp.ReadEvidence(poll.GetEvidence(), poll.GetRole(), assignments, until, durationMilliseconds(poll.GetInterval())), nil
 }
 
 // outsideTheElement is what an operand reads beside the value a poll is looking at and what is
@@ -1057,75 +1031,12 @@ func (a *adapter) operand(at *umpirespb.Position, o *umpirespb.Operand, projecte
 	if o.GetPosition().GetFile() != "" {
 		at = o.GetPosition()
 	}
-	switch k := o.GetKind().(type) {
-	case *umpirespb.Operand_Literal:
-		return a.literal(at, k.Literal)
-	case *umpirespb.Operand_Environment:
-		return cp.Environment(k.Environment), nil
-	case *umpirespb.Operand_Run:
-		return cp.Run(), nil
-	case *umpirespb.Operand_LearnedValue:
-		return slot(k.LearnedValue), nil
-	case *umpirespb.Operand_Projected:
-		return cp.ProjectedValue(), nil
-	case *umpirespb.Operand_Path:
-		if k.Path.GetOf().GetProjected() != nil && projected != nil {
-			if _, err := walk(at, projected, k.Path.GetPath()); err != nil {
-				return nil, err
-			}
-		}
-		of, err := a.operand(at, k.Path.GetOf(), projected)
-		if err != nil {
+	expression, err := runtimecel.Lower(o, projected, a.w.name)
+	if err != nil {
+		if located, ok := err.(*interp.Error); ok && located.Position != "" {
 			return nil, err
 		}
-		return cp.Path(of, k.Path.GetPath()), nil
-	case *umpirespb.Operand_Present:
-		of, err := a.operand(at, k.Present.GetOf(), projected)
-		if err != nil {
-			return nil, err
-		}
-		return cp.Present(of), nil
-	case *umpirespb.Operand_Equal:
-		left, right, err := a.sides(at, k.Equal.GetLeft(), k.Equal.GetRight(), projected)
-		if err != nil {
-			return nil, err
-		}
-		return cp.Equal(left, right), nil
-	case *umpirespb.Operand_All:
-		all := &testpilotspb.AllExpression{}
-		for _, operand := range k.All.GetOperands() {
-			lowered, err := a.operand(at, operand, projected)
-			if err != nil {
-				return nil, err
-			}
-			all.Operands = append(all.Operands, lowered)
-		}
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: all}}, nil
-	case *umpirespb.Operand_Greater:
-		left, right, err := a.sides(at, k.Greater.GetLeft(), k.Greater.GetRight(), projected)
-		if err != nil {
-			return nil, err
-		}
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
-			Operator: testpilotspb.COMPARISON_OPERATOR_GREATER_THAN, Left: left, Right: right}}}, nil
-	case *umpirespb.Operand_Not:
-		of, err := a.operand(at, k.Not.GetOf(), projected)
-		if err != nil {
-			return nil, err
-		}
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: of}}}, nil
-	default:
-		return nil, errorAt(at, "an operand of no known kind")
+		return nil, errorAt(at, "%s", err)
 	}
-}
-
-// sides is the two operands of a comparison, as the expressions that compute them.
-func (a *adapter) sides(at *umpirespb.Position, left, right *umpirespb.Operand, projected protoreflect.MessageDescriptor) (l, r *testpilotspb.Expression, err error) {
-	if l, err = a.operand(at, left, projected); err != nil {
-		return nil, nil, err
-	}
-	if r, err = a.operand(at, right, projected); err != nil {
-		return nil, nil, err
-	}
-	return l, r, nil
+	return expression, nil
 }

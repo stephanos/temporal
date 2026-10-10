@@ -4,6 +4,8 @@ import "temporal/server/api/testpilot/v1/correlated.proto";
 import "temporal/server/api/testpilot/v1/event.proto";
 import "temporal/server/api/testpilot/v1/expression.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
+import "cel/expr/value.proto";
+import "google/protobuf/duration.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
 // Contract contains only closed deterministic monitor machines over declared Run Observations.
@@ -16,18 +18,18 @@ message Contract {
 // ContractRule is one finite deterministic safety or bounded-liveness monitor machine.
 message ContractRule {
   string rule_id = 1;
-  ContractRuleKind kind = 2;
-  string initial_state_id = 3;
-  repeated ContractState states = 4;
+  reserved "kind";
+  string initial_state_id = 2;
+  repeated ContractState states = 3;
   // Values local to one Rule instance that its transitions assign.
-  repeated ContractCapture captures = 5;
-  repeated ContractTransition transitions = 6;
+  repeated ContractCapture captures = 4;
+  repeated ContractTransition transitions = 5;
   // A bounded-liveness rule has one deadline; a safety rule has none.
-  Deadline deadline = 7;
+  Deadline deadline = 6;
   // Values each Rule instance assigns; a predicate reads one through Reference.instance_value_id.
-  repeated ContractInstanceValue instance_values = 8;
+  repeated ContractInstanceValue instance_values = 7;
   // Empty: the Rule is evaluated once under rule_id. Otherwise once per instance, never under rule_id.
-  repeated ContractRuleInstance instances = 9;
+  repeated ContractRuleInstance instances = 8;
 }
 
 // ContractInstanceValue declares one value every Rule instance of its Rule assigns.
@@ -51,17 +53,7 @@ message ContractInstanceAssignment {
   // The declared instance value this assignment gives a value.
   string instance_value_id = 1;
   // A value of the instance value's declared type.
-  Value value = 2;
-}
-
-// ContractRuleKind names whether a rule is a safety rule or a bounded-liveness rule.
-// Contract lifecycle enums use the public Testpilot Status vocabulary.
-// (-- api-linter: core::0191::file-layout=disabled
-//     core::0216::synonyms=disabled --)
-enum ContractRuleKind {
-  CONTRACT_RULE_KIND_UNSPECIFIED = 0;
-  CONTRACT_RULE_KIND_SAFETY = 1;
-  CONTRACT_RULE_KIND_BOUNDED_LIVENESS = 2;
+  cel.expr.Value value = 2;
 }
 
 // ContractState is one state of a rule's machine; its status is the rule's status while in it.
@@ -91,20 +83,12 @@ message ContractTransition {
   string source_state_id = 2;
   string target_state_id = 3;
   // Whether the matching Run Event supports the rule's conclusion.
-  ContractSupportKind support_kind = 4;
+  optional bool supports_event = 4;
   repeated ContractCaptureAssignment capture_assignments = 5;
   // The Run Event kinds the transition considers; never empty.
   RunEventFilter event_filter = 6;
   // Must hold on the Run Event for the transition to be taken.
   Expression predicate = 7;
-}
-
-// ContractSupportKind says whether a transition's matching Run Event joins the rule's and the
-// Verdict's supporting event sequences.
-enum ContractSupportKind {
-  CONTRACT_SUPPORT_KIND_UNSPECIFIED = 0;
-  CONTRACT_SUPPORT_KIND_NONE = 1;
-  CONTRACT_SUPPORT_KIND_MATCHING_EVENT = 2;
 }
 
 // ContractCaptureAssignment copies an Observation of the matching Run Event into an unassigned capture
@@ -114,6 +98,7 @@ message ContractCaptureAssignment { string capture_id = 1; string observation_id
 // Deadline bounds one liveness rule by one positive bound, and moves it to violation_state_id when
 // the bound is reached.
 message Deadline {
+  reserved "elapsed_milliseconds";
   string violation_state_id = 1;
   oneof bound {
     // Expires the rule after that many Run Events were evaluated by the rule since its last
@@ -123,7 +108,7 @@ message Deadline {
     int64 rule_events = 2;
     // Expires the rule at the first Run Event whose elapsed coordinate reaches it; that coordinate is
     // derived from the recording host's clock, so a bound expressed in it is host-clock dependent.
-    int64 elapsed_milliseconds = 3;
+    google.protobuf.Duration elapsed = 3;
   }
 }
 

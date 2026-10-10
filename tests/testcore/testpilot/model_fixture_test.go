@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -129,7 +130,7 @@ func TestTheHeldRaceIsLoadedWithItsClaimAndItsDurableKinds(t *testing.T) {
 	evidence := func(kind string) *testpilotspb.ObservationResult {
 		packed, err := anypb.New(&testpilotspb.CorrelatedEvidence{Kind: kind})
 		require.NoError(t, err)
-		return &testpilotspb.ObservationResult{ObservationId: "correlated-evidence", Value: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: packed}}}
+		return &testpilotspb.ObservationResult{ObservationId: "correlated-evidence", Value: &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: packed}}}
 	}
 	admission := &testpilotspb.DeliveryAdmission{ActivityId: "a", DeliveryId: "1", Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED}
 	run := &testpilotspb.Run{Events: []*testpilotspb.RunEvent{
@@ -154,7 +155,7 @@ func TestDurableEvidenceIsScopedToTheSelectedRealization(t *testing.T) {
 	}}
 	source := &testpilotspb.Case{
 		Provenance: &testpilotspb.CaseProvenance{LocalNames: []*testpilotspb.LocalName{{DefinitionId: "shared", LocalName: "local"}}},
-		Program:    &testpilotspb.Program{Evidence: []*testpilotspb.EvidenceDeclaration{{EvidenceId: "local"}}},
+		Program:    &testpilotspb.Program{Evidence: []*testpilotspb.EvidenceDeclaration{{EvidenceId: "local", Kind: "local"}}},
 	}
 	require.Empty(t, durableEvidence(model, "reported", source))
 	require.Equal(t, []string{"local"}, durableEvidence(model, "durable", source))

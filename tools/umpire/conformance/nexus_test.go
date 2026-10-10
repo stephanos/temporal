@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
@@ -17,6 +18,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/ir"
@@ -87,8 +89,12 @@ func nexusEvidenceOf(t testing.TB, source *testpilotspb.Case, kinds ...string) [
 			}
 		}
 		require.NotNil(t, declared, "the Case carries %s", kind)
+		var scope []*testpilotspb.NamedValue
+		for _, field := range declared.GetScope() {
+			scope = append(scope, &testpilotspb.NamedValue{FieldId: field.GetFieldId(), Value: &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: field.GetValue().GetCel().GetExpr().GetConstExpr().GetStringValue()}}})
+		}
 		evidence := &testpilotspb.CorrelatedEvidence{Kind: declared.GetEvidenceId(), Operation: "5", Identity: &testpilotspb.CorrelatedIdentity{
-			EvidenceSource: declared.GetEvidenceSource(), Ordinal: ordinals[declared.GetEvidenceSource()], Scope: declared.GetScope()}}
+			EvidenceSource: declared.GetEvidenceSource(), Ordinal: ordinals[declared.GetEvidenceSource()], Scope: scope}}
 		ordinals[declared.GetEvidenceSource()]++
 		if len(out) > 0 && out[len(out)-1].GetIdentity().GetEvidenceSource() != declared.GetEvidenceSource() {
 			evidence.Parents = append(evidence.Parents, proto.CloneOf(out[len(out)-1].GetIdentity()))
@@ -116,7 +122,7 @@ func constructedRunOf(t testing.TB, source *testpilotspb.Case, evidence []*testp
 		Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}}
 	record := func(event *testpilotspb.RunEvent) {
 		event.Sequence = int64(len(run.GetEvents())) + 1
-		event.ElapsedMilliseconds = event.GetSequence() - 1
+		event.Elapsed = duration.FromMilliseconds(event.GetSequence() - 1)
 		event.ExecutionIncomplete = failure > 0 && event.GetSequence() > failure
 		run.Events = append(run.Events, event)
 	}
@@ -134,7 +140,7 @@ func constructedRunOf(t testing.TB, source *testpilotspb.Case, evidence []*testp
 	record(&testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, SourceId: "closed"})
 	if failure > 0 {
 		run.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE
-		run.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: failure}
+		run.EvaluationFailureSequence = proto.Int64(failure)
 	}
 	return run
 }

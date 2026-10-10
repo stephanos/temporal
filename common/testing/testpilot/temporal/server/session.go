@@ -210,7 +210,7 @@ func (s *Session) startLocked(ctx context.Context, c testpilot.Coordinate, timeo
 	if s.host.effects >= limits.MaxAttempts || s.attempts >= limits.MaxAttempts {
 		return nil, errCapacity
 	}
-	timeout := min(timeoutMilliseconds, max(limits.MaxTotalDurationMilliseconds, limits.MaxCleanupDurationMilliseconds))
+	timeout := min(timeoutMilliseconds, max(limits.MaxDuration.AsDuration().Milliseconds(), limits.CleanupDuration.AsDuration().Milliseconds()))
 	if timeout <= 0 {
 		return nil, errInvalid
 	}

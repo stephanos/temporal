@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -381,7 +382,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 			c.Fields = append(c.Fields, c.GetFields()[0])
 		}, "command start-nexus-operation of script workflow: temporal.api.command.v1.Command sets command_type twice"},
 		{"a deadline below zero", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
-			admCommand(t, admScript(t, r, "controller"), "await-close").TimeoutMs = -1
+			admCommand(t, admScript(t, r, "controller"), "await-close").Timeout = duration.FromMilliseconds(-1)
 		}, "command await-close of script controller has a deadline of -1 milliseconds"},
 		// Evidence fields and the identities they name.
 		{"an evidence field with no id", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {

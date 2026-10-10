@@ -4,7 +4,9 @@ import "temporal/api/command/v1/message.proto";
 import "temporal/api/common/v1/message.proto";
 import "temporal/api/failure/v1/message.proto";
 import "temporal/api/nexus/v1/message.proto";
-import "temporal/server/api/testpilot/v1/correlated.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "temporal/server/api/testpilot/v1/evidence.proto";
 import "temporal/server/api/testpilot/v1/expression.proto";
 import "temporal/server/api/testpilot/v1/source.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
@@ -34,6 +36,7 @@ message InstructionNode {
 
 // WaitHint is one declared bound a wait's timeout is the sum of, and where it is declared.
 message WaitHint {
+  reserved "at_most_milliseconds";
   // The Producer's identity for the hint, such as the Umpire IR id of a visibility or cause bound.
   string hint_id = 1;
   // Where the hint is declared, with its line.
@@ -41,14 +44,14 @@ message WaitHint {
   // The hint's share of the wait's timeout; positive.
   // (-- api-linter: core::0140::prepositions=disabled
   //     aip.dev/not-precedent: The name is the hint's own "at most" bound; it is internal to Testpilot. --)
-  int64 at_most_milliseconds = 3;
+  google.protobuf.Duration at_most = 3;
 }
 
 // After names the instructions of the same entrypoint an instruction runs after, possibly none. It is
 // written only where that set is not the previous instruction.
-message After { repeated InstructionReference instructions = 1; }
+message After { repeated LocalInstructionReference instructions = 1; }
 
-// Instruction is the complete version-one instruction table.
+// Instruction is the complete current-format instruction table.
 message Instruction {
   oneof instruction {
     InvokeRpc invoke_rpc = 1;
@@ -61,7 +64,7 @@ message Instruction {
     NexusOperationCompletion nexus_operation_completion = 8;
     ReadEvidence read_evidence = 9;
     ActivityAttemptFailure activity_attempt_failure = 10;
-    ActivityAttemptCancellation activity_attempt_cancellation = 11;
+    google.protobuf.Empty activity_attempt_cancellation = 11;
     ActivityAttemptWithholding activity_attempt_withholding = 12;
     ActivityHeartbeat activity_heartbeat = 13;
   }
@@ -80,7 +83,7 @@ message InvokeRpc {
 // RequestAssignment sets the request field at target to its value, evaluated at dispatch. Targets
 // may not overlap, fan out or select presence.
 message RequestAssignment {
-  // A field path in the grammar PathExpression.path documents.
+  // A field path in the grammar ExpressionBinding.path documents.
   string target = 1;
   Expression value = 2;
 }
@@ -88,19 +91,10 @@ message RequestAssignment {
 // ResponseRead reads the value at path in a successful RPC response into its targets. An absent value
 // is not read.
 message ResponseRead {
-  // A field path in the grammar PathExpression.path documents.
+  // A field path in the grammar ExpressionBinding.path documents.
   string path = 1;
-  ReadCardinality cardinality = 2;
-  repeated ReadTarget targets = 3;
-}
-
-// ReadCardinality says whether a response read supplies one value, or one value per element of a
-// repeated path. A read that emits each element cannot write a Slot.
-// (-- api-linter: core::0191::file-layout=disabled --)
-enum ReadCardinality {
-  READ_CARDINALITY_UNSPECIFIED = 0;
-  READ_CARDINALITY_ONE = 1;
-  READ_CARDINALITY_EMIT_EACH = 2;
+  reserved "cardinality";
+  repeated ReadTarget targets = 2;
 }
 
 // ReadTarget is where a response read delivers its value: a Slot, an Observation, or CorrelatedEvidence
@@ -119,7 +113,7 @@ message AwaitSlot { string slot_id = 1; }
 // AwaitInstruction waits, in a workflow, for the Nexus operation or the activity an earlier schedule
 // command (`WorkflowCommand`) of the same entrypoint started; its outcome value is the payload the
 // operation or the activity answered.
-message AwaitInstruction { InstructionReference instruction = 1; }
+message AwaitInstruction { LocalInstructionReference instruction = 1; }
 
 // Finish completes with result: the workflow of a workflow entrypoint, or the attempt of an activity
 // entrypoint and with it the activity. The result is a value whatever its type; an attempt fails only
@@ -138,7 +132,6 @@ message ActivityAttemptFailure { temporal.api.failure.v1.Failure failure = 1; }
 // heartbeat: the attempt heartbeats until the server reports the activity's cancellation requested
 // and then offers the canceled answer, which ends the activity once the server accepts it. An
 // attempt whose cancellation the server never requests offers nothing the Program declared.
-message ActivityAttemptCancellation {}
 
 // ActivityAttemptWithholding withholds the answer of the attempt of an activity entrypoint: the
 // worker offers nothing until the attempt's deadline, the start-to-close or schedule-to-close
@@ -243,26 +236,20 @@ message ReadEvidence {
   repeated RequestAssignment request_assignments = 3;
   // A boolean over the projected value, one value of the declared path.
   Expression until = 4;
-  // Positive for a poll, at most the instruction's timeout; zero for a read once.
-  int64 poll_interval_milliseconds = 5;
-  // Reads once, for a read the effect it waits for is visible to at once: the condition is
-  // checked once, and no wait hint applies.
-  bool once = 6;
+  // Absent reads once; present must be positive and no greater than the admitted timeout.
+  google.protobuf.Duration interval = 5;
+  reserved 6;
+  reserved "once", "poll_interval_milliseconds";
 }
 
 // InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are
 // the Profile's ProgramLimits. A limit is written only where it differs from the Profile's instruction
 // default, which an absent limit takes.
 message InstructionLimits {
-  oneof timeout {
-    // Deadline of each dispatch, within the Profile's total duration; when it expires the outcome is
-    // TIMED_OUT.
-    int64 timeout_milliseconds = 1;
-  }
-  oneof attempts {
-    // The highest attempt number the instruction may reach, within the Profile's attempts.
-    int64 max_attempts = 2;
-  }
+  reserved "timeout_milliseconds";
+  // Absent takes the Program or Profile default; present must be positive.
+  google.protobuf.Duration timeout = 1;
+  optional int64 max_attempts = 2;
 }
 
 // InstructionOutcomeStatus classifies one instruction attempt. A protocol failure is a non-OK RPC

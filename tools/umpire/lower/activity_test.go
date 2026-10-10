@@ -18,6 +18,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/interp"
@@ -130,13 +131,10 @@ func TestAnActivityScriptLowersToItsAttemptsInOrder(t *testing.T) {
 	protorequire.ProtoEqual(t, cp.Equal(cp.Path(cp.ProjectedValue(), "status"), cp.Literal(cp.Enum("ACTIVITY_EXECUTION_STATUS_COMPLETED"))),
 		instruction(t, c, "controller", "await-closed").GetInstruction().GetReadEvidence().GetUntil())
 	// A conjunction, an order and a negation lower to the expressions of those names.
-	protorequire.ProtoEqual(t, &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
+	protorequire.ProtoEqual(t, cel.All(
 		cp.Present(cp.Path(cp.ProjectedValue(), "schedule_time")),
-		{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_GREATER_THAN,
-			Left: cp.Path(cp.ProjectedValue(), "state_transition_count"), Right: cp.Literal(cp.SignedInteger(0))}}},
-		{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{
-			Operand: cp.Equal(cp.Path(cp.ProjectedValue(), "activity_id"), cp.Literal(cp.Text("")))}}},
-	}}}}, instruction(t, c, "controller", "await-listed").GetInstruction().GetReadEvidence().GetUntil())
+		cel.Compare("_>_", cp.Path(cp.ProjectedValue(), "state_transition_count"), cp.Literal(cp.SignedInteger(0))),
+		cel.Not(cp.Equal(cp.Path(cp.ProjectedValue(), "activity_id"), cp.Literal(cp.Text(""))))), instruction(t, c, "controller", "await-listed").GetInstruction().GetReadEvidence().GetUntil())
 
 	// The deliveries and the failed attempt record nothing a caller reads: each is a Known Gap.
 	var silent []string
@@ -309,9 +307,9 @@ func TestEvidenceReadFromOneMessageWithItsFieldsLowers(t *testing.T) {
 	require.Len(t, c.GetProgram().GetEvidence(), 1)
 	declared := c.GetProgram().GetEvidence()[0]
 	protorequire.ProtoEqual(t, &testpilotspb.ReadSource{Method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
-		Path: "info", Single: true}, declared.GetRead())
-	protorequire.ProtoSliceEqual(t, []*testpilotspb.EvidenceFieldDeclaration{{FieldId: "run", Path: "run_id"}, {FieldId: "attempt", Path: "attempt"},
-		{FieldId: "identity", Path: "last_worker_identity"}}, declared.GetFields())
+		Path: "info"}, declared.GetRead())
+	protorequire.ProtoSliceEqual(t, []*testpilotspb.NamedExpression{{FieldId: "run", Value: cp.Path(cp.ProjectedValue(), "run_id")}, {FieldId: "attempt", Value: cp.Path(cp.ProjectedValue(), "attempt")},
+		{FieldId: "identity", Value: cp.Path(cp.ProjectedValue(), "last_worker_identity")}}, declared.GetFields())
 	require.Equal(t, declared.GetEvidenceId(), instruction(t, c, "controller", "await-opened").GetInstruction().GetReadEvidence().GetEvidenceId())
 	rules := c.GetContract().GetCorrelated().GetProjectionRules()
 	require.Len(t, rules, 1)
@@ -414,8 +412,8 @@ func TestTheFieldsAndTheSingleReadOfEvidenceAreCheckedAgainstTheirDescriptors(t 
 				Operands: []*umpirespb.Operand{e.GetRunEvent().GetGuard(), payload("activity_attempt.delivery_id")}}}}
 		}, pushed + ": its guard joins a text, and only conditions are joined"},
 		{"a Run Event's key that is each of several texts", func(e *umpirespb.Evidence) {
-			e.GetRunEvent().Key = payload("value.list_value.values[*].text_value")
-		}, pushed + ": its key reads value.list_value.values[*].text_value, which is no single text or integer of " + outcome},
+			e.GetRunEvent().Key = payload("value.list_value.values[*].string_value")
+		}, pushed + ": its key reads value.list_value.values[*].string_value, which is no single text or integer of " + outcome},
 		{"a Run Event's key that is a message", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().Key = payload("activity_attempt")
 		}, pushed + ": its key reads activity_attempt, which is no single text or integer of " + outcome},
@@ -692,7 +690,7 @@ func TestACanceledAnswerLowersToItsInstruction(t *testing.T) {
 	require.Equal(t, Lowered, withdrawn.Standing, "%v", withdrawn.Unsupported)
 	require.Empty(t, withdrawn.OffPath)
 	protorequire.ProtoEqual(t, &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{
-		ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}}, instruction(t, withdrawn.Case, "errand", "cancel-attempt").GetInstruction())
+		ActivityAttemptCancellation: &emptypb.Empty{}}}, instruction(t, withdrawn.Case, "errand", "cancel-attempt").GetInstruction())
 
 	free, err := p.Lower("errand.retry", errandIdentity)
 	require.NoError(t, err)

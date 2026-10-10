@@ -151,7 +151,7 @@ func (r *recorder) stage(facts []*testpilotspb.RunEvent) ([]*testpilotspb.RunEve
 		r.remainingWork -= copyWork
 		snapshot := proto.CloneOf(fact)
 		snapshot.Sequence = 0
-		snapshot.ElapsedMilliseconds = 0
+		snapshot.Elapsed = nil
 		if previous, exists := r.sources[snapshot.SourceId]; exists {
 			semantic := testpilotspb.RunEvent{Kind: previous.event.Kind, Coordinates: previous.event.Coordinates, SourceId: previous.event.SourceId, CausalSourceIds: previous.event.CausalSourceIds, Observations: previous.event.Observations, ExecutionIncomplete: previous.producerIncomplete, Payload: previous.event.Payload}
 			if !proto.Equal(&semantic, snapshot) {
@@ -188,11 +188,11 @@ func (r *recorder) append(ctx context.Context, event *testpilotspb.RunEvent, mon
 	}
 	r.elapsed = max(r.elapsed, elapsed)
 	event.Sequence = int64(len(r.run.Events)) + 1
-	event.ElapsedMilliseconds = r.elapsed
+	event.Elapsed = ir.MillisecondsDuration(r.elapsed)
 	event.ExecutionIncomplete = r.incomplete
 	r.run.Events = append(r.run.Events, event)
 	r.sources[event.SourceId] = recordedSource{event: event, producerIncomplete: originalIncomplete}
-	if r.run.EvaluationFailure != nil {
+	if r.run.EvaluationFailureSequence != nil {
 		return nil
 	}
 	decision, err := r.monitor.Observe(ctx, proto.CloneOf(event))
@@ -203,7 +203,7 @@ func (r *recorder) append(ctx context.Context, event *testpilotspb.RunEvent, mon
 		err = ir.Invalid(ir.Malformed, "recorder", "invalid Monitor decision")
 	}
 	if err != nil {
-		r.run.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: event.Sequence}
+		r.run.EvaluationFailureSequence = proto.Int64(event.Sequence)
 		if !monitorFailureFatal {
 			r.diagnostic(testpilotspb.RUN_DIAGNOSTIC_KIND_MONITOR, "observe_failed", err.Error())
 			return err
@@ -291,7 +291,7 @@ func (r *recorder) diagnostic(kind testpilotspb.RunDiagnosticKind, code, detail 
 	}
 	d := &testpilotspb.RunDiagnostic{DiagnosticId: "diagnostic." + strconv.Itoa(len(r.run.Diagnostics)+1), Kind: kind, Code: boundedDiagnostic(code), Detail: boundedDiagnostic(detail)}
 	if len(r.run.Events) > 0 {
-		d.Support = &testpilotspb.RunDiagnostic_SupportingEventSequence{SupportingEventSequence: int64(len(r.run.Events))}
+		d.SupportingEventSequence = proto.Int64(int64(len(r.run.Events)))
 	}
 	r.run.Diagnostics = append(r.run.Diagnostics, d)
 }

@@ -7,10 +7,12 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/proto"
 )
@@ -61,7 +63,7 @@ func success(value string) *testpilotspb.InstructionOutcome {
 	return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: facadetest.CarriedValue(value)}
 }
 
-func evaluateEnabled(t *testing.T, state *State, index int) *testpilotspb.Value {
+func evaluateEnabled(t *testing.T, state *State, index int) *celpb.Value {
 	t.Helper()
 	input, enabled, err := state.Evaluate(t.Context(), index)
 	require.NoError(t, err)
@@ -87,7 +89,7 @@ func TestGuardAndOwnership(t *testing.T) {
 			require.Equal(t, succeeded, enabled)
 			if succeeded {
 				require.True(t, proto.Equal(success("result").Value, input))
-				input.Value = success("changed input").Value.Value
+				input.Kind = success("changed input").Value.Kind
 			} else {
 				require.Nil(t, input)
 				require.Error(t, state.Admit(t.Context(), 2, outcome))
@@ -121,11 +123,10 @@ func TestEvaluationLifecycle(t *testing.T) {
 	_, _, err = state.Evaluate(t.Context(), 1)
 	require.Error(t, err)
 
-	// finish's guard compares await's status, which is absent until await is admitted, so finish is
-	// skipped rather than enabled.
+	// An unguarded native comparison of an absent outcome is an evaluation error.
 	state = newState(t, plan)
 	input, enabled, err := state.Evaluate(t.Context(), 2)
-	require.NoError(t, err)
+	require.Error(t, err)
 	require.False(t, enabled)
 	require.Nil(t, input)
 	remaining = state.remaining
@@ -142,7 +143,7 @@ func TestRejectedOutcomesAreAtomic(t *testing.T) {
 		"unspecified":    {},
 		"unknown status": {Status: 999},
 		"missing value":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
-		"wrong type":     {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}},
+		"wrong type":     {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}}},
 		"oversized":      success(strings.Repeat("x", 65537)),
 		"protocol":       {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE},
 	} {
@@ -152,9 +153,9 @@ func TestRejectedOutcomesAreAtomic(t *testing.T) {
 			require.Error(t, state.Admit(t.Context(), 1, outcome))
 			require.Empty(t, state.values)
 			require.Error(t, state.Admit(t.Context(), 1, success("retry")))
-			// No status was recorded, so the dependent's success guard is false.
+			// No status was recorded; native CEL refuses the unguarded missing binding.
 			input, enabled, err := state.Evaluate(t.Context(), 2)
-			require.NoError(t, err)
+			require.Error(t, err)
 			require.False(t, enabled)
 			require.Nil(t, input)
 		})
@@ -278,10 +279,10 @@ func TestIndependentActivations(t *testing.T) {
 	snapshot.Instruction.GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes().Input = facadetest.Payload("mutated")
 	exercise(t, "after snapshot mutation")
 	require.True(t, proto.Equal(before, plan.Activation()))
-	// A fresh activation sees no other activation's await outcome, so finish's success guard is false.
+	// A fresh activation cannot read another activation's await outcome.
 	state := newState(t, plan)
 	input, enabled, err := state.Evaluate(t.Context(), 2)
-	require.NoError(t, err)
+	require.Error(t, err)
 	require.False(t, enabled)
 	require.Nil(t, input)
 }
@@ -302,12 +303,12 @@ func TestPresenceAndMissingRequiredInput(t *testing.T) {
 				finish := program.Entrypoints[1].Instructions[2]
 				switch mode {
 				case "present":
-					finish.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: proto.CloneOf(finish.Instruction.GetFinish().Result)}}}
+					finish.Guard = cel.Present(proto.CloneOf(finish.Instruction.GetFinish().Result))
 				case "false all":
-					finish.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{boolean(false), finish.Guard}}}}
+					finish.Guard = cel.All([]*testpilotspb.Expression{boolean(false), finish.Guard}...)
 				case "true":
 					finish.Guard = boolean(true)
-					finish.Instruction.GetFinish().Result.GetReference().GetOutcome().Field = testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS
+					finish.Instruction.GetFinish().Result.GetBindings()[0].GetReference().GetOutcome().Field = testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS
 				default:
 					t.Fatalf("unknown guard mode %q", mode)
 				}
@@ -316,8 +317,9 @@ func TestPresenceAndMissingRequiredInput(t *testing.T) {
 			input, enabled, err := state.Evaluate(t.Context(), 2)
 			if mode == "true" {
 				require.Error(t, err)
-				// A true guard binds as no guard, so only the input's evaluation is charged.
-				require.Equal(t, plan.RuntimeWorkLimit()-1, state.remaining)
+				_, _, work, directErr := plan.Instructions()[2].EvaluateInput(t.Context(), func(testpilot.ValueReference) *celpb.Value { return nil }, plan.RuntimeWorkLimit())
+				require.Error(t, directErr)
+				require.Equal(t, plan.RuntimeWorkLimit()-work, state.remaining)
 			} else {
 				require.NoError(t, err)
 			}
@@ -335,7 +337,7 @@ func TestPresenceAndMissingRequiredInput(t *testing.T) {
 }
 
 func boolean(value bool) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}}}
+	return cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: value}})
 }
 
 func TestRepeatedReadsOwnTheirValues(t *testing.T) {
@@ -349,12 +351,12 @@ func TestRepeatedReadsOwnTheirValues(t *testing.T) {
 	evaluateEnabled(t, state, 1)
 	outcome := success("result")
 	require.NoError(t, state.Admit(t.Context(), 1, outcome))
-	outcome.Value.Value = success("mutated raw").Value.Value
+	outcome.Value.Kind = success("mutated raw").Value.Kind
 	snapshot, _, err := plan.Instructions()[1].ValidateOutcome(t.Context(), success("foreign"), plan.RuntimeWorkLimit())
 	require.NoError(t, err)
-	snapshot.Fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].Value = success("mutated snapshot").Value.Value
+	snapshot.Fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].Kind = success("mutated snapshot").Value.Kind
 	first := evaluateEnabled(t, state, 2)
 	require.Equal(t, "result", facadetest.CarriedText(t, first))
-	first.Value = success("mutated input").Value.Value
+	first.Kind = success("mutated input").Value.Kind
 	require.Equal(t, "result", facadetest.CarriedText(t, evaluateEnabled(t, state, 3)))
 }

@@ -12,6 +12,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/casefile"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -76,7 +77,7 @@ func TestKeyReadsDefinitionIDsAndNothingPerRun(t *testing.T) {
 	shifted.RunId = "another-run"
 	for index, event := range shifted.GetEvents() {
 		if index > 0 {
-			event.ElapsedMilliseconds += 1000
+			event.Elapsed = pbduration.FromMilliseconds(event.Elapsed.AsDuration().Milliseconds() + 1000)
 		}
 		if event.GetCoordinates() != nil {
 			event.Coordinates.ActivationId = "another-activation"

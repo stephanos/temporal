@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	activitypb "go.temporal.io/api/activity/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -21,11 +22,13 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -203,7 +206,7 @@ func attemptFinish(id string, result *testpilotspb.Expression) *testpilotspb.Ins
 }
 
 func attemptCancellation(id string) *testpilotspb.InstructionNode {
-	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}}}
+	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{ActivityAttemptCancellation: &emptypb.Empty{}}}}
 }
 
 func attemptFailure(id, failureType string, nonRetryable bool) *testpilotspb.InstructionNode {
@@ -292,7 +295,7 @@ func TestRunRecordsWhatEachDeclaredActivityAttemptDid(t *testing.T) {
 	carried, err := anypb.New(&failurepb.Failure{Message: "a value, not an outcome"})
 	require.NoError(t, err)
 	disabled := attemptFinish("first-attempt", textLiteral("never"))
-	disabled.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
+	disabled.Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: false}})
 	refusal := attemptFact(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, 1, deliveryOf("token-1"), testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED)
 	refusal.SdkFailureCode, refusal.Detail = "umpire_worker", "the activity attempt's instruction is disabled"
 	const started, first, second, third = "scheduler.g0.n0.a1.started", "scheduler.g0.n0.a1.r0.i0", "scheduler.g0.n0.a1.r0.i1", "scheduler.g0.n0.a1.r0.i2"
@@ -382,7 +385,7 @@ func TestRunRecordsWhatEachDeclaredActivityAttemptDid(t *testing.T) {
 		},
 		// A result that happens to be a Temporal failure message is a result.
 		"an attempt completes with a failure message as its result": {
-			script:      []*testpilotspb.InstructionNode{attemptFinish("first-attempt", &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: carried}}}})},
+			script:      []*testpilotspb.InstructionNode{attemptFinish("first-attempt", cel.Literal(&celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: carried}}))},
 			told:        []string{"completed"},
 			facts:       []recordedAttempt{fact(first, attemptFact(succeeded, 1, deliveryOf("token-1"), completed))},
 			disposition: testpilotspb.RUN_DISPOSITION_COMPLETED,

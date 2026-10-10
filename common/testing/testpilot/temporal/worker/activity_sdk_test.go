@@ -6,13 +6,13 @@ import (
 	"encoding/hex"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/interceptor"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
 	sdkworker "go.temporal.io/sdk/worker"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
@@ -44,7 +44,7 @@ func sdkActivityEnvironment(host *Driver, definition programDefinition, queue st
 	var suite testsuite.WorkflowTestSuite
 	environment := suite.NewTestActivityEnvironment().SetExecuteActivitiesInWorkflow(!standalone)
 	environment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: queue, registration: definition.registrations[0]}}})
-	environment.RegisterActivityWithOptions(func(ctx context.Context) (*testpilotspb.Value, error) {
+	environment.RegisterActivityWithOptions(func(ctx context.Context) (*celpb.Value, error) {
 		return host.dynamicActivity(ctx, nil)
 	}, activity.RegisterOptions{Name: "activity-type"})
 	return environment
@@ -87,7 +87,7 @@ func TestSDKActivityInterpretsItsScriptUnderTheCarriedRoute(t *testing.T) {
 	environment.SetHeader(request.GetHeader())
 	encoded, err := environment.ExecuteActivity("activity-type")
 	require.NoError(t, err)
-	var result testpilotspb.Value
+	var result celpb.Value
 	require.NoError(t, encoded.Get(&result))
 	require.True(t, proto.Equal(textResult("done"), &result), &result)
 	// The recorded outcome names the run, the attempt and the delivery the SDK handed the

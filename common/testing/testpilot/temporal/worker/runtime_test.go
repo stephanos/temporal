@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
@@ -279,7 +281,7 @@ func symbolicRuntimeDriver(t *testing.T, limits *testpilotspb.ProgramLimits) *Dr
 }
 
 func symbolicEnvironment(id string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: id}}}}
+	return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: id}})
 }
 
 func symbolicFieldPath(fields ...string) string {
@@ -444,7 +446,7 @@ func TestActivationValuesOwnValidatedOutcome(t *testing.T) {
 	require.Nil(t, input)
 	original := facadetest.CarriedValue("result")
 	require.NoError(t, state.Admit(t.Context(), 1, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: original}))
-	original.Value = &testpilotspb.Value_TextValue{TextValue: "mutated"}
+	original.Kind = &celpb.Value_StringValue{StringValue: "mutated"}
 	result, enabled, err := state.Evaluate(t.Context(), 2)
 	require.NoError(t, err)
 	require.True(t, enabled)
@@ -566,7 +568,7 @@ func TestNewScalesTheCallbackDeadlineWithTheProfile(t *testing.T) {
 	scaled, err := open(150)
 	require.NoError(t, err)
 	require.Equal(t, 45*time.Second, scaled.options.completion.httpClient.Timeout)
-	require.Equal(t, int64(30000), scaled.options.profile.ProgramLimits.GetMaxTotalDurationMilliseconds(), "the Profile keeps its declared ceilings")
+	require.Equal(t, int64(30000), scaled.options.profile.ProgramLimits.GetMaxDuration().AsDuration().Milliseconds(), "the Profile keeps its declared ceilings")
 	_, err = open(99)
 	require.ErrorIs(t, err, ErrInvalid)
 }

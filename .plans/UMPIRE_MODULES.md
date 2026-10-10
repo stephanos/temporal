@@ -63,6 +63,30 @@ the functional fixtures and the canary.
 | Functional wiring, `tests/testcore/testpilot` | Bind Cases to functional test clusters. | Existing fixture and cluster helper APIs with reviewed fixture identities. | Live Testpilot and Umpire modules; nothing imports this package from runtime/tooling. |
 | Canary, `tools/canary` | Run the policy's pinned Case against a deployment on manual dispatch. | Existing canary entry point and policy contract. | Testpilot runtime/helpers and Temporal binding; no consumer imports from tooling/runtime. |
 
+### Testpilot format 4.0 ownership
+
+Testpilot's `expression.proto` carries canonical `cel.expr.ParsedExpr` and typed domain bindings;
+the pinned `cel.dev/cel-go v0.32.0` owns ordinary predicate checking and evaluation. The checked
+canonical-to-engine protobuf bridge in `internal/ir` is the sole use of the engine's legacy AST
+package. `common/testing/testpilot/cel` builds native operators, `predicate` exposes the same bounded
+projected evaluation to conformance, and `duration` checks exact whole-millisecond conversion.
+These packages depend only on Testpilot schema, its admitted catalog and standard runtime support.
+The Umpire finite evaluator and neutral symbolic operand IR remain independent of Testpilot.
+
+The leaf `evidence.proto` owns generalized extraction declarations, ordered declaration-ID response
+lifts and runtime evidence identities/values. `correlated.proto` owns Contract policy and complete
+state/result tables. Program extraction never derives or narrows the independent Contract policy.
+A complete local state is its finite atom plus ordered fields; a result is action, destination,
+outcome and facts. Transitions authorize prior-state/result pairs and projections preserve result
+order. Admission charges expanded structures before enumeration.
+
+Testpilot's seven elapsed quantities and Umpire realization timeout/interval/wait/deadline hints
+use protobuf Duration with exact checked millisecond conversion; counts, ordinals and logical
+bounds retain their integer types. Response paths determine cardinality, local instruction
+references omit entrypoint coordinates, and marker arms use protobuf Empty. Format 4.0 activates
+once after source consumers integrate; managed Cases and exact Run companions regenerate at the
+shared checkpoint. The old fixture compatibility passages below record earlier migrations.
+
 ### Umpire schema declaration owners
 
 The schema rooted at `proto/internal/temporal/server/api/umpire/v1/ir.proto` has nine owners in one

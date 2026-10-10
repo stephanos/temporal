@@ -74,16 +74,16 @@ func RunEventKindFromString(s string) (RunEventKind, error) {
 
 var (
 	RunEventField_shorthandValue = map[string]int32{
-		"Unspecified":         0,
-		"Sequence":            1,
-		"ElapsedMilliseconds": 2,
-		"Kind":                3,
-		"EntrypointId":        4,
-		"ActivationId":        5,
-		"InstructionId":       6,
-		"Attempt":             7,
-		"SourceId":            8,
-		"RunId":               9,
+		"Unspecified":   0,
+		"Sequence":      1,
+		"Elapsed":       2,
+		"Kind":          3,
+		"EntrypointId":  4,
+		"ActivationId":  5,
+		"InstructionId": 6,
+		"Attempt":       7,
+		"SourceId":      8,
+		"RunId":         9,
 	}
 )
 

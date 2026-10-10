@@ -9,16 +9,20 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type correlatedFacadeFixture struct {
@@ -69,14 +73,9 @@ func correlatedFacadeProfile(t testing.TB) testpilot.ProfileSpec {
 	require.NoError(t, err)
 	return testpilot.ProfileSpec{
 		Identity: "correlated-facade", Catalog: catalog,
-		Roles:   []testpilot.RolePolicy{{ID: "source", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/test.correlated.Source/Read"}}},
-		Opcodes: []testpilot.Opcode{testpilot.InvokeRPC},
-		ProgramLimits: &testpilotspb.ProgramLimits{
-			MaxEntrypoints: 4, MaxNodes: 256, MaxEdges: 256, MaxActivations: 256, MaxAttempts: 256, MaxRunEvents: 2048,
-			MaxExpressionDepth: 8, MaxPathFanout: 256, MaxRequestBytes: 4096, MaxResponseBytes: 4096,
-			MaxTotalDurationMilliseconds: 10000, MaxCleanupDurationMilliseconds: 1000,
-			MaxInstructionEmittedEvents: 1, MaxInstructionResponseBytes: 4096,
-		},
+		Roles:         []testpilot.RolePolicy{{ID: "source", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/test.correlated.Source/Read"}}},
+		Opcodes:       []testpilot.Opcode{testpilot.InvokeRPC},
+		ProgramLimits: &testpilotspb.ProgramLimits{MaxEntrypoints: 4, MaxNodes: 256, MaxEdges: 256, MaxActivations: 256, MaxAttempts: 256, MaxRunEvents: 2048, MaxExpressionDepth: 8, MaxPathFanout: 256, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxDuration: durationpb.New(time.Duration(10000) * time.Millisecond), CleanupDuration: durationpb.New(time.Duration(1000) * time.Millisecond), MaxInstructionEmittedEvents: 1, MaxInstructionResponseBytes: 4096},
 		ContractLimits: &testpilotspb.ContractLimits{
 			MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16,
 			MaxWorkPerEvent: 1000000, MaxTotalWork: 1000000000, MaxCaptures: 32, MaxCaptureBytes: 65536,
@@ -272,7 +271,7 @@ func TestCorrelatedFacadeTenfoldLoad(t *testing.T) {
 					instruction := proto.CloneOf(node)
 					instruction.InstructionId = fmt.Sprintf("read.%d", i)
 					if i > 0 {
-						instruction.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
+						instruction.Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})
 					}
 					source.Program.Entrypoints[0].Instructions = append(source.Program.Entrypoints[0].Instructions, instruction)
 				}

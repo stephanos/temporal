@@ -616,7 +616,7 @@ func (a *realizing) withholding(s *umpirespb.Script, item *umpirespb.Item) {
 		return
 	}
 	for _, step := range a.r.GetServerSteps() {
-		if a.d.ClassKey(step.GetStep()) == key && step.GetKind() == umpirespb.CAUSE_KIND_TIMER && step.GetDeadlineMs() > 0 {
+		if a.d.ClassKey(step.GetStep()) == key && step.GetKind() == umpirespb.CAUSE_KIND_TIMER && durationMilliseconds(step.GetDeadline()) > 0 {
 			mode, basis := item.GetCommand().GetAttemptWithheld().GetMode(), step.GetTimeoutBasis()
 			valid := mode == umpirespb.WITHHOLDING_MODE_CONTEXT && (basis == umpirespb.TIMEOUT_BASIS_START_TO_CLOSE || basis == umpirespb.TIMEOUT_BASIS_SCHEDULE_TO_CLOSE) ||
 				mode == umpirespb.WITHHOLDING_MODE_SDK_PENDING && basis == umpirespb.TIMEOUT_BASIS_HEARTBEAT
@@ -725,9 +725,7 @@ func (a *realizing) command(s *umpirespb.Script, c commandOf, all map[string]*um
 	for _, id := range c.c.GetAfter().GetCommands() {
 		named(id)
 	}
-	if c.c.GetTimeoutMs() < 0 {
-		a.report(c.at, "command %s has a deadline of %d milliseconds", c.name, c.c.GetTimeoutMs())
-	}
+	a.duration(c.at, "command "+c.name+".timeout", c.c.GetTimeout(), false, false)
 	for _, id := range c.c.GetCloses() {
 		a.closes(c, id)
 	}
@@ -922,12 +920,13 @@ func (a *realizing) poll(c commandOf, poll *umpirespb.Poll) {
 	}
 	// A poll that writes no interval waits as the lowering derives from the API behavior; it then
 	// writes no deadline either, since its bound is the hints' (.plans/API_BEHAVIOR_HINTS.md).
+	if poll.GetInterval() != nil {
+		a.duration(c.at, "command "+c.name+".interval", poll.GetInterval(), false, true)
+	}
 	switch {
-	case poll.GetIntervalMs() < 0:
-		a.report(c.at, "command %s polls every %d milliseconds", c.name, poll.GetIntervalMs())
-	case poll.GetIntervalMs() == 0 && c.c.GetTimeoutMs() > 0:
+	case poll.GetInterval() == nil && durationMilliseconds(c.c.GetTimeout()) > 0:
 		a.report(c.at, "command %s waits within the bound the API behavior derives, and writes a deadline of %d milliseconds besides",
-			c.name, c.c.GetTimeoutMs())
+			c.name, durationMilliseconds(c.c.GetTimeout()))
 	default:
 	}
 }

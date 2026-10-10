@@ -1,7 +1,9 @@
 syntax = "proto3";
 package temporal.server.api.testpilot.v1;
 import "temporal/server/api/testpilot/v1/event.proto";
-import "temporal/server/api/testpilot/v1/value.proto";
+import "cel/expr/syntax.proto";
+import "cel/expr/value.proto";
+import "google/protobuf/empty.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
 // Expression is the one closed expression language of a Case: instruction inputs and guards,
@@ -9,64 +11,20 @@ option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 // references an expression may use is a property of where it appears, and preparation rejects a
 // reference outside its context.
 message Expression {
-  oneof expression {
-    Value literal = 1;
+  cel.expr.ParsedExpr cel = 1;
+  repeated ExpressionBinding bindings = 2;
+}
+
+// ExpressionBinding supplies a typed domain value to one CEL variable. Paths use protobuf field
+// names, optional oneof members, map selectors, wildcard projection and explicit presence. Their
+// authority is checked against the owning Case catalog before native CEL checking.
+message ExpressionBinding {
+  string variable = 1;
+  oneof input {
     Reference reference = 2;
-    PathExpression path = 3;
-    PresentExpression present = 4;
-    CompareExpression compare = 5;
-    // (-- api-linter: core::0140::reserved-words=disabled
-    //     aip.dev/not-precedent: The negation arm is named like all and any; it is internal and generated Lean accepts it. --)
-    NotExpression not = 6;
-    AllExpression all = 7;
-    AnyExpression any = 8;
+    cel.expr.Value literal = 3;
   }
-}
-
-// PathExpression reads the value at path out of its operand's value, absent when any segment is
-// absent.
-message PathExpression {
-  Expression operand = 1;
-  // A field path: dot-separated protobuf field names (not JSON names), each followed by at
-  // most one selector. `[*]` fans out over every element of a repeated field, so the path's value is a
-  // list; `["text"]`, `[42]` or `[true]` reads the map entry with that key, a JSON string for a text
-  // key, a base-10 integer for an integer key and true or false for a boolean key, and is absent
-  // when no entry has it; a final `?` reads whether a presence-tracking field is set, as a boolean;
-  // `<member>` after a oneof's name reads the member of that oneof it names. The empty path is the
-  // whole value. For example `attributes<nexus_operation_completed_event_attributes>.scheduled_event_id`
-  // or `history.events[*]`. Preparation rejects a path outside this grammar with its text.
-  string path = 2;
-}
-
-// PresentExpression is true when its operand is not absent.
-message PresentExpression { Expression operand = 1; }
-
-// CompareExpression compares two operands of one type. EQUAL and NOT_EQUAL admit any type; the
-// ordering operators admit only numeric scalars.
-message CompareExpression { ComparisonOperator operator = 1; Expression left = 2; Expression right = 3; }
-
-// NotExpression negates a boolean operand.
-message NotExpression { Expression operand = 1; }
-
-// AllExpression is true when every operand is true. Operands are evaluated left to right until
-// one is false; an empty list is true.
-message AllExpression { repeated Expression operands = 1; }
-
-// AnyExpression is true when some operand is true. Operands are evaluated left to right until
-// one is true; an empty list is false.
-message AnyExpression { repeated Expression operands = 1; }
-
-// ComparisonOperator names what a compare expression tests. NOT_EQUAL is the negation of EQUAL, and
-// every ordering comparison with NaN is false.
-// (-- api-linter: core::0191::file-layout=disabled --)
-enum ComparisonOperator {
-  COMPARISON_OPERATOR_UNSPECIFIED = 0;
-  COMPARISON_OPERATOR_EQUAL = 1;
-  COMPARISON_OPERATOR_NOT_EQUAL = 2;
-  COMPARISON_OPERATOR_LESS_THAN = 3;
-  COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL = 4;
-  COMPARISON_OPERATOR_GREATER_THAN = 5;
-  COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL = 6;
+  string path = 4;
 }
 
 // Reference reads one value an expression's context supplies. Instruction inputs and guards admit
@@ -79,7 +37,7 @@ message Reference {
     // The value assigned to a Slot, absent until the Slot is written.
     string slot_id = 1;
     InstructionOutcomeReference outcome = 2;
-    RunReference run = 3;
+    google.protobuf.Empty run = 3;
     // A declared environment binding's value. It is admitted only as the whole value of an InvokeRpc
     // request assignment to a text field.
     string environment_binding_id = 4;
@@ -93,7 +51,7 @@ message Reference {
     CorrelatedCaptureReference correlated_capture = 9;
     CorrelatedStepReference correlated_step = 10;
     // The value an evidence lift is projecting.
-    ProjectedValueReference projected_value = 11;
+    google.protobuf.Empty projected_value = 11;
     // A value the evaluated Rule instance assigns; admitted only in a Contract transition predicate.
     string instance_value_id = 12;
   }
@@ -101,6 +59,9 @@ message Reference {
 
 // InstructionReference names one instruction by its entrypoint and instruction ids.
 message InstructionReference { string entrypoint_id = 1; string instruction_id = 2; }
+
+// LocalInstructionReference is scoped to its enclosing entrypoint.
+message LocalInstructionReference { string instruction_id = 1; }
 
 // InstructionOutcomeReference reads one declared field of an earlier instruction's outcome.
 message InstructionOutcomeReference { InstructionReference instruction = 1; InstructionOutcomeField field = 2; }
@@ -115,21 +76,13 @@ enum InstructionOutcomeField {
   INSTRUCTION_OUTCOME_FIELD_VALUE = 5;
 }
 
-// RunReference reads the Run id as text. Only InvokeRpc request assignments may use it.
-message RunReference {}
-
 // RunEventReference reads the evaluated Run Event: one of its coordinates, or its payload.
 message RunEventReference {
   oneof selection {
     RunEventField field = 1;
-    RunEventPayloadReference payload = 2;
+    google.protobuf.Empty payload = 2;
   }
 }
-
-// RunEventPayloadReference selects the payload of the evaluated Run Event. It is read only as the
-// operand of a path whose first segment names a payload arm, such as fault_injected.kind; that path
-// is absent on an event carrying another arm or none.
-message RunEventPayloadReference {}
 
 // CorrelatedCaptureReference reads one retained occurrence of a capture by its zero-based ordinal.
 message CorrelatedCaptureReference {
@@ -157,6 +110,3 @@ enum CorrelatedStepField {
   CORRELATED_STEP_FIELD_STATE = 3;
   CORRELATED_STEP_FIELD_FACT = 4;
 }
-
-// ProjectedValueReference reads the value an evidence lift is projecting.
-message ProjectedValueReference {}

@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/proto"
@@ -34,7 +36,7 @@ func TestActivityHeartbeatGroupRecordReplaysItsVerdictAndSupport(t *testing.T) {
 				invoke.RequestAssignments = append(invoke.RequestAssignments,
 					&testpilotspb.RequestAssignment{Target: "activity_id", Value: facadetest.Text("activity")},
 					&testpilotspb.RequestAssignment{Target: "activity_type.name", Value: facadetest.Text("activity-type")},
-					&testpilotspb.RequestAssignment{Target: "heartbeat_timeout.seconds", Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: "1"}}}}})
+					&testpilotspb.RequestAssignment{Target: "heartbeat_timeout.seconds", Value: cel.Literal(&celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: 1}})})
 				entry := &testpilotspb.Entrypoint{EntrypointId: "activity", Activation: &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}}}
 				entry.Instructions = append(entry.Instructions, &testpilotspb.InstructionNode{InstructionId: "heartbeat", Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityHeartbeat{ActivityHeartbeat: &testpilotspb.ActivityHeartbeat{Details: &commonpb.Payloads{Payloads: []*commonpb.Payload{facadetest.Payload("beat")}}}}}})
 				if pending {

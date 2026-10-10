@@ -40,7 +40,7 @@ func TestNexusPairCaseCarriesOneCaptureRuleWithTwoInstances(t *testing.T) {
 	rule := rules[0]
 	require.Equal(t, nexusPairRuleID, rule.GetRuleId())
 	require.Equal(t, nexusPairRelationDefinitionID+"."+nexusPairRuleID, localNameDefinition(t, source, nexusPairRuleID))
-	require.Equal(t, testpilotspb.CONTRACT_RULE_KIND_SAFETY, rule.GetKind())
+	require.Nil(t, rule.GetDeadline())
 	require.Len(t, rule.GetCaptures(), 1)
 	require.Equal(t, "nexusOperationScheduled-"+nexusPairRuleID, rule.GetCaptures()[0].GetCaptureId())
 	require.Len(t, rule.GetTransitions(), 2)
@@ -59,7 +59,7 @@ func TestNexusPairCaseCarriesOneCaptureRuleWithTwoInstances(t *testing.T) {
 		require.Equal(t, nexusPairRelationDefinitionID+"."+instance.ruleID, localNameDefinition(t, source, instance.ruleID))
 		require.Len(t, ruleInstance.GetAssignments(), 1)
 		require.Equal(t, nexusPairInstanceValueID, ruleInstance.GetAssignments()[0].GetInstanceValueId())
-		require.Equal(t, instance.operation, ruleInstance.GetAssignments()[0].GetValue().GetTextValue())
+		require.Equal(t, instance.operation, ruleInstance.GetAssignments()[0].GetValue().GetStringValue())
 	}
 	require.NotNil(t, source.GetContract().GetCorrelated())
 

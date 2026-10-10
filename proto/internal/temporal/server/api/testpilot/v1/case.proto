@@ -75,13 +75,9 @@ message KnownGap {
   KnownGapKind kind = 1;
   // The Known Gap's Definition ID.
   string code = 2;
-  oneof subject_presence {
-    // The Definition ID of the definition the gap limits.
-    string subject = 3;
-  }
-  oneof detail_presence {
-    string detail = 4;
-  }
+  // The Definition ID of the definition the gap limits.
+  optional string subject = 3;
+  optional string detail = 4;
 }
 
 // CorrelatedRuleBinding ties one Correlated Rule of the Contract to the Property and Projection it

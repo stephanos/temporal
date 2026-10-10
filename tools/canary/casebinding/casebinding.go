@@ -16,6 +16,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/canary/policy"
@@ -87,7 +88,7 @@ func ProfileSpec(canary *policy.Policy, catalog *testpilot.Catalog, environment 
 			MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16,
 			MaxRunEvents: 512, MaxExpressionDepth: 12, MaxPathFanout: 32,
 			MaxRequestBytes: 32768, MaxResponseBytes: 8192,
-			MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 20000,
+			MaxDuration: duration.FromMilliseconds(30000), CleanupDuration: duration.FromMilliseconds(20000),
 			MaxInstructionEmittedEvents: 128, MaxInstructionResponseBytes: 8192,
 		},
 		ContractLimits: &testpilotspb.ContractLimits{
@@ -109,7 +110,10 @@ func InstructionTimeout() (time.Duration, error) {
 	if err != nil {
 		return 0, fmt.Errorf("decode the pinned canary Case: %w", err)
 	}
-	ms := source.GetProgram().GetInstructionDefaults().GetTimeoutMilliseconds()
+	ms, err := duration.Milliseconds("instruction_defaults.timeout", source.GetProgram().GetInstructionDefaults().GetTimeout())
+	if err != nil {
+		return 0, err
+	}
 	if ms <= 0 {
 		return 0, errors.New("the pinned canary Case declares no instruction timeout")
 	}

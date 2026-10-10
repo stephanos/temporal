@@ -7,11 +7,12 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // canceling is the instruction that answers its attempt as canceled.
 func canceling(id string) *testpilotspb.InstructionNode {
-	return activityNode(id, &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}})
+	return activityNode(id, &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{ActivityAttemptCancellation: &emptypb.Empty{}}})
 }
 
 // An attempt is answered as canceled only through the instruction that says so, which only an

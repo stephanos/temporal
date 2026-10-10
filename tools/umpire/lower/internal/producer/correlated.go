@@ -6,8 +6,10 @@ import (
 	"strings"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/interp"
+	"google.golang.org/protobuf/proto"
 )
 
 // clause is one lowered requirement as an operation-correlated clause: from the operation's first
@@ -65,7 +67,7 @@ func (c pattern) stepField() testpilotspb.CorrelatedStepField {
 // condition is the step condition a pattern lowers to: its step reference compared equal with the
 // text it requires.
 func (c pattern) condition() *testpilotspb.Expression {
-	return Equal(correlatedStep(c.stepField(), c.reference), Literal(Text(c.value)))
+	return cel.Compare("@in", Literal(Text(c.value)), correlatedStep(c.stepField(), c.reference))
 }
 
 // scopedClauses places every lowered clause by the Scenario: its trigger is the operation's first
@@ -247,14 +249,23 @@ func (p *production) correlatedContract(plan projectionPlan, clauses []clause) *
 		ScopeFields:           []string{p.r.ScopeField},
 		OperationField:        p.r.OperationKey,
 		Sources:               plan.sources,
-		InitialState:          modelValue(p.initial),
-		InitialStateFields:    p.fields(p.initial.Value),
 	}
+	states, results := map[string]string{}, map[string]string{}
+	state := func(atom interp.Atom) string {
+		candidate := &testpilotspb.CorrelatedState{Atom: modelValue(atom), Fields: p.fields(atom.Value)}
+		return internState(c, states, candidate)
+	}
+	result := func(s step) string {
+		candidate := &testpilotspb.CorrelatedResult{Action: modelValue(s.Action), StateId: state(s.State), Outcome: modelValue(s.Outcome)}
+		for _, f := range s.Facts {
+			candidate.Facts = append(candidate.Facts, modelValue(f))
+		}
+		return internResult(c, results, candidate)
+	}
+	c.InitialStateId = state(p.initial)
 	for _, row := range plan.transitions {
-		t := p.output(row.result)
-		t.PriorState = modelValue(row.prior)
-		t.PriorFields = p.fields(row.prior.Value)
-		c.Transitions = append(c.Transitions, t)
+		prior := state(row.prior)
+		c.Transitions = append(c.Transitions, &testpilotspb.CorrelatedTransition{PriorStateId: prior, ResultId: result(row.result)})
 	}
 	for _, r := range plan.rules {
 		rule := &testpilotspb.CorrelatedProjectionRule{Kind: r.Rule.Source.KindID, Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED}
@@ -262,7 +273,7 @@ func (p *production) correlatedContract(plan projectionPlan, clauses []clause) *
 			rule.Meaning = testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT
 		}
 		for _, s := range r.Steps {
-			rule.Outputs = append(rule.Outputs, p.output(s))
+			rule.ResultIds = append(rule.ResultIds, result(s))
 		}
 		for _, f := range r.Rule.Source.Fields {
 			rule.Fields = append(rule.Fields, &testpilotspb.CorrelatedFieldPolicy{FieldId: f.ID, Type: &testpilotspb.ScalarType{Kind: f.Type},
@@ -272,19 +283,42 @@ func (p *production) correlatedContract(plan projectionPlan, clauses []clause) *
 	}
 	for _, cl := range clauses {
 		c.Rules = append(c.Rules, &testpilotspb.CorrelatedRule{
-			RuleId: cl.id, Clock: testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS, Bound: int64(cl.bound),
+			RuleId: cl.id, Bound: int64(cl.bound),
 			Ending: testpilotspb.TRACE_ENDING_PARTIAL, Trigger: p.trigger().condition(), Response: cl.response.condition()})
 	}
 	return c
 }
 
-func (p *production) output(s step) *testpilotspb.CorrelatedTransition {
-	t := &testpilotspb.CorrelatedTransition{Action: modelValue(s.Action), State: modelValue(s.State),
-		Outcome: modelValue(s.Outcome), StateFields: p.fields(s.State.Value)}
-	for _, f := range s.Facts {
-		t.Facts = append(t.Facts, modelValue(f))
+func internState(c *testpilotspb.CorrelatedContract, seen map[string]string, candidate *testpilotspb.CorrelatedState) string {
+	key := messageKey(candidate)
+	if id, found := seen[key]; found {
+		return id
 	}
-	return t
+	id := "s" + strconv.Itoa(len(seen)+1)
+	candidate.StateId = id
+	seen[key] = id
+	c.States = append(c.States, candidate)
+	return id
+}
+
+func internResult(c *testpilotspb.CorrelatedContract, seen map[string]string, candidate *testpilotspb.CorrelatedResult) string {
+	key := messageKey(candidate)
+	if id, found := seen[key]; found {
+		return id
+	}
+	id := "r" + strconv.Itoa(len(seen)+1)
+	candidate.ResultId = id
+	seen[key] = id
+	c.Results = append(c.Results, candidate)
+	return id
+}
+
+func messageKey(m proto.Message) string {
+	b, err := (proto.MarshalOptions{Deterministic: true}).Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
 
 func (p *production) fields(state string) []*testpilotspb.ModelValue {

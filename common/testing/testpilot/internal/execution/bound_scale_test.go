@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -31,7 +32,7 @@ func TestPrepareRefusesABoundScaleBelowOneHundred(t *testing.T) {
 // names the scale.
 func TestPrepareRefusesScaledCeilingsAboveTheProgramCeiling(t *testing.T) {
 	c, catalog, p := fixture(t)
-	p.Limits.MaxTotalDurationMilliseconds = ProgramCeiling().MaxTotalDurationMilliseconds / 2
+	p.Limits.MaxDuration = pbduration.FromMilliseconds(ProgramCeiling().MaxDuration.AsDuration().Milliseconds() / 2)
 	p.BoundScale = 200
 	_, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
@@ -40,7 +41,7 @@ func TestPrepareRefusesScaledCeilingsAboveTheProgramCeiling(t *testing.T) {
 	_, err = Prepare(c, catalog, p)
 	var diagnostic *ir.Error
 	require.ErrorAs(t, err, &diagnostic)
-	require.Equal(t, ir.Error{Category: ir.LimitExceeded, Path: "max_total_duration_milliseconds", Detail: "limit scaled by 201% is outside the positive Driver ceiling"}, *diagnostic)
+	require.Equal(t, ir.Error{Category: ir.LimitExceeded, Path: "max_duration", Detail: "limit scaled by 201% is outside the positive Driver ceiling"}, *diagnostic)
 }
 
 // The prepared ceilings are the scaled ones, and the Run records the scale only when it scales:
@@ -60,9 +61,9 @@ func TestScaledPreparationScalesCeilingsAndRecordsTheScale(t *testing.T) {
 		prepared, err := Prepare(c, catalog, p)
 		require.NoError(t, err)
 		want := proto.CloneOf(p.Limits)
-		want.MaxTotalDurationMilliseconds, want.MaxCleanupDurationMilliseconds = tc.total, tc.clean
+		want.MaxDuration, want.CleanupDuration = pbduration.FromMilliseconds(tc.total), pbduration.FromMilliseconds(tc.clean)
 		require.True(t, proto.Equal(want, prepared.Limits()), "scale %d", tc.scale)
-		require.Equal(t, int64(30000), p.Limits.MaxTotalDurationMilliseconds, "the Profile's limits are not scaled in place")
+		require.Equal(t, int64(30000), p.Limits.MaxDuration.AsDuration().Milliseconds(), "the Profile's limits are not scaled in place")
 
 		r, err := newRecorder(prepared.View(), "run", "case", &recorderMonitor{}, func() time.Time { return time.Unix(100, 0) }, nil, nil)
 		require.NoError(t, err)

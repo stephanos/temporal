@@ -4,7 +4,7 @@ Testpilot runs behavior through Temporal and Workers using bounded Cases. Caller
 `testpilot/v1` Case, prepare it against an immutable `Profile`, then execute the
 returned `PreparedCase` through a caller-owned `Driver`.
 
-Exact Case 1.0 is the only admitted format. A Program's symbolic binding graph is the closed set of
+Exact Case 4.0 is the only admitted format. Retired formats 1.0, 2.0 and 3.0 reject before payload interpretation or Driver I/O. A Program's symbolic binding graph is the closed set of
 text binding IDs its roles and expressions reference, which `Prepare` derives and resolves against the
 Profile; a resource-free Program references none. The Case owns the IDs and relationships; the Profile
 owns their physical values. Symbolic endpoint IDs are not transport addresses, and bindings grant no
@@ -68,52 +68,29 @@ Driver resolves each to the bound resource. The Await of a scheduled command yie
 handler or the activity answered, whole, as an `Any`, where the Await of the untyped start yields
 text.
 
-A Case may also declare where its operation-correlated evidence comes from. A response read can
-lift a projected value into a declared `CorrelatedEvidence` Observation through guarded rules, which is
-the only way a Program supplies the evidence a `Contract.correlated` Correlated Contract reads. A
-Correlated Contract that admits no evidence answers inconclusive: silence is not a satisfied property.
+A Program declares its evidence extraction once in `Program.evidence`. The leaf
+`evidence.proto` owns each declaration's identity, source, kind, admitted CEL guard, operation key,
+dynamic scope expressions and field expressions. Constant and projected values share this declaration
+shape. A response lift supplies its Observation destination and ordered declaration IDs; the first
+matching guard selects the declaration. A value no declaration claims emits nothing.
 
-A Program declares each kind of that evidence once, in `Program.evidence`: the recorded data it is
-read from, the Run coordinates that scope it, the path of its operation key and the fields it
-exposes. The source is one of three. A history event kind is a member of the oneof of the event the
-Program's history read yields, lifted by a history read whose rule names the declaration
-(`evidence_id`) and spells nothing else. A Run Event kind is lifted by the runtime as it records the event, out of the
-event's payload: an injected fault becomes `faultInjected` evidence keyed by the role it stopped. A
-read is a repeated field in the response of a unary RPC, polled from a controller by a
-`ReadEvidence` instruction until an element satisfies its `until` or the instruction times out, and
-every element the condition selects is lifted; `pendingAttempts` reads
-`DescribeWorkflowExecution`'s `pending_nexus_operations.attempt` keyed by `scheduled_event_id`.
-A read that sets `single` reads the one message at its path instead, with the same method
-authorization, descriptor checks, polling and limits: a response that lacks the message supplies
-nothing, as an empty repeated field does, and the message is one event at most.
+A history source selects one descriptor-checked attributes member. A read source names the authorized
+RPC and descriptor-checked response path, which determines singular versus repeated cardinality;
+an absent message or empty list yields nothing. A projected source declares the exact response value
+type. A Run Event source selects the event kind and optional controller instruction, then applies
+the declaration guard to its payload. A scalar's zero value is still a value, so selecting delivered
+activity attempts requires comparing their attempt number and delivery ID rather than testing
+scalar presence. The record proves what the worker was delivered and offered, never server receipt.
 
-A Run Event declaration may carry a `guard`, a boolean over the event's payload in the evidence-lift
-context, which selects the events of the kind that are evidence. An event it rejects is no
-occurrence and takes no ordinal; a guard that might have no value rejects at preparation, so it is
-never read as false; and an event two declarations accept is evidence of neither and makes the Run
-incomplete. The record of a worker reservation is a `DIAGNOSTIC` event whose outcome names the
-activity attempt, so a guard that compares `activity_attempt.sdk_attempt` as greater than zero and
-`activity_attempt.delivery_id` as not empty selects the attempts a worker was delivered, keyed by
-`activity_attempt.activity_run_id`, and leaves out a position recorded as not needed. A presence
-check would not: a scalar the record leaves at zero still reads as a value. That record says what
-the worker was delivered and offered. It is never the server's acceptance of the offer, and the
-offered response is an enum, which no evidence field reads.
+Run Event declarations have one selection policy: if two accept the same event, neither supplies
+evidence and the Run becomes incomplete. A Run-keyed declaration uses the Run ID as its operation key.
+Each source has exactly one emitter, and dense zero-based ordinals count only emitted occurrences.
+Controller ownership, causal-parent authorization and sparse-ordinal rejection remain independent
+from guard evaluation.
 
-A Run Event declaration may also name the one controller `instruction` whose events it
-reads: that instruction's completion or timeout, the fault it realized, and the record of each
-reservation it carried. And it may be `run_keyed`: the operation key of its evidence is then the
-Run's own ID, the value a Program input reads as its Run reference, and it writes no operation
-path. That joins the Run's record of a call to evidence read back from the target under a key the
-Case set to the Run's ID.
-
-Kinds may share a source. One emitter numbers a source's evidence in one dense stream, whichever
-kind each piece is: the instruction whose lift names the kinds, or the Run for its own events, and
-never both. Within a source and under one operation key each recorded kind is declared once: a
-history arm, or a Run Event kind at an instruction under a guard. A Correlated Contract's projection rules name the
-declarations by kind, so the kind, source, key path and fields are written once and cannot drift;
-a reference to an undeclared kind, the same recorded kind declared twice under a source and key
-path, or a source the Run and an instruction would both count, rejects at preparation. A Program
-that declares nothing keeps the spelled-out lift rules, which slot-bound reads still use.
+The Contract declares retention, redaction and rejection policy independently from these extraction
+declarations. Externally supplied correlated evidence remains admissible under that policy even when
+the Program has no extraction declaration. Silence leaves correlated rules inconclusive.
 
 Where one operation's evidence comes from more than one source, only a causal parent orders it
 across them. The runtime names the operation's previously lifted evidence from another source as
@@ -204,6 +181,47 @@ why the conclusion is what it is, empty when it gives none; the detail is bounde
 stable API. Testpilot refuses an outcome whose reason is not an id (1 to 256 bytes of UTF-8) and
 carries each as the Assessor gave it, so an expectation of a Run compares reasons, never prose.
 Test: `TestAssessmentFailureIsReportedAndKeepsEstablishedViolations` (`assessment_external_test.go`).
+
+## CEL values and elapsed durations
+
+`Expression.cel` is canonical `cel.expr.ParsedExpr`; native evaluation uses the pinned
+`cel.dev/cel-go v0.32.0` restricted environment. One checked conversion boundary loads that engine's
+legacy AST package only after canonical surface validation. Ordinary operators belong to CEL;
+typed domain bindings supply Slots, captures, event coordinates and descriptor-authorized paths.
+References use the pinned engine's native typed optional extension: `.hasValue()` tests actual
+availability and `.value()` reads it, failing on absence. There is no custom presence predicate or
+hidden Boolean rewrite. Admission whitelists these receiver operations and retains their native
+AST depth and evaluation-cost accounting. A protobuf scalar default is a value; an absent nested
+message, unselected oneof member or missing map entry is not.
+Protobuf field paths use descriptor-checked `ExpressionBinding.path`; direct AST field-selection
+nodes are outside the admitted runtime subset, so native optimized selectors cannot bypass path
+authority or projection-work charging.
+Bindings and literals carry standard `cel.expr.Value`, while `ModelValue` remains a finite model
+atom and `ValueType` remains descriptor-exact admission data. The Case's catalog decides enum and
+message authority, including catalog-only descriptors; global lookup cannot confer authority.
+
+Missing values produce native CEL errors unless an explicit availability guard makes the read
+irrelevant. CEL Boolean error suppression and short-circuit rules apply. Enum aliases compare by
+number after nominal descriptor admission; float32 fields widen only after float32 rounding.
+Admitted unknown enum numbers, unknown message wire fields and opaque Any bytes are preserved.
+Descriptor-typed Duration comparison preserves the full protobuf range without Go duration overflow.
+Cancellation and cost
+exhaustion fail the current evaluation before its state effects commit.
+
+Instruction timeout, evidence interval, wait-hint bound, both Program duration ceilings, Contract
+elapsed deadline and Run Event elapsed coordinate use protobuf Duration at exact whole-millisecond
+precision. Conversion rejects invalid signs, fractional milliseconds and overflow with the owning
+field named. Absent instruction limits retain Program/Profile defaults; explicit zero is rejected
+where a positive bound is required. An absent evidence interval reads once; a present positive
+interval polls within an admitted timeout. Run elapsed is monotonic time since opening, not a wall
+clock timestamp. Attempts, ordinals, percentages and operation-transition bounds remain integers.
+
+Correlated Contracts intern complete states as `(atom, ordered fields)`; equal atoms with different
+fields are distinct. A result stores action, destination state, outcome and facts once. Each
+transition authorizes a result from a particular prior state, while projection rules retain ordered
+result IDs. Expanded state/result/transition/projection work is checked before enumeration, so
+compression cannot evade ceilings. Deadline presence determines ordinary rule kind, correlated
+bounds count operation transitions, and transition support is an explicitly present Boolean.
 
 ## Field paths and enum literals
 

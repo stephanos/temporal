@@ -3,6 +3,7 @@ package activation
 import (
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -49,7 +50,7 @@ func TestActivityEntrypointActivates(t *testing.T) {
 	result, enabled, err := state.Evaluate(t.Context(), 0)
 	require.NoError(t, err)
 	require.True(t, enabled)
-	require.True(t, proto.Equal(&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}, result))
+	require.True(t, proto.Equal(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "done"}}, result))
 	require.NoError(t, state.Admit(t.Context(), 0, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}))
 	require.Error(t, state.Admit(t.Context(), 0, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}))
 

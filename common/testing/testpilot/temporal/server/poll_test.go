@@ -7,9 +7,13 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,6 +23,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const describeMethod = "/example.Describe/Pending"
@@ -57,33 +63,21 @@ func pollFixture(t *testing.T, address string, adjust ...func(*testpilot.Profile
 	limits.MaxPathFanout = limits.MaxInstructionEmittedEvents
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 8, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	profile := testpilot.ProfileSpec{Identity: "poll-host", Catalog: catalog, ProgramLimits: limits, ContractLimits: contractLimits, Opcodes: []testpilot.Opcode{testpilot.ReadEvidence}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{describeMethod}}}}
-	node := &testpilotspb.InstructionNode{InstructionId: "poll", Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 2000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{
-		EvidenceId: "pendingAttempts", EndpointRoleId: "endpoint", PollIntervalMilliseconds: 5,
-		Until: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
-			Operator: testpilotspb.COMPARISON_OPERATOR_GREATER_THAN,
-			Left:     &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}}}}, Path: "attempt"}}},
-			Right:    &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: "1"}}}},
-		}}},
-	}}}}
+	node := &testpilotspb.InstructionNode{InstructionId: "poll", Limits: &testpilotspb.InstructionLimits{Timeout: durationpb.New(time.Duration(2000) * time.Millisecond), MaxAttempts: proto.Int64(1)}, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{EvidenceId: "pendingAttempts", EndpointRoleId: "endpoint", Interval: durationpb.New(time.Duration(5) * time.Millisecond), Until: cel.Compare("_>_", cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "attempt"), cel.Literal(&celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: 1}}))}}}}
 	for _, change := range adjust {
 		change(&profile, node)
 	}
 	host, err := New(Options{Profile: profile, Endpoints: map[string]Endpoint{"endpoint": {Target: address, Credentials: insecure.NewCredentials(), Metadata: metadata.Pairs("authorization", "host-secret")}}})
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
-	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "poll", Program: &testpilotspb.Program{
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor}, CaseId: "poll", Program: &testpilotspb.Program{
 		ProgramId:    "program",
 		Roles:        []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
 		Observations: []*testpilotspb.Observation{{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}}}}}}},
-		Evidence: []*testpilotspb.EvidenceDeclaration{{
-			EvidenceId: "pendingAttempts", EvidenceSource: "describe", Operation: "key",
-			Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describeMethod, Path: "entries"}},
-			Scope:  []*testpilotspb.NamedValue{{FieldId: "run", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "one"}}}},
-			Fields: []*testpilotspb.EvidenceFieldDeclaration{{FieldId: "attempts", Path: "attempt"}},
-		}},
-		Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{node}}},
-		Cleanup:     &testpilotspb.Cleanup{EntrypointId: "cleanup"},
-	}, Contract: &testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{{RuleId: "safety", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "complete", SourceStateId: "start", TargetStateId: "good", Predicate: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}}}}}}
+		Evidence:     []*testpilotspb.EvidenceDeclaration{{EvidenceId: "pendingAttempts", EvidenceSource: "describe", Operation: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "key"), Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describeMethod, Path: "entries"}}, Scope: testsupport.LiteralExpressions([]*testpilotspb.NamedValue{{FieldId: "run", Value: &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "one"}}}}), Fields: []*testpilotspb.NamedExpression{{FieldId: "attempts", Value: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "attempt")}}, Kind: "pendingAttempts"}},
+		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}, Instructions: []*testpilotspb.InstructionNode{node}}},
+		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
+	}, Contract: &testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{{RuleId: "safety", InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "complete", SourceStateId: "start", TargetStateId: "good", Predicate: cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}}), EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportsEvent: proto.Bool(true)}}}}}}
 	_, err = testpilot.Prepare(source, host)
 	require.NoError(t, err)
 	return host, source, file.Services().Get(0).Methods().Get(0)
@@ -192,10 +186,10 @@ func TestPollRPCWithoutIntervalReadsOnce(t *testing.T) {
 func TestPollRPCRunsForAScaledBoundAboveTheDeclaredCeilings(t *testing.T) {
 	var calls atomic.Int32
 	h, source, method := pollFixture(t, startDescribe(t, pendingFile(t), &calls), func(profile *testpilot.ProfileSpec, node *testpilotspb.InstructionNode) {
-		profile.ProgramLimits.MaxTotalDurationMilliseconds, profile.ProgramLimits.MaxCleanupDurationMilliseconds = 40, 40
+		profile.ProgramLimits.MaxDuration, profile.ProgramLimits.CleanupDuration = pbduration.FromMilliseconds(40), pbduration.FromMilliseconds(40)
 		profile.BoundScale = 200
-		node.Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 35}
-		node.WaitHints = []*testpilotspb.WaitHint{{HintId: "visibility.pending", Source: &testpilotspb.SourceLocation{Path: "model/Behavior.scala", Line: 3}, AtMostMilliseconds: 35}}
+		node.Limits.Timeout = pbduration.FromMilliseconds(35)
+		node.WaitHints = []*testpilotspb.WaitHint{{HintId: "visibility.pending", Source: &testpilotspb.SourceLocation{Path: "model/Behavior.scala", Line: 3}, AtMost: pbduration.FromMilliseconds(35)}}
 	})
 	s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
 	require.NoError(t, err)

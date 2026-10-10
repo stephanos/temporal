@@ -5,13 +5,16 @@ import (
 	"cmp"
 	"context"
 	"slices"
+	"time"
 
+	celpb "cel.dev/expr"
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // Profile is the part of a static Driver snapshot Program admission reads. Prepare holds its
@@ -50,6 +53,7 @@ const (
 	HistoryEventSource EvidenceSourceKind = iota + 1
 	RunEventSource
 	ReadSource
+	ProjectedSource
 )
 
 // EvidenceDeclaration is the Contract-facing view of one declared evidence kind: the identity a
@@ -180,9 +184,9 @@ type assignment struct {
 	value  *ir.Expression
 }
 type responseRead struct {
-	path        *ir.Path
-	cardinality testpilotspb.ReadCardinality
-	targets     []*testpilotspb.ReadTarget
+	path     *ir.Path
+	emitEach bool
+	targets  []*testpilotspb.ReadTarget
 	// One entry per target, nil where the target is not an evidence lift.
 	lifts []*evidenceLift
 }
@@ -190,8 +194,7 @@ type responseRead struct {
 // evidenceBinding is one bound read out of the projected value into a CorrelatedEvidence slot.
 type evidenceBinding struct {
 	fieldID string
-	path    *ir.Path
-	literal string
+	value   *ir.Expression
 }
 
 // evidenceRule lifts one guarded shape of the projected value into a CorrelatedEvidence value.
@@ -200,7 +203,7 @@ type evidenceRule struct {
 	scope        []evidenceBinding
 	source, kind string
 	// operation reads the operation key out of the projected value; nil, the key is the Run's ID.
-	operation *ir.Path
+	operation *ir.Expression
 	fields    []evidenceBinding
 }
 
@@ -214,14 +217,15 @@ type evidenceLift struct {
 // evidenceDeclaration is the bound form of one EvidenceDeclaration: the recorded value's type, the
 // coordinates read out of it, and the source-specific handle the runtime reads through.
 type evidenceDeclaration struct {
-	id, source string
-	kind       EvidenceSourceKind
+	id, source, recordKind string
+	kind                   EvidenceSourceKind
 	// element is the recorded value a lift reads: a history event, a Run Event payload or one
 	// element of a read path.
-	element   ir.Type
-	scope     []evidenceBinding
-	operation *ir.Path
-	fields    []evidenceBinding
+	element         ir.Type
+	scope           []evidenceBinding
+	operation       *ir.Expression
+	operationSource *testpilotspb.Expression
+	fields          []evidenceBinding
 	// guard selects the recorded value: the presence of the declared history arm, or for a Run
 	// Event payload the declared guard, true when the declaration writes none and the kind alone
 	// selects it.
@@ -240,14 +244,6 @@ type evidenceDeclaration struct {
 	single          bool
 }
 
-// keyPath is the operation key path as the Case wrote it, empty for evidence keyed by the Run.
-func (d *evidenceDeclaration) keyPath() string {
-	if d.operation == nil {
-		return ""
-	}
-	return d.operation.Text()
-}
-
 // sameRecord reports whether two declarations read the same recorded data, so that within one
 // source and under one key nothing tells their evidence apart: one history arm, one Run Event
 // kind at one instruction under one guard, or any two reads, which no guard of their own
@@ -261,6 +257,8 @@ func (d *evidenceDeclaration) sameRecord(other *evidenceDeclaration) bool {
 		return d.attributesField == other.attributesField
 	case RunEventSource:
 		return d.runEventKind == other.runEventKind && proto.Equal(d.instruction, other.instruction) && proto.Equal(d.guardSource, other.guardSource)
+	case ProjectedSource:
+		return d.element.Equal(other.element) && proto.Equal(d.guardSource, other.guardSource)
 	default:
 		return true
 	}
@@ -268,7 +266,7 @@ func (d *evidenceDeclaration) sameRecord(other *evidenceDeclaration) bool {
 
 // lift is the declaration as the one-rule lift a Run Event or a read feeds.
 func (d *evidenceDeclaration) lift(observationID string, guard *ir.Expression) *evidenceLift {
-	return &evidenceLift{observationID: observationID, element: d.element, rules: []evidenceRule{{guard: guard, scope: d.scope, source: d.source, kind: d.id, operation: d.operation, fields: d.fields}}}
+	return &evidenceLift{observationID: observationID, element: d.element, rules: []evidenceRule{{guard: guard, scope: d.scope, source: d.source, kind: d.recordKind, operation: d.operation, fields: d.fields}}}
 }
 
 type slotWriter struct {
@@ -281,7 +279,7 @@ type slotWriter struct {
 // ProgramCeiling is the Program ceiling every Profile's limits must fit under: Prepare admits a
 // Profile only within it, and each Driver checks its Profile against it at construction.
 func ProgramCeiling() *testpilotspb.ProgramLimits {
-	return &testpilotspb.ProgramLimits{MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000, MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000, MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20, MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000, MaxInstructionEmittedEvents: 100000, MaxInstructionResponseBytes: 16 << 20}
+	return &testpilotspb.ProgramLimits{MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000, MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000, MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20, MaxDuration: durationpb.New(time.Duration(86400000) * time.Millisecond), CleanupDuration: durationpb.New(time.Duration(86400000) * time.Millisecond), MaxInstructionEmittedEvents: 100000, MaxInstructionResponseBytes: 16 << 20}
 }
 
 // EntrypointPlan gives worker adapters the already-compiled DAG; activation never rebinds it.
@@ -362,7 +360,7 @@ func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilot
 
 // EvaluateInput reads activation-local validated values; nil means absent. The lookup must be
 // deterministic, bounded and must not mutate its values during evaluation or perform SDK calls.
-func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Reference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, bool, int64, error) {
+func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Reference) *celpb.Value, limit int64) (*celpb.Value, bool, int64, error) {
 	w, err := newValueWork(ctx, p.entry.program.limits, p.entry.RuntimeWorkLimit(), limit)
 	if err != nil {
 		return nil, false, 0, err
@@ -373,7 +371,7 @@ func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Refer
 	if p.node.opcode == contract.InvokeRPC {
 		return nil, false, 0, ir.Invalid(ir.TypeMismatch, "values", "RPC requires request construction")
 	}
-	value, enabled, err := p.node.evaluateGuarded(func(e *ir.Expression) (*testpilotspb.Value, error) {
+	value, enabled, err := p.node.evaluateGuarded(func(e *ir.Expression) (*celpb.Value, error) {
 		value, work, err := e.EvaluateExecution(ctx, lookup, w.limits.Work-w.work)
 		w.work += work
 		return value, err

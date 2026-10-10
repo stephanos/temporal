@@ -8,11 +8,13 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/temporal"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 )
@@ -247,7 +249,7 @@ func TestDeclaredActivityAttemptsFollowTheirLifecycle(t *testing.T) {
 	failingThenEnding := declaring(failingAttempt("first", "transient", false), failingAttempt("second", "refusal", true), finishingAttempt("third", "done"))
 	completing := declaring(finishingAttempt("first", "one"), finishingAttempt("second", "two"), finishingAttempt("third", "three"))
 	disabled := finishingAttempt("second", "never")
-	disabled.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
+	disabled.Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: false}})
 	refusingSecond := declaring(failingAttempt("first", "transient", false), disabled, finishingAttempt("third", "done"))
 	canceling := declaring(cancelingAttempt("first"), finishingAttempt("second", "late"), finishingAttempt("third", "later"))
 

@@ -5,16 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
+	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func event(sequence, elapsed int64, kind testpilotspb.RunEventKind) *testpilotspb.RunEvent {
-	return &testpilotspb.RunEvent{Sequence: sequence, ElapsedMilliseconds: elapsed, Kind: kind, SourceId: fmt.Sprint(sequence)}
+	return &testpilotspb.RunEvent{Sequence: sequence, Elapsed: durationpb.New(time.Duration(elapsed) * time.Millisecond), Kind: kind, SourceId: fmt.Sprint(sequence)}
 }
 func TestEvaluatorDeadlinesAndReplay(t *testing.T) {
 	for _, tc := range []struct {
@@ -35,8 +39,7 @@ func TestEvaluatorDeadlinesAndReplay(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
-			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
+			c.Rules[0].Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_Elapsed{Elapsed: ir.MillisecondsDuration(5000)}}
 			p, err := Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
 			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), event(2, tc.witness, tc.kind)}}
@@ -130,7 +133,6 @@ func TestEvaluatorEventCountDeadline(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			r := c.Rules[0]
-			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
 			r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_RuleEvents{RuleEvents: tc.ruleEvents}}
 			r.States = append(r.States, &testpilotspb.ContractState{StateId: "middle", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING})
 			r.Transitions = []*testpilotspb.ContractTransition{
@@ -181,7 +183,7 @@ func TestEvaluatorEventCountDeadline(t *testing.T) {
 
 func observed(sequence, elapsed, id int64) *testpilotspb.RunEvent {
 	e := event(sequence, elapsed, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
-	e.Observations = []*testpilotspb.ObservationResult{{ObservationId: "id", Value: &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: fmt.Sprint(id)}}}}
+	e.Observations = []*testpilotspb.ObservationResult{{ObservationId: "id", Value: &celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: id}}}}
 	return e
 }
 func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
@@ -214,10 +216,10 @@ func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 			}
 			require.Equal(t, []transitionTrace{{2, "rule", "save", "start", "saved"}, {4, "rule", "match", "saved", "bad"}}, e.trace)
 			require.Equal(t, int64(2), e.rules[0].captures["saved"].sequence)
-			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedIntegerValue())
-			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedIntegerValue).SignedIntegerValue = "999"
-			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedIntegerValue())
-			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedIntegerValue).SignedIntegerValue = fmt.Sprint(id)
+			require.Equal(t, id, e.rules[0].captures["saved"].value.GetInt64Value())
+			run.Events[1].Observations[0].Value.GetKind().(*celpb.Value_Int64Value).Int64Value = 999
+			require.Equal(t, id, e.rules[0].captures["saved"].value.GetInt64Value())
+			run.Events[1].Observations[0].Value.GetKind().(*celpb.Value_Int64Value).Int64Value = id
 			live, err := e.Close(context.Background(), run)
 			require.NoError(t, err)
 			require.Equal(t, []int64{2, 4}, live.SupportingEventSequences)
@@ -256,23 +258,23 @@ func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 	evaluator := monitor.(*Evaluator)
 	_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
-	value := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
+	value := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
 	observed := event(2, 1, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
 	observed.Observations = []*testpilotspb.ObservationResult{{ObservationId: "message", Value: value}}
 	_, err = evaluator.Observe(t.Context(), observed)
 	require.NoError(t, err)
 	require.Equal(t, int64(proto.Size(value))+8, evaluator.captureBytes)
-	value.GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
-	require.Equal(t, "type.googleapis.com/example.Empty", evaluator.rules[0].captures["saved-message"].value.GetMessageValue().GetTypeUrl())
+	value.GetObjectValue().TypeUrl = "type.googleapis.com/example.Missing"
+	require.Equal(t, "type.googleapis.com/example.Empty", evaluator.rules[0].captures["saved-message"].value.GetObjectValue().GetTypeUrl())
 
 	for _, test := range []struct {
 		name   string
-		mutate func(*Evaluator, *testpilotspb.Value)
+		mutate func(*Evaluator, *celpb.Value)
 	}{
-		{name: "descriptor", mutate: func(_ *Evaluator, value *testpilotspb.Value) {
-			value.GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
+		{name: "descriptor", mutate: func(_ *Evaluator, value *celpb.Value) {
+			value.GetObjectValue().TypeUrl = "type.googleapis.com/example.Missing"
 		}},
-		{name: "retained byte ceiling", mutate: func(evaluator *Evaluator, value *testpilotspb.Value) {
+		{name: "retained byte ceiling", mutate: func(evaluator *Evaluator, value *celpb.Value) {
 			evaluator.captureBytes = ceiling.MaxCaptureBytes - int64(proto.Size(value)) - 7
 		}},
 	} {
@@ -282,7 +284,7 @@ func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 			evaluator := monitor.(*Evaluator)
 			_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
-			candidate := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
+			candidate := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
 			test.mutate(evaluator, candidate)
 			observed := event(2, 1, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
 			observed.Observations = []*testpilotspb.ObservationResult{{ObservationId: "message", Value: candidate}}
@@ -299,8 +301,7 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 		t.Run(fmt.Sprint(priorViolation), func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			r := c.Rules[0]
-			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
+			r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_Elapsed{Elapsed: ir.MillisecondsDuration(5000)}}
 			r.Transitions[0].TargetStateId = "bad"
 			p, err := Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
@@ -324,7 +325,7 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 			_, err = e.Observe(ctx, failed)
 			require.ErrorIs(t, err, context.Canceled)
 			run.Events = append(run.Events, failed, event(sequence+1, 7000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
-			run.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: sequence}
+			run.EvaluationFailureSequence = proto.Int64(sequence)
 			live, err := e.Close(context.Background(), run)
 			require.NoError(t, err)
 			want := testpilotspb.VERDICT_STATUS_INCONCLUSIVE
@@ -338,7 +339,7 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 			require.Equal(t, e.trace, replay.trace)
 			for _, bad := range []int64{0, sequence + 2} {
 				invalidRun := proto.CloneOf(run)
-				invalidRun.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: bad}
+				invalidRun.EvaluationFailureSequence = proto.Int64(bad)
 				_, _, err := p.Evaluate(context.Background(), invalidRun)
 				require.Error(t, err)
 			}
@@ -352,16 +353,16 @@ func TestEvaluatorRuntimeBoundsAndMalformedEvents(t *testing.T) {
 		mutate func(*testpilotspb.RunEvent)
 	}{
 		{"sequence", func(e *testpilotspb.RunEvent) { e.Sequence = 3 }},
-		{"elapsed", func(e *testpilotspb.RunEvent) { e.ElapsedMilliseconds = -1 }},
+		{"elapsed", func(e *testpilotspb.RunEvent) { e.Elapsed = ir.MillisecondsDuration(-1) }},
 		{"unknown observation", func(e *testpilotspb.RunEvent) { e.Observations[0].ObservationId = "private-slot" }},
 		{"wrong type", func(e *testpilotspb.RunEvent) {
-			e.Observations[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "not an int"}}
+			e.Observations[0].Value = &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "not an int"}}
 		}},
 		{"duplicate observation", func(e *testpilotspb.RunEvent) {
 			e.Observations = append(e.Observations, proto.CloneOf(e.Observations[0]))
 		}},
 		{"bytes", func(e *testpilotspb.RunEvent) {
-			e.Observations[0] = &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: string(make([]byte, 4097))}}}
+			e.Observations[0] = &testpilotspb.ObservationResult{ObservationId: "text", Value: &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: string(make([]byte, 4097))}}}
 		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -422,8 +423,7 @@ func TestEvaluatorEventCommitIsAtomicAcrossRules(t *testing.T) {
 func TestEvaluatorIncompleteCannotAcceptLateWitness(t *testing.T) {
 	c, cat, view, limits := fixture(t)
 	r := c.Rules[0]
-	r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-	r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
+	r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_Elapsed{Elapsed: ir.MillisecondsDuration(5000)}}
 	p, err := Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
 	incomplete := event(2, 4000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)
@@ -453,11 +453,11 @@ func TestEvaluatorCaptureNamesAreRuleLocal(t *testing.T) {
 	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
 	values := observed(2, 1000, 7)
-	values.Observations = append(values.Observations, &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "distinct"}}})
+	values.Observations = append(values.Observations, &testpilotspb.ObservationResult{ObservationId: "text", Value: &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "distinct"}}})
 	_, err = e.Observe(context.Background(), values)
 	require.NoError(t, err)
-	require.Equal(t, "7", e.rules[0].captures["saved"].value.GetSignedIntegerValue())
-	require.Equal(t, "distinct", e.rules[1].captures["saved"].value.GetTextValue())
+	require.Equal(t, int64(7), e.rules[0].captures["saved"].value.GetInt64Value())
+	require.Equal(t, "distinct", e.rules[1].captures["saved"].value.GetStringValue())
 }
 func TestEvaluatorEventCountBound(t *testing.T) {
 	c, cat, view, limits := fixture(t)

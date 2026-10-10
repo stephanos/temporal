@@ -17,6 +17,7 @@ import (
 	commonnexus "go.temporal.io/server/common/nexus"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func callbackPayload() *commonpb.Payload {
@@ -24,7 +25,7 @@ func callbackPayload() *commonpb.Payload {
 }
 
 func callbackLimits() *testpilotspb.ProgramLimits {
-	return &testpilotspb.ProgramLimits{MaxAttempts: 8, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 1000}
+	return &testpilotspb.ProgramLimits{MaxAttempts: 8, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxDuration: durationpb.New(time.Duration(1000) * time.Millisecond)}
 }
 
 func TestCompletionTransportPreservesPayloadAndCredentials(t *testing.T) {

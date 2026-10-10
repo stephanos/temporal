@@ -3,14 +3,25 @@ package verification
 import (
 	"context"
 	"slices"
+	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
+
+func TestCorrelatedNativeUnsignedValueRejectsRetiredAndOverflow(t *testing.T) {
+	for _, input := range []string{`{"unsignedIntegerValue":"01"}`, `{"uint64Value":"18446744073709551616"}`} {
+		var value celpb.Value
+		require.Error(t, protojson.Unmarshal([]byte(input), &value))
+	}
+}
 
 // Each evidence kind declares its own field, exactly as the two distinct operand paths a model
 // correlation names are projected. Expected verdicts below are written out from these declarations
@@ -20,11 +31,11 @@ const (
 	repliedField  = "replied"
 )
 
-func correlatedText(text string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}
+func correlatedText(text string) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: text}}
 }
 func correlatedReference(reference *testpilotspb.Reference) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: reference}}
+	return cel.Ref(reference)
 }
 func correlatedFieldOperand(id string) *testpilotspb.Expression {
 	return correlatedReference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: id}})
@@ -35,26 +46,50 @@ func correlatedCaptureOperand(id string, ordinal int64) *testpilotspb.Expression
 func correlatedLiteralOperand(text string) *testpilotspb.Expression {
 	return correlatedLiteral(correlatedText(text))
 }
-func correlatedLiteral(value *testpilotspb.Value) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: value}}
+func correlatedLiteral(value *celpb.Value) *testpilotspb.Expression {
+	return cel.Literal(value)
 }
-func correlationComparison(operator testpilotspb.ComparisonOperator, left, right *testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: operator, Left: left, Right: right}}}
+func correlationComparison(operator string, left, right *testpilotspb.Expression) *testpilotspb.Expression {
+	return cel.Compare(operator, left, right)
 }
 func correlatedTriggered() *testpilotspb.Expression {
 	return stepPresent(testpilotspb.CORRELATED_STEP_FIELD_ACTION, "request")
 }
 func correlatedAny(operands ...*testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Any{Any: &testpilotspb.AnyExpression{Operands: operands}}}
+	return cel.Any(operands...)
 }
 func correlatedAll(operands ...*testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: operands}}}
+	return cel.All(operands...)
 }
 
 // keyedCorrelation is the qualifying shape: the request step creates the occurrence its own
 // correlation would read, so the trigger disjunct decides it before the capture operand is reached.
 func keyedCorrelation(ordinal int64) *testpilotspb.Expression {
-	return correlatedAny(correlatedTriggered(), correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", ordinal)))
+	return correlatedAny(correlatedTriggered(), correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", ordinal)))
+}
+
+func nativeCorrelationDepth(node *celpb.Expr) int64 {
+	if node == nil {
+		return 0
+	}
+	depth := int64(1)
+	for _, arg := range node.GetCallExpr().GetArgs() {
+		depth = max(depth, 1+nativeCorrelationDepth(arg))
+	}
+	if target := node.GetCallExpr().GetTarget(); target != nil {
+		depth = max(depth, 1+nativeCorrelationDepth(target))
+	}
+	return depth
+}
+
+func TestCorrelatedNativeDepthUnits(t *testing.T) {
+	keyed := keyedCorrelation(0)
+	disjunction := correlatedAny(correlatedTriggered(),
+		correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 1)),
+		correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 0)))
+	require.EqualValues(t, 5, nativeCorrelationDepth(keyed.Cel.Expr))
+	require.EqualValues(t, 5, nativeCorrelationDepth(disjunction.Cel.Expr))
+	t.Log("native optional AST depths: keyed=5; balanced three-arm disjunction=5 (binary CEL operators)")
 }
 
 func correlatedCaptureFixture(t *testing.T, bound, lifetime int64, correlation *testpilotspb.Expression) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits, *testpilotspb.CorrelatedLimits) {
@@ -79,7 +114,7 @@ func correlatedCaptureFixture(t *testing.T, bound, lifetime int64, correlation *
 	}
 	clause.Correlation = correlation
 	correlated.MaxCaptures = 8
-	correlated.MaxCorrelationDepth = 4
+	correlated.MaxCorrelationDepth = nativeCorrelationDepth(correlation.GetCel().GetExpr())
 	return c, catalog, view, ceiling, correlated
 }
 
@@ -113,7 +148,9 @@ func observeCorrelated(t *testing.T, c *testpilotspb.Contract, catalog *ir.Catal
 	require.NoError(t, err)
 	for i, step := range steps {
 		evidence := correlatedFieldEvidence(int64(i), step.kind, step.operation, step.value)
+		before := e.correlated
 		if _, err = e.Observe(context.Background(), correlatedEvent(t, int64(i+2), evidence)); err != nil {
+			require.Same(t, before, e.correlated, "a rejected append does not replace the committed monitor")
 			return e.result.Rules[0].Status, err
 		}
 	}
@@ -148,12 +185,12 @@ func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 		{
 			name: "future-occurrence", bound: 1, lifetime: 2, correlation: keyedCorrelation(1),
 			steps:  []correlatedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
-			reject: "correlation rejected this operation's step",
+			reject: "optional.none() dereference",
 		},
 		{
 			name: "foreign-operation", bound: 1, lifetime: 2, correlation: keyedCorrelation(0),
 			steps:  []correlatedStep{{"request", "a", "1"}, {"reply", "b", "1"}},
-			reject: "correlation rejected this operation's step",
+			reject: "optional.none() dereference",
 		},
 		{
 			name: "occurrence-zero-is-immutable", bound: 2, lifetime: 2, correlation: keyedCorrelation(0),
@@ -173,20 +210,20 @@ func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 		{
 			name: "missing-field-operand", bound: 1, lifetime: 2, correlation: keyedCorrelation(0),
 			steps:  []correlatedStep{{"request", "a", "1"}, {"tick", "a", ""}},
-			reject: "correlation rejected this operation's step",
+			reject: "optional.none() dereference",
 		},
 		{
 			name: "missing-operand-is-not-unequal", bound: 1, lifetime: 2,
 			correlation: correlatedAny(correlatedTriggered(),
-				correlationComparison(testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 1))),
+				correlationComparison("_!=_", correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 1))),
 			steps:  []correlatedStep{{"request", "a", "1"}, {"reply", "a", "2"}},
-			reject: "correlation rejected this operation's step",
+			reject: "optional.none() dereference",
 		},
 		{
 			name: "missing-operand-leaves-a-disjunction-open", bound: 1, lifetime: 2,
 			correlation: correlatedAny(correlatedTriggered(),
-				correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 1)),
-				correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 0))),
+				correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 1)),
+				correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 0))),
 			steps: []correlatedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
 			want:  testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
 		},
@@ -195,8 +232,8 @@ func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 			bound:    1,
 			lifetime: 2,
 			correlation: correlatedAny(correlatedTriggered(), correlatedAll(
-				correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedLiteralOperand("9")),
-				correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 1)))),
+				correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedLiteralOperand("9")),
+				correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 1)))),
 			steps:  []correlatedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
 			reject: "correlation rejected this operation's step",
 		},
@@ -205,8 +242,8 @@ func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 			bound:    1,
 			lifetime: 2,
 			correlation: correlatedAny(correlatedTriggered(), correlatedAll(
-				correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedLiteralOperand("1")),
-				correlationComparison(testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL, correlatedFieldOperand(repliedField), correlatedLiteralOperand("2")))),
+				correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedLiteralOperand("1")),
+				correlationComparison("_!=_", correlatedFieldOperand(repliedField), correlatedLiteralOperand("2")))),
 			steps: []correlatedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
 			want:  testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
 		},
@@ -226,6 +263,12 @@ func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 			status, err := observeCorrelated(t, c, catalog, view, ceiling, correlated, tc.steps)
 			if tc.reject != "" {
 				require.ErrorContains(t, err, tc.reject)
+				var diagnostic *ir.Error
+				require.ErrorAs(t, err, &diagnostic)
+				if strings.Contains(tc.reject, "optional.none()") {
+					require.Equal(t, ir.Unavailable, diagnostic.Category)
+				}
+				require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE, status)
 				return
 			}
 			require.NoError(t, err)
@@ -257,6 +300,39 @@ func TestCorrelatedCaptureAdmissionIsAtomic(t *testing.T) {
 	require.Len(t, occurrences, 1)
 	require.Equal(t, retainedCapture{capture: "seen", ordinal: 0, value: occurrences[0].value}, occurrences[0])
 	require.True(t, proto.Equal(correlatedText("1"), occurrences[0].value))
+}
+
+func TestCorrelatedNativeEventWorkCeiling(t *testing.T) {
+	for _, delta := range []int64{-1, 0} {
+		c, catalog, view, ceiling, correlated := correlatedCaptureFixture(t, 2, 2, keyedCorrelation(0))
+		ceiling.MaxWorkPerEvent += delta
+		p, err := Prepare(c, catalog, view, ceiling, correlated)
+		require.NoError(t, err)
+		e, err := p.newEvaluator(t.Context(), view)
+		require.NoError(t, err)
+		_, err = e.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+		require.NoError(t, err)
+		for i, step := range []correlatedStep{{"request", "a", "1"}, {"request", "b", "2"}, {"reply", "b", "2"}} {
+			before := e.totalWork
+			_, err = e.Observe(t.Context(), correlatedEvent(t, int64(i+2), correlatedFieldEvidence(int64(i), step.kind, step.operation, step.value)))
+			if i < 2 {
+				require.NoError(t, err)
+				continue
+			}
+			if delta == 0 {
+				require.NoError(t, err)
+				require.EqualValues(t, 1_821_471, e.totalWork-before)
+				require.EqualValues(t, 3, e.correlated.transitions)
+			} else {
+				var diagnostic *ir.Error
+				require.ErrorAs(t, err, &diagnostic)
+				require.Equal(t, ir.LimitExceeded, diagnostic.Category)
+				require.EqualValues(t, 2, e.correlated.transitions)
+				require.Len(t, e.correlated.accepted, 2)
+				require.Equal(t, before, e.totalWork)
+			}
+		}
+	}
 }
 
 func TestCorrelatedCaptureCeilingRejects(t *testing.T) {
@@ -304,37 +380,34 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 		},
 		"unknown-capture": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("other", 0))
+				s.Rules[0].Correlation = correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedCaptureOperand("other", 0))
 			},
 			reason: "unbound capture reference",
 		},
 		"unretained-operand": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand("absent"), correlatedCaptureOperand("seen", 0))
+				s.Rules[0].Correlation = correlationComparison("_==_", correlatedFieldOperand("absent"), correlatedCaptureOperand("seen", 0))
 			},
 			reason: "unretained correlation field operand",
 		},
 		"empty-group": {
-			mutate: func(s *testpilotspb.CorrelatedContract) { s.Rules[0].Correlation = correlatedAny() },
-			reason: "empty correlation group",
+			mutate: func(s *testpilotspb.CorrelatedContract) {
+				s.Rules[0].Correlation = correlatedAny(boolean(true), boolean(false))
+				s.Rules[0].Correlation.Cel.Expr.GetCallExpr().Args = nil
+			},
+			reason: "arity",
 		},
 		"unsupported-operator": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_UNSPECIFIED, correlatedLiteralOperand("1"), correlatedCaptureOperand("seen", 0))
+				s.Rules[0].Correlation = correlationComparison("unsupported", correlatedLiteralOperand("1"), correlatedCaptureOperand("seen", 0))
 			},
-			reason: "unsupported comparison operator",
+			reason: "unsupported",
 		},
 		"unsupported-literal": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "01"}}), correlatedCaptureOperand("seen", 0))
+				s.Rules[0].Correlation = correlationComparison("_==_", correlatedLiteral(&celpb.Value{Kind: &celpb.Value_BytesValue{BytesValue: []byte{1}}}), correlatedCaptureOperand("seen", 0))
 			},
-			reason: "unsupported correlation literal",
-		},
-		"oversized-unsigned-literal": {
-			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "18446744073709551616"}}), correlatedCaptureOperand("seen", 0))
-			},
-			reason: "unsupported correlation literal",
+			reason: "no matching overload for '_==_' applied to '(bytes, string)'",
 		},
 		"repeated-capture-id-across-clauses": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
@@ -355,9 +428,9 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 		},
 		"mismatched-operand-kinds": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "1"}}))
+				s.Rules[0].Correlation = correlationComparison("_==_", correlatedFieldOperand(repliedField), correlatedLiteral(&celpb.Value{Kind: &celpb.Value_Uint64Value{Uint64Value: 1}}))
 			},
-			reason: "incompatible correlation operand types",
+			reason: "literal does not match its declared type",
 		},
 		"mismatched-capture-kind": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
@@ -367,7 +440,7 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 					}
 				}
 			},
-			reason: "incompatible correlation operand types",
+			reason: "no matching overload for '_==_' applied to '(uint, string)'",
 		},
 		"ambiguous-retained-field-kind": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
@@ -380,8 +453,10 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			reason: "invalid capture declaration",
 		},
 		"depth-exhausted": {
-			limit:  func(l *testpilotspb.CorrelatedLimits) { l.MaxCorrelationDepth = 1 },
-			reason: "correlation depth exhausted",
+			limit: func(l *testpilotspb.CorrelatedLimits) {
+				l.MaxCorrelationDepth = nativeCorrelationDepth(keyedCorrelation(0).Cel.Expr) - 1
+			},
+			reason: "ceiling",
 		},
 		"missing-capture-ceiling": {
 			limit:  func(l *testpilotspb.CorrelatedLimits) { l.MaxCaptures = 0 },
@@ -396,6 +471,7 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			c, catalog, view, ceiling, correlated := correlatedCaptureFixture(t, 1, 2, keyedCorrelation(0))
 			if tc.mutate != nil {
 				tc.mutate(c.Correlated)
+				correlated.MaxCorrelationDepth = nativeCorrelationDepth(c.Correlated.Rules[0].Correlation.GetCel().GetExpr())
 			}
 			if tc.limit != nil {
 				tc.limit(correlated)

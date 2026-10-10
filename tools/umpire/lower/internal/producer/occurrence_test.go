@@ -20,6 +20,7 @@ import (
 	"go.temporal.io/server/tools/umpire/ir"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -114,11 +115,11 @@ func jobRealization(t *testing.T, sources []*cp.EvidenceSource) *cp.Realization 
 			Entrypoints: []cp.EntrypointPlan{{
 				Items: []cp.Item{cp.Actions{Classes: []string{submit}}, cp.Fixed{Node: func(_ cp.Placement, rules []cp.EvidenceRule) *testpilotspb.InstructionNode {
 					return cp.Node("history", cp.InvokeRPC("jobs", "/fixture.Jobs/History", nil, []*testpilotspb.ResponseRead{
-						cp.ResponseRead("events[*]", testpilotspb.READ_CARDINALITY_EMIT_EACH, cp.EvidenceTarget("correlated-evidence", rules))}))
+						cp.ResponseRead("events[*]", cp.EvidenceTarget("correlated-evidence", rules))}))
 				}}},
 				Activate: func(_ cp.Placement, nodes []*testpilotspb.InstructionNode) *testpilotspb.Entrypoint {
 					return &testpilotspb.Entrypoint{EntrypointId: "controller", Instructions: nodes,
-						Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}
+						Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}}
 				}}}}}
 }
 
@@ -147,8 +148,17 @@ func confirmed(c *testpilotspb.Case) map[string][][2]string {
 	out := map[string][][2]string{}
 	for _, rule := range c.GetContract().GetCorrelated().GetProjectionRules() {
 		steps := [][2]string{}
-		for _, output := range rule.GetOutputs() {
-			steps = append(steps, [2]string{output.GetAction().GetValue(), output.GetState().GetValue()})
+		for _, id := range rule.GetResultIds() {
+			for _, output := range c.GetContract().GetCorrelated().GetResults() {
+				if output.GetResultId() != id {
+					continue
+				}
+				for _, state := range c.GetContract().GetCorrelated().GetStates() {
+					if state.GetStateId() == output.GetStateId() {
+						steps = append(steps, [2]string{output.GetAction().GetValue(), state.GetAtom().GetValue()})
+					}
+				}
+			}
 		}
 		out[rule.GetKind()] = steps
 	}
@@ -192,21 +202,22 @@ func TestAClassTakenTwiceIsConfirmedOccurrenceByOccurrence(t *testing.T) {
 // retained, in the Contract.
 func TestACaseDeclaresTheSourceAndTheFieldsOfEachKind(t *testing.T) {
 	c := produced(t, "retried", jobSources(), jobRetried...)
-	scope := []*testpilotspb.NamedValue{{FieldId: local(c, jobFamily+".scope.run"), Value: cp.Text("jobs-retried")}}
+	scope := []*testpilotspb.NamedExpression{{FieldId: local(c, jobFamily+".scope.run"), Value: cp.Literal(cp.Text("jobs-retried"))}}
 	declared := func(records string, guard *testpilotspb.Expression) *testpilotspb.EvidenceDeclaration {
-		return &testpilotspb.EvidenceDeclaration{EvidenceId: local(c, jobEvidence+records), EvidenceSource: local(c, jobSource+records), Scope: scope,
+		return &testpilotspb.EvidenceDeclaration{EvidenceId: local(c, jobEvidence+records), Kind: local(c, jobEvidence+records), EvidenceSource: local(c, jobSource+records), Scope: scope,
+			Operation: cp.Literal(cp.Text("jobs-retried")), Guard: guard,
 			Source: &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC,
-				Guard: guard, Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "submit-job"}, RunKeyed: true}},
-			Fields: []*testpilotspb.EvidenceFieldDeclaration{{FieldId: "attempt", Path: "activity_attempt.sdk_attempt"},
-				{FieldId: "delivery", Path: "activity_attempt.delivery_id"}}}
+				Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "submit-job"}, RunKeyed: true}},
+			Fields: []*testpilotspb.NamedExpression{{FieldId: "attempt", Value: projected("activity_attempt.sdk_attempt")},
+				{FieldId: "delivery", Value: projected("activity_attempt.delivery_id")}}}
 	}
 	protorequire.ProtoSliceEqual(t, []*testpilotspb.EvidenceDeclaration{
-		{EvidenceId: local(c, jobEvidence+"listed"), EvidenceSource: local(c, jobSource+"listed"), Scope: scope, Operation: "job_id",
+		{EvidenceId: local(c, jobEvidence+"listed"), Kind: local(c, jobEvidence+"listed"), EvidenceSource: local(c, jobSource+"listed"), Scope: scope, Operation: projected("job_id"),
 			Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: "/fixture.Jobs/List", Path: "jobs"}}},
 		declared("taken", attemptIs(1)),
 		declared("count", attemptIs(2)),
-		{EvidenceId: local(c, jobEvidence+"finished"), EvidenceSource: local(c, jobSource+"finished"), Scope: scope, Operation: "job_id",
-			Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: "/fixture.Jobs/Describe", Path: "job", Single: true}}},
+		{EvidenceId: local(c, jobEvidence+"finished"), Kind: local(c, jobEvidence+"finished"), EvidenceSource: local(c, jobSource+"finished"), Scope: scope, Operation: projected("job_id"),
+			Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: "/fixture.Jobs/Describe", Path: "job"}}},
 	}, c.GetProgram().GetEvidence())
 
 	policies := []*testpilotspb.CorrelatedFieldPolicy{
@@ -235,24 +246,25 @@ func TestAnExhaustiveKindIsCarriedOffThePath(t *testing.T) {
 	declarations := c.GetProgram().GetEvidence()
 	require.Len(t, declarations, len(plain.GetProgram().GetEvidence())+1)
 	protorequire.ProtoEqual(t, &testpilotspb.EvidenceDeclaration{EvidenceId: dropped, EvidenceSource: local(c, jobSource+"wasDropped"),
-		Scope:     []*testpilotspb.NamedValue{{FieldId: local(c, jobFamily+".scope.run"), Value: cp.Text("jobs-once")}},
-		Operation: "attributes<job_dropped_event_attributes>.job_id",
+		Kind:      dropped,
+		Scope:     []*testpilotspb.NamedExpression{{FieldId: local(c, jobFamily+".scope.run"), Value: cp.Literal(cp.Text("jobs-once"))}},
+		Operation: projected("attributes<job_dropped_event_attributes>.job_id"),
 		Source: &testpilotspb.EvidenceDeclaration_HistoryEvent{HistoryEvent: &testpilotspb.HistoryEventSource{
 			AttributesField: "job_dropped_event_attributes"}}}, declarations[len(declarations)-1])
 
-	lift := func(c *testpilotspb.Case) []*testpilotspb.CorrelatedEvidenceRule {
+	lift := func(c *testpilotspb.Case) []string {
 		history := c.GetProgram().GetEntrypoints()[0].GetInstructions()[1]
-		return history.GetInstruction().GetInvokeRpc().GetResponseReads()[0].GetTargets()[0].GetCorrelatedEvidence().GetRules()
+		return history.GetInstruction().GetInvokeRpc().GetResponseReads()[0].GetTargets()[0].GetCorrelatedEvidence().GetEvidenceIds()
 	}
 	require.Empty(t, lift(plain), "the path records no history kind")
-	protorequire.ProtoSliceEqual(t, []*testpilotspb.CorrelatedEvidenceRule{{EvidenceId: dropped}}, lift(c))
+	require.Equal(t, []string{dropped}, lift(c))
 
 	contract := c.GetContract().GetCorrelated()
 	require.Contains(t, contract.GetSources(), local(c, jobSource+"wasDropped"))
 	var irrelevant []string
 	for _, rule := range contract.GetProjectionRules() {
 		if rule.GetMeaning() == testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT {
-			require.Empty(t, rule.GetOutputs())
+			require.Empty(t, rule.GetResultIds())
 			irrelevant = append(irrelevant, rule.GetKind())
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	celpb "cel.dev/expr"
 	"github.com/nexus-rpc/sdk-go/nexus"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -25,6 +26,8 @@ import (
 	sdkworker "go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
@@ -115,7 +118,7 @@ func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testi
 	environment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
 	environment.ExecuteWorkflow("workflow-type", "untouched", 42, []byte("arguments"))
 	require.NoError(t, environment.GetWorkflowError())
-	var result testpilotspb.Value
+	var result celpb.Value
 	require.NoError(t, environment.GetWorkflowResult(&result))
 	require.Equal(t, "done", facadetest.CarriedText(t, &result))
 	require.True(t, proto.Equal(facadetest.Payload("request"), operationInput.Payload()))
@@ -222,7 +225,7 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 	environment.SetHeader(request.GetHeader())
 	operation := nexus.NewOperationReference[converter.RawValue, converter.RawValue]("operation")
 	environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(facadetest.Payload("done"))}, nil)
-	environment.RegisterDynamicWorkflow(func(ctx workflow.Context, arguments converter.EncodedValues) (*testpilotspb.Value, error) {
+	environment.RegisterDynamicWorkflow(func(ctx workflow.Context, arguments converter.EncodedValues) (*celpb.Value, error) {
 		close(entered)
 		<-proceed
 		return host.dynamicWorkflow(ctx, arguments)
@@ -276,7 +279,7 @@ func TestSDKConcurrentRunsAdmitReorderedWorkflowDelivery(t *testing.T) {
 	sessionB, _, requestB := runtimeTestSessionWithBinding(t, host, definition, prepared, "run-b", "default-test-run-id", bindingB, SessionOptions{Bridge: newTestBridge()})
 	enteredB, proceedB := make(chan struct{}), make(chan struct{})
 
-	newEnvironment := func(binding delivery.WorkflowBinding, request *commonpb.Header, dynamic func(workflow.Context, converter.EncodedValues) (*testpilotspb.Value, error)) *testsuite.TestWorkflowEnvironment {
+	newEnvironment := func(binding delivery.WorkflowBinding, request *commonpb.Header, dynamic func(workflow.Context, converter.EncodedValues) (*celpb.Value, error)) *testsuite.TestWorkflowEnvironment {
 		var suite testsuite.WorkflowTestSuite
 		environment := suite.NewTestWorkflowEnvironment()
 		environment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
@@ -287,7 +290,7 @@ func TestSDKConcurrentRunsAdmitReorderedWorkflowDelivery(t *testing.T) {
 		environment.RegisterDynamicWorkflow(dynamic, workflow.DynamicRegisterOptions{})
 		return environment
 	}
-	environmentB := newEnvironment(bindingB, requestB.GetHeader(), func(ctx workflow.Context, arguments converter.EncodedValues) (*testpilotspb.Value, error) {
+	environmentB := newEnvironment(bindingB, requestB.GetHeader(), func(ctx workflow.Context, arguments converter.EncodedValues) (*celpb.Value, error) {
 		close(enteredB)
 		<-proceedB
 		return host.dynamicWorkflow(ctx, arguments)
@@ -333,11 +336,11 @@ func workflowReplayHistory(t *testing.T, binding delivery.WorkflowBinding, heade
 	dataConverter := converter.GetDefaultDataConverter()
 	arguments, err := dataConverter.ToPayloads("untouched", 42, []byte("arguments"))
 	require.NoError(t, err)
-	nexusInput, err := dataConverter.ToPayload(&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
+	nexusInput, err := dataConverter.ToPayload(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "request"}})
 	require.NoError(t, err)
-	nexusResult, err := dataConverter.ToPayload(&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}})
+	nexusResult, err := dataConverter.ToPayload(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "done"}})
 	require.NoError(t, err)
-	workflowResult, err := dataConverter.ToPayloads(&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}})
+	workflowResult, err := dataConverter.ToPayloads(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "done"}})
 	require.NoError(t, err)
 	return []*historypb.HistoryEvent{
 		{
@@ -408,14 +411,14 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			prepared := preparedRuntimeFixture(t, replySynchronous, func(program *testpilotspb.Program) {
-				program.Entrypoints[1].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: tc.start.Milliseconds()}
+				program.Entrypoints[1].Instructions[0].Limits.Timeout = pbduration.FromMilliseconds(tc.start.Milliseconds())
 				if tc.scheduleToClose > 0 {
 					program.Entrypoints[1].Instructions[0].Instruction.GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes().ScheduleToCloseTimeout = durationpb.New(tc.scheduleToClose)
 				}
-				program.Entrypoints[1].Instructions[1].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: tc.await.Milliseconds()}
+				program.Entrypoints[1].Instructions[1].Limits.Timeout = pbduration.FromMilliseconds(tc.await.Milliseconds())
 				finish := program.Entrypoints[1].Instructions[2]
-				finish.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
-				finish.Instruction.GetFinish().Result.GetReference().GetOutcome().Field = testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS
+				finish.Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})
+				finish.Instruction.GetFinish().Result.GetBindings()[0].GetReference().GetOutcome().Field = testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS
 			})
 			_, definition := runtimeTestDriver(t, prepared)
 			var suite testsuite.WorkflowTestSuite
@@ -457,7 +460,7 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 				if err != nil || !enabled {
 					return "", fmt.Errorf("status evaluation: enabled=%t: %w", enabled, err)
 				}
-				return status.GetEnumValue().GetName(), nil
+				return testpilotspb.InstructionOutcomeStatus_name[status.GetEnumValue().GetValue()], nil
 			})
 			require.NoError(t, environment.GetWorkflowError())
 			var status string
@@ -474,7 +477,7 @@ func TestWorkflowFinishRejectsInvalidAdmission(t *testing.T) {
 	entry := prepared.Entrypoints()[1]
 	state, err := activation.New(entry)
 	require.NoError(t, err)
-	input := &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "unvalidated"}}
+	input := &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "unvalidated"}}
 	i := workflowInterpreter{state: state}
 	result, finished, err := i.execute(2, entry.Instructions()[2], input)
 	require.Error(t, err)

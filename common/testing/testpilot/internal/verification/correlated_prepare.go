@@ -3,10 +3,9 @@ package verification
 import (
 	"fmt"
 	"slices"
-	"strconv"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -16,12 +15,6 @@ func validModelValue(v *testpilotspb.ModelValue) bool {
 }
 func validModelValues(vs []*testpilotspb.ModelValue) bool {
 	return !slices.ContainsFunc(vs, func(v *testpilotspb.ModelValue) bool { return !validModelValue(v) })
-}
-func sameModelValues(a, b []*testpilotspb.ModelValue) bool {
-	return slices.EqualFunc(a, b, func(x, y *testpilotspb.ModelValue) bool { return proto.Equal(x, y) })
-}
-func sameResult(a, b *testpilotspb.CorrelatedTransition) bool {
-	return proto.Equal(a.Action, b.Action) && proto.Equal(a.State, b.State) && sameModelValues(a.StateFields, b.StateFields) && proto.Equal(a.Outcome, b.Outcome) && sameModelValues(a.Facts, b.Facts)
 }
 func uniqueIDs(ids []string) bool {
 	seen := map[string]bool{}
@@ -47,20 +40,44 @@ type stepCondition struct {
 
 // readStepCondition reads e as a step condition, reporting false for any other shape.
 func readStepCondition(e *testpilotspb.Expression) (stepCondition, bool) {
-	switch v := e.GetExpression().(type) {
-	case *testpilotspb.Expression_Present:
-		step := v.Present.GetOperand().GetReference().GetCorrelatedStep()
-		return stepCondition{field: step.GetField(), definitionID: step.GetDefinitionId(), path: ".present.reference.correlated_step"}, step != nil
-	case *testpilotspb.Expression_Compare:
-		step := v.Compare.GetLeft().GetReference().GetCorrelatedStep()
-		text, isText := v.Compare.GetRight().GetLiteral().GetValue().(*testpilotspb.Value_TextValue)
-		if step == nil || !isText || v.Compare.GetOperator() != testpilotspb.COMPARISON_OPERATOR_EQUAL {
-			return stepCondition{}, false
+	call := e.GetCel().GetExpr().GetCallExpr()
+	var variable string
+	condition := stepCondition{}
+	if call.GetFunction() == "@in" && len(call.Args) == 2 {
+		text, ok := call.Args[0].GetConstExpr().GetConstantKind().(*celpb.Constant_StringValue)
+		if !ok {
+			return condition, false
 		}
-		return stepCondition{field: step.GetField(), definitionID: step.GetDefinitionId(), equals: true, text: text.TextValue, path: ".compare.left.reference.correlated_step"}, true
-	default:
-		return stepCondition{}, false
+		variable = stepVariable(call.Args[1])
+		condition.equals, condition.text = true, text.StringValue
+	} else if call.GetFunction() == "_>_" && len(call.Args) == 2 {
+		size := call.Args[0].GetCallExpr()
+		zero, ok := call.Args[1].GetConstExpr().GetConstantKind().(*celpb.Constant_Int64Value)
+		if size.GetFunction() != "size" || len(size.Args) != 1 || !ok || zero.Int64Value != 0 {
+			return condition, false
+		}
+		variable = stepVariable(size.Args[0])
+	} else {
+		return condition, false
 	}
+	if variable == "" || len(e.Bindings) != 1 {
+		return condition, false
+	}
+	binding := e.Bindings[0]
+	step := binding.GetReference().GetCorrelatedStep()
+	if binding.GetVariable() != variable || binding.GetPath() != "" || step == nil {
+		return condition, false
+	}
+	condition.field, condition.definitionID, condition.path = step.Field, step.DefinitionId, ".bindings[0].reference.correlated_step"
+	return condition, true
+}
+
+func stepVariable(e *celpb.Expr) string {
+	call := e.GetCallExpr()
+	if call.GetFunction() == "value" && len(call.Args) == 0 {
+		return call.GetTarget().GetIdentExpr().GetName()
+	}
+	return ""
 }
 
 // admitRuleCondition admits a trigger or response located at path: a step condition, over a
@@ -95,7 +112,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if s == nil {
 		return nil
 	}
-	if !ir.ValidID(s.ProjectionId) || s.ProjectionFingerprint == "" || !ir.ValidID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !validModelValue(s.InitialState) || !validModelValues(s.InitialStateFields) {
+	if !ir.ValidID(s.ProjectionId) || s.ProjectionFingerprint == "" || !ir.ValidID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) {
 		return invalid(ir.Malformed, "invalid correlated projection binding")
 	}
 	typ, ok := a.prepared.observations[s.EvidenceObservationId]
@@ -154,23 +171,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if err := add(&a.transitions, int64(len(s.Transitions)), limits.MaxTransitions); err != nil {
 		return err
 	}
-	states := map[[2]string]bool{{s.InitialState.DefinitionId, s.InitialState.Value}: true}
-	for _, tr := range s.Transitions {
-		if !validModelValue(tr.PriorState) || !validModelValue(tr.Action) || !validModelValue(tr.State) || !validModelValue(tr.Outcome) {
-			return invalid(ir.Malformed, "invalid correlated transition value")
-		}
-		states[[2]string{tr.PriorState.DefinitionId, tr.PriorState.Value}] = true
-		states[[2]string{tr.State.DefinitionId, tr.State.Value}] = true
-		for _, fact := range tr.Facts {
-			if !validModelValue(fact) {
-				return invalid(ir.Malformed, "invalid correlated fact")
-			}
-		}
-		if !validModelValues(tr.PriorFields) || !validModelValues(tr.StateFields) {
-			return invalid(ir.Malformed, "invalid correlated transition value")
-		}
-	}
-	if err := add(&a.states, int64(len(states)), limits.MaxStates); err != nil {
+	if err := a.bindCorrelatedTables(s); err != nil {
 		return err
 	}
 	// A field two rules declare at different kinds has no single type a comparison could be checked
@@ -183,15 +184,15 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 		kinds[r.Kind] = true
 		switch r.Meaning {
 		case testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT:
-			if r.Submission != nil || len(r.Outputs) > 0 {
+			if r.Submission != nil || len(r.ResultIds) > 0 {
 				return invalid(ir.Malformed, "irrelevant evidence has semantic outputs")
 			}
 		case testpilotspb.CORRELATED_EVIDENCE_MEANING_SUBMISSION:
-			if !validModelValue(r.Submission) || len(r.Outputs) > 0 || !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool { return proto.Equal(tr.Action, r.Submission) }) {
+			if !validModelValue(r.Submission) || len(r.ResultIds) > 0 || !slices.ContainsFunc(s.Results, func(tr *testpilotspb.CorrelatedResult) bool { return proto.Equal(tr.Action, r.Submission) }) {
 				return invalid(ir.Malformed, "invalid submission")
 			}
 		case testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED:
-			if len(r.Outputs) == 0 {
+			if len(r.ResultIds) == 0 {
 				return invalid(ir.Malformed, "confirmed evidence requires outputs")
 			}
 			if r.Submission != nil && !slices.ContainsFunc(s.ProjectionRules, func(other *testpilotspb.CorrelatedProjectionRule) bool {
@@ -199,8 +200,8 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			}) {
 				return invalid(ir.Malformed, "missing submission mapping")
 			}
-			for _, out := range r.Outputs {
-				if out == nil || out.PriorState != nil || !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool { return sameResult(tr, out) }) {
+			for _, id := range r.ResultIds {
+				if a.prepared.correlatedResults[id] == nil || !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool { return tr.ResultId == id }) {
 					return invalid(ir.Malformed, "projection output absent from transition table")
 				}
 			}
@@ -220,31 +221,6 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 					ambiguous[f.FieldId] = true
 				}
 				retained[f.FieldId] = f.GetType().GetKind()
-			}
-		}
-	}
-	// A Program that declares its evidence names each kind once, so a projection rule names a
-	// declaration, reads only the fields it exposes and counts ordinals in a declared source.
-	declarations, declaredSources := map[string]execution.EvidenceDeclaration{}, map[string]bool{}
-	for _, declaration := range a.prepared.program.Evidence() {
-		declarations[declaration.ID] = declaration
-		declaredSources[declaration.Source] = true
-	}
-	if len(declarations) > 0 {
-		for _, r := range s.ProjectionRules {
-			declaration, ok := declarations[r.Kind]
-			if !ok {
-				return invalid(ir.Unknown, fmt.Sprintf("correlated evidence kind %s is not declared by the Program", r.Kind))
-			}
-			for _, f := range r.Fields {
-				if !slices.Contains(declaration.Fields, f.FieldId) {
-					return invalid(ir.Unknown, fmt.Sprintf("correlated evidence field %s is not declared by evidence %s", f.FieldId, r.Kind))
-				}
-			}
-		}
-		for _, source := range s.Sources {
-			if !declaredSources[source] {
-				return invalid(ir.Unknown, fmt.Sprintf("correlated evidence source %s is not declared by the Program", source))
 			}
 		}
 	}
@@ -268,7 +244,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 		if err != nil {
 			return err
 		}
-		if c.Clock != testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS || c.Bound < 0 || c.Ending < testpilotspb.TRACE_ENDING_PARTIAL || c.Ending > testpilotspb.TRACE_ENDING_FINAL || !trigger || !response {
+		if c.Bound < 0 || c.Ending < testpilotspb.TRACE_ENDING_PARTIAL || c.Ending > testpilotspb.TRACE_ENDING_FINAL || !trigger || !response {
 			return invalid(ir.Unknown, fmt.Sprintf("unsupported correlated rule %s", c.RuleId))
 		}
 		captures := map[string]correlatedCapture{}
@@ -280,14 +256,11 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			declared[d.CaptureId] = true
 			captures[d.CaptureId] = correlatedCapture{lifetime: d.Lifetime, kind: kind}
 		}
-		if c.Correlation != nil {
-			if err := ir.AdmitReferences(ir.Site{Context: ir.CorrelatedContext, Path: path + ".correlation"}, c.Correlation); err != nil {
-				return err
-			}
-			if err := validCorrelation(c.Correlation, retained, ambiguous, captures, l.MaxCorrelationDepth); err != nil {
-				return err
-			}
+		bound, err := a.bindCorrelatedPredicates(c, path, retained, ambiguous, captures, l.MaxCorrelationDepth)
+		if err != nil {
+			return err
 		}
+		a.prepared.correlatedRules = append(a.prepared.correlatedRules, bound)
 	}
 	return nil
 }
@@ -298,12 +271,6 @@ func correlatedFieldKind(kind testpilotspb.ScalarKind) bool {
 	return kind == testpilotspb.SCALAR_KIND_TEXT || kind == testpilotspb.SCALAR_KIND_UINT64 || kind == testpilotspb.SCALAR_KIND_BOOLEAN
 }
 
-// canonicalUint64 reports whether text is an unsigned 64-bit integer in canonical base-10 text.
-func canonicalUint64(text string) bool {
-	parsed, err := strconv.ParseUint(text, 10, 64)
-	return err == nil && strconv.FormatUint(parsed, 10) == text
-}
-
 // correlatedCapture is one clause's declared capture: how many occurrences an operation retains and the
 // declared scalar kind every occurrence carries.
 type correlatedCapture struct {
@@ -311,102 +278,196 @@ type correlatedCapture struct {
 	kind     testpilotspb.ScalarKind
 }
 
-// correlatedLiteralKind is the scalar kind of a literal the portable evidence domain admits, or
-// SCALAR_KIND_UNSPECIFIED for any other literal, an unsigned integer not in canonical text included.
-func correlatedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
-	switch literal := v.GetValue().(type) {
-	case *testpilotspb.Value_TextValue:
-		return testpilotspb.SCALAR_KIND_TEXT
-	case *testpilotspb.Value_UnsignedIntegerValue:
-		if canonicalUint64(literal.UnsignedIntegerValue) {
-			return testpilotspb.SCALAR_KIND_UINT64
+type correlatedPredicates struct{ trigger, response, correlation *ir.Expression }
+
+func (a *admission) bindCorrelatedPredicates(rule *testpilotspb.CorrelatedRule, path string, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture, depth int64) (correlatedPredicates, error) {
+	var result correlatedPredicates
+	for _, item := range []struct {
+		name   string
+		source *testpilotspb.Expression
+		target **ir.Expression
+	}{{"trigger", rule.Trigger, &result.trigger}, {"response", rule.Response, &result.response}, {"correlation", rule.Correlation, &result.correlation}} {
+		if item.source == nil {
+			continue
 		}
-	case *testpilotspb.Value_BoolValue:
-		return testpilotspb.SCALAR_KIND_BOOLEAN
-	default:
+		if err := ir.AdmitReferences(ir.Site{Context: ir.CorrelatedContext, Path: path + "." + item.name}, item.source); err != nil {
+			return result, err
+		}
+		scope := map[ir.Reference]ir.Binding{}
+		for _, binding := range item.source.Bindings {
+			if binding.GetReference() == nil {
+				continue
+			}
+			var ref ir.Reference
+			var declared *testpilotspb.ValueType
+			switch v := binding.GetReference().GetReference().(type) {
+			case *testpilotspb.Reference_CorrelatedStep:
+				step := v.CorrelatedStep
+				if !ir.ValidID(step.GetDefinitionId()) || step.GetField() < testpilotspb.CORRELATED_STEP_FIELD_ACTION || step.GetField() > testpilotspb.CORRELATED_STEP_FIELD_FACT {
+					return result, invalid(ir.Unknown, "unsupported correlation predicate")
+				}
+				ref = ir.Reference{Kind: ir.CorrelatedStepReference, ID: step.DefinitionId, Field: int32(step.Field)}
+				declared = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Repeated{Repeated: &testpilotspb.RepeatedType{Element: scalarType(testpilotspb.SCALAR_KIND_TEXT).GetSingular()}}}
+			case *testpilotspb.Reference_EvidenceFieldId:
+				kind, ok := retained[v.EvidenceFieldId]
+				if !ir.ValidID(v.EvidenceFieldId) || !ok {
+					return result, invalid(ir.Malformed, "unretained correlation field operand")
+				}
+				if ambiguous[v.EvidenceFieldId] {
+					return result, invalid(ir.TypeMismatch, "ambiguous retained field type")
+				}
+				ref, declared = ir.Reference{Kind: ir.EvidenceFieldReference, ID: v.EvidenceFieldId}, scalarType(kind)
+			case *testpilotspb.Reference_CorrelatedCapture:
+				capture := v.CorrelatedCapture
+				declaration, ok := captures[capture.GetCaptureId()]
+				if !ok || capture.GetOrdinal() < 0 || capture.GetOrdinal() >= declaration.lifetime {
+					return result, invalid(ir.Malformed, "unbound capture reference")
+				}
+				ref, declared = ir.Reference{Kind: ir.CorrelatedCaptureReference, ID: capture.CaptureId, Ordinal: capture.Ordinal}, scalarType(declaration.kind)
+			default:
+				return result, invalid(ir.Unknown, "unsupported correlation operand")
+			}
+			typ, err := a.catalog.BindType(declared)
+			if err != nil {
+				return result, err
+			}
+			scope[ref] = ir.Binding{Type: typ, Available: true}
+		}
+		limits := a.limits
+		if item.name == "correlation" {
+			limits.Depth = min(limits.Depth, depth)
+		}
+		bound, err := a.catalog.BindExpression(ir.Site{Context: ir.CorrelatedContext, Path: path + "." + item.name}, item.source, &a.boolean, scope, limits)
+		if err != nil {
+			return result, err
+		}
+		if err := a.charge(bound.BindingWork()); err != nil {
+			return result, err
+		}
+		*item.target = bound
 	}
-	return testpilotspb.SCALAR_KIND_UNSPECIFIED
+	return result, nil
 }
 
-// validOperand reports the operand's declared scalar kind, so a comparison is checked against the
-// types the projection declares instead of comparing values of different kinds. An operand is a
-// literal, one declared evidence field of the step being admitted, or one retained earlier
-// occurrence of a declared capture.
-func validOperand(o *testpilotspb.Expression, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture) (testpilotspb.ScalarKind, error) {
-	if literal, ok := o.GetExpression().(*testpilotspb.Expression_Literal); ok {
-		kind := correlatedLiteralKind(literal.Literal)
-		if kind == testpilotspb.SCALAR_KIND_UNSPECIFIED {
-			return 0, invalid(ir.TypeMismatch, "unsupported correlation literal")
-		}
-		return kind, nil
+func (a *admission) bindCorrelatedTables(s *testpilotspb.CorrelatedContract) error {
+	limits := a.prepared.limits
+	if err := add(&a.states, int64(len(s.States)), limits.MaxStates); err != nil {
+		return err
 	}
-	switch v := o.GetReference().GetReference().(type) {
-	case *testpilotspb.Reference_EvidenceFieldId:
-		kind, ok := retained[v.EvidenceFieldId]
-		if !ir.ValidID(v.EvidenceFieldId) || !ok {
-			return 0, invalid(ir.Malformed, "unretained correlation field operand")
-		}
-		if ambiguous[v.EvidenceFieldId] {
-			return 0, invalid(ir.TypeMismatch, "ambiguous retained field type")
-		}
-		return kind, nil
-	case *testpilotspb.Reference_CorrelatedCapture:
-		declaration, ok := captures[v.CorrelatedCapture.GetCaptureId()]
-		if !ok || v.CorrelatedCapture.GetOrdinal() < 0 || v.CorrelatedCapture.GetOrdinal() >= declaration.lifetime {
-			return 0, invalid(ir.Malformed, "unbound capture reference")
-		}
-		return declaration.kind, nil
-	default:
-		return 0, invalid(ir.Unknown, "unsupported correlation operand")
+	if int64(len(s.Results)) > limits.MaxTransitions {
+		return invalid(ir.LimitExceeded, "correlated result count exceeds ceiling")
 	}
-}
-
-// validCorrelation checks the whole condition under the declared depth ceiling. An exhausted depth
-// is an explicit rejection, never a silently truncated condition. A step condition and a comparison
-// each count as one level, as does every all and any; the expression nodes inside a step condition
-// or a comparison do not.
-func validCorrelation(c *testpilotspb.Expression, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture, depth int64) error {
-	if depth <= 0 {
-		return invalid(ir.LimitExceeded, "correlation depth exhausted")
-	}
-	if condition, ok := readStepCondition(c); ok {
-		if !ir.ValidID(condition.definitionID) || condition.field < testpilotspb.CORRELATED_STEP_FIELD_ACTION || condition.field > testpilotspb.CORRELATED_STEP_FIELD_FACT {
-			return invalid(ir.Unknown, "unsupported correlation predicate")
-		}
-		return nil
-	}
-	switch v := c.GetExpression().(type) {
-	case *testpilotspb.Expression_Compare:
-		if v.Compare.GetOperator() < testpilotspb.COMPARISON_OPERATOR_EQUAL || v.Compare.GetOperator() > testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL {
-			return invalid(ir.Unknown, "unsupported comparison operator")
-		}
-		left, err := validOperand(v.Compare.GetLeft(), retained, ambiguous, captures)
-		if err != nil {
+	// Catalog construction and expanded payload visits are priced before allocating either index.
+	for _, count := range []int64{int64(len(s.States)), int64(len(s.Results)), int64(len(s.Transitions)), int64(len(s.ProjectionRules))} {
+		if err := a.charge(count); err != nil {
 			return err
 		}
-		right, err := validOperand(v.Compare.GetRight(), retained, ambiguous, captures)
-		if err != nil {
+	}
+	var expanded int64
+	scan := func(count, width int64) error {
+		if count > 0 && width > (a.limits.Work-a.work)/count {
+			return invalid(ir.LimitExceeded, "correlated expanded lookup work exceeds ceiling")
+		}
+		return a.charge(count * width)
+	}
+	if err := scan(int64(len(s.Transitions)), 2*int64(len(s.States))+int64(len(s.Results))); err != nil {
+		return err
+	}
+	for _, projection := range s.ProjectionRules {
+		if err := scan(int64(len(projection.GetResultIds())), int64(len(s.States))+int64(len(s.Results))); err != nil {
 			return err
 		}
-		if left != right {
-			return invalid(ir.TypeMismatch, "incompatible correlation operand types")
+	}
+	for _, tr := range s.Transitions {
+		prior := slices.IndexFunc(s.States, func(state *testpilotspb.CorrelatedState) bool { return state.GetStateId() == tr.GetPriorStateId() })
+		result := slices.IndexFunc(s.Results, func(result *testpilotspb.CorrelatedResult) bool { return result.GetResultId() == tr.GetResultId() })
+		if prior < 0 || result < 0 {
+			return invalid(ir.Malformed, "invalid or duplicate correlated transition")
 		}
-		return nil
-	case *testpilotspb.Expression_All, *testpilotspb.Expression_Any:
-		operands := c.GetAll().GetOperands()
-		if c.GetAny() != nil {
-			operands = c.GetAny().GetOperands()
+		state := slices.IndexFunc(s.States, func(state *testpilotspb.CorrelatedState) bool {
+			return state.GetStateId() == s.Results[result].GetStateId()
+		})
+		if state < 0 {
+			return invalid(ir.Malformed, "invalid or duplicate correlated result")
 		}
-		if len(operands) == 0 {
-			return invalid(ir.Malformed, "empty correlation group")
-		}
-		for _, operand := range operands {
-			if err := validCorrelation(operand, retained, ambiguous, captures, depth-1); err != nil {
+		for _, message := range []proto.Message{s.States[prior], s.Results[result], s.States[state]} {
+			if err := add(&expanded, int64(proto.Size(message))+1, a.limits.Work-a.work); err != nil {
 				return err
 			}
 		}
-		return nil
-	default:
-		return invalid(ir.Unknown, "unsupported correlation condition")
 	}
+	for _, projection := range s.ProjectionRules {
+		for _, id := range projection.GetResultIds() {
+			result := slices.IndexFunc(s.Results, func(result *testpilotspb.CorrelatedResult) bool { return result.GetResultId() == id })
+			if result < 0 {
+				return invalid(ir.Malformed, "projection output absent from result table")
+			}
+			state := slices.IndexFunc(s.States, func(state *testpilotspb.CorrelatedState) bool {
+				return state.GetStateId() == s.Results[result].GetStateId()
+			})
+			if state < 0 {
+				return invalid(ir.Malformed, "invalid or duplicate correlated result")
+			}
+			for _, message := range []proto.Message{s.Results[result], s.States[state]} {
+				if err := add(&expanded, int64(proto.Size(message))+1, a.limits.Work-a.work); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	if err := a.charge(expanded); err != nil {
+		return err
+	}
+	states, results := map[string]*testpilotspb.CorrelatedState{}, map[string]*testpilotspb.CorrelatedResult{}
+	complete := map[string]bool{}
+	for _, state := range s.States {
+		if !ir.ValidID(state.GetStateId()) || states[state.StateId] != nil || !validModelValue(state.Atom) || !validModelValues(state.Fields) {
+			return invalid(ir.Malformed, "invalid or duplicate correlated state")
+		}
+		key, err := proto.MarshalOptions{Deterministic: true}.Marshal(&testpilotspb.CorrelatedState{Atom: state.Atom, Fields: state.Fields})
+		if err != nil {
+			return err
+		}
+		if complete[string(key)] {
+			return invalid(ir.Malformed, "duplicate complete correlated state")
+		}
+		complete[string(key)], states[state.StateId] = true, state
+	}
+	if states[s.InitialStateId] == nil {
+		return invalid(ir.Malformed, "undeclared initial correlated state")
+	}
+	completeResults := map[string]bool{}
+	for _, result := range s.Results {
+		if !ir.ValidID(result.GetResultId()) || results[result.ResultId] != nil || states[result.StateId] == nil || !validModelValue(result.Action) || !validModelValue(result.Outcome) || !validModelValues(result.Facts) {
+			return invalid(ir.Malformed, "invalid or duplicate correlated result")
+		}
+		key, err := proto.MarshalOptions{Deterministic: true}.Marshal(&testpilotspb.CorrelatedResult{Action: result.Action, StateId: result.StateId, Outcome: result.Outcome, Facts: result.Facts})
+		if err != nil {
+			return err
+		}
+		if completeResults[string(key)] {
+			return invalid(ir.Malformed, "duplicate complete correlated result")
+		}
+		completeResults[string(key)] = true
+		results[result.ResultId] = result
+	}
+	seen := map[[2]string]bool{}
+	for _, tr := range s.Transitions {
+		prior, result := states[tr.GetPriorStateId()], results[tr.GetResultId()]
+		key := [2]string{tr.GetPriorStateId(), tr.GetResultId()}
+		if prior == nil || result == nil || seen[key] {
+			return invalid(ir.Malformed, "invalid or duplicate correlated transition")
+		}
+		seen[key] = true
+	}
+	for _, projection := range s.ProjectionRules {
+		for _, id := range projection.GetResultIds() {
+			result := results[id]
+			if result == nil {
+				return invalid(ir.Malformed, "projection output absent from result table")
+			}
+		}
+	}
+	a.prepared.correlatedStates, a.prepared.correlatedResults = states, results
+	return nil
 }

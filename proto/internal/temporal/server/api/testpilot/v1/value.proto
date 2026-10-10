@@ -1,43 +1,7 @@
 syntax = "proto3";
 package temporal.server.api.testpilot.v1;
-import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
-
-// Value is a tagged interpreter value. Signed and unsigned protobuf integers use canonical base-10
-// text.
-message Value {
-  oneof value {
-    string text_value = 1;
-    bool bool_value = 2;
-    bytes bytes_value = 3;
-    string signed_integer_value = 4;
-    string unsigned_integer_value = 5;
-    double floating_point_value = 6;
-    EnumValue enum_value = 7;
-    // (-- api-linter: core::0146::any=disabled
-    //     aip.dev/not-precedent: Whole typed Any values are an explicit closed IR capability. --)
-    google.protobuf.Any message_value = 8;
-    ValueList list_value = 9;
-    ValueMap map_value = 10;
-  }
-}
-
-// EnumValue is one enum value by name. A literal names a value the enum of its expected type
-// declares. A value read from a protobuf message whose number that enum does not declare is spelled
-// by the number in decimal, the ProtoJSON spelling, which no literal can name.
-// (-- api-linter: core::0123::resource-annotation=disabled
-//     aip.dev/not-precedent: name is an enum value name, not a resource name. --)
-message EnumValue { string name = 1; }
-
-// ValueList is an ordered list: the value of a repeated type, or of a path that fans out over a
-// repeated field.
-message ValueList { repeated Value values = 1; }
-
-// ValueMap is the value of a map type. Keys are unique, and equality ignores entry order.
-message ValueMap { repeated ValueMapEntry entries = 1; }
-
-// ValueMapEntry is one key and value of a ValueMap.
-message ValueMapEntry { Value key = 1; Value value = 2; }
 
 // ModelValue is one model value: the definition that declares it and the value's spelling.
 //
@@ -69,7 +33,8 @@ message SingularType {
     ScalarType scalar = 1;
     NamedType enumeration = 2;
     NamedType message = 3;
-    AnyType any = 4;
+    // A whole opaque google.protobuf.Any: its payload is retained and no path reads into it.
+    google.protobuf.Empty any = 4;
   }
 }
 
@@ -85,7 +50,7 @@ message ScalarType { ScalarKind kind = 1; }
 
 // ScalarKind names a scalar kind: a protobuf scalar field type, and a value read from or written to
 // a field must have that field's kind. The integer kinds keep the protobuf wire encodings apart
-// although every integer Value is the same canonical base-10 text, because descriptor admission
+// although CEL uses one signed and one unsigned integer value kind, because descriptor admission
 // types a field read by the field's declared kind and requires it to equal the declared type of the
 // Slot, Observation or outcome field it meets; one folded kind would no longer name the field it
 // must match.
@@ -109,16 +74,8 @@ enum ScalarKind {
   SCALAR_KIND_DOUBLE = 15;
 }
 
-// NamedType is a protobuf enum or message type in the Profile's descriptor Catalog.
+// NamedType is a protobuf enum or message type in the owning Case's descriptor Catalog.
 message NamedType {
   // The fully qualified protobuf name, without a leading dot.
   string protobuf_type = 1;
 }
-
-// AnyType is a whole google.protobuf.Any value of any type URL. Its payload is not checked, and no
-// path reads into it.
-message AnyType {}
-
-// OpaqueHandleType is an effect handle a Driver issued. Only a Slot holds one, so it cannot be a
-// literal, an Observation, a capture or a collection element, and no expression reads into it.
-message OpaqueHandleType {}

@@ -230,7 +230,7 @@ func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.C
 	s.mu.Lock()
 	delete(s.reservations, coordinate)
 	s.mu.Unlock()
-	cleanupTimeout := time.Duration(s.program.Limits().GetMaxCleanupDurationMilliseconds()) * time.Millisecond
+	cleanupTimeout := time.Duration(s.program.Limits().GetCleanupDuration().AsDuration().Milliseconds()) * time.Millisecond
 	return &carrierEffect{EffectHandle: handle, carrier: carrier, cleanupTimeout: cleanupTimeout}, nil
 }
 

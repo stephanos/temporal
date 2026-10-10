@@ -3,6 +3,7 @@ package testpilot
 import (
 	"context"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -82,11 +83,11 @@ func (p InstructionPlan) MaxAttempts() int64         { return p.plan.MaxAttempts
 // Reservations are the worker activations a reservation carrier reserves, derived at preparation.
 func (p InstructionPlan) Reservations() []ReservationTopology   { return p.plan.Reservations() }
 func (p InstructionPlan) Method() protoreflect.MethodDescriptor { return p.plan.Method() }
-func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ValueReference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, bool, int64, error) {
+func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ValueReference) *celpb.Value, limit int64) (*celpb.Value, bool, int64, error) {
 	if lookup == nil {
 		return p.plan.EvaluateInput(ctx, nil, limit)
 	}
-	return p.plan.EvaluateInput(ctx, func(reference ir.Reference) *testpilotspb.Value {
+	return p.plan.EvaluateInput(ctx, func(reference ir.Reference) *celpb.Value {
 		return lookup(ValueReference{Kind: ReferenceKind(reference.Kind), Entrypoint: reference.Entrypoint, ID: reference.ID, Field: reference.Field})
 	}, limit)
 }

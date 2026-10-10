@@ -6,6 +6,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -42,13 +43,13 @@ func externalExactMethod(n *node) bool {
 }
 
 func externalSuccessExpression(ref *testpilotspb.InstructionReference) *testpilotspb.Expression {
-	status := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: ref, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}}
-	literal := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: ir.EnumName(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}}
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: status, Right: literal}}}
+	status := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: ref, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}})
+	literal := cel.Literal(cel.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED))
+	return cel.All(cel.Present(status), cel.Compare("_==_", status, literal))
 }
 
 func externalCleanupGuard(b *activityExternalSettlement) bool {
-	expected := &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{externalSuccessExpression(b.source.Carrier), {Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: externalSuccessExpression(b.source.Settlement)}}}}}}}
+	expected := cel.All(externalSuccessExpression(b.source.Carrier), cel.Not(externalSuccessExpression(b.source.Settlement)))
 	return proto.Equal(b.cleanup.source.Guard, expected)
 }
 
@@ -96,7 +97,7 @@ func (a *admission) bindActivityExternalSettlements() error {
 		}
 		basis := &activityExternalSettlement{source: declaration, controller: g, carrier: carrier}
 		for _, read := range carrier.source.Instruction.GetInvokeRpc().GetResponseReads() {
-			if read.GetPath() == "run_id" && read.GetCardinality() == testpilotspb.READ_CARDINALITY_ONE && len(read.GetTargets()) == 1 {
+			if read.GetPath() == "run_id" && len(read.GetTargets()) == 1 {
 				basis.runSlot = read.GetTargets()[0].GetSlotId()
 			}
 		}
@@ -165,7 +166,7 @@ func (a *admission) bindActivityExternalSettlements() error {
 					return invalid("canceled ByID requires a preceding typed RequestCancel")
 				}
 				claimed[cancel] = true
-				if !externalAssignment(basis.settlement, "include_outcome").GetLiteral().GetBoolValue() {
+				if !expressionLiteral(externalAssignment(basis.settlement, "include_outcome")).GetBoolValue() {
 					return invalid("canceled settlement must include the service outcome")
 				}
 			} else if declaration.GetRequestCancel() != nil {
@@ -181,7 +182,7 @@ func (a *admission) bindActivityExternalSettlements() error {
 					return invalid("namespace name and activity ID must be those of the carrier")
 				}
 			}
-			if externalAssignment(n, "run_id").GetReference().GetSlotId() != basis.runSlot || externalAssignment(n, "workflow_id") != nil {
+			if expressionReference(externalAssignment(n, "run_id")).GetSlotId() != basis.runSlot || externalAssignment(n, "workflow_id") != nil {
 				return invalid("standalone request needs learned actual run_id and no workflow_id")
 			}
 		}
