@@ -136,7 +136,7 @@ test-host: toolchain
 # package through os.
 overlay-test: toolchain
 	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
-		internal/gomadsim internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
+		internal/gomadsim internal/gomadio internal/gomadio/mount internal/gomadvfd syscall os cmd/internal/gomadcap
 
 # The gomad3_toolchain tests of the root module's tools/gomad3sim need a seeded
 # runtime, so they run through the exec wrapper. The tests that need the

@@ -48,6 +48,65 @@ index 6f21c54..2e53160 100644
 -	antiStarve := cheaprandn(mutexTailWakePeriod) == 0
 +	antiStarve := gomadHostCheapRandN(mutexTailWakePeriod) == 0
  
+diff --git a/src/runtime/netpoll.go b/src/runtime/netpoll.go
+index fab921e2d3..de3a5aac3a 100644
+--- a/src/runtime/netpoll.go
++++ b/src/runtime/netpoll.go
+@@ -75,6 +75,7 @@ const pollBlockSize = 4 * 1024
+ type pollDesc struct {
+-	_     sys.NotInHeap
+-	link  *pollDesc      // in pollcache, protected by pollcache.lock
+-	fd    uintptr        // constant for pollDesc usage lifetime
+-	fdseq atomic.Uintptr // protects against stale pollDesc
++	_            sys.NotInHeap
++	link         *pollDesc // in pollcache, protected by pollcache.lock
++	fd           uintptr   // constant for pollDesc usage lifetime
++	gomadVirtual uint64
++	fdseq        atomic.Uintptr // protects against stale pollDesc
+ 
+@@ -244,2 +245,3 @@ func poll_runtime_isPollServerDescriptor(fd uintptr) bool {
+ func poll_runtime_pollOpen(fd uintptr) (*pollDesc, int) {
++	virtual := gomadVirtualOwner(fd)
+ 	pd := pollcache.alloc()
+@@ -255,2 +257,3 @@ func poll_runtime_pollOpen(fd uintptr) (*pollDesc, int) {
+ 	pd.fd = fd
++	pd.gomadVirtual = virtual
+ 	if pd.fdseq.Load() == 0 {
+@@ -271,3 +274,8 @@ func poll_runtime_pollOpen(fd uintptr) (*pollDesc, int) {
+ 
+-	errno := netpollopen(fd, pd)
++	var errno uintptr
++	if virtual != 0 {
++		errno = gomadVirtualPollOpen(pd)
++	} else {
++		errno = uintptr(netpollopen(fd, pd))
++	}
+ 	if errno != 0 {
+@@ -292,3 +300,7 @@ func poll_runtime_pollClose(pd *pollDesc) {
+ 	}
+-	netpollclose(pd.fd)
++	if pd.gomadVirtual != 0 {
++		gomadVirtualPollClose(pd)
++	} else {
++		netpollclose(pd.fd)
++	}
+ 	pollcache.free(pd)
+@@ -574,3 +586,7 @@ func netpollblock(pd *pollDesc, mode int32, waitio bool) bool {
+ 	if waitio || netpollcheckerr(pd, mode) == pollNoError {
+-		gopark(netpollblockcommit, unsafe.Pointer(gpp), waitReasonIOWait, traceBlockNet, 5)
++		commit := netpollblockcommit
++		if pd.gomadVirtual != 0 {
++			commit = gomadVirtualPollBlockCommit
++		}
++		gopark(commit, unsafe.Pointer(gpp), waitReasonIOWait, traceBlockNet, 5)
+ 	}
+@@ -614,3 +630,5 @@ func netpollunblock(pd *pollDesc, mode int32, ioready bool, delta *int32) *g {
+ 			} else if old != pdNil {
+-				*delta -= 1
++				if pd.gomadVirtual == 0 {
++					*delta -= 1
++				}
+ 			}
 diff --git a/src/runtime/os_linux.go b/src/runtime/os_linux.go
 index 0474e6c..73d5e83 100644
 --- a/src/runtime/os_linux.go
@@ -648,24 +707,301 @@ index 3812303..708cd42 100644
 +	// Gomad leaves the process limit unchanged because consulting or changing
 +	// host resource limits would escape deterministic execution.
  }
+diff --git a/src/syscall/syscall_darwin.go b/src/syscall/syscall_darwin.go
+index b65f69f978..0eb4609683 100644
+--- a/src/syscall/syscall_darwin.go
++++ b/src/syscall/syscall_darwin.go
+@@ -383,2 +383,5 @@ func errnoPtr(r uintptr, e Errno) Errno {
+ func syscall(fn, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
++	if r1, r2, errno, handled := gomadGeneric(fn, a1, a2, a3, 0, 0, 0); handled {
++		return r1, r2, errno
++	}
+ 	r1, r2, err = syscalln(fn, a1, a2, a3)
+@@ -391,2 +394,5 @@ func syscall(fn, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
+ func syscallX(fn, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
++	if r1, r2, errno, handled := gomadGeneric(fn, a1, a2, a3, 0, 0, 0); handled {
++		return r1, r2, errno
++	}
+ 	r1, r2, err = syscalln(fn, a1, a2, a3)
+@@ -406,2 +412,5 @@ func syscallX(fn, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
+ func syscall6(fn, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err Errno) {
++	if r1, r2, errno, handled := gomadGeneric(fn, a1, a2, a3, a4, a5, a6); handled {
++		return r1, r2, errno
++	}
+ 	r1, r2, err = syscalln(fn, a1, a2, a3, a4, a5, a6)
+@@ -414,2 +423,5 @@ func syscall6(fn, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err Errno) {
+ func syscall6X(fn, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err Errno) {
++	if r1, r2, errno, handled := gomadGeneric(fn, a1, a2, a3, a4, a5, a6); handled {
++		return r1, r2, errno
++	}
+ 	r1, r2, err = syscalln(fn, a1, a2, a3, a4, a5, a6)
+@@ -433,2 +445,5 @@ func syscall9(fn, a1, a2, a3, a4, a5, a6, a7, a8, a9 uintptr) (r1, r2 uintptr, e
+ func rawSyscall(fn, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
++	if r1, r2, errno, handled := gomadGeneric(fn, a1, a2, a3, 0, 0, 0); handled {
++		return r1, r2, errno
++	}
+ 	r1, r2, err = rawsyscalln(fn, a1, a2, a3)
+@@ -442,2 +457,5 @@ func rawSyscall(fn, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
+ func rawSyscall6(fn, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err Errno) {
++	if r1, r2, errno, handled := gomadGeneric(fn, a1, a2, a3, a4, a5, a6); handled {
++		return r1, r2, errno
++	}
+ 	r1, r2, err = rawsyscalln(fn, a1, a2, a3, a4, a5, a6)
+diff --git a/src/syscall/syscall_linux.go b/src/syscall/syscall_linux.go
+index 9418bd8494..9923acff5c 100644
+--- a/src/syscall/syscall_linux.go
++++ b/src/syscall/syscall_linux.go
+@@ -63,2 +63,5 @@ func RawSyscall(trap, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
+ func RawSyscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err Errno) {
++	if r1, r2, errno, handled := gomadGeneric(trap, a1, a2, a3, a4, a5, a6); handled {
++		return r1, r2, errno
++	}
+ 	var errno uintptr
+@@ -73,2 +76,5 @@ func RawSyscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err Errn
+ func Syscall(trap, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
++	if r1, r2, errno, handled := gomadGeneric(trap, a1, a2, a3, 0, 0, 0); handled {
++		return r1, r2, errno
++	}
+ 	runtime_entersyscall()
+@@ -86,3 +92,5 @@ func Syscall(trap, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
+ 	// adding coverage instrumentation to the runtime in race mode.
+-	r1, r2, err = RawSyscall6(trap, a1, a2, a3, 0, 0, 0)
++	var errno uintptr
++	r1, r2, errno = linux.Syscall6(trap, a1, a2, a3, 0, 0, 0)
++	err = Errno(errno)
+ 	runtime_exitsyscall()
+@@ -95,4 +103,9 @@ func Syscall(trap, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
+ func Syscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err Errno) {
++	if r1, r2, errno, handled := gomadGeneric(trap, a1, a2, a3, a4, a5, a6); handled {
++		return r1, r2, errno
++	}
+ 	runtime_entersyscall()
+-	r1, r2, err = RawSyscall6(trap, a1, a2, a3, a4, a5, a6)
++	var errno uintptr
++	r1, r2, errno = linux.Syscall6(trap, a1, a2, a3, a4, a5, a6)
++	err = Errno(errno)
+ 	runtime_exitsyscall()
 diff --git a/src/syscall/syscall_unix.go b/src/syscall/syscall_unix.go
-index ffe4112..d3c6f96 100644
+index ffe4112ad6..ef47e44286 100644
 --- a/src/syscall/syscall_unix.go
 +++ b/src/syscall/syscall_unix.go
-@@ -201,2 +201,5 @@ func Read(fd int, p []byte) (n int, err error) {
+@@ -201,2 +201,6 @@ func Read(fd int, p []byte) (n int, err error) {
  func Write(fd int, p []byte) (n int, err error) {
-+	if fd != Stdout && fd != Stderr && fd != 4 {
++	virtual := gomadVirtualFD(fd)
++	if fd != Stdout && fd != Stderr && fd != 4 && !virtual {
 +		gomadCapabilityGuard()
 +	}
  	if race.Enabled {
-@@ -209,2 +212,7 @@ func Write(fd int, p []byte) (n int, err error) {
+@@ -209,2 +213,9 @@ func Write(fd int, p []byte) (n int, err error) {
  		}
++	} else if virtual {
++		n, err = write(fd, p)
 +	} else if written, errno, handled := gomadWrite(fd, p); handled {
 +		n = written
 +		if errno != 0 {
 +			err = errnoErr(Errno(errno))
 +		}
  	} else {
+diff --git a/src/syscall/zsyscall_darwin_arm64.go b/src/syscall/zsyscall_darwin_arm64.go
+index 8fd7392d5b..c50d4a1139 100644
+--- a/src/syscall/zsyscall_darwin_arm64.go
++++ b/src/syscall/zsyscall_darwin_arm64.go
+@@ -58,2 +58,5 @@ func libc_wait4_trampoline()
+ func accept(s int, rsa *RawSockaddrAny, addrlen *_Socklen) (fd int, err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualAccept(s, rsa, addrlen, 0)
++	}
+ 	r0, _, e1 := syscall(abi.FuncPCABI0(libc_accept_trampoline), uintptr(s), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)))
+@@ -73,2 +76,5 @@ func libc_accept_trampoline()
+ func bind(s int, addr unsafe.Pointer, addrlen _Socklen) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualBind(s, addr, addrlen)
++	}
+ 	_, _, e1 := syscall(abi.FuncPCABI0(libc_bind_trampoline), uintptr(s), uintptr(addr), uintptr(addrlen))
+@@ -87,2 +93,5 @@ func libc_bind_trampoline()
+ func connect(s int, addr unsafe.Pointer, addrlen _Socklen) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualConnect(s, addr, addrlen)
++	}
+ 	_, _, e1 := syscall(abi.FuncPCABI0(libc_connect_trampoline), uintptr(s), uintptr(addr), uintptr(addrlen))
+@@ -101,2 +110,5 @@ func libc_connect_trampoline()
+ func socket(domain int, typ int, proto int) (fd int, err error) {
++	if gomadVirtualEnabled() {
++		return gomadVirtualSocket(domain, typ, proto)
++	}
+ 	r0, _, e1 := rawSyscall(abi.FuncPCABI0(libc_socket_trampoline), uintptr(domain), uintptr(typ), uintptr(proto))
+@@ -116,2 +128,5 @@ func libc_socket_trampoline()
+ func getsockopt(s int, level int, name int, val unsafe.Pointer, vallen *_Socklen) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualGetsockopt(s, level, name, val, vallen)
++	}
+ 	_, _, e1 := syscall6(abi.FuncPCABI0(libc_getsockopt_trampoline), uintptr(s), uintptr(level), uintptr(name), uintptr(val), uintptr(unsafe.Pointer(vallen)), 0)
+@@ -130,2 +145,5 @@ func libc_getsockopt_trampoline()
+ func setsockopt(s int, level int, name int, val unsafe.Pointer, vallen uintptr) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualSetsockopt(s, level, name, val, vallen)
++	}
+ 	_, _, e1 := syscall6(abi.FuncPCABI0(libc_setsockopt_trampoline), uintptr(s), uintptr(level), uintptr(name), uintptr(val), uintptr(vallen), 0)
+@@ -144,2 +162,5 @@ func libc_setsockopt_trampoline()
+ func getpeername(fd int, rsa *RawSockaddrAny, addrlen *_Socklen) (err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualName(fd, rsa, addrlen, true)
++	}
+ 	_, _, e1 := rawSyscall(abi.FuncPCABI0(libc_getpeername_trampoline), uintptr(fd), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)))
+@@ -158,2 +179,5 @@ func libc_getpeername_trampoline()
+ func getsockname(fd int, rsa *RawSockaddrAny, addrlen *_Socklen) (err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualName(fd, rsa, addrlen, false)
++	}
+ 	_, _, e1 := rawSyscall(abi.FuncPCABI0(libc_getsockname_trampoline), uintptr(fd), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)))
+@@ -172,2 +196,5 @@ func libc_getsockname_trampoline()
+ func Shutdown(s int, how int) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualShutdown(s, how)
++	}
+ 	_, _, e1 := syscall(abi.FuncPCABI0(libc_shutdown_trampoline), uintptr(s), uintptr(how), 0)
+@@ -186,2 +213,5 @@ func libc_shutdown_trampoline()
+ func socketpair(domain int, typ int, proto int, fd *[2]int32) (err error) {
++	if gomadVirtualEnabled() {
++		return gomadVirtualRefuse("socketpair")
++	}
+ 	_, _, e1 := rawSyscall6(abi.FuncPCABI0(libc_socketpair_trampoline), uintptr(domain), uintptr(typ), uintptr(proto), uintptr(unsafe.Pointer(fd)), 0, 0)
+@@ -319,2 +349,5 @@ func libc_futimes_trampoline()
+ func fcntl(fd int, cmd int, arg int) (val int, err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualFcntl(fd, cmd, arg)
++	}
+ 	r0, _, e1 := syscall(abi.FuncPCABI0(libc_fcntl_trampoline), uintptr(fd), uintptr(cmd), uintptr(arg))
+@@ -334,2 +367,5 @@ func libc_fcntl_trampoline()
+ func fcntlPtr(fd int, cmd int, arg unsafe.Pointer) (val int, err error) {
++	if gomadVirtualFD(fd) {
++		return -1, gomadVirtualRefuse("fcntl.pointer-command")
++	}
+ 	r0, _, e1 := syscall(abi.FuncPCABI0(libc_fcntl_trampoline), uintptr(fd), uintptr(cmd), uintptr(arg))
+@@ -544,2 +580,5 @@ func libc_chroot_trampoline()
+ func Close(fd int) (err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualClose(fd)
++	}
+ 	_, _, e1 := syscall(abi.FuncPCABI0(libc_close_trampoline), uintptr(fd), 0, 0)
+@@ -977,2 +1016,5 @@ func libc_link_trampoline()
+ func Listen(s int, backlog int) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualListen(s, backlog)
++	}
+ 	_, _, e1 := syscall(abi.FuncPCABI0(libc_listen_trampoline), uintptr(s), uintptr(backlog), 0)
+@@ -1238,2 +1280,5 @@ func libc_pwrite_trampoline()
+ func read(fd int, p []byte) (n int, err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualReadBytes(fd, p)
++	}
+ 	var _p0 unsafe.Pointer
+@@ -1702,2 +1747,5 @@ func libc_unmount_trampoline()
+ func write(fd int, p []byte) (n int, err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualWriteBytes(fd, p)
++	}
+ 	var _p0 unsafe.Pointer
+@@ -1723,2 +1771,5 @@ func libc_write_trampoline()
+ func writev(fd int, iovecs []Iovec) (cnt uintptr, err error) {
++	if gomadVirtualFD(fd) {
++		return gomadGenericWritev(fd, unsafe.SliceData(iovecs), uintptr(len(iovecs)))
++	}
+ 	var _p0 unsafe.Pointer
+diff --git a/src/syscall/zsyscall_linux_amd64.go b/src/syscall/zsyscall_linux_amd64.go
+index 1249ff6680..577e537ca1 100644
+--- a/src/syscall/zsyscall_linux_amd64.go
++++ b/src/syscall/zsyscall_linux_amd64.go
+@@ -334,2 +334,5 @@ func Chroot(path string) (err error) {
+ func Close(fd int) (err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualClose(fd)
++	}
+ 	_, _, e1 := Syscall(SYS_CLOSE, uintptr(fd), 0, 0)
+@@ -431,2 +434,5 @@ func Fchownat(dirfd int, path string, uid int, gid int, flags int) (err error) {
+ func fcntl(fd int, cmd int, arg int) (val int, err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualFcntl(fd, cmd, arg)
++	}
+ 	r0, _, e1 := Syscall(SYS_FCNTL, uintptr(fd), uintptr(cmd), uintptr(arg))
+@@ -729,2 +735,5 @@ func prlimit1(pid int, resource int, newlimit *Rlimit, old *Rlimit) (err error)
+ func read(fd int, p []byte) (n int, err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualReadBytes(fd, p)
++	}
+ 	var _p0 unsafe.Pointer
+@@ -957,2 +966,5 @@ func Unshare(flags int) (err error) {
+ func write(fd int, p []byte) (n int, err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualWriteBytes(fd, p)
++	}
+ 	var _p0 unsafe.Pointer
+@@ -1202,2 +1214,5 @@ func Iopl(level int) (err error) {
+ func Listen(s int, n int) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualListen(s, n)
++	}
+ 	_, _, e1 := Syscall(SYS_LISTEN, uintptr(s), uintptr(n), 0)
+@@ -1329,2 +1344,5 @@ func Setfsuid(uid int) (err error) {
+ func Shutdown(fd int, how int) (err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualShutdown(fd, how)
++	}
+ 	_, _, e1 := Syscall(SYS_SHUTDOWN, uintptr(fd), uintptr(how), 0)
+@@ -1400,2 +1418,5 @@ func Ustat(dev int, ubuf *Ustat_t) (err error) {
+ func accept4(s int, rsa *RawSockaddrAny, addrlen *_Socklen, flags int) (fd int, err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualAccept(s, rsa, addrlen, flags)
++	}
+ 	r0, _, e1 := Syscall6(SYS_ACCEPT4, uintptr(s), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)), uintptr(flags), 0, 0)
+@@ -1411,2 +1432,5 @@ func accept4(s int, rsa *RawSockaddrAny, addrlen *_Socklen, flags int) (fd int,
+ func bind(s int, addr unsafe.Pointer, addrlen _Socklen) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualBind(s, addr, addrlen)
++	}
+ 	_, _, e1 := Syscall(SYS_BIND, uintptr(s), uintptr(addr), uintptr(addrlen))
+@@ -1421,2 +1445,5 @@ func bind(s int, addr unsafe.Pointer, addrlen _Socklen) (err error) {
+ func connect(s int, addr unsafe.Pointer, addrlen _Socklen) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualConnect(s, addr, addrlen)
++	}
+ 	_, _, e1 := Syscall(SYS_CONNECT, uintptr(s), uintptr(addr), uintptr(addrlen))
+@@ -1457,2 +1484,5 @@ func getgroups(n int, list *_Gid_t) (nn int, err error) {
+ func getsockopt(s int, level int, name int, val unsafe.Pointer, vallen *_Socklen) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualGetsockopt(s, level, name, val, vallen)
++	}
+ 	_, _, e1 := Syscall6(SYS_GETSOCKOPT, uintptr(s), uintptr(level), uintptr(name), uintptr(val), uintptr(unsafe.Pointer(vallen)), 0)
+@@ -1467,2 +1497,5 @@ func getsockopt(s int, level int, name int, val unsafe.Pointer, vallen *_Socklen
+ func setsockopt(s int, level int, name int, val unsafe.Pointer, vallen uintptr) (err error) {
++	if gomadVirtualFD(s) {
++		return gomadVirtualSetsockopt(s, level, name, val, vallen)
++	}
+ 	_, _, e1 := Syscall6(SYS_SETSOCKOPT, uintptr(s), uintptr(level), uintptr(name), uintptr(val), uintptr(vallen), 0)
+@@ -1477,2 +1510,5 @@ func setsockopt(s int, level int, name int, val unsafe.Pointer, vallen uintptr)
+ func socket(domain int, typ int, proto int) (fd int, err error) {
++	if gomadVirtualEnabled() {
++		return gomadVirtualSocket(domain, typ, proto)
++	}
+ 	r0, _, e1 := RawSyscall(SYS_SOCKET, uintptr(domain), uintptr(typ), uintptr(proto))
+@@ -1488,2 +1524,5 @@ func socket(domain int, typ int, proto int) (fd int, err error) {
+ func socketpair(domain int, typ int, proto int, fd *[2]int32) (err error) {
++	if gomadVirtualEnabled() {
++		return gomadVirtualRefuse("socketpair")
++	}
+ 	_, _, e1 := RawSyscall6(SYS_SOCKETPAIR, uintptr(domain), uintptr(typ), uintptr(proto), uintptr(unsafe.Pointer(fd)), 0, 0)
+@@ -1498,2 +1537,5 @@ func socketpair(domain int, typ int, proto int, fd *[2]int32) (err error) {
+ func getpeername(fd int, rsa *RawSockaddrAny, addrlen *_Socklen) (err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualName(fd, rsa, addrlen, true)
++	}
+ 	_, _, e1 := RawSyscall(SYS_GETPEERNAME, uintptr(fd), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)))
+@@ -1508,2 +1550,5 @@ func getpeername(fd int, rsa *RawSockaddrAny, addrlen *_Socklen) (err error) {
+ func getsockname(fd int, rsa *RawSockaddrAny, addrlen *_Socklen) (err error) {
++	if gomadVirtualFD(fd) {
++		return gomadVirtualName(fd, rsa, addrlen, false)
++	}
+ 	_, _, e1 := RawSyscall(SYS_GETSOCKNAME, uintptr(fd), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)))
 diff --git a/src/testing/testing.go b/src/testing/testing.go
 index 832d9e5..da0007a 100644
 --- a/src/testing/testing.go

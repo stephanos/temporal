@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"internal/gomadsim"
+	"internal/gomadvfd"
 	"internal/poll"
 )
 
@@ -22,6 +23,7 @@ var (
 	ErrConnectionRefused = errors.New("connection refused")
 	ErrResourceExhausted = errors.New("network resources exhausted")
 	ErrUnsupported       = errors.New("unsupported Gomad network operation")
+	errNetworkWouldBlock = errors.New("Gomad network would block")
 )
 
 const (
@@ -104,13 +106,14 @@ type pairedConn struct {
 }
 type standaloneConn struct{ pairedConn }
 type standaloneListener struct {
-	address  Address
-	once     sync.Once
-	mu       sync.Mutex
-	pending  []*Conn
-	closed   bool
-	deadline time.Time
-	changed  chan struct{}
+	address    Address
+	once       sync.Once
+	mu         sync.Mutex
+	pending    []*Conn
+	closed     bool
+	deadline   time.Time
+	changed    chan struct{}
+	descriptor descriptorIdentity
 }
 type connState struct {
 	shared        *connShared
@@ -120,6 +123,7 @@ type connState struct {
 	writeClosed   bool
 	readDeadline  time.Time
 	writeDeadline time.Time
+	descriptor    descriptorIdentity
 }
 
 type connShared struct {
@@ -140,9 +144,10 @@ type networkChunk struct {
 var networkState = struct {
 	sync.Mutex
 	listeners        map[int]*standaloneListener
+	boundPorts       map[int]*descriptorSocket
 	nextListenerPort int
 	nextClientPort   int
-}{listeners: make(map[int]*standaloneListener), nextListenerPort: firstListenerPort, nextClientPort: firstClientPort}
+}{listeners: make(map[int]*standaloneListener), boundPorts: make(map[int]*descriptorSocket), nextListenerPort: firstListenerPort, nextClientPort: firstClientPort}
 
 func ListenTCP(network, host string, port int) (*Listener, error) {
 	requestedPort := port
@@ -168,7 +173,7 @@ func ListenTCP(network, host string, port int) (*Listener, error) {
 		for networkState.nextListenerPort <= maximumPort {
 			port = networkState.nextListenerPort
 			networkState.nextListenerPort++
-			if _, found := networkState.listeners[port]; !found {
+			if _, found := networkState.listeners[port]; !found && networkState.boundPorts[port] == nil {
 				break
 			}
 		}
@@ -177,7 +182,7 @@ func ListenTCP(network, host string, port int) (*Listener, error) {
 			return nil, ErrResourceExhausted
 		}
 	}
-	if _, found := networkState.listeners[port]; found {
+	if _, found := networkState.listeners[port]; found || networkState.boundPorts[port] != nil {
 		record("net.listen", networkArguments(network, requestedPort, port), nil, 0, resultClass(ErrAddressInUse), 0, 0)
 		return nil, ErrAddressInUse
 	}
@@ -209,13 +214,12 @@ func DialTCP(ctx context.Context, network, host string, port int) (*Conn, error)
 		return nil, ErrUnsupported
 	}
 	networkState.Lock()
-	if networkState.nextClientPort > maximumPort {
+	clientAddress, err := allocateClientAddressLocked()
+	if err != nil {
 		networkState.Unlock()
 		record("net.dial", networkArguments(network, port), nil, 0, resultClass(ErrResourceExhausted), 0, 0)
 		return nil, ErrResourceExhausted
 	}
-	clientAddress := Address{IP: "127.0.0.1", Port: networkState.nextClientPort}
-	networkState.nextClientPort++
 	listener := networkState.listeners[port]
 	if listener == nil {
 		networkState.Unlock()
@@ -236,14 +240,12 @@ func DialTCP(ctx context.Context, network, host string, port int) (*Conn, error)
 			return nil, ErrConnectionRefused
 		}
 		if len(listener.pending) < maximumPendingConns {
-			clientState, serverState := newConnStates()
-			client := &Conn{implementation: &standaloneConn{pairedConn{local: clientAddress, remote: listener.address, state: clientState, peer: serverState}}}
-			server := &Conn{implementation: &standaloneConn{pairedConn{local: listener.address, remote: clientAddress, state: serverState, peer: clientState}}}
-			listener.pending = append(listener.pending, server)
-			listener.signal()
+			client, err := listener.tryConnectLocked(clientAddress)
+			notice := listener.descriptor.notice('r')
 			listener.mu.Unlock()
-			record("net.dial", networkArguments(network, clientAddress.Port, port), nil, 0, 0, 0, 0)
-			return client, nil
+			record("net.dial", networkArguments(network, clientAddress.Port, port), nil, 0, resultClass(err), 0, 0)
+			gomadvfd.Notify(notice)
+			return client, err
 		}
 		changed := listener.changed
 		listener.mu.Unlock()
@@ -258,15 +260,14 @@ func DialTCP(ctx context.Context, network, host string, port int) (*Conn, error)
 func (listener *standaloneListener) Accept() (*Conn, error) {
 	for {
 		listener.mu.Lock()
-		if len(listener.pending) != 0 {
-			connection := listener.pending[0]
-			listener.pending = listener.pending[1:]
-			listener.signal()
+		connection, err := listener.tryAcceptLocked()
+		if err == nil {
 			listener.mu.Unlock()
 			record("net.accept", networkArguments("tcp", listener.address.Port, connection.RemoteAddress().Port), nil, 0, 0, 0, 0)
+			descriptorBackend.resumeWaiting(listener)
 			return connection, nil
 		}
-		if listener.closed {
+		if err == ErrClosed {
 			listener.mu.Unlock()
 			record("net.accept", networkArguments("tcp", listener.address.Port), nil, 0, resultClass(ErrClosed), 0, 0)
 			return nil, ErrClosed
@@ -302,6 +303,8 @@ func (listener *standaloneListener) Close() error {
 		return ErrClosed
 	}
 	record("net.listener.close", networkArguments("tcp", listener.address.Port), nil, 0, 0, 0, 0)
+	descriptorBackend.resumeWaiting(listener)
+	gomadvfd.Notify(listener.descriptor.notice('r'), listener.descriptor.notice('w'))
 	return nil
 }
 
@@ -338,45 +341,23 @@ func (connection *standaloneConn) Read(destination []byte) (int, error) {
 
 	for {
 		connection.lockState()
-		if connection.state.reset {
+		length, err, ready, freed := connection.tryReadLocked(destination)
+		notice := connection.peer.descriptor.notice('w')
+		if err != errNetworkWouldBlock {
 			connection.unlockState()
-			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), nil, 0, resultClass(ErrClosed), 0, 0)
-			return 0, ErrClosed
-		}
-		if connection.state.readClosed {
-			connection.unlockState()
-			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), nil, 0, resultClass(ErrClosed), 0, 0)
-			return 0, ErrClosed
-		}
-		if len(connection.pending) != 0 {
-			length := copy(destination, connection.pending)
-			connection.pending = connection.pending[length:]
-			connection.unlockState()
-			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), destination[:length], uint64(length), 0, 0, 0)
-			return length, nil
-		}
-		if len(connection.state.incoming) != 0 {
-			chunk := connection.state.incoming[0]
-			deadline := connection.state.readDeadline
-			if time.Now().Before(chunk.ready) {
-				changed := connection.state.shared.changed
-				connection.unlockState()
-				waitForChange(changed, earliestDeadline(deadline, chunk.ready))
-				continue
+			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), destination[:length], uint64(length), resultClass(err), 0, 0)
+			if freed {
+				gomadvfd.Notify(notice)
 			}
-
-			connection.pending = chunk.bytes
-			connection.state.incoming = connection.state.incoming[1:]
-			connection.state.shared.signal()
-			connection.unlockState()
-			continue
-		}
-		if connection.peer.writeClosed {
-			connection.unlockState()
-			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), nil, 0, resultClass(io.EOF), 0, 0)
-			return 0, io.EOF
+			return length, err
 		}
 		deadline := connection.state.readDeadline
+		if !ready.IsZero() {
+			changed := connection.state.shared.changed
+			connection.unlockState()
+			waitForChange(changed, earliestDeadline(deadline, ready))
+			continue
+		}
 		if deadlineExpired(deadline) {
 			connection.unlockState()
 			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), nil, 0, resultClass(os.ErrDeadlineExceeded), 0, 0)
@@ -392,19 +373,19 @@ func (connection *standaloneConn) Write(source []byte) (int, error) {
 	written := 0
 	input := source
 	for len(source) != 0 {
-		length := min(len(source), maximumChunkBytes)
 		connection.lockState()
-		if connection.state.reset || connection.peer.reset || connection.state.writeClosed || connection.peer.readClosed {
+		length, err := connection.tryWriteLocked(source)
+		if err == ErrClosed {
 			connection.unlockState()
 			record("net.write", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(input)), input[:written], uint64(written), resultClass(ErrClosed), 0, 0)
 			return written, ErrClosed
 		}
-		if len(connection.peer.incoming) < maximumPendingChunks {
-			connection.peer.incoming = append(connection.peer.incoming, networkChunk{bytes: append([]byte(nil), source[:length]...)})
-			connection.state.shared.signal()
+		if err == nil {
+			notice := connection.peer.descriptor.notice('r')
 			connection.unlockState()
 			written += length
 			source = source[length:]
+			gomadvfd.Notify(notice)
 			continue
 		}
 		deadline := connection.state.writeDeadline
@@ -423,13 +404,13 @@ func (connection *standaloneConn) Write(source []byte) (int, error) {
 
 func (connection *standaloneConn) Close() error {
 	closed := false
+	var notices []gomadvfd.Notice
 	connection.close.Do(func() {
 		closed = true
 		connection.lockState()
 
-		connection.state.readClosed = true
-		connection.state.writeClosed = true
-		connection.state.shared.signal()
+		connection.shutdownLocked(true, true)
+		notices = connection.descriptorNoticesLocked()
 		connection.unlockState()
 	})
 	if !closed {
@@ -437,28 +418,33 @@ func (connection *standaloneConn) Close() error {
 		return ErrClosed
 	}
 	record("net.close", networkArguments("tcp", connection.local.Port, connection.remote.Port), nil, 0, 0, 0, 0)
+	gomadvfd.Notify(notices...)
 	return nil
 }
 
 func (connection *standaloneConn) CloseRead() error {
 	connection.lockState()
-	defer connection.unlockState()
 	if connection.state.readClosed {
+		connection.unlockState()
 		return ErrClosed
 	}
-	connection.state.readClosed = true
-	connection.state.shared.signal()
+	connection.shutdownLocked(true, false)
+	notices := connection.descriptorNoticesLocked()
+	connection.unlockState()
+	gomadvfd.Notify(notices...)
 	return nil
 }
 
 func (connection *standaloneConn) CloseWrite() error {
 	connection.lockState()
-	defer connection.unlockState()
 	if connection.state.writeClosed {
+		connection.unlockState()
 		return ErrClosed
 	}
-	connection.state.writeClosed = true
-	connection.state.shared.signal()
+	connection.shutdownLocked(false, true)
+	notices := connection.descriptorNoticesLocked()
+	connection.unlockState()
+	gomadvfd.Notify(notices...)
 	return nil
 }
 
@@ -498,6 +484,106 @@ func (connection *standaloneConn) SetWriteDeadline(deadline time.Time) error {
 func newConnStates() (*connState, *connState) {
 	shared := &connShared{changed: make(chan struct{})}
 	return &connState{shared: shared}, &connState{shared: shared}
+}
+
+func allocateClientAddressLocked() (Address, error) {
+	for networkState.nextClientPort <= maximumPort {
+		port := networkState.nextClientPort
+		networkState.nextClientPort++
+		if networkState.listeners[port] == nil && networkState.boundPorts[port] == nil {
+			return Address{IP: "127.0.0.1", Port: port}, nil
+		}
+	}
+	return Address{}, ErrResourceExhausted
+}
+
+func (listener *standaloneListener) tryConnectLocked(clientAddress Address) (*Conn, error) {
+	if listener.closed {
+		return nil, ErrConnectionRefused
+	}
+	if len(listener.pending) == maximumPendingConns {
+		return nil, errNetworkWouldBlock
+	}
+	clientState, serverState := newConnStates()
+	client := &Conn{implementation: &standaloneConn{pairedConn{local: clientAddress, remote: listener.address, state: clientState, peer: serverState}}}
+	server := &Conn{implementation: &standaloneConn{pairedConn{local: listener.address, remote: clientAddress, state: serverState, peer: clientState}}}
+	listener.pending = append(listener.pending, server)
+	listener.signal()
+	return client, nil
+}
+
+func (listener *standaloneListener) tryAcceptLocked() (*Conn, error) {
+	if len(listener.pending) != 0 {
+		connection := listener.pending[0]
+		listener.pending[0] = nil
+		listener.pending = listener.pending[1:]
+		listener.signal()
+		return connection, nil
+	}
+	if listener.closed {
+		return nil, ErrClosed
+	}
+	return nil, errNetworkWouldBlock
+}
+
+func (connection *standaloneConn) tryReadLocked(destination []byte) (int, error, time.Time, bool) {
+	if len(destination) == 0 {
+		return 0, nil, time.Time{}, false
+	}
+	if connection.state.reset || connection.state.readClosed {
+		return 0, ErrClosed, time.Time{}, false
+	}
+	freed := false
+	if len(connection.pending) == 0 && len(connection.state.incoming) != 0 {
+		chunk := connection.state.incoming[0]
+		if time.Now().Before(chunk.ready) {
+			return 0, errNetworkWouldBlock, chunk.ready, false
+		}
+		connection.pending = chunk.bytes
+		connection.state.incoming[0] = networkChunk{}
+		connection.state.incoming = connection.state.incoming[1:]
+		connection.state.shared.signal()
+		freed = true
+	}
+	if len(connection.pending) != 0 {
+		length := copy(destination, connection.pending)
+		connection.pending = connection.pending[length:]
+		return length, nil, time.Time{}, freed
+	}
+	if connection.peer.writeClosed {
+		return 0, io.EOF, time.Time{}, freed
+	}
+	return 0, errNetworkWouldBlock, time.Time{}, freed
+}
+
+func (connection *standaloneConn) tryWriteLocked(source []byte) (int, error) {
+	if len(source) == 0 {
+		return 0, nil
+	}
+	if connection.state.reset || connection.peer.reset || connection.state.writeClosed || connection.peer.readClosed {
+		return 0, ErrClosed
+	}
+	if len(connection.peer.incoming) == maximumPendingChunks {
+		return 0, errNetworkWouldBlock
+	}
+	length := min(len(source), maximumChunkBytes)
+	connection.peer.incoming = append(connection.peer.incoming, networkChunk{bytes: append([]byte(nil), source[:length]...)})
+	connection.state.shared.signal()
+	return length, nil
+}
+
+func (connection *standaloneConn) shutdownLocked(read, write bool) {
+	if read {
+		connection.state.readClosed = true
+	}
+	if write {
+		connection.state.writeClosed = true
+	}
+	connection.state.shared.signal()
+}
+
+func (connection *standaloneConn) descriptorNoticesLocked() []gomadvfd.Notice {
+	return []gomadvfd.Notice{connection.state.descriptor.notice('r'), connection.state.descriptor.notice('w'), connection.peer.descriptor.notice('r'), connection.peer.descriptor.notice('w')}
 }
 
 func earliestDeadline(left, right time.Time) time.Time {
