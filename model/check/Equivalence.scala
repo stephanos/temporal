@@ -72,7 +72,7 @@ object RenameMap:
 
   def parse(text: String): RenameMap =
     val entries = text.linesIterator.zipWithIndex
-      .map((line, i) => (line.takeWhile(_ != '#').trim, i + 1))
+      .map((line, i) => (line.takeWhile(c => !c.equals('#')).trim, i + 1))
       .filter(_._1.nonEmpty)
       .map: (line, at) =>
         line.split("\\s+").toList match
@@ -129,7 +129,7 @@ object Equivalence:
 
   // The action a row or the binding order names: `step\t<action>[...]`.
   private def rowAction(line: String): Option[String] =
-    if line.startsWith("step\t") then Some(line.drop(5).takeWhile(_ != '[')) else None
+    if line.startsWith("step\t") then Some(line.drop(5).takeWhile(c => !c.equals('['))) else None
 
   // The tables of `current` against those of `base` under `map`: a table gone, a table new, and a
   // table whose lines differ, each line renamed before it is compared.
@@ -186,11 +186,6 @@ object Equivalence:
       val left = tableLines(base, digest)
       val right = tableLines(current, currentDigest)
       try
-        val found = mutable.ArrayBuffer.empty[String]
-        var differing = 0L // scalafix:ok DisableSyntax.var
-        var extraLeft = 0L // scalafix:ok DisableSyntax.var
-        var extraRight = 0L // scalafix:ok DisableSyntax.var
-        var line = 0L // scalafix:ok DisableSyntax.var
         val kept = left
           .filter: l =>
             val drop = rowAction(l).exists(dropped)
@@ -201,19 +196,23 @@ object Equivalence:
               "bindings\t" + l.drop(9).split(' ').filterNot(dropped).mkString(" ")
             else l
           .map(map.apply)
-        while kept.hasNext && right.hasNext do
-          line += 1
-          val (w, n) = (kept.next(), right.next())
-          if !w.equals(n) then
-            differing += 1
-            if found.size < shown then
-              found += s"line $line differs\n    baseline: ${w.take(400)}\n    now:      ${n.take(400)}"
-        while kept.hasNext do
-          kept.next(): Unit
-          extraLeft += 1
-        while right.hasNext do
-          right.next(): Unit
-          extraRight += 1
+        // The lines in step, each pair compared; then what either has left.
+        @scala.annotation.tailrec
+        def walk(line: Long, differing: Long, found: Vector[String]): (Long, Vector[String]) =
+          if !(kept.hasNext && right.hasNext) then (differing, found)
+          else
+            val (w, n) = (kept.next(), right.next())
+            if w.equals(n) then walk(line + 1, differing, found)
+            else
+              val shownLine =
+                s"line ${line + 1} differs\n    baseline: ${w.take(400)}\n    now:      ${n.take(400)}"
+              walk(
+                line + 1,
+                differing + 1,
+                if found.size < shown then found :+ shownLine else found
+              )
+        val (differing, found) = walk(0, 0, Vector.empty)
+        val (extraLeft, extraRight) = (kept.size.toLong, right.size.toLong)
         val more =
           if differing > found.size then Vector(s"${differing - found.size} more lines differ")
           else Vector.empty
@@ -221,7 +220,7 @@ object Equivalence:
           if extraLeft > 0 then Vector(s"the baseline has $extraLeft more lines")
           else if extraRight > 0 then Vector(s"it has $extraRight more lines than the baseline")
           else Vector.empty
-        found.toVector ++ more ++ sizes
+        found ++ more ++ sizes
       finally
         left.close()
         right.close()
@@ -305,7 +304,7 @@ object Equivalence:
           .get("family")
           .orElse(fields.get("machine").flatMap(families.get))
           .orElse(nested.flatMap(n => strings(n).get("machine")).flatMap(families.get).headOption)
-          .orElse(fields.get("name").map(_.takeWhile(_ != '.')).flatMap(families.get))
+          .orElse(fields.get("name").map(_.takeWhile(c => !c.equals('.'))).flatMap(families.get))
           .getOrElse("")
       for (section, items) <- sections.toVector; item <- items do
         val fields = strings(item)
@@ -381,16 +380,16 @@ object Equivalence:
     val nowAccepted = acceptances(irDir, RenameMap.empty)
     val lintDifferences = (wasAccepted.keySet ++ nowAccepted.keySet).toVector.sorted.flatMap: a =>
       val (w, n) = (wasAccepted.getOrElse(a, 0), nowAccepted.getOrElse(a, 0))
-      Option.when(w != n)(
+      Option.when(!w.equals(n))(
         s"accepted lint finding $a: $w in the baseline, $n now"
-      ) // scalafix:ok DisableSyntax.!=
+      )
     wasConflicts.map("baseline: " + _) ++ nowConflicts.map("now: " + _) ++
       against("IR", wasDeclared, nowDeclared) ++ lintDifferences ++
       against("Case", cases(baseCases, map), cases(casesDir, RenameMap.empty))
 
   // Where two canonical texts first differ, with a little of each around it.
   def firstDifference(was: String, now: String): String =
-    val at = was.lazyZip(now).toVector.indexWhere(_ != _) match
+    val at = was.lazyZip(now).toVector.indexWhere((w, n) => !w.equals(n)) match
       case -1 => was.length.min(now.length)
       case i  => i
     val from = (at - 80).max(0)
