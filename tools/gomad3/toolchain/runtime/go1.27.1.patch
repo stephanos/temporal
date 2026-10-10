@@ -49,7 +49,7 @@ index 6f21c54..2e53160 100644
 +	antiStarve := gomadHostCheapRandN(mutexTailWakePeriod) == 0
  
 diff --git a/src/runtime/netpoll.go b/src/runtime/netpoll.go
-index fab921e2d3..de3a5aac3a 100644
+index fab921e..de3a5aa 100644
 --- a/src/runtime/netpoll.go
 +++ b/src/runtime/netpoll.go
 @@ -75,6 +75,7 @@ const pollBlockSize = 4 * 1024
@@ -708,7 +708,7 @@ index 3812303..708cd42 100644
 +	// host resource limits would escape deterministic execution.
  }
 diff --git a/src/syscall/syscall_darwin.go b/src/syscall/syscall_darwin.go
-index b65f69f978..0eb4609683 100644
+index b65f69f..0eb4609 100644
 --- a/src/syscall/syscall_darwin.go
 +++ b/src/syscall/syscall_darwin.go
 @@ -383,2 +383,5 @@ func errnoPtr(r uintptr, e Errno) Errno {
@@ -748,7 +748,7 @@ index b65f69f978..0eb4609683 100644
 +	}
  	r1, r2, err = rawsyscalln(fn, a1, a2, a3, a4, a5, a6)
 diff --git a/src/syscall/syscall_linux.go b/src/syscall/syscall_linux.go
-index 9418bd8494..9923acff5c 100644
+index 9418bd8..9923acf 100644
 --- a/src/syscall/syscall_linux.go
 +++ b/src/syscall/syscall_linux.go
 @@ -63,2 +63,5 @@ func RawSyscall(trap, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno) {
@@ -782,7 +782,7 @@ index 9418bd8494..9923acff5c 100644
 +	err = Errno(errno)
  	runtime_exitsyscall()
 diff --git a/src/syscall/syscall_unix.go b/src/syscall/syscall_unix.go
-index ffe4112ad6..ef47e44286 100644
+index ffe4112..ef47e44 100644
 --- a/src/syscall/syscall_unix.go
 +++ b/src/syscall/syscall_unix.go
 @@ -201,2 +201,6 @@ func Read(fd int, p []byte) (n int, err error) {
@@ -803,7 +803,7 @@ index ffe4112ad6..ef47e44286 100644
 +		}
  	} else {
 diff --git a/src/syscall/zsyscall_darwin_arm64.go b/src/syscall/zsyscall_darwin_arm64.go
-index 8fd7392d5b..c50d4a1139 100644
+index 8fd7392..c50d4a1 100644
 --- a/src/syscall/zsyscall_darwin_arm64.go
 +++ b/src/syscall/zsyscall_darwin_arm64.go
 @@ -58,2 +58,5 @@ func libc_wait4_trampoline()
@@ -909,7 +909,7 @@ index 8fd7392d5b..c50d4a1139 100644
 +	}
  	var _p0 unsafe.Pointer
 diff --git a/src/syscall/zsyscall_linux_amd64.go b/src/syscall/zsyscall_linux_amd64.go
-index 1249ff6680..577e537ca1 100644
+index 1249ff6..577e537 100644
 --- a/src/syscall/zsyscall_linux_amd64.go
 +++ b/src/syscall/zsyscall_linux_amd64.go
 @@ -334,2 +334,5 @@ func Chroot(path string) (err error) {

@@ -1,0 +1,236 @@
+{
+  "task_id": "fn-155-gomad-syscall-level-io-boundary-from.1",
+  "spec_id": "fn-155-gomad-syscall-level-io-boundary-from",
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "base_commit": "a226b92b48f5a1580860f3f851afd7284d1851c9",
+  "head_commit": "a226b92b48f5a1580860f3f851afd7284d1851c9",
+  "commits": [],
+  "prs": [],
+  "tier": "Tier: session (jev-unavailable(no_key)), explicit AGENTS preference retained.",
+  "requested_implementer": "gpt-6.1-sol at high",
+  "execution_model_telemetry": "unverified; no actual_model claim",
+  "review_mode": "host-deferred",
+  "formal_impl_review": "not dispatched; conductor owns acceptance",
+  "tests": [
+    "timeout 600 '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 run ./cmd/gomadtool protocol-generate",
+    "timeout 600 /usr/bin/make -C tools/gomad3 validate-toolchain SHELL=/bin/sh",
+    "timeout 600 '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -v ./toolchain -run '^(TestRegenerateMatchesCheckedPatchForPinnedArchive|TestPinnedContextRepresentationsMaterializeIdenticalSource)$'",
+    "timeout 600 '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -v ./toolchain -run '^(TestValidateAcceptsCurrentCheckedInputs|TestValidateRejectsPatchOutsideDescriptorAllowlist|TestValidateRejectsMalformedAndNewFilePatches|TestValidateRejectsUnlistedAndBinaryOverlayEntries|TestValidateClassifiesProhibitedRuntimeAreas|TestMaterializeAppliesExactPatch|TestMaterializeRejectsNonapplyingPatchWithoutMutation|TestMaterializeRejectsFuzzDependentPatch|TestRegeneratePublishesDeterministicExactPatch|TestRegenerateRejectsInvalidCandidatesWithoutReplacingOutput|TestRegenerateRejectsCandidateWithNoChanges|TestRegenerateEmitsOneContextLine|TestPinnedArchiveFollowsDescriptorAndRejectsChecksumMismatch)$'",
+    "timeout 600 '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -v ./internal/gomadtool/generation/protocol ./choice/internal/wire -run '^(TestChoiceImplementationIdentityBindsGeneratedAndInstrumentedInputs|TestRunGeneratesAndChecksEveryEndpoint|TestChoiceWireRecordRoundTrip|TestChoiceWireRejectsInvalidSelectionReadinessAndOrigin|TestChoiceWireTapeHeaderRoundTrip|TestChoiceWireHeaderAndTerminalRoundTrip|TestChoiceWireDiagnosticHeaderRoundTrip|TestChoiceWireDiagnosticRecordRoundTrip)$'",
+    "GOMAXPROCS=2 timeout 600 /usr/bin/make lint-code-fast SHELL=/bin/sh GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "timeout 600 /usr/bin/env GOOS=darwin GOARCH=arm64 '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep ./choice/internal/wire ./internal/gomadtool/generation/protocol",
+    "timeout 600 /usr/bin/env GOOS=linux GOARCH=amd64 '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep ./choice/internal/wire ./internal/gomadtool/generation/protocol"
+  ],
+  "command_receipts": [
+    {
+      "id": "protocol-generate",
+      "receipt": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/protocol-generate.receipt.json",
+      "receipt_sha256": "8c72394b9ff7ba481ca983ff5e17cc239e3c24cb7b9852a7ab90d509bc32cc7c",
+      "exit_code": 0,
+      "elapsed_seconds": 1.98371646,
+      "log": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/protocol-generate.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "validate-toolchain",
+      "receipt": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/validate-toolchain.receipt.json",
+      "receipt_sha256": "65aae799d8f4b18c4cca323075fb6a53a1f2b09dce176ab735b84ff5dd6c5463",
+      "exit_code": 0,
+      "elapsed_seconds": 3.127516835,
+      "log": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/validate-toolchain.log",
+      "log_sha256": "c9621da06eafa3000fbd15da760654996246d90221b77efc15d21a3c30fe7aef"
+    },
+    {
+      "id": "archive-tests",
+      "receipt": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/archive-tests.receipt.json",
+      "receipt_sha256": "386753a56646f9b5fe9be7aeb400279da721dc299dddb9754b46b3ce76aa0cd7",
+      "exit_code": 0,
+      "elapsed_seconds": 67.273240616,
+      "log": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/archive-tests.log",
+      "log_sha256": "c7bfdddc6f8e6352c40d3ef018ce2b52a96f1f8c317763060ecd4785dbea9fc5"
+    },
+    {
+      "id": "patch-policy",
+      "receipt": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/patch-policy.receipt.json",
+      "receipt_sha256": "38b590fc65594f1c19731f71c790baf4edd55d330a3d174b86ba4ddc7a1943ba",
+      "exit_code": 0,
+      "elapsed_seconds": 0.507626417,
+      "log": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/patch-policy.log",
+      "log_sha256": "8da96a5750faed72f61f7fd40385d0926d965e59716f3b8f90c165c7bc7d7e1d"
+    },
+    {
+      "id": "generation-choice-wire",
+      "receipt": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/generation-choice-wire.receipt.json",
+      "receipt_sha256": "a83056eff0e15f6b733a10871ba00494907a8cb8aa3a7db2285e77193d2ddaeb",
+      "exit_code": 0,
+      "elapsed_seconds": 0.806540876,
+      "log": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/generation-choice-wire.log",
+      "log_sha256": "3d12d09cced12833f23b13c60eab4a988abd0639328a7eee5f0c21409615bbc1"
+    },
+    {
+      "id": "lint-code-fast",
+      "receipt": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/lint-code-fast.receipt.json",
+      "receipt_sha256": "00d9d914be2876c37b4e4d9fb1914eb5e371f2f87ae97ecb87edf75d7a53abd1",
+      "exit_code": 2,
+      "elapsed_seconds": 417.769863779,
+      "log": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/lint-code-fast.log",
+      "log_sha256": "20f7dd89d2f934000003adb0cccb4b6ca6cb91d71264e2fc14f7c4c11be54030"
+    },
+    {
+      "id": "static-vet-darwin",
+      "receipt": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/static-vet-darwin.receipt.json",
+      "receipt_sha256": "40a1b91d6cd03bd0bb4467c3e59f050dec3dd9673d4aec61d75178d4ef43a724",
+      "exit_code": 0,
+      "elapsed_seconds": 0.4058595,
+      "log": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/static-vet-darwin.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "static-vet-linux",
+      "receipt": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/static-vet-linux.receipt.json",
+      "receipt_sha256": "ac8f902ed0cbac5323762eca844c77fa26fa5773165d9bb49181c8e436b73bc0",
+      "exit_code": 0,
+      "elapsed_seconds": 0.406745541,
+      "log": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/static-vet-linux.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "environment": {
+    "execution_host": "linux/arm64 (uname Linux aarch64)",
+    "stock_go": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "go_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "environment_script": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/run.sh",
+    "environment_script_sha256": "bd0fd26e22e202969e847428272fe2c9b4db67a6d58711c3613c8d25630191ed",
+    "tool_input_manifest": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/tools-inputs.sha256",
+    "tool_input_manifest_sha256": "64eed3cd5c4d15967dcca9b4825a1bd43cc97c2737080baf0c9fd0dfb7338b80",
+    "make_generator_cache_exception": "tools/gomad3/.toolchain/generator-cache; existing Make recipe",
+    "lint_GOMAXPROCS": "2",
+    "scope": "Pinned stock compiler/gofmt, offline GOCACHE/GOMODCACHE/GOPROXY, GOENV/GOWORK off, GOTOOLCHAIN local, CGO0, TZUTC, private /tmp TMPDIR/GOTMPDIR; exact exports and unset variables in sealed run.sh.",
+    "network_downloads": false
+  },
+  "original_packet": {
+    "summary": ".flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/task-1/source-gates-20261010/worker-summary.md",
+    "summary_sha256": "f0192f5d6e514b9e328a8816c02b20c8b5b2a28d146e8afa7e5988c3fa255720",
+    "evidence": ".flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/task-1/source-gates-20261010/evidence.json",
+    "evidence_sha256": "a0a8c19070fa64000a159c61e073277818e894bf64b2b044956b2adf8b26911c",
+    "unchanged_sha256sum_check_exit": 0,
+    "red_regression": "TestRegenerateMatchesCheckedPatchForPinnedArchive: FAIL at patch_test.go:400 (regenerated pinned patch differs); original exact-two command exit 1. Existing test and expectation unchanged.",
+    "cleanup": "Original TestPatchCleanupRegenerate all six subtests PASS; not rerun in fix continuation.",
+    "diagnosis_logs": ".flow/tmp/fn155-source-gates-20261010.7uEg0rKW",
+    "checked_vs_canonical_diff_sha256": "fffcf6c4cfb5182d83545b9d121984257c01d3846f632b61e2d6dcd1d6fe7e81",
+    "materialized_tree_diff_rq_exit": 0,
+    "materialized_tree_files": 15618
+  },
+  "candidate": {
+    "patch_before_sha256": "2be96ca5c7d0b108e5ecc9278fa6ad681c83cc71265f20af8e5cf46dab6813dc",
+    "patch_after_sha256": "2dca04787cefd5427b5d8e86169ca7f309133a0324b50a01fc3179a2ed746885",
+    "checked_vs_retained_canonical_cmp_exit": 0,
+    "host_wire_sha256": "b3fa8d8317d53c95628c4e49f91bbb0c0ad001c0bf061d381cca014ac2c2346a",
+    "overlay_wire_sha256": "8a84253cce6e91b18f8d428de0a32915fdfdcf1e96e569a96855977fce976bce",
+    "choice_implementation_before": "c2473abc8556ee7e851681dec7801c3390c152e8101475152cbe32b054e9fb81",
+    "choice_implementation_after": "c4aded67729619fa86fdb41fd1e04fe2d869407ccbfde7154f0d7380ed34a93a",
+    "diff": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/candidate.diff",
+    "diff_sha256": "120719be44731f3613893e7f1a2a02790d73f6b8cbbae3e2eb6c68bcc769787f",
+    "change_scope": "Six patch index-header abbreviations shortened 10 to 7 characters, with no source path/hunk change; existing protocol generator changed only the two choice codec implementation digest constants.",
+    "generator_input_inspection": "Seven choice inputs include complete patch bytes. Twelve livecap inputs include unchanged runtime/gomad.go, exclude patch and changed codec mirrors. Generator policy, templates, tests and assertions untouched.",
+    "livecap_host_sha256": "1dff35c2c23bc5175adf475cf8d5ffbe95ab3fa403620c51ce25af85850ece79",
+    "livecap_overlay_sha256": "178306826d0f968af1c9497e58f39a90b1415c689cab45baa44235b6e023ef99",
+    "runtime_gomad_sha256": "90c7831f647bc3fd1019329b0b1c9c1904c9e0de7f98240b8d3d39dc25c73836",
+    "archive_bytes": 35109201,
+    "archive_sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1",
+    "descriptor_sha256": "c0855d5f7d576276c3a7d1e9678f85827a65cb94effc89874af6b9d5bce9299a",
+    "tool_and_candidate_after_checks_exit": 0,
+    "identity_boundary": "Full patch/overlay bytes bind build and choice identity. New matching builds/artifacts are required; no cross-candidate replay compatibility or old native qualification claimed.",
+    "ambient_git_boundary": "Unchanged regenerator does not explicitly pin abbreviation; recorded canonical equality is bounded to recorded Git/config/locale environment. No generator policy change."
+  },
+  "results": {
+    "archive_tests": {
+      "pass": [
+        "TestRegenerateMatchesCheckedPatchForPinnedArchive",
+        "TestPinnedContextRepresentationsMaterializeIdenticalSource"
+      ],
+      "fail": [],
+      "skip": [],
+      "regression_red_to_green": true
+    },
+    "patch_policy": {
+      "top_level_pass": 13,
+      "fail": 0,
+      "skip": 0,
+      "selection": "Exact named selection recorded in argv"
+    },
+    "generation_choice_wire": {
+      "top_level_pass": 8,
+      "fail": 0,
+      "skip": 0,
+      "selection": "Exact named selection recorded in argv"
+    },
+    "lint": {
+      "exit_code": 2,
+      "findings": 50,
+      "staticcheck": 42,
+      "forbidigo": 8,
+      "root_issues": 0,
+      "integration_issues": 0,
+      "canonical_base": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "ordered_three_line_blocks": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/lint-ordered-blocks.log",
+      "ordered_blocks_sha256": "034b5959d8f6689fefbd9215234326d66b3809e204cf628c62b244e256398eea",
+      "worker_recomputed_digest": true,
+      "root_verified_retained_equality": "All 50 ordered three-line blocks equal retained task-73 after-aggregate-lint.log byte-for-byte; digest equals original fn109.23 RED50.",
+      "filtering": "Original-base classifier; no task-only narrowing or findings suppression."
+    },
+    "both_source_set_static": {
+      "darwin_arm64_exit": 0,
+      "linux_amd64_exit": 0,
+      "packages": [
+        "./choice/internal/wire",
+        "./internal/gomadtool/generation/protocol"
+      ],
+      "boundary": "Host source packages only on stock linux/arm64 execution host; not full overlay/native/source-set static acceptance. Successful empty vet logs are not test-selection evidence.",
+      "broader_current_candidate_inventory": "Unavailable: .toolchain/build-key absent; patched-runtime draw/clock inventory gates depend on builtGOROOT. Not run merely to fabricate skips; no build-key fabricated.",
+      "unchanged_source_relationship": "Retained complete checked/canonical materialized tree equality proves no patch source-hunk delta; overlay non-identity logic unchanged. This bounded relationship does not execute or qualify a current patched runtime."
+    }
+  },
+  "preservation": {
+    "product_files": 1091,
+    "before_manifest": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/product-before.sha256",
+    "before_manifest_sha256": "496762e45e3d07cdd884ff507e655604233644dff189f58bf350018106e69ca9",
+    "frozen_manifest": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/product-frozen.sha256",
+    "final_manifest": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/product-final.sha256",
+    "frozen_and_final_manifest_sha256": "f0c8797aa14d4ad543eb9880bcf66b179f6ae6d2d9d452c015e5978a2e6d384d",
+    "frozen_final_cmp_exit": 0,
+    "before_final_diff": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/product-before-final.diff",
+    "before_final_diff_sha256": "27fa2008464f2f36a36d34bdc67e032686acd0d4f41b85f94f36a6b63a04ffcc",
+    "before_final_changed_rows": 3,
+    "tracked_product_diff_files": 3,
+    "staged_diff_exit": 0,
+    "root_verified_protected_preexisting_files": 95,
+    "root_verified_mismatches": 0,
+    "root_protected_proof": ".flow/tmp/fn155-canonical-protected-check-20261010.json",
+    "root_protected_proof_sha256": "9e1406599d3f164f7667687d092d3f660bd72c0e22de2e292579420f080488a6",
+    "protected_durable_baseline": ".flow/artifacts/fn-154-gomad-simpler-virtual-network-with/planning-20261010/reviewed-file-bindings.json",
+    "scope": "Tracked Gomad/lint product set plus root-verified 95 protected user/prior-evidence paths; not full repository preservation guarantee."
+  },
+  "source_assessment": {
+    "path": ".flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/task-1/source-gates-20261010/canonical-fix-source-assessment.md",
+    "sha256": "1b3683fafb8c32533cc590cc5135a8a473f3ca600d9e123ca43da325014180e2",
+    "scope": "Independent fresh bounded source assessment; root accepted its source-only scope. No introduced issue in three-file delta; not formal SHIP or full task gate.",
+    "requested_reviewer": "gpt-6.1-sol at high",
+    "requested_writer_reviewer_family": "same",
+    "actual_execution_telemetry": "unverified"
+  },
+  "terminal": {
+    "all_owned_commands_terminal": true,
+    "no_attributable_go_compiler_gofmt_lint_generator_process_observed": true,
+    "process_snapshot": ".flow/tmp/fn155-canonical-fix-20261010.7JxdKVdm/process-final.log",
+    "process_snapshot_sha256": "8169ab93eb28bc7b8362586e9bda324df49f95de53ee44bc5cedde9ee0ef325d",
+    "running_handles": [],
+    "index_staging": false,
+    "commits_created": false,
+    "lifecycle_mutation": false,
+    "native_state": "fn155.1 first-platform native/compiler/runtime/boundary-off/on acceptance remains open; fn155.2/.8 remain gated.",
+    "claim": "Existing root claim unchanged; no start/reclaim/done, formal review, native revival, PR/push/CI or fullgreen claim.",
+    "handover": "Three-file candidate left uncommitted for root; sole Go/build/lint/generator lane released after terminal sealing."
+  }
+}
