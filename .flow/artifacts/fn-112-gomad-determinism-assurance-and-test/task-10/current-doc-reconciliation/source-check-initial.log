@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/task11210/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/current-doc-reconciliation/check_source.py", line 157, in <module>
+    raw = read(path)
+  File "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/task11210/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/current-doc-reconciliation/check_source.py", line 89, in read
+    data = (root / path).read_bytes()
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 778, in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 772, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/task11210/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-refresh.help.txt'

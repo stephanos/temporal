@@ -1,0 +1,1880 @@
+{
+  "task": "fn-112-gomad-determinism-assurance-and-test.10",
+  "status": "in_progress",
+  "head": "18bcc34b07bd2a82edce969526fe362875674c57",
+  "historical_source": "eb82ea59a4db14a19ce07c9ced0ee3f8e4bcddd6",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/task11210",
+  "started_at": "2026-10-10T00:04:27.842136+00:00",
+  "ended_at": "2026-10-10T00:04:28.047144+00:00",
+  "elapsed_seconds": 0.205,
+  "errors": [
+    "retained help capture mismatch: .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack refresh.help.txt",
+    "retained help capture mismatch: .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack refresh.help.txt",
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/retained-bytes.md",
+      "resolves": false
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../.plans/GOMAD_NEXT.md",
+      "resolves": false
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".plans/GOMAD_NEXT.md",
+      "resolves": false
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".plans/GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models",
+      "resolves": false
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".plans/GOMAD_CMP.md",
+      "resolves": false
+    }
+  ],
+  "script_sha256": "8ef1a8855e2f9ac792fff57a360eac47fca799136a2202b7a10528265ba18b32",
+  "python": "/usr/bin/python3",
+  "python_sha256": "fd82483aa72498a59e905cdba1ad7a5a2aea2592e7ebc6398cebdaf1dee4adac",
+  "git": "/usr/bin/git",
+  "git_sha256": "89fbabe92d1e190036a9b15e8e30efc16643beb7562329592855e622c59c3e00",
+  "inputs_sha256": {
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/sealed-source-audit.json": "98531d1297d46d89cd46116d0b728af0e3ef77322d1afc16803a86faa317d9f0",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/continuation-20261009/evidence.json": "b0c525288eaf45d6f208061834e5c039eddd9c1854806d1360bcf7b832fcbe19",
+    "tools/gomad3/README.md": "fb85ed4952fb925ca31768b516fa01285d73fa2738551d9781cd6264cda0f610",
+    "tools/gomad3/SPEC.md": "4f2ea508a537cc2b08bad16ec037ae29b70c8ad67efa3cd4d00d6ad5e8c43bb1",
+    "tools/gomad3/ARCHITECTURE.md": "bffef9c1490840f23ac65dddb0e18aaeb270baca06535b3fc59ed9ec9f6f3051",
+    "tools/gomad3/CLI.md": "efb2945f5294276be8d8722b3752a0ad5f2ef0bc7f789e1a932999f8daa5899a",
+    "tools/gomad3/TUTORIAL.md": "22554280d9e0ab2351c7d44e209a3273e53887d2086cc37f9dc20a189a484c60",
+    "tools/gomad3integration/README.md": "7491a27270a21a0d66c25cfa00b0bd6b251fe962c98d4644bd0773b5a1a79bba",
+    "AGENTS.md": "8d634df5cbbbffd7dbada06e32b4d20d879707273f8be07bdf253b387211e6f3",
+    "MILESTONES.md": "ab04ff613e9416a99c5cf84a7393ab1072c653373747e39e0a454de1af442b1f",
+    "tools/gomad3/cmd/gomadtool/compatibility_pack.go": "a6fe887d633c473cb266ca9e774ae36e074fe4bce0f512c3add18d77005236f0",
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": "a051dab98b7814bdf341668d7f876c6616dbf23d013947f6c7fd11680de99877",
+    "tools/gomad3/cmd/gomadtool/main.go": "688897e4899185c11f317aa9974bc54dacafa0cb0cc83ede64c4fad9eb032478",
+    "tools/gomad3integration/qualification/soak.json": "6399fe11ec2db65a016c5a7b3713da52451e25b9be90fafd4de5148d2f401516",
+    ".github/workflows/gomad3.yml": "23e475ee000caa47809b8fdf194425e9ce728a8672c627b5e689801f285187ee",
+    ".github/workflows/gomad3-smoke.yml": "409749e7c5710f1d4e387757e42adb4fb5a1f125623c08f4f41c7bd87722b49d",
+    "tools/gomad3integration/qualification/tests.json": "28a25783c616e4c96d8f89ad0607eaaba5ea395596b4f00be545c8e0dd30f311",
+    "tools/gomad3/cmd/gomad/internal/cli/analyze.go": "1aeb16b3e6f8356a0e46ad5b2184086739da2b2e29a7fecb440b8322eb33efe7",
+    "tools/gomad3/cmd/gomad/internal/cli/application.go": "76845acd589505a1023a575416e2eb0e67ec4f56e7512b76ce14b73fb0e46d51",
+    "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go": "dd1ad6b57602364036e0d91732fddc828b74aeab1db791a91796a0e22c614b55",
+    "tools/gomad3/cmd/gomad/internal/cli/compare_support.go": "a25f1d105e099c46eda0e16335efb67a335abd1e76c24d67824e68dc7cbd72df",
+    "tools/gomad3/cmd/gomad/internal/cli/doctor.go": "8834754097189dcb127e4fdc600a3ccd0b89aabd4ac032373ff4abf037d3a8f5",
+    "tools/gomad3/cmd/gomad/internal/cli/explore_output.go": "3e92f3982e6bf7c3c8e7c1fee6d1bd8c0056d87d4c75fa0ab4232d569842b646",
+    "tools/gomad3/cmd/gomad/internal/cli/qualify.go": "50e19b474b2dd0de6ba46a28f0c1745294543075e09221515b2a11dd8da8ea14",
+    "tools/gomad3/cmd/gomad/internal/cli/qualify_set.go": "669212c8024869190962c249aefd61fbe82170d8d57ce334aed8c4896762317c",
+    "tools/gomad3/cmd/gomad/internal/cli/quote.go": "da7729dd608389a0af4d09beb5d3ad7a1e7f0a88c7d230f6805da7da9d521039",
+    "tools/gomad3/cmd/gomad/internal/cli/recover.go": "8e2259bb41b0cbe4ff423aa04e2bc77b0b1d4183050f1145ace63208efac239f",
+    "tools/gomad3/cmd/gomad/internal/cli/resume.go": "e208de0d0d18859d892dee579b026e0d2b43b2a3ae00caf7aa5a8105e67c6e6d",
+    "tools/gomad3/cmd/gomad/internal/cli/working_directory.go": "120d733112f122f7658d0d5094e4763ba10b74c7fd689c08756500c50ea606bb",
+    "tools/gomad3/cmd/gomadtool/adapter_regenerate.go": "6c654c1975532308e17ce52ca58938549b57e67f3d3b257c9218515da56d7ecb",
+    "tools/gomad3/cmd/gomadtool/boundary.go": "ea49dd6c6d090e0e3db904edfc7f8623a255a8d3055cdd3ef10a5ef683ee3ff4",
+    "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go": "e7d0196aefe6e6b2cd7b29c39923771bbac8617840fb025526f4305fa5e1867a",
+    "tools/gomad3/cmd/gomadtool/diagnostic.go": "b3937ea04d30e078c58fc7a481679766713f6d407d0cc4e447f37e458a1a6a59",
+    "tools/gomad3/cmd/gomadtool/pin_impact.go": "34b24cf563763e7467e2196257f7a0291224ba693ec90119b7ca759ec53708e7",
+    "tools/gomad3/cmd/gomadtool/protocol.go": "2995a977fcdcbaa7ae1b1685a1d24546ebf41cc9cd436a991d8d0df57899b2f0",
+    "tools/gomad3/cmd/gomadtool/qualification_manifest.go": "db465f7147a3299a43ebe9d0fe3d96a065c161e723c49041e3a9e58298482edf",
+    "tools/gomad3/cmd/gomadtool/soak.go": "3a32736f267a8d0949dfc58d48656c51d0f63429c5e70575bd9b95cc5f8d8315",
+    "tools/gomad3/cmd/gomadtool/upgrade.go": "0b82cc563000756d58eda613205ff6ea4da39f61aa6338036f3112d2e5ba0cd0",
+    "tools/gomad3/cmd/gomadtool/version.go": "77e4a7d3cc32d7f6845ae3d05d66ba24ab6e7a95fe06f68290dd2e29a7437761",
+    "tools/gomad3/cmd/gomad/main.go": "8854181c3c373c0720e7e119afef647e2dbc602f5ccc26b88dd67fdf46a0fc17",
+    "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+    "tools/gomad3/go.sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-doctor.help.txt": "40ced2b0587ab4af67e2b600ebc470204ffb50638890934c188c917117dc549d",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-analyze.help.txt": "7e8a47dad7363a86d19e94bcf11fef7bb555372c15f1713043092ef23cd79a9c",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-explore.help.txt": "28234f1c2fd09f68bebf2fd9b8971b63db3f1b485f12ac8dde029701d278eacc",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-inspect.help.txt": "6856401de4a7aedd33d3495e5579a1f09a08ac698a4fb57f0bb0cbbd94bab7ac",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-replay.help.txt": "4a5d1712360441e7d8ea033be491c3e6d78c496570a8717a0cf69fe97b78b24b",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-minimize.help.txt": "44e711f3d4c0f5f2cb111aeee48e16aff2bf9d8430b74ee17677e122295d87c9",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-qualify.help.txt": "8a2319b06eee583d2464bcd3aa030b52eedc153e73061d8ff923974c382b22c3",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-qualify-set.help.txt": "a434b73f3c72e8fcd952e02f16658fce23449e8c1346edab4c027be1d2e1fe8b",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-merge-set.help.txt": "ca7196f5d2c50bb20b538edc0f4495e725e2dd6014a25163a4a08d42beb63c5a",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-compare-support.help.txt": "dd4eb5ca41a9818dc005e64ba40df9ad17c9289dfbce646ec514ea2847affaad",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-plan.help.txt": "28234f1c2fd09f68bebf2fd9b8971b63db3f1b485f12ac8dde029701d278eacc",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-execute-shard.help.txt": "4e4ca8e03403cbbce4591a6651b24656ae6551428ac29b6387ba5c7b524a23d9",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-merge.help.txt": "6c5208cd1a96bc8fb5fedb7b24868e06e89e2447989482df0dd9633c2964801f",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-recover.help.txt": "e8bd15fca87edb8a4b190de5edee1c851447ef364068ad2ba8c85d921a5cfa9c",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-resume.help.txt": "0cceb83cfb65297e275c1fff8245ef5d50ba57b74e17c873e30dbb135cace6d0",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-toolchain-build.help.txt": "9e018007cf2dddc926c87d97d31b3d78c5ca2545697b63498579f0746056941d",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-build-key.help.txt": "ce8417fe3f1355ac0d33031dcc9744ad119a03a5b4102db8426d8f165ca80eac",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-patch-validate.help.txt": "ea5864169784f9a1dd86003dfd7e3c64bd0696f1654bc37b726f3ccaf30f1593",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-patch-materialize.help.txt": "d979d62d13b0e3ef8cde20661166f5b699c7db58f5f80343db98e17f25385b63",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-patch-regenerate.help.txt": "b457f174fbc22cad5473a0dd43e9f1b943156a3db2608bcc08af3846c92823d4",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-version-generate.help.txt": "27b19b2a1ac17a8728ec5fc165b0f4ac9d6aabb6691127a551ba1836d5bba453",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-protocol-generate.help.txt": "83436aa73b495d469b1d60f2c84c23764e9d90dde8b5e3cd6587c4a1b1de8e03",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-qualification-manifest-generate.help.txt": "b10d46a17a339abda7c92cc21759861b12d005b522a03bedad85fab71a2731bc",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-boundary-generate.help.txt": "ff7097446ca1a846e00999683f56aad61d71d46636f91b055babe31911887314",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-discover.help.txt": "a8f2ef8dd84897a5bf6429bc34f9614932a32ce6b8733015af3df78c8bcb163f",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-review.help.txt": "35d9f3e79757a2afa30883677fdf9b6a9327dfbe2635568a25c500ea2ce4ed7f",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-generate.help.txt": "116801bbb1715122bfb81db3261fadc239c84b8896756f87e470867ca6135011",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-check.help.txt": "178ee0a574cfa013aeb4749d42948ee9fd00d39d15c71310e9652ad48180cd9e",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-qualify.help.txt": "1343cc80948ab4ebc047509aa99f1cd53d93ed02561ea64b80212295f3dc8459",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack refresh.help.txt": "b403700ca838778dc8680b891cdeae2b2f4f16ebe51824aeb11e01b7fcc91165",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-script-validate.help.txt": "25ca54c2d07d19a05151c21f1572efa3c5dfa755af9285ac879fc53a594e93c3",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-checked-run.help.txt": "c1163dc883f51a223a8c6f4280df836ab989848d1c856415415fd82245b6b037",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-diagnostic-diff.help.txt": "c46b61e97be1c6bb09fe2efec7d61fd8cb796ab98cf9620866fa654bc1412b19",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-soak.help.txt": "682e36d95cb952e71d14f5f8b8dfccf7b0af2e06b9c9c5d498ba6e5b8aa91b11",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-pin-impact.help.txt": "4445829c07691316501d40dc5e230c83f99dd5de97b1e46e207373b93456afe3",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-adapter-regenerate.help.txt": "ea5ba0f8ae8aaa660651f261e514b2764c16a6cce5cbe1e3b9c2316f87875275",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-test.help.txt": "20664a450d7dae00638bd3f34edec8157dbb163c377cf83845fc1f4a78312413",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-upgrade-dossier.help.txt": "928359a74914cacf80e2fcc517b7adde0a72577bc6f3ea2d496bf337f659be7d",
+    "Makefile": "e9cc7d891eaa5fcedc5a3009db524d011471703f1a3d07debf89e5437ecd965c",
+    "tools/gomad3integration/qualification/smoke.json": "2f8457908e19988644766193fc1b180e9a8a7923811fdb145244512bdbd806c6"
+  },
+  "prior_audit_input_bindings": [
+    {
+      "path": "tools/gomad3/SPEC.md",
+      "historical_sha256": "4f2ea508a537cc2b08bad16ec037ae29b70c8ad67efa3cd4d00d6ad5e8c43bb1",
+      "current_sha256": "4f2ea508a537cc2b08bad16ec037ae29b70c8ad67efa3cd4d00d6ad5e8c43bb1",
+      "changed": false
+    },
+    {
+      "path": "tools/gomad3/ARCHITECTURE.md",
+      "historical_sha256": "bffef9c1490840f23ac65dddb0e18aaeb270baca06535b3fc59ed9ec9f6f3051",
+      "current_sha256": "bffef9c1490840f23ac65dddb0e18aaeb270baca06535b3fc59ed9ec9f6f3051",
+      "changed": false
+    },
+    {
+      "path": "tools/gomad3/CLI.md",
+      "historical_sha256": "efb2945f5294276be8d8722b3752a0ad5f2ef0bc7f789e1a932999f8daa5899a",
+      "current_sha256": "efb2945f5294276be8d8722b3752a0ad5f2ef0bc7f789e1a932999f8daa5899a",
+      "changed": false
+    },
+    {
+      "path": "tools/gomad3/TUTORIAL.md",
+      "historical_sha256": "22554280d9e0ab2351c7d44e209a3273e53887d2086cc37f9dc20a189a484c60",
+      "current_sha256": "22554280d9e0ab2351c7d44e209a3273e53887d2086cc37f9dc20a189a484c60",
+      "changed": false
+    },
+    {
+      "path": "tools/gomad3/README.md",
+      "historical_sha256": "fb85ed4952fb925ca31768b516fa01285d73fa2738551d9781cd6264cda0f610",
+      "current_sha256": "fb85ed4952fb925ca31768b516fa01285d73fa2738551d9781cd6264cda0f610",
+      "changed": false
+    },
+    {
+      "path": "tools/gomad3integration/README.md",
+      "historical_sha256": "7491a27270a21a0d66c25cfa00b0bd6b251fe962c98d4644bd0773b5a1a79bba",
+      "current_sha256": "7491a27270a21a0d66c25cfa00b0bd6b251fe962c98d4644bd0773b5a1a79bba",
+      "changed": false
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "historical_sha256": "1372ebdc6d80efa644040d89a2c42c1302fc15660cbab79b94d78c1308eef7bd",
+      "current_sha256": "a6fe887d633c473cb266ca9e774ae36e074fe4bce0f512c3add18d77005236f0",
+      "changed": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "historical_sha256": "ae0100d3bb6b150ac1b5f7b59d2649a987c3b7d603ca7b608deef90299571511",
+      "current_sha256": "a051dab98b7814bdf341668d7f876c6616dbf23d013947f6c7fd11680de99877",
+      "changed": true
+    },
+    {
+      "path": "/tmp/fn11210-portable.6ZZCZ0Ix/bin/gomad",
+      "historical_binary_only": true,
+      "historical_sha256": "6954b13c041a8cbf0cb76ef2756c7dc36484410b3d85dc1bbf0cc208af20fd3a",
+      "executed": false
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "historical_sha256": "c4383d94e0b1e67cb0dffd3051bccdacb795e94a8cc3b3b7bd4b26b1b9d0cc1d",
+      "current_sha256": "688897e4899185c11f317aa9974bc54dacafa0cb0cc83ede64c4fad9eb032478",
+      "changed": true
+    },
+    {
+      "path": "/tmp/fn11210-portable.6ZZCZ0Ix/bin/gomadtool",
+      "historical_binary_only": true,
+      "historical_sha256": "844a5d829e6f611cc275177917fcd4cdd6a125057a14d58f12e2b33013f3013d",
+      "executed": false
+    },
+    {
+      "path": "tools/gomad3integration/qualification/soak.json",
+      "historical_sha256": "6399fe11ec2db65a016c5a7b3713da52451e25b9be90fafd4de5148d2f401516",
+      "current_sha256": "6399fe11ec2db65a016c5a7b3713da52451e25b9be90fafd4de5148d2f401516",
+      "changed": false
+    },
+    {
+      "path": ".github/workflows/gomad3.yml",
+      "historical_sha256": "23e475ee000caa47809b8fdf194425e9ce728a8672c627b5e689801f285187ee",
+      "current_sha256": "23e475ee000caa47809b8fdf194425e9ce728a8672c627b5e689801f285187ee",
+      "changed": false
+    },
+    {
+      "path": ".github/workflows/gomad3-smoke.yml",
+      "historical_sha256": "409749e7c5710f1d4e387757e42adb4fb5a1f125623c08f4f41c7bd87722b49d",
+      "current_sha256": "409749e7c5710f1d4e387757e42adb4fb5a1f125623c08f4f41c7bd87722b49d",
+      "changed": false
+    },
+    {
+      "path": "tools/gomad3integration/qualification/tests.json",
+      "historical_sha256": "28a25783c616e4c96d8f89ad0607eaaba5ea395596b4f00be545c8e0dd30f311",
+      "current_sha256": "28a25783c616e4c96d8f89ad0607eaaba5ea395596b4f00be545c8e0dd30f311",
+      "changed": false
+    }
+  ],
+  "command_source_projection": [
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/analyze.go",
+      "historical_sha256": "1aeb16b3e6f8356a0e46ad5b2184086739da2b2e29a7fecb440b8322eb33efe7",
+      "current_sha256": "1aeb16b3e6f8356a0e46ad5b2184086739da2b2e29a7fecb440b8322eb33efe7",
+      "changed": false,
+      "flag_calls": 10,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+      "historical_sha256": "a9a94d5832e597babd74d331ed1a379e8a310c8db38fede6bcda7cc215f57a72",
+      "current_sha256": "76845acd589505a1023a575416e2eb0e67ec4f56e7512b76ce14b73fb0e46d51",
+      "changed": true,
+      "flag_calls": 0,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "historical_sha256": "e66953cabcb828e9c6f813705754ba09775d8edb33b8e1fae32aa0f45f84e8c6",
+      "current_sha256": "dd1ad6b57602364036e0d91732fddc828b74aeab1db791a91796a0e22c614b55",
+      "changed": true,
+      "flag_calls": 18,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "historical_sha256": "ae0100d3bb6b150ac1b5f7b59d2649a987c3b7d603ca7b608deef90299571511",
+      "current_sha256": "a051dab98b7814bdf341668d7f876c6616dbf23d013947f6c7fd11680de99877",
+      "changed": true,
+      "flag_calls": 87,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/compare_support.go",
+      "historical_sha256": "a25f1d105e099c46eda0e16335efb67a335abd1e76c24d67824e68dc7cbd72df",
+      "current_sha256": "a25f1d105e099c46eda0e16335efb67a335abd1e76c24d67824e68dc7cbd72df",
+      "changed": false,
+      "flag_calls": 8,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/doctor.go",
+      "historical_sha256": "8834754097189dcb127e4fdc600a3ccd0b89aabd4ac032373ff4abf037d3a8f5",
+      "current_sha256": "8834754097189dcb127e4fdc600a3ccd0b89aabd4ac032373ff4abf037d3a8f5",
+      "changed": false,
+      "flag_calls": 0,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+      "historical_sha256": "3e92f3982e6bf7c3c8e7c1fee6d1bd8c0056d87d4c75fa0ab4232d569842b646",
+      "current_sha256": "3e92f3982e6bf7c3c8e7c1fee6d1bd8c0056d87d4c75fa0ab4232d569842b646",
+      "changed": false,
+      "flag_calls": 0,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+      "historical_sha256": "5341cd12a9d71003f7cf68a60dc66f3ac0b29285bf9638a47b430ca6ba974939",
+      "current_sha256": "50e19b474b2dd0de6ba46a28f0c1745294543075e09221515b2a11dd8da8ea14",
+      "changed": true,
+      "flag_calls": 31,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/qualify_set.go",
+      "historical_sha256": "669212c8024869190962c249aefd61fbe82170d8d57ce334aed8c4896762317c",
+      "current_sha256": "669212c8024869190962c249aefd61fbe82170d8d57ce334aed8c4896762317c",
+      "changed": false,
+      "flag_calls": 21,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/quote.go",
+      "historical_sha256": "da7729dd608389a0af4d09beb5d3ad7a1e7f0a88c7d230f6805da7da9d521039",
+      "current_sha256": "da7729dd608389a0af4d09beb5d3ad7a1e7f0a88c7d230f6805da7da9d521039",
+      "changed": false,
+      "flag_calls": 0,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/recover.go",
+      "historical_sha256": "8e2259bb41b0cbe4ff423aa04e2bc77b0b1d4183050f1145ace63208efac239f",
+      "current_sha256": "8e2259bb41b0cbe4ff423aa04e2bc77b0b1d4183050f1145ace63208efac239f",
+      "changed": false,
+      "flag_calls": 8,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+      "historical_sha256": "a436920f858980998e273d7f01df5759857ddf7cef1e01062e31d3801299d031",
+      "current_sha256": "e208de0d0d18859d892dee579b026e0d2b43b2a3ae00caf7aa5a8105e67c6e6d",
+      "changed": true,
+      "flag_calls": 12,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/working_directory.go",
+      "historical_sha256": "120d733112f122f7658d0d5094e4763ba10b74c7fd689c08756500c50ea606bb",
+      "current_sha256": "120d733112f122f7658d0d5094e4763ba10b74c7fd689c08756500c50ea606bb",
+      "changed": false,
+      "flag_calls": 0,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+      "historical_sha256": "6c654c1975532308e17ce52ca58938549b57e67f3d3b257c9218515da56d7ecb",
+      "current_sha256": "6c654c1975532308e17ce52ca58938549b57e67f3d3b257c9218515da56d7ecb",
+      "changed": false,
+      "flag_calls": 15,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/boundary.go",
+      "historical_sha256": "ea49dd6c6d090e0e3db904edfc7f8623a255a8d3055cdd3ef10a5ef683ee3ff4",
+      "current_sha256": "ea49dd6c6d090e0e3db904edfc7f8623a255a8d3055cdd3ef10a5ef683ee3ff4",
+      "changed": false,
+      "flag_calls": 11,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "historical_sha256": "1372ebdc6d80efa644040d89a2c42c1302fc15660cbab79b94d78c1308eef7bd",
+      "current_sha256": "a6fe887d633c473cb266ca9e774ae36e074fe4bce0f512c3add18d77005236f0",
+      "changed": true,
+      "flag_calls": 40,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+      "historical_sha256": "e7d0196aefe6e6b2cd7b29c39923771bbac8617840fb025526f4305fa5e1867a",
+      "current_sha256": "e7d0196aefe6e6b2cd7b29c39923771bbac8617840fb025526f4305fa5e1867a",
+      "changed": false,
+      "flag_calls": 9,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/diagnostic.go",
+      "historical_sha256": "05fda6be7d114465ff93c0a120a6655cbf0fe54d381d703e65d12970de090d48",
+      "current_sha256": "b3937ea04d30e078c58fc7a481679766713f6d407d0cc4e447f37e458a1a6a59",
+      "changed": true,
+      "flag_calls": 7,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "historical_sha256": "c4383d94e0b1e67cb0dffd3051bccdacb795e94a8cc3b3b7bd4b26b1b9d0cc1d",
+      "current_sha256": "688897e4899185c11f317aa9974bc54dacafa0cb0cc83ede64c4fad9eb032478",
+      "changed": true,
+      "flag_calls": 59,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/pin_impact.go",
+      "historical_sha256": "34b24cf563763e7467e2196257f7a0291224ba693ec90119b7ca759ec53708e7",
+      "current_sha256": "34b24cf563763e7467e2196257f7a0291224ba693ec90119b7ca759ec53708e7",
+      "changed": false,
+      "flag_calls": 14,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/protocol.go",
+      "historical_sha256": "2995a977fcdcbaa7ae1b1685a1d24546ebf41cc9cd436a991d8d0df57899b2f0",
+      "current_sha256": "2995a977fcdcbaa7ae1b1685a1d24546ebf41cc9cd436a991d8d0df57899b2f0",
+      "changed": false,
+      "flag_calls": 5,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/qualification_manifest.go",
+      "historical_sha256": "db465f7147a3299a43ebe9d0fe3d96a065c161e723c49041e3a9e58298482edf",
+      "current_sha256": "db465f7147a3299a43ebe9d0fe3d96a065c161e723c49041e3a9e58298482edf",
+      "changed": false,
+      "flag_calls": 8,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/soak.go",
+      "historical_sha256": "3a32736f267a8d0949dfc58d48656c51d0f63429c5e70575bd9b95cc5f8d8315",
+      "current_sha256": "3a32736f267a8d0949dfc58d48656c51d0f63429c5e70575bd9b95cc5f8d8315",
+      "changed": false,
+      "flag_calls": 15,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/upgrade.go",
+      "historical_sha256": "3788db5501c162625613a1011bdd653214e1f82b1eaacbb9af91978f732743a4",
+      "current_sha256": "0b82cc563000756d58eda613205ff6ea4da39f61aa6338036f3112d2e5ba0cd0",
+      "changed": true,
+      "flag_calls": 8,
+      "flag_calls_including_defaults_and_help_equal": true
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/version.go",
+      "historical_sha256": "77e4a7d3cc32d7f6845ae3d05d66ba24ab6e7a95fe06f68290dd2e29a7437761",
+      "current_sha256": "77e4a7d3cc32d7f6845ae3d05d66ba24ab6e7a95fe06f68290dd2e29a7437761",
+      "changed": false,
+      "flag_calls": 5,
+      "flag_calls_including_defaults_and_help_equal": true
+    }
+  ],
+  "retained_help_observations": [
+    {
+      "argv": [
+        "gomad",
+        "doctor",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-doctor.help.txt",
+      "capture_sha256": "40ced2b0587ab4af67e2b600ebc470204ffb50638890934c188c917117dc549d",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "analyze",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-analyze.help.txt",
+      "capture_sha256": "7e8a47dad7363a86d19e94bcf11fef7bb555372c15f1713043092ef23cd79a9c",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "explore",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-explore.help.txt",
+      "capture_sha256": "28234f1c2fd09f68bebf2fd9b8971b63db3f1b485f12ac8dde029701d278eacc",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "inspect",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-inspect.help.txt",
+      "capture_sha256": "6856401de4a7aedd33d3495e5579a1f09a08ac698a4fb57f0bb0cbbd94bab7ac",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "replay",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-replay.help.txt",
+      "capture_sha256": "4a5d1712360441e7d8ea033be491c3e6d78c496570a8717a0cf69fe97b78b24b",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "minimize",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-minimize.help.txt",
+      "capture_sha256": "44e711f3d4c0f5f2cb111aeee48e16aff2bf9d8430b74ee17677e122295d87c9",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "qualify",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-qualify.help.txt",
+      "capture_sha256": "8a2319b06eee583d2464bcd3aa030b52eedc153e73061d8ff923974c382b22c3",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "qualify-set",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-qualify-set.help.txt",
+      "capture_sha256": "a434b73f3c72e8fcd952e02f16658fce23449e8c1346edab4c027be1d2e1fe8b",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "merge-set",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-merge-set.help.txt",
+      "capture_sha256": "ca7196f5d2c50bb20b538edc0f4495e725e2dd6014a25163a4a08d42beb63c5a",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "compare-support",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-compare-support.help.txt",
+      "capture_sha256": "dd4eb5ca41a9818dc005e64ba40df9ad17c9289dfbce646ec514ea2847affaad",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "plan",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-plan.help.txt",
+      "capture_sha256": "28234f1c2fd09f68bebf2fd9b8971b63db3f1b485f12ac8dde029701d278eacc",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "execute-shard",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-execute-shard.help.txt",
+      "capture_sha256": "4e4ca8e03403cbbce4591a6651b24656ae6551428ac29b6387ba5c7b524a23d9",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "merge",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-merge.help.txt",
+      "capture_sha256": "6c5208cd1a96bc8fb5fedb7b24868e06e89e2447989482df0dd9633c2964801f",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "recover",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-recover.help.txt",
+      "capture_sha256": "e8bd15fca87edb8a4b190de5edee1c851447ef364068ad2ba8c85d921a5cfa9c",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomad",
+        "resume",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomad-resume.help.txt",
+      "capture_sha256": "0cceb83cfb65297e275c1fff8245ef5d50ba57b74e17c873e30dbb135cace6d0",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "toolchain-build",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-toolchain-build.help.txt",
+      "capture_sha256": "9e018007cf2dddc926c87d97d31b3d78c5ca2545697b63498579f0746056941d",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "build-key",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-build-key.help.txt",
+      "capture_sha256": "ce8417fe3f1355ac0d33031dcc9744ad119a03a5b4102db8426d8f165ca80eac",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "patch-validate",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-patch-validate.help.txt",
+      "capture_sha256": "ea5864169784f9a1dd86003dfd7e3c64bd0696f1654bc37b726f3ccaf30f1593",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "patch-materialize",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-patch-materialize.help.txt",
+      "capture_sha256": "d979d62d13b0e3ef8cde20661166f5b699c7db58f5f80343db98e17f25385b63",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "patch-regenerate",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-patch-regenerate.help.txt",
+      "capture_sha256": "b457f174fbc22cad5473a0dd43e9f1b943156a3db2608bcc08af3846c92823d4",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "version-generate",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-version-generate.help.txt",
+      "capture_sha256": "27b19b2a1ac17a8728ec5fc165b0f4ac9d6aabb6691127a551ba1836d5bba453",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "protocol-generate",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-protocol-generate.help.txt",
+      "capture_sha256": "83436aa73b495d469b1d60f2c84c23764e9d90dde8b5e3cd6587c4a1b1de8e03",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "qualification-manifest-generate",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-qualification-manifest-generate.help.txt",
+      "capture_sha256": "b10d46a17a339abda7c92cc21759861b12d005b522a03bedad85fab71a2731bc",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "boundary-generate",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-boundary-generate.help.txt",
+      "capture_sha256": "ff7097446ca1a846e00999683f56aad61d71d46636f91b055babe31911887314",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "discover",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-discover.help.txt",
+      "capture_sha256": "a8f2ef8dd84897a5bf6429bc34f9614932a32ce6b8733015af3df78c8bcb163f",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "review",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-review.help.txt",
+      "capture_sha256": "35d9f3e79757a2afa30883677fdf9b6a9327dfbe2635568a25c500ea2ce4ed7f",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "generate",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-generate.help.txt",
+      "capture_sha256": "116801bbb1715122bfb81db3261fadc239c84b8896756f87e470867ca6135011",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "check",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-check.help.txt",
+      "capture_sha256": "178ee0a574cfa013aeb4749d42948ee9fd00d39d15c71310e9652ad48180cd9e",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "qualify",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack-qualify.help.txt",
+      "capture_sha256": "1343cc80948ab4ebc047509aa99f1cd53d93ed02561ea64b80212295f3dc8459",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "refresh",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack refresh.help.txt",
+      "capture_sha256": "b403700ca838778dc8680b891cdeae2b2f4f16ebe51824aeb11e01b7fcc91165",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "compatibility-pack",
+        "refresh",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-compatibility-pack refresh.help.txt",
+      "capture_sha256": "b403700ca838778dc8680b891cdeae2b2f4f16ebe51824aeb11e01b7fcc91165",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "script-validate",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-script-validate.help.txt",
+      "capture_sha256": "25ca54c2d07d19a05151c21f1572efa3c5dfa755af9285ac879fc53a594e93c3",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "checked-run",
+        "-h"
+      ],
+      "retained_exit": 125,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-checked-run.help.txt",
+      "capture_sha256": "c1163dc883f51a223a8c6f4280df836ab989848d1c856415415fd82245b6b037",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "diagnostic-diff",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-diagnostic-diff.help.txt",
+      "capture_sha256": "c46b61e97be1c6bb09fe2efec7d61fd8cb796ab98cf9620866fa654bc1412b19",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "soak",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-soak.help.txt",
+      "capture_sha256": "682e36d95cb952e71d14f5f8b8dfccf7b0af2e06b9c9c5d498ba6e5b8aa91b11",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "pin-impact",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-pin-impact.help.txt",
+      "capture_sha256": "4445829c07691316501d40dc5e230c83f99dd5de97b1e46e207373b93456afe3",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "adapter-regenerate",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-adapter-regenerate.help.txt",
+      "capture_sha256": "ea5ba0f8ae8aaa660651f261e514b2764c16a6cce5cbe1e3b9c2316f87875275",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "test",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-test.help.txt",
+      "capture_sha256": "20664a450d7dae00638bd3f34edec8157dbb163c377cf83845fc1f4a78312413",
+      "fresh_execution": false
+    },
+    {
+      "argv": [
+        "gomadtool",
+        "upgrade-dossier",
+        "-h"
+      ],
+      "retained_exit": 2,
+      "capture": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/source-acceptance-20261009/final-guides/gomadtool-upgrade-dossier.help.txt",
+      "capture_sha256": "928359a74914cacf80e2fcc517b7adde0a72577bc6f3ea2d496bf337f659be7d",
+      "fresh_execution": false
+    }
+  ],
+  "help_observation_count": 39,
+  "unique_help_routes": 38,
+  "positional_target_flags": [
+    "provenance"
+  ],
+  "documented_flags": [
+    "all",
+    "approve",
+    "approve-boundary-diff",
+    "approve-review",
+    "artifacts",
+    "attempt-budget",
+    "baseline",
+    "baseline-module",
+    "baseline-ref",
+    "batches",
+    "budget",
+    "build-tag",
+    "candidate",
+    "candidate-root",
+    "capability-mode",
+    "check",
+    "check-compiler-tests",
+    "choice-bytes",
+    "choice-start-ordinal",
+    "choices",
+    "clock-tick",
+    "compatibility-root",
+    "corpus",
+    "corpus-report",
+    "count",
+    "coverage",
+    "diagnostics",
+    "discover",
+    "env",
+    "execution-timeout",
+    "failure-budget",
+    "format",
+    "go",
+    "gomad",
+    "guide",
+    "guide-regression",
+    "impact-report",
+    "io-ro-mount",
+    "io-transcript-bytes",
+    "json",
+    "keep-batches",
+    "keep-successes",
+    "ledger",
+    "manifest",
+    "max-bytes",
+    "max-choice-depth",
+    "max-crash-decisions",
+    "max-executions",
+    "max-exploration-bytes",
+    "max-exploration-result-bytes",
+    "max-fault-decisions",
+    "max-forced-decisions",
+    "max-network-decisions",
+    "max-runtime-decisions",
+    "max-scenario-decisions",
+    "max-storage-decisions",
+    "min-free-bytes",
+    "mode",
+    "module",
+    "observed",
+    "on-failure",
+    "output",
+    "output-limit",
+    "overall-timeout",
+    "parallel",
+    "partial",
+    "provenance",
+    "prune-qualified-artifacts",
+    "qualify",
+    "recover",
+    "refresh",
+    "repeat",
+    "replay-successes",
+    "request",
+    "require-probe",
+    "resume",
+    "root",
+    "run-id",
+    "seed",
+    "seeds",
+    "shard",
+    "source-root",
+    "spec",
+    "stage-only",
+    "staged-copy",
+    "strategy",
+    "success-bytes",
+    "success-limit",
+    "terminate-grace",
+    "timeout",
+    "toolchain-root",
+    "verify-only",
+    "version",
+    "work",
+    "working-dir",
+    "workload",
+    "world-transition-limit"
+  ],
+  "guide_links_count": 37,
+  "expanded_links_count": 181,
+  "links": [
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "choice/no_op_select.go",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "#contract",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/retained-bytes.md",
+      "resolves": false
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "CLI.md#bump-a-dependency",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/specs/fn-149-gomad-deferred-darwin-qualification.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/artifacts/native-scope-transfer-2026-10-07.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "deterministicio/boundary/upgrade-go1.27.1.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/README.md",
+      "destination": "ARCHITECTURE.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "SPEC.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "README.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "README.md#go-caller-migrations",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "SPEC.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "choice/no_op_select.go",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "README.md#compatibility-pack-development",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/CLI.md",
+      "destination": "#close-the-loop-with-upgrade-dossier",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "README.md#deterministic-io",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "CLI.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../MILESTONES.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "CLI.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "README.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "ARCHITECTURE.md",
+      "resolves": true
+    },
+    {
+      "source": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../.plans/GOMAD_NEXT.md",
+      "resolves": false
+    },
+    {
+      "source": "AGENTS.md",
+      "destination": "MILESTONES.md",
+      "resolves": true
+    },
+    {
+      "source": "AGENTS.md",
+      "destination": ".flow/specs/fn-128-gomad-deferred-linux-qualification-and.md",
+      "resolves": true
+    },
+    {
+      "source": "AGENTS.md",
+      "destination": ".flow/specs/fn-149-gomad-deferred-darwin-qualification.md",
+      "resolves": true
+    },
+    {
+      "source": "AGENTS.md",
+      "destination": ".flow/artifacts/native-scope-transfer-2026-10-07.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".plans/GOMAD_NEXT.md",
+      "resolves": false
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-128-gomad-deferred-linux-qualification-and.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-149-gomad-deferred-darwin-qualification.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/artifacts/native-scope-transfer-2026-10-07.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-114-gomad-correct-search-path-defects-and.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".plans/GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models",
+      "resolves": false
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".plans/GOMAD_CMP.md",
+      "resolves": false
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-105-gomad-follow-ups-deferred-scope.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.1.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.2.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.3.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.4.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.5.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.6.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.7.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.8.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.9.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.10.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.11.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.12.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.13.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.14.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.15.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.16.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.17.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.18.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.19.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.20.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.21.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.22.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.23.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.24.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.25.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.26.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.27.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.28.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.29.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.30.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.31.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.32.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.1.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.2.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.3.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.4.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.7.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.8.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.10.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.13.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.15.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.16.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.17.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.19.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.20.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.22.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.23.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.24.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.25.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.26.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.27.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.28.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.29.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.30.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.31.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.32.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.33.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.34.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.36.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.43.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.44.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.45.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.46.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.47.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.48.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.49.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.50.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.51.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.52.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.53.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.54.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.55.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.56.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.57.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.58.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.59.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.60.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.61.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.62.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-110-gomad-minimize-the-runtime-patch.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.1.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.3.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.5.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-112-gomad-determinism-assurance-and-test.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.1.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.2.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.3.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.4.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.6.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.11.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.12.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.13.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.14.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.15.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.16.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-128-gomad-deferred-linux-qualification-and.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.1.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.2.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.3.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.4.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.5.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.6.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.7.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/specs/fn-149-gomad-deferred-darwin-qualification.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-149-gomad-deferred-darwin-qualification.1.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-149-gomad-deferred-darwin-qualification.2.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-149-gomad-deferred-darwin-qualification.3.md",
+      "resolves": true
+    },
+    {
+      "source": "MILESTONES.md",
+      "destination": ".flow/tasks/fn-149-gomad-deferred-darwin-qualification.4.md",
+      "resolves": true
+    }
+  ],
+  "historical_fn111_exit": 1,
+  "historical_fn111_diagnostics": 54,
+  "fresh_binary_execution": false,
+  "go_commands_executed": false,
+  "native_bound": null,
+  "native_qualification_claim": false,
+  "coverage_limit": "Source inventory and retained healthy help projection only. Adapter status/output controls are reconciled separately; no binary or aggregate source-gate pass is inferred."
+}
