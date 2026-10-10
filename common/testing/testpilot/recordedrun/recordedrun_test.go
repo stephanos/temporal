@@ -164,3 +164,20 @@ func TestCaseIdentityAndTheRecord(t *testing.T) {
 	_, err = Decode([]byte(`{"identity":{},"run":{}}`))
 	require.ErrorIs(t, err, ErrNoCase)
 }
+
+func TestRecordCompanionRejectsBeforeRunPayload(t *testing.T) {
+	for name, input := range map[string]string{
+		"missing": `{"identity":{},"run":{"retiredPayload":true}}`,
+		"invalid": `{"case":"not-an-identity","identity":{},"run":{"retiredPayload":true}}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			decoded, err := Decode([]byte(input))
+			require.Nil(t, decoded.Run)
+			if name == "missing" {
+				require.ErrorIs(t, err, ErrNoCase)
+			} else {
+				require.ErrorContains(t, err, "not a hex SHA-256")
+			}
+		})
+	}
+}

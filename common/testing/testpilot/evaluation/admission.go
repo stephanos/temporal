@@ -110,25 +110,31 @@ func Admit(caseInput, recordedInput []byte, catalog string) (*Subject, error) {
 	}
 	source, err := testpilot.DecodeCaseProtoJSON(canonical)
 	if err != nil {
+		var format *casefile.FormatError
+		if errors.As(err, &format) {
+			return nil, reject(ReasonIncompatible, "%s", err)
+		}
 		return nil, reject(ReasonMalformed, "the Case does not decode: %s", err)
-	}
-	if version := source.GetVersion(); version.GetMajor() != 1 || version.GetMinor() != 0 {
-		return nil, reject(ReasonIncompatible, "the Case is format version %d.%d, not 1.0", version.GetMajor(), version.GetMinor())
 	}
 
 	if len(recordedInput) > caps.RunBytes {
 		return nil, reject(ReasonOversized, "the recorded Run is %d bytes, over the %d-byte cap", len(recordedInput), caps.RunBytes)
 	}
-	decoded, err := recordedrun.Decode(recordedInput)
-	if err != nil && !errors.Is(err, recordedrun.ErrNoCase) {
-		return nil, reject(ReasonMalformed, "%s", err)
+	caseIdentity := recordedrun.Digest(canonical)
+	decoded, err := recordedrun.DecodeForCase(recordedInput, caseIdentity)
+	if err != nil {
+		switch {
+		case errors.Is(err, recordedrun.ErrNoCase):
+			return nil, reject(ReasonIncompatible, "%s", err)
+		case errors.Is(err, recordedrun.ErrCaseMismatch):
+			return nil, reject(ReasonCrossed, "%s", err)
+		default:
+			return nil, reject(ReasonMalformed, "%s", err)
+		}
 	}
 	run := decoded.Run
 	if events := len(run.GetEvents()); events > caps.RunEvents {
 		return nil, reject(ReasonOversized, "the Run has %d events, over the %d-event cap", events, caps.RunEvents)
-	}
-	if err != nil {
-		return nil, reject(ReasonIncompatible, "%s", err)
 	}
 	// protojson reads an enum's number as readily as its name, and a number the proto does not
 	// declare re-encodes to itself; such a value is no status at all.
@@ -146,10 +152,6 @@ func Admit(caseInput, recordedInput []byte, catalog string) (*Subject, error) {
 	verdict := run.GetVerdict()
 	if detail := openness(run); detail != "" {
 		return nil, reject(ReasonOpen, "%s", detail)
-	}
-	caseIdentity := recordedrun.Digest(canonical)
-	if decoded.Case != caseIdentity {
-		return nil, reject(ReasonCrossed, "the Run was recorded from Case %s, the Case is %s", decoded.Case, caseIdentity)
 	}
 	if crossed := recordedrun.Crossed(source, run); crossed != "" {
 		return nil, reject(ReasonCrossed, "%s", crossed)

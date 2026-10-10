@@ -51,9 +51,11 @@ type Decoded struct {
 	Run    *testpilotspb.Run
 }
 
-// ErrNoCase says a record names no Case: a record from before the Case identity was recorded,
-// another format rather than a malformed one.
+// ErrNoCase says a record lacks its required Case companion identity.
 var ErrNoCase = errors.New("the recorded Run names no Case identity")
+
+// ErrCaseMismatch says the record names a different exact Case companion.
+var ErrCaseMismatch = errors.New("recorded Run Case identity mismatch")
 
 // CaseIdentity is the identity of a Case: the hex SHA-256 of its canonical bytes, recovered from
 // the canonical or persisted form; any other form has no identity.
@@ -109,15 +111,40 @@ func Encode(caseIdentity string, identity testpilot.DriverIdentity, run *testpil
 // each: Go's decoder matches keys without case and keeps the last of a repeated key, so either
 // would let two different documents decode to one record. An unknown field, a trailing document or
 // a Run that does not decode is another protocol, not a Run to admit. A record without a Case
-// identity is ErrNoCase, returned beside everything else it decoded, so a caller can still measure
-// the Run before it decides.
+// identity is ErrNoCase. Companion identity is checked before interpreting the Run payload.
 func Decode(document []byte) (Decoded, error) {
+	return decode(document, "")
+}
+
+// DecodeForCase checks the exact companion identity before decoding Run data.
+func DecodeForCase(document []byte, caseIdentity string) (Decoded, error) {
+	if !isDigest(caseIdentity) {
+		return Decoded{}, fmt.Errorf("case companion identity %q is not a hex SHA-256", caseIdentity)
+	}
+	return decode(document, caseIdentity)
+}
+
+func decode(document []byte, companion string) (Decoded, error) {
 	if len(document) == 0 {
 		return Decoded{}, errors.New("recorded Run is required")
 	}
 	fields, err := exactObject(document, "case", "identity", "run")
 	if err != nil {
 		return Decoded{}, fmt.Errorf("decode recorded Run: %w", err)
+	}
+	caseField, ok := fields["case"]
+	if !ok {
+		return Decoded{}, ErrNoCase
+	}
+	var caseIdentity string
+	if err := json.Unmarshal(caseField, &caseIdentity); err != nil {
+		return Decoded{}, fmt.Errorf("decode recorded Run case: %w", err)
+	}
+	if !isDigest(caseIdentity) {
+		return Decoded{}, fmt.Errorf("decode recorded Run: case identity %q is not a hex SHA-256", caseIdentity)
+	}
+	if companion != "" && caseIdentity != companion {
+		return Decoded{}, fmt.Errorf("%w: the Run was recorded from Case %s, the Case is %s", ErrCaseMismatch, caseIdentity, companion)
 	}
 	identityFields, ok := fields["identity"]
 	if !ok {
@@ -142,17 +169,6 @@ func Decode(document []byte) (Decoded, error) {
 	run := new(testpilotspb.Run)
 	if err := (protojson.UnmarshalOptions{DiscardUnknown: false}).Unmarshal(runFields, run); err != nil {
 		return Decoded{}, fmt.Errorf("decode recorded Run: %w", err)
-	}
-	caseField, ok := fields["case"]
-	if !ok {
-		return Decoded{Driver: driver, Run: run}, ErrNoCase
-	}
-	var caseIdentity string
-	if err := json.Unmarshal(caseField, &caseIdentity); err != nil {
-		return Decoded{}, fmt.Errorf("decode recorded Run case: %w", err)
-	}
-	if !isDigest(caseIdentity) {
-		return Decoded{}, fmt.Errorf("decode recorded Run: case identity %q is not a hex SHA-256", caseIdentity)
 	}
 	return Decoded{Case: caseIdentity, Driver: driver, Run: run}, nil
 }
