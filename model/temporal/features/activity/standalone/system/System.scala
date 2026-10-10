@@ -337,16 +337,14 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(started) ~> effects.requestPause
         when(paused, pauseRequested, cancelRequested, resetRequested, resetKeepingPause) ~>
           rejects(Rejection.failedPrecondition)
-            .because(
-              "already paused, or a cancellation or reset pending (chasm/lib/activity/model/model.go:232)"
-            )
+            .because(pausedOrControlPending)
       }
       on(unpause) {
         when(paused) ~> effects.resume
         when(pauseRequested) ~> effects.withdrawPause
         when(scheduled, started, cancelRequested, resetRequested, resetKeepingPause) ~>
           rejects(Rejection.failedPrecondition)
-            .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
+            .because(activityNotPaused)
       }
       // Cancel > Reset > Pause: a cancellation replaces a pending reset, a reset a requested
       // pause, and neither a pause nor a reset undoes a cancellation (model.go:156-158).
@@ -356,11 +354,9 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(scheduled) ~> effects.resetWaiting
         when(started) ~> effects.requestReset
         when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because(
-            "cannot reset an activity with a pending cancellation (operator_commands.go:458)"
-          )
+          .because(resetWithPendingCancellation)
         when(resetRequested, resetKeepingPause) ~> rejects(Rejection.failedPrecondition)
-          .because("cannot reset an activity with a pending reset (operator_commands.go:460-464)")
+          .because(resetWithPendingReset)
       }
       on(reset(ResetPause.resume)) {
         when(paused) ~> effects.resetWaiting
@@ -374,13 +370,15 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(scheduled, paused) ~> effects.cancel
         when(started, pauseRequested, resetRequested, resetKeepingPause) ~> effects.requestCancel
         when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because("cancellation already requested (chasm/lib/activity/model/model.go:201-202)")
+          .because(cancellationAlreadyRequested)
       }
       on(terminate) {
         when[Live] ~> effects.terminate
       }
     }
 
+    // Held completion, pending-reset failure, fatal failure, retry/exhaustion and cancellation
+    // settlement must match the corresponding By-ID rows.
     from(temporal.features.activity.standalone.worker) {
       import temporal.features.activity.standalone.worker.*
 
@@ -419,10 +417,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(cancelRequested) ~> effects.cancel
         when(started, pauseRequested, resetRequested, resetKeepingPause) ~>
           rejects(Rejection.invalidArgument)
-            .because("cancellation was not requested (chasm/lib/activity/model/model.go:171)")
+            .because(cancellationNotRequested)
       }
     }
 
+    // Held completion, pending-reset failure, fatal failure, retry/exhaustion and cancellation
+    // settlement must match worker. By-ID keeps its notFound checks, broader Live completion,
+    // cancellation reason and row order.
     from(service) {
       import service.*
 
@@ -453,7 +454,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(cancelRequested) ~> effects.cancel
         when(started, pauseRequested, resetRequested, resetKeepingPause) ~>
           rejects(Rejection.invalidArgument)
-            .because("cancellation was not requested")
+            .because(cancellationNotRequestedByID)
       }
     }
 

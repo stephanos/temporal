@@ -75,7 +75,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     val retryPaused = choice
     def serviceRetry(s: State) = choose(
       retryScheduled -> retry(s),
-      retryPaused -> enter(s.copy(phase = Phase.paused), Fact.statusPaused),
+      retryPaused -> pause(s),
       retryExhausted -> fail(s)
     )
     val cancel = effect { phase = canceled }
@@ -85,34 +85,34 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       pauseApplied -> pause(s),
       pausePending -> enter(s, Fact.statusPaused),
       pauseAlreadyRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
-        .because("pause already requested (chasm/lib/activity/model/model.go:232)")
+        .because(pauseAlreadyRequestedReason)
     )
     val resume = effect { phase = scheduled }
     val pauseWithdrawn = choice
     val unpauseNotRequested = choice
     def unpauseHeld(s: State) = choose(
-      pauseWithdrawn -> enter(s, Fact.statusStarted),
+      pauseWithdrawn -> startAttempt(s),
       unpauseNotRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
-        .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
+        .because(activityNotPaused)
     )
     val requestCancel = effect { phase = cancelRequested }
     // A reset of a waiting activity applies at once; of a held attempt it waits for the attempt to
     // end, which Describe still reads as started, or as pause-requested where a pause is kept.
-    def resetWaiting(s: State) = enter(s, Fact.statusScheduled)
-    def resetKeepsPaused(s: State) = enter(s, Fact.statusPaused)
+    def resetWaiting(s: State) = retry(s)
+    def resetKeepsPaused(s: State) = pause(s)
     val resetPending = choice
     val resetPausePending = choice
     val resetAlreadyRequested = choice
     def resetHeld(s: State) = choose(
-      resetPending -> enter(s, Fact.statusStarted),
+      resetPending -> startAttempt(s),
       resetAlreadyRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
-        .because("a reset is already pending (operator_commands.go:460-464)")
+        .because(resetAlreadyPending)
     )
     def resetHeldKeepingPause(s: State) = choose(
-      resetPending -> enter(s, Fact.statusStarted),
+      resetPending -> startAttempt(s),
       resetPausePending -> enter(s, Fact.statusPaused),
       resetAlreadyRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
-        .because("a reset is already pending (operator_commands.go:460-464)")
+        .because(resetAlreadyPending)
     )
     // A held attempt's failure ends the activity, or applies a pending reset whatever the
     // failure's retryability: the activity is scheduled again, or paused where a pause was kept.
@@ -122,7 +122,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     def failOrReset(s: State) = choose(
       failureFatal -> fail(s),
       resetApplied -> retry(s),
-      resetAppliedPaused -> enter(s.copy(phase = Phase.paused), Fact.statusPaused)
+      resetAppliedPaused -> pause(s)
     )
     val terminate = effect { phase = terminated }
     val timeOut = effect { phase = timedOut }
@@ -162,19 +162,19 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
         when(scheduled) ~> effects.pause
         when(started) ~> effects.pauseHeld
         when(paused, cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because("already paused or cancellation pending (chasm/lib/activity/model/model.go:232)")
+          .because(pausedOrCancelPending)
       }
       on(unpause) {
         where(states.paused) ~> effects.resume
         when(started) ~> effects.unpauseHeld
         when(scheduled, cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
+          .because(activityNotPaused)
       }
       on(requestCancel) {
         when(scheduled, paused) ~> effects.cancel
         when(started) ~> effects.requestCancel
         when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because("cancellation already requested (chasm/lib/activity/model/model.go:201-202)")
+          .because(cancellationAlreadyRequested)
       }
       on(terminate) {
         when(scheduled, started, paused, cancelRequested) ~> effects.terminate
@@ -183,9 +183,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
         when[Closed] ~> rejects(Rejection.notFound)
         when(scheduled) ~> effects.resetWaiting
         when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because(
-            "cannot reset an activity with a pending cancellation (operator_commands.go:458)"
-          )
+          .because(resetWithPendingCancellation)
       }
       on(reset(ResetPause.resume)) {
         where(states.paused) ~> effects.resume
@@ -197,6 +195,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       }
     }
 
+    // Held completion, failure/reset/retry and cancellation settlement must match the By-ID rows.
     from(temporal.features.activity.standalone.worker) {
       import temporal.features.activity.standalone.worker.*
 
@@ -227,10 +226,12 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       on(respondCanceled) {
         when(cancelRequested) ~> effects.cancel
         when(started) ~> rejects(Rejection.invalidArgument)
-          .because("cancellation was not requested (chasm/lib/activity/model/model.go:171)")
+          .because(cancellationNotRequested)
       }
     }
 
+    // Held completion, failure/reset/retry and cancellation settlement must match the worker rows.
+    // By-ID keeps its notFound checks, broader Live completion and cancellation reason.
     from(service) {
       import service.*
 
@@ -254,7 +255,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       on(respondCanceledByID) {
         when(cancelRequested) ~> effects.cancel
         when(started) ~> rejects(Rejection.invalidArgument)
-          .because("cancellation was not requested")
+          .because(cancellationNotRequestedByID)
       }
     }
 

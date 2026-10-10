@@ -74,6 +74,23 @@ val startDelay = input[Timeout]
 val maxAttempts = input[MaxAttempts]
 val pausing = input[ResetPause]
 
+val pauseAlreadyRequestedReason = "pause already requested (chasm/lib/activity/model/model.go:232)"
+val pausedOrCancelPending =
+  "already paused or cancellation pending (chasm/lib/activity/model/model.go:232)"
+val pausedOrControlPending =
+  "already paused, or a cancellation or reset pending (chasm/lib/activity/model/model.go:232)"
+val activityNotPaused = "activity is not paused (chasm/lib/activity/model/model.go:251)"
+val cancellationAlreadyRequested =
+  "cancellation already requested (chasm/lib/activity/model/model.go:201-202)"
+val resetWithPendingCancellation =
+  "cannot reset an activity with a pending cancellation (operator_commands.go:458)"
+val resetAlreadyPending = "a reset is already pending (operator_commands.go:460-464)"
+val resetWithPendingReset =
+  "cannot reset an activity with a pending reset (operator_commands.go:460-464)"
+val cancellationNotRequested =
+  "cancellation was not requested (chasm/lib/activity/model/model.go:171)"
+val cancellationNotRequestedByID = "cancellation was not requested"
+
 // Who acts, and on what: each action is declared in the object of who takes it, and named after
 // where it is declared, `temporal.features.activity.standalone.client.start`.
 
@@ -100,8 +117,8 @@ object service extends Client:
   val respondCompletedByID = action(this).on(activity)
   val respondFailedByID = action(this)
     .input(failure)
-    .example(Failure.fatal, "ApplicationFailureNonRetryable")
-    .example(Failure.retryable, "ApplicationFailureRetryable")
+    .example(Failure.fatal, fatalFailureExample)
+    .example(Failure.retryable, retryableFailureExample)
     .on(activity)
   val respondCanceledByID = action(this).on(activity)
 
