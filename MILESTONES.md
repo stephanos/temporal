@@ -187,7 +187,7 @@ compile-versus-lift items from the same review remain notes on fn-141.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-156.1 | ⬜ todo | Warning checks, finite equality evidence, and early exhaustive-match/raw-byte compatibility proof |
+| fn-156.1 | 🔄 in progress | Isolated compiler lane: warning checks, finite equality evidence, and exhaustive-match/raw-byte compatibility proof; final fn-155 baseline reconciliation held |
 | fn-156.2 | ⬜ todo | Strict equality and precise equality-lint policy across authoring, lifter, fixtures and gate tooling |
 | fn-156.3 | ⬜ todo | Section order, dotted membership, permitted imports and exhaustive enum/state matches |
 | fn-156.4 | ⬜ todo | Discover every exported machine for totality, closedness, relation and binding-order laws |
@@ -315,7 +315,7 @@ still belongs exclusively to fn-148.6. CEL adoption is decided; no additional pr
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-146.1 | ⬜ todo | Breaking format, deterministic canonical identity and companion migration contract (the batch's contract) |
+| fn-146.1 | 🔄 in progress | Isolated Testpilot lane: breaking format, deterministic canonical identity and companion migration contract; no early 4.0 activation |
 | fn-146.2 | ⬜ todo | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
 | fn-146.3 | ⬜ todo | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
 | fn-146.4 | ⬜ todo | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
