@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-123-declare-faults-as-the-environments.1.md",
   "status": "todo",
   "title": "Fault kinds and modelOnly declared on the fault actor's actions, lifted to an IR Fault record",
-  "updated_at": "2026-10-08T03:44:10.514840Z"
+  "updated_at": "2026-10-09T23:50:06.868537Z"
 }

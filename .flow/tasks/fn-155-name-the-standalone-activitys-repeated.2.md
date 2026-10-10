@@ -8,7 +8,9 @@ Implements spec sections A and C, plus the System-machine parts of D: the landin
 
 **Size:** M
 **Files:** the System-machine owner from fn-151 (today `system/System.scala`) and the fn-151 subject files that hold `resetSettles`, `resetResumes`/`resetKeepsPaused`, `completedOnRetry`, `restarted` and `keptPaused`
-**Touches:** [model/temporal/features/activity/standalone/system/System.scala, model/temporal/features/activity/standalone/system/RetryFailures.scala, model/temporal/features/activity/standalone/system/Reset.scala] (never Dispatch* or Realization.scala; any additional concrete subject requires conductor authorization after task 1's re-anchor)
+**Touches:** [model/temporal/features/activity/standalone/system/System.scala, model/temporal/features/activity/standalone/system/RetryFailures.scala, model/temporal/features/activity/standalone/system/Reset.scala]
+
+Scope: (never Dispatch* or Realization.scala; any additional concrete subject requires conductor authorization after task 1's re-anchor)
 
 ### Approach
 - **Landing function.** Add it with its status companion in `states`. Collapse only effects whose `because` text and fact list match after the landing phase is factored out. Keep the surviving names `backOff`, `applyReset` and `heartbeatTimeOut`.

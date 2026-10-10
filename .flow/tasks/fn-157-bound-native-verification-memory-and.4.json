@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T00:15:13.762090Z",
+  "depends_on": [
+    "fn-157-bound-native-verification-memory-and.1"
+  ],
+  "id": "fn-157-bound-native-verification-memory-and.4",
+  "priority": null,
+  "spec": "fn-157-bound-native-verification-memory-and",
+  "spec_path": ".flow/tasks/fn-157-bound-native-verification-memory-and.4.md",
+  "status": "todo",
+  "title": "Bound owned scratch lifetimes and establish full gate capacity",
+  "updated_at": "2026-10-10T00:15:31.815065Z"
+}

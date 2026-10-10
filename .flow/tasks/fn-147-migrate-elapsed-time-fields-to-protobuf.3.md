@@ -4,7 +4,7 @@ satisfies: [R1, R2, R3, R4]
 # fn-147-migrate-elapsed-time-fields-to-protobuf.3 Migrate Testpilot duration consumers and read presence
 
 ## Description
-Switch format 3.0 admission, execution, verification and Run recording to the checked Duration fields. Apply the defined one-read/poll policy and scalar singleton presence cleanup.
+Migrate admission, execution, verification and Run recording to the checked Duration fields for the shared format 4.0 contract; public format activation remains fn-148.6. Apply the defined one-read/poll policy and scalar singleton presence cleanup.
 
 **Size:** M
 **Files:** Testpilot execution bounds and evidence policies, verification deadlines, Run elapsed recording, schema presence fields and generated consumers
@@ -15,8 +15,8 @@ Switch format 3.0 admission, execution, verification and Run recording to the ch
 - Absent interval performs one read; present positive interval polls. Implement only current-format policy; reject retired formats and keep no old decoder.
 - Replace scalar-only singleton oneofs with explicit presence, including an exact absent/zero/default test matrix.
 - Preserve monotonic elapsed recording and reject precision or narrowing overflow before execution.
-- Restore compilation across realization admission, all runtime consumers and test builders. Convert hand-authored current-format fixtures and Case/Run pairs here; managed generated trees remain Task 4's responsibility.
-- Add focused named Duration, polling, elapsed and deadline tests. Run only these intermediate tests; `TestGeneratedCasesAreCheckedIn` and other managed-artifact checks run after Task 4 regeneration.
+- Restore compilation across realization admission, all runtime consumers and test builders. Update focused hand-authored test builders here without activating public format emission/admission; managed generated trees and recorded companions remain fn-148.7's single regeneration responsibility.
+- Add focused named Duration, polling, elapsed and deadline tests. Run only these intermediate tests; `TestGeneratedCasesAreCheckedIn` and other managed-artifact checks run after fn-148.7 regeneration.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -32,10 +32,10 @@ Switch format 3.0 admission, execution, verification and Run recording to the ch
 go test -tags test_dep -run 'Test.*(Duration|Polling|Elapsed|Deadline)' ./common/testing/testpilot/... ./tools/umpire/realization/... ./tools/umpire/conformance/... ./tools/umpire/lower/...
 ```
 ## Acceptance
-- [ ] R1-R4 pass at all format 3.0 consumers.
+- [ ] R1-R4 pass at all successor-format consumers before the single public 4.0 activation at fn-148.6.
 - [ ] Absent, zero, positive, default and invalid Duration tests cover every field family.
 - [ ] Singleton-oneof cleanup belongs exclusively to this task and preserves presence.
-- [ ] Consumer packages compile and focused current-format Duration/replay tests pass; old formats reject explicitly. Managed-artifact gates wait for Task 4.
+- [ ] Consumer packages compile and focused current-format Duration/replay tests pass; old formats reject explicitly. Managed-artifact gates wait for fn-148.7.
 ## Done summary
 TBD
 

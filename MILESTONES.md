@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-09.
+As of 2026-10-10.
 
 ## Keeping this page current
 
@@ -35,9 +35,10 @@ Apply these instructions when implementing the milestones:
   current local branch's history. Publishing or landing on origin is not required. Uncommitted
   closures and work on unmerged branches do not count; dependent work starts from the integrated
   local baseline. Publishing is a separate, explicitly authorized action.
-- If a particular gate remains stuck for roughly an hour, including repeated attempts, mark it
-  deferred in Flow and this page. Record its command, failure evidence and condition for revisiting
-  it, then focus on work that can be verified and delivered in the meantime. Preserve the failed
+- If a validation remains stuck for more than one hour, including repeated attempts, mark it
+  deferred in Flow and this page and move to work that can be verified and delivered. Continue
+  beyond that limit only when the validation blocks every other available work path. Record its
+  command, elapsed time, failure evidence and condition for revisiting it. Preserve the failed
   result and follow-up obligation; deferral is not a passing gate.
 - Reuse the previous task's passing baseline when its commands, source scope, fixtures and
   environment still apply. Inspect its recorded evidence; a new task or agent is not a reason to
@@ -88,7 +89,8 @@ equivalence proof that later work builds on, and at a format activation.
   without spec-close dependencies inside a batch.
 - Batches run serially; Flow records that as each spec depending on every spec of the previous
   batch. The owner prioritized the Activity subject split (fn-151) immediately after batch 1,
-  followed by naming the Activity's repeated patterns (fn-155); authoring batch 2 waits on both.
+  followed by naming the Activity's repeated patterns (fn-155), then compiler and lint enforcement
+  (fn-156); authoring batch 2 waits on all three.
   The structural baseline is closed; batch 5 waits on batch 4.
   The next batch's preparation may run in isolated worktrees alongside the
   current one, but joins serially onto the closed baseline.
@@ -96,6 +98,7 @@ equivalence proof that later work builds on, and at a format activation.
 | # | Batch | Specs | Nature | Shared close | Live run |
 | --- | --- | --- | --- | --- | --- |
 | 1b | Activity abstractions | fn-155 (named repeated patterns) | meaning-preserving, mapped identities | fn-155.6 | none |
+| 1c | Compiler and lint | fn-156 | byte-identical | fn-156.7 | none |
 | 2 | Authoring | fn-140 → fn-123 | equivalence sealed, then meaning | fn-140.6, fn-123.8 | once |
 | 3 | Testpilot format | fn-146 → fn-147 → fn-148 | breaking format | fn-146.7, fn-147.4, fn-148.7 | once |
 | 4 | Lifter | fn-141 | byte-identical | fn-141.14 | none |
@@ -113,8 +116,8 @@ The DSL framework (`model/framework`) stays Temporal-agnostic as far as is reali
 vocabulary, properties, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
 are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
 
-Next, name the split standalone Activity's repeated patterns; then continue the Scala
-authoring and format work before completing Activity coverage.
+Next, name the split standalone Activity's repeated patterns, then complete compiler and lint
+enforcement; continue the Scala authoring and format work before completing Activity coverage.
 
 ## Specs
 
@@ -145,17 +148,43 @@ and the pending-control remodel.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-155.1 | ⬜ todo | Baseline IR and step table from fn-151's close, effect-name-erasing projection, mapping skeleton, lifter probes |
+| fn-155.1 | 🔄 in progress | Baseline IR and step table from fn-151's close, effect-name-erasing projection, mapping skeleton, lifter probes |
 | fn-155.2 | ⬜ todo | System held-attempt ending: landing function, named and `armed` guards, `resetSettles`, shared reset reason, initial-state derivations |
 | fn-155.3 | ⬜ todo | Product single-fact `Recorded` conversions, shared rejection reasons, worker/By-ID must-match comment, By-ID examples |
 | fn-155.4 | ⬜ todo | HeldDispatch derived only on proven equivalence; one generic composition capability; waiver reasons section |
 | fn-155.5 | ⬜ todo | Realization evidence builders: attempt record, Describe read, conditions, activation, run-scoped base |
 | fn-155.6 | ⬜ todo | Regenerate, projection proof, Go test and fixture updates, gates, review; mapping handed to fn-140 and fn-129.3 |
 
+### Batch 1c, compiler and lint: fn-156
+
+#### fn-156: Let the Scala compiler and lint enforce Model correctness
+
+[Spec](.flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md) is scheduled immediately
+after fn-155, before batch 2, by the owner's instruction on 2026-10-09. Its eight-task plan passed
+independent review and is ready; implementation starts from fn-155's committed closure.
+The source lane runs .1 through .6 in order. Report-only .8 runs independently in an isolated
+checkout of the same baseline; .7 joins both lanes for documentation and the full close.
+
+It changes no IR or Case byte, including positions, and serializes with other Model source work.
+Task .1 proves sound equality evidence and byte-preserving exhaustive-match lowering before
+rollout; an infeasible proof stops that source lane without relaxing acceptance. The
+compile-versus-lift items from the same review remain notes on fn-141.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-156.1 | ⬜ todo | Warning checks, finite equality evidence, and early exhaustive-match/raw-byte compatibility proof |
+| fn-156.2 | ⬜ todo | Strict equality and precise equality-lint policy across authoring, lifter, fixtures and gate tooling |
+| fn-156.3 | ⬜ todo | Section order, dotted membership, permitted imports and exhaustive enum/state matches |
+| fn-156.4 | ⬜ todo | Discover every exported machine for totality, closedness, relation and binding-order laws |
+| fn-156.5 | ⬜ todo | Complete finite-domain tests and independent interpreter table pins for every Activity/Nexus machine |
+| fn-156.6 | ⬜ todo | Explicit-nulls trial across compiler roots; adopt with boundary fixes or report findings and drop |
+| fn-156.8 | ⬜ todo | Two-day isolated Draft capture-confinement spike; diagnostics, limitations and adoption-cost report |
+| fn-156.7 | ⬜ todo | Join reports, document enforcement, exact artifact comparison, full gates and reviews; close |
+
 ### Batch 2, authoring: fn-140 → fn-123
 
-Starts from fn-155's closed baseline, with task paths re-anchored to the completed moves,
-Activity subject split and abstractions. Both specs
+Starts from fn-156's closed baseline, with task paths re-anchored to the completed moves,
+Activity subject split, abstractions and compiler/lint enforcement. Both specs
 rewrite Model declarations, so they share one production regeneration, one full gate, one review and
 one live run at fn-123.8. fn-140 is meaning-preserving apart from its declared renames: fn-140.6
 seals its assessment-equivalence comparison before fn-123 changes meaning, so a fault change can
@@ -344,6 +373,11 @@ ambiguity, and pause/resume exceeds its correlated per-event work ceiling. Batch
 retains failure evidence for all three; its structural equivalence proof does not discharge them. None is waived or
 counted as passing evidence. Tasks fn-128.7 and .8 own the latter two corrections; the completion
 ambiguity has no scheduled correction yet.
+The [completion diagnosis](.flow/tmp/completion-trace/report.md) traces the worker and by-ID
+responses to identical recorded facts. The worker's offered response is not server acceptance;
+the correction needs truthful response-source evidence, with terminal status retained. The same
+source distinction must be resolved before fn-128.7's fatal classification can establish its
+worker-only Property. Join those source changes before fn-128.8 seals final Case/Profile bounds.
 The independently reviewed correction plan seals fn-138's original/adopted R3 comparison before
 fn-129 changes Source, then runs fn-128.7 and .8 as disjoint parallel candidates after fn-129.4.
 The close checks every authored expected status/reason exactly, including the retained retry
@@ -368,6 +402,10 @@ closes the shared batch after both corrections and all activity sources.
 | fn-128.6 | ⬜ todo | Evidence map, live Cases run once (the batch's live run); close |
 
 #### fn-138: Retries and Deadline capabilities
+
+Implementation complete (3/3 tasks); whole-spec review and shared Batch 5 closure pending.
+The done source tasks do not replace the production equivalence, full gates or live-run evidence
+reserved for that boundary, so this spec remains listed until closure.
 
 Runs after fn-128.5: fn-128.1 replaces the `backingOff` phase and fn-128.3 adds the retry policy,
 both of which Retries reads. The approved recommendations resolve the earlier owner questions;
@@ -400,25 +438,6 @@ Runs after fn-138. Tasks run in order.
 | fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
 
 ## Planned, not yet scheduled
-
-### fn-156: Let the Scala compiler and lint enforce Model correctness
-
-[Spec](.flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md) captured 2026-10-09, not yet
-planned into tasks.
-- **Stricter compiler flags.** `-Wunused:all`, `-Wvalue-discard`, `-Wnonunit-statement`,
-  `-Wsafe-init` and `-Wimplausible-patterns` produced one finding in a scratch compile.
-- **Strict equality.** `-language:strictEquality`, with `Finite` supplying `CanEqual`, which clears
-  nearly all of its 351 scratch errors.
-- **A trial of explicit nulls.**
-- **Lint rules.** Section order, dotted `in`, module-map imports, no wildcard case on model enums,
-  and no unqualified cross-level `Phase`/`Fact`/`State` imports.
-- **Law tests that find every exported machine**, with exhaustive `Finite` iteration and a
-  step-table pin for every machine.
-- **A two-day capture-checking spike.**
-
-It changes no IR or Case. The compile-versus-lift items from the same review are notes on fn-141.
-Open for the owner: the scheduling slot. The spec touches every model file, so it fits between
-batches, for example after fn-155 or after batch 4.
 
 ### fn-149: Safety and liveness groups for object properties
 
@@ -549,7 +568,7 @@ The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeou
 
 ### fn-157: Bound native verification memory and scratch storage
 
-⏸️ Deferred 2026-10-09 under the roughly-one-hour stuck-gate rule; no tasks yet and not ready.
+⏸️ Deferred 2026-10-09 under the one-hour stuck-gate rule; five reviewed tasks, not ready.
 [Spec](.flow/specs/fn-157-bound-native-verification-memory-and.md).
 
 Measure native interpreter, Check, Producer and seven-Model generator lifetimes before choosing a
@@ -568,6 +587,19 @@ isolated passes and reduced domains cannot replace them. Complete Canary control
 packages passed with restored source and corrected test-runtime temp selection; their original
 canonical RED remains, and the low-level file-sync cause is unknown. Quint JSON work stays in fn-154,
 and strict Activity semantic debt stays in Batch 5.
+
+The preparation plan passed independent review; activation still needs a committed source baseline
+and measured runner budget. Measurement .1 precedes native .2/.3 and the separate scratch .4 lane;
+.5 joins their complete preservation proof and exact gate receipts. No allocation owner or storage
+cause is inferred from historical RSS or later free-space snapshots.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-157.1 | ⏸️ deferred | Pin the activated baseline, seal the independent complete oracle, measure native owners and scratch bytes/inodes |
+| fn-157.2 | ⏸️ deferred | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
+| fn-157.3 | ⏸️ deferred | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
+| fn-157.4 | ⏸️ deferred | Repair owned Scala gate/lift scratch lifetimes or establish provisioned capacity, preserving ordinary overlap |
+| fn-157.5 | ⏸️ deferred | Join full preservation, execute interrupted tests, restore exact native gates and document measured capacity |
 
 ### Other deferred items
 
