@@ -10,7 +10,9 @@ Execution-order amendment, explicitly authorized by the owner on 2026-10-10: imp
 
 **Size:** M
 **Files:** `model/project.scala`, `model/irgen/project.scala`, positive fixture `project.scala` files, `model/framework/Domain.scala`, `model/framework/IrFile.scala`, compiler tests and scratch proof evidence.
-**Touches:** [model/project.scala, model/irgen/project.scala, model/irgen/testdata/**/project.scala, model/framework/Domain.scala, model/framework/IrFile.scala, model/framework/*test.scala, .flow/tmp/fn156/source/**]
+**Touches:** [model/project.scala, model/irgen/project.scala, model/irgen/testdata/**/project.scala, model/framework/Domain.scala, model/framework/IrFile.scala, model/framework/Compose.scala, model/framework/*test.scala, .flow/tmp/fn156/source/**]
+
+Warning inventory re-anchor: actual pinned compiler probes also identify a safe-initialization warning in the derived Composition initializer. Task .1 may mechanically correct `model/framework/Compose.scala` while preserving behavior, derived-phase refusal diagnostics and complete raw-byte proofs. Do not suppress the warning broadly or treat the historical one-finding count as exhaustive.
 ## Approach
 
 - Re-anchor fn-155's committed closure, input hashes and dumper. Freeze the complete filename/raw-byte manifests of both managed artifact trees. Keep the original baseline immutable throughout this spec. The fn-155 effect-name and position projection is not this task's equivalence harness.
