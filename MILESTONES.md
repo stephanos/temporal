@@ -162,6 +162,10 @@ killed and produced no Cases. Evidence and revisit conditions are recorded in fn
 block reason and its preserved task6 worktree. The seventeen passing scoped partitions grant no
 whole-artifact or closure credit. Fn-155 stays open and continues to hold fn-156; independently
 verifiable work may proceed without relaxing its complete provenance contract.
+Read-only kernel attribution confirms global OOM for the scratch generator and candidate
+lowering test. The host has about 16 GB RAM and no swap; victim RSS does not establish required
+successful capacity. Partial checkpoint `2250d1f9ae` and its handover remain on the task6 branch,
+unintegrated and unreviewed. The original failures and the later kernel excerpts are preserved.
 
 ### Batch 1c, compiler and lint: fn-156
 
