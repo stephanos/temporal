@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.7.md",
   "status": "todo",
   "title": "Retire duplicate predicate machinery and close the CEL migration",
-  "updated_at": "2026-10-10T00:00:21.998214Z"
+  "updated_at": "2026-10-10T00:02:27.245353Z"
 }

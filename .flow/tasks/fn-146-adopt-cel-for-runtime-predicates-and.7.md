@@ -7,10 +7,11 @@ satisfies: [R1, R4, R5, R6, R7]
 Remove superseded expression machinery after its callers migrate, categorize CEL identity deltas, and update the ownership and semantics records for R1 through R7. Managed companion regeneration, full gates, review and live-run evidence belong to the shared fn-148.7 close; fn-146 does not close before that evidence is recorded.
 
 **Size:** M
-**Files:** retired Testpilot expression implementation, `model/SEMANTICS.md`, `model/README.md`, `.plans/UMPIRE_MODULES.md`, `.plans/UMPIRE4_SPEC.md`, `MILESTONES.md`, generated artifacts and fixtures
-**Touches:** [common/testing/testpilot/casefile/**, common/testing/testpilot/evaluation/**, common/testing/testpilot/temporal/**, common/testing/testpilot/internal/ir/**, model/SEMANTICS.md, model/README.md, .plans/UMPIRE_MODULES.md, .plans/UMPIRE4_SPEC.md, MILESTONES.md, model/cases/**, common/testing/testpilot/**/testdata/**]
+**Files:** retired Testpilot expression implementation, `model/SEMANTICS.md`, `model/README.md`, `.plans/UMPIRE_MODULES.md`, `.plans/UMPIRE4_SPEC.md`, generated artifacts and fixtures
+**Touches:** [common/testing/testpilot/casefile/**, common/testing/testpilot/evaluation/**, common/testing/testpilot/temporal/**, common/testing/testpilot/internal/ir/**, model/SEMANTICS.md, model/README.md, .plans/UMPIRE_MODULES.md, .plans/UMPIRE4_SPEC.md, model/cases/**, common/testing/testpilot/**/testdata/**]
 
 ### Approach
+- Hand the milestone summary and shared-close evidence to the conductor. Only the conductor edits `MILESTONES.md` and completes its required update at the shared fn-148.7 close; workers do not edit that file.
 - Prepare the CEL identity-delta ledger against the retained baseline; consume fn-148.7's single format 4.0 regeneration, generated-artifact parity and full-protocol evidence.
 - Use live-caller and ownership checks to identify removable evaluator and walker code; retain no legacy replay path.
 - Account for every checked-in Case and Run companion; their regeneration and current-format replay occur once at fn-148.7.

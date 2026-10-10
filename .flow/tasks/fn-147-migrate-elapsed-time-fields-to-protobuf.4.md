@@ -7,10 +7,11 @@ satisfies: [R4, R5]
 Classify identity changes from the Duration fields and presence cleanup and update the rules of record for R4 and R5. Regeneration of affected Models, Cases and Run companions, full gates, review and live-run evidence occur once at fn-148.7; fn-147 does not close before that evidence is recorded.
 
 **Size:** M
-**Files:** generated Model IR and Cases, functional and canary fixtures, `model/README.md`, `model/SEMANTICS.md`, `.plans/UMPIRE_MODULES.md`, `MILESTONES.md`
-**Touches:** [model/ir/**, model/cases/**, tests/testcore/testpilot/testdata/generated/**, tools/canary/casebinding/testdata/**, model/README.md, model/SEMANTICS.md, .plans/UMPIRE_MODULES.md, MILESTONES.md]
+**Files:** generated Model IR and Cases, functional and canary fixtures, `model/README.md`, `model/SEMANTICS.md`, `.plans/UMPIRE_MODULES.md`
+**Touches:** [model/ir/**, model/cases/**, tests/testcore/testpilot/testdata/generated/**, tools/canary/casebinding/testdata/**, model/README.md, model/SEMANTICS.md, .plans/UMPIRE_MODULES.md]
 
 ### Approach
+- Hand the milestone summary and shared-close evidence to the conductor. Only the conductor edits `MILESTONES.md` and completes its required update at the shared fn-148.7 close; workers do not edit that file.
 - Prepare the Duration identity-delta ledger against the retained pre-migration baseline, accounting only for new fields, reserved predecessors and derived identities; compare generated artifacts at fn-148.7.
 - Inventory affected Model, Case and Run companions and link their single format 4.0 regeneration/replay evidence from fn-148.7.
 - Document units, defaults, precision, presence and monotonic elapsed semantics.

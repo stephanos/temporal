@@ -7,10 +7,11 @@ satisfies: [R8, R9]
 Regenerate the supported artifact surface, compare measurements and behavior, regenerate and replay checked-in companions, and update the rules of record for R8 and R9. This is the shared fn-146/fn-147/fn-148 regeneration, full-gate, review and live-run close. Close none of the three specs until every delta is categorized against this spec or its CEL and Duration predecessors and the shared evidence is linked from fn-146.7 and fn-147.4.
 
 **Size:** M
-**Files:** generated Cases and fixtures, recorded Runs, `model/SEMANTICS.md`, `model/README.md`, `.plans/UMPIRE_MODULES.md`, `.plans/UMPIRE4_SPEC.md`, `MILESTONES.md`
-**Touches:** [model/ir/**, model/cases/**, tests/testcore/testpilot/testdata/generated/**, tools/canary/**/testdata/**, common/testing/testpilot/**/testdata/**, model/SEMANTICS.md, model/README.md, .plans/UMPIRE_MODULES.md, .plans/UMPIRE4_SPEC.md, MILESTONES.md]
+**Files:** generated Cases and fixtures, recorded Runs, `model/SEMANTICS.md`, `model/README.md`, `.plans/UMPIRE_MODULES.md`, `.plans/UMPIRE4_SPEC.md`
+**Touches:** [model/ir/**, model/cases/**, tests/testcore/testpilot/testdata/generated/**, tools/canary/**/testdata/**, common/testing/testpilot/**/testdata/**, model/SEMANTICS.md, model/README.md, .plans/UMPIRE_MODULES.md, .plans/UMPIRE4_SPEC.md]
 
 ### Approach
+- Hand the milestone summary and shared-close evidence to the conductor. Only the conductor edits `MILESTONES.md` and completes its required update at the shared fn-148.7 close; workers do not edit that file.
 - Regenerate the affected Model IR, current-format Cases, functional/canary fixtures and recorded companions together once under format 4.0; retain no historical format branch. Consume the CEL and Duration identity-delta ledgers from fn-146.7 and fn-147.4.
 - Compare online and offline evaluation, causal buffering, same-atom/different-fields states, ordinals, defaults, ceilings, verdicts and identities.
 - Record compact-size and admission-cost results without claiming savings the measurements do not show.
