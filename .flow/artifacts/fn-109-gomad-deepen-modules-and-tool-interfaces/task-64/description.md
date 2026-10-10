@@ -1,0 +1,7 @@
+Correct the last observed unchecked child-fixture readiness write without changing production execution or successful watchdog/cancellation behavior. See [the bounded admission](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-64/admission.md).
+
+**Touches:** [tools/gomad3/runner/internal/execution/watchdog_io_test.go, tools/gomad3/runner/internal/execution/watchdog_fixture_output_test.go, .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-64/**]
+
+Use a checked readiness write and immediate fixture exit 3 on failure; retain terminal write/close, signal handling and healthy wait ordering. Test actual read-only-stdout child execution in both watchdog and cancelled modes. Existing parent assertions and default production execution are untouched. This corrective owner is independent of further local Runner redesign and supports fn-112.10/fn-109.63 acceptance without relaxing it. Root owns review/lifecycle/integration. Shared execution gates are serialized; no native/CI/PR/push authority.
+
+Quick commands (pinned documented Go environment; all tests include `test_dep`): focused `go test -tags test_dep -count=1 ./runner/internal/execution -run '^(TestWatchdogFixtureReadinessWriteFailure|TestRunIOTerminalAfterTermination)$'`, configured unfiltered package lint, affected vet/errortype, formatting and `make lint-code-fast`. Retain the original failing regression and actual source/tool/command bindings. Aggregate original-base lint is measured once at the frozen integration batch, not claimed green by a scoped command.
