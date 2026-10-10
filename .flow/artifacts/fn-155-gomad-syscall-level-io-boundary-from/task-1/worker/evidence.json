@@ -1,0 +1,30 @@
+{
+  "commits": [
+    "a28481d2eeffe7561b5a277770c88117d0ab24b4"
+  ],
+  "base_commit": "9f18f43e2127d3b448da3ca18f465e469eb1883c",
+  "tests": [
+    "BASELINE_UNAVAILABLE(exit2): make -C tools/gomad3 overlay-test test-toolchain test-simulation; unsupported linux/arm64",
+    "RED(exit1): go -C tools/gomad3 test -tags test_dep -count=1 -run TestDescriptorActivationOwnershipAndBound -v ./toolchain/runtime/overlay/src/internal/gomadvfd",
+    "RED(exit1): GOROOT=.flow/tmp/portable-goroot go test -tags test_dep -count=1 -v -run TestDescriptorBackendBindReservesLegacyListenerPort -overlay=.flow/tmp/backend-overlay.json internal/gomadio",
+    "RED(exit1): go -C tools/gomad3 test -tags test_dep -count=1 -run TestDescriptorRetainsReadinessBeforeRegistration -v ./toolchain/runtime/overlay/src/internal/gomadvfd",
+    "RED(exit1): GOROOT=.flow/tmp/portable-goroot go test -tags test_dep -count=1 -v -run TestDescriptorBackendImplicitClientPortSkipsReservations -overlay=.flow/tmp/backend-overlay.json internal/gomadio",
+    "PASS(exit0,4tests): GOROOT=.flow/tmp/portable-goroot go test -tags test_dep -count=1 -v -overlay=.flow/tmp/leaf-overlay.json internal/gomadvfd",
+    "PASS(exit0,6tests): TMPDIR=<pinned GOTMPDIR> GOROOT=.flow/tmp/portable-goroot go test -tags test_dep -count=1 -v -overlay=.flow/tmp/backend-overlay.json internal/gomadio",
+    "PASS(exit0): make -C tools/gomad3 generate",
+    "PASS(exit0): make -C tools/gomad3 validate",
+    "PASS(exit0; pinned-archive cases SKIP): TMPDIR=<pinned GOTMPDIR> go -C tools/gomad3 test -tags test_dep -count=1 -v -run 'Test(Validate|Materialize|Regenerate|PatchedRuntime|HostClock|.*Inventory|Generate|Load)' ./toolchain ./toolchain/version",
+    "PASS(exit0,1test): TMPDIR=<pinned GOTMPDIR> go -C tools/gomad3 test -tags test_dep -count=1 -run TestPackageArchitecture -v .",
+    "PASS(exit0,55hostpackages,50oldfindingsfiltered): TMPDIR=<pinned GOTMPDIR> make lint-code-fast GOLANGCI_LINT_BASE_REV=9f18f43e2127d3b448da3ca18f465e469eb1883c ALL_TEST_TAGS=test_dep GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype GOLANGCI_LINT_FIX=false",
+    "INCONCLUSIVE(exit1): go -C tools/gomad3 test -tags test_dep -count=1 -v ./toolchain/...; wrong overlay module context; cleanup permission probe additionally failed, attribution unresolved",
+    "INCONCLUSIVE(exit1): initial final focused host suite without TMPDIR override; cgo ENOSPC, inherited overlay TMPDIR inodes exhausted; approved pinned host TMPDIR retry passed",
+    "PASS(exit0): git diff --check",
+    "PASS(exit0,SOURCE_COMPILE_ONLY): GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GOROOT=.flow/tmp/patched-goroot go test -tags test_dep -c -o .flow/tmp/syscall-linux-amd64-final.test syscall",
+    "PASS(exit0,SOURCE_COMPILE_ONLY): GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GOROOT=.flow/tmp/patched-goroot go test -tags test_dep -c -o .flow/tmp/runtime-linux-amd64-final.test runtime",
+    "PASS(exit0,SOURCE_COMPILE_ONLY): GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GOROOT=.flow/tmp/patched-goroot go test -tags test_dep -c -o .flow/tmp/gomadio-linux-amd64-final.test internal/gomadio",
+    "PASS(exit0,SOURCE_COMPILE_ONLY): GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 GOROOT=.flow/tmp/patched-goroot go test -tags test_dep -c -o .flow/tmp/syscall-darwin-arm64-final.test syscall",
+    "PASS(exit0,SOURCE_COMPILE_ONLY): GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 GOROOT=.flow/tmp/patched-goroot go test -tags test_dep -c -o .flow/tmp/runtime-darwin-arm64-final.test runtime",
+    "PASS(exit0,SOURCE_COMPILE_ONLY): GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 GOROOT=.flow/tmp/patched-goroot go test -tags test_dep -c -o .flow/tmp/gomadio-darwin-arm64-final.test internal/gomadio"
+  ],
+  "prs": []
+}
