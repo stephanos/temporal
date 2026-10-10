@@ -144,10 +144,10 @@ equivalence proof that later work builds on, and at a format activation.
 | 1c | Compiler and lint | fn-156 | byte-identical | fn-156.7 | none |
 | 2 | Authoring | fn-140 → fn-149 → fn-123 | two equivalence seals, then meaning | fn-140.6, fn-149.5, fn-123.8 | once |
 | 3 | Testpilot format | fn-146 → fn-147 → fn-148 | breaking format | fn-146.7, fn-147.4, fn-148.7 | once |
+| 3b | Model DSL | fn-160.5 (equivalence check); fn-159.1, .3, .6, .7 (construct); fn-161.1; investigations fn-160.1, fn-162.1 | byte-identical | fn-161.1 | none |
 | 4 | Lifter | fn-141 | byte-identical | fn-141.14 | none |
 | 5 | Activity model | fn-128 → fn-138 → fn-129 | meaning | fn-128.6, fn-129.5 | once |
-| 6 | Model DSL | fn-159.1, .3, .6, .7 (construct); fn-161.1; investigations fn-160.1, fn-162.1 | byte-identical | fn-161.1 | none |
-| 7 | One regeneration | fn-162.2; fn-160.2–.4; fn-159.2, .4, .5, .7 (migration), .8; fn-161.2–.4; fn-162.3 | meaning-preserving, mapped identities | fn-160.2 | once |
+| 5b | One regeneration | fn-162.2; fn-160.2–.4; fn-159.2, .4, .5, .7 (migration), .8; fn-161.2–.4; fn-162.3 | meaning-preserving, mapped identities | fn-160.2 | once |
 
 ## Direction
 
@@ -838,8 +838,9 @@ The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeou
   repeated-call rejection to be observable.
 - Batch integration order retains Flow's predecessor dependencies; the batch-first strategy above
   permits documented parallel implementation ahead of those closures. Do not restore per-spec
-  regenerations or task-by-task review barriers. The activity model batch remains last for final
-  integration at the owner's request: until it closes, batches 2 and 3's live runs include activity Cases with
+  regenerations or task-by-task review barriers. The activity model batch integrates after the
+  other feature batches at the owner's request, followed only by Batch 5b (fn-159–fn-162's single
+  regeneration; owner, 2026-10-10): until it closes, batches 2 and 3's live runs include activity Cases with
   its three inherited failures (ordinary completion ambiguity, non-retryable failure visibility,
   pause/resume work ceiling), which those runs report but do not own.
 
@@ -875,35 +876,45 @@ Tasks run in order. Re-anchor against the actual baseline after the delivery cha
 hypothetical violations, actual model failures and live coverage separate. Mechanical checks
 do not establish developer comprehension, and absent feedback must remain explicit.
 
-## Batches 6–7: Model DSL, then one regeneration (fn-159–fn-162)
+## Batches 3b and 5b: Model DSL, then one regeneration (fn-159–fn-162)
 
 The four Model-readability specs are split across two batches by what they do to generated
-artifacts, not by spec. All Scala DSL and tooling changes come first, in Batch 6, which must leave
+artifacts, not by spec. All Scala DSL and tooling changes come first, in Batch 3b, which must leave
 every checked-in IR file, Case and fixture byte-identical. Every change that moves an IR id, a
-file boundary, a function name or a Case goes into Batch 7, which regenerates IR, Cases, lint
+file boundary, a function name or a Case goes into Batch 5b, which regenerates IR, Cases, lint
 acceptances and the pinned fixture trees **once**.
 
-**Placement:** after Batch 3 (fn-147's `Duration` migration currently breaks the lifter's build and
-the Cases check, and Batch 7 needs both), after Batch 4 (fn-141 rewrites the lifter; Batch 6 adds
-lifter constructs, so it builds on fn-141's descriptions instead of being re-described), and
-after Batch 5 (Batch 7 rewrites the activity model, so the activity's meaning changes land first
-and are migrated once). The read-only investigations (fn-160.1, fn-162.1) and Batch 6 source work
-may start earlier on a pinned baseline, under the batch-first strategy; their integration waits.
+**Placement (owner, 2026-10-10):** Batch 3b integrates after Batch 3 and before Batch 4. Batch 3
+(fn-147's `Duration` migration) currently breaks the lifter's build, and Batch 3b's byte-identical
+seal needs a green gate. Integrating before fn-141 means fn-141 describes the qualified, `enters`
+and facet forms rather than the ones Batch 3b removes. Batch 5b integrates last, after Batch 5:
+Batch 3 owns the IR/Case schema that fn-162.2 extends, Batch 2's new Query, Property and fault forms
+and Batch 5's activity changes are migrated once by it, and Batch 5 is mostly done, so it finishes
+first rather than rebasing onto the rewrite. Batch 4 keeps its position before Batch 5 (the
+2026-10-08 owner decision). fn-141 will still describe `irFile`/`exports`, claim containers and
+phase-only effects that Batch 5b removes; moving Batch 4 after 5b is an open option for the owner.
+The read-only investigations (fn-160.1, fn-162.1) run now, and Batch 3b source work may start on a
+pinned baseline under the batch-first strategy.
 
-**Batch 6, Model DSL (byte-identical; shared close fn-161.1):**
+**Co-design (owner, 2026-10-10):** fn-140 (one-sentence witness Queries, Batch 2) and fn-162.2
+(Query assessment sets, Batch 5b) both define what a Query says. One owner designs them together,
+so Batch 2 lands the Query form fn-162.2 extends instead of one that Batch 5b reshapes.
+
+**Batch 3b, Model DSL (byte-identical; shared close fn-161.1):**
 
 | Order | Task | What lands |
 | --- | --- | --- |
 | any | fn-160.1, fn-162.1 | Read-only investigations; their findings settle fn-160.2 and fn-162.2's designs |
+| 0 | fn-160.5 | Reusable equivalence check (capture a baseline, compare under a rename map, step tables); seals this batch and Batch 5b |
 | 1 | fn-159.1, fn-159.3 | Qualified `on` targets and phases, enforced by the lifter (and the framework for `on`); models migrated; IR unchanged. fn-159.1's `activityWorker` rename is IR-neutral (ids come from the kind) |
 | 2 | fn-159.6 | `Observation` drops `read`; IR unchanged |
 | 3 | fn-159.7 (construct only) | `enters(Phase.X)` in framework and lifter, with fixtures; no model migrated yet |
 | 4 | fn-161.1 | Facet construct, ownership and vocabulary checks, layout rules; no model migrated (allow-list) |
 
-**Batch 7, one regeneration (meaning-preserving, mapped identities; shared close fn-160.2):**
+**Batch 5b, one regeneration (meaning-preserving, mapped identities; shared close fn-160.2):**
 Tooling that changes the lifter's output comes first, then every model migration in dependency
-order on the new tooling, then a single regeneration. The equivalence seal is one scratch
-regeneration compared with a recorded rename map: every row, outcome, fact, Query answer and
+order on the new tooling, then a single regeneration. The equivalence seal is fn-160.5's check of one scratch
+regeneration against a recorded rename map: every row, outcome, fact, Query answer and
 total, and every Case's expected outcome must match; ids, file boundaries, function names and
 assessment sets may only move as the map states.
 
@@ -919,7 +930,18 @@ assessment sets may only move as the map states.
 | 6 | fn-160.3, fn-160.4 (moves) | Files split and moved into the flat layout and the `realization/` layer, with prefix and `Run` renames |
 | 7 | fn-160.2 (close) | Collection by feature package; single regeneration of IR, Cases, lint acceptances and fixture trees; equivalence seal; full gate; review; live run |
 
-**Decisions to collect before Batch 7 starts**, so the regeneration happens once:
+**Batch 5b lanes.** Most of the batch runs in parallel on disjoint files and joins at fn-160.2's
+regeneration. Only the activity lane is a chain:
+
+| Lane | Tasks | Files |
+| --- | --- | --- |
+| Go and assessment | fn-162.2 (with fn-140's owner) | proto, `tools/umpire`, assessment |
+| Lifter and lint | fn-160.2–.4 tooling | `model/irgen`, `model/check` |
+| Activity | fn-159.2, .4, .5, .7, .8 → fn-161.2+.3 → fn-162.3 → fn-160.3/.4 moves | `features/activity/` |
+| Nexus | fn-159.7/.8 parts → fn-161.4 (nexus) → moves | `features/nexus/` |
+| Task queue and worker | fn-161.4 parts → moves | `foundations/`, `actors/` |
+
+**Decisions to collect before Batch 5b starts**, so the regeneration happens once:
 - capability kind names (fn-159.8)
 - bound names for the `four`/`five`/`twelve` clashes and the `eight`/`control` merge (fn-159.5)
 - the facet vocabulary per feature (fn-161)

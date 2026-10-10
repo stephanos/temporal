@@ -22,7 +22,7 @@ Stage 1 for the standalone activity: move its effects and claims into facet file
 - **IR:** regenerate. Rows, outcomes, facts, Cases and Query answers must stay the same; differences limited to function bodies, hashes and source positions. Record them.
 
 ### Batching
-- Batch 7 (see MILESTONES.md): fn-161.2 and fn-161.3 are implemented in one pass on the activity, after fn-159.7's migration and fn-159.2's rename, and regenerated once with the batch. Their separate IR checks fold into the batch's equivalence seal.
+- Batch 5b (see MILESTONES.md): fn-161.2 and fn-161.3 are implemented in one pass on the activity, after fn-159.7's migration and fn-159.2's rename, and regenerated once with the batch. Their separate IR checks fold into the batch's equivalence seal.
 
 ### Quick commands
 ```sh

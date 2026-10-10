@@ -20,7 +20,7 @@ Make realizations a layer of their own. Each feature with realizations gets a fl
 - **Regenerate** the IR and Cases. Differences are limited to the listed realization renames (and Case names derived from them) and source paths. Update the pinned fixture trees.
 
 ### Prerequisite
-- fn-160.3 (flat prefix layout). Batch 7 (see MILESTONES.md): the lint rules land with the batch's tooling, the moves after fn-160.3's, and the regeneration is the batch's single one at fn-160.2. A working tree that builds the lifter and passes the Cases check.
+- fn-160.3 (flat prefix layout). Batch 5b (see MILESTONES.md): the lint rules land with the batch's tooling, the moves after fn-160.3's, and the regeneration is the batch's single one at fn-160.2. A working tree that builds the lifter and passes the Cases check.
 
 ### Quick commands
 ```sh

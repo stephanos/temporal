@@ -28,7 +28,7 @@ Require each Model file to declare at most one machine, composition or derivatio
 - **Regenerate:** object renames for prefixes change IR ids; and the IR records source file paths (`ResponseByID.scala` appears 52 times in `activity-standalone.json`), so moving machines changes the IR. Check that the diff contains only the listed renames, source paths and positions.
 
 ### Prerequisite
-- Batch 7 (see MILESTONES.md): the lint rules land with Batch 7's tooling; the file moves come after fn-162.3 removes the claim-container subjects (so they aren't split only to be deleted), and before fn-160.2's collection and the batch's single regeneration. No separate regeneration here. A working tree that builds the lifter (the in-progress IR `Duration` migration, plus `make protoc`).
+- Batch 5b (see MILESTONES.md): the lint rules land with Batch 5b's tooling; the file moves come after fn-162.3 removes the claim-container subjects (so they aren't split only to be deleted), and before fn-160.2's collection and the batch's single regeneration. No separate regeneration here. A working tree that builds the lifter (the in-progress IR `Duration` migration, plus `make protoc`).
 
 ### Quick commands
 ```sh

@@ -20,7 +20,7 @@ Replace explicit `irFile` lists with one IR file per feature folder, collected b
 
 ### Prerequisite
 - fn-160.1's inventory, with any split the user decided to keep.
-- Batch 7's shared close (see MILESTONES.md): the collection tooling lands with the batch's tooling; this task closes the batch with the single regeneration of IR, Cases, lint acceptances and fixture trees, the equivalence seal against the batch's rename map, the full gate, review and live run.
+- Batch 5b's shared close (see MILESTONES.md): the collection tooling lands with the batch's tooling; this task closes the batch with the single regeneration of IR, Cases, lint acceptances and fixture trees, the equivalence seal against the batch's rename map, the full gate, review and live run.
 - A working tree that builds the lifter and passes the Cases check (the in-progress IR `Duration` migration, plus `make protoc`).
 
 ### Quick commands
