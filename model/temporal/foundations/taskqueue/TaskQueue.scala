@@ -113,8 +113,3 @@ object fault extends Actor:
 // Committed storage may be lost. No machine makes the assumption of its own: a derivation that binds
 // the storage-loss step adds it.
 val storageLossAssumed = assume("storageLoss")
-
-val seven = Limits(steps = 7, actions = 7, search = 262144)
-
-// Past the depth of the detailed queue's table and of a design composed with it, which is ten.
-val twelve = Limits(steps = 12, actions = 12, search = 262144)
