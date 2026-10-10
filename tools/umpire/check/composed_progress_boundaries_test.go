@@ -205,7 +205,7 @@ func TestComposedProgressErrorsPreserveIndependentSafetyReceipts(t *testing.T) {
 		change func(*umpirespb.Model)
 		kind   ReceiptKind
 	}{
-		{"unsupported claim fairness", func(m *umpirespb.Model) { m.Progress[1].Assumptions = []string{"generic.tickRuns"} }, Unsupported},
+		{"unscoped legacy fairness", func(m *umpirespb.Model) { m.Progress[1].Assumptions = []string{"generic.tickRuns"} }, Unsupported},
 		{"non Boolean predicate", func(m *umpirespb.Model) {
 			functionNamed(m, "generic.bothZero").Body = expr(admIntValue(0))
 		}, DeclarationError},

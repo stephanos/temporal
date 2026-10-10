@@ -985,16 +985,92 @@ func (b *binding) progress(p *umpirespb.Progress) (*umpire.Progress, *subject, e
 	for _, id := range p.GetAssumptions() {
 		for _, a := range b.model.GetAssumptions() {
 			if a.GetId() == id {
-				if s.machine == nil && len(a.GetFair()) > 0 {
-					return nil, s, &unsupportedError{"claim fairness on composition " + s.name + " requires scoped action references"}
+				if s.machine != nil {
+					assumptions = append(assumptions, b.assumption(a))
+					continue
 				}
-				assumptions = append(assumptions, b.assumption(a))
+				resolved, err := b.composedAssumption(s, a)
+				if err != nil {
+					return nil, s, err
+				}
+				assumptions = append(assumptions, resolved)
 			}
 		}
 	}
 	claim := umpire.KeyProgressFunc(p.GetName(), accepts(p.GetFrom()), accepts(p.GetTo()), int(p.GetWithin()), assumptions...)
 	claim.Unknown = Unknown
 	return claim, s, nil
+}
+
+func (b *binding) composedAssumption(s *subject, a *umpirespb.Assumption) (Assumption, error) {
+	out := Assumption{Name: a.GetName()}
+	if len(a.GetFair()) > 0 {
+		return out, &unsupportedError{"claim fairness on composition " + s.name + " requires scoped action references"}
+	}
+	for _, ref := range a.GetFairRefs() {
+		if ref.GetComposition() != s.name {
+			return out, interp.ErrorAt(a.GetPosition(), "assumption %s selects composition %s, not %s", a.GetName(), ref.GetComposition(), s.name)
+		}
+		var selections []string
+		var exact *umpirespb.ActionClass
+		member := ref.GetMember()
+		switch selected := ref.GetSelection().(type) {
+		case *umpirespb.ComposedActionRef_Action:
+			selections = b.fairActionClasses(s.name, member, selected.Action)
+			if len(selections) == 0 {
+				return out, interp.ErrorAt(a.GetPosition(), "assumption %s: %s.%s has no classes of action %s", a.GetName(), s.name, member, selected.Action)
+			}
+		case *umpirespb.ComposedActionRef_ActionClass:
+			selections = []string{b.classKey(selected.ActionClass)}
+		case *umpirespb.ComposedActionRef_Sync:
+			selections = []string{selected.Sync}
+		case *umpirespb.ComposedActionRef_SyncClass:
+			selections, exact = []string{selected.SyncClass.GetAction()}, selected.SyncClass
+		default:
+			return out, interp.ErrorAt(a.GetPosition(), "assumption %s has no known fairness selection", a.GetName())
+		}
+		fair, err := s.table.ComposedFair(member, Assumption{Name: a.GetName(), Fair: selections})
+		if err != nil {
+			return out, interp.ErrorAt(a.GetPosition(), "%v", err)
+		}
+		if exact != nil {
+			selection := selections[0]
+			key := interp.ClassKey(b.in, map[string]*umpirespb.Action{selection: {Name: selection}}, exact)
+			fair = slices.DeleteFunc(fair, func(class string) bool { return class != key })
+			if len(fair) != 1 {
+				return out, interp.ErrorAt(a.GetPosition(), "assumption %s: %s has no unique class %s", a.GetName(), s.name, key)
+			}
+		}
+		slices.Sort(fair)
+		for _, class := range fair {
+			if !slices.Contains(out.Fair, class) {
+				out.Fair = append(out.Fair, class)
+			}
+		}
+	}
+	return out, nil
+}
+
+func (b *binding) fairActionClasses(owner, member, action string) []string {
+	var out []string
+	for _, c := range b.model.GetCompositions() {
+		if c.GetName() != owner {
+			continue
+		}
+		for _, m := range c.GetMembers() {
+			if m.GetField() != member {
+				continue
+			}
+			if mm := b.machines[m.GetMachine()]; mm != nil {
+				for _, class := range mm.Classes {
+					if class.Action.GetId() == action {
+						out = append(out, class.Key)
+					}
+				}
+			}
+		}
+	}
+	return out
 }
 
 // claim is the key of a Property or a Scenario: the machine or composition it is declared on, and its

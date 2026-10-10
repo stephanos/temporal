@@ -147,6 +147,47 @@ func TestAMembersFairnessNamesItsComposedClasses(t *testing.T) {
 	require.EqualError(t, err, "compose-haunted: the assumption ghostIsFair of door makes ghost fair, which is no action of door")
 }
 
+func TestClaimFairnessReadsImmutableComposedCatalog(t *testing.T) {
+	member := umpire.NewTable(umpire.TableSpec{Machine: "member", Family: "test.progress",
+		States: []string{"waiting"}, Starts: []string{"waiting"}, Actions: []string{"tick-0", "tick-1"}, Outcomes: []string{"ok"},
+		Assumptions: []umpire.Assumption{{Name: "legacy", Fair: []string{"tick"}}},
+		Rows:        []umpire.Row{rowOf("waiting", "tick-0", resultOf("ok", "waiting")), rowOf("waiting", "tick-1", resultOf("ok", "waiting"))}})
+	for _, synced := range []bool{false, true} {
+		t.Run(map[bool]string{false: "repeated members", true: "sync classes"}[synced], func(t *testing.T) {
+			spec := umpire.ComposeSpec{Family: "test.progress", Name: "pair", Ceiling: roomy,
+				Members: []umpire.ComposeMember{{Field: "left", Table: member}, {Field: "right", Table: member}}}
+			memberWant := []string{"right_tick-1"}
+			legacyWant := []string{"left_tick-0", "left_tick-1", "right_tick-0", "right_tick-1"}
+			if synced {
+				spec.Syncs = []umpire.ComposeSync{{Name: "tick-together", FirstMember: "left", FirstAction: "tick", SecondMember: "right", SecondAction: "tick"}}
+				memberWant = []string{"tick-together-0-1", "tick-together-1-1"}
+				legacyWant = []string{"tick-together-0-0", "tick-together-0-1", "tick-together-1-0", "tick-together-1-1"}
+			}
+			tb := composed(t, spec)
+			ids, fingerprint := tb.IDs(), tb.TargetFingerprint()
+			fair, err := tb.ComposedFair("right", umpire.Assumption{Name: "runs", Fair: []string{"tick-1"}})
+			require.NoError(t, err)
+			require.Equal(t, memberWant, fair)
+			fair[0] = "changed by caller"
+			fresh, err := tb.ComposedFair("right", umpire.Assumption{Name: "runs", Fair: []string{"tick-1"}})
+			require.NoError(t, err)
+			require.Equal(t, memberWant, fresh)
+			if synced {
+				fair, err = tb.ComposedFair("", umpire.Assumption{Name: "runs", Fair: []string{"tick-together"}})
+				require.NoError(t, err)
+				require.Equal(t, []string{"tick-together-0-0", "tick-together-0-1", "tick-together-1-0", "tick-together-1-1"}, fair)
+			} else {
+				_, err = tb.ComposedFair("", umpire.Assumption{Name: "runs", Fair: []string{""}})
+				require.ErrorContains(t, err, "no sync")
+			}
+			require.Equal(t, []umpire.Assumption{{Name: "legacy", Fair: legacyWant}}, tb.Assumptions)
+			require.Equal(t, []umpire.Assumption{{Name: "legacy", Fair: []string{"tick"}}}, member.Assumptions)
+			require.Equal(t, ids, tb.IDs())
+			require.Equal(t, fingerprint, tb.TargetFingerprint())
+		})
+	}
+}
+
 func TestComposedSameNamedFairnessUnionsRepeatedMembersWithoutLosingClasses(t *testing.T) {
 	member := umpire.NewTable(umpire.TableSpec{Machine: "counter", Family: "test.progress",
 		States: []string{"waiting", "done"}, Starts: []string{"waiting"}, Actions: []string{"finish", "poll"}, Outcomes: []string{"ok"},

@@ -301,6 +301,43 @@ func (this *Assumption) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ComposedActionRef to the protobuf v3 wire format
+func (val *ComposedActionRef) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ComposedActionRef from the protobuf v3 wire format
+func (val *ComposedActionRef) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ComposedActionRef) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ComposedActionRef values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ComposedActionRef) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ComposedActionRef
+	switch t := that.(type) {
+	case *ComposedActionRef:
+		that1 = t
+	case ComposedActionRef:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type Hole to the protobuf v3 wire format
 func (val *Hole) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

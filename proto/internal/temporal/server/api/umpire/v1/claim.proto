@@ -202,7 +202,7 @@ message Limits {
 // A bounded progress claim: from a state `from` accepts, a state `to` accepts follows within
 // `within` steps, under the named assumptions.
 message Progress {
-  // The machine's name.
+  // The machine's or composition's name.
   string machine = 1;
   string name = 2;
   Position position = 3;

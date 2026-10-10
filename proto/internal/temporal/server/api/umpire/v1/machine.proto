@@ -152,6 +152,27 @@ message Assumption {
   Position position = 3;
   // Actions, by id, that the assumption makes weakly fair: one that stays enabled is taken.
   repeated string fair = 4;
+  // Composed classes made weakly fair under this assumption. Member selections map to every
+  // composed class that steps them, including syncs; enabledness is that of the composed class.
+  repeated ComposedActionRef fair_refs = 5;
+}
+
+// A fairness selection on one composition, independent of separator-joined class keys.
+message ComposedActionRef {
+  string composition = 1;
+  // The member field, required for action selections and absent for sync selections.
+  string member = 2;
+  oneof selection {
+    // Every class of this member action, by id.
+    string action = 3;
+    // One class of this member action, with its typed inputs.
+    ActionClass action_class = 4;
+    // Every class of the sync of this name.
+    string sync = 5;
+    // One sync class: ActionClass.action is the sync name and inputs are the first move's inputs
+    // followed by the second move's inputs, in each action's input order.
+    ActionClass sync_class = 6;
+  }
 }
 
 // A declared hole: behavior the Model leaves unknown on purpose, which makes a result that reaches it
