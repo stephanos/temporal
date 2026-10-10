@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-09.
+As of 2026-10-10.
 
 ## Keeping this page current
 
@@ -98,7 +98,7 @@ equivalence proof that later work builds on, and at a format activation.
 | # | Batch | Specs | Nature | Shared close | Live run |
 | --- | --- | --- | --- | --- | --- |
 | 1b | Activity abstractions | fn-155 (named repeated patterns) | meaning-preserving, mapped identities | fn-155.6 | none |
-| 1c | Compiler and lint | fn-156 | byte-identical | fn-156 final task (planning underway) | none |
+| 1c | Compiler and lint | fn-156 | byte-identical | fn-156.7 | none |
 | 2 | Authoring | fn-140 → fn-123 | equivalence sealed, then meaning | fn-140.6, fn-123.8 | once |
 | 3 | Testpilot format | fn-146 → fn-147 → fn-148 | breaking format | fn-146.7, fn-147.4, fn-148.7 | once |
 | 4 | Lifter | fn-141 | byte-identical | fn-141.14 | none |
@@ -160,21 +160,26 @@ and the pending-control remodel.
 #### fn-156: Let the Scala compiler and lint enforce Model correctness
 
 [Spec](.flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md) is scheduled immediately
-after fn-155, before batch 2, by the owner's instruction on 2026-10-09. Its task breakdown and
-independent plan review are underway; implementation starts from fn-155's committed closure.
-- **Stricter compiler flags.** `-Wunused:all`, `-Wvalue-discard`, `-Wnonunit-statement`,
-  `-Wsafe-init` and `-Wimplausible-patterns` produced one finding in a scratch compile.
-- **Strict equality.** `-language:strictEquality`, with `Finite` supplying `CanEqual`, which clears
-  nearly all of its 351 scratch errors.
-- **A trial of explicit nulls.**
-- **Lint rules.** Section order, dotted `in`, module-map imports, no wildcard case on model enums,
-  and no unqualified cross-level `Phase`/`Fact`/`State` imports.
-- **Law tests that find every exported machine**, with exhaustive `Finite` iteration and a
-  step-table pin for every machine.
-- **A two-day capture-checking spike.**
+after fn-155, before batch 2, by the owner's instruction on 2026-10-09. Its eight-task plan passed
+independent review and is ready; implementation starts from fn-155's committed closure.
+The source lane runs .1 through .6 in order. Report-only .8 runs independently in an isolated
+checkout of the same baseline; .7 joins both lanes for documentation and the full close.
 
-It changes no IR or Case and serializes with other Model source work. The compile-versus-lift
-items from the same review remain notes on fn-141.
+It changes no IR or Case byte, including positions, and serializes with other Model source work.
+Task .1 proves sound equality evidence and byte-preserving exhaustive-match lowering before
+rollout; an infeasible proof stops that source lane without relaxing acceptance. The
+compile-versus-lift items from the same review remain notes on fn-141.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-156.1 | ⬜ todo | Warning checks, finite equality evidence, and early exhaustive-match/raw-byte compatibility proof |
+| fn-156.2 | ⬜ todo | Strict equality and precise equality-lint policy across authoring, lifter, fixtures and gate tooling |
+| fn-156.3 | ⬜ todo | Section order, dotted membership, permitted imports and exhaustive enum/state matches |
+| fn-156.4 | ⬜ todo | Discover every exported machine for totality, closedness, relation and binding-order laws |
+| fn-156.5 | ⬜ todo | Complete finite-domain tests and independent interpreter table pins for every Activity/Nexus machine |
+| fn-156.6 | ⬜ todo | Explicit-nulls trial across compiler roots; adopt with boundary fixes or report findings and drop |
+| fn-156.8 | ⬜ todo | Two-day isolated Draft capture-confinement spike; diagnostics, limitations and adoption-cost report |
+| fn-156.7 | ⬜ todo | Join reports, document enforcement, exact artifact comparison, full gates and reviews; close |
 
 ### Batch 2, authoring: fn-140 → fn-123
 
