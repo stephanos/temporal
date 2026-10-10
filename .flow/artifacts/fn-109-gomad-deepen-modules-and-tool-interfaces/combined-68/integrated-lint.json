@@ -1,0 +1,24 @@
+{
+  "argv": [
+    "make",
+    "lint-code-gomad3",
+    "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "ALL_TEST_TAGS=test_dep"
+  ],
+  "elapsed_seconds": 4.66427004399884,
+  "environment_overrides": {},
+  "exit": 2,
+  "handle_terminal": true,
+  "log_sha256": "47bd86c12aaffade848141004f8a79b8e3f2cc1bcc69fdb5e8487b3968ecb8ed",
+  "name": "integrated-lint",
+  "outer_timeout_seconds": 900,
+  "run_binding_sha256": "50780dd40849c42621f0f1d707132fb44b022b1aaf7fb9846da2315b79483d28",
+  "source_after_manifest_sha256": "f76076a82761a2a250eda3e97bf23c51d1c1520a5a53023b2c0897a31f756314",
+  "source_before_after_equal": true,
+  "source_before_manifest_sha256": "f76076a82761a2a250eda3e97bf23c51d1c1520a5a53023b2c0897a31f756314",
+  "utc_end": "2026-10-10T02:26:11.471055+00:00",
+  "utc_start": "2026-10-10T02:26:06.806953+00:00"
+}

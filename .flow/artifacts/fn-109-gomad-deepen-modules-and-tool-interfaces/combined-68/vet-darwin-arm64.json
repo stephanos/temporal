@@ -1,0 +1,30 @@
+{
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "vet",
+    "-tags",
+    "test_dep",
+    "./runner",
+    "./internal/gomadtool/conformance",
+    "./runner/internal/execution"
+  ],
+  "elapsed_seconds": 2.5889150010043522,
+  "environment_overrides": {
+    "CGO_ENABLED": "0",
+    "GOARCH": "arm64",
+    "GOOS": "darwin"
+  },
+  "exit": 0,
+  "handle_terminal": true,
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "name": "vet-darwin-arm64",
+  "outer_timeout_seconds": 900,
+  "run_binding_sha256": "50780dd40849c42621f0f1d707132fb44b022b1aaf7fb9846da2315b79483d28",
+  "source_after_manifest_sha256": "f76076a82761a2a250eda3e97bf23c51d1c1520a5a53023b2c0897a31f756314",
+  "source_before_after_equal": true,
+  "source_before_manifest_sha256": "f76076a82761a2a250eda3e97bf23c51d1c1520a5a53023b2c0897a31f756314",
+  "utc_end": "2026-10-10T02:26:14.967762+00:00",
+  "utc_start": "2026-10-10T02:26:12.378864+00:00"
+}
