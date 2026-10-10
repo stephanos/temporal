@@ -288,6 +288,7 @@ CI, PR, or push authority.
 | [fn-109.62](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.62.md) | 🚧 In progress | Bound progress-test startup and observe early completion |
 | [fn-109.63](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.63.md) | 🚧 In progress | Decompose local campaign orchestration before further Runner changes |
 | [fn-109.64](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.64.md) | 🚧 In progress | Check watchdog fixture readiness writes without masking setup failure |
+| [fn-109.65](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.65.md) | ⬜ Todo | Restore explicit scripted Runner preparation and bootstrap coverage |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 
