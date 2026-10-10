@@ -501,7 +501,7 @@ generation for compositions is outside this spec.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-150.1 | ⏸️ deferred | Complete scoped implementation checkpoint; 29 focused tests and lint pass, original Quick OOM before/after; review and closure held |
+| fn-150.1 | ⏸️ deferred | Complete scoped implementation checkpoint; 29 focused tests and lint pass, original Quick OOM before/after and after private daemon exit; review and closure held |
 | fn-150.2 | ⬜ todo | Structured fairness references, inherited/replacement mapping |
 | fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
 | fn-150.4 | ⬜ todo | Bound, fairness, holes, starts and witness-replay regressions |
@@ -516,6 +516,14 @@ paths before dispatch. This admission does not release fn-156's fn-155 closure d
 Task .1's original Quick remains RED. Checkpoint `2d64387595` stays unintegrated and unreviewed
 on its task branch; its Flow block reason links the complete scoped proof and unchanged full
 verification obligation. Task .2 cannot start until .1 is verified and closed.
+
+The one unchanged Quick retry after the private fn-155 compiler daemon exited also failed
+naturally: exit 1 after 39.102 seconds, checker killed after 36.698 seconds and reader cached pass.
+Kernel evidence records global OOM; minimum sampled available host RAM was 319,632 KiB.
+The default runtime, original selector and shared heavy-command lock were preserved. The terminal
+receipt and kernel logs remain in the task worktree's `.flow/tmp/fn150/task1/revisit-private-exit/`.
+Revisit only after a material memory-capacity change or a preservation-safe repair, not for a
+disk-only improvement. Passing focused checks do not replace the original Quick obligation.
 
 ### fn-157: Bound native verification memory and scratch storage
 
