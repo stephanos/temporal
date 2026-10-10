@@ -15,11 +15,13 @@ import (
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 type ResumeSpec struct {
+	Backend            backend.Provider `json:"-"`
 	CampaignPath       string
 	ToolchainRoot      string
 	RunnerBuild        string
@@ -37,7 +39,7 @@ func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
 
 func resumeWith(ctx context.Context, spec ResumeSpec, dependencies executionDependencies) (CampaignResult, error) {
 	return exploreWith(ctx, CampaignSpec{
-		ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild, GuideRegressionOverride: spec.GuideRegression,
+		Backend: spec.Backend, ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild, GuideRegressionOverride: spec.GuideRegression,
 		Target:            target.Spec{ToolchainRoot: spec.ToolchainRoot},
 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), CoordinatorCommand: append([]string(nil), spec.CoordinatorCommand...),
 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
@@ -49,8 +51,14 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded Runner build identity %s does not match this Runner %s", plan.RunnerBuild, request.RunnerBuild)
 	}
 	profile := deterministicio.Default()
-	if !profile.Matches(plan.IOProfile) {
+	if plan.Prepared.Target.Backend == nil && !profile.Matches(plan.IOProfile) {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded I/O profile identity does not match this Runner")
+	}
+	if metadata := plan.Prepared.Target.Backend; metadata != nil {
+		identity := record.BackendIOProfile(*metadata)
+		if plan.IOProfile.Name != identity.Name || string(plan.IOProfile.ImplementationSHA256) != string(identity.ImplementationSHA256) || string(plan.IOProfile.InventorySHA256) != string(identity.InventorySHA256) {
+			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded I/O profile identity does not match the external backend")
+		}
 	}
 	if request.GuideRegressionOverride != nil && (plan.Guidance == nil || *request.GuideRegressionOverride != plan.Guidance.Regression) || request.GuideRegression && (plan.Guidance == nil || !plan.Guidance.Regression) || request.Guide && (plan.Guidance == nil || request.GuideRegression != plan.Guidance.Regression) {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("resume guidance regression mode does not match campaign plan")
@@ -68,7 +76,8 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
 	prepared := target.Prepared{
-		Path: filepath.Join(request.ResumeCampaign, filepath.FromSlash(plan.Prepared.Path)), Kind: target.Kind(plan.Prepared.Target.Kind), Source: plan.Prepared.Target.Source,
+		Backend: record.CloneBackendMetadata(plan.Prepared.Target.Backend),
+		Path:    filepath.Join(request.ResumeCampaign, filepath.FromSlash(plan.Prepared.Path)), Kind: target.Kind(plan.Prepared.Target.Kind), Source: plan.Prepared.Target.Source,
 		SHA256: string(plan.Prepared.Target.SHA256), Size: uint64(plan.Prepared.Target.Size), Argv: append([]string(nil), plan.Prepared.Target.Argv...),
 		BuildTags: append([]string(nil), plan.Prepared.Target.BuildTags...), Adapters: cloneAdapters(plan.Prepared.Target.Adapters), Compatibility: cloneCompatibility(plan.Prepared.Target.Compatibility), BuildInfo: cloneBuildInfo(plan.Prepared.Target.BuildInfo),
 		GoVersion: plan.Toolchain.GoVersion, BuildKey: plan.Toolchain.BuildKey, TargetGOOS: plan.Toolchain.TargetGOOS, TargetGOARCH: plan.Toolchain.TargetGOARCH,
@@ -77,19 +86,34 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 	if err := prepared.Verify(); err != nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
-	if err := deterministicio.Default().VerifyAdapters(deterministicAdapters(prepared.Adapters)); err != nil {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
-	}
-	if request.executor == nil {
-		identity, err := target.ReadToolchainIdentity(request.Target.ToolchainRoot)
-		if err != nil {
+	if prepared.Backend != nil {
+		if request.Backend == nil {
+			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("resume requires the recorded external backend provider")
+		}
+		if err := loadPreparedBackend(request.ResumeCampaign, plan.Prepared.Path, &prepared); err != nil {
 			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 		}
-		if identity.GoVersion != plan.Toolchain.GoVersion || identity.BuildKey != plan.Toolchain.BuildKey || identity.TargetGOOS != plan.Toolchain.TargetGOOS || identity.TargetGOARCH != plan.Toolchain.TargetGOARCH {
-			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded toolchain identity does not match the pinned toolchain")
+		spec := target.Spec{Backend: prepared.Backend.Name, Kind: prepared.Kind, Source: prepared.Source, Args: prepared.Argv[1:], BuildTags: prepared.BuildTags}
+		if err := request.Backend.ValidatePrepared(spec, prepared.CloneBackend(), nil); err != nil {
+			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
+		}
+	}
+	if prepared.Backend == nil {
+		if err := deterministicio.Default().VerifyAdapters(deterministicAdapters(prepared.Adapters)); err != nil {
+			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
+		}
+		if request.executor == nil {
+			identity, err := target.ReadToolchainIdentity(request.Target.ToolchainRoot)
+			if err != nil {
+				return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
+			}
+			if identity.GoVersion != plan.Toolchain.GoVersion || identity.BuildKey != plan.Toolchain.BuildKey || identity.TargetGOOS != plan.Toolchain.TargetGOOS || identity.TargetGOARCH != plan.Toolchain.TargetGOARCH {
+				return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded toolchain identity does not match the pinned toolchain")
+			}
 		}
 	}
 	config := CampaignSpec{
+		Backend:        request.Backend,
 		ResumeCampaign: request.ResumeCampaign, PlanSHA256: plan.PlanSHA256, Shard: runnerCampaignShard(plan.Shard),
 		Strategy: Strategy(plan.Strategy), Seeds: plan.Selection, Parallel: int(plan.Parallel), ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: FailurePolicy(plan.OnFailure), FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
@@ -100,6 +124,9 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
 		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Replayer: request.Replayer,
+	}
+	if prepared.Backend != nil {
+		config.Target = target.Spec{Backend: prepared.Backend.Name, Kind: prepared.Kind, Source: prepared.Source, Args: append([]string(nil), prepared.Argv[1:]...), BuildTags: append([]string(nil), prepared.BuildTags...)}
 	}
 	if plan.ChoiceProfile != nil {
 		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)

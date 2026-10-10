@@ -1,0 +1,256 @@
+//go:build wasip1 && wasm
+
+package runtime
+
+import (
+	"internal/chacha8rand"
+	"internal/goarch"
+	"internal/runtime/atomic"
+	"internal/runtime/exithook"
+	"math/bits"
+	"unsafe"
+)
+
+const gomadChoiceMaximumAlternatives = 256
+
+var gomadEnabled bool
+var gomadSeed uint64
+var gomadChoiceEnabled bool
+var gomadDiagnosticEnabled bool
+var gomadDiagnosticDraws gomadDiagnosticDrawCounts
+var gomadRuntimeRandom chacha8rand.State
+var gomadRuntimeCheapRandom uint32
+var gomadTimerRandom uint32
+var gomadChoiceRunqRandom chacha8rand.State
+var gomadChoiceSchedulerRandom chacha8rand.State
+var gomadChoiceSelectRandom uint64
+var gomadChoiceTimerCallback gomadChoiceTimerIdentity
+var gomadChoicePeakGoroutines uint32
+var gomadRuntimeGoroutineOrdinal atomic.Uint64
+var gomadChoiceRecords atomic.Uint64
+var gomadChoiceSchedulerAlternatives [gomadChoiceMaximumAlternatives][32]byte
+var gomadChoiceSchedulerOrdered [gomadChoiceMaximumAlternatives][32]byte
+var gomadChoiceSchedulerOffsets [gomadChoiceMaximumAlternatives]uint32
+var gomadWasmLastTime int64
+var gomadWasmFinished bool
+var gomadWasmConfigBuffer [16]byte
+var gomadWasmDecisionBuffer [32 + 32*gomadChoiceMaximumAlternatives + gomadDiagnosticRecordBytes]byte
+var gomadWasmObservationBuffer [gomadChoiceRecordBytes + gomadDiagnosticRecordBytes]byte
+var gomadWasmFinishBuffer [16]byte
+var gomadWasmIdleBuffer [16]byte
+var gomadWasmNotes *note
+
+//go:wasmimport gomad_wasm_v1 config
+//go:noescape
+func gomadWasmConfig(*byte, uint32) uint32
+
+//go:wasmimport gomad_wasm_v1 decision
+//go:noescape
+func gomadWasmDecision(*byte, uint32) uint32
+
+//go:wasmimport gomad_wasm_v1 observation
+//go:noescape
+func gomadWasmObservation(*byte, uint32) uint32
+
+//go:wasmimport gomad_wasm_v1 finish
+//go:noescape
+func gomadWasmFinish(*byte, uint32) uint32
+
+//go:wasmimport gomad_wasm_v1 idle
+//go:noescape
+func gomadWasmIdle(*byte, uint32) uint32
+
+func gomadWasmInit() {
+	if gomadWasmConfig(&gomadWasmConfigBuffer[0], uint32(len(gomadWasmConfigBuffer))) != 0 || gomadChoiceRead32(gomadWasmConfigBuffer[:4]) != 1 || gomadChoiceRead32(gomadWasmConfigBuffer[4:8]) & ^uint32(1) != 0 {
+		gomadWasmExit(125)
+	}
+	gomadSeed = gomadChoiceRead64(gomadWasmConfigBuffer[8:])
+	gomadDiagnosticEnabled = gomadChoiceRead32(gomadWasmConfigBuffer[4:8])&1 != 0
+	gomadEnabled = true
+	gomadChoiceEnabled = true
+	gomadChoiceSeedRandom()
+}
+
+func gomadWasmStartUserCode(mp *m) {
+	gomadChoiceSeedRandom()
+	gomadChoiceRootIdentity(mp.curg)
+	exithook.Add(exithook.Hook{F: gomadWasmFinalize, RunOnFailure: true})
+	mrandinit(mp)
+	mp.p.ptr().schedtick = 0
+}
+
+//go:nosplit
+func gomadDiagnosticCheckSeededDraw(*m) {}
+
+func gomadChoiceDivergeCurrent(uint8) {
+	gomadWasmFinished = true
+	gomadWasmExit(125)
+}
+
+func gomadWasmDiagnostic(target []byte) {
+	clear(target)
+	pp := getg().m.p.ptr()
+	value := gomadDiagnosticRecordValue{
+		ordinal: gomadChoiceRecords.Load(), virtualTime: gomadWasmLastTime,
+		allocations: gomadDiagnosticAllocations(pp), gcCycle: work.cycles.Load(),
+		gcPhase: uint8(gcphase), runQueueLength: pp.runqtail - pp.runqhead,
+		draws: gomadDiagnosticDraws,
+	}
+	if pp.runnext != 0 {
+		value.runQueueLength++
+	}
+	gomadDiagnosticEncodeRecord(target, &value)
+}
+
+func gomadChoiceDecision(kind, flags uint8, site uint64, alternatives [][32]byte, ordered *[gomadChoiceMaximumAlternatives][32]byte, seeded, data uint32) uint32 {
+	if len(alternatives) < 1 || len(alternatives) > gomadChoiceMaximumAlternatives || seeded >= uint32(len(alternatives)) {
+		gomadChoiceDivergeCurrent(gomadChoiceDivergenceAlternativeCapacity)
+	}
+	if len(alternatives) == 1 {
+		return seeded
+	}
+	buffer := gomadWasmDecisionBuffer[:]
+	clear(buffer)
+	gomadChoicePut32(buffer[:4], 1)
+	gomadChoicePut32(buffer[4:8], uint32(kind))
+	gomadChoicePut64(buffer[8:16], site)
+	gomadChoicePut32(buffer[16:20], uint32(flags&gomadChoiceFlagSiteMissing))
+	gomadChoicePut32(buffer[20:24], uint32(len(alternatives)))
+	gomadChoicePut32(buffer[24:28], seeded)
+	gomadChoicePut32(buffer[28:32], data)
+	for index := range alternatives {
+		copy(buffer[32+32*index:32+32*(index+1)], alternatives[index][:])
+	}
+	length := uint32(32 + 32*len(alternatives))
+	if gomadDiagnosticEnabled {
+		gomadWasmDiagnostic(buffer[length : length+gomadDiagnosticRecordBytes])
+		length += gomadDiagnosticRecordBytes
+	}
+	if gomadWasmDecision(&buffer[0], length) != 0 {
+		gomadChoiceDivergeCurrent(0)
+	}
+	selected := gomadChoiceRead32(buffer[24:28])
+	if selected >= uint32(len(alternatives)) {
+		gomadChoiceDivergeCurrent(gomadChoiceDivergenceSelected)
+	}
+	gomadChoiceRecords.Add(1)
+	return selected
+}
+
+func gomadChoiceAppendRecord(value gomadChoiceRecordValue) {
+	buffer := gomadWasmObservationBuffer[:]
+	clear(buffer)
+	value.ordinal = gomadChoiceRecords.Load()
+	gomadChoiceEncodeRecord(buffer[:gomadChoiceRecordBytes], value)
+	length := uint32(gomadChoiceRecordBytes)
+	if gomadDiagnosticEnabled {
+		gomadWasmDiagnostic(buffer[length : length+gomadDiagnosticRecordBytes])
+		length += gomadDiagnosticRecordBytes
+	}
+	if gomadWasmObservation(&buffer[0], length) != 0 {
+		gomadChoiceDivergeCurrent(0)
+	}
+	gomadChoiceRecords.Add(1)
+}
+
+func gomadWasmFinalize() {
+	if !gomadEnabled || gomadWasmFinished {
+		return
+	}
+	gomadWasmFinished = true
+	gomadChoicePut32(gomadWasmFinishBuffer[:4], 1)
+	gomadChoicePut32(gomadWasmFinishBuffer[4:8], gomadChoicePeakGoroutines)
+	gomadChoicePut64(gomadWasmFinishBuffer[8:], uint64(gomadWasmLastTime))
+	if gomadWasmFinish(&gomadWasmFinishBuffer[0], uint32(len(gomadWasmFinishBuffer))) != 0 {
+		gomadWasmExit(125)
+	}
+}
+
+//go:nosplit
+func exit(code int32) {
+	gomadWasmFinalize()
+	gomadWasmExit(code)
+}
+
+func gomadWasmNotePark(gp *g, pointer unsafe.Pointer) bool {
+	n := (*note)(pointer)
+	if n.key != 0 {
+		return false
+	}
+	n.waiter.set(gp)
+	n.status = 1
+	n.next = gomadWasmNotes
+	gomadWasmNotes = n
+	return true
+}
+
+func gomadWasmNoteSleep(n *note, ns int64) bool {
+	gp := getg()
+	if gp == gp.m.g0 {
+		throw("notetsleepg on g0")
+	}
+	if n.key != 0 {
+		return true
+	}
+	if ns == 0 {
+		return false
+	}
+	if n.waiter != 0 {
+		throw("multiple note waiters")
+	}
+	n.deadline = maxWhen
+	if ns > 0 {
+		now := nanotime()
+		if now <= maxWhen-ns {
+			n.deadline = now + ns
+		}
+	}
+	gopark(gomadWasmNotePark, unsafe.Pointer(n), waitReasonSleep, traceBlockSleep, 1)
+	for previous, current := (*note)(nil), gomadWasmNotes; current != nil; current = current.next {
+		if current == n {
+			if previous == nil {
+				gomadWasmNotes = n.next
+			} else {
+				previous.next = n.next
+			}
+			break
+		}
+		previous = current
+	}
+	n.waiter = 0
+	n.next = nil
+	n.status = 0
+	return n.key != 0
+}
+
+func gomadWasmBeforeIdle(now, pollUntil int64) (*g, bool) {
+	deadline := pollUntil
+	for n := gomadWasmNotes; n != nil; n = n.next {
+		if n.status == 1 && n.deadline < maxWhen && (deadline == 0 || n.deadline < deadline) {
+			deadline = n.deadline
+		}
+	}
+	if deadline == 0 || deadline == maxWhen {
+		return nil, false
+	}
+	if now < deadline {
+		clear(gomadWasmIdleBuffer[:])
+		gomadChoicePut32(gomadWasmIdleBuffer[:4], 1)
+		gomadChoicePut64(gomadWasmIdleBuffer[8:], uint64(deadline))
+		if gomadWasmIdle(&gomadWasmIdleBuffer[0], uint32(len(gomadWasmIdleBuffer))) != 0 {
+			gomadChoiceDivergeCurrent(0)
+		}
+		now = int64(gomadChoiceRead64(gomadWasmIdleBuffer[8:]))
+		if now < deadline || now < gomadWasmLastTime {
+			gomadChoiceDivergeCurrent(0)
+		}
+		gomadWasmLastTime = now
+	}
+	for n := gomadWasmNotes; n != nil; n = n.next {
+		if n.status == 1 && n.deadline <= now {
+			n.status = 3
+			ready(n.waiter.ptr(), 0, false)
+		}
+	}
+	return nil, true
+}

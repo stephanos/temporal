@@ -13,6 +13,7 @@ const (
 
 const (
 	ReplayExact      = "exact"
+	ReplayObserved   = "observed"
 	ReplayDiagnostic = "diagnostic"
 	ReplayNone       = "none"
 )
@@ -206,6 +207,7 @@ type Toolchain struct {
 }
 
 type Target struct {
+	Backend            *BackendMetadata          `json:"backend,omitempty"`
 	Kind               string                    `json:"kind"`
 	Source             string                    `json:"source"`
 	File               string                    `json:"file"`
@@ -218,6 +220,20 @@ type Target struct {
 	BuildInfo          BuildInfo                 `json:"build_info"`
 	CapabilityMode     string                    `json:"capability_mode,omitempty"`
 	CapabilityManifest *TargetCapabilityManifest `json:"capability_manifest,omitempty"`
+}
+
+type BackendMetadata struct {
+	Name       string          `json:"name"`
+	ReplayMode string          `json:"replay_mode"`
+	Provenance BackendPayload  `json:"provenance"`
+	Evidence   *BackendPayload `json:"evidence,omitempty"`
+}
+
+type BackendPayload struct {
+	Schema string       `json:"schema"`
+	File   string       `json:"file"`
+	SHA256 SHA256       `json:"sha256"`
+	Bytes  Uint64String `json:"bytes"`
 }
 
 type TargetCapabilityManifest struct {

@@ -18,7 +18,14 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if manifest.SchemaVersion != SchemaVersion {
 		return fmt.Errorf("unsupported manifest schema version %d", manifest.SchemaVersion)
 	}
-	if err := validateArtifactReplay(manifest.ArtifactKind, manifest.ReplayMode, manifest.Outcome.Domain); err != nil {
+	replayMode := manifest.ReplayMode
+	if manifest.Target.Backend != nil && (manifest.ArtifactKind == ArtifactSuccess || manifest.ArtifactKind == ArtifactTargetFailure) && replayMode != manifest.Target.Backend.ReplayMode {
+		return errors.New("artifact replay mode does not match its backend capability")
+	}
+	if manifest.Target.Backend != nil && replayMode == ReplayObserved && manifest.Target.Backend.ReplayMode == ReplayObserved {
+		replayMode = ReplayExact
+	}
+	if err := validateArtifactReplay(manifest.ArtifactKind, replayMode, manifest.Outcome.Domain); err != nil {
 		return err
 	}
 	if manifest.CreatedAt == "" || manifest.CampaignID == "" {
@@ -93,6 +100,13 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 		capabilities := manifest.Target.CapabilityManifest
 		if err := validateFileReference(files, capabilities.File, capabilities.SHA256, capabilities.Bytes); err != nil {
 			return fmt.Errorf("target capability manifest file: %w", err)
+		}
+	}
+	if metadata := manifest.Target.Backend; metadata != nil {
+		for _, reference := range BackendReferences(*metadata) {
+			if err := validateFileReference(files, reference.File, reference.SHA256, reference.Bytes); err != nil {
+				return fmt.Errorf("backend payload file: %w", err)
+			}
 		}
 	}
 	if err := validateStream(files, "stdout", manifest.Streams.Stdout); err != nil {
@@ -394,6 +408,11 @@ func validateArtifactReplay(artifactKind, replayMode, outcomeDomain string) erro
 }
 
 func validateTarget(target Target) error {
+	if target.Backend != nil {
+		if err := ValidateBackendMetadata(*target.Backend); err != nil {
+			return err
+		}
+	}
 	if target.Kind != "exec" && target.Kind != "go-run" && target.Kind != "go-test" {
 		return fmt.Errorf("unknown target kind %q", target.Kind)
 	}

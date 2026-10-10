@@ -248,7 +248,7 @@ func (local *localCampaign) prepareTarget() error {
 		}
 		local.config.Target.PreparationRoot = local.journal.PreparedPath()
 		local.prepared, err = local.config.prepareTarget(local.overallCtx, preparation.Request{
-			Target: local.config.Target, Environment: local.config.Environment, Preparer: local.config.Preparer,
+			Target: local.config.Target, Environment: local.config.Environment, Preparer: campaignPreparer(local.config), Validate: backendValidator(local.config),
 		})
 		if err != nil {
 			if preparation.StageOf(err) == preparation.StageTarget {
@@ -658,7 +658,7 @@ func (local *localCampaign) recordSuccessfulExecution(completion runCompletion, 
 	setRunChoiceTrace(&run, completion.result.ChoiceTrace)
 	run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
 	run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
-	retention, retentionErr := decideSuccessRetention(local.config, assessed, completion.result.IOTranscript.Complete, local.semanticProbes, local.choiceFeatures, local.summary.RetainedSuccesses, local.summary.RetainedSuccessBytes)
+	retention, retentionErr := decideSuccessRetention(local.config, assessed, completion.result.IOTranscript.Complete || len(completion.result.BackendEvidence) != 0, local.semanticProbes, local.choiceFeatures, local.summary.RetainedSuccesses, local.summary.RetainedSuccessBytes)
 	if retentionErr != nil {
 		local.recordCompletion(campaign.CompletedUnclassified())
 		local.hostFailure = retentionErr

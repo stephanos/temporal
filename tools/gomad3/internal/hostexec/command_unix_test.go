@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +18,66 @@ import (
 	"testing"
 	"time"
 )
+
+type duplexSink struct {
+	bytes.Buffer
+	input *io.PipeWriter
+	sent  bool
+}
+
+func (sink *duplexSink) Write(data []byte) (int, error) {
+	written, err := sink.Buffer.Write(data)
+	if err != nil {
+		return written, err
+	}
+	if !sink.sent && strings.Contains(sink.String(), "ready") {
+		sink.sent = true
+		if _, err := sink.input.Write([]byte("reply\n")); err != nil {
+			return written, err
+		}
+		if err := sink.input.Close(); err != nil {
+			return written, err
+		}
+	}
+	return written, nil
+}
+
+func TestRunStreamsStdoutForDuplexProtocolWithoutChangingCapture(t *testing.T) {
+	reader, writer := io.Pipe()
+	t.Cleanup(func() {
+		if err := errors.Join(reader.Close(), writer.Close()); err != nil {
+			t.Error(err)
+		}
+	})
+	sink := &duplexSink{input: writer}
+	request := testRequest("printf ready; read value; printf '%s' \"$value\"")
+	request.Stdin = reader
+	request.StdoutSink = sink
+	result, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !sink.sent || sink.String() != "readyreply" || string(result.Stdout.RawBytes) != "readyreply" || !result.GroupGone || result.WatchdogTimeout {
+		t.Fatalf("duplex result = %#v sink %q", result, sink.String())
+	}
+}
+
+func TestRunStdoutCompletionClosesOwnedInputBeforeReaping(t *testing.T) {
+	reader, writer := io.Pipe()
+	t.Cleanup(func() {
+		if err := errors.Join(reader.Close(), writer.Close()); err != nil {
+			t.Error(err)
+		}
+	})
+	request := testRequest("exit 0")
+	request.Stdin = reader
+	var closeErr error
+	request.StdoutDone = func() { closeErr = writer.Close() }
+	result, err := Run(context.Background(), request)
+	if err != nil || closeErr != nil || !result.GroupGone || result.Cancelled || result.WatchdogTimeout {
+		t.Fatalf("completion = %#v, err=%v close=%v", result, err, closeErr)
+	}
+}
 
 func TestRunPreservesCommandErrorOnlyWhenRequested(t *testing.T) {
 	request := testRequest("printf 'diagnostic' >&2; exit 7")

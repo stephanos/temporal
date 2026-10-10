@@ -1,0 +1,437 @@
+{
+  "base": "cc0c1c90fa5d2ac3f386c7a13fb51637d144c857",
+  "candidate": "4bb2f25bd7c694aeea5a201def5ffa795e10cc08",
+  "changed_outcomes": {
+    "TestDiagnosticsRetainedWhenSuccessArtifactsAreDiscarded": [
+      "fail",
+      "pass"
+    ],
+    "TestOpenReportsSimulationExplorationBoundsAndRemainingWork": [
+      "fail",
+      "pass"
+    ],
+    "TestOpenReportsSimulationExplorationEvidence": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/choice-exploration": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/seed": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/simulation-exploration": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/choice-exploration": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/seed": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/simulation-exploration": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/choice-exploration": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/seed": [
+      "fail",
+      "pass"
+    ],
+    "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/simulation-exploration": [
+      "fail",
+      "pass"
+    ],
+    "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs": [
+      "fail",
+      "pass"
+    ],
+    "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard": [
+      null,
+      "pass"
+    ],
+    "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/success_bytes": [
+      null,
+      "pass"
+    ],
+    "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/success_count": [
+      null,
+      "pass"
+    ],
+    "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/10_jobs/discard": [
+      null,
+      "pass"
+    ],
+    "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/10_jobs/success_bytes": [
+      null,
+      "pass"
+    ],
+    "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/10_jobs/success_count": [
+      null,
+      "pass"
+    ]
+  },
+  "input_seals": {
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/scripted-retention-diagnostics-inspection-20261010/root-source-ordinary-complete-verify-20261010.py": "1db998ed9bb68367cda3bd9a8ca0bb5bfdb79491516171d5273a499cb737965c",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/scripted-retention-diagnostics-inspection-20261010/worker/capture_v2.py": "91957863b75f77da2de30cc047279447346e5a16a6299a7602c365ab60ed997e",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/scripted-retention-diagnostics-inspection-20261010/worker/observe_v3.py": "51c4e57361e6ee77df45a1c3b725d54fafc292e4ef6372453f24a86966956303",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-aggregate-lint-binding.json": "d653f30a76d2c07478aaa1f856cb77633822617f82c0d2a853ed63d29c0eec44",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-aggregate-lint.json": "1d4f8689ace574a2e796e9efe188d4ba9fa0e84f23e9e6e4438c1a810430983e",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-aggregate-lint.log": "d81d1fc2406caf34b05c91a4e3981eb1d2131a2c8e7bd8d0ca0c1eff724e304b",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-bounds-binding.json": "0c896598ca00a24a615b03a04b2db35b11a19ffd6056315383251f56ed8515a4",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-bounds.json": "328bb48212508fbb7da8517100563288852c25efc39f717cd7656da0b833f46a",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-bounds.log": "1c78f59bd0ffc7943ce18db344dcb1cdb0f82fd7197b75175391e83eccdf4899",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-capacity-choice-exploration-binding.json": "61f547550dda03a5ce9b4e10bc29155dcf01ad9ae33ecc6f068478ff293fdb89",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-capacity-choice-exploration.json": "e0b5d931e69cbba34b7127c2737e97fa652ae631a390923b066b9f2af7735f81",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-capacity-choice-exploration.log": "1aef3617ba836afac15e5095225451245f0d38c009ff93e0f3c7d5298a47e8ec",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-capacity-seed-binding.json": "53ca52c14ca47e49c28abfdd85308d6016a6554e5e20f18c96595aa410ce8542",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-capacity-seed.json": "4acf4f1da4d35e67452bb8d0dcbdf9bf4ff00920ac37436250936c494194c24b",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-capacity-seed.log": "39c1a4443af43b37dcc2432758f35139928af6344e3086cf419f66f2e3e8acb5",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-capacity-simulation-exploration-binding.json": "599893af3bee9e5dc92c09e926b279bc61f1544dd84131b9e40dce7cc477e704",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-capacity-simulation-exploration.json": "26c174e2d7c3ae4a6bdde103a0aa876b1d89a5581f467ccdc5b278106cf9a77d",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-cold-capacity-simulation-exploration.log": "b61bbe57d1f32b6a46781f9c622a05b28fbb7dc512c52fbd6cf342f734ba5472",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-collateral-binding.json": "000963ccab9f99cf2ae129a8cedf4e25e567d65bc5533fe8836a1b53489c5998",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-collateral.json": "0382345d142437ba68670d8a65c87b0c18b6489f3b072298928ba537930f6488",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-collateral.log": "2ee0c723abf345e4eb48d47623bef2647735d341e4018fb578ee575313447072",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-controls-binding.json": "db8622be4fd05872ebe204d483ea808fb3d1a8b057325d9ffbfa0ede05f590db",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-controls.json": "25eea4f7f58c1cef31f0e5b1c438450fd5b47fab60e4afbd56bc5ae3cc1e08f6",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-controls.log": "27163abcfe969a0fa5a77fe66569065441806598cd84110583df6a73281cca6b",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-focused-binding.json": "6ef64dca01e499c2be1f9fefeb85b8356762be13ec9c17e1048171d147933be9",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-focused.json": "d7cc9229d5287793bcc222e8a5c60e1589754bd75ce96f937db4be0cba1e20f0",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-focused.log": "b6b682af612463c30b07c149ac9b6ac826dc26ac96a9ebe01fd9700e362be516",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-ordinary-binding.json": "b6c31eb4116fa4f6db17232d15aed57c3846adba1690179e545c82f786458756",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-ordinary.json": "ff0cd62ebac95cfbbad92f0832da81299b910b817d401c041a78ae6787920c91",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/after-ordinary.log": "f24a23b7dfa70f51dcd1122e354b7456f3dfafc5970fdf6fd7e1ff4cc3b3a7d4",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/analysis-ordinary-binding.json": "52b692713de2d9a6bceda514d0f725ebc856807cfe878fbb29ace8abf04a894f",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/analysis-ordinary.json": "8e766366ff52e5e69fe5f03e045aac785edc845a56a9a0224bfe2f6601778bb8",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/analysis-ordinary.log": "1be229ad3b02a30aef65a771c45a1a11266a2bb7a8cb7f7e174d5caf3e7585a1",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-aggregate-lint-binding.json": "fa22846169eac19c0678535090465ebe17fb1b2f80dbee4f90dd73169a183728",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-aggregate-lint.json": "4f2eab712eaa4ec714c9e5cedf2a0d55c1ca96486380d383bd5b53c5808cde02",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-aggregate-lint.log": "14909c9a8f4f2532ae4143905a44d396974a154b967cbef355f4b15eb668d2d4",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-bounds-binding.json": "f59f3b48c86a92c805e6a4fd6b04b2bbd4b8df5f24c980ff6c60bba9c080155c",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-bounds.json": "c8f644a0a0438577e669ba547fab9157b9cd2ee680eed94868c50c4909af1487",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-bounds.log": "2cb8f4b9a34856fd7d0d6374c038c2d1f0edbc0e9ba6ae4e25995b183567c642",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-capacity-choice-exploration-binding.json": "cbfb217dee0224e74d7d213c80b9c4d0157d1ce2caf0a613db71e938136c4b62",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-capacity-choice-exploration.json": "4fe3ad2ebfe2dffcad1450e5bfd29401e6841ebfc8986ce126d885b60ac55562",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-capacity-choice-exploration.log": "7aa8b51b3eb594f68557331bc45de52f63a912e4ca216ffe21c77228f7b6e790",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-capacity-seed-binding.json": "0227c685b9c0ae3b42f189bab9b402818417ac36c8cd82090341d1096ec9f826",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-capacity-seed.json": "187a3fb02a9ca36793fedc9a98bd1571ad57a8dd9ddda6b2e00a0d359a8f6ba1",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-capacity-seed.log": "25e66af46251292188ab84c3ba8b8a8a68c9b2f555baec67dd1ffb7a229afd5f",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-capacity-simulation-exploration-binding.json": "c62198ad0a9291ef2a122e47816f01383614dfcb10ce46b0f032d62d68c92a8b",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-capacity-simulation-exploration.json": "b705eeeeac91f1f5dfbe6c891ceade9d32079e32287b46a1fce1ef830ae13b58",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-cold-capacity-simulation-exploration.log": "b73aba60bbc62def309577eb72cc98f6b38c5d49c098824de10a7d9ca27dbeba",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-collateral-binding.json": "2e1cb015eed767f7978257f21a39a8afae3b012daecae0835d5cca98b201b58d",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-collateral.json": "4a71bce1c08ea478f7e77508ca14981d62da8678f9076f6b709245a480ccfa41",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-collateral.log": "a62eabed9c290900a2627bd0de8aca49cb3de6f27b74d919231027f0111b577c",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-controls-binding.json": "4638b093b1814fbb3113887c7824b4004f7b0e233f012f02a50cad6ad76a00eb",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-controls.json": "617be1ba786440ffa015186c44b5313270ba7e655daf4333e67d0c6ac8aa4846",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-controls.log": "86568f886985364e3c7787275daf1739b64c8e5ef148e484a3ac94908f9f8253",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-focused-binding.json": "233a67621dd902fa9a0461e67c92c00c6cf50bc2842fbb0416fcad6032f6ce6e",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-focused.json": "30bbf683f5592825f959d43813e2c98b25b3c58b7a28bcfa56de58dfc7d6f12b",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-focused.log": "d18e15303d57ccb4241e6ffe31c20431ed4bb1234b85d5562bd94004d5fd15f4",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-ordinary-binding.json": "3e7fc50d6d290e05669b53734f69f939eee1ecf6cd249b94f1a5f8b2141a3a6b",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-ordinary.json": "88436109beb929dba9319ffd1f6264506161ffd8b2ade82e185abb16bf0f5b6c",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/before-ordinary.log": "e65dd51944da673447d8d0e248dcd578f059c043bc6ee75fae2526ac08e73e33",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/diff-check-binding.json": "39ea02cef963fa2610c3ea3819e1732448a1cad8199a47fc9b1e54d2f4651a26",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/diff-check.json": "9684c386456cf704f8c38d14fdf2e39840e363e3a6270492ff4d58fe6d5df92d",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/errortype-binding.json": "7b0125f9e90fcf406f08178698bab1c7d43c5e4762891d695e8c50ae36a45867",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/errortype.json": "488a5924d947c7bd0e7197aa293bfed9106b4192c46d673b843093f773a73922",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/errortype.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/gofmt-binding.json": "2eedd53529ab7c841da5c038ae88c14742e14a728537ab41b82b180425764ec6",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/gofmt.json": "bccb85ec763f224733a8c2afd027bbb02ebb18abb3bccc974fe65d93af3d9ea2",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/gofmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/host-vet-binding.json": "96b1b1c7c08882cddbe78eb3610bc4c9f83ef5d1e29c1c9102f22065a27ce4fb",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/host-vet.json": "661be69e6b0e580c2c0aa4274ce01536d1738b6aff69e705cb9ce281e8cf12bb",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/host-vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/runner-lint-binding.json": "c99e9013beebf6a2551703c350a4032d3efe24acc318307bfa01dfd8844a4dcd",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/runner-lint.json": "fc79a1c90a59d028b5da25f7ae8c0c637b1f86f088019b098ae3eae8ef6acb0a",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/.flow/tmp/fn10975-evidence/runner-lint.log": "238ddc63ac79397df35dea2e4e9f595e6e470e8ac45fc30b4e248b6a8af2c4fe",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/tools/gomad3/runner/diagnostics_test.go": "bbf243c026daa1425523af53115772760816538acaf123207ebe842fda841f97",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/tools/gomad3/runner/inspect_test.go": "b275582e432ee3a9ba2b68d18d48c45a7875a3e01a0b08969a95979b0854810f",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-75-six-attachments-candidate/tools/gomad3/runner/retention_characterization_test.go": "ea59e7da58cf8ebd67cf74c7f7339d1f6d5fbb1a8aa5c54eafc5209b5fc0716b"
+  },
+  "limitations": "No Go command or Go-env probe executed by this verifier. Shared caches, nonselected environment, libraries and full tool installations remain nonhermetic. wrapper_sha256 identifies the capture library, while wrapper_invocation_argv identifies the entry script; both are sealed separately. Captured shell literal is a template; non-Go post-helper caption is not proof of a Go-env probe. Receipt process-group emptiness is historical, not continuous global quiescence. Historical task74 deadline, remaining ordinary failures, RED50/RED6, pending standards and native acceptance remain open.",
+  "lint": {
+    "after-aggregate-lint": {
+      "count": 50,
+      "numeric_exit": 2,
+      "ordered_blocks_sha256": "034b5959d8f6689fefbd9215234326d66b3809e204cf628c62b244e256398eea"
+    },
+    "before-aggregate-lint": {
+      "count": 50,
+      "numeric_exit": 2,
+      "ordered_blocks_sha256": "034b5959d8f6689fefbd9215234326d66b3809e204cf628c62b244e256398eea"
+    },
+    "runner-lint": {
+      "count": 6,
+      "numeric_exit": 1,
+      "ordered_blocks_sha256": "a53d08234ebd18a785b02520526bd518935a4f3d168003970e1dadf70861b338"
+    }
+  },
+  "missing_actual_names": [],
+  "ordinary_actual_name_union": 679,
+  "product_acceptance_pass": false,
+  "reconstruction": {
+    "tools/gomad3/runner/diagnostics_test.go": {
+      "base_sha256": "885b3df456c376522b484cfbdaa70e5f70ffe4d77a9c8af1d825740443606b68",
+      "candidate_sha256": "bbf243c026daa1425523af53115772760816538acaf123207ebe842fda841f97",
+      "inserted_lines": [
+        57
+      ],
+      "reconstructed_sha256": "885b3df456c376522b484cfbdaa70e5f70ffe4d77a9c8af1d825740443606b68"
+    },
+    "tools/gomad3/runner/inspect_test.go": {
+      "base_sha256": "140e6688d3e1dddb8dbc1e85ae53de0de15fd676f655227efae6fa09282ca8df",
+      "candidate_sha256": "b275582e432ee3a9ba2b68d18d48c45a7875a3e01a0b08969a95979b0854810f",
+      "inserted_lines": [
+        56,
+        159
+      ],
+      "reconstructed_sha256": "140e6688d3e1dddb8dbc1e85ae53de0de15fd676f655227efae6fa09282ca8df"
+    },
+    "tools/gomad3/runner/retention_characterization_test.go": {
+      "base_sha256": "c86e26d2c016af55427faea8927c9b224a89778b4b5d70d81dc4257a8163f168",
+      "candidate_sha256": "ea59e7da58cf8ebd67cf74c7f7339d1f6d5fbb1a8aa5c54eafc5209b5fc0716b",
+      "inserted_lines": [
+        522,
+        564,
+        895
+      ],
+      "reconstructed_sha256": "c86e26d2c016af55427faea8927c9b224a89778b4b5d70d81dc4257a8163f168"
+    }
+  },
+  "tests": {
+    "after-cold-bounds": {
+      "actual_names": 7,
+      "counts": {
+        "pass": 7
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "pass"
+        ]
+      ]
+    },
+    "after-cold-capacity-choice-exploration": {
+      "actual_names": 4,
+      "counts": {
+        "pass": 4
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "pass"
+        ]
+      ]
+    },
+    "after-cold-capacity-seed": {
+      "actual_names": 4,
+      "counts": {
+        "pass": 4
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "pass"
+        ]
+      ]
+    },
+    "after-cold-capacity-simulation-exploration": {
+      "actual_names": 4,
+      "counts": {
+        "pass": 4
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "pass"
+        ]
+      ]
+    },
+    "after-collateral": {
+      "actual_names": 41,
+      "counts": {
+        "fail": 22,
+        "pass": 19
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "fail"
+        ]
+      ]
+    },
+    "after-controls": {
+      "actual_names": 24,
+      "counts": {
+        "pass": 24
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/deterministicio",
+          "pass"
+        ],
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "pass"
+        ]
+      ]
+    },
+    "after-focused": {
+      "actual_names": 20,
+      "counts": {
+        "pass": 20
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "pass"
+        ]
+      ]
+    },
+    "after-ordinary": {
+      "actual_names": 679,
+      "counts": {
+        "fail": 130,
+        "pass": 537,
+        "skip": 12
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "fail"
+        ]
+      ]
+    },
+    "before-cold-bounds": {
+      "actual_names": 1,
+      "counts": {
+        "fail": 1
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "fail"
+        ]
+      ]
+    },
+    "before-cold-capacity-choice-exploration": {
+      "actual_names": 4,
+      "counts": {
+        "fail": 4
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "fail"
+        ]
+      ]
+    },
+    "before-cold-capacity-seed": {
+      "actual_names": 4,
+      "counts": {
+        "fail": 4
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "fail"
+        ]
+      ]
+    },
+    "before-cold-capacity-simulation-exploration": {
+      "actual_names": 4,
+      "counts": {
+        "fail": 4
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "fail"
+        ]
+      ]
+    },
+    "before-collateral": {
+      "actual_names": 41,
+      "counts": {
+        "fail": 22,
+        "pass": 19
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "fail"
+        ]
+      ]
+    },
+    "before-controls": {
+      "actual_names": 24,
+      "counts": {
+        "pass": 24
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/deterministicio",
+          "pass"
+        ],
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "pass"
+        ]
+      ]
+    },
+    "before-focused": {
+      "actual_names": 14,
+      "counts": {
+        "fail": 14
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "fail"
+        ]
+      ]
+    },
+    "before-ordinary": {
+      "actual_names": 673,
+      "counts": {
+        "fail": 144,
+        "pass": 517,
+        "skip": 12
+      },
+      "package_terminals": [
+        [
+          "go.temporal.io/server/tools/gomad3/runner",
+          "fail"
+        ]
+      ]
+    }
+  },
+  "unselected_outcome_or_normalized_diagnostic_changes": [],
+  "verification": "PASS: named source reconstruction, terminal receipts and ordinary comparison only",
+  "verified_receipt_count": 24,
+  "verifier_cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "verifier_invocation_argv": [
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/scripted-retention-diagnostics-inspection-20261010/root-source-ordinary-complete-verify-20261010.py"
+  ],
+  "verifier_python": {
+    "literal": "/usr/bin/python3",
+    "resolved": "/usr/bin/python3.14",
+    "sha256": "fd82483aa72498a59e905cdba1ad7a5a2aea2592e7ebc6398cebdaf1dee4adac"
+  },
+  "verifier_sha256": "1db998ed9bb68367cda3bd9a8ca0bb5bfdb79491516171d5273a499cb737965c"
+}

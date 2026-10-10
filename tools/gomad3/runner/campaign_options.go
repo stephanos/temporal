@@ -9,6 +9,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -90,6 +91,7 @@ type campaignGuidanceOptions struct {
 type campaignRuntime struct {
 	executionDependencies
 
+	Backend              backend.Provider `json:"-"`
 	SupervisorCommand    []string
 	CoordinatorCommand   []string
 	RunnerBuild          string
@@ -260,7 +262,7 @@ func campaignRequestFromSpec(spec CampaignSpec) campaignRequest {
 		},
 		campaignRuntime: campaignRuntime{
 			SupervisorCommand: spec.SupervisorCommand, CoordinatorCommand: spec.CoordinatorCommand, RunnerBuild: spec.RunnerBuild,
-			Progress: spec.Progress, Preparer: spec.Preparer, Replayer: spec.Replayer,
+			Progress: spec.Progress, Preparer: spec.Preparer, Replayer: spec.Replayer, Backend: spec.Backend,
 			guidancePlan: spec.guidancePlan, resumePreflight: spec.resumePreflight,
 			failureArtifactLimit: spec.failureArtifactLimit, failureBytesLimit: spec.failureBytesLimit,
 		},

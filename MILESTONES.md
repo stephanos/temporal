@@ -1,4 +1,4 @@
-# Gomad v3: Milestones to a Deterministic Temporal Functional Test
+# Gomad: Native and WASM Milestones
 
 ## Purpose
 
@@ -6,6 +6,13 @@ This document is the delivery ladder for running Temporal's functional tests (`.
 the `testcore` one-box cluster with in-memory SQLite and loopback gRPC) under Gomad v3 so that the
 same seed produces the same run and a retained artifact replays byte-exactly.
 [GOMAD_NEXT.md](.plans/GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
+
+The WASM backend lives alongside Gomad v3 in `tools/gomad_wasm` and shares its
+campaign, artifact, replay, and choice owners. [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md)
+owns its delivery ladder: `.5 → .6 → (.7, .8) → .9 → .10 → .11`.
+Read [the WASM README](tools/gomad_wasm/README.md) before working on that backend.
+Stock-WASI repetition does not establish forced scheduling replay, strict virtual
+time, modeled fault recovery, or multi-node isolation.
 
 ## Work tracking
 
@@ -21,6 +28,12 @@ validation, source review and other independent acceptance remain required. Nati
 execution stays with the native owner; portable coverage does not substitute for that gate.
 Both platforms remain unverified for the current candidate until their owners retain native proof.
 No PR, push or CI action is authorized by the deferral or its revival.
+fn-151 migrated from the retired `temporal_wasm` checkout on 2026-10-10. Task 12's
+standalone extraction is cancelled: both backends are developed together here,
+and `tools/gomad3` remains a shared owner. Preserve historical acceptance;
+relocation does not qualify a new source candidate. The owner requested a stop
+after in-flight work; task 5's unfinished qualification remains open and no
+further feature task starts without a new owner request.
 List every task of each open spec below, including completed tasks; remove a spec's
 entire section only when the spec is complete. Keep descriptions to one line and
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
@@ -190,6 +203,24 @@ CI, PR, or push authority.
   packed or adapted modules invalidate their pins and reopen the capability closure.
 
 ## Specs
+
+## WASM execution backend — [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-151.1](.flow/tasks/fn-151-wasm-gomad-execution-backend.1.md) | ✅ Done | Isolated Wasmtime helper, typed protocol, import preflight, and bounded execution |
+| [fn-151.2](.flow/tasks/fn-151-wasm-gomad-execution-backend.2.md) | ✅ Done | Captured file namespace, seeded entropy, modeled clock/poll, and capacity limits |
+| [fn-151.3](.flow/tasks/fn-151-wasm-gomad-execution-backend.3.md) | ✅ Done | Selected unchanged SQLite and one-box Temporal tests in a sealed guest |
+| [fn-151.4](.flow/tasks/fn-151-wasm-gomad-execution-backend.4.md) | ✅ Done | Preparation, campaign artifacts, observed replay, resume, and native-byte preservation |
+| [fn-151.5](.flow/tasks/fn-151-wasm-gomad-execution-backend.5.md) | 🚧 In progress | Cooperative runtime and exact replay WIP; required qualification remains incomplete |
+| [fn-151.6](.flow/tasks/fn-151-wasm-gomad-execution-backend.6.md) | ⬜ Todo | Strict virtual time, readiness handshakes, bounded exploration, and non-progress outcomes |
+| [fn-151.7](.flow/tasks/fn-151-wasm-gomad-execution-backend.7.md) | ⬜ Todo | Durable SQLite volumes, storage faults, crash recovery, and replay |
+| [fn-151.8](.flow/tasks/fn-151-wasm-gomad-execution-backend.8.md) | ⬜ Todo | Network faults, reference checks, and recovery replay |
+| [fn-151.9](.flow/tasks/fn-151-wasm-gomad-execution-backend.9.md) | ⬜ Todo | Independent guest nodes, broker/global clock, volumes/incarnations, and stale-handle rejection |
+| [fn-151.10](.flow/tasks/fn-151-wasm-gomad-execution-backend.10.md) | ⬜ Todo | Retained workload qualification and measured backend costs |
+| [fn-151.11](.flow/tasks/fn-151-wasm-gomad-execution-backend.11.md) | ⬜ Todo | Supported-profile optimization, caching, installation, discovery, and operator documentation |
+| [fn-151.12](.flow/tasks/fn-151-wasm-gomad-execution-backend.12.md) | ✅ Done | Cancelled by owner: standalone extraction and deletion of gomad3 |
+| [fn-151.13](.flow/tasks/fn-151-wasm-gomad-execution-backend.13.md) | ✅ Done | WASM and tracking moved into temporal; old checkout archived recoverably |
 
 <a id="open-findings"></a>
 <a id="determinism-gaps"></a>

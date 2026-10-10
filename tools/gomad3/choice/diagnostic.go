@@ -2,6 +2,7 @@ package choice
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -35,6 +36,26 @@ type DiagnosticDivergence struct {
 type DiagnosticSession struct {
 	trace *os.File
 	limit uint64
+}
+
+func BuildDiagnosticTrace(records []DiagnosticRecord, capacity uint64) (DiagnosticTrace, error) {
+	header := wire.EncodeDiagnosticHeader(capacity)
+	if _, err := wire.DecodeDiagnosticHeader(header[:]); err != nil {
+		return DiagnosticTrace{}, err
+	}
+	if uint64(len(records)) > (capacity-wire.DiagnosticHeaderBytes)/wire.DiagnosticRecordBytes {
+		return DiagnosticTrace{}, errors.New("diagnostic trace exceeds its capacity")
+	}
+	header[12] = byte(wire.DiagnosticComplete)
+	binary.BigEndian.PutUint64(header[24:32], wire.DiagnosticHeaderBytes+uint64(len(records))*wire.DiagnosticRecordBytes)
+	binary.BigEndian.PutUint64(header[32:40], uint64(len(records)))
+	data := make([]byte, wire.DiagnosticHeaderBytes, wire.DiagnosticHeaderBytes+len(records)*wire.DiagnosticRecordBytes)
+	copy(data, header[:])
+	for _, record := range records {
+		encoded := wire.EncodeDiagnosticRecord(wire.DiagnosticRecord(record))
+		data = append(data, encoded[:]...)
+	}
+	return DecodeDiagnosticTrace(data)
 }
 
 func DiagnosticLimit(choiceLimit uint64) (uint64, error) {

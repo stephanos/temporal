@@ -1,12 +1,43 @@
 package choice
 
 import (
+	"bytes"
 	"encoding/binary"
 	"reflect"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice/internal/wire"
 )
+
+func TestBuildDiagnosticTraceUsesBoundedExistingWire(t *testing.T) {
+	records := []DiagnosticRecord{{Ordinal: 0, Allocations: 2}, {Ordinal: 1, Allocations: 3, RuntimeCheapRandDraws: 2}}
+	trace, err := BuildDiagnosticTrace(records, 4096)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := diagnosticBytes(wire.DiagnosticRecord(records[0]), wire.DiagnosticRecord(records[1]))
+	if !bytes.Equal(trace.Bytes, want) || trace.Capacity != 4096 || !reflect.DeepEqual(trace.Records, records) {
+		t.Fatalf("diagnostic transport changed existing wire: %+v", trace)
+	}
+	for _, test := range []struct {
+		name     string
+		records  []DiagnosticRecord
+		capacity uint64
+	}{
+		{"too small", records, 159},
+		{"over capacity", records, 160},
+		{"over maximum", records, MaximumDiagnosticBytes + 1},
+		{"ordinal", []DiagnosticRecord{{Ordinal: 1}}, 4096},
+		{"counter regression", []DiagnosticRecord{{Ordinal: 0, RunqDraws: 2}, {Ordinal: 1, RunqDraws: 1}}, 4096},
+		{"GC phase", []DiagnosticRecord{{GCPhase: 3}}, 4096},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if _, err := BuildDiagnosticTrace(test.records, test.capacity); err == nil {
+				t.Fatal("invalid diagnostic transport accepted")
+			}
+		})
+	}
+}
 
 func diagnosticBytes(records ...wire.DiagnosticRecord) []byte {
 	header := wire.EncodeDiagnosticHeader(4096)

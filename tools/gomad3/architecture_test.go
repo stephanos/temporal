@@ -206,6 +206,21 @@ func TestPackageArchitecture(t *testing.T) {
 	}
 }
 
+func TestWASIPureEnvironmentAndPublicBoundary(t *testing.T) {
+	for _, platform := range qualifiedSourcePlatforms() {
+		program, err := architecture.Load("../gomad_wasm", "go", platform)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, finding := range program.Effects() {
+			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
+		}
+		for _, finding := range program.PublicSignatures("example.com/wasm-consumer") {
+			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
+		}
+	}
+}
+
 func TestPublicPackagesDoNotExportTypeAliases(t *testing.T) {
 	root, err := os.Getwd()
 	if err != nil {

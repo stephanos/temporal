@@ -19,6 +19,8 @@ type Request struct {
 	Dir                  string
 	Env                  []string
 	Stdin                io.Reader
+	StdoutSink           io.Writer
+	StdoutDone           func()
 	Timeout              time.Duration
 	TerminateGrace       time.Duration
 	OutputLimit          uint64

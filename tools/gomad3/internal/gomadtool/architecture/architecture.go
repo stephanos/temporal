@@ -293,7 +293,7 @@ func Owner(module, importPath string) string {
 	if Within(relative, "cmd/gomadtool") || Within(relative, "internal/gomadtool") {
 		return "developer"
 	}
-	for path, owner := range map[string]string{"internal/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/hostexec": "hostexec", "internal/hostfs": "hostfs", "internal/preparation": "preparation", "internal/sourceinventory": "sourceinventory"} {
+	for path, owner := range map[string]string{"internal/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "internal/preparation": "preparation", "internal/sourceinventory": "sourceinventory"} {
 		if Within(relative, path) {
 			return owner
 		}

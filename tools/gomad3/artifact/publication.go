@@ -14,15 +14,16 @@ import (
 )
 
 type ArtifactInput struct {
-	Manifest       record.ExecutionRecord
-	TargetPath     string
-	Stdout         []byte
-	Stderr         []byte
-	IOTranscript   []byte
-	ChoiceTrace    []byte
-	ReadOnlyMounts *readonlymount.CapturedInputs
-	World          record.WorldPayloads
-	Simulation     *SimulationPayloads
+	BackendPayloads []target.BackendPayload
+	Manifest        record.ExecutionRecord
+	TargetPath      string
+	Stdout          []byte
+	Stderr          []byte
+	IOTranscript    []byte
+	ChoiceTrace     []byte
+	ReadOnlyMounts  *readonlymount.CapturedInputs
+	World           record.WorldPayloads
+	Simulation      *SimulationPayloads
 }
 
 type SimulationPayloads struct {
@@ -53,6 +54,17 @@ func PublishArtifact(store Store, input ArtifactInput) (Artifact, error) {
 		artifactSourcePayload(manifest.Target.File, input.TargetPath, 0o700, manifest.Target.SHA256, manifest.Target.Size),
 		artifactDataPayload(manifest.Streams.Stdout.File, input.Stdout, 0o600),
 		artifactDataPayload(manifest.Streams.Stderr.File, input.Stderr, 0o600),
+	}
+	if manifest.Target.Backend != nil {
+		prepared := target.Prepared{Backend: manifest.Target.Backend, BackendPayloads: input.BackendPayloads}
+		if err := prepared.ValidateBackendPayloads(); err != nil {
+			return Artifact{}, fmt.Errorf("backend publication: %w", err)
+		}
+		for _, payload := range input.BackendPayloads {
+			payloads = append(payloads, artifactDataPayload(payload.Reference.File, payload.Data, 0o600))
+		}
+	} else if len(input.BackendPayloads) != 0 {
+		return Artifact{}, errors.New("unexpected backend publication payloads")
 	}
 	if manifest.Target.CapabilityMode == string(target.CapabilityModeLinked) || manifest.Target.CapabilityMode == string(target.CapabilityModeGuarded) {
 		if manifest.Target.CapabilityManifest == nil {

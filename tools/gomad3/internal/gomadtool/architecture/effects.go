@@ -415,6 +415,8 @@ func (p *Program) IsPureFile(path string) bool {
 			continue
 		}
 		switch {
+		case p.Module == "go.temporal.io/server/tools/gomad_wasm" && relative == "wasi":
+			return filepath.Base(path) != "process.go"
 		case relative == "world", relative == "record", Within(relative, "world/mailbox"), Within(relative, "runner/internal/exploration"), Within(relative, "target/internal/capabilitypolicy"):
 			return true
 		case relative == "runner/internal/campaign":

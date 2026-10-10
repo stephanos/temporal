@@ -20,6 +20,7 @@ import (
 )
 
 const gomadModule = "tools/gomad3"
+const wasmModule = "tools/gomad_wasm"
 const mixedbrainModule = "tests/mixedbrain"
 
 func within(path, root string) bool {
@@ -39,7 +40,7 @@ type source struct {
 
 func main() {
 	base := flag.String("base", "main", "Lint comparison revision")
-	module := flag.String("module", "", "Check all host packages in tools/gomad3 or tests/mixedbrain; otherwise check changed packages")
+	module := flag.String("module", "", "Check all host packages in tools/gomad3, tools/gomad_wasm or tests/mixedbrain; otherwise check changed packages")
 	tags := flag.String("tags", "test_dep", "Go build tags")
 	flag.Parse()
 	if err := lint(context.Background(), *base, *module, *tags); err != nil {
@@ -49,7 +50,7 @@ func main() {
 }
 
 func lint(ctx context.Context, base, module, tags string) error {
-	if module != "" && module != gomadModule && module != mixedbrainModule {
+	if module != "" && module != gomadModule && module != wasmModule && module != mixedbrainModule {
 		return fmt.Errorf("unclassified lint module %q", module)
 	}
 	root, err := os.Getwd()
@@ -164,7 +165,7 @@ type lintScope struct {
 
 func lintScopes(ctx context.Context, root, tags string, selected, changedDirs map[string]bool, sources []source) ([]lintScope, error) {
 	var scopes []lintScope
-	for _, owner := range []string{".", gomadModule, mixedbrainModule} {
+	for _, owner := range []string{".", gomadModule, wasmModule, mixedbrainModule} {
 		if !selected[owner] {
 			continue
 		}
@@ -378,7 +379,7 @@ func (p ownership) moduleDirectories(root string, paths []string) ([]string, err
 			return nil, fmt.Errorf("uncovered module symlink %s", path)
 		}
 		directory := filepath.ToSlash(filepath.Dir(path))
-		if directory != "." && directory != gomadModule && directory != mixedbrainModule && !p.modules[path] {
+		if directory != "." && directory != gomadModule && directory != wasmModule && directory != mixedbrainModule && !p.modules[path] {
 			return nil, fmt.Errorf("unclassified module %s", path)
 		}
 		modules = append(modules, directory)
@@ -401,6 +402,19 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "simulation fixture"
 	case within(path, "tools/gomad3integration/testdata/tagged"):
 		entry.disposition = "integration fixture"
+	case within(path, wasmModule+"/testdata/environment"):
+		entry.disposition = "WASM environment fixture"
+	case within(path, wasmModule+"/toolchain/testdata/choices"), within(path, wasmModule+"/testdata/runtime_probes"):
+		entry.disposition = "WASM runtime qualification fixture"
+	case within(path, wasmModule+"/testdata/frontend_namespace"), within(path, wasmModule+"/testdata/sqlite_contention"):
+		entry.disposition = "WASM Temporal diagnostic fixture"
+	case within(path, wasmModule):
+		relative := strings.TrimPrefix(path, wasmModule+"/")
+		for part := range strings.SplitSeq(filepath.ToSlash(filepath.Dir(relative)), "/") {
+			if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
+				return entry, fmt.Errorf("uncovered WASM host source %s", path)
+			}
+		}
 	case within(path, gomadModule+"/toolchain/runtime/overlay"):
 		relative := strings.TrimPrefix(path, gomadModule+"/toolchain/runtime/overlay/")
 		if !p.overlays[relative] {

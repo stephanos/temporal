@@ -20,6 +20,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
@@ -125,6 +126,7 @@ type ArtifactReplayer interface {
 }
 
 type CampaignSpec struct {
+	Backend              backend.Provider `json:"-"`
 	ResumeCampaign       string
 	PlanSHA256           record.SHA256
 	Shard                CampaignShard
@@ -380,7 +382,7 @@ func exploreWith(ctx context.Context, config CampaignSpec, dependencies executio
 		return CampaignResult{}, err
 	}
 	if len(request.CoordinatorCommand) != 0 {
-		if request.Preparer != nil || request.injected() || request.Replayer != nil {
+		if request.Preparer != nil || request.injected() || request.Replayer != nil || request.Backend != nil {
 			return CampaignResult{}, fmt.Errorf("isolated Runner does not accept injected preparation or execution")
 		}
 		return runIsolated(ctx, request)
@@ -400,7 +402,7 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 		if config.RunnerBuild == "" {
 			return SeedSelection{}, nil, fmt.Errorf("Runner build identity is required for campaign resume")
 		}
-		if config.executor == nil && len(config.SupervisorCommand) == 0 {
+		if config.executor == nil && config.Backend == nil && len(config.SupervisorCommand) == 0 {
 			return SeedSelection{}, nil, fmt.Errorf("supervisor command is required")
 		}
 		return SeedSelection{}, nil, nil
@@ -557,7 +559,7 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	default:
 		return SeedSelection{}, nil, fmt.Errorf("unknown failure policy %q", config.OnFailure)
 	}
-	if config.executor == nil && len(config.SupervisorCommand) == 0 {
+	if config.executor == nil && config.Backend == nil && len(config.SupervisorCommand) == 0 {
 		return SeedSelection{}, nil, errors.New("supervisor command is required")
 	}
 	if len(config.IOROMounts) != 0 {
@@ -579,7 +581,16 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
-	environment = append(environment, record.Environment{Name: "GOMAD3_IO_PROFILE", Value: deterministicio.Deterministic})
+	ioProfile := deterministicio.Deterministic
+	if config.Target.Backend != "" {
+		if config.Backend == nil || config.Preparer != nil || config.strategy() != StrategySeed || NormalizeCoverage(config.Coverage, false) != CoverageNone || config.Guide || len(config.IOROMounts) != 0 || config.ClockTick != "" || config.CollectExecutionEvidence {
+			return SeedSelection{}, nil, errors.New("external backend request requires its provider and a supported observed seed profile")
+		}
+		ioProfile = config.Target.Backend
+	} else if config.Backend != nil {
+		return SeedSelection{}, nil, errors.New("backend provider requires an explicit backend selector")
+	}
+	environment = append(environment, record.Environment{Name: "GOMAD3_IO_PROFILE", Value: ioProfile})
 	if err := deterministicio.ValidateTranscriptLimit(ioTranscriptLimit(config)); err != nil {
 		return SeedSelection{}, nil, err
 	}
@@ -678,7 +689,9 @@ func runSeed(ctx context.Context, config campaignRequest, executor executionRunn
 	environment := environmentForSeed(baseEnvironment, job.seed)
 	arguments := append([]string(nil), prepared.Argv[1:]...)
 	var ioConfig []byte
-	ioConfig, completion.err = config.bootstrapFrame(profile, prepared, config.RunnerBuild, job.seed)
+	if prepared.Backend == nil {
+		ioConfig, completion.err = config.bootstrapFrame(profile, prepared, config.RunnerBuild, job.seed)
+	}
 	var choiceCapability *execution.ChoiceCapability
 	if completion.err == nil {
 		choiceCapability, completion.err = choiceCapabilityForJob(config, prepared, job)
@@ -709,7 +722,11 @@ func runSeed(ctx context.Context, config campaignRequest, executor executionRunn
 		if len(config.SupervisorCommand) != 0 {
 			request.BootstrapCommand = []string{config.SupervisorCommand[0], "__target_bootstrap"}
 		}
-		completion.result, completion.err = executor.Run(ctx, request)
+		if prepared.Backend != nil {
+			completion.result, completion.err = runBackend(ctx, config.Backend, backend.Request{Target: prepared.CloneBackend(), Seed: job.seed, Environment: environmentStrings(environment), Timeout: config.ExecutionTimeout, OutputBytes: config.OutputLimit, TranscriptBytes: ioTranscriptLimit(config), Choice: backendChoiceRequest(choiceCapability), Diagnostics: config.Diagnostics}, stdoutHead, stderrHead)
+		} else {
+			completion.result, completion.err = executor.Run(ctx, request)
+		}
 		// A target the watchdog or a cancellation killed never wrote its
 		// terminal choice frame; that termination is the outcome, not the
 		// missing frame, so the run is classified and retained as such.
@@ -845,6 +862,9 @@ func environmentStrings(environment []record.Environment) []string {
 func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome execution.Classification, runID string, recordedWorld record.World, mountArtifact *readonlymount.CapturedInputs) (record.ExecutionRecord, error) {
 	profile := deterministicio.Default()
 	recordedProfile := recordedIOProfile(profile)
+	if prepared.Backend != nil {
+		recordedProfile = record.BackendIOProfile(*prepared.Backend)
+	}
 	if completion.result.IOTranscript.Complete {
 		recordedProfile.Transcript = &record.IOTranscript{
 			Schema: "gomad3.io-transcript/v1", File: "io/transcript.bin", SHA256: record.SHA256FromSum(completion.result.IOTranscript.SHA256),
@@ -894,13 +914,14 @@ func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnviro
 			recordedChoices.Trace.Decisions = record.Uint64String(len(tape.Decisions))
 		}
 	}
-	return record.ExecutionRecord{
+	manifest := record.ExecutionRecord{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: outcome.ArtifactKind, CreatedAt: completion.finishedAt.Format(time.RFC3339Nano), CampaignID: runID,
 		SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed), ReplayMode: outcome.ReplayMode,
 		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: config.RunnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
 		Toolchain: record.Toolchain{GoVersion: prepared.GoVersion, BuildKey: prepared.BuildKey, TargetGOOS: prepared.TargetGOOS, TargetGOARCH: prepared.TargetGOARCH},
 		Target: record.Target{
-			Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
+			Backend: recordedBackend(prepared, completion.result),
+			Kind:    string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
 			Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...), Adapters: cloneAdapters(prepared.Adapters), Compatibility: cloneCompatibility(prepared.Compatibility), BuildInfo: prepared.BuildInfo,
 		},
 		IOProfile:     recordedProfile,
@@ -917,7 +938,12 @@ func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnviro
 		Outcome: record.Outcome{Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline},
 		Streams: record.Streams{Stdout: streamRecord(completion.result.Stdout), Stderr: streamRecord(completion.result.Stderr)},
 		Host:    record.Host{StartedAt: completion.startedAt.Format(time.RFC3339Nano), FinishedAt: completion.finishedAt.Format(time.RFC3339Nano), ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt)},
-	}, nil
+	}
+	if prepared.Backend != nil {
+		manifest.Target = prepared.RecordTarget()
+		manifest.Target.Backend = recordedBackend(prepared, completion.result)
+	}
+	return manifest, nil
 }
 
 func mountArtifactForRun(mappings []readonlymount.Mapping, limits readonlymount.Limits, snapshot readonlymount.Snapshot) (*readonlymount.CapturedInputs, error) {

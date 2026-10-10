@@ -68,8 +68,13 @@ func successPublicationFailure(err error) *HostError {
 // executionArtifactInput composes what every published execution artifact
 // carries. The strategies that record simulation payloads add them.
 func executionArtifactInput(manifest record.ExecutionRecord, prepared target.Prepared, result execution.Result, mountArtifact *readonlymount.CapturedInputs, worldBundle execution.Bundle) artifact.ArtifactInput {
+	payloads := prepared.CloneBackend().BackendPayloads
+	if manifest.Target.Backend != nil && manifest.Target.Backend.Evidence != nil {
+		payloads = append(payloads, target.BackendPayload{Reference: *manifest.Target.Backend.Evidence, Data: append([]byte(nil), result.BackendEvidence...)})
+	}
 	return artifact.ArtifactInput{
-		Manifest: manifest, TargetPath: prepared.Path, Stdout: result.Stdout.Bytes, Stderr: result.Stderr.Bytes,
+		BackendPayloads: payloads,
+		Manifest:        manifest, TargetPath: prepared.Path, Stdout: result.Stdout.Bytes, Stderr: result.Stderr.Bytes,
 		IOTranscript: result.IOTranscript.Bytes, ChoiceTrace: result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
 	}
 }

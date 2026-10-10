@@ -19,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -26,6 +27,7 @@ import (
 )
 
 type ReplaySpec struct {
+	Backend       backend.Provider `json:"-"`
 	ArtifactPath  string
 	VerifyOnly    bool
 	ToolchainRoot string
@@ -43,6 +45,7 @@ type ReplayResult struct {
 	Diagnostic         bool
 	Divergence         string
 	ChoiceReplayStatus string
+	ObservedRepetition bool
 }
 
 const (
@@ -87,6 +90,9 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 		}
 	}()
 	manifest := opened.Manifest()
+	if manifest.Target.Backend != nil {
+		return replayBackend(ctx, config, opened)
+	}
 	if err := target.VerifyCompatibility(manifest.Target.Compatibility); err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("verify replay compatibility: %w", err)}
 	}
@@ -440,6 +446,15 @@ func preflight(config ReplaySpec) (_ *artifact.Opened, retErr error) {
 		}
 	}()
 	manifest := opened.Manifest()
+	if manifest.Target.Backend != nil {
+		if config.Backend == nil || (manifest.ReplayMode != record.ReplayObserved && manifest.ReplayMode != record.ReplayExact) {
+			return nil, errors.New("external replay requires its backend provider and supported replay capability")
+		}
+		if _, err := config.Backend.ValidateReplay(context.Background(), opened); err != nil {
+			return nil, err
+		}
+		return opened, nil
+	}
 	profile := deterministicio.Default()
 	if !profile.MatchesRecorded(manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), string(manifest.IOProfile.InventorySHA256), manifest.IOProfile.Inventory) {
 		return nil, errors.New("artifact I/O profile identity does not match this Runner")

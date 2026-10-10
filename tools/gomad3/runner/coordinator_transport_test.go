@@ -41,6 +41,7 @@ func TestMain(m *testing.M) {
 // coordinatorLocalOnlyFields are the CampaignSpec fields that deliberately do
 // not cross the coordinator transport, with the reason each stays local.
 var coordinatorLocalOnlyFields = map[string]string{
+	"Backend":              "injected backend providers are rejected for isolated campaigns",
 	"CoordinatorCommand":   "selects the isolated path in the parent",
 	"Progress":             "replaced in the child by a callback that forwards events to the parent",
 	"Preparer":             "injected preparation is rejected for isolated campaigns",

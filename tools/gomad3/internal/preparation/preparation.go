@@ -19,6 +19,7 @@ type Request struct {
 	Target      target.Spec
 	Environment []string
 	Preparer    Preparer
+	Validate    func(target.Spec, target.Prepared, []string) error
 }
 
 type Stage string
@@ -69,6 +70,31 @@ type preparationServices struct {
 func prepareWith(ctx context.Context, request Request, services preparationServices) (prepared target.Prepared, retErr error) {
 	spec := request.Target
 	preparer := request.Preparer
+	if spec.Backend != "" {
+		if preparer == nil || request.Validate == nil {
+			return target.Prepared{}, &stageError{stage: StageTarget, err: errors.New("external backend requires preparation and validation")}
+		}
+		prepared, err := preparer.Prepare(ctx, spec.Clone())
+		if err != nil {
+			return target.Prepared{}, &stageError{stage: StageTarget, err: err}
+		}
+		if prepared.Backend == nil || prepared.Backend.Name != spec.Backend || prepared.Kind != spec.Kind || prepared.Source != spec.Source || len(prepared.Argv) != len(spec.Args)+1 || prepared.Argv[0] != "gomad3-target" || len(prepared.Adapters) != 0 {
+			return target.Prepared{}, &stageError{stage: StageValidation, err: errors.New("external backend prepared target identity does not match its specification")}
+		}
+		for index, argument := range spec.Args {
+			if prepared.Argv[index+1] != argument {
+				return target.Prepared{}, &stageError{stage: StageValidation, err: errors.New("external backend prepared target arguments changed")}
+			}
+		}
+		if err := prepared.ValidateBackendPayloads(); err != nil {
+			return target.Prepared{}, &stageError{stage: StageValidation, err: err}
+		}
+		prepared = prepared.CloneBackend()
+		if err := request.Validate(spec.Clone(), prepared.CloneBackend(), append([]string(nil), request.Environment...)); err != nil {
+			return target.Prepared{}, &stageError{stage: StageValidation, err: err}
+		}
+		return prepared.CloneBackend(), nil
+	}
 	selectedAdapters := []deterministicio.BuildAdapter{}
 	if preparer == nil {
 		if err := os.MkdirAll(spec.PreparationRoot, 0o700); err != nil {
@@ -101,6 +127,9 @@ func prepareWith(ctx context.Context, request Request, services preparationServi
 	prepared.Adapters = executionAdapters(selectedAdapters)
 	if err := services.validate(spec, prepared, request.Environment); err != nil {
 		return target.Prepared{}, &stageError{stage: StageValidation, err: err}
+	}
+	if prepared.Backend != nil || len(prepared.BackendPayloads) != 0 {
+		return target.Prepared{}, &stageError{stage: StageValidation, err: errors.New("native preparation returned external backend metadata")}
 	}
 	return prepared, nil
 }

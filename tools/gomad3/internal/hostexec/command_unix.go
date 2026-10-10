@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"slices"
 	"syscall"
 	"time"
 )
@@ -104,7 +105,7 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 		command = exec.Command(name, arguments...)
 	}
 	command.Dir = request.Dir
-	command.Env = append([]string(nil), request.Env...)
+	command.Env = slices.Clone(request.Env)
 	command.Stdin = request.Stdin
 	command.Stdout = stdoutWrite
 	command.Stderr = stderrWrite
@@ -135,8 +136,12 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	}
 
 	captures := make(chan captureResult, 2)
-	go copyOutput("stdout", stdout, stdoutRead, captures)
-	go copyOutput("stderr", stderr, stderrRead, captures)
+	stdoutCapture := io.Writer(stdout)
+	if request.StdoutSink != nil {
+		stdoutCapture = io.MultiWriter(stdout, request.StdoutSink)
+	}
+	go copyOutput("stdout", stdoutCapture, stdoutRead, captures, request.StdoutDone)
+	go copyOutput("stderr", stderr, stderrRead, captures, nil)
 	waits := make(chan error, 1)
 	go func() { waits <- command.Wait() }()
 
@@ -217,8 +222,11 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	return result, nil
 }
 
-func copyOutput(name string, capture *Capture, reader io.Reader, results chan<- captureResult) {
+func copyOutput(name string, capture io.Writer, reader io.Reader, results chan<- captureResult, done func()) {
 	_, err := io.Copy(capture, reader)
+	if done != nil {
+		done()
+	}
 	results <- captureResult{name: name, err: err}
 }
 

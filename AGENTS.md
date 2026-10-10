@@ -5,6 +5,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Gomad:** Before any task involving Gomad v3 code (`tools/gomad3`, `tools/gomad3sim`, `tools/gomad3integration`, `tests/gomadfunctional`), read `tools/gomad3/README.md` and follow the delivery order in [Gomad Milestones](MILESTONES.md).
+- **Gomad WASM:** `tools/gomad_wasm` is developed here alongside Gomad v3. Read its README, `tools/gomad3/README.md`, and the fn-151 ladder in [MILESTONES.md](MILESTONES.md) before changes. Use this repository's Flow records; `temporal_wasm` is retired.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
 - **Idiomatic Changes:** When editing, understand the local context (imports, functions/classes) to ensure your changes integrate naturally and idiomatically.

@@ -51,6 +51,7 @@ const maximumGoModuleDownloadBytes = 4 << 20
 const maximumGoBuildDiagnosticBytes = 4 << 20
 
 type Spec struct {
+	Backend             string `json:",omitempty"`
 	Kind                Kind
 	Source              string
 	Provenance          string
@@ -91,6 +92,8 @@ type ToolchainIdentity struct {
 }
 
 type Prepared struct {
+	Backend            *record.BackendMetadata `json:",omitempty"`
+	BackendPayloads    []BackendPayload        `json:",omitempty"`
 	Path               string
 	Kind               Kind
 	Source             string
@@ -124,7 +127,8 @@ func (prepared Prepared) RecordTarget() record.Target {
 	buildInfo := prepared.BuildInfo
 	buildInfo.Settings = append([]record.BuildSetting(nil), prepared.BuildInfo.Settings...)
 	recorded := record.Target{
-		Kind: string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
+		Backend: record.CloneBackendMetadata(prepared.Backend),
+		Kind:    string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
 		Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...),
 		Adapters: append([]record.TargetAdapter{}, prepared.Adapters...), Compatibility: append([]record.CompatibilityPack{}, prepared.Compatibility...), BuildInfo: buildInfo,
 		CapabilityMode: string(prepared.CapabilityMode),

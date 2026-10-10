@@ -58,6 +58,10 @@ func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJo
 		Coverage: string(NormalizeCoverage(config.Coverage, false)), RequiredSemanticProbes: requiredProbes,
 		KeepSuccesses: string(normalizedKeepSuccesses(config.KeepSuccesses)), SuccessArtifactLimit: record.Uint64String(config.SuccessArtifactLimit), SuccessBytesLimit: record.Uint64String(config.SuccessBytesLimit),
 	}
+	if prepared.Backend != nil {
+		identity := record.BackendIOProfile(*prepared.Backend)
+		plan.IOProfile = deterministicio.Contract{Name: identity.Name, ImplementationSHA256: deterministicio.Digest(identity.ImplementationSHA256), InventorySHA256: deterministicio.Digest(identity.InventorySHA256)}
+	}
 	if config.strategy() == StrategyChoiceExploration {
 		plan.ChoiceExplorationImplementationSHA256 = choiceengine.ImplementationSHA256()
 	}

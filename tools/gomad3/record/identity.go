@@ -47,6 +47,7 @@ type simulationFailureProjection struct {
 }
 
 type targetProjection struct {
+	Backend            *BackendMetadata                    `json:"backend,omitempty"`
 	Kind               string                              `json:"kind"`
 	SHA256             SHA256                              `json:"sha256"`
 	Size               Uint64String                        `json:"size"`
@@ -294,8 +295,15 @@ func projectIOProfile(profile IOProfile) ioProfileProjection {
 
 func projectTarget(target Target) targetProjection {
 	projected := targetProjection{
-		Kind: target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: target.Argv, BuildTags: target.BuildTags,
+		Backend: CloneBackendMetadata(target.Backend),
+		Kind:    target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: target.Argv, BuildTags: target.BuildTags,
 		Adapters: target.Adapters, Compatibility: target.Compatibility, BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode,
+	}
+	if projected.Backend != nil {
+		projected.Backend.Provenance.File = ""
+		if projected.Backend.Evidence != nil {
+			projected.Backend.Evidence.File = ""
+		}
 	}
 	if manifest := target.CapabilityManifest; manifest != nil {
 		projected.CapabilityManifest = &targetCapabilityManifestProjection{

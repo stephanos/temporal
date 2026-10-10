@@ -286,13 +286,13 @@ func validateResumeSuccessArtifact(batchPath string, plan CampaignPlan, run Exec
 		return err
 	}
 	manifest := retained.Manifest
-	if manifest.ReplayMode != record.ReplayExact {
+	if manifest.ReplayMode != record.ReplayExact && (manifest.Target.Backend == nil || manifest.ReplayMode != record.ReplayObserved || manifest.Target.Backend.ReplayMode != record.ReplayObserved) {
 		return fmt.Errorf("retained success artifact execution identity does not match its journal")
 	}
 	if manifest.Outcome.Reason != run.Reason || manifest.Outcome.Termination != run.Termination {
 		return fmt.Errorf("retained success artifact outcome does not match its journal")
 	}
-	targetMatches, targetErr := record.SameTargetIdentity(manifest.Target, plan.Prepared.Target)
+	targetMatches, targetErr := record.SamePreparedTargetIdentity(manifest.Target, plan.Prepared.Target)
 	if targetErr != nil || manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || !targetMatches {
 		return fmt.Errorf("retained success artifact target identity does not match its campaign plan")
 	}
@@ -308,7 +308,7 @@ func validateResumeArtifact(batchPath string, plan CampaignPlan, run ExecutionRe
 		return RetainedEvidence{}, err
 	}
 	manifest := retained.Manifest
-	targetMatches, targetErr := record.SameTargetIdentity(manifest.Target, plan.Prepared.Target)
+	targetMatches, targetErr := record.SamePreparedTargetIdentity(manifest.Target, plan.Prepared.Target)
 	if targetErr != nil || manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || !targetMatches {
 		return RetainedEvidence{}, fmt.Errorf("failure artifact target identity does not match its campaign plan")
 	}

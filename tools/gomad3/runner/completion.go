@@ -66,5 +66,8 @@ func assessCompletion(result execution.Result, terminal record.WorldTerminal, mo
 		assessed.choiceFeatures = features
 	}
 	assessed.outcome = execution.Classify(result, false, terminal)
+	if prepared.Backend != nil && assessed.outcome.ReplayMode == record.ReplayExact {
+		assessed.outcome.ReplayMode = prepared.Backend.ReplayMode
+	}
 	return assessed, nil
 }

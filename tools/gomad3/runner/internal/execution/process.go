@@ -92,6 +92,7 @@ type ChoiceCapability struct {
 }
 
 type Result struct {
+	BackendEvidence   []byte
 	Captured          bool
 	Termination       Termination
 	ExitCode          int
