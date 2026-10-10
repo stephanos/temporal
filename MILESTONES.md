@@ -20,6 +20,48 @@ As of 2026-10-10.
   spec) and remove it from this page.
 - Update the "As of" date with every edit.
 
+## Execution strategy: batch first
+
+Optimize for completed, integrated batches rather than individually green tasks. The owner
+authorized aggressive batching, parallel implementation and temporary breaking changes on
+2026-10-10. This strategy supersedes the start-order and per-task gate instructions in older
+plans; it does not remove their functional requirements or final acceptance criteria.
+
+- Assign workers substantial end-to-end batches, spanning related tasks or specs. Task IDs remain
+  requirement and evidence anchors, not mandatory implementation, review or regeneration barriers.
+  Do not stop after each small task to wait for review or a predecessor's formal closure.
+- Run independent implementation lanes in parallel with sub-agents and isolated worktrees. Pin a
+  minimal shared interface, assign each shared file one owner, then develop producers and consumers
+  concurrently. Coordinate interface changes directly; do not turn every handoff into a new spec.
+- Accept temporary compiler, test, schema and generated-artifact breakage inside an implementation
+  batch. Migrate callers and remove obsolete machinery together; do not build compatibility layers
+  merely to keep intermediate commits green. Record known breaks and who owns their repair.
+- Dependencies constrain integration and closure, not all implementation starts. Work ahead of
+  unfinished predecessors on a pinned baseline when the required interface is known; root records
+  the exception in Flow and reconciles it at integration. An OOM or deferred full gate must not
+  idle unrelated source work. Existing owner deferrals remain in force.
+- Capture immutable pre-change inputs before broad edits. Keep separate equivalence comparisons
+  for meaning-preserving migrations so later semantic changes cannot hide regressions. Those
+  comparisons are integration obligations, not reasons to serialize all worker starts.
+- Use focused checks during implementation. Run regeneration, full verification and independent
+  review at coherent integration checkpoints, normally the batch boundary, rather than per task.
+  Reviewers may examine different risks in parallel against the same integrated snapshot. Reuse
+  valid evidence; after fixes, rerun only checks whose relevant inputs or results were invalidated.
+- Prefer direct implementation of decided changes over additional prototypes, inventories or
+  planning rounds. Add a proof or investigation only when required by acceptance or needed to
+  resolve a concrete uncertainty. Keep handoffs short and move implementation forward.
+- A batch is accepted only when its integrated result passes the required checks and review.
+  Link shared evidence to each covered task before closing it in Flow. Temporary red results,
+  partial proofs and deferred gates are never passing evidence or completed-spec credit.
+
+The immediate implementation lanes are fn-156's compiler/lint rollout and the coordinated
+fn-146/fn-147/fn-148 Testpilot format migration. Within the format lane, migrate Umpire runtime
+operand lowering and Testpilot CEL admission/evaluation together, plus Duration and evidence
+schemas, under one schema owner. Testpilot owns runtime CEL; the finite Scala Model evaluator
+remains separate. Activate format 4.0 once at fn-148.6 and regenerate managed artifacts and Run
+companions once at fn-148.7. These are scheduled batches, not claims that every task has started.
+Fn-157 remains owner-deferred; its memory work is not resumed by this strategy.
+
 ## Verification instructions for agents
 
 Apply these instructions when implementing the milestones:
@@ -29,12 +71,14 @@ Apply these instructions when implementing the milestones:
   work. Workers return concise handoffs linking commits, verification evidence and remaining
   blockers. Root inspects the evidence needed for acceptance without importing entire task
   histories. Resume the same worker for fixes where possible.
-- A blocked task holds its dependents, not unrelated work. Continue at the safe ready frontier,
-  using isolated worktrees and the workflow's ownership, dependency and heavy-command constraints.
+- A blocked task holds dependent acceptance, not every dependent implementation start. Continue
+  other lanes and documented work-ahead under the batch-first strategy, retaining ownership and
+  heavy-command constraints.
 - A completed predecessor satisfies its dependents once its Flow closure is committed in the
   current local branch's history. Publishing or landing on origin is not required. Uncommitted
-  closures and work on unmerged branches do not count; dependent work starts from the integrated
-  local baseline. Publishing is a separate, explicitly authorized action.
+  closures and work on unmerged branches do not count. Work-ahead may start from a pinned integrated
+  baseline without claiming that closure, and must reconcile at integration. Publishing is a
+  separate, explicitly authorized action.
 - If a validation remains stuck for more than one hour, including repeated attempts, mark it
   deferred in Flow and this page and move to work that can be verified and delivered. Continue
   beyond that limit only when the validation blocks every other available work path. Record its
@@ -44,9 +88,9 @@ Apply these instructions when implementing the milestones:
   environment still apply. Inspect its recorded evidence; a new task or agent is not a reason to
   rerun it. Changes to relevant inputs invalidate the affected results.
 - During implementation, run the smallest tests that exercise the changed behavior and its failure
-  modes. Once ready for review, run the task's required full tests, goldens, lint and dependency
-  checks once. After a fix, repeat affected checks; repeat broader gates only when the change or
-  failure invalidates their results. Preserve all required coverage and acceptance criteria.
+  modes. At the batch integration checkpoint, run its required full tests, goldens, lint and
+  dependency checks once. After a fix, repeat affected checks; repeat broader gates only when the
+  change or failure invalidates their results. Preserve all required coverage and acceptance criteria.
 - Give reviewers the source scope, commands, results and log paths from that run. Reviewers inspect
   this evidence and request an additional check only for a concrete unresolved concern. Resume the
   same review after fixes, with the changed code and relevant new results.
@@ -66,12 +110,13 @@ Apply these instructions when implementing the milestones:
   review the diff of `model/ir` and `model/cases`, and run `make umpire-check-cases`: the reader's
   tests over `model/ir` pin what a Model means, and the managed Case trees what its Cases contain.
 - Keep handovers concise and link existing evidence. Add audits, inventories or verification gates
-  only for an explicit requirement or a concrete uncovered risk. Move to the next implementation
-  task once the required checks and review pass.
+  only for an explicit requirement or a concrete uncovered risk. Continue implementation within
+  the batch without waiting for per-task full gates or independent review.
 
 ## Batches
 
-A batch is a run of specs that share one baseline: one production regeneration, one full gate run
+A batch is a coordinated implementation of related specs that share one baseline:
+one production regeneration, one full gate run
 (Go suite, model gate, goldens, lint, dependency checks), one independent review and, when the batch
 changes Cases or runtime behavior, one live run. Batching buys throughput with attribution, so a
 batch boundary falls where a failure must stay attributable: after a meaning-preserving refactor's
@@ -80,20 +125,18 @@ equivalence proof that later work builds on, and at a format activation.
 - Inside a batch, tasks run focused source, lowering and runtime checks and declare their IR change;
   production artifacts, full gates, review and live evidence are batch-deferred.
 - A meaning-preserving spec seals its comparison (a scratch regeneration whose diff is exactly the
-  stated mapping) before a later spec in the same batch changes meaning. The seal is focused evidence,
-  not a full gate.
+  stated mapping) before integrating a later semantic change onto that baseline. Workers may
+  implement both concurrently against frozen inputs. The seal is focused evidence, not a full gate.
 - Shared close: the batch's final close task runs the regeneration, gates, review and live run once;
   the other close tasks finish their own code and docs and link that evidence. No spec in a batch
   closes before the batch boundary.
-- Flow cannot express cross-spec task edges, so the conductor enforces the listed source gates
-  without spec-close dependencies inside a batch.
-- Batches run serially; Flow records that as each spec depending on every spec of the previous
-  batch. The owner prioritized the Activity subject split (fn-151) immediately after batch 1,
-  followed by naming the Activity's repeated patterns (fn-155), then compiler and lint enforcement
-  (fn-156); authoring batch 2 waits on all three.
-  The structural baseline is closed; batch 5 waits on batch 4.
-  The next batch's preparation may run in isolated worktrees alongside the
-  current one, but joins serially onto the closed baseline.
+- The conductor enforces source and acceptance dependencies at integration, documenting work-ahead
+  exceptions in Flow. Existing dependency edges are not blanket prohibitions on parallel source work.
+- Batch numbers describe integration order, not a global worker queue. Implement disjoint batches
+  concurrently and integrate continuously where ownership and interfaces permit. Reconcile shared
+  baselines before closure; serialize conflicting file edits and memory-heavy commands, not all
+  implementation. Fn-155's missing baseline proof holds final acceptance, not fn-156 or format
+  implementation. Batch 5 retains its final schema/authoring reconciliation obligations.
 
 | # | Batch | Specs | Nature | Shared close | Live run |
 | --- | --- | --- | --- | --- | --- |
@@ -116,13 +159,14 @@ The DSL framework (`model/framework`) stays Temporal-agnostic as far as is reali
 vocabulary, properties, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
 are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
 
-Next, name the split standalone Activity's repeated patterns, then complete compiler and lint
-enforcement; continue the Scala authoring and format work before completing Activity coverage.
+Next, batch the compiler/lint rollout alongside the coordinated Testpilot format migration.
+Overlap Scala authoring work where file ownership permits; complete its baseline reconciliation
+before accepting the format batch, then finish lifter and Activity coverage integration.
 
 ## Specs
 
-Listed in delivery order, grouped by batch. Flow records spec and task dependencies; the conductor
-also holds batch-close gates and serializes work that shares a regeneration baseline.
+Listed in integration order, grouped by batch. Flow records spec and task dependencies; the conductor
+also holds batch-close gates while scheduling parallel implementation under the batch-first strategy.
 
 
 ### Batch 1b, Activity abstractions: fn-155
@@ -160,8 +204,12 @@ Final validation remains deferred, not passed. Canonical generation attempts ret
 The focused four-test QualifiedNames retry passed unchanged, while complete scratch lowering was
 killed and produced no Cases. Evidence and revisit conditions are recorded in fn-155.6's Flow
 block reason and its preserved task6 worktree. The seventeen passing scoped partitions grant no
-whole-artifact or closure credit. Fn-155 stays open and continues to hold fn-156; independently
+whole-artifact or closure credit. Fn-155 stays open and continues to hold fn-156's final baseline acceptance; independently
 verifiable work may proceed without relaxing its complete provenance contract.
+Read-only kernel attribution confirms global OOM for the scratch generator and candidate
+lowering test. The host has about 16 GB RAM and no swap; victim RSS does not establish required
+successful capacity. Partial checkpoint `2250d1f9ae` and its handover remain on the task6 branch,
+unintegrated and unreviewed. The original failures and the later kernel excerpts are preserved.
 
 ### Batch 1c, compiler and lint: fn-156
 
@@ -169,29 +217,39 @@ verifiable work may proceed without relaxing its complete provenance contract.
 
 [Spec](.flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md) is scheduled immediately
 after fn-155, before batch 2, by the owner's instruction on 2026-10-09. Its eight-task plan passed
-independent review and is ready; implementation starts from fn-155's committed closure.
-The source lane runs .1 through .6 in order. Report-only .8 runs independently in an isolated
-checkout of the same baseline; .7 joins both lanes for documentation and the full close.
+independent review and is ready. On 2026-10-10 the owner authorized isolated implementation
+ahead of fn-155's closure, in parallel with fn-146, and deferred fn-157. Task .1 pins the current
+integrated fn-155.1–.5 source and complete managed raw-byte manifests before edits; fn-155.6's
+missing fresh-generation proof remains a reconciliation hold, not inherited passing evidence.
+The source lane batches .1 through .6 into a coordinated rollout, with focused checks and no
+per-task full-gate/review barrier. Shared files have one owner; disjoint enforcement and test work
+may run in parallel. Report-only .8 runs independently in an isolated checkout of the same baseline;
+.7 joins both lanes for documentation and the full close.
+The owner-authorized work-ahead also admits .8 from an immutable copy of the integrated
+baseline. Its report pins Draft/compiler inputs; .7 reconciles those against the closed fn-155
+baseline before publication. Disposable capture experiments never merge into the source lane.
 
-It changes no IR or Case byte, including positions, and serializes with other Model source work.
+Its accepted result changes no IR or Case byte, including positions. Coordinate overlapping Model
+source edits by file ownership rather than serializing the entire rollout against other batches.
 Task .1 proves sound equality evidence and byte-preserving exhaustive-match lowering before
 rollout; an infeasible proof stops that source lane without relaxing acceptance. The
 compile-versus-lift items from the same review remain notes on fn-141.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-156.1 | ⬜ todo | Warning checks, finite equality evidence, and early exhaustive-match/raw-byte compatibility proof |
-| fn-156.2 | ⬜ todo | Strict equality and precise equality-lint policy across authoring, lifter, fixtures and gate tooling |
-| fn-156.3 | ⬜ todo | Section order, dotted membership, permitted imports and exhaustive enum/state matches |
-| fn-156.4 | ⬜ todo | Discover every exported machine for totality, closedness, relation and binding-order laws |
-| fn-156.5 | ⬜ todo | Complete finite-domain tests and independent interpreter table pins for every Activity/Nexus machine |
-| fn-156.6 | ⬜ todo | Explicit-nulls trial across compiler roots; adopt with boundary fixes or report findings and drop |
-| fn-156.8 | ⬜ todo | Two-day isolated Draft capture-confinement spike; diagnostics, limitations and adoption-cost report |
+| fn-156.1 | 🔄 in progress | Isolated compiler lane: warning checks, finite equality evidence, and exhaustive-match/raw-byte compatibility proof; final fn-155 baseline reconciliation held |
+| fn-156.2 | 🔄 in progress | Strict equality and precise equality-lint policy across authoring, lifter, fixtures and gate tooling |
+| fn-156.3 | 🔄 in progress | Section order, dotted membership, permitted imports and exhaustive enum/state matches |
+| fn-156.4 | 🔄 in progress | Discover every exported machine for totality, closedness, relation and binding-order laws |
+| fn-156.5 | 🔄 in progress | Complete finite-domain tests and independent interpreter table pins for every Activity/Nexus machine |
+| fn-156.6 | 🔄 in progress | Explicit-nulls trial across compiler roots; adopt with boundary fixes or report findings and drop |
+| fn-156.8 | ✅ done | Report-only Draft capture investigation: 30 verified compiler observations and three-axis SHIP review; no capture adoption; .7 retains publication/baseline reconciliation |
 | fn-156.7 | ⬜ todo | Join reports, document enforcement, exact artifact comparison, full gates and reviews; close |
 
 ### Batch 2, authoring: fn-140 → fn-149 → fn-123
 
-Starts from fn-156's closed baseline, with task paths re-anchored to the completed moves,
+Integrates onto fn-156's accepted baseline; implementation may work ahead under the batch-first
+strategy, with task paths re-anchored to the completed moves,
 Activity subject split, abstractions and compiler/lint enforcement. All three specs
 rewrite Model declarations, so they share one production regeneration, one full gate, one review and
 one live run at fn-123.8. fn-140 is meaning-preserving apart from its declared renames: fn-140.6
@@ -200,8 +258,9 @@ grouping, including documentation and executable-layout changes, before fn-123 c
 Each seal compares against its independently frozen predecessor; a fault change cannot hide inside
 either migration.
 
-Source gates: fn-149 starts after fn-140.6's committed witness seal; fn-123 starts after fn-149.5's
-committed final grouping seal. The source seals do not close their specs or discharge shared gates.
+Integration gates: fn-149 joins onto fn-140.6's committed witness seal; fn-123 joins onto fn-149.5's
+committed final grouping seal. Implementation may overlap against pinned interfaces and frozen
+comparison inputs. The source seals do not close their specs or discharge shared gates.
 Fn-123 consumes the grouped baseline and composed identity/provenance mapping, using fn-140's
 `when` blocks and `.live` together with the shared `Outcome`, fault instruction and typed `perform`.
 
@@ -213,8 +272,8 @@ does not eliminate the separate source migrations or their equivalence proofs.
 #### fn-140: One-sentence witness Queries with explicit live expectations
 
 It rewrites the Models' `properties` and `queries` sections and its R5 renames Definition
-IDs. Ready, with six M-sized tasks. The three foundations run in order; task 4 and the documentation
-task 5 are disjoint parallel candidates, and task 6 joins them for the equivalence seal.
+IDs. Ready, with six M-sized requirement anchors. Batch the foundations and caller migration;
+documentation and disjoint conversion work may run in parallel. Task 6 joins the equivalence seal.
 
 `witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
 
@@ -254,7 +313,8 @@ Heavy commands remain serialized. Composition progress belongs to fn-150, not th
 
 #### fn-123: Declare faults as the environment's actions
 
-Ready 2026-10-07. Tasks run in order; 6 and 7 need only 5, so they are parallel candidates. Task 3
+Ready 2026-10-07. Batch implementation around shared fault/durability interfaces; disjoint consumers
+and exports may run in parallel. Task 3
 is the proof: Go derives crash rows equal to `crashDetail`'s from a durability classification, or the
 work stops for the owner. Planning took defaults for five owner questions, listed in the spec's Open
 Questions.
@@ -277,11 +337,12 @@ of R8 were dropped, since neither tool exists.
 ### Batch 3, Testpilot format: fn-146 → fn-147 → fn-148
 
 Planned 2026-10-06 from [Umpire IR schema research](.plans/UMPIRE_IR_SCHEMA_RESEARCH.md) and
-[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Starts from batch 2's closed
-baseline; each spec's implementation starts after its predecessor's last implementation task, and
-fn-141 executes after this batch. Serialize fn-131 and any revived fn-144 or Model batch against it;
-re-anchor their tasks to the schema and vocabulary left by completed work. Deferred specs do not block
-this chain.
+[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Implement fn-146, fn-147 and
+fn-148 as one coordinated breaking migration, in parallel with fn-156. Reconcile authoring batch 2's
+schema and vocabulary at final integration rather than waiting for its closure to start source work.
+Assign shared schemas and generation to one owner; delegate runtime consumers and Umpire lowering
+against that interface. Fn-141 integrates after this batch; other overlapping work uses explicit
+file ownership. Deferred specs are not revived by this scheduling change.
 
 Owner decision: breaking IR changes are allowed. Producers, consumers, generated artifacts and
 recorded Case/Run companions migrate together. No compatibility decoders, legacy evaluators or
@@ -292,55 +353,63 @@ That decision lets the three specs share one breaking format: fn-146.1's migrati
 contract for all three, and fn-148.6 activates format 4.0 once, carrying fn-146's and fn-147's
 changes. fn-146.7 and fn-147.4 retire their machinery, categorize their identity changes and write
 their docs; Run companions are regenerated once, at fn-148.7, with one full gate and review. Each
-spec's proof task (fn-146.4, fn-147.1, fn-148.1) still runs on its own, so a failure stays
-attributable to one spec.
+spec's proof task (fn-146.4, fn-147.1, fn-148.1) retains separately attributable evidence, but does
+not require a separate implementation wave, full gate or review.
 
 #### fn-146: Adopt CEL for runtime predicates and values
 
 Testpilot owns the restricted CEL environment and descriptor-aware value adapter;
 Umpire lowers symbolic realization operands into it. Finite Model expressions, `ModelValue` and
 descriptor-exact `ValueType` remain separate. Formats and identities move together, without legacy
-runtime paths. Tasks run in order; admission and value adaptation share edit surfaces.
+runtime paths. Batch admission, value adaptation, execution and Umpire lowering against one shared
+interface; overlapping edit surfaces have one owner, not one global serial task queue.
+On 2026-10-10 the owner authorized this Testpilot implementation lane in parallel with fn-156.
+Task .1 can establish its format/identity boundary against the integrated local baseline.
+Authoring predecessors remain final integration holds, especially for .6; format 4.0 activation
+still belongs exclusively to fn-148.6. CEL adoption is decided; no additional prototype is planned.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-146.1 | ⬜ todo | Breaking format, deterministic canonical identity and companion migration contract (the batch's contract) |
-| fn-146.2 | ⬜ todo | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
-| fn-146.3 | ⬜ todo | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
-| fn-146.4 | ⬜ todo | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
-| fn-146.5 | ⬜ todo | Contract and correlated verification, rule expansion and reference walkers |
-| fn-146.6 | ⬜ todo | Umpire operand lowering, Run Event guards and conformance agreement |
-| fn-146.7 | ⬜ todo | Retire custom machinery, categorize identities, docs; close (companions and full gates at fn-148.7) |
+| fn-146.1 | 🔄 in progress | Format/identity contract and null-version correction integrated; focused tests green; resumed review pending; no early 4.0 activation |
+| fn-146.2 | 🔄 in progress | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
+| fn-146.3 | 🔄 in progress | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
+| fn-146.4 | 🔄 in progress | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
+| fn-146.5 | 🔄 in progress | Contract and correlated verification, rule expansion and reference walkers |
+| fn-146.6 | 🔄 in progress | Umpire operand lowering, Run Event guards and conformance agreement |
+| fn-146.7 | 🔄 in progress | Retire custom machinery, categorize identities, docs; close (companions and full gates at fn-148.7) |
 
 #### fn-147: Migrate elapsed-time fields to protobuf Duration
 
-Source gate: after fn-146.6. Seven Testpilot elapsed-time fields and corresponding Umpire hints/defaults
+Integration dependency: reconcile with fn-146.6; implement alongside CEL under the shared schema
+owner. Seven Testpilot elapsed-time fields and corresponding Umpire hints/defaults
 migrate through checked whole-millisecond conversions. Absent polling interval means one read;
 present positive interval means polling. Counts, logical bounds, percentages and timestamps stay.
-Scalar-only singleton-oneof presence cleanup belongs here. Tasks run in order.
+Scalar-only singleton-oneof presence cleanup belongs here. Batch schema, producer and consumer changes.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-147.1 | ⬜ todo | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
-| fn-147.2 | ⬜ todo | Replace schemas and migrate Scala authoring, lifting, realization admission and producers |
-| fn-147.3 | ⬜ todo | Runtime consumers, polling policy and scalar presence |
-| fn-147.4 | ⬜ todo | Categorize identities, docs; close (artifacts, Run companions and full gates at fn-148.7) |
+| fn-147.1 | 🔄 in progress | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
+| fn-147.2 | 🔄 in progress | Replace schemas and migrate Scala authoring, lifting, realization admission and producers |
+| fn-147.3 | 🔄 in progress | Runtime consumers, polling policy and scalar presence |
+| fn-147.4 | 🔄 in progress | Categorize identities, docs; close (artifacts, Run companions and full gates at fn-148.7) |
 
 #### fn-148: Consolidate Testpilot evidence and correlated state schemas
 
-Source gate: after fn-147.3. One generalized evidence declaration replaces inline extraction. Response lifts
+Integration dependency: reconcile with fn-147.3; implement alongside CEL and Duration rather than
+waiting for separate spec completion. One generalized evidence declaration replaces inline extraction. Response lifts
 keep ordered first-match behavior; Run Event overlaps still fail. Contract evidence policies remain
 independent. Complete states include both atom and fields; results are separate from authorized
-prior-state transitions, and projection result order stays explicit. Tasks run in order.
+prior-state transitions, and projection result order stays explicit. Batch the migration around
+shared schema/binder contracts, with one coordinated activation and final checkpoint.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-148.1 | ⬜ todo | Generalized evidence declarations in a leaf schema; full lift-shape proof |
-| fn-148.2 | ⬜ todo | One binder and lowering path; source selection and independent Contract policies |
-| fn-148.3 | ⬜ todo | Complete-state and result tables in schema/lowering; compact-size measurement |
-| fn-148.4 | ⬜ todo | Normalized admission/verification, causal authorization and expanded-work ceilings |
-| fn-148.5 | ⬜ todo | Derived Contract kind, fixed correlated clock and explicit support Boolean |
-| fn-148.6 | ⬜ todo | Local references, cardinality, Empty markers and coordinated format 4.0 activation (the batch's single activation) |
+| fn-148.1 | 🔄 in progress | Generalized evidence declarations in a leaf schema; full lift-shape proof |
+| fn-148.2 | 🔄 in progress | One binder and lowering path; source selection and independent Contract policies |
+| fn-148.3 | 🔄 in progress | Complete-state and result tables in schema/lowering; compact-size measurement |
+| fn-148.4 | 🔄 in progress | Normalized admission/verification, causal authorization and expanded-work ceilings |
+| fn-148.5 | 🔄 in progress | Derived Contract kind, fixed correlated clock and explicit support Boolean |
+| fn-148.6 | 🔄 in progress | Local references, cardinality, Empty markers and coordinated format 4.0 activation (the batch's single activation) |
 | fn-148.7 | ⬜ todo | Artifact/companion migration, measurements, full gates and ownership docs; close (the batch's regeneration, gates and live run) |
 
 ### Batch 4, lifter: fn-141
@@ -480,7 +549,7 @@ Runs after fn-138. Tasks run in order.
 | fn-129.4 | ⬜ todo | Exploration on the activity's `find` Queries |
 | fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
 
-## Independent lane while fn-155 validation is deferred
+## Independent work while fn-155 validation is deferred
 
 ### fn-150: Bounded liveness across composed machines
 
@@ -497,7 +566,7 @@ generation for compositions is outside this spec.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-150.1 | 🔄 in progress | Composition progress admission and existing-checker proof on the integrated local baseline |
+| fn-150.1 | ⏸️ deferred | Complete scoped implementation checkpoint; 29 focused tests and lint pass, original Quick OOM before/after and after private daemon exit; review and closure held |
 | fn-150.2 | ⬜ todo | Structured fairness references, inherited/replacement mapping |
 | fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
 | fn-150.4 | ⬜ todo | Bound, fairness, holes, starts and witness-replay regressions |
@@ -508,6 +577,124 @@ Fn-150 has no hard dependency on fn-149. Its hand-authored Go checker proof chan
 schema or managed artifacts and is disjoint from fn-155's remaining fixture/test work. Serialize
 later overlapping edits and regeneration with the approved delivery chain and re-anchor their
 paths before dispatch. This admission does not release fn-156's fn-155 closure dependency.
+
+Task .1's original Quick remains RED. Checkpoint `2d64387595` stays unintegrated and unreviewed
+on its task branch; its Flow block reason links the complete scoped proof and unchanged full
+verification obligation. Task .2 cannot start until .1 is verified and closed.
+
+The one unchanged Quick retry after the private fn-155 compiler daemon exited also failed
+naturally: exit 1 after 39.102 seconds, checker killed after 36.698 seconds and reader cached pass.
+Kernel evidence records global OOM; minimum sampled available host RAM was 319,632 KiB.
+The default runtime, original selector and shared heavy-command lock were preserved. The terminal
+receipt and kernel logs remain in the task worktree's `.flow/tmp/fn150/task1/revisit-private-exit/`.
+Revisit only after a material memory-capacity change or a preservation-safe repair, not for a
+disk-only improvement. Passing focused checks do not replace the original Quick obligation.
+
+### fn-157: Bound native verification memory and scratch storage
+
+[Spec](.flow/specs/fn-157-bound-native-verification-memory-and.md) has five reviewed tasks.
+The conductor activates measurement .1 on committed integrated baseline `551bf89c68`, with a
+documented initial runner budget, because global OOM now holds fn-155 and fn-150 verification.
+This follows the owner's recommendation mandate; it does not grant a passing gate or authorize
+production repair before the complete independent oracle and causal measurements.
+
+The host reports 16,593,792 KiB RAM, no swap and no cgroup memory maximum. Initial snapshots
+separate overlay inode shortage from available host scratch; .1 must measure actual demand
+and allocation ownership. Victim RSS and later free-space snapshots are not those measurements.
+Preserve every table, Query, receipt, replay identity, strict assertion and canonical `-p 2`
+concurrency. Full restored gates remain required; Quint JSON work stays with fn-154, strict
+Activity semantic debt with Batch 5, and Canary failures retain their separate attribution.
+
+Retained fn-151 RED commands and input pins remain in its task3 proof archive. Fn-155's later
+global-OOM excerpts and full failure/partial handover also remain recoverable. No shared daemon,
+broad cache or unowned scratch cleanup is authorized. Measurement .1 precedes native .2/.3 and
+the separate scratch .4 lane; .5 joins complete preservation and exact no-update gate receipts.
+
+The historical proof archive is now copied and content-validated, and the activation inventory
+pins seven Models and all 340 Queries, including the original 154 Activity occurrences. Fresh
+primary Activity Check completed in 20.510 seconds; producer construction was killed after
+17.725 seconds. Complete primary tables and another 34 reader-surface processes across all
+seven Models finished naturally; the latter batch took 219.265 seconds. The six non-primary
+Models also completed Producer/Lower capture for all 275 Queries; the primary Model's 65 Lower
+results remain missing. These are preservation captures, not restored gate-fit evidence.
+After the exclusively owned historical fn-155 private
+Bloop daemon exited normally, the full fresh primary Producer was still OOM-killed after
+19.258 seconds, before Cases or lowering inventories were captured. The shared compiler remains
+untouched. Phase logs, heap profiles and both failed attempts remain preserved.
+
+The ordinary no-update model gate then failed after 9.955 seconds: Java fixture directory
+creation still targeted `/tmp` despite host `TMPDIR`/`GOTMPDIR`. During-run samples show overlay
+free inodes falling from 2,001 to one with about 29.9 GB free bytes; the failures report ENOSPC.
+This establishes inode exhaustion at fixture setup, not successful full gate scratch demand or
+Lift/Case overlap. Storage capacity subsequently increased externally: `/tmp` had over 6.8 million
+free inodes. The unchanged no-update gate retry passed scratch tests but its Case generator was
+globally OOM-killed; the gate exited 2 after 37.691 seconds. Its generated-proto timestamp warning
+remains a separate finding. RAM availability was not materially changed, so the primary Producer
+was not retried for a disk-only improvement. No successful full-gate scratch peak is established.
+
+Measurement .1 remains held on the complete independent oracle; root has resumed only the
+remaining independent error/replay/isolation controls and safe whole-Model captures. The primary
+Producer and unchanged ordinary gate are not retried without material memory improvement.
+Receipt precedence and replay-error controls passed. A pinned `activityProduct` caller-mutation
+control failed naturally: repeated interpreter builds retain shared nested `Row.Results`, despite
+distinct outer rows; a fresh interpreter remains independent in that control. The RED assertion
+is retained under the task worktree's `controls-resume/` evidence. This is an additional ownership
+obligation for the held repair, not a complete oracle, accepted strategy or passing full gate.
+The resumed captures now include all 61 claimed-table owners across seven Models (59 full streams
+and two typed refinement refusals), plus native-supplied dump serialization/admission controls
+for the six non-primary Models. These dump
+controls did not run an external Quint evaluator, regardless of stock receipt wording. Separate
+generated-manifest joins cover all 275 non-primary Queries and their twelve executable Cases.
+Conformance captures retain twelve full private plans and fourteen nonempty Nexus streams across
+seven workflow Cases after caller Model/Case mutation. Runtime evaluation and matching replay now
+cover those seven Cases in both history modes, with foreign-assessment and causal-reversal controls.
+These remain partial preservation evidence:
+the primary Producer's 65 Lower results, primary dump and full all-owner conformance/replay oracle
+are still missing. Root verified the new 525-file seal and the unchanged original 574-file seal.
+Parallel read-only audits confirmed the checked integrity and identified five remaining nonempty
+Case/replay/isolation controls on the other three small Models. Those controls are resumed;
+task-local parallel lanes must use disjoint evidence directories and serialize heavy commands.
+The repeated-caller RED is retained baseline evidence, not a demand for repair before measurement;
+external Quint execution remains fn-154 work and is not an added fn-157 measurement gate.
+No repair, review, gate-fit or closure credit follows from these successful capture commands.
+The first continuation's handover accounts for the original 34 surfaces as sixteen captured,
+twelve partial, five missing and one RED. Its 47 probes used 150.591 measured wall seconds;
+with the earlier 52 probes/412.923 seconds, the retained total is 99 probes/563.514 seconds.
+The one-hour limit was not reached. Revisit the primary captures on capacity sufficient for the
+unchanged whole primary Producer and ordinary compiler overlap, retaining effective JVM scratch
+and all original inputs/assertions. All production repairs remain held. Managed artifacts and
+fresh lifted candidates have separate pins; historical source freshness is not assumed.
+
+The dedicated read-only memory investigation found three complete interpretations overlapping
+inside `NewProducer`: its Realizer, Check's first binding and independent replay binding. The
+retained Producer heap profile attributes 1,037.53 MiB of 2,348.56 MiB sampled retained allocations
+to transition-slice clones. This is a snapshot allocation-site account, not the OOM peak or a
+measured saving. Check also builds complete canonical fingerprint strings before Lower, making
+incremental exact-byte hashing another candidate; streaming final Case output alone misses this
+failure phase. No production correction or successful memory budget follows from these findings.
+
+A possible future disposable .1 diagnostic separates the complete frozen Check/replay process from a
+whole-Model lowering Realizer, supplying sealed receipts to unchanged Lower and private producer
+code through a pinned test-only constructor seam. It must first match all 275 ordinary outputs
+on the six complete Models, including standings, errors, artifacts, identities and inventories.
+Only that comparison can admit the primary Model's full 65-Query capture. A mismatch rejects
+the seam; successful capture supplies a functional oracle, never unchanged constructor or
+canonical gate-fit credit. All prior evidence and the caller-mutation RED remain preserved.
+
+The owner deferred fn-157 on 2026-10-10. All workers and owned commands are terminal; the
+constructor experiment never started. The third immutable evidence generation seals 151 files;
+all three seals were independently verified. Remaining controls bring the native diagnostic total
+to 114 probes / 596.297 executed seconds, with 28 captured surfaces, one captured RED and five
+still missing. These are partial functional receipts, not complete-oracle, repair or gate-fit credit.
+Resume from the preserved deferral handover and seals, without rerunning or changing their inputs.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-157.1 | ⏸️ deferred | Owner deferred after three immutable seals; complete primary oracle still missing; constructor experiment not started; no repair or gate-fit credit |
+| fn-157.2 | ⬜ todo | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
+| fn-157.3 | ⬜ todo | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
+| fn-157.4 | ⬜ todo | Repair owned gate/lift scratch lifetimes or establish provisioned capacity with ordinary overlap |
+| fn-157.5 | ⬜ todo | Join full preservation, execute interrupted tests and restore exact native gates and measured capacity |
 
 ## Deferred
 
@@ -546,9 +733,29 @@ Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 
 ### fn-130: Model views
 
-Deferred 2026-10-05 before task planning; the spec has no tasks yet. When revived, starts after fn-126 closes. Evidence: `.plans/MODEL_VISUALIZATION.md`.
+Execution remains owner-deferred from 2026-10-05. Preparation now has seven tasks covering the
+original R1-R5; independent plan review returned SHIP after fixing nested phase/queue projection
+coverage and enabled-guard retention from lint's existing evaluation. Fn-126's committed closure satisfies the
+sole feature dependency. The proposed delivery placement is after Batch 5, with actual admission
+and baseline re-anchor still conductor-owned. Preparation grants no production gate credit.
+Evidence: `.plans/MODEL_VISUALIZATION.md`.
 
 Rendered views per Model (signature, phase diagram, refinement, compositions, derived-design diff, witness paths), checked in as `.d2` plus `.svg` under `model/views/` and gated; D2 as a Go library with ELK; no DSL declaration.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-130.1 | ⬜ todo | Disposable renderer/projection proof and full-workload added-cost feasibility; no production rollout on a failed proof |
+| fn-130.2 | ⬜ todo | Pinned phase renderer, nested/queue projections, retained enabled guards and live command/ownership foundation |
+| fn-130.3 | ⬜ todo | Signature and composition/sync views with actual actor/substitution/source metadata |
+| fn-130.4 | ⬜ todo | Existing checked state-map public seam and refinement/carrier/stutter views |
+| fn-130.5 | ⬜ todo | Inferred comparison bases, truthful ties/identical siblings and full concrete-result diffs |
+| fn-130.6 | ⬜ todo | Actual replay-validated expecting-find witnesses and complete per-IR overviews |
+| fn-130.7 | ⬜ todo | Safe complete-tree freshness/publication, foreground reuse, docs and original full gates/cost/preservation proof |
+
+The historical research names a retired reader package. Tasks use the current public reader and
+lint owners; they add no alternate evaluator or IR view declarations. The original few-seconds
+added gate target, all seven view families, complete inventories and independent replay remain
+required. Native repair/oracle holds, owner deferrals and the delivery chain are unchanged.
 
 ### fn-151: Nexus matching model and bug-finding evidence
 
@@ -587,41 +794,6 @@ The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeou
 | --- | --- | --- |
 | fn-154.1 | ⏸️ deferred | Incremental JSON generation and consumption, preserved full coverage and measured concurrent memory fit before restoring the deferred gate |
 
-### fn-157: Bound native verification memory and scratch storage
-
-⏸️ Deferred 2026-10-09 under the one-hour stuck-gate rule; five reviewed tasks, not ready.
-[Spec](.flow/specs/fn-157-bound-native-verification-memory-and.md).
-
-Measure native interpreter, Check, Producer and seven-Model generator lifetimes before choosing a
-repair. Preserve complete tables, Queries, receipts, replay identities, negative controls, strict
-assertions and canonical package concurrency `-p 2`. Diagnose scratch file/inode exhaustion
-separately. This changes fn-151 R4 and task .3's gate acceptance so independent complete equivalence
-and review can close the structural split; it grants no passing-gate or memory-fit credit.
-
-Retained RED commands from fn-151 are the canonical Go suite (five kernel-confirmed OOM victims),
-`make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` (generator OOM and scratch exhaustion),
-`make umpire-check-cases` and `make umpire-check-fixtures` (standalone generator OOMs), and the exact
-completion guard negative (OOM before its assertion). Receipts,
-input pins and kernel logs remain under the fn-151 worker's `.flow/tmp/fn151/task3/` and must survive
-worktree cleanup. Restore those exact complete gates after a measured repair or runner provisioning;
-isolated passes and reduced domains cannot replace them. Complete Canary controller/publication
-packages passed with restored source and corrected test-runtime temp selection; their original
-canonical RED remains, and the low-level file-sync cause is unknown. Quint JSON work stays in fn-154,
-and strict Activity semantic debt stays in Batch 5.
-
-The preparation plan passed independent review; activation still needs a committed source baseline
-and measured runner budget. Measurement .1 precedes native .2/.3 and the separate scratch .4 lane;
-.5 joins their complete preservation proof and exact gate receipts. No allocation owner or storage
-cause is inferred from historical RSS or later free-space snapshots.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-157.1 | ⏸️ deferred | Pin the activated baseline, seal the independent complete oracle, measure native owners and scratch bytes/inodes |
-| fn-157.2 | ⏸️ deferred | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
-| fn-157.3 | ⏸️ deferred | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
-| fn-157.4 | ⏸️ deferred | Repair owned Scala gate/lift scratch lifetimes or establish provisioned capacity, preserving ordinary overlap |
-| fn-157.5 | ⏸️ deferred | Join full preservation, execute interrupted tests, restore exact native gates and document measured capacity |
-
 ### Other deferred items
 
 - fn-122.7 (the Pausable capability Property on fn-119's example) waits for fn-119.
@@ -641,17 +813,18 @@ cause is inferred from historical RSS or later free-space snapshots.
   `inconclusive(explanationsDisagree)`: the Model's NotFound rows let a silent rejected repeat explain the
   same evidence, as for `terminate` and `cancelIsRequested` (fn-129.2). Sharper witnesses would need
   repeated-call rejection to be observable.
-- Batch reorganization (2026-10-08): batches 1 to 3 replace the earlier per-spec migrations, and
-  Flow's spec dependencies match: each spec depends on every spec of the previous batch, with no
-  spec dependencies inside a batch. Reverting to the earlier order means restoring per-spec
-  regenerations and those dependencies; the tasks are unchanged. The activity model batch then moved
-  last at the owner's request: until it closes, batches 2 and 3's live runs include activity Cases with
+- Batch integration order retains Flow's predecessor dependencies; the batch-first strategy above
+  permits documented parallel implementation ahead of those closures. Do not restore per-spec
+  regenerations or task-by-task review barriers. The activity model batch remains last for final
+  integration at the owner's request: until it closes, batches 2 and 3's live runs include activity Cases with
   its three inherited failures (ordinary completion ambiguity, non-retryable failure visibility,
   pause/resume work ceiling), which those runs report but do not own.
 
 ## fn-153: Checked property examples pilot
 
-Captured 2026-10-09; no tasks yet and not marked ready for execution.
+Six M-sized tasks cover all seven requirements. The plan passed independent review on 2026-10-10;
+execution is scheduled after Batch 5 and is not marked ready. This placement avoids shared
+compiler/lifter/schema baselines without inventing a feature dependency.
 [Spec](.flow/specs/fn-153-checked-property-examples-pilot.md).
 
 Pilot checked examples and counterexamples attached to three existing Properties: a same-step
@@ -665,3 +838,16 @@ deliberately weakened predicates are detected, and assess authoring burden and e
 before expanding. Preserve model behavior and behavioral identities. Coordinate with fn-140,
 fn-149 and fn-130; fn-152's named Situations are not a prerequisite. Live test generation,
 temporal-sequence examples and a repository-wide rollout are outside the pilot.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-153.1 | ⬜ todo | Optional illustration carriers, exact domain admission and frozen behavior/identity pins |
+| fn-153.2 | ⬜ todo | Typed authoring attachment, lifting and nested source locations |
+| fn-153.3 | ⬜ todo | Existing Property selector/predicate classifier, errors and local mutation controls |
+| fn-153.4 | ⬜ todo | Compact deterministic document and gate freshness; handwritten assessment outside its managed subtree |
+| fn-153.5 | ⬜ todo | Three existing Nexus Properties' contrast pairs and classification drift evidence |
+| fn-153.6 | ⬜ todo | Evidence-limited assessment, docs, complete compatibility comparison and full gates |
+
+Tasks run in order. Re-anchor against the actual baseline after the delivery chain; keep
+hypothetical violations, actual model failures and live coverage separate. Mechanical checks
+do not establish developer comprehension, and absent feedback must remain explicit.

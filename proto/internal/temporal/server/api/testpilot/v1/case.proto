@@ -14,7 +14,22 @@ message Case {
   Contract contract = 5;
 }
 
-// FormatVersion is the Case wire format version; preparation admits exactly 1.0.
+// FormatVersion is an exact admission boundary, never a compatibility range.
+// Current producers and consumers use 1.0 until the coordinated activation of 4.0.
+// Format 4.0 combines canonical CEL expressions and values, Duration/presence and
+// evidence/state normalization. Activation rejects 1.0, 2.0, 3.0 and unknown formats
+// before schema interpretation or Driver I/O; no intermediate format is emitted.
+// CEL IDs are positive and unique before canonicalization, then assigned from one
+// in preorder: call target/arguments, select operand, list elements, and map
+// entry/key/value. Only homogeneous scalar-key, scalar-value literal maps reorder,
+// by natural key order (false before true, numeric order, UTF-8 string order).
+// Dynamic maps, duplicate keys, optional entries and message constructors reject.
+// Source metadata remains diagnostic for evaluation but is retained in exact Case
+// artifact identity; source position IDs follow the canonical AST IDs.
+// Identity is SHA-256 of the compact canonical ProtoJSON bytes. Object key order,
+// source metadata and provenance participate; persisted indentation does not.
+// A recorded Run must name this exact Case identity. Cases and companions migrate
+// together after activation; historical evidence is never relabeled as a new Run.
 message FormatVersion { int32 major = 1; int32 minor = 2; }
 
 // CaseProvenance records where a Case came from as typed rows. Testpilot reads none of it: it

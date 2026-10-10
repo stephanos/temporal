@@ -16,6 +16,8 @@ trait Finite[T]:
   def values: IndexedSeq[T]
 
 object Finite:
+  given [T](using Finite[T]): CanEqual[T, T] = CanEqual.derived
+
   def apply[T](using f: Finite[T]): Finite[T] = f
 
   def of[T](vs: T*): Finite[T] =

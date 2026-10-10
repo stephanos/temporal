@@ -188,7 +188,7 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
     for family <- malformed do
       intercept[IllegalArgumentException]:
         Deadline[Snapshot, Phase, Held, Fact](expired, armed, timeout, family)
-    intercept[IllegalArgumentException]:
+    intercept[IllegalArgumentException] {
       Deadline[Snapshot, Phase, Held, Fact](
         expired,
         armed,
@@ -196,7 +196,8 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
         timeoutFacts,
         retryable = true
       )
-    intercept[IllegalArgumentException]:
+    }: Unit
+    intercept[IllegalArgumentException] {
       Deadline[Snapshot, Phase, Held, Fact](
         expired,
         armed,
@@ -204,6 +205,7 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
         timeoutFacts,
         retriesRemaining = Some(remaining)
       )
+    }: Unit
     for (pause, cancel) <- Seq((Some(pendingPause), None), (None, Some(pendingCancel))) do
       intercept[IllegalArgumentException]:
         Deadline[Snapshot, Phase, Held, Fact](

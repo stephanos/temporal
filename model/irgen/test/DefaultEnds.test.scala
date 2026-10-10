@@ -52,7 +52,7 @@ class DefaultEndsSuite extends munit.FunSuite:
 
   test("default machine and nested composition ends read Closed; derivations forward source ends"):
     val (ran, out) = lift("DefaultEnd", "WrittenEnd", "DerivedEnd", "DefaultPair", "DerivedPair")
-    ran.orFail()
+    ran.orFail(): Unit
     val model = mapper.readTree(Files.readString(out))
     def ends(kind: String, name: String): JsonNode =
       model.path(kind).elements().asScala.find(_.path("name").asText() == name).get.path("ends")
@@ -101,7 +101,7 @@ class DefaultEndsSuite extends munit.FunSuite:
 
   test("an explicit end wins even when the phase has no Closed case"):
     val (ran, out) = lift("OpenOverride", "OpenOverridePair")
-    ran.orFail()
+    ran.orFail(): Unit
     val model = mapper.readTree(Files.readString(out))
     for kind <- Seq("machines", "compositions") do
       val end = model.path(kind).get(0).path("ends")
@@ -128,7 +128,7 @@ class DefaultEndsSuite extends munit.FunSuite:
       "ClosingDerivedAgain$.capabilities",
       "WrittenEnd"
     )
-    ran.orFail()
+    ran.orFail(): Unit
     val model = mapper.readTree(Files.readString(out))
     val properties = model.path("properties").elements().asScala.toSeq
     assertEquals(

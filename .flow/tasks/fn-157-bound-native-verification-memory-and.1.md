@@ -38,8 +38,73 @@ Current public Model/Type/table accessors expose referenced data; no safe mutati
 - [ ] Named failures have phase-labelled measurements or natural complete results on the provisioned runner; causal native owner and scratch bytes/inodes demand are recorded without unsupported RSS conclusions.
 - [ ] Reviewable native/scratch strategies and non-overlapping write seams exist, or Flow tasks are re-anchored by the conductor before repair. No repair or activation is inferred from preparation.
 ## Done summary
-TBD
+Blocked:
+# Complete pre-repair oracle unavailable on current capacity
 
+Task fn-157-bound-native-verification-memory-and.1 is blocked, not complete or reviewed.
+All owned commands and the worker/research child are terminal. Production source is unchanged.
+Worker HEAD/task base: f7b2e2ee7d938da6c7bdb5a37d8232e0252f4dcc; executable activation
+pin: 551bf89c68f9b8dd3ac8ec219e65f96f0aa85890. Later integrated changes are overview metadata.
+
+Recoverable worker evidence root:
+`/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-157-bound-native-verification-memory-and/.flow/tmp/fn157/task1/`.
+Root read the handover and independently checked all 574 evidence-seal file hashes, exit 0.
+Summary SHA256: 1456bae5f2e024b5377ea3767d1ec6661e58b2f6d85b28e7aab8b25238070df9.
+Evidence SHA256: 57c4a97e9a942d88903e1955f793bca1ec29a96d6db6e6c076c94cd8a7f6ad2e.
+Seal-file SHA256: cb11ea018d9a9a6776671e2ca19485e2d921217a621055ad3de70f2faf09aab6.
+
+Captured: seven complete Models, 61 raw table owners, 393 typed Check receipts, all 340
+Query answer/bind/replay records (including original 154 Activity occurrences), and full
+Producer/Lower outputs for 275 Queries in the six non-primary Models. The primary Model's
+65 Lower results and the full independent artifact/manifest/conformance/export/error-control
+joins remain missing. `oracle-completeness.json` lists 34 outstanding surfaces/controls,
+with complete=false and repair_allowed=false. These partial captures earn no gate-fit credit.
+
+The primary Producer was naturally SIGKILLed before and after the exact normal exit of the
+exclusively owned historical fn-155 private Bloop daemon: 17.724510883 and 19.258385842 seconds.
+The shared compiler was untouched. Kernel windows identify global OOM; the later native victim
+had 7,678,400 KiB anonymous RSS. Numeric PID namespace mapping and successful capacity remain
+unproven. Heap profiles demonstrate transition clones and simultaneous bindings, not a sole
+owner or an accepted repair strategy.
+
+Unchanged `mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` first failed
+exit 2 after 9.955093963 seconds with Java /tmp creation ENOSPC: sampled overlay free inodes
+2,001 to one while roughly 29.9 GB free bytes remained. Storage then changed externally;
+the same gate retry passed scratch tests but failed exit 2 after 37.690613476 seconds, with
+kernel global OOM for its Case generator (5,984,192 KiB anonymous RSS). Preserve its distinct
+claim.pb.go/claim.proto timestamp warning; neither result proves completed Lift/Case overlap.
+
+Total 52 measured probes: 412.922787696 wall seconds, with preparation/private lifecycle
+separate. The one-hour deferral limit was not reached; this blocker is missing mandatory
+reference output, not that time limit. No smaller input, forced GC, memory knob, selected-only
+fit claim, source repair, review verdict or Flow completion substitutes for the missing oracle.
+
+Revisit when a runner can execute the unchanged whole primary Producer and independent readers
+with adequate RAM under measured ordinary compiler/process overlap, and effective JVM scratch
+has sufficient verified bytes/inodes. Successful memory demand is unknown; victim RSS is only
+a failed lower bound. Re-anchor changed executable inputs, resume the frozen complete oracle
+and outstanding controls, then review .1 before any .2/.3/.4 repair. R3 strict assertions,
+canonical full Go -json/test_dep/-p 2/-timeout 30m, ordinary no-update Cases/fixtures/model
+gates, fn-154 JSON work and separate Canary/Batch 5 debt remain unweakened.
+
+Blocked:
+# Deferred at the owner's explicit request
+
+On 2026-10-10 the owner asked to defer fn-157 for now, then authorized fn-156 and fn-146 implementation in parallel. Fn-157.1 is deferred, not complete or reviewed. All worker and child commands are terminal. No constructor-partition harness, directory, build or primary probe was created. Production source is unchanged.
+
+Retain the worktree at `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-157-bound-native-verification-memory-and` and its `.flow/tmp/fn157/task1/` evidence. Frozen source HEAD is `f7b2e2ee7d938da6c7bdb5a37d8232e0252f4dcc`; executable activation pin is `551bf89c68f9b8dd3ac8ec219e65f96f0aa85890`. Later integrated commits alter overview/planning only.
+
+The original 574-file seal and controls-resume 525-file seal remain intact. Root independently verified the new controls-remaining-v2 151-file seal. Its summary SHA256 is `401eea3d7928b1f1024bba395cd8cb788b76e165e6836dd29ad1e395c047dd4b`, evidence SHA256 `3edbecd0802eb24c34307e523c612eecbf351bbf367209b786f0f90f069c0239`, and seal-file SHA256 `f6cb67db78e2e9b9c6f2d69349266bac7cbcae38ff7914e7820f6133e0c991c6`. Manifest SHA256 is `f4ebd1f4178a7601c3d3febbbc2db820c350a98e89b712d9e1b06c85b686f67b`.
+
+Current preservation includes all seven Models/340 Query answer/replay records, 61 claimed owners (59 complete streams and two typed refusals), 275 non-primary Lower results and twelve Cases. The latest generation covers five additional Cases with eight no-server executor Runs/139 events, all 116 Query bindings on three Models, eighteen associated tables/126,062 ordered rows and three complete through refinements/1,306 rows plus one typed refusal. Retain natural inconclusive and forged-completion negative results. The owner-qualified inventory negative passed. The frozen repeated-Build nested Row.Results alias RED remains evidence.
+
+Cumulative native evidence is 114 probes/596.297063286 measured wall seconds. Five original surfaces remain missing, including the primary 65-Query Lower oracle and dependent generated/conformance/dump joins. Complete oracle and repair_allowed remain false. No full native/model/case gate, production repair or fn-155 closure credit follows from the partial captures. External Quint JSON remains fn-154; Activity semantic debt remains Batch 5.
+
+Read-only research identifies overlapping Realizer/Check/replay interpretations, transition clone allocations and pre-Lower canonical fingerprint strings as candidate peaks. A future separately pinned constructor-lifetime partition must preserve typed receipt provenance and first match every ordinary output on the six complete Models before any primary attempt. One non-primary Query receipt has a typed Cause; generic JSON receipt reconstruction is not yet an accepted seam. The proposed diagnostic is now deferred, not currently authorized to run.
+
+Resume only when the owner revives fn-157. Re-anchor executable inputs, inspect `deferral-20261010-{summary.md,evidence.json}` outside the sealed subtrees, preserve all three seals and all RED receipts, then complete the independent oracle/causal measurements before any .2/.3/.4 repair. Unchanged canonical domains, strict assertions, default memory policy, -p2 concurrency, real shared heavy lock and normal no-update gates remain required. No paid provisioning, swap, shared-daemon termination or unowned cleanup is authorized.
+
+stage: impl-review - skipped(policy: incomplete measurement and explicit owner deferral)
 ## Evidence
 - Commits:
 - Tests:

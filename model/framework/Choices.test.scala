@@ -47,7 +47,9 @@ class Choices extends munit.FunSuite:
   test("choose refuses a token named twice and an alternative of more than one step"):
     interceptMessage[IllegalArgumentException](
       "requirement failed: a choice names one alternative of a choose"
-    )(choose[Boolean, Outcome, String](committed -> stay(true), committed -> stay(false)): Unit)
+    )(
+      choose[Boolean, Outcome, String](committed -> stay(true), committed -> stay(false)): Unit
+    ): Unit
     val oneStep = "requirement failed: each alternative of a choose is at most one step"
     interceptMessage[IllegalArgumentException](oneStep)(
       choose[Boolean, Outcome, String](

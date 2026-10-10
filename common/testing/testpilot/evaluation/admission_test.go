@@ -114,6 +114,53 @@ func TestAdmitTheControlRecord(t *testing.T) {
 	require.Equal(t, AdmissionCaps(), subject.Caps)
 }
 
+func TestAdmitFormatRejectsBeforePayloadInterpretation(t *testing.T) {
+	for _, version := range []string{`{"major":2}`, `{"major":3}`, `{"major":4}`, `{"major":99}`, `{"major":1,"minor":1}`} {
+		t.Run(version, func(t *testing.T) {
+			caseBytes := []byte(`{"version":` + version + `,"program":{"retiredExpression":true}}`)
+			subject, err := Admit(caseBytes, []byte(`{"run":{"retiredPayload":true}}`), "catalog")
+			require.Nil(t, subject)
+			rejection, ok := IsRejection(err)
+			require.True(t, ok)
+			require.Equal(t, ReasonIncompatible, rejection.Reason)
+			require.NotContains(t, rejection.Detail, "retiredExpression")
+		})
+	}
+}
+
+func TestAdmitNullFormatRejectsBeforePayloadInterpretation(t *testing.T) {
+	for name, encoded := range map[string]string{
+		"null version":              `{"version":null}`,
+		"retired payload":           `{"version":null,"program":{"retiredExpression":true}}`,
+		"persisted whitespace null": "{\n  \"version\": null,\n  \"program\": {\n    \"retiredExpression\": true\n  }\n}\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			subject, err := Admit([]byte(encoded), []byte(`{"run":{"retiredPayload":true}}`), "catalog")
+			require.Nil(t, subject)
+			rejection, ok := IsRejection(err)
+			require.True(t, ok)
+			require.Equal(t, ReasonIncompatible, rejection.Reason)
+			require.Contains(t, rejection.Detail, "unsupported Case version 0.0")
+			require.NotContains(t, rejection.Detail, "retiredExpression")
+			require.NotContains(t, rejection.Detail, "retiredPayload")
+		})
+	}
+}
+
+func TestAdmitCompanionIdentityRejectsBeforeRunPayload(t *testing.T) {
+	c := loadControl(t)
+	regenerated := proto.CloneOf(c.source)
+	regenerated.Provenance.ProducerVersion += "-new"
+	brokenPayload := []byte(strings.Replace(string(c.recorded), `"run":{`, `"run":{"retiredPayload":true,`, 1))
+	subject, err := Admit(compactCase(t, regenerated), brokenPayload, c.catalog())
+	require.Nil(t, subject)
+	rejection, ok := IsRejection(err)
+	require.True(t, ok)
+	require.Equal(t, ReasonCrossed, rejection.Reason)
+	require.Contains(t, rejection.Detail, c.decoded.Case)
+	require.NotContains(t, rejection.Detail, "retiredPayload")
+}
+
 // The fresh companion admits under the current catalog; the historical record remains stale.
 func TestTheControlRecordIsCurrent(t *testing.T) {
 	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()

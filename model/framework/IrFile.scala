@@ -77,5 +77,5 @@ type IrRoot = AnyRef
 // Declares the IR file `model/ir/<name>.json` and its roots.
 def irFile(name: String)(roots: IrRoot*): IrFile =
   val file = IrFile(name, roots)
-  IrFile.made.synchronized(IrFile.made += file)
+  IrFile.made.synchronized(IrFile.made += file): Unit
   file

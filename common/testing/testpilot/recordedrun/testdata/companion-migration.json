@@ -1,0 +1,40 @@
+{
+  "caseRoots": [
+    "model/cases",
+    "tests/testcore/testpilot/testdata",
+    "common/testing/testpilot/testdata/case-runtime-conformance",
+    "common/testing/testpilot/replay/testdata",
+    "tools/canary/assessment/testdata",
+    "tools/canary/casebinding/testdata"
+  ],
+  "companions": [
+    {
+      "case": "model/cases/nexus-workflow-control-forgedCompletion-case.json",
+      "run": "common/testing/testpilot/replay/testdata/nexus-workflow-control-forgedCompletion-run.json"
+    },
+    {
+      "case": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-case.json",
+      "run": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-run.json"
+    },
+    {
+      "case": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-case.json",
+      "run": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-current-run.json"
+    },
+    {
+      "case": "tools/canary/assessment/testdata/nexus-caller-syncCompletion-historical-case.json",
+      "run": "tools/canary/assessment/testdata/nexus-caller-syncCompletion-historical-run.json"
+    },
+    {
+      "case": "tools/canary/casebinding/testdata/nexus-workflow-syncCompletion-case.json",
+      "run": "tools/canary/assessment/testdata/nexus-workflow-syncCompletion-current-run.json"
+    },
+    {
+      "case": "tools/canary/assessment/testdata/nexus-workflow-syncCompletion-historical-case.json",
+      "run": "tools/canary/assessment/testdata/nexus-workflow-syncCompletion-run.json"
+    },
+    {
+      "case": "tools/canary/assessment/testdata/nexusCallerCanary-syncCompletion-case.json",
+      "run": "tools/canary/assessment/testdata/nexusCallerCanary-syncCompletion-run.json"
+    }
+  ]
+}

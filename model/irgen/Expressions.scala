@@ -55,11 +55,12 @@ private[irgen] trait Expressions:
     if made.nonEmpty then
       val own = made.map(_.symbol).toSet
       val taken = inScope(made.head.symbol.owner, body).diff(own).map(nameOf)
-      made.foldLeft(taken): (taken, p) =>
+      made.foldLeft(taken) { (taken, p) =>
         val base = typeName(p.tpt.tpe)
         val name = (base #:: LazyList.from(2).map(i => s"$base$i")).filterNot(taken).head
         renamed(p.symbol) = name
         taken + name
+      }: Unit
     ps.map(param)
 
   // A type whose name in lower case is a keyword, such as `Type`, gives `it`.
@@ -810,7 +811,7 @@ private[irgen] trait Expressions:
       case _      => None
     sym.map(s => s -> defs.get(s)) match
       case Some((s, Some(ValDef(_, _, Some(rhs: Ref))))) if rhs.symbol.fullName == choiceDef =>
-        capturedName(s, token, "a choice")
+        capturedName(s, token, "a choice"): Unit
         s
       case found =>
         val written = found match

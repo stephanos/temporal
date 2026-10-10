@@ -9,6 +9,7 @@ import (
 
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -59,6 +60,11 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*P
 	if catalog == nil {
 		return nil, ir.Invalid(ir.Malformed, "catalog", "catalog is required")
 	}
+	if source != nil {
+		if err := casefile.CheckVersion(source.GetVersion().GetMajor(), source.GetVersion().GetMinor()); err != nil {
+			return nil, ir.Invalid(ir.Unsupported, "version", "unsupported Case version")
+		}
+	}
 	if err := ir.CheckSurface(source, ir.DefaultLimits()); err != nil {
 		return nil, err
 	}
@@ -68,9 +74,6 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*P
 		if err := ir.CheckExpandedSurface(source, ir.DefaultLimits(), ir.ExpandRuleInstances); err != nil {
 			return nil, err
 		}
-	}
-	if source.Version == nil || source.Version.Major != 1 || source.Version.Minor != 0 {
-		return nil, ir.Invalid(ir.Unsupported, "version", "unsupported Case version")
 	}
 	if !ir.ValidID(source.CaseId) || source.Program == nil || source.Contract == nil || !ir.ValidID(source.Contract.ContractId) {
 		return nil, ir.Invalid(ir.Malformed, "case", "Case identity, Program and Contract are required")

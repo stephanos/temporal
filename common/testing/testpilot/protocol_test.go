@@ -100,6 +100,22 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	}, fieldNames(messageDescriptor(t, "CaseProvenance")))
 }
 
+func TestPrepareFormatRejectsBeforePayloadAdmission(t *testing.T) {
+	for _, major := range []int32{2, 3, 4, 99} {
+		t.Run(fmt.Sprint(major), func(t *testing.T) {
+			source, profile := facadeFixture(t)
+			source.Version.Major = major
+			source.Program.ProtoReflect().SetUnknown([]byte{0x98, 0x06, 0x01})
+			prepared, err := Prepare(source, profile)
+			require.Nil(t, prepared)
+			var preparation *PreparationError
+			require.ErrorAs(t, err, &preparation)
+			require.Equal(t, PreparationUnsupported, preparation.Category)
+			require.Equal(t, "version", preparation.Path)
+		})
+	}
+}
+
 func oneofNames(oneof protoreflect.OneofDescriptor) []protoreflect.Name {
 	names := make([]protoreflect.Name, 0, oneof.Fields().Len())
 	for index := range oneof.Fields().Len() {

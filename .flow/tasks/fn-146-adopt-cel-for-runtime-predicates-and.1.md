@@ -6,9 +6,13 @@ satisfies: [R1]
 ## Description
 Establish R1 before any predicate representation changes. Define current-format admission and a coordinated migration of Case files and recorded Run companions. Old formats are unsupported; verify rejection before current-schema interpretation or Driver I/O.
 
+Execution-order amendment, explicitly authorized by the owner on 2026-10-10: implement this Testpilot lane in parallel with fn-156 while fn-157 is deferred. Start from the integrated local umpire source. Existing authoring predecessors remain final integration holds; do not fabricate their closure or guess their future APIs. Task .6 must re-anchor to those integrated APIs and fn-156's actual compiler checks. CEL adoption is already decided: execute the reviewed implementation tasks, not another feasibility prototype. Preserve the shared format contract: only fn-148.6 activates 4.0, and fn-148.7 owns complete companion regeneration and replay gates.
+
 **Size:** M
 **Files:** actual Case decoder, casefile canonicalization and offline assessment admission, `proto/internal/temporal/server/api/testpilot/v1/case.proto`, `common/testing/testpilot/internal/execution/prepare.go`, `common/testing/testpilot/protocol_test.go`, `common/testing/testpilot/recordedrun/**`, checked-in fixtures
-**Touches:** [common/testing/testpilot/case.go, common/testing/testpilot/casefile/**, common/testing/testpilot/evaluation/admission.go, common/testing/testpilot/evaluation/*_test.go, proto/internal/temporal/server/api/testpilot/v1/case.proto, common/testing/testpilot/internal/execution/prepare.go, common/testing/testpilot/protocol_test.go, common/testing/testpilot/recordedrun/**, common/testing/testpilot/**/testdata/**]
+**Touches:** [common/testing/testpilot/case.go, common/testing/testpilot/case_test.go, common/testing/testpilot/casefile/**, common/testing/testpilot/evaluation/admission.go, common/testing/testpilot/evaluation/*_test.go, proto/internal/temporal/server/api/testpilot/v1/case.proto, api/testpilot/v1/case.pb.go, common/testing/testpilot/internal/ir/cel_identity.go, common/testing/testpilot/internal/ir/cel_identity_test.go, common/testing/testpilot/internal/execution/prepare.go, common/testing/testpilot/protocol_test.go, common/testing/testpilot/recordedrun/**, common/testing/testpilot/**/testdata/**]
+
+Ownership re-anchor: `casefile` remains JSON-only. Place CEL AST identity canonicalization in Testpilot's existing `internal/ir` runtime-schema boundary, without introducing an evaluator or an Umpire dependency. Regenerate the exact generated Case Go file when proto comments change. Reuse the existing `cel.dev/expr` dependency pin; dependency upgrades remain outside scope. Source metadata remains diagnostic for evaluation while its exact stored bytes participate in artifact identity. Canonical map ordering must not silently reorder observable evaluation or errors: bound the admitted literal domain and test/refuse unsafe constructions; do not indiscriminately reorder message constructor entries.
 
 ### Approach
 - Include the actual Case decoder in `common/testing/testpilot/case.go`, JSON canonicalization in `casefile`, and independent offline assessment admission in `evaluation/admission.go`. Define current-format rejection before interpreting retired payloads.
@@ -25,7 +29,6 @@ Establish R1 before any predicate representation changes. Define current-format 
 - `common/testing/testpilot/protocol_test.go:80-175` - protocol surface checks
 - `common/testing/testpilot/recordedrun/recordedrun.go:40-90` - Case and Run identity pairing
 - `.plans/UMPIRE_CEL_RUNTIME_RESEARCH.md:134-150` - accepted migration decisions
-
 
 ### Quick commands
 

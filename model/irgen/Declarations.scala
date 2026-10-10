@@ -43,7 +43,7 @@ private[irgen] trait Declarations:
         sym,
         binding(d.rhs.get).getOrElse(actionOf(definitionId(sym, d), sym, d.rhs.get))
       )
-    finally resolvingActions.remove(sym)
+    finally resolvingActions.remove(sym): Unit
 
   def action(ref: Term): String = ref match
     // A channel's delivery or loss: an action its declaration implies.
@@ -131,7 +131,7 @@ private[irgen] trait Declarations:
       case _      => None
     sym.map(s => s -> defs.get(s)) match
       case Some((s, Some(ValDef(_, _, Some(Apply(TypeApply(Ident("input"), _), _)))))) =>
-        capturedName(s, token, "an input")
+        capturedName(s, token, "an input"): Unit
         s
       case found =>
         val written = found.fold("a token no val declares")((s, _) => s.name)

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T13:48:28.786927Z",
+  "depends_on": [
+    "fn-130-model-views.2"
+  ],
+  "id": "fn-130-model-views.4",
+  "priority": null,
+  "spec": "fn-130-model-views",
+  "spec_path": ".flow/tasks/fn-130-model-views.4.md",
+  "status": "todo",
+  "title": "Expose checked state mapping and render refinements",
+  "updated_at": "2026-10-10T13:48:28.786927Z"
+}
