@@ -292,24 +292,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "getSystemInfo"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "getSystemInfo"
                       }
                     }
                   ]
@@ -333,24 +333,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "systemInfoReturned"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "systemInfoReturned"
                       }
                     }
                   ]
@@ -378,24 +378,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "getSystemInfo"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "getSystemInfo"
                       }
                     }
                   ]
@@ -419,24 +419,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "queried"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "queried"
                       }
                     }
                   ]

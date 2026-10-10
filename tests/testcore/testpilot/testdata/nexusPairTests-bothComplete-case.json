@@ -1416,24 +1416,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "schedule-unset-unset-unset"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "schedule-unset-unset-unset"
                       }
                     }
                   ]
@@ -1457,24 +1457,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "nexusOperationCompleted"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "nexusOperationCompleted"
                       }
                     }
                   ]
@@ -1503,24 +1503,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "schedule-unset-unset-unset"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "schedule-unset-unset-unset"
                       }
                     }
                   ]
@@ -1544,24 +1544,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "succeeded"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "succeeded"
                       }
                     }
                   ]

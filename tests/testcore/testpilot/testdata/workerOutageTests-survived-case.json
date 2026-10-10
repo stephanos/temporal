@@ -990,24 +990,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "workerStop"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "workerStop"
                       }
                     }
                   ]
@@ -1031,24 +1031,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "workflowExecutionCompleted"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "workflowExecutionCompleted"
                       }
                     }
                   ]
@@ -1077,24 +1077,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "workerStop"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "workerStop"
                       }
                     }
                   ]
@@ -1118,24 +1118,24 @@
               "expr": {
                 "id": "1",
                 "callExpr": {
-                  "function": "_==_",
+                  "function": "@in",
                   "args": [
                     {
                       "id": "2",
+                      "constExpr": {
+                        "stringValue": "completed"
+                      }
+                    },
+                    {
+                      "id": "3",
                       "callExpr": {
                         "target": {
-                          "id": "3",
+                          "id": "4",
                           "identExpr": {
                             "name": "v0"
                           }
                         },
                         "function": "value"
-                      }
-                    },
-                    {
-                      "id": "4",
-                      "constExpr": {
-                        "stringValue": "completed"
                       }
                     }
                   ]
