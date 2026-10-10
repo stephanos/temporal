@@ -1,0 +1,28 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success",
+  "argv": [
+    "make",
+    "-C",
+    "tools/gomad3",
+    "validate"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T02:50:45Z",
+  "ended": "2026-10-10T02:51:36Z",
+  "elapsed_seconds": 51,
+  "head": "c506713ce063759c5d24129d775d2fefc6314618",
+  "source_manifest_sha256": "f88d780e5055ca16b5fae4a8d0638bc27cb07c1fd696d997b4ef4f59bbd32cdb",
+  "post_source_manifest_sha256": "f88d780e5055ca16b5fae4a8d0638bc27cb07c1fd696d997b4ef4f59bbd32cdb",
+  "tools_manifest_sha256": "dd6ff0da0550a6e997110dd0db356f78692dab58880c5aadefc8faaa5e9c1aa7",
+  "post_tools_manifest_sha256": "dd6ff0da0550a6e997110dd0db356f78692dab58880c5aadefc8faaa5e9c1aa7",
+  "wrapper_sha256": "751acf75e99657e5e0a82e043724ee1a6b7dbd9cccebbc08afefc5028a447b6e",
+  "post_wrapper_sha256": "751acf75e99657e5e0a82e043724ee1a6b7dbd9cccebbc08afefc5028a447b6e",
+  "environment_sha256": "a7275dfac745ba8d4042d9392c008f27714ac58fa156ba20550e54842a87ccf2",
+  "post_environment_sha256": "1f05837be35f95f910f81067479e189d7ed523e066fc0fa3dd3881e37ed8bc6d",
+  "raw_log_sha256": "b998088ff0a63cc87fd786bed95a3b4426ae803bfc3c879a1a142863de8e3329",
+  "comparable_environment_sha256": "6d5fcdb3156c9f126a649e0f3a9aa52d8ab3431b3db25b818cccf48285e60ee5",
+  "post_comparable_environment_sha256": "6d5fcdb3156c9f126a649e0f3a9aa52d8ab3431b3db25b818cccf48285e60ee5",
+  "environment_comparison_note": "Only ephemeral go env GOGCCFLAGS go-build path normalized; raw environment observations retained",
+  "pre_post_match_exit": 0,
+  "external_timeout_seconds": 900
+}

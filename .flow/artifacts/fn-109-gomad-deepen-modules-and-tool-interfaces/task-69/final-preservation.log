@@ -1,0 +1,1 @@
+PASS: two exact assignments; original=35a5599194d809a364751743318dc3c9e7304810bbeb8fd819e69dc8d3f14194 candidate=b289d29192e3b6de5ff23d1ed8e33627b795c570d32ae727d09f82ea2f6cf9a6 reconstructed=35a5599194d809a364751743318dc3c9e7304810bbeb8fd819e69dc8d3f14194; whole BASE bytes restored; excluded sources unchanged

@@ -1,0 +1,12 @@
+{"Time":"2026-10-10T02:33:53.589533211Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-10T02:33:53.597396253Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit"}
+{"Time":"2026-10-10T02:33:53.597490503Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit","Output":"=== RUN   TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit\n","OutputType":"frame"}
+{"Time":"2026-10-10T02:33:54.433423045Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit","Output":"--- PASS: TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit (0.84s)\n","OutputType":"frame"}
+{"Time":"2026-10-10T02:33:54.433590045Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit","Elapsed":0.84}
+{"Time":"2026-10-10T02:33:54.43374992Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts"}
+{"Time":"2026-10-10T02:33:54.433966004Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts","Output":"=== RUN   TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts\n","OutputType":"frame"}
+{"Time":"2026-10-10T02:33:54.822123879Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts","Output":"--- PASS: TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts (0.39s)\n","OutputType":"frame"}
+{"Time":"2026-10-10T02:33:54.823615962Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts","Elapsed":0.39}
+{"Time":"2026-10-10T02:33:54.824337837Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-10T02:33:54.825073879Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"ok  \tgo.temporal.io/server/tools/gomad3/runner\t1.235s\n"}
+{"Time":"2026-10-10T02:33:54.825240004Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":1.236}

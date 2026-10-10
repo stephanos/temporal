@@ -1,0 +1,32 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success",
+  "argv": [
+    "make",
+    "lint-code-fast",
+    "GOLANGCI_LINT_BASE_REV=c506713ce063759c5d24129d775d2fefc6314618",
+    "GOLANGCI_LINT_FIX=false",
+    "ALL_TEST_TAGS=test_dep",
+    "LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T02:37:18Z",
+  "ended": "2026-10-10T02:38:29Z",
+  "elapsed_seconds": 71,
+  "head": "c506713ce063759c5d24129d775d2fefc6314618",
+  "source_manifest_sha256": "89263e57a8b1ae662224b4529a088a7ec43aac45e22573d995266f997ab55d25",
+  "post_source_manifest_sha256": "89263e57a8b1ae662224b4529a088a7ec43aac45e22573d995266f997ab55d25",
+  "tools_manifest_sha256": "dd6ff0da0550a6e997110dd0db356f78692dab58880c5aadefc8faaa5e9c1aa7",
+  "post_tools_manifest_sha256": "dd6ff0da0550a6e997110dd0db356f78692dab58880c5aadefc8faaa5e9c1aa7",
+  "wrapper_sha256": "7f6f971facfa299985ee61f20f970e5c5b2dc80fa6b735280fa04b8026339e48",
+  "post_wrapper_sha256": "7f6f971facfa299985ee61f20f970e5c5b2dc80fa6b735280fa04b8026339e48",
+  "environment_sha256": "6a74411f604708dc9a3a3cd7a843491eb2eeaf46b41e3d678a3cb69f088c01c0",
+  "post_environment_sha256": "4ab52c04de4b3b7d68bfbf35d074d3a55dcd017c11f937eff29467040ec5a2ea",
+  "raw_log_sha256": "d64fc67747aa35b8c14eadd28b3c44f1162bf16b6a229644db3d7dfc3b8fd0b5",
+  "comparable_environment_sha256": "6d5fcdb3156c9f126a649e0f3a9aa52d8ab3431b3db25b818cccf48285e60ee5",
+  "post_comparable_environment_sha256": "6d5fcdb3156c9f126a649e0f3a9aa52d8ab3431b3db25b818cccf48285e60ee5",
+  "environment_comparison_note": "Only ephemeral go env GOGCCFLAGS go-build path normalized; raw environment observations retained",
+  "pre_post_match_exit": 0,
+  "external_timeout_seconds": 900
+}

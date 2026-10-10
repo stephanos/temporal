@@ -1,0 +1,26 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success",
+  "argv": [
+    "/usr/bin/perl",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-69/check-preservation.pl"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T02:35:27Z",
+  "ended": "2026-10-10T02:35:27Z",
+  "elapsed_seconds": 0,
+  "head": "c506713ce063759c5d24129d775d2fefc6314618",
+  "source_manifest_sha256": "96a792b172f0367b9a73be2e548500b30bcb255dbbf4adb1411ba020dc643bf7",
+  "post_source_manifest_sha256": "96a792b172f0367b9a73be2e548500b30bcb255dbbf4adb1411ba020dc643bf7",
+  "tools_manifest_sha256": "dd6ff0da0550a6e997110dd0db356f78692dab58880c5aadefc8faaa5e9c1aa7",
+  "post_tools_manifest_sha256": "dd6ff0da0550a6e997110dd0db356f78692dab58880c5aadefc8faaa5e9c1aa7",
+  "wrapper_sha256": "7f6f971facfa299985ee61f20f970e5c5b2dc80fa6b735280fa04b8026339e48",
+  "post_wrapper_sha256": "7f6f971facfa299985ee61f20f970e5c5b2dc80fa6b735280fa04b8026339e48",
+  "environment_sha256": "8b21df3f44cdba7205e4c45fb174c19d6ea30e5444fe3a2d7c3e8be13a10e073",
+  "post_environment_sha256": "6330fad68143050ac4289e74ff66f34e4e684b1df51f8bc7db10e3cc16e4fc51",
+  "raw_log_sha256": "09b0165645e0037369147c9c9f2574f7e99cac80fe52c553748679596df75613",
+  "comparable_environment_sha256": "6d5fcdb3156c9f126a649e0f3a9aa52d8ab3431b3db25b818cccf48285e60ee5",
+  "post_comparable_environment_sha256": "6d5fcdb3156c9f126a649e0f3a9aa52d8ab3431b3db25b818cccf48285e60ee5",
+  "environment_comparison_note": "Only ephemeral go env GOGCCFLAGS go-build path normalized; raw environment observations retained",
+  "pre_post_match_exit": 0,
+  "external_timeout_seconds": 900
+}

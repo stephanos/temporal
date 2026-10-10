@@ -104,6 +104,7 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 		config.KeepSuccesses = KeepSuccessesAll
 		config.SuccessArtifactLimit = 2
 		config.SuccessBytesLimit = limit
+		configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 		return exploreWith(context.Background(), config, configDependencies)
 	}
 	measured, err := run(64 << 20)
@@ -135,6 +136,7 @@ func TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts(t *testin
 	config.KeepSuccesses = KeepSuccessesAll
 	config.SuccessArtifactLimit = 2
 	config.SuccessBytesLimit = 64 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
