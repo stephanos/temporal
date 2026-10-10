@@ -39,6 +39,21 @@ Scope: (never Dispatch* or Realization.scala; any additional concrete subject re
 - [ ] Interpreter-built step tables for the System machine and its subject models match the baseline
 - [ ] No inline `Timeout.expires` comparison remains in a deadline rule guard
 - [ ] Focused Scala tests pass; Go tests are not run here (they read the checked-in IR, which task 6 regenerates)
+
+### Reviewer context: task 2 evidence
+
+These local evidence pointers supply review context, without changing acceptance, requirement assignments or source scope. The normalized source range is `2756d40478d37414949c7da2328df2673dc7f4dc..cb0f13cccf1aa41e510ca64027e0c926a555b259`; later review-context commits contain Flow metadata only. The implementation is limited to the three Touches paths above. Other tasks' source work is outside this review.
+
+- Worker summary: `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task2/.flow/tmp/fn-155/task2/handover-summary.md`.
+- Worker evidence: `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task2/.flow/tmp/fn-155/task2/handover-evidence.json`.
+- Effect mapping: `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task2/.flow/tmp/fn-155/task2/mapping.md` and `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task2/.flow/tmp/fn-155/task2/identity-map.json`.
+- Structural predicate proof: `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task2/.flow/tmp/fn-155/task2/structural-review.json` and its executable `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task2/.flow/tmp/fn-155/task2/structural.py`. The original projection's nine `resetSettles` difference paths remain retained; specialization over all 13 before-state phases leaves remaining fields and ordered facts arbitrary. The five other complete IR/lint projections compare equal. This is recorded structural evidence for the expression collapse, not a silently normalized Property change.
+- Complete verification index: `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task2/.flow/tmp/fn-155/task2/final-verification.json`.
+- Proof seal: `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task2/.flow/tmp/fn-155/task2/proof-manifest.json`, SHA256 `9b3b4b366b15d19e7c1905f205df9c3de556ffecc2ac16b924dff3141b97ee93`, covers 537 proof/source files.
+- Original ordered comparator: `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task2/.flow/tmp/fn-155/task2/table-comparison-attempt2.json`; complete 46-table/13,891,948-record comparison passed on the second natural attempt. The first timeout remains in `table-comparison.json` at that directory. Cumulative comparison time was 1,313.655 seconds, with no reduced domains or third attempt. The original foundation is `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-155-name-the-standalone-activitys-repeated/.flow/tmp/fn-155/before/`; the unchanged comparator is `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-155-name-the-standalone-activitys-repeated/.flow/tmp/fn-155/task1/tables/compare.py`.
+- Root integrated evidence: `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-155-name-the-standalone-activitys-repeated/.flow/tmp/fn155-integration/task2-integrated.json`, `task2-focused.json`, `task2-focused.log`, `task2-lint.json` and `task2-lint.log` in that directory. The focused runs passed 56 Activity tests and nine capability tests, and lint passed. Root rechecked all source pins unchanged after the Flow metadata integration.
+
+The evidence preserves exact declaration and rule-arm order, outcomes, landing states, ordered facts and `because` variants; `backOff` and `backOffPaused` retain their distinct reasons. Task 2 adds no Case-coordinate exception: its five Case Query source paths retain literal line 1/column 1, while 43 Query IR lines shift. Fresh canonical Case equality remains task 6's gate. Canonical Model/Case/fixture/Go gates retain inherited RED with `canonical_gate_credit: false`, deferred to task 6, fn157, fn154 and Batch5. These evidence pointers grant no full-generator, full-suite, live-execution or replay credit.
 ## Acceptance
 - [ ] TBD
 
