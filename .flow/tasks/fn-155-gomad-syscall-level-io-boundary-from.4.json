@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T02:04:35.761671Z",
+  "depends_on": [
+    "fn-155-gomad-syscall-level-io-boundary-from.3"
+  ],
+  "id": "fn-155-gomad-syscall-level-io-boundary-from.4",
+  "priority": null,
+  "spec": "fn-155-gomad-syscall-level-io-boundary-from",
+  "spec_path": ".flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.4.md",
+  "status": "todo",
+  "title": "Serve multi-node simulation traffic through virtual descriptors in both backends",
+  "updated_at": "2026-10-10T02:14:10.766047Z"
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T02:04:35.761737Z",
+  "depends_on": [
+    "fn-155-gomad-syscall-level-io-boundary-from.3"
+  ],
+  "id": "fn-155-gomad-syscall-level-io-boundary-from.6",
+  "priority": null,
+  "spec": "fn-155-gomad-syscall-level-io-boundary-from",
+  "spec_path": ".flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.6.md",
+  "status": "todo",
+  "title": "Classify the 15 deterministic-I/O adapters and run network adapters excluded",
+  "updated_at": "2026-10-10T02:12:55.385425Z"
+}

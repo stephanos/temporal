@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T02:04:35.761766Z",
+  "depends_on": [
+    "fn-155-gomad-syscall-level-io-boundary-from.5",
+    "fn-155-gomad-syscall-level-io-boundary-from.6"
+  ],
+  "id": "fn-155-gomad-syscall-level-io-boundary-from.7",
+  "priority": null,
+  "spec": "fn-155-gomad-syscall-level-io-boundary-from",
+  "spec_path": ".flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.7.md",
+  "status": "todo",
+  "title": "Measure the boundary's size, record the decision and annotate dependent work",
+  "updated_at": "2026-10-10T02:12:55.877835Z"
+}
