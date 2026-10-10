@@ -1,0 +1,103 @@
+{
+  "task": "fn-112-gomad-determinism-assurance-and-test.10",
+  "status": "in_progress",
+  "candidate": "frozen-uncommitted-evidence-only",
+  "base_commit": "1af406663d1304453a70b370c22fef92778808c9",
+  "commits": [],
+  "prs": [],
+  "workspace": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/runner-coverage",
+  "branch": "gomad-fn11210-runner-coverage-20261009",
+  "files": {
+    "inventory.json": "cca3d8d4e39bfc4168d7f2d15973e24fdcbe0d2bd0c384b58a42660050f1c165",
+    "inventory_source.py": "42fab88c344e493e8280ae8c4b6c278b0a96fe29f457e6a48b0c37589496e38f",
+    "admission.md": "58e2b086caa2600fc6817117a8c03dd6ffbd94921daec5d65e692b87885566f9"
+  },
+  "whitespace_followup": {
+    "old_inventory_sha256": "52c92f003f74e2ebe8cd0d0b4af1e4775d4c0b72f4c457d277dbcbd32d79ba7f",
+    "new_inventory_sha256": "cca3d8d4e39bfc4168d7f2d15973e24fdcbe0d2bd0c384b58a42660050f1c165",
+    "exact_byte_change": "Removed one final LF byte only: before == after + b'\\n'.",
+    "parsed_json_equal": true,
+    "parsed_control_sha256": "28a4e18db5f3b4b355b9d99634eedd9f675a04a1f332804f4bb7e8652c7903e8",
+    "initial_readonly_checks_inventory_sha256": "52c92f003f74e2ebe8cd0d0b4af1e4775d4c0b72f4c457d277dbcbd32d79ba7f",
+    "historical_review_sha256": "35fa2d13731a340d5b0285ccbe9ac6306e233a4fa2c39d8e4f3c06d28c2178d3",
+    "historical_review": "independent-review.md remains unchanged and accepts the old inventory hash only; root-owned re-review of the new bindings is pending.",
+    "checkpoint_attempt": "No commit: cached diff check on initial staged candidate exited 2 (inventory.json:272: new blank line at EOF). Root authorized only the trim and new binding evidence.",
+    "checks": [
+      {
+        "command": "env -u BASH_ENV bash -c 'cd /Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/runner-coverage || exit 1\npython3 - <<'\\''PY'\\''\nimport hashlib,json,pathlib,subprocess\np='\\''.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/runner-coverage-inventory/inventory.json'\\''\nbefore=subprocess.check_output(['\\''git'\\'','\\''show'\\'','\\'':'\\''+p])\nafter=pathlib.Path(p).read_bytes()\nassert hashlib.sha256(before).hexdigest()=='\\''52c92f003f74e2ebe8cd0d0b4af1e4775d4c0b72f4c457d277dbcbd32d79ba7f'\\''\nassert before==after+b'\\''\\n'\\''\nassert json.loads(before)==json.loads(after)\nprint(json.dumps({'\\''before_sha256'\\'':hashlib.sha256(before).hexdigest(),'\\''after_sha256'\\'':hashlib.sha256(after).hexdigest(),'\\''parsed_json_equal'\\'':True,'\\''exact_change'\\'':'\\''remove one final LF byte'\\'','\\''after_bytes'\\'':len(after),'\\''parsed_control_sha256'\\'':hashlib.sha256(json.dumps(json.loads(after),sort_keys=True,separators=('\\'','\\'','\\'':'\\'')).encode()).hexdigest()}))\nPY\ncontrol_rc=$?\ntest \"$control_rc\" -eq 0 || exit \"$control_rc\"\npython3 .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/runner-coverage-inventory/inventory_source.py --verify'",
+        "exit_code": 0,
+        "elapsed_seconds": 0.352914958,
+        "observed": "Exact one-LF trim and parsed equality to old staged blob; all 123 rows/1070 source bindings re-verified at new hash."
+      },
+      {
+        "command": "env -u BASH_ENV bash -c 'cd /Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/runner-coverage || exit 1\npython3 - <<'\\''PY'\\''\nimport subprocess\nprefix='\\''.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/runner-coverage-inventory/'\\''\nexpected={prefix+n for n in ('\\''evidence.json'\\'','\\''handover.md'\\'','\\''independent-review.md'\\'','\\''inventory.json'\\'','\\''inventory_source.py'\\'')}\nentries=[x for x in subprocess.check_output(['\\''git'\\'','\\''status'\\'','\\''--porcelain'\\'','\\''-z'\\'']).decode().split('\\''\\0'\\'') if x]\nassert {x[3:] for x in entries}==expected, entries\nassert all(x[:2] in ('\\''A '\\'','\\''AM'\\'') for x in entries), entries\nprint('\\''strict five-path allowlist: OK'\\'')\nPY\nallow_rc=$?\ntest \"$allow_rc\" -eq 0 || exit \"$allow_rc\"\ngit add -A || exit $?\ngit diff --cached --check || exit $?\nsha256sum .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/runner-coverage-inventory/independent-review.md'",
+        "exit_code": 0,
+        "elapsed_seconds": 0.158916167,
+        "observed": "Authorized five-path staging only; git diff --cached --check now exits 0; historical independent review bytes unchanged."
+      }
+    ],
+    "derivation_limit": "The trim changes no parsed inventory data. Bindings remain admitted source 1af406663d1304453a70b370c22fef92778808c9 against retained execution 95354f677162df9cd76383569b11fe1f902870cd only; no fn109.63 changed-production binding or new execution coverage."
+  },
+  "tests": [],
+  "readonly_checks": [
+    {
+      "command": "env -u BASH_ENV bash -c 'cd /Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/runner-coverage && python3 .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/runner-coverage-inventory/inventory_source.py --verify'",
+      "exit_code": 0,
+      "elapsed_seconds": 0.115611542,
+      "observed": "123 unique failed top-level rows; exact function/file hashes and first raw diagnostics; all1070 consumed inputs equal; counts82/123/12;12 intended native-target slices and five assertion separations."
+    },
+    {
+      "command": "env -u BASH_ENV bash -c 'cd /Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/runner-coverage && sha256sum .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/runner-coverage-inventory/inventory_source.py .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/runner-coverage-inventory/admission.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-60-62/gate-results.md'",
+      "exit_code": 0
+    },
+    {
+      "command": "env -u BASH_ENV bash -c 'cd /Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/runner-coverage && git diff --check'",
+      "exit_code": 0
+    }
+  ],
+  "retained_runner": {
+    "new_execution": false,
+    "command": "go test -tags test_dep -count=1 -timeout=180s -json ./runner",
+    "execution_head": "95354f677162df9cd76383569b11fe1f902870cd",
+    "exit_code": 1,
+    "elapsed_seconds": 7.603,
+    "counts": {
+      "all_pass": 345,
+      "top_pass": 82,
+      "all_fail": 288,
+      "top_fail": 123,
+      "all_skip": 12,
+      "top_skip": 12
+    },
+    "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-60-62/full-ordinary-runner.json",
+    "stdout": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-60-62/full-ordinary-runner.stdout",
+    "stdout_sha256": "4434ec5f682be1a7f0eb134be1ac9b1926fed943b507a4c15fbc3c21353aa4a9",
+    "source_manifest_sha256": "5b3b2d323f46cc75b1550b9926b71bc69bdc878661185deb897afc890dce2bfe",
+    "source_fingerprint": "fbe7657b7a8decc05f2873d04d24abafca179e1ec52fc9fd7dfc9d9c6f9a3297",
+    "source_inputs": 1070,
+    "physical_inputs": 1054,
+    "committed_only_inputs": 16
+  },
+  "context": {
+    "gate_results": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-60-62/gate-results.md",
+    "gate_results_sha256": "719e0bdd32813b42f130d729118ce7edbb8a16acc66e345d8b5894279fcfe33d",
+    "retained_original_lint": "RED53; affected lintRED17; original integrated errortype unreached",
+    "native": "deferred and unverified; no native-owner revival",
+    "gates": "HELD by fn-109.63 root admission; no Go/build/test/lint/vet/generator commands"
+  },
+  "unresolved": [
+    "Applicable ordinary Runner source assertions remain unproved; no fixture repairs/splits admitted.",
+    "fn-109.63 must precede future Runner implementation.",
+    "Original-base lint and integrated errortype remain acceptance gaps.",
+    "Formal fn-112.10 source review/completion remains root-owned and open.",
+    "Native qualification remains deferred under fn-149/fn-128."
+  ],
+  "research": {
+    "delegated": 3,
+    "requested_model": "gpt-6-astra at high",
+    "actual_model": "unobserved",
+    "scope": "disjoint read-only source classification of zero-based ranges0–42,43–74,75–122",
+    "review_verdict": null
+  },
+  "initial_read_errors": "Host BASH_ENV reset initial workdir-only read commands into primary checkout. All were read-only. Explicit env -u BASH_ENV/cd wrappers then verified clean isolated branch/base before any write. Initial sparse workflow read failed; unchanged committed blobs were subsequently read and availability disclosed. Memory list returned1 (uninitialized); no initialization performed."
+}
