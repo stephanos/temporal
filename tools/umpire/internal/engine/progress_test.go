@@ -1,6 +1,7 @@
 package engine_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -38,6 +39,91 @@ func keyTable(name string, starts []string, edges ...[3]string) *umpire.Table {
 			Results: []umpire.Result{res}})
 	}
 	return umpire.NewTable(spec)
+}
+
+func TestComposedProgressFairnessUsesTheSynchronizedPartnersEnabledness(t *testing.T) {
+	left := umpire.NewTable(umpire.TableSpec{Machine: "left", Family: "test.progress",
+		States: []string{"waiting", "done"}, Starts: []string{"waiting"}, Actions: []string{"finish"}, Outcomes: []string{"ok"},
+		Assumptions: []umpire.Assumption{{Name: "finishIsFair", Fair: []string{"finish"}}},
+		Rows:        []umpire.Row{rowOf("waiting", "finish", resultOf("ok", "done"))}})
+	for _, enabled := range []bool{false, true} {
+		name := "blocked"
+		if enabled {
+			name = "ready"
+		}
+		t.Run(name, func(t *testing.T) {
+			spec := umpire.TableSpec{Machine: "partner", Family: "test.progress",
+				States: []string{"waiting", "done"}, Starts: []string{"waiting"}, Actions: []string{"finish", "poll"}, Outcomes: []string{"ok"},
+				Rows: []umpire.Row{rowOf("waiting", "poll", resultOf("ok", "waiting"))}}
+			if enabled {
+				spec.Rows = append(spec.Rows, rowOf("waiting", "finish", resultOf("ok", "done")))
+			}
+			tb := composed(t, umpire.ComposeSpec{Family: "test.progress", Name: "partners", Ceiling: roomy,
+				Members: []umpire.ComposeMember{{Field: "left", Table: left}, {Field: "right", Table: umpire.NewTable(spec)}},
+				Syncs:   []umpire.ComposeSync{{Name: "finishBoth", FirstMember: "left", FirstAction: "finish", SecondMember: "right", SecondAction: "finish"}}})
+			require.Equal(t, []umpire.Assumption{{Name: "finishIsFair", Fair: []string{"finishBoth"}}}, tb.Assumptions)
+			p := umpire.KeyProgress("bothFinish", is("waiting_waiting"), is("done_done"), 3)
+			a, err := umpire.CheckProgress(tb, p, wide)
+			require.NoError(t, err)
+			require.Equal(t, []string{"finishIsFair"}, a.Assumptions)
+			requireVerdict(t, umpire.VerifiedWithinLimits, a.Deadlock)
+			if enabled {
+				requireVerdict(t, umpire.VerifiedWithinLimits, a.Cycle)
+			} else {
+				requireVerdict(t, umpire.CounterexampleFound, a.Cycle)
+				require.Equal(t, []string{"right_poll"}, actionsOf(a.Cycle.Witness))
+				require.NoError(t, p.Replay(tb, umpire.CycleKind, a.Cycle))
+			}
+			requireVerdict(t, umpire.CounterexampleFound, a.Deadline)
+			require.Equal(t, []string{"right_poll", "right_poll", "right_poll"}, actionsOf(a.Deadline.Witness))
+			require.NoError(t, p.Replay(tb, umpire.DeadlineKind, a.Deadline))
+			if enabled {
+				completion := *a.Deadline.Witness
+				completion.Steps = append(append([]umpire.TraceStep{}, completion.Steps...), umpire.TraceStep{
+					Action: tb.ActionAtom("finishBoth"), Outcome: tb.OutcomeAtom("left_ok"), State: tb.StateAtom("done_done")})
+				require.NoError(t, tb.Replay(&completion), "a fair completion can follow a missed finite deadline")
+			}
+		})
+	}
+}
+
+func TestComposedProgressUnknownSyncIsIncompleteUnlessThePartnerDisablesIt(t *testing.T) {
+	left := umpire.NewTable(umpire.TableSpec{Machine: "unknown", Family: "test.progress", States: []string{"waiting"},
+		Starts: []string{"waiting"}, Actions: []string{"finish"}, Outcomes: []string{"ok"},
+		Unknown: []umpire.UnknownPair{{Row: "waiting-finish", Source: "waiting", Action: "finish", Cause: errors.New("unfinished finish")}}})
+	for _, enabled := range []bool{true, false} {
+		name := "enabled partner"
+		if !enabled {
+			name = "disabled partner"
+		}
+		t.Run(name, func(t *testing.T) {
+			spec := umpire.TableSpec{Machine: "partner", Family: "test.progress", States: []string{"waiting", "done"},
+				Starts: []string{"waiting"}, Actions: []string{"finish"}, Outcomes: []string{"ok"}}
+			if enabled {
+				spec.Rows = []umpire.Row{rowOf("waiting", "finish", resultOf("ok", "done"))}
+			}
+			tb := composed(t, umpire.ComposeSpec{Family: "test.progress", Name: "uncertain", Ceiling: roomy,
+				Members: []umpire.ComposeMember{{Field: "left", Table: left}, {Field: "right", Table: umpire.NewTable(spec)}},
+				Syncs:   []umpire.ComposeSync{{Name: "finishBoth", FirstMember: "left", FirstAction: "finish", SecondMember: "right", SecondAction: "finish"}}})
+			p := umpire.KeyProgress("bothFinish", is("waiting_waiting"), is("done_done"), 1)
+			a, err := umpire.CheckProgress(tb, p, wide)
+			require.NoError(t, err)
+			if enabled {
+				require.Nil(t, a.Deadlock.Witness)
+				require.Nil(t, a.Cycle.Witness)
+				require.Nil(t, a.Deadline.Witness)
+				require.Len(t, a.Unknown, 1)
+				require.NoError(t, tb.Replay(a.Unknown[0].Prefix))
+			} else {
+				require.Empty(t, a.Unknown)
+				requireVerdict(t, umpire.CounterexampleFound, a.Deadlock)
+				require.Empty(t, a.Deadlock.Witness.Steps)
+				require.NoError(t, p.Replay(tb, umpire.DeadlockKind, a.Deadlock))
+				requireVerdict(t, umpire.VerifiedWithinLimits, a.Cycle)
+				requireVerdict(t, umpire.VerifiedWithinLimits, a.Deadline)
+			}
+		})
+	}
 }
 
 func is(key string) func(string) bool { return func(s string) bool { return s == key } }
