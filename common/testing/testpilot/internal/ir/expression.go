@@ -720,10 +720,9 @@ func (c *Catalog) bindNode(node *celpb.Expr, expected *Type, variables map[strin
 	if bound.operator == Compare && len(bound.children) == 2 {
 		left, right := bound.children[0].typ, bound.children[1].typ
 		if call.Function == "@in" {
-			switch right.cardinality {
-			case Map:
+			if right.cardinality == Map {
 				right = c.scalarType(right.key)
-			case Repeated:
+			} else if right.cardinality == Repeated {
 				right = right.Element()
 			}
 		}

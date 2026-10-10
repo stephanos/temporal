@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	failurepb "go.temporal.io/api/failure/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"

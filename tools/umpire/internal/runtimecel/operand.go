@@ -118,7 +118,8 @@ func Lower(o *umpirespb.Operand, projected protoreflect.MessageDescriptor, name 
 func Enum(name string) (*celpb.Value, error) {
 	var found protoreflect.EnumValueDescriptor
 	var ambiguous bool
-	var enums func(protoreflect.EnumDescriptors) = func(es protoreflect.EnumDescriptors) {
+	var enums func(protoreflect.EnumDescriptors)
+	enums = func(es protoreflect.EnumDescriptors) {
 		for i := 0; i < es.Len(); i++ {
 			e := es.Get(i)
 			short := name[strings.LastIndex(name, ".")+1:]
