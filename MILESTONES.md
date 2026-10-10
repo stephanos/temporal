@@ -198,8 +198,8 @@ Fn-123 consumes the grouped baseline and composed identity/provenance mapping, u
 `when` blocks and `.live` together with the shared `Outcome`, fault instruction and typed `perform`.
 
 Fn-149's insertion follows the conductor's recommendation under the owner's instruction to finish
-all milestones and choose recommendations without further questions. Its reviewed plan is integrated;
-cross-spec handoff wiring is being reviewed before readiness is set. Sharing production regeneration
+all milestones and choose recommendations without further questions. The three plans and their
+cross-spec handoffs passed independent review; fn-149 is ready. Sharing production regeneration
 does not eliminate the separate source migrations or their equivalence proofs.
 
 #### fn-140: One-sentence witness Queries with explicit live expectations
