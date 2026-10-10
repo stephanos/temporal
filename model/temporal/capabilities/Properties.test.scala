@@ -16,7 +16,15 @@ import temporal.features.nexus.standalone.system.NexusSystem
 import temporal.features.nexus.workflow.system.NexusSystem as WorkflowNexusSystem
 
 class CapabilityPropertiesTest extends munit.FunSuite:
+  private def present(value: Any): Boolean = value match
+    case option: Option[?] => option.nonEmpty
+    case other             => fail(s"expected optional capability binding, got $other")
+  private def enabled(value: Any): Boolean = value match
+    case flag: Boolean => flag
+    case other         => fail(s"expected Boolean capability binding, got $other")
   final case class Brought(name: String, by: Set[CapabilityKind])
+  private def only(by: Set[CapabilityKind], kind: CapabilityKind): Boolean =
+    by.size == 1 && by.contains(kind) // scalafix:ok DisableSyntax.==
   final case class Declared(
       machine: String,
       state: String,
@@ -52,13 +60,13 @@ class CapabilityPropertiesTest extends munit.FunSuite:
         binding.productPrefix match
           case "Retries" =>
             Seq("failureReturnsToWaiting", "failureEndsFailed", "attemptCountIsWithinPolicy")
-              .concat(Option.when(fields("pendingPause") != None)("failurePauses"))
-              .concat(Option.when(fields("pendingCancel") != None)("failureCancels"))
+              .concat(Option.when(present(fields("pendingPause")))("failurePauses"))
+              .concat(Option.when(present(fields("pendingCancel")))("failureCancels"))
               .map("Retries." + _)
           case "Deadline" =>
             Seq("firesInWindow", "deadlineTimesOut")
-              .concat(Option.when(fields("retryable") == true)("deadlineReturnsToWaiting"))
-              .concat(Option.when(fields("pendingPause") != None)("deadlinePauses"))
+              .concat(Option.when(enabled(fields("retryable")))("deadlineReturnsToWaiting"))
+              .concat(Option.when(present(fields("pendingPause")))("deadlinePauses"))
               .map("Deadline." + _)
           case _ => Seq.empty
       case _ => Seq.empty
@@ -107,7 +115,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     machines
       .filter(d =>
         p.by.map(_.name).subsetOf(d.capabilities) &&
-          (!(p.by == Set(Retries) || p.by == Set(Deadline)) || d.applicable.contains(p.name))
+          (!(only(p.by, Retries) || only(p.by, Deadline)) || d.applicable.contains(p.name))
       )
       .map(_.state)
       .distinct
@@ -124,7 +132,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("capability companions define the Properties they bring") {
     val defined = companions.flatMap { companion =>
       companion.getClass.getDeclaredMethods
-        .filter(_.getReturnType == classOf[Property[?]])
+        .filter(_.getReturnType eq classOf[Property[?]])
         .map(method => s"${companion.name}.${method.getName}")
     }
     assertEquals(defined.sorted, properties.map(_.name).sorted)
@@ -133,8 +141,12 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   test("every capability Property has two declared machines with their own state types") {
     assertEquals(underInstantiated(properties, declared ++ conditionalFixtures), Seq.empty)
-    val finitePolicy = properties.find(_.name == "Retries.attemptCountIsWithinPolicy").get
-    val finitePolicySites = declared.filterNot(_.state == WorkflowNexusSystem.init.getClass.getName)
+    val finitePolicy = properties
+      .find(_.name == "Retries.attemptCountIsWithinPolicy")
+      .get // scalafix:ok DisableSyntax.==
+    val finitePolicySites = declared.filterNot(
+      _.state == WorkflowNexusSystem.init.getClass.getName
+    ) // scalafix:ok DisableSyntax.==
     assertEquals(
       instantiating(finitePolicy, finitePolicySites ++ conditionalFixtures),
       Seq(classOf[system.State].getName, classOf[RetryFixture.Snapshot].getName)
@@ -142,7 +154,9 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   }
 
   test("workflow Nexus brings only retry and deadline branches its bindings supply") {
-    val nexus = declared.find(_.state == WorkflowNexusSystem.init.getClass.getName).get
+    val nexus = declared
+      .find(_.state == WorkflowNexusSystem.init.getClass.getName)
+      .get // scalafix:ok DisableSyntax.==
     assertEquals(
       nexus.applicable,
       Set(
@@ -153,10 +167,11 @@ class CapabilityPropertiesTest extends munit.FunSuite:
         "Deadline.deadlineTimesOut"
       )
     )
-    val activity = declared.find(_.state == classOf[system.State].getName).get
+    val activity =
+      declared.find(_.state == classOf[system.State].getName).get // scalafix:ok DisableSyntax.==
     assertEquals(
       activity.applicable,
-      properties.filter(p => p.by == Set(Retries) || p.by == Set(Deadline)).map(_.name).toSet
+      properties.filter(p => only(p.by, Retries) || only(p.by, Deadline)).map(_.name).toSet
     )
   }
 
@@ -216,10 +231,12 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   }
 
   test("a Property brought to one state type fails by name; derived machines count once") {
-    val record = declared.filter(_.state == classOf[system.AdmissionState].getName)
+    val record = declared.filter(
+      _.state == classOf[system.AdmissionState].getName
+    ) // scalafix:ok DisableSyntax.==
     assertEquals(record.map(_.machine), Seq("activityRecord", "trustingActivityRecord"))
     assertEquals(
-      underInstantiated(properties.filter(_.by == Set(Closable)), record),
+      underInstantiated(properties.filter(p => only(p.by, Closable)), record),
       Seq(
         "Closable.terminalStatesAreFinal is brought to 1 machine(s) with their own state type " +
           "(temporal.features.activity.standalone.system.AdmissionState): a capability Property needs two",
@@ -230,7 +247,9 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   }
 
   test("Pausable's dispatch Property needs Pollable as well") {
-    val dispatch = properties.find(_.name == "Pausable.pausedIsNotDispatched").get
+    val dispatch = properties
+      .find(_.name == "Pausable.pausedIsNotDispatched")
+      .get // scalafix:ok DisableSyntax.==
     assertEquals(
       instantiating(dispatch, Seq(Declared("pausedOnly", "Paused", Set("Pausable")))),
       Seq.empty

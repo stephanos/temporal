@@ -4,10 +4,10 @@ package features.activity
 package standalone
 package system
 
-import framework.*
+import framework.*; import framework.Finite.given
 import actors.worker.{worker as process, Phase as WorkerPhase, State as WorkerState}
 import Timeout.expires
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // The System machine and its worker, as the standalone activity composition holds them.
 final case class StandaloneActivityState(activity: State, worker: WorkerState)
 
@@ -31,9 +31,9 @@ object StandaloneActivity
   object properties:
     // The cross-entity claim: no stopped worker starts an attempt.
     val startedByPollingWorker = property
-      .whenAction(synced(_.activity -> worker.poll))
-      .holds(_.state.worker.phase == WorkerPhase.polling)
-
+      .whenAction(synced(_.activity -> worker.poll)) // format: off
+      .holds(_.state.worker.phase == WorkerPhase.polling) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      // format: on
   object queries:
     // The cross-entity claim, over the path on which a stopped worker never takes the retry: the
     // first attempt fails retryably and backs off, then the worker stops, so the retry is never

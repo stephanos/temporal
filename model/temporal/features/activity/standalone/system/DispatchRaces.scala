@@ -4,14 +4,14 @@ package features.activity
 package standalone
 package system
 
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.outcomes.Outcome
 import framework.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
 import framework.realize.{Reason, RunExpectation}
 import temporal.realize.satisfied
 import Bounds.three
 import product.ActivityProduct
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // The record with the one response-loss budget a lost admission response consumes.
 final case class AdmissionResponseState(record: AdmissionState, lossAvailable: Boolean)
     derives Finite
@@ -75,9 +75,9 @@ object HeldDispatch
         timedOut
       ) ~> ActivityRecord.effects.rejectDelivery
     }
-    on(history.answerMatching) {
-      where(_.answer == Answer.owed) ~> ActivityRecord.effects.answerMatching
-    }
+    on(history.answerMatching) { // format: off
+      where(_.answer == Answer.owed) ~> ActivityRecord.effects.answerMatching // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
 
   // What the machine a server's Run is checked against promises.
   object properties:

@@ -464,7 +464,7 @@ object Instruction:
   ): Instruction = TypedPoll(evidence, role, assign, until, intervalMs)
 
 // A value a command computes when it runs.
-enum Operand:
+enum Operand derives CanEqual:
   case Literal(value: ProtoValue)
   case Environment(binding: String)
 

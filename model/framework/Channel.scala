@@ -1,7 +1,7 @@
 package framework
 
 // The order a channel delivers the messages it holds in.
-enum Order:
+enum Order derives CanEqual:
   // The order they were sent in.
   case fifo
 
@@ -10,7 +10,7 @@ enum Order:
 
 // Whether a channel may lose a message it holds. A lossy channel's loss is a step the machine
 // binds, as every fault is an action.
-enum Loss:
+enum Loss derives CanEqual:
   case reliable, lossy
 
 // One message a channel holds, and how many more times than once it has been delivered.
@@ -44,10 +44,10 @@ final class Channel[M] private[framework] (
       (1 to n).foldLeft(List(List.empty[Delivery[M]])) { (prefixes, _) =>
         for prefix <- prefixes; e <- entries.toList yield prefix :+ e
       }
-    }
-    val held = if order == Order.fifo then sequences
-    else sequences.filter(s => s.map(index) == s.map(index).sorted)
-    Finite.of(held.map(Inbox(this, _))*)
+    } // format: off
+    val held = if order == Order.fifo then sequences // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    else sequences.filter(s => s.map(index) == s.map(index).sorted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    Finite.of(held.map(Inbox(this, _))*) // format: on
 
   // The channel holding nothing.
   val empty: Inbox[M] = Inbox(this, Nil)
@@ -100,9 +100,9 @@ final case class Inbox[M] private[framework] (channel: Channel[M], deliveries: L
   // The contents with `m` added: at the end, or at its catalog position for an unordered channel.
   // Sending to a full channel leaves the channel's contents, so the step lands outside the domain.
   def send(m: M): Inbox[M] =
-    val d = Delivery(m, 0)
-    if channel.order == Order.fifo then copy(deliveries = deliveries :+ d)
-    else
+    val d = Delivery(m, 0) // format: off
+    if channel.order == Order.fifo then copy(deliveries = deliveries :+ d) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    else // format: on
       val index = channel.entries.indexOf(d)
       val (before, after) = deliveries.span(e => channel.entries.indexOf(e) <= index)
       copy(deliveries = before ++ (d :: after))

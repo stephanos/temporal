@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 import temporal.capabilities.Retries
 import scala.annotation.unused
@@ -78,21 +79,9 @@ class CapabilityRetriesSuite extends munit.FunSuite:
 
   test("failure settlement fixes its role from before-state eligibility and control priority"):
     import Record.given
-    val cases = Seq(
-      (true, 0, false, false, Phase.waiting),
-      (true, 0, true, false, Phase.paused),
-      (true, 0, false, true, Phase.canceled),
-      (true, 0, true, true, Phase.canceled),
-      (true, 1, false, false, Phase.failed),
-      (true, 1, true, false, Phase.failed),
-      (true, 1, false, true, Phase.canceled),
-      (true, 1, true, true, Phase.canceled),
-      (false, 0, false, false, Phase.failed),
-      (false, 0, true, true, Phase.failed),
-      (false, 1, false, false, Phase.failed),
-      (false, 1, true, true, Phase.failed)
-    )
-    for (retryable, attempts, pause, cancel, expected) <- cases do
+    val states = Finite[Snapshot].values
+    assertEquals(states.size, 48)
+    for retryable <- Finite[Boolean].values do
       val properties = Seq(
         Retries.failureReturnsToWaiting(Record)(
           failure,
@@ -106,13 +95,17 @@ class CapabilityRetriesSuite extends munit.FunSuite:
         Retries.failureCancels(Record)(failure, retryable, pendingCancel)
       )
       assert(properties.forall(_.decl.when.contains(failure)))
-      val before = Snapshot(Phase.waiting, UpTo[2](attempts), pause, cancel)
-      for target <- summon[Finite[Phase]].values do
-        val after = before.copy(phase = target, attempts = UpTo[2](attempts + 1))
+      for before <- states; after <- states do
+        val expected =
+          if !retryable then Phase.failed
+          else if before.cancel then Phase.canceled
+          else if before.attempts >= 1 then Phase.failed
+          else if before.pause then Phase.paused
+          else Phase.waiting
         assertEquals(
           properties.map(transition).forall(_(before, Step(Answer.accepted, after))),
-          target == expected,
-          s"retryable=$retryable before=$before target=$target expected=$expected"
+          after.phase == expected, // scalafix:ok DisableSyntax.==
+          s"retryable=$retryable before=$before after=$after expected=$expected"
         )
 
   test("a finite policy maximum is independent of the counter representation ceiling"):
@@ -126,6 +119,12 @@ class CapabilityRetriesSuite extends munit.FunSuite:
       val atCeiling = Record.init.copy(attempts = UpTo[2](2))
       assertEquals(holds(Step(Answer.accepted, atCeiling)), expected)
       assert(holds(Step(Answer.accepted, Record.init.copy(attempts = UpTo[2](1)))))
+      for state <- Finite[Snapshot].values do
+        assertEquals(
+          holds(Step(Answer.accepted, state)),
+          maximum(state).forall(state.attempts <= _),
+          s"$state maximum=${maximum(state)}"
+        )
 
   test("absent pending controls require neither Pollable nor control roles"):
     assertEquals(WaitingRecord.retries.pendingPause, None)
@@ -134,3 +133,8 @@ class CapabilityRetriesSuite extends munit.FunSuite:
       (WaitingState, Step[WaitingState, Answer, Nothing]) => Boolean
     ] // scalafix:ok DisableSyntax.asInstanceOf
     assert(holds(WaitingRecord.init, Step(Answer.accepted, WaitingRecord.init)))
+    for before <- Finite[WaitingState].values; after <- Finite[WaitingState].values do
+      assertEquals(
+        holds(before, Step(Answer.accepted, after)),
+        after.phase == WaitingPhase.waiting
+      ) // scalafix:ok DisableSyntax.==

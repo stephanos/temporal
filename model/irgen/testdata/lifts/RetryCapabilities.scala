@@ -1,6 +1,6 @@
 package fixture.retrycapabilities
 
-import framework.*
+import framework.*; import framework.Finite.given
 import temporal.capabilities.{Closable, Retries}
 
 enum SimplePhase derives Finite:
@@ -55,31 +55,31 @@ object WaitingSteps:
   def remainingOne(s: WaitingState): Boolean = s.attempts < 1
   def remainingUnlimited(s: WaitingState): Boolean = true
   def pending(s: WaitingState): Boolean = true
-  def fail(s: WaitingState): List[Step[WaitingState, Answer, Nothing]] =
-    if s.phase == SimplePhase.waiting then
-      enter(
+  def fail(s: WaitingState): List[Step[WaitingState, Answer, Nothing]] = // format: off
+    if s.phase == SimplePhase.waiting then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      enter( // format: on
         s.copy(
           phase = if remainingOne(s) then SimplePhase.waiting else SimplePhase.failed,
           attempts = UpTo((s.attempts + 1).min(1))
         )
       )
     else disabled
-  def fault(s: WaitingState): List[Step[WaitingState, Answer, Nothing]] =
-    if s.phase == SimplePhase.waiting then
-      enter(s.copy(otherAttempts = UpTo((s.otherAttempts + 1).min(2))))
+  def fault(s: WaitingState): List[Step[WaitingState, Answer, Nothing]] = // format: off
+    if s.phase == SimplePhase.waiting then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      enter(s.copy(otherAttempts = UpTo((s.otherAttempts + 1).min(2)))) // format: on
     else disabled
-  def keep(s: WaitingState): List[Step[WaitingState, Answer, Nothing]] =
-    List(Step(if s.phase == SimplePhase.failed then Answer.gone else Answer.ok, s))
-
+  def keep(s: WaitingState): List[Step[WaitingState, Answer, Nothing]] = // format: off
+    List(Step(if s.phase == SimplePhase.failed then Answer.gone else Answer.ok, s)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
 object ControlSteps:
   def attempts(s: ControlState): Int = s.attempts
   def maxOne(s: ControlState): Option[UpTo[2]] = Some(UpTo[2](1))
   def remainingOne(s: ControlState): Boolean = s.attempts < 1
   def pendingPause(s: ControlState): Boolean = s.pendingPause
   def pendingCancel(s: ControlState): Boolean = s.pendingCancel
-  def fail(s: ControlState): List[Step[ControlState, Answer, Nothing]] =
-    if s.phase == ControlPhase.waiting then
-      enter(
+  def fail(s: ControlState): List[Step[ControlState, Answer, Nothing]] = // format: off
+    if s.phase == ControlPhase.waiting then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      enter( // format: on
         s.copy(
           phase =
             if s.pendingCancel then ControlPhase.canceled
@@ -90,16 +90,16 @@ object ControlSteps:
         )
       )
     else disabled
-  def fatal(s: ControlState): List[Step[ControlState, Answer, Nothing]] =
-    if s.phase == ControlPhase.waiting then enter(s.copy(phase = ControlPhase.failed))
-    else disabled
-  def pause(s: ControlState): List[Step[ControlState, Answer, Nothing]] =
-    if s.phase == ControlPhase.waiting then enter(s.copy(pendingPause = true)) else disabled
+  def fatal(s: ControlState): List[Step[ControlState, Answer, Nothing]] = // format: off
+    if s.phase == ControlPhase.waiting then enter(s.copy(phase = ControlPhase.failed)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    else disabled // format: on
+  def pause(s: ControlState): List[Step[ControlState, Answer, Nothing]] = // format: off
+    if s.phase == ControlPhase.waiting then enter(s.copy(pendingPause = true)) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
   def cancel(s: ControlState): List[Step[ControlState, Answer, Nothing]] =
-    if s.phase == ControlPhase.waiting then enter(s.copy(pendingCancel = true)) else disabled
+    if s.phase == ControlPhase.waiting then enter(s.copy(pendingCancel = true)) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
   def attempt(s: ControlState): List[Step[ControlState, Answer, Nothing]] =
-    if s.phase == ControlPhase.waiting then enter(s.copy(attempts = UpTo((s.attempts + 1).min(1))))
-    else disabled
+    if s.phase == ControlPhase.waiting then enter(s.copy(attempts = UpTo((s.attempts + 1).min(1)))) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    else disabled // format: on
 
 val three = Limits(steps = 3, actions = 3, search = 512)
 val two = Limits(steps = 2, actions = 2, search = 256)
@@ -174,9 +174,9 @@ def fatalEndsFailed(m: Declares[ControlState])(
     retriesRemaining: ControlState => Boolean,
     pendingCancel: ControlState => Boolean
 ): Property[ControlState] =
-  m.property.when(failure) holdsAcross ((before, after) =>
-    retryable || pendingCancel(before) || after.state.phase == ControlPhase.failed
-  )
+  m.property.when(failure) holdsAcross ((before, after) => // format: off
+    retryable || pendingCancel(before) || after.state.phase == ControlPhase.failed // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  ) // format: on
 
 // ControlledFailures with one of its two instances of failureEndsFailed overridden by name.
 object SelectedFailures

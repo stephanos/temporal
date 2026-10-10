@@ -12,6 +12,7 @@ final private[irgen] class Index(using val quotes: Quotes)(
     prefixes: Map[String, String]
 ):
   import quotes.reflect.*
+  given CanEqual[Symbol, Symbol] = CanEqual.derived
 
   // Every definition in the inspected files, by symbol, so a reference resolves to its body.
   val defs = mutable.Map.empty[Symbol, Definition]
@@ -42,6 +43,8 @@ final private[irgen] class Context(val index: Index):
   val quotes: index.quotes.type = index.quotes
   given Quotes = quotes
   import quotes.reflect.*
+  given CanEqual[Symbol, Symbol] = CanEqual.derived
+  given CanEqual[Term, Term] = CanEqual.derived
 
   val defs: collection.Map[Symbol, Definition] = index.defs
   val sourceRoots: collection.Map[String, String] = index.sourceRoots
@@ -72,7 +75,7 @@ final private[irgen] class Context(val index: Index):
     case Inlined(_, Nil, e) => blockCall(e)
     case Block(Nil, e)      => blockCall(e)
     case Apply(Apply(TypeApply(fn, types), usings), List(body))
-        if blockForms(fn.symbol.name) && fn.symbol.maybeOwner.fullName == syntaxOwner =>
+        if blockForms(fn.symbol.name) && fn.symbol.maybeOwner.fullName == syntaxOwner => // scalafix:ok DisableSyntax.==; typed equality
       Some(BlockCall(fn.symbol.name, types.map(_.tpe), usings, body))
     case _ => None
 
@@ -91,7 +94,7 @@ final private[irgen] class Context(val index: Index):
 
   // The refusal of a block written anywhere but as the right-hand side of a section's val.
   def misplacedBlock(form: String, at: Tree): Nothing =
-    val (member, section) = if form == "effect" then ("pause", "effects") else ("held", "states")
+    val (member, section) = if form == "effect" then ("pause", "effects") else ("held", "states") // scalafix:ok DisableSyntax.==; typed equality
     fail(
       at,
       s"`$form { ... }` declares a member of a machine object's section, " +
@@ -345,7 +348,7 @@ final private[irgen] class Context(val index: Index):
 
   // Whether `owner` is the section `name` of an object, such as a machine's `effects`.
   def isSection(owner: Symbol, name: String): Boolean =
-    owner.isClassDef && owner.flags.is(Flags.Module) && owner.name.stripSuffix("$") == name &&
+    owner.isClassDef && owner.flags.is(Flags.Module) && owner.name.stripSuffix("$") == name && // scalafix:ok DisableSyntax.==; typed equality
       !owner.maybeOwner.isPackageDef
 
   // ### Object forms: an object that is a machine or a composition (framework.Machine, framework.Derived,
@@ -394,7 +397,7 @@ final private[irgen] class Context(val index: Index):
     sym, {
       val name = qualifiedName(sym, scala.util.Try(sym.tree).getOrElse(Literal(UnitConstant())))
       typeTakenBy.get(name) match
-        case Some(other) if other != sym =>
+        case Some(other) if other != sym => // scalafix:ok DisableSyntax.!=; typed equality
           fail(
             sym.tree,
             s"${sym.fullName} and ${other.fullName} would both be named $name in the IR: name " +

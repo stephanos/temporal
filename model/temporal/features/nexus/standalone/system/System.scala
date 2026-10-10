@@ -4,7 +4,7 @@ package standalone
 package system
 
 import scala.annotation.unused
-import framework.*
+import framework.*; import framework.Finite.given CanEqual[?, ?]
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.Reason
 import temporal.capabilities.*
@@ -20,16 +20,16 @@ enum Phase derives Finite:
   case failed extends Phase, Failed
   case canceled extends Phase, Canceled
   case terminated extends Phase, Terminated
-
+import Fact.{nexusOperationCompleted as NC, nexusOperationStarted as NS}
 // 7 phases and whether a cancel was requested: 14 states.
 final case class State(phase: Phase, cancelRequested: Boolean) derives Finite
-
+import Fact.{nexusOperationCanceled as NX, nexusOperationFailed as NF}
 // What a step records: the status it lands in, and the cancel request Describe reports.
 enum Fact derives Finite:
   case statusScheduled, nexusOperationStarted, statusCancelRequested
   case nexusOperationCompleted, nexusOperationFailed, nexusOperationCanceled,
     nexusOperationTerminated
-
+import Fact.nexusOperationTerminated as NT
 object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
   import Phase.*
 
@@ -57,8 +57,8 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       case Phase.canceled                    => product.State(product.Phase.canceled)
       case Phase.terminated                  => product.State(product.Phase.terminated)
     def visible(f: Fact): Boolean = f match
-      case Fact.statusScheduled | Fact.statusCancelRequested => false
-      case _                                                 => true
+      case Fact.statusScheduled | Fact.statusCancelRequested              => false
+      case _: NS.type | _: NC.type | _: NF.type | _: NX.type | _: NT.type => true
     def visibleOutcomes(@unused o: Outcome): Boolean = false
 
   object effects:
@@ -152,10 +152,10 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     ): Property[State] =
       m.property holdsAcross ((before, after) =>
         !before.phase.in[Closed] ||
-          (after.state == before && (after.outcome == rejected || after.outcome == Outcome.accepted &&
-            (before.cancelRequested || before.phase == Phase.terminated)))
+          (after.state == before && (after.outcome == rejected || after.outcome == Outcome.accepted && // scalafix:ok DisableSyntax.==; typed equality
+            (before.cancelRequested || before.phase == Phase.terminated))) // scalafix:ok DisableSyntax.==; typed equality
       )
-
+  // format: off
   // What the operation is, as the Properties in model/temporal/capabilities read it: it closes, a client
   // terminates it, and DescribeNexusOperationExecution reports its status.
   // It receives the Properties without listing them, each named `nexusSystem.<property>`. It reads the
@@ -180,10 +180,10 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     )
     val describable: Capability = Describable(statusTable = operationStatus)
     overriding(
-      Closable.closedIsRejectedUniformly -> properties.closedRejectsOrRepeats,
+      Closable.closedIsRejectedUniformly[State, Phase, Outcome] -> properties.closedRejectsOrRepeats,
       because = states.repeatedRequestsAnswer
     )
-
+  // format: on
   object queries:
     capabilities.bound(three)
 

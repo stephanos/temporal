@@ -1,15 +1,15 @@
 package fixture.retrycapabilityrejects
 
-import framework.*
+import framework.*; import framework.Finite.given
 import temporal.capabilities.Retries
 import fixture.retrycapabilities.*
 import fixture.retrycapabilities.given
 
 object NoPhase extends Machine[WaitingState, Answer, Nothing]:
   import WaitingFailures.given
-  val init = WaitingState(SimplePhase.waiting, UpTo(0), UpTo(0))
-  def end(s: WaitingState): Boolean = s.phase == SimplePhase.failed
-  object rules extends Bindings(worker.fail ~> WaitingSteps.fail)
+  val init = WaitingState(SimplePhase.waiting, UpTo(0), UpTo(0)) // format: off
+  def end(s: WaitingState): Boolean = s.phase == SimplePhase.failed // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object rules extends Bindings(worker.fail ~> WaitingSteps.fail) // format: on
   object capabilities extends Capabilities:
     val retries: Capability = Retries[WaitingState, SimplePhase, 2](
       worker.fail,
@@ -47,9 +47,9 @@ enum WithoutFailed derives Finite:
 object NoFailed
     extends Machine[WithoutFailed, Answer, Nothing],
       Phased[WithoutFailed, WithoutFailed](p => p):
-  val init = WithoutFailed.waiting
-  override def end(s: WithoutFailed): Boolean = s == WithoutFailed.plain
-  def keep(s: WithoutFailed): List[Step[WithoutFailed, Answer, Nothing]] = stay(s)
+  val init = WithoutFailed.waiting // format: off
+  override def end(s: WithoutFailed): Boolean = s == WithoutFailed.plain // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def keep(s: WithoutFailed): List[Step[WithoutFailed, Answer, Nothing]] = stay(s) // format: on
   object rules extends Bindings(worker.fail ~> keep)
   object capabilities extends Capabilities:
     val retries: Capability = Retries(worker.fail, true, zero, maximum, remaining)
@@ -260,7 +260,7 @@ def controlEndsFailed(m: Declares[ControlState])(
     pendingCancel: ControlState => Boolean
 ): Property[ControlState] =
   m.property.when(failure) holdsAcross ((before, after) =>
-    retryable || after.state.phase == ControlPhase.failed
+    retryable || after.state.phase == ControlPhase.failed // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
   )
 
 def controlPauses(m: Declares[ControlState])(
@@ -271,7 +271,7 @@ def controlPauses(m: Declares[ControlState])(
     pendingCancel: ControlState => Boolean
 ): Property[ControlState] =
   m.property.when(failure) holdsAcross ((before, after) =>
-    after.state.phase == ControlPhase.waiting
+    after.state.phase == ControlPhase.waiting // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
   )
 
 // Two Retries instances; only the first binds a pending pause, so it alone brings failurePauses.

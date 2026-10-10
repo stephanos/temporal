@@ -1,8 +1,8 @@
 package fixture.features.reservoir
 package product
 
-import framework.*
-
+import framework.*; import framework.Finite.given
+val _ = () => summon[CanEqual[ProductPhase, ProductPhase]]
 object ReservoirProduct extends Machine[ProductState, Outcome, ProductFact]:
   val init = ProductState(ProductPhase.empty)
   def end(s: State) = s.phase == ProductPhase.full

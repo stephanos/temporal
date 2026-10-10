@@ -1,10 +1,10 @@
 package fixture.features.relay.workflow
 package system
 
-import framework.*
+import framework.*; import framework.Finite.given
 import fixture.features.relay.{given, *}
 import fixture.features.relay.product.RelayProduct
-
+val _ = () => summon[CanEqual[Phase, Phase]]
 enum Phase derives Finite:
   case idle, done
 

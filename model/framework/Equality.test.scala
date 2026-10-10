@@ -30,6 +30,11 @@ class Equality extends munit.FunSuite:
         def answer(a: Answer, b: Answer) = a == b
         def optional(a: Option[product.Fact], b: Option[product.Fact]) = a == b
         def bounded(a: UpTo[2], b: UpTo[2]) = a == b
+        def declaration(a: framework.ActionDecl, b: framework.ActionDecl) = a == b
+        def actionClass(a: framework.Class, b: framework.Class) = a == b
+        def order(a: framework.Order, b: framework.Order) = a == b
+        def loss(a: framework.Loss, b: framework.Loss) = a == b
+        def operand(a: framework.realize.Operand, b: framework.realize.Operand) = a == b
       """),
       Nil
     )
@@ -63,6 +68,13 @@ class Equality extends munit.FunSuite:
       typeCheckErrors(domains + """
         import framework.Finite.given
         def compare(a: Option[product.Fact], b: Option[system.Fact]) = a == b
+      """),
+      typeCheckErrors(domains + """
+        def compare(a: framework.Order, b: framework.Loss) = a == b
+      """),
+      typeCheckErrors(domains + """
+        def keeps[S, O, F, V](once: framework.Once[S, O, F], projection: S => V) =
+          once.keeps(projection)
       """)
     )
     for errors <- failures do

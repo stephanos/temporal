@@ -7,17 +7,17 @@ package foundations.taskqueue
 package product
 
 import scala.annotation.unused
-import framework.*
-
+import framework.*; import framework.Finite.given
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // ### The opaque provider: the interface, and the interface under the storage-loss assumption
 
 // The opaque provider.
 object TaskQueueProduct
     extends Machine[QueueView, QueueOutcome, QueueFact],
       Phased[QueueView, Outstanding](_.outstanding):
-  val init = QueueView(Outstanding.empty)
-  override def end(q: State) = q.outstanding == Outstanding.empty
-  object states:
+  val init = QueueView(Outstanding.empty) // format: off
+  override def end(q: State) = q.outstanding == Outstanding.empty // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object states: // format: on
     // A message is outstanding: committed, and not yet acknowledged.
     def holding(s: State) =
       s.outstanding.in(Outstanding.committed, Outstanding.deliveredOnce, Outstanding.deliveredTwice)
@@ -35,9 +35,9 @@ object TaskQueueProduct
           .because("the durable write fails and no message is outstanding")
       )
 
-    def deliverView(s: State) =
-      if s.outstanding == Outstanding.committed then
-        List(
+    def deliverView(s: State) = // format: off
+      if s.outstanding == Outstanding.committed then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        List( // format: on
           Step(
             QueueOutcome.delivered,
             QueueView(Outstanding.deliveredOnce),

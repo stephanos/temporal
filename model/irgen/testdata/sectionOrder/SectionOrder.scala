@@ -9,7 +9,7 @@
 // one name, each read by a machine of its own, are named apart by their objects, and refused nothing.
 package fixture.features.sectionorder
 
-import framework.*
+import framework.*; import framework.Finite.given
 
 final case class Lamp(lit: Boolean) derives Finite
 
@@ -164,6 +164,15 @@ object Cored extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: Lamp) = true
   object rules extends Bindings(hand.tap ~> Switch.effects.kept)
+
+object BackwardsComposition extends Composition[Pair](_.left -> Switch, _.right -> Kept):
+  def end(s: Pair) = true
+
+  object properties:
+    val bothFlip = property holds (after => after.state.left == after.state.right)
+
+  object syncs extends Syncs:
+    sync(_.left -> hand.flip, _.right -> hand.flip)
 
 object exports:
   val switchFile = irFile("switch")(Switch)

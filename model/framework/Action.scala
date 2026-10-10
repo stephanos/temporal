@@ -47,7 +47,7 @@ final case class ActionDecl(
     internal: Boolean = false,
     delivers: String = "",
     loses: String = ""
-):
+) derives CanEqual:
   // Equality is by declaration, as Go compares declaration pointers: two actions may share a name
   // only across families, and a restriction keeps the declarations it names.
   override def equals(that: Any): Boolean = that match
@@ -207,7 +207,7 @@ def timer: Action[EmptyTuple] = Action(ActionDecl("", Actor.system, timer = true
 def internal: Action[EmptyTuple] = Action(ActionDecl("", Actor.system, internal = true))
 
 // One class of an action: the action with one assignment of its inputs.
-final case class Class(decl: ActionDecl, values: List[Any])
+final case class Class(decl: ActionDecl, values: List[Any]) derives CanEqual
 
 // What a Scenario lists: a class, or an action with no input written bare.
 type ClassRef = Class | Action[EmptyTuple]

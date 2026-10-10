@@ -7,9 +7,9 @@
 // passes `rejected = Outcome.rejected(Rejection.notFound)`. tools/umpire/ir admits the IR.
 package fixture.rejections
 
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 enum Phase derives Finite:
   case shut, ajar, locked, gone
 
@@ -25,18 +25,18 @@ object visitor extends Actor:
   val ring = action(this)
 
 // A door that is gone, which every request to it finds not there.
-object Doors:
-  def gone(d: Door): Boolean = d.phase == Phase.gone
-
+object Doors: // format: off
+  def gone(d: Door): Boolean = d.phase == Phase.gone // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
 // A door that is over answers every request `rejected` and keeps its state.
 final case class Sealed[S, O](over: S => Boolean, rejected: O) extends CapabilityOf[S, O, Nothing]
 
-object Sealed extends CapabilityKind:
+object Sealed extends CapabilityKind: // format: off
   // Every step from a state that is over keeps the state and answers `rejected`.
-  def overIsRejected[S](m: Declares[S])(over: S => Boolean, rejected: m.Outcome): Property[S] =
-    m.property holdsAcross ((before, after) =>
-      !over(before) || (after.state == before && after.outcome == rejected)
-    )
+  def overIsRejected[S, O](m: Declares[S] { type Outcome = O })(over: S => Boolean, rejected: O)(using CanEqual[S, S], CanEqual[O, O]): Property[S] = // format: on
+    m.property holdsAcross ((before, after) => // format: off
+      !over(before) || (after.state == before && after.outcome == rejected) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    ) // format: on
 
 val two = Limits(steps = 2, actions = 2, search = 256)
 

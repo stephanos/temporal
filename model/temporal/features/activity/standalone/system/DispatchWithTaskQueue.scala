@@ -17,7 +17,7 @@ package features.activity
 package standalone
 package system
 
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
 import Bounds.three
@@ -29,12 +29,12 @@ import foundations.taskqueue.system.{
   TaskQueueSystem,
   VolatileQueue
 }
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // ### Types
 
-final case class OverQueue(activity: AdmissionState, queue: QueueView)
+final case class OverQueue(activity: AdmissionState, queue: QueueView) derives CanEqual
 
-final case class OverMatching(activity: AdmissionState, queue: QueueDetail)
+final case class OverMatching(activity: AdmissionState, queue: QueueDetail) derives CanEqual
 
 // The claims a design over the opaque queue is held to: the Properties its capabilities bring, the
 // record's own count of active attempts over its member, and that a failed commit admits nothing and
@@ -63,8 +63,8 @@ abstract class OverQueueCapabilities(c: Composition[OverQueue])(using
   )
   val pollable: Capability = Pollable(
     dispatch = c.synced(_.activity -> worker.poll)
-  )
-  except(Closable.closedIsRejectedUniformly, because = dispatchWaivers.queueStepsOn)
+  ) // format: off
+  except(Closable.closedIsRejectedUniformly[OverQueue, AdmissionPhase, String], because = dispatchWaivers.queueStepsOn) // format: on
 
 abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
     Declaring[OverMatching, String, String],
@@ -79,8 +79,8 @@ abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
   )
   val pollable: Capability = Pollable(
     dispatch = c.synced(_.activity -> worker.poll)
-  )
-  except(Closable.closedIsRejectedUniformly, because = dispatchWaivers.queueStepsOn)
+  ) // format: off
+  except(Closable.closedIsRejectedUniformly[OverMatching, AdmissionPhase, String], because = dispatchWaivers.queueStepsOn) // format: on
 
 // ### The record as a member: a composition's Queries are not answered while a member names
 // monitors, so the members are the designs without them. The designs are what refine the product.
@@ -106,7 +106,7 @@ object RecordOverQueue
     def overQueueClaims(c: Composition[State], declared: Capabilities[State, String, String]) =
       val failedCommitKeepsTheMessage = c.property holds (after =>
         after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
-          (after.state.queue.outstanding != Outstanding.empty &&
+          (after.state.queue.outstanding != Outstanding.empty && // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
             !after.records(_.activity, AdmissionFact.attemptAdmitted))
       )
       OverQueueClaims(

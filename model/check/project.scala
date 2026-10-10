@@ -4,7 +4,7 @@
 // then runs the classes it wrote, and nothing stands in front of the gate to read its own build.
 //> using scala 3.9.0
 //> using jvm 27
-//> using options -deprecation -feature -unchecked -Wunused:imports
+//> using options -deprecation -feature -unchecked -Wunused:imports -language:strictEquality
 // Two entry points: `run`, the gate, and `metrics` (Metrics.scala), which scala-cli runs with
 // `--main-class umpire.check.metrics`.
 //> using mainClass umpire.check.run

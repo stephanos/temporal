@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 import temporal.capabilities.Deadline
 
@@ -75,7 +76,8 @@ object DeadlineFixture:
         Phased[RetryState, RetryPhase](_.phase):
     val init = RetryState(RetryPhase.active)
     object rules extends Rules
-    def remaining(s: RetryState): Boolean = s.phase == RetryPhase.active
+    def remaining(s: RetryState): Boolean =
+      s.phase == RetryPhase.active // scalafix:ok DisableSyntax.==
     val deadline = Deadline[RetryState, RetryPhase, Held, DeadlineFixture.Fact](
       expired,
       _ => true,
@@ -106,32 +108,20 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
     val property = Deadline.firesInWindow[Snapshot, Phase, Held](Record)(expired, armed)
     assert(property.decl.when.contains(expired))
     val holds = transition(property)
-    for
-      phase <- summon[Finite[Phase]].values
-      isArmed <- Seq(false, true)
-      ready <- Seq(false, true)
-    do
-      val before = Record.init.copy(phase = phase, armed = isArmed, ready = ready)
-      val after = Record.init.copy(phase = Phase.waiting, armed = false, ready = false)
+    val states = Finite[Snapshot].values
+    assertEquals(states.size, 160)
+    for before <- states; after <- states do
       assertEquals(
         holds(before, Step(Answer.accepted, after)),
-        phase == Phase.active && isArmed && ready,
-        s"before=$before"
+        before.phase == Phase.active && before.armed && before.ready, // scalafix:ok DisableSyntax.==
+        s"before=$before after=$after"
       )
 
   test("deadline settlement reads before-state eligibility and prioritizes cancel then exhaustion"):
     import Record.given
-    for
-      retryable <- Seq(false, true)
-      attempts <- Seq(0, 1)
-      pause <- Seq(false, true)
-      cancel <- Seq(false, true)
-    do
-      val before = Record.init.copy(attempts = UpTo[1](attempts), pause = pause, cancel = cancel)
-      val expected =
-        if !retryable || cancel || attempts == 1 then Phase.timedOut
-        else if pause then Phase.paused
-        else Phase.waiting
+    val states = Finite[Snapshot].values
+    assertEquals(states.size, 160)
+    for retryable <- Finite[Boolean].values do
       val properties = Seq(
         Deadline.deadlineTimesOut(Record)(expired, retryable, timeout, remaining, pendingCancel),
         Deadline.deadlineReturnsToWaiting(Record)(
@@ -153,18 +143,22 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
       )
       assert(properties.forall(_.decl.when.contains(expired)))
       for
-        target <- summon[Finite[Phase]].values
-        facts <- Seq(Nil, List(timeout), List(otherTimeout), List(Fact.ordinary))
+        before <- states
+        after <- states
+        facts <- Nil +: Finite[Fact].values.map(List(_))
       do
-        val after =
-          before.copy(phase = target, attempts = UpTo[1](1), cancel = false, pause = false)
+        val expected =
+          if !retryable || before.cancel || before.attempts == 1 then
+            Phase.timedOut // scalafix:ok DisableSyntax.==
+          else if before.pause then Phase.paused
+          else Phase.waiting
         val validFacts =
-          if expected == Phase.timedOut then facts.contains(timeout)
+          if expected == Phase.timedOut then facts.contains(timeout) // scalafix:ok DisableSyntax.==
           else !timeoutFacts.exists(facts.contains)
         assertEquals(
           properties.map(transition).forall(_(before, Step(Answer.accepted, after, facts))),
-          target == expected && validFacts,
-          s"retryable=$retryable before=$before target=$target facts=$facts expected=$expected"
+          after.phase == expected && validFacts, // scalafix:ok DisableSyntax.==
+          s"retryable=$retryable before=$before after=$after facts=$facts expected=$expected"
         )
 
   test("optional retry and pause bindings require only their applicable phase roles"):
@@ -175,6 +169,11 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
       (RetryState, Step[RetryState, Answer, Fact]) => Boolean
     ] // scalafix:ok DisableSyntax.asInstanceOf
     assert(holds(RetryRecord.init, Step(Answer.accepted, RetryState(RetryPhase.waiting))))
+    for before <- Finite[RetryState].values; after <- Finite[RetryState].values do
+      assertEquals(
+        holds(before, Step(Answer.accepted, after)),
+        before.phase != RetryPhase.active || after.phase == RetryPhase.waiting // scalafix:ok DisableSyntax.==, DisableSyntax.!=
+      )
 
   test("constructor rejects incomplete duplicate mixed and unbound timeout families and controls"):
     import Record.given

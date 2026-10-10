@@ -98,7 +98,7 @@ abstract class Composition[S <: Product] private (
     val fields = mirror.fromProduct(Composition.Empty).productElementNames.toVector
     val candidates = fields.zip(members).collect { case (field, m) if m eq member => field }
     require(
-      candidates.size == 1,
+      candidates.size == 1, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       s"${member.name} is not one unique member of $name"
     )
     s"${candidates.head}_${valueKey(outcome)}"

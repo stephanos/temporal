@@ -26,18 +26,22 @@ object Refinement:
       case _         => false
     states.values
       .map(s => s -> refinement.toProduct(s))
-      .filter((s, image) => closed(phase(s)) != closed(productPhase(image)))
+      .filter((s, image) => // format: off
+        closed(phase(s)) != closed(productPhase(image)) // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+      ) // format: on
 
   // The machine `machine`'s `object refinement` refines, where it declares one, for the gate's
   // construction of what an IR file lifts (IrFile.construct). The section is a member object a
   // machine need not declare, so the base class names no member for it; it is found as the
   // object's nested module, `<Machine>$refinement$`, which initializes it. The machine's own
   // wiring, its `rules`, reads no section this way.
-  private[framework] def declaredBy(machine: Machine[?, ?, ?]): Option[Model] =
-    scala.util
-      .Try(java.lang.Class.forName(machine.getClass.getName + "refinement$"))
-      .flatMap(c =>
-        scala.util.Try(c.getField("MODULE$").get(null))
-      ) // scalafix:ok DisableSyntax.null
-      .toOption
-      .collect { case r: Refinement[?, ?] => r.of }
+  private[framework] def declaredBy(machine: Machine[?, ?, ?]): Option[Refinement[?, ?]] =
+    val declaration =
+      try Some(java.lang.Class.forName(machine.getClass.getName + "refinement$"))
+      catch case _: ClassNotFoundException => None
+    declaration
+      .map(c => c.getField("MODULE$").get(null)) // scalafix:ok DisableSyntax.null
+      .map:
+        case refinement: Refinement[?, ?] => refinement
+        case other                        =>
+          throw IllegalStateException(s"${machine.name}.refinement is not a Refinement: $other")

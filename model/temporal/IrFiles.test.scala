@@ -9,12 +9,7 @@ import temporal.actors.client.Client
 import framework.IrFile
 
 class IrFilesTest extends munit.FunSuite:
-  // Each feature's `object exports`, which declares its IR files as it initializes.
-  val declaring: Seq[AnyRef] = Seq(
-    features.activity.standalone.exports,
-    features.nexus.workflow.exports,
-    features.nexus.standalone.exports
-  )
+  val declared: Vector[IrFile] = IrFile.discover("temporal")
 
   // The checked-in IR files, by name: model/ir/<name>.json, beside no sidecar.
   def checkedIn: Set[String] =
@@ -33,22 +28,44 @@ class IrFilesTest extends munit.FunSuite:
     finally stream.close()
 
   // The names of the machines an IR file lifts: its `machines`, each by its `name`.
-  def liftedMachines(file: String): Set[String] =
+  def liftedMachines(file: String): Vector[String] =
     import org.json4s.*
     val ir = org.json4s.jackson.JsonMethods.parse(Files.readString(Path.of(s"model/ir/$file.json")))
-    (ir \ "machines" \ "name").children.collect { case JString(n) => n }.toSet
+    val rows = (ir \ "machines").children ++ (ir \ "compositions").children
+    rows
+      .map(row =>
+        (row \ "family", row \ "name") match
+          case (JString(family), JString(name)) => s"$family.$name"
+          case other => fail(s"$file has an unnamed lifted subject: $other")
+      )
+      .toVector
+
+  def declarationKey(model: framework.Model): String =
+    IrFile.identity(model).split('.').dropRight(1).mkString(".") + "." + model.name
+
+  def assertComplete(actual: Seq[String], expected: Seq[String], context: String): Unit =
+    assertEquals(actual.distinct.size, actual.size, s"$context repeats a declaration identity")
+    assertEquals(expected.distinct.size, expected.size, s"$context repeats a lifted identity")
+    assertEquals(actual.toSet, expected.toSet, s"$context dropped or added a subject")
 
   test("every IR file is declared by a feature's exports, and every root of each constructs") {
-    assertEquals(declaring.size, 3)
-    val declared = IrFile.declared
-    assertEquals(declared.map(_.name).toSet, checkedIn)
+    assertComplete(declared.map(_.name), checkedIn.toVector, "IR exports")
     for file <- declared do
-      val unconstructed = liftedMachines(file.name) -- file.construct()
-      assert(
-        unconstructed.isEmpty,
-        s"${file.name}.json lifts ${unconstructed.toSeq.sorted.mkString(", ")}, which constructing " +
-          "its roots never reaches, so no rule overlap of theirs is checked"
-      )
+      assertComplete(file.subjects().map(declarationKey), liftedMachines(file.name), file.name)
+      file.construct(): Unit
+  }
+
+  test("completeness rejects a dropped whole export, a dropped machine and duplicate identities") {
+    val names = declared.map(_.name)
+    val _ =
+      intercept[munit.ComparisonFailException](assertComplete(names.tail, names, "dropped export"))
+    val subjects = declared.head.subjects().map(declarationKey)
+    val _ = intercept[munit.ComparisonFailException](
+      assertComplete(subjects.tail, subjects, "dropped machine")
+    )
+    val _ = intercept[munit.ComparisonFailException](
+      assertComplete(subjects :+ subjects.head, subjects, "duplicate identity")
+    )
   }
 
   test("standalone public API callers share the Temporal Client actor") {

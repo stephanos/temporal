@@ -7,14 +7,14 @@ package foundations.taskqueue
 package system
 
 import scala.annotation.unused
-import framework.*
+import framework.*; import framework.Finite.given
 import product.{TaskQueueProduct, TaskQueueProductUnderStorageLoss}
 import QueueOutcome.given
-
+val _ = () => summon[CanEqual[Custody, Custody]]
 // ### The detailed provider, and the providers derived from it. The violating providers each differ
 // from the detailed provider in what one ordinary crash does, and neither assumes storage loss. They
 // are negative controls a feature may compose its own design with: the replacement is what must fail.
-
+// format: off
 // The detailed provider, under ordinary crashes and lost answers to the poller.
 object TaskQueueSystem
     extends Machine[QueueDetail, QueueOutcome, QueueFact],
@@ -25,36 +25,36 @@ object TaskQueueSystem
   object states:
     val idleQueue =
       QueueDetail(custody = Custody.nowhere, polled = false, delivered = Delivered.never)
-    def queueEnds(d: State) = d.custody == Custody.nowhere
+    def queueEnds(d: State) = d.custody == Custody.nowhere // scalafix:ok DisableSyntax.==; typed equality
     def oneMoreDelivery(d: Delivered) = d match
-      case Delivered.never => Delivered.once
-      case _               => Delivered.twice
-
+      case Delivered.never                                  => Delivered.once
+      case _: Delivered.once.type | _: Delivered.twice.type => Delivered.twice
+// format: on
     // Matching holds a task a poll can take: reserved for a waiting poller, or persisted.
     def matchable(c: Custody) = c.in(Custody.reserved, Custody.persisted)
-
+    // format: off
     // A custodian holds the message.
-    def held(s: State) = s.custody != Custody.nowhere
+    def held(s: State) = s.custody != Custody.nowhere // scalafix:ok DisableSyntax.!=; typed equality
 
     // Matching holds the task, no poller holds it, and it was not yet handed out twice.
     def deliverable(s: State) =
-      matchable(s.custody) && !s.polled && s.delivered != Delivered.twice
-
+      matchable(s.custody) && !s.polled && s.delivered != Delivered.twice // scalafix:ok DisableSyntax.!=; typed equality
+    // format: on
     // A poller holds a task matching handed out, whose consumer may now answer.
     def answerable(s: State) =
-      s.polled && s.custody != Custody.nowhere && s.delivered != Delivered.never
-
+      s.polled && s.custody != Custody.nowhere && s.delivered != Delivered.never // scalafix:ok DisableSyntax.!=; typed equality
+  // format: off
   object refinement extends Refinement(TaskQueueProduct):
     // The interface state a detailed state stands for: a message is outstanding while anyone holds
     // it.
     def toProduct(d: State) =
-      if d.custody == Custody.nowhere then QueueView(Outstanding.empty)
+      if d.custody == Custody.nowhere then QueueView(Outstanding.empty) // scalafix:ok DisableSyntax.==; typed equality
       else
         d.delivered match
           case Delivered.never => QueueView(Outstanding.committed)
           case Delivered.once  => QueueView(Outstanding.deliveredOnce)
           case Delivered.twice => QueueView(Outstanding.deliveredTwice)
-
+  // format: on
     def visible(f: QueueFact) = f match
       case QueueFact.enqueueCommitted | QueueFact.enqueueFailed | QueueFact.delivered |
           QueueFact.acknowledged | QueueFact.storageLost =>
@@ -62,9 +62,9 @@ object TaskQueueSystem
       case QueueFact.addInvoked | QueueFact.taskPersisted | QueueFact.matchReserved |
           QueueFact.crashed | QueueFact.ackLost =>
         false
-
-    def visibleOutcomes(o: QueueOutcome) = o != QueueOutcome.internal
-
+    // format: off
+    def visibleOutcomes(o: QueueOutcome) = o != QueueOutcome.internal // scalafix:ok DisableSyntax.!=; typed equality
+    // format: on
   object effects:
     def enqueueDetail(s: State) =
       choose(
@@ -105,7 +105,7 @@ object TaskQueueSystem
     // The answer to the poller is lost. A persisted task stays queued; a sync match fails back to the
     // invocation, which history retries.
     def ackLossDetail(s: State) =
-      if s.custody == Custody.reserved then
+      if s.custody == Custody.reserved then // scalafix:ok DisableSyntax.==; typed equality
         enter(s.copy(custody = Custody.invoked, polled = false), QueueFact.ackLost)
       else enter(s.copy(polled = false), QueueFact.ackLost)
 
@@ -176,7 +176,7 @@ object TaskQueueSystem
     def queueClaims(m: Machine[State, QueueOutcome, QueueFact]) = QueueClaims(
       m.property("delivers") when queue.deliver holds (after => after.records(QueueFact.delivered)),
       m.property("committedStays")
-        .stays(_.custody != Custody.nowhere)
+        .stays(_.custody != Custody.nowhere) // scalafix:ok DisableSyntax.!=; typed equality
         .unless(_.records(QueueFact.acknowledged))
     )
 
@@ -242,7 +242,7 @@ object TaskQueueSystem
       )
 
     val matchingQueueQueries = providerQueries(TaskQueueSystem)
-
+// format: off
 // The detailed provider with the storage-loss fault, which only its assumption allows. It refines
 // the interface that allows the loss.
 object LossyMatchingQueue
@@ -260,9 +260,9 @@ object LossyMatchingQueue
     // provider binds the loss, so this is its own Property, not a claim of every provider.
     val storageLossDrops =
       property when fault.storageLoss holds { after =>
-        after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost)
+        after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost) // scalafix:ok DisableSyntax.==; typed equality
       }
-
+// format: on
   // The crash cuts of every provider, and the storage loss.
   object queries:
     val persistedThenLost = scenario.actions(

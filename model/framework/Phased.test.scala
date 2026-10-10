@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 object PhasedFixture:
   enum Phase derives Finite:
@@ -27,7 +28,7 @@ object PhasedFixture:
 
   object OverrideEnd extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.absent)
-    override def end(s: State) = s.phase == Phase.paused
+    override def end(s: State) = s.phase == Phase.paused // scalafix:ok DisableSyntax.==
     object rules extends Rules
 
   object DefaultPair
@@ -38,7 +39,7 @@ object PhasedFixture:
   object OverridePair
       extends Composition[Pair](_.left -> DefaultEnd, _.right -> DefaultEnd),
         Phased[Pair, Phase](_.left.phase):
-    override def end(s: State) = s.left.phase == Phase.paused
+    override def end(s: State) = s.left.phase == Phase.paused // scalafix:ok DisableSyntax.==
     object syncs extends Syncs
 
   object DerivedPair extends DerivedComposition(DefaultPair.withMember(_.right -> OverrideEnd)):
@@ -67,7 +68,7 @@ object PhasedFixture:
       extends Machine[OpenPhase, Answer, Nothing],
         Phased[OpenPhase, OpenPhase](identity):
     val init = OpenPhase.waiting
-    override def end(s: State) = s == OpenPhase.waiting
+    override def end(s: State) = s == OpenPhase.waiting // scalafix:ok DisableSyntax.==
     object rules extends Rules
 
 class PhasedSuite extends munit.FunSuite:
@@ -77,6 +78,7 @@ class PhasedSuite extends munit.FunSuite:
     import DefaultEnd.phased
     val phasing = summon[Phasing[Snapshot, Phase]]
     assertEquals(phasing.phase(Snapshot(Phase.held)), Phase.held)
+    for state <- Finite[Snapshot].values do assertEquals(phasing.phase(state), state.phase)
 
   test("derived compositions retain the source's typed nested phase through chained derivations"):
     val state = Pair(Snapshot(Phase.done), Snapshot(Phase.waiting))
@@ -88,6 +90,16 @@ class PhasedSuite extends munit.FunSuite:
     assert(DerivedOverrideAgain.end(Pair(Snapshot(Phase.paused), Snapshot(Phase.waiting))))
     assertEquals(PlainDerivedPair.name, "plainDerivedPair")
     assertEquals(PlainDerivedPair.members.last, OverrideEnd)
+    for left <- Finite[Snapshot].values; right <- Finite[Snapshot].values do
+      val pair = Pair(left, right)
+      assertEquals(DerivedPair.phase.phase(pair), left.phase)
+      assertEquals(DerivedAgain.phase.phase(pair), left.phase)
+      assertEquals(DerivedPair.end(pair), DefaultPair.end(pair))
+      assertEquals(DerivedAgain.end(pair), DefaultPair.end(pair))
+      assertEquals(
+        DerivedOverrideAgain.end(pair),
+        left.phase == Phase.paused
+      ) // scalafix:ok DisableSyntax.==
 
   test("default ends accept exactly the Closed phases on machines and nested compositions"):
     val closed: Set[Phase] =
@@ -99,10 +111,14 @@ class PhasedSuite extends munit.FunSuite:
 
   test("an explicit end overrides Closed and needs no Closed case"):
     for p <- Phase.values do
-      assertEquals(OverrideEnd.end(Snapshot(p)), p == Phase.paused, p.toString)
+      assertEquals(
+        OverrideEnd.end(Snapshot(p)),
+        p == Phase.paused,
+        p.toString
+      ) // scalafix:ok DisableSyntax.==
       assertEquals(
         OverridePair.end(Pair(Snapshot(p), DefaultEnd.init)),
-        p == Phase.paused,
+        p == Phase.paused, // scalafix:ok DisableSyntax.==
         p.toString
       )
     assert(OpenOverride.end(OpenPhase.waiting))

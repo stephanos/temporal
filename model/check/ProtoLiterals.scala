@@ -13,22 +13,43 @@ private[check] object ProtoLiterals:
 
   private[check] def literals(source: String): Scanned =
     @tailrec def skipLine(offset: Int): Int =
-      if offset >= source.length || source(offset) == '\n' then offset
+      if offset >= source.length || source(offset).equals('\n')
+      then offset
       else skipLine(offset + 1)
 
     @tailrec def skipBlock(offset: Int, depth: Int, line: Int): (Int, Int) =
-      if offset >= source.length || depth == 0 then (offset, line)
+      if offset >= source.length || depth.equals(0) then (offset, line)
       else if source.startsWith("/*", offset) then skipBlock(offset + 2, depth + 1, line)
       else if source.startsWith("*/", offset) then skipBlock(offset + 2, depth - 1, line)
-      else skipBlock(offset + 1, depth, line + (if source(offset) == '\n' then 1 else 0))
+      else
+        skipBlock(
+          offset + 1,
+          depth,
+          line + (if source(offset).equals('\n') then 1 else 0)
+        )
 
     @tailrec def readString(offset: Int, line: Int, triple: Boolean): (Int, Int, Boolean) =
       if offset >= source.length then (offset, line, false)
       else if triple && source.startsWith("\"\"\"", offset) then (offset, line, true)
-      else if !triple && source(offset) == '"' then (offset, line, true)
-      else if !triple && source(offset) == '\\' && offset + 1 < source.length then
-        readString(offset + 2, line + (if source(offset + 1) == '\n' then 1 else 0), triple)
-      else readString(offset + 1, line + (if source(offset) == '\n' then 1 else 0), triple)
+      else if !triple && source(offset) == '"' then
+        (
+          offset,
+          line,
+          true
+        )
+      else if !triple && source(offset) == '\\' && offset + 1 < source.length
+      then
+        readString(
+          offset + 2,
+          line + (if source(offset + 1) == '\n' then 1 else 0),
+          triple
+        )
+      else
+        readString(
+          offset + 1,
+          line + (if source(offset) == '\n' then 1 else 0),
+          triple
+        ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
 
     @tailrec def scan(
         offset: Int,
@@ -45,12 +66,17 @@ private[check] object ProtoLiterals:
         scan(next, at, found, comments :+ (offset -> next))
       // A character literal, `'"'` or `'\''`, opens no string; a quote of Scala 3 (`'{`, `'[`) is
       // left to the characters after it.
-      else if source(offset) == '\'' && offset + 2 < source.length && source(offset + 2) == '\'' &&
-        source(offset + 1) != '\\'
+      else if source(offset) == '\'' && offset + 2 < source.length && source(
+        offset + 2
+      ) == '\'' &&
+      source(
+        offset + 1
+      ) != '\\' // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
       then scan(offset + 3, line, found, comments)
       else if source.startsWith("'\\", offset) && source.indexOf('\'', offset + 3) > 0 then
         scan(source.indexOf('\'', offset + 3) + 1, line, found, comments)
-      else if source(offset) == '"' then
+      else if source(offset) == '"'
+      then
         val triple = source.startsWith("\"\"\"", offset)
         val width = if triple then 3 else 1
         val content = offset + width
@@ -62,7 +88,13 @@ private[check] object ProtoLiterals:
           found :+ Literal(source.substring(content, end), line, offset, next),
           comments
         )
-      else scan(offset + 1, line + (if source(offset) == '\n' then 1 else 0), found, comments)
+      else
+        scan(
+          offset + 1,
+          line + (if source(offset) == '\n' then 1 else 0),
+          found,
+          comments
+        ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
 
     scan(0, 1, Vector.empty, Vector.empty)
 

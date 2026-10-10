@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 // What the standalone activity Model's effects do, run as Scala.
 
 import temporal.features.activity.{failure, Failure}
@@ -7,11 +8,14 @@ import temporal.features.activity.{deadline, timers, Timeout, TimeoutType}
 import temporal.features.activity.standalone.product
 import temporal.actors.worker.worker as process
 import framework.outcomes.Outcome
-import system.*
+import system.{ActivityRecord, ActivitySystem, LostStartAnswer}
 
 class StandaloneActivityPins extends munit.FunSuite:
+  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
   type Loss =
-    AdmissionResponseState => List[Step[AdmissionResponseState, Outcome, AdmissionResponseFact]]
+    system.AdmissionResponseState => List[
+      Step[system.AdmissionResponseState, Outcome, system.AdmissionResponseFact]
+    ]
 
   final case class ExpectedStep[S, F](
       outcome: String,
@@ -111,7 +115,9 @@ class StandaloneActivityPins extends munit.FunSuite:
       state <- states.values
     do
       val matches =
-        rules.filter(r => r.decl == binding.decl && r.inputs.forall(_ == inputs) && r.guard(state))
+        rules.filter(r =>
+          r.decl == binding.decl && r.inputs.forall(_.equals(inputs)) && r.guard(state)
+        ) // scalafix:ok DisableSyntax.==
       assert(
         matches.sizeIs <= 1,
         s"several pinned rows match ${binding.decl.name}$inputs in $state"
@@ -124,67 +130,66 @@ class StandaloneActivityPins extends munit.FunSuite:
       )
 
   private val productRules: List[ExpectedRule[product.State, product.Fact]] =
-    import product.{Fact, Phase, State}
-    import Phase.*
-    List[ExpectedRule[State, Fact]](
+    import product.Phase.*
+    List[ExpectedRule[product.State, product.Fact]](
       ExpectedRule(
         client.start.decl,
         None,
-        _.phase == scheduled,
-        s => accepted(s, Fact.statusScheduled)
+        _.phase == scheduled, // scalafix:ok DisableSyntax.==
+        s => accepted(s, product.Fact.statusScheduled)
       ),
       ExpectedRule(
         worker.poll.decl,
         None,
-        _.phase == scheduled,
-        s => accepted(s.copy(phase = started), Fact.statusStarted)
+        _.phase == scheduled, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = started), product.Fact.statusStarted)
       ),
       ExpectedRule(
         worker.respondCompleted.decl,
         None,
-        s => s.phase == started || s.phase == cancelRequested,
-        s => accepted(s.copy(phase = completed), Fact.statusCompleted)
+        s => s.phase == started || s.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = completed), product.Fact.statusCompleted)
       ),
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.fatal)),
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
-          accepted(s.copy(phase = failed), Fact.statusFailed) ++
-            accepted(s.copy(phase = scheduled), Fact.statusScheduled) ++
-            accepted(s.copy(phase = paused), Fact.statusPaused)
+          accepted(s.copy(phase = failed), product.Fact.statusFailed) ++
+            accepted(s.copy(phase = scheduled), product.Fact.statusScheduled) ++
+            accepted(s.copy(phase = paused), product.Fact.statusPaused)
       ),
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.fatal)),
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = failed), product.Fact.statusFailed)
       ),
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.retryable)),
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
-          accepted(s.copy(phase = scheduled), Fact.statusScheduled) ++
-            accepted(s.copy(phase = paused), Fact.statusPaused) ++
-            accepted(s.copy(phase = failed), Fact.statusFailed)
+          accepted(s.copy(phase = scheduled), product.Fact.statusScheduled) ++
+            accepted(s.copy(phase = paused), product.Fact.statusPaused) ++
+            accepted(s.copy(phase = failed), product.Fact.statusFailed)
       ),
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.retryable)),
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), product.Fact.statusCanceled)
       ),
       ExpectedRule(
         worker.respondCanceled.decl,
         None,
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), product.Fact.statusCanceled)
       ),
       ExpectedRule(
         worker.respondCanceled.decl,
         None,
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
           rejectedBecause(
             s,
@@ -219,16 +224,16 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.pause.decl,
         None,
-        _.phase == scheduled,
-        s => accepted(s.copy(phase = paused), Fact.statusPaused)
+        _.phase == scheduled, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = paused), product.Fact.statusPaused)
       ),
       ExpectedRule(
         client.pause.decl,
         None,
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
-          accepted(s.copy(phase = paused), Fact.statusPaused) ++
-            accepted(s, Fact.statusPaused) ++
+          accepted(s.copy(phase = paused), product.Fact.statusPaused) ++
+            accepted(s, product.Fact.statusPaused) ++
             rejectedBecause(
               s,
               "failedPrecondition",
@@ -238,7 +243,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.pause.decl,
         None,
-        s => s.phase == paused || s.phase == cancelRequested,
+        s => s.phase == paused || s.phase == cancelRequested, // scalafix:ok DisableSyntax.==
         s =>
           rejectedBecause(
             s,
@@ -249,15 +254,15 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.unpause.decl,
         None,
-        _.phase == paused,
-        s => accepted(s.copy(phase = scheduled), Fact.statusScheduled)
+        _.phase == paused, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = scheduled), product.Fact.statusScheduled)
       ),
       ExpectedRule(
         client.unpause.decl,
         None,
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
-          accepted(s, Fact.statusStarted) ++
+          accepted(s, product.Fact.statusStarted) ++
             rejectedBecause(
               s,
               "failedPrecondition",
@@ -267,7 +272,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.unpause.decl,
         None,
-        s => s.phase == scheduled || s.phase == cancelRequested,
+        s => s.phase == scheduled || s.phase == cancelRequested, // scalafix:ok DisableSyntax.==
         s =>
           rejectedBecause(
             s,
@@ -278,19 +283,19 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.requestCancel.decl,
         None,
-        s => s.phase == scheduled || s.phase == paused,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        s => s.phase == scheduled || s.phase == paused, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), product.Fact.statusCanceled)
       ),
       ExpectedRule(
         client.requestCancel.decl,
         None,
-        _.phase == started,
-        s => accepted(s.copy(phase = cancelRequested), Fact.statusCancelRequested)
+        _.phase == started, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = cancelRequested), product.Fact.statusCancelRequested)
       ),
       ExpectedRule(
         client.requestCancel.decl,
         None,
-        _.phase == cancelRequested,
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
         s =>
           rejectedBecause(
             s,
@@ -302,60 +307,76 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.terminate.decl,
         None,
         s => productLive(s.phase),
-        s => accepted(s.copy(phase = terminated), Fact.statusTerminated)
+        s => accepted(s.copy(phase = terminated), product.Fact.statusTerminated)
       ),
       ExpectedRule(
         timers.timeout.decl,
         None,
         s => productLive(s.phase),
-        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut)
+        s => accepted(s.copy(phase = timedOut), product.Fact.statusTimedOut)
       )
     ) ++ List[ExpectedRule[product.State, product.Fact]](
       ExpectedRule(
         worker.heartbeat.decl,
         None,
-        s => s.phase == started || s.phase == cancelRequested,
-        s => accepted(s, Fact.heartbeatReceived)
+        s => s.phase == started || s.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s, product.Fact.heartbeatReceived)
       ),
       ExpectedRule(
         worker.heartbeat.decl,
         None,
-        s => s.phase != started && s.phase != cancelRequested,
+        s => s.phase != started && s.phase != cancelRequested, // scalafix:ok DisableSyntax.!=
         rejectedNotFound
       ),
       ExpectedRule(
         deadline.heartbeat.decl,
         None,
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
-          accepted(s.copy(phase = scheduled), Fact.statusScheduled, Fact.heartbeatTimedOut) ++
-            accepted(s.copy(phase = paused), Fact.statusPaused, Fact.heartbeatTimedOut) ++
-            accepted(s.copy(phase = timedOut), Fact.statusTimedOut, Fact.heartbeatTimedOut)
+          accepted(
+            s.copy(phase = scheduled),
+            product.Fact.statusScheduled,
+            product.Fact.heartbeatTimedOut
+          ) ++
+            accepted(
+              s.copy(phase = paused),
+              product.Fact.statusPaused,
+              product.Fact.heartbeatTimedOut
+            ) ++
+            accepted(
+              s.copy(phase = timedOut),
+              product.Fact.statusTimedOut,
+              product.Fact.heartbeatTimedOut
+            )
       ),
       ExpectedRule(
         deadline.heartbeat.decl,
         None,
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut, Fact.heartbeatTimedOut)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s =>
+          accepted(
+            s.copy(phase = timedOut),
+            product.Fact.statusTimedOut,
+            product.Fact.heartbeatTimedOut
+          )
       )
     ) ++ productServiceRules ++ productResetRules
 
   private def productResetRules: List[ExpectedRule[product.State, product.Fact]] =
-    import product.{Fact, Phase, State}
-    import Phase.*
+    import product.Phase.*
     val pending = "a reset is already pending (operator_commands.go:460-464)"
-    List[ExpectedRule[State, Fact]](
+    List[ExpectedRule[product.State, product.Fact]](
       ExpectedRule(client.reset.decl, None, s => closedProduct(s.phase), rejectedNotFound),
       ExpectedRule(
         client.reset.decl,
         None,
-        _.phase == scheduled,
-        s => accepted(s, Fact.statusScheduled)
+        _.phase == scheduled, // scalafix:ok DisableSyntax.==
+        s => accepted(s, product.Fact.statusScheduled)
       ),
       ExpectedRule(
         client.reset.decl,
         None,
-        _.phase == cancelRequested,
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
         s =>
           rejectedBecause(
             s,
@@ -366,179 +387,194 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.reset.decl,
         Some(List(ResetPause.resume)),
-        _.phase == paused,
-        s => accepted(s.copy(phase = scheduled), Fact.statusScheduled)
+        _.phase == paused, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = scheduled), product.Fact.statusScheduled)
       ),
       ExpectedRule(
         client.reset.decl,
         Some(List(ResetPause.resume)),
-        _.phase == started,
-        s => accepted(s, Fact.statusStarted) ++ rejectedBecause(s, "failedPrecondition", pending)
-      ),
-      ExpectedRule(
-        client.reset.decl,
-        Some(List(ResetPause.keepPaused)),
-        _.phase == paused,
-        s => accepted(s, Fact.statusPaused)
-      ),
-      ExpectedRule(
-        client.reset.decl,
-        Some(List(ResetPause.keepPaused)),
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
-          accepted(s, Fact.statusStarted) ++ accepted(s, Fact.statusPaused) ++
+          accepted(s, product.Fact.statusStarted) ++ rejectedBecause(
+            s,
+            "failedPrecondition",
+            pending
+          )
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.keepPaused)),
+        _.phase == paused, // scalafix:ok DisableSyntax.==
+        s => accepted(s, product.Fact.statusPaused)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.keepPaused)),
+        _.phase == started, // scalafix:ok DisableSyntax.==
+        s =>
+          accepted(s, product.Fact.statusStarted) ++ accepted(s, product.Fact.statusPaused) ++
             rejectedBecause(s, "failedPrecondition", pending)
       )
     )
 
   private def productServiceRules: List[ExpectedRule[product.State, product.Fact]] =
-    import product.{Fact, Phase, State}
-    import Phase.*
+    import product.Phase.*
     val closed =
       List(service.respondCompletedByID, service.respondFailedByID, service.respondCanceledByID)
         .map(a =>
-          ExpectedRule[State, Fact](a.decl, None, s => closedProduct(s.phase), rejectedNotFound)
+          ExpectedRule[product.State, product.Fact](
+            a.decl,
+            None,
+            s => closedProduct(s.phase),
+            rejectedNotFound
+          )
         )
     val unheld = List(service.respondFailedByID, service.respondCanceledByID)
       .map(a =>
-        ExpectedRule[State, Fact](
+        ExpectedRule[product.State, product.Fact](
           a.decl,
           None,
-          s => s.phase == scheduled || s.phase == paused,
+          s => s.phase == scheduled || s.phase == paused, // scalafix:ok DisableSyntax.==
           rejectedNotFound
         )
       )
-    closed ++ unheld ++ List[ExpectedRule[State, Fact]](
+    closed ++ unheld ++ List[ExpectedRule[product.State, product.Fact]](
       ExpectedRule(
         service.respondCompletedByID.decl,
         None,
         s => productLive(s.phase),
-        s => accepted(s.copy(phase = completed), Fact.statusCompleted)
+        s => accepted(s.copy(phase = completed), product.Fact.statusCompleted)
       ),
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.fatal)),
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
-          accepted(s.copy(phase = failed), Fact.statusFailed) ++
-            accepted(s.copy(phase = scheduled), Fact.statusScheduled) ++
-            accepted(s.copy(phase = paused), Fact.statusPaused)
+          accepted(s.copy(phase = failed), product.Fact.statusFailed) ++
+            accepted(s.copy(phase = scheduled), product.Fact.statusScheduled) ++
+            accepted(s.copy(phase = paused), product.Fact.statusPaused)
       ),
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.fatal)),
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = failed), product.Fact.statusFailed)
       ),
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.retryable)),
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
-          accepted(s.copy(phase = scheduled), Fact.statusScheduled) ++
-            accepted(s.copy(phase = paused), Fact.statusPaused) ++
-            accepted(s.copy(phase = failed), Fact.statusFailed)
+          accepted(s.copy(phase = scheduled), product.Fact.statusScheduled) ++
+            accepted(s.copy(phase = paused), product.Fact.statusPaused) ++
+            accepted(s.copy(phase = failed), product.Fact.statusFailed)
       ),
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.retryable)),
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), product.Fact.statusCanceled)
       ),
       ExpectedRule(
         service.respondCanceledByID.decl,
         None,
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), product.Fact.statusCanceled)
       ),
       ExpectedRule(
         service.respondCanceledByID.decl,
         None,
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s => rejectedBecause(s, "invalidArgument", "cancellation was not requested")
       )
     )
 
   private def closedProduct(p: product.Phase): Boolean =
     import product.Phase.*
-    p == completed || p == failed || p == canceled || p == terminated || p == timedOut
+    p == completed || p == failed || p == canceled || p == terminated || p == timedOut // scalafix:ok DisableSyntax.==
 
   private def productLive(p: product.Phase): Boolean =
     import product.Phase.*
-    p == scheduled || p == started || p == paused || p == cancelRequested
+    p == scheduled || p == started || p == paused || p == cancelRequested // scalafix:ok DisableSyntax.==
 
   private lazy val systemRules: List[ExpectedRule[system.State, system.Fact]] =
-    import system.{Fact, Phase, State}
-    import Phase.*
-    List[ExpectedRule[State, Fact]](
+    import system.Phase.*
+    List[ExpectedRule[system.State, system.Fact]](
       ExpectedRule(
         worker.poll.decl,
         None,
-        s => s.phase == scheduled && s.dispatch == Dispatch.now,
+        s =>
+          s.phase == scheduled && s.dispatch == system.Dispatch.now, // scalafix:ok DisableSyntax.==
         s =>
           accepted(
             s.copy(phase = started, attempts = UpTo[2](((s.attempts: Int) + 1).min(2))),
-            Fact.statusStarted,
-            Fact.attemptCount
+            system.Fact.statusStarted,
+            system.Fact.attemptCount
           )
       ),
       ExpectedRule(
         worker.respondCompleted.decl,
         None,
         s => heldSystem(s.phase) || resetSystem(s.phase),
-        s => accepted(s.copy(phase = completed), Fact.statusCompleted)
+        s => accepted(s.copy(phase = completed), system.Fact.statusCompleted)
       ),
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.fatal)),
         s => heldSystem(s.phase),
-        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+        s => accepted(s.copy(phase = failed), system.Fact.statusFailed)
       ),
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.retryable)),
-        s => s.phase == started && retriesRemain(s),
+        s => s.phase == started && retriesRemain(s), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
-            s.copy(phase = scheduled, dispatch = Dispatch.backoff),
+            s.copy(phase = scheduled, dispatch = system.Dispatch.backoff),
             "a retryable attempt backs off; the client reads scheduled again",
-            Fact.statusScheduled,
-            Fact.attemptCount
+            system.Fact.statusScheduled,
+            system.Fact.attemptCount
           )
       ),
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.retryable)),
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), system.Fact.statusCanceled)
       ),
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.retryable)),
-        s => s.phase == pauseRequested && retriesRemain(s),
+        s => s.phase == pauseRequested && retriesRemain(s), // scalafix:ok DisableSyntax.==
         s =>
           accepted(
-            s.copy(phase = paused, dispatch = Dispatch.backoff),
-            Fact.statusPaused,
-            Fact.attemptCount
+            s.copy(phase = paused, dispatch = system.Dispatch.backoff),
+            system.Fact.statusPaused,
+            system.Fact.attemptCount
           )
       ),
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.retryable)),
-        s => (s.phase == started || s.phase == pauseRequested) && !retriesRemain(s),
-        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+        s =>
+          (s.phase == started || s.phase == pauseRequested) && !retriesRemain(
+            s
+          ), // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = failed), system.Fact.statusFailed)
       ),
       ExpectedRule(
         worker.respondCanceled.decl,
         None,
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), system.Fact.statusCanceled)
       ),
       ExpectedRule(
         worker.respondCanceled.decl,
         None,
-        s => s.phase == started || s.phase == pauseRequested || resetSystem(s.phase),
+        s =>
+          s.phase == started || s.phase == pauseRequested || resetSystem(
+            s.phase
+          ), // scalafix:ok DisableSyntax.==
         s =>
           rejectedBecause(
             s,
@@ -553,25 +589,25 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.pause.decl,
         None,
-        _.phase == scheduled,
-        s => accepted(s.copy(phase = paused), Fact.statusPaused)
+        _.phase == scheduled, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = paused), system.Fact.statusPaused)
       ),
       ExpectedRule(
         client.pause.decl,
         None,
-        _.phase == started,
+        _.phase == started, // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
             s.copy(phase = pauseRequested),
             "the worker learns of the pause on its next heartbeat",
-            Fact.statusPaused
+            system.Fact.statusPaused
           )
       ),
       ExpectedRule(
         client.pause.decl,
         None,
         s =>
-          s.phase == paused || s.phase == pauseRequested || s.phase == cancelRequested ||
+          s.phase == paused || s.phase == pauseRequested || s.phase == cancelRequested || // scalafix:ok DisableSyntax.==
             resetSystem(s.phase),
         s =>
           rejectedBecause(
@@ -583,20 +619,20 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.unpause.decl,
         None,
-        _.phase == paused,
-        s => accepted(s.copy(phase = scheduled), Fact.statusScheduled)
+        _.phase == paused, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = scheduled), system.Fact.statusScheduled)
       ),
       ExpectedRule(
         client.unpause.decl,
         None,
-        _.phase == pauseRequested,
-        s => accepted(s.copy(phase = started), Fact.statusStarted)
+        _.phase == pauseRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = started), system.Fact.statusStarted)
       ),
       ExpectedRule(
         client.unpause.decl,
         None,
         s =>
-          s.phase == scheduled || s.phase == started || s.phase == cancelRequested ||
+          s.phase == scheduled || s.phase == started || s.phase == cancelRequested || // scalafix:ok DisableSyntax.==
             resetSystem(s.phase),
         s =>
           rejectedBecause(
@@ -608,19 +644,22 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.requestCancel.decl,
         None,
-        s => s.phase == scheduled || s.phase == paused,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        s => s.phase == scheduled || s.phase == paused, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), system.Fact.statusCanceled)
       ),
       ExpectedRule(
         client.requestCancel.decl,
         None,
-        s => s.phase == started || s.phase == pauseRequested || resetSystem(s.phase),
-        s => accepted(s.copy(phase = cancelRequested), Fact.statusCancelRequested)
+        s =>
+          s.phase == started || s.phase == pauseRequested || resetSystem(
+            s.phase
+          ), // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = cancelRequested), system.Fact.statusCancelRequested)
       ),
       ExpectedRule(
         client.requestCancel.decl,
         None,
-        _.phase == cancelRequested,
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
         s =>
           rejectedBecause(
             s,
@@ -632,20 +671,26 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.terminate.decl,
         None,
         s => liveSystem(s.phase),
-        s => accepted(s.copy(phase = terminated), Fact.statusTerminated)
+        s => accepted(s.copy(phase = terminated), system.Fact.statusTerminated)
       ),
       ExpectedRule(process.stop.decl, None, _ => true, s => accepted(s)),
       ExpectedRule(
         timers.startDelay.decl,
         None,
-        s => liveSystem(s.phase) && s.dispatch == Dispatch.startDelay,
-        s => acceptedBecause(s.copy(dispatch = Dispatch.now), nominalTimeWindow)
+        s =>
+          liveSystem(
+            s.phase
+          ) && s.dispatch == system.Dispatch.startDelay, // scalafix:ok DisableSyntax.==
+        s => acceptedBecause(s.copy(dispatch = system.Dispatch.now), nominalTimeWindow)
       ),
       ExpectedRule(
         timers.backoff.decl,
         None,
-        s => liveSystem(s.phase) && s.dispatch == Dispatch.backoff,
-        s => acceptedBecause(s.copy(dispatch = Dispatch.now), nominalTimeWindow)
+        s =>
+          liveSystem(
+            s.phase
+          ) && s.dispatch == system.Dispatch.backoff, // scalafix:ok DisableSyntax.==
+        s => acceptedBecause(s.copy(dispatch = system.Dispatch.now), nominalTimeWindow)
       ),
       ExpectedRule(
         deadline.scheduleToClose.decl,
@@ -653,12 +698,12 @@ class StandaloneActivityPins extends munit.FunSuite:
         s =>
           liveSystem(
             s.phase
-          ) && s.scheduleToClose == Timeout.expires && s.dispatch != Dispatch.startDelay,
+          ) && s.scheduleToClose == Timeout.expires && s.dispatch != system.Dispatch.startDelay, // scalafix:ok DisableSyntax.==, DisableSyntax.!=
         s =>
           acceptedBecause(
             s.copy(phase = timedOut),
             nominalTimeWindow,
-            Fact.statusTimedOut(TimeoutType.scheduleToClose)
+            system.Fact.statusTimedOut(TimeoutType.scheduleToClose)
           )
       ),
       ExpectedRule(
@@ -667,49 +712,57 @@ class StandaloneActivityPins extends munit.FunSuite:
         s =>
           waitingSystem(
             s.phase
-          ) && s.scheduleToStart == Timeout.expires && s.dispatch == Dispatch.now,
+          ) && s.scheduleToStart == Timeout.expires && s.dispatch == system.Dispatch.now, // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
             s.copy(phase = timedOut),
             nominalTimeWindow,
-            Fact.statusTimedOut(TimeoutType.scheduleToStart)
+            system.Fact.statusTimedOut(TimeoutType.scheduleToStart)
           )
       ),
       ExpectedRule(
         deadline.startToClose.decl,
         None,
         s =>
-          heldSystem(s.phase) && s.startToClose == Timeout.expires &&
-            (s.phase == cancelRequested || !retriesRemain(s)),
+          heldSystem(
+            s.phase
+          ) && s.startToClose == Timeout.expires && // scalafix:ok DisableSyntax.==
+            (s.phase == cancelRequested || !retriesRemain(s)), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
             s.copy(phase = timedOut),
             nominalTimeWindow,
-            Fact.statusTimedOut(TimeoutType.startToClose)
+            system.Fact.statusTimedOut(TimeoutType.startToClose)
           )
       ),
       ExpectedRule(
         deadline.startToClose.decl,
         None,
-        s => s.phase == started && s.startToClose == Timeout.expires && retriesRemain(s),
+        s =>
+          s.phase == started && s.startToClose == Timeout.expires && retriesRemain(
+            s
+          ), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
-            s.copy(phase = scheduled, dispatch = Dispatch.backoff),
+            s.copy(phase = scheduled, dispatch = system.Dispatch.backoff),
             nominalTimeWindow,
-            Fact.statusScheduled,
-            Fact.attemptCount
+            system.Fact.statusScheduled,
+            system.Fact.attemptCount
           )
       ),
       ExpectedRule(
         deadline.startToClose.decl,
         None,
-        s => s.phase == pauseRequested && s.startToClose == Timeout.expires && retriesRemain(s),
+        s =>
+          s.phase == pauseRequested && s.startToClose == Timeout.expires && retriesRemain(
+            s
+          ), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
-            s.copy(phase = paused, dispatch = Dispatch.backoff),
+            s.copy(phase = paused, dispatch = system.Dispatch.backoff),
             nominalTimeWindow,
-            Fact.statusPaused,
-            Fact.attemptCount
+            system.Fact.statusPaused,
+            system.Fact.attemptCount
           )
       )
     ) ++ List[ExpectedRule[system.State, system.Fact]](
@@ -717,7 +770,7 @@ class StandaloneActivityPins extends munit.FunSuite:
         worker.heartbeat.decl,
         None,
         s => heldSystem(s.phase) || resetSystem(s.phase),
-        s => accepted(s, Fact.heartbeatReceived)
+        s => accepted(s, system.Fact.heartbeatReceived)
       ),
       ExpectedRule(
         worker.heartbeat.decl,
@@ -729,40 +782,46 @@ class StandaloneActivityPins extends munit.FunSuite:
         deadline.heartbeat.decl,
         None,
         s =>
-          heldSystem(s.phase) && s.heartbeat == Timeout.expires &&
-            (s.phase == cancelRequested || !retriesRemain(s)),
+          heldSystem(s.phase) && s.heartbeat == Timeout.expires && // scalafix:ok DisableSyntax.==
+            (s.phase == cancelRequested || !retriesRemain(s)), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
             s.copy(phase = timedOut),
             nominalTimeWindow,
-            Fact.statusTimedOut(TimeoutType.heartbeat),
-            Fact.heartbeatTimedOut
+            system.Fact.statusTimedOut(TimeoutType.heartbeat),
+            system.Fact.heartbeatTimedOut
           )
       ),
       ExpectedRule(
         deadline.heartbeat.decl,
         None,
-        s => s.phase == started && s.heartbeat == Timeout.expires && retriesRemain(s),
+        s =>
+          s.phase == started && s.heartbeat == Timeout.expires && retriesRemain(
+            s
+          ), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
-            s.copy(phase = scheduled, dispatch = Dispatch.backoff),
+            s.copy(phase = scheduled, dispatch = system.Dispatch.backoff),
             nominalTimeWindow,
-            Fact.statusScheduled,
-            Fact.attemptCount,
-            Fact.heartbeatTimedOut
+            system.Fact.statusScheduled,
+            system.Fact.attemptCount,
+            system.Fact.heartbeatTimedOut
           )
       ),
       ExpectedRule(
         deadline.heartbeat.decl,
         None,
-        s => s.phase == pauseRequested && s.heartbeat == Timeout.expires && retriesRemain(s),
+        s =>
+          s.phase == pauseRequested && s.heartbeat == Timeout.expires && retriesRemain(
+            s
+          ), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
-            s.copy(phase = paused, dispatch = Dispatch.backoff),
+            s.copy(phase = paused, dispatch = system.Dispatch.backoff),
             nominalTimeWindow,
-            Fact.statusPaused,
-            Fact.attemptCount,
-            Fact.heartbeatTimedOut
+            system.Fact.statusPaused,
+            system.Fact.attemptCount,
+            system.Fact.heartbeatTimedOut
           )
       )
     ) ++ startRules ++ systemServiceRules ++ systemResetRules
@@ -770,46 +829,50 @@ class StandaloneActivityPins extends munit.FunSuite:
   // A reset applies at once to a waiting or paused activity, is recorded until a held attempt ends,
   // and then applies on its failure or its own deadline (operator_commands.go:428-563).
   private def systemResetRules: List[ExpectedRule[system.State, system.Fact]] =
-    import system.{Fact, Phase, State}
-    import Phase.*
+    import system.Phase.*
     val learns = "the worker learns of the reset on its next heartbeat"
     val ends = "the deferred reset applies as the attempt ends"
-    def cleared(s: State, phase: Phase) = s.copy(
+    def cleared(s: system.State, phase: system.Phase) = s.copy(
       phase = phase,
       attempts = UpTo(0),
-      dispatch = if s.dispatch == Dispatch.backoff then Dispatch.now else s.dispatch
+      dispatch =
+        if s.dispatch == system.Dispatch.backoff then system.Dispatch.now
+        else s.dispatch // scalafix:ok DisableSyntax.==
     )
-    def restarted(s: State) =
+    def restarted(s: system.State) =
       s.copy(
-        phase = if s.phase == resetKeepingPause then paused else scheduled,
+        phase =
+          if s.phase == resetKeepingPause then paused
+          else scheduled, // scalafix:ok DisableSyntax.==
         attempts = UpTo(0),
-        dispatch = Dispatch.now
+        dispatch = system.Dispatch.now
       )
-    def landingFact(s: State) =
-      if s.phase == resetKeepingPause then Fact.statusPaused else Fact.statusScheduled
-    List[ExpectedRule[State, Fact]](
+    def landingFact(s: system.State) =
+      if s.phase == resetKeepingPause then system.Fact.statusPaused
+      else system.Fact.statusScheduled // scalafix:ok DisableSyntax.==
+    List[ExpectedRule[system.State, system.Fact]](
       ExpectedRule(
         client.reset.decl,
         None,
-        s => s.phase == unstarted || closedSystem(s.phase),
+        s => s.phase == unstarted || closedSystem(s.phase), // scalafix:ok DisableSyntax.==
         rejectedNotFound
       ),
       ExpectedRule(
         client.reset.decl,
         None,
-        _.phase == scheduled,
-        s => accepted(cleared(s, scheduled), Fact.statusScheduled)
+        _.phase == scheduled, // scalafix:ok DisableSyntax.==
+        s => accepted(cleared(s, scheduled), system.Fact.statusScheduled)
       ),
       ExpectedRule(
         client.reset.decl,
         None,
-        _.phase == started,
-        s => acceptedBecause(s.copy(phase = resetRequested), learns, Fact.statusStarted)
+        _.phase == started, // scalafix:ok DisableSyntax.==
+        s => acceptedBecause(s.copy(phase = resetRequested), learns, system.Fact.statusStarted)
       ),
       ExpectedRule(
         client.reset.decl,
         None,
-        _.phase == cancelRequested,
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
         s =>
           rejectedBecause(
             s,
@@ -831,136 +894,142 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.reset.decl,
         Some(List(ResetPause.resume)),
-        _.phase == paused,
-        s => accepted(cleared(s, scheduled), Fact.statusScheduled)
+        _.phase == paused, // scalafix:ok DisableSyntax.==
+        s => accepted(cleared(s, scheduled), system.Fact.statusScheduled)
       ),
       ExpectedRule(
         client.reset.decl,
         Some(List(ResetPause.resume)),
-        _.phase == pauseRequested,
-        s => acceptedBecause(s.copy(phase = resetRequested), learns, Fact.statusStarted)
+        _.phase == pauseRequested, // scalafix:ok DisableSyntax.==
+        s => acceptedBecause(s.copy(phase = resetRequested), learns, system.Fact.statusStarted)
       ),
       ExpectedRule(
         client.reset.decl,
         Some(List(ResetPause.keepPaused)),
-        _.phase == paused,
-        s => accepted(cleared(s, paused), Fact.statusPaused)
+        _.phase == paused, // scalafix:ok DisableSyntax.==
+        s => accepted(cleared(s, paused), system.Fact.statusPaused)
       ),
       ExpectedRule(
         client.reset.decl,
         Some(List(ResetPause.keepPaused)),
-        _.phase == pauseRequested,
-        s => acceptedBecause(s.copy(phase = resetKeepingPause), learns, Fact.statusPaused)
+        _.phase == pauseRequested, // scalafix:ok DisableSyntax.==
+        s => acceptedBecause(s.copy(phase = resetKeepingPause), learns, system.Fact.statusPaused)
       )
     ) ++ List(worker.respondFailed, service.respondFailedByID).map(a =>
-      ExpectedRule[State, Fact](
+      ExpectedRule[system.State, system.Fact](
         a.decl,
         None,
         s => resetSystem(s.phase),
-        s => acceptedBecause(restarted(s), ends, landingFact(s), Fact.attemptCount)
+        s => acceptedBecause(restarted(s), ends, landingFact(s), system.Fact.attemptCount)
       )
-    ) ++ List[ExpectedRule[State, Fact]](
+    ) ++ List[ExpectedRule[system.State, system.Fact]](
       ExpectedRule(
         deadline.startToClose.decl,
         None,
-        s => resetSystem(s.phase) && s.startToClose == Timeout.expires,
-        s => acceptedBecause(restarted(s), ends, landingFact(s), Fact.attemptCount)
+        s =>
+          resetSystem(s.phase) && s.startToClose == Timeout.expires, // scalafix:ok DisableSyntax.==
+        s => acceptedBecause(restarted(s), ends, landingFact(s), system.Fact.attemptCount)
       ),
       ExpectedRule(
         deadline.heartbeat.decl,
         None,
-        s => resetSystem(s.phase) && s.heartbeat == Timeout.expires,
+        s => resetSystem(s.phase) && s.heartbeat == Timeout.expires, // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
             restarted(s),
             nominalTimeWindow,
             landingFact(s),
-            Fact.attemptCount,
-            Fact.heartbeatTimedOut
+            system.Fact.attemptCount,
+            system.Fact.heartbeatTimedOut
           )
       )
     )
 
   private def systemServiceRules: List[ExpectedRule[system.State, system.Fact]] =
-    import system.{Fact, Phase, State}
-    import Phase.*
+    import system.Phase.*
     val absentOrClosed =
       List(service.respondCompletedByID, service.respondFailedByID, service.respondCanceledByID)
         .map(a =>
-          ExpectedRule[State, Fact](
+          ExpectedRule[system.State, system.Fact](
             a.decl,
             None,
-            s => s.phase == unstarted || closedSystem(s.phase),
+            s => s.phase == unstarted || closedSystem(s.phase), // scalafix:ok DisableSyntax.==
             rejectedNotFound
           )
         )
     val unheld = List(service.respondFailedByID, service.respondCanceledByID)
       .map(a =>
-        ExpectedRule[State, Fact](
+        ExpectedRule[system.State, system.Fact](
           a.decl,
           None,
-          s => s.phase == scheduled || s.phase == paused,
+          s => s.phase == scheduled || s.phase == paused, // scalafix:ok DisableSyntax.==
           rejectedNotFound
         )
       )
-    absentOrClosed ++ unheld ++ List[ExpectedRule[State, Fact]](
+    absentOrClosed ++ unheld ++ List[ExpectedRule[system.State, system.Fact]](
       ExpectedRule(
         service.respondCompletedByID.decl,
         None,
         s => liveSystem(s.phase),
-        s => accepted(s.copy(phase = completed), Fact.statusCompleted)
+        s => accepted(s.copy(phase = completed), system.Fact.statusCompleted)
       ),
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.fatal)),
         s => heldSystem(s.phase),
-        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+        s => accepted(s.copy(phase = failed), system.Fact.statusFailed)
       ),
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.retryable)),
-        s => s.phase == started && retriesRemain(s),
+        s => s.phase == started && retriesRemain(s), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
-            s.copy(phase = scheduled, dispatch = Dispatch.backoff),
+            s.copy(phase = scheduled, dispatch = system.Dispatch.backoff),
             "a retryable attempt backs off; the client reads scheduled again",
-            Fact.statusScheduled,
-            Fact.attemptCount
+            system.Fact.statusScheduled,
+            system.Fact.attemptCount
           )
       ),
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.retryable)),
-        s => s.phase == pauseRequested && retriesRemain(s),
+        s => s.phase == pauseRequested && retriesRemain(s), // scalafix:ok DisableSyntax.==
         s =>
           accepted(
-            s.copy(phase = paused, dispatch = Dispatch.backoff),
-            Fact.statusPaused,
-            Fact.attemptCount
+            s.copy(phase = paused, dispatch = system.Dispatch.backoff),
+            system.Fact.statusPaused,
+            system.Fact.attemptCount
           )
       ),
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.retryable)),
-        s => (s.phase == started || s.phase == pauseRequested) && !retriesRemain(s),
-        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+        s =>
+          (s.phase == started || s.phase == pauseRequested) && !retriesRemain(
+            s
+          ), // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = failed), system.Fact.statusFailed)
       ),
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.retryable)),
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), system.Fact.statusCanceled)
       ),
       ExpectedRule(
         service.respondCanceledByID.decl,
         None,
-        _.phase == cancelRequested,
-        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+        _.phase == cancelRequested, // scalafix:ok DisableSyntax.==
+        s => accepted(s.copy(phase = canceled), system.Fact.statusCanceled)
       ),
       ExpectedRule(
         service.respondCanceledByID.decl,
         None,
-        s => s.phase == started || s.phase == pauseRequested || resetSystem(s.phase),
+        s =>
+          s.phase == started || s.phase == pauseRequested || resetSystem(
+            s.phase
+          ), // scalafix:ok DisableSyntax.==
         s => rejectedBecause(s, "invalidArgument", "cancellation was not requested")
       )
     )
@@ -976,12 +1045,13 @@ class StandaloneActivityPins extends munit.FunSuite:
     yield ExpectedRule[system.State, system.Fact](
       client.start.decl,
       Some(List(scheduleClose, scheduleStart, startClose, heartbeat, delay, policy)),
-      _.phase == system.Phase.unstarted,
+      _.phase == system.Phase.unstarted, // scalafix:ok DisableSyntax.==
       _ =>
         accepted(
           system.State(
             phase = system.Phase.scheduled,
-            dispatch = if delay == Timeout.expires then Dispatch.startDelay else Dispatch.now,
+            dispatch = if delay == Timeout.expires then system.Dispatch.startDelay
+            else system.Dispatch.now, // scalafix:ok DisableSyntax.==
             attempts = UpTo(0),
             scheduleToClose = scheduleClose,
             scheduleToStart = scheduleStart,
@@ -1000,22 +1070,22 @@ class StandaloneActivityPins extends munit.FunSuite:
 
   private def liveSystem(p: system.Phase): Boolean =
     import system.Phase.*
-    p == scheduled || p == started || p == paused ||
-    p == pauseRequested || p == cancelRequested || resetSystem(p)
+    p == scheduled || p == started || p == paused || // scalafix:ok DisableSyntax.==
+    p == pauseRequested || p == cancelRequested || resetSystem(p) // scalafix:ok DisableSyntax.==
 
   private def resetSystem(p: system.Phase): Boolean =
-    p == system.Phase.resetRequested || p == system.Phase.resetKeepingPause
+    p == system.Phase.resetRequested || p == system.Phase.resetKeepingPause // scalafix:ok DisableSyntax.==
 
   private def waitingSystem(p: system.Phase): Boolean =
-    p == system.Phase.scheduled
+    p == system.Phase.scheduled // scalafix:ok DisableSyntax.==
 
   private def heldSystem(p: system.Phase): Boolean =
-    p == system.Phase.started || p == system.Phase.pauseRequested ||
-      p == system.Phase.cancelRequested
+    p == system.Phase.started || p == system.Phase.pauseRequested || // scalafix:ok DisableSyntax.==
+      p == system.Phase.cancelRequested // scalafix:ok DisableSyntax.==
 
   private def closedSystem(p: system.Phase): Boolean =
     import system.Phase.*
-    p == completed || p == failed || p == canceled || p == terminated || p == timedOut
+    p == completed || p == failed || p == canceled || p == terminated || p == timedOut // scalafix:ok DisableSyntax.==
 
   test("the standalone signature declares one action for every RPC") {
     assertEquals(client.start.decl.creates, Some(activity))
@@ -1111,12 +1181,17 @@ class StandaloneActivityPins extends munit.FunSuite:
     )
     assertEquals(choices.map(_.state.lossAvailable), List(false, false))
     val loss = LostStartAnswer.bindings
-      .find(_.decl == temporal.foundations.taskqueue.fault.ackLoss.decl)
+      .find(
+        _.decl == temporal.foundations.taskqueue.fault.ackLoss.decl
+      ) // scalafix:ok DisableSyntax.==
       .get
       .function
       .asInstanceOf[Loss] // scalafix:ok DisableSyntax.asInstanceOf
     assertEquals(loss(LostStartAnswer.init), choices)
     for choice <- choices do assertEquals(loss(choice.state), Nil)
     assert(choices.forall(c => LostStartAnswer.end(c.state)))
-    assertEquals(choices.map(_.facts), List(List(AdmissionResponseFact.attemptAdmitted), Nil))
+    assertEquals(
+      choices.map(_.facts),
+      List(List(system.AdmissionResponseFact.attemptAdmitted), Nil)
+    )
   }

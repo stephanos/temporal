@@ -63,7 +63,7 @@ final class DescribedStatus[
 
   // Reads the description until it reports the status the table lists for `fact`.
   def await(fact: F | EveryValue): Instruction =
-    val reported = entries.collectFirst { case (f, v) if f == fact => v }.get
+    val reported = entries.collectFirst { case (f, v) if java.util.Objects.equals(f, fact) => v }.get
     Instruction.readUntil(apply(fact), calls)(
       Vector.empty,
       Condition.equal(status, Operand.enumValue[V, V](reported))

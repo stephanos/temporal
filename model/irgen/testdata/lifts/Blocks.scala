@@ -8,7 +8,7 @@
 // field, an assignment alone, an empty block and a rejection.
 package fixture.blocks
 
-import framework.*
+import framework.*; import framework.Finite.given
 
 enum Phase derives Finite:
   case idle, running, paused, done
@@ -52,11 +52,11 @@ object Blocked extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
   override def end(s: State) = states.over(s)
 
-  object states:
-    val paused = is(phase == Phase.paused)
+  object states: // format: off
+    val paused = is(phase == Phase.paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     val busy = is(phase.in(Phase.running, Phase.paused))
-    val over = is(phase == Phase.done && !retried)
-
+    val over = is(phase == Phase.done && !retried) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
   object effects:
     val start = effect {
       phase = Phase.running
@@ -100,11 +100,11 @@ object Defined extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
   override def end(s: State) = states.over(s)
 
-  object states:
-    def paused(s: Job) = s.phase == Phase.paused
+  object states: // format: off
+    def paused(s: Job) = s.phase == Phase.paused // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     def busy(s: Job) = s.phase.in(Phase.running, Phase.paused)
-    def over(s: Job) = s.phase == Phase.done && !s.retried
-
+    def over(s: Job) = s.phase == Phase.done && !s.retried // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
   object effects:
     def start(s: Job) = enter(s.copy(phase = Phase.running), Fact.started)
     def restart(s: Job) =

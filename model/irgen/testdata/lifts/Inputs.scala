@@ -5,7 +5,7 @@
 // to. The control action reports results by name, with no enum of that name.
 package fixture.inputs
 
-import framework.*
+import framework.*; import framework.Finite.given
 
 enum Outcome derives Finite:
   case accepted
@@ -62,27 +62,27 @@ def started(
     close: Deadline,
     toStart: Deadline,
     toClose: Deadline
-): List[CountedStep] =
-  if s.phase != Stage.unstarted then disabled
-  else enter(CountedState(Stage.scheduled, UpTo(0), close, toStart, toClose))
+): List[CountedStep] = // format: off
+  if s.phase != Stage.unstarted then disabled // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  else enter(CountedState(Stage.scheduled, UpTo(0), close, toStart, toClose)) // format: on
 
 // A retried answer counts one more attempt, saturating at the bound.
-def responded(s: CountedState, a: Answer, u: Boolean): List[CountedStep] = a match
-  case Answer.failed(true) if s.phase == Stage.started || u =>
-    enter(s.copy(phase = Stage.backingOff, attempts = UpTo((s.attempts + 1).min(2))))
+def responded(s: CountedState, a: Answer, u: Boolean): List[CountedStep] = a match // format: off
+  case Answer.failed(true) if s.phase == Stage.started || u => // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    enter(s.copy(phase = Stage.backingOff, attempts = UpTo((s.attempts + 1).min(2)))) // format: on
   case _ => disabled
 
-def steered(s: CountedState, c: Control): List[CountedStep] =
-  if c == Control.pause && s.attempts < 2 then stay(s) else disabled
-
+def steered(s: CountedState, c: Control): List[CountedStep] = // format: off
+  if c == Control.pause && s.attempts < 2 then stay(s) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
 object Counted extends Machine[CountedState, Outcome, Nothing]:
   val init = CountedState(Stage.unstarted, UpTo(0), Deadline.unset, Deadline.unset, Deadline.unset)
   def end(counted: State) = true
 
   object rules extends Bindings(start ~> started, respond ~> responded, steer ~> steered)
-
-val scheduled = Counted.property holds (after => after.state.phase != Stage.completed)
-
+// format: off
+val scheduled = Counted.property holds (after => after.state.phase != Stage.completed) // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+// format: on
 // Partial and reordered calls by name, a default of an enum with fields and of a Boolean, and a
 // token of a one-input action.
 val byName = Counted.scenario.actions(

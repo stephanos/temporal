@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 import temporal.features.activity.{deadline, timers, Failure, Timeout}
 import temporal.features.activity.standalone.{client, system, worker, MaxAttempts}
@@ -6,12 +7,13 @@ import temporal.features.activity.standalone.system.ActivitySystem
 import framework.outcomes.Outcome
 
 class ActivityDispatchRegression extends munit.FunSuite:
+  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
   private def take(
       s: system.State,
       a: Action[EmptyTuple]
   ): List[Step[system.State, Outcome, system.Fact]] =
     ActivitySystem.bindings
-      .find(_.decl == a.decl)
+      .find(_.decl == a.decl) // scalafix:ok DisableSyntax.==
       .get
       .function
       .asInstanceOf[system.State => List[Step[system.State, Outcome, system.Fact]]](
@@ -24,7 +26,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   private def failAttempt(s: system.State): system.State =
     ActivitySystem.bindings
-      .find(_.decl == worker.respondFailed.decl)
+      .find(_.decl == worker.respondFailed.decl) // scalafix:ok DisableSyntax.==
       .get
       .function
       .asInstanceOf[(system.State, Failure) => List[Step[system.State, Outcome, system.Fact]]](
@@ -36,7 +38,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   private def delayedStart: system.State =
     ActivitySystem.bindings
-      .find(_.decl == client.start.decl)
+      .find(_.decl == client.start.decl) // scalafix:ok DisableSyntax.==
       .get
       .function
       .asInstanceOf[
@@ -116,8 +118,8 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   test("every waiting dispatch maps to the Product's scheduled state") {
     assertEquals(summon[Finite[system.State]].values.size, 5616)
-    for dispatch <- system.Dispatch.values do
-      val waiting = ActivitySystem.init.copy(phase = system.Phase.scheduled, dispatch = dispatch)
+    for waiting <- Finite[system.State].values if waiting.phase == system.Phase.scheduled
+    do // scalafix:ok DisableSyntax.==
       assertEquals(
         ActivitySystem.refinement.toProduct(waiting).phase,
         temporal.features.activity.standalone.product.Phase.scheduled

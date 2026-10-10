@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 import temporal.features.activity.{failure, Failure}
 import temporal.features.activity.standalone.{activity, client, product, service, system, worker}
@@ -11,8 +12,10 @@ import temporal.features.activity.standalone.system.{
 import framework.outcomes.{Outcome, Rejection}
 
 class ActivityByIDRegression extends munit.FunSuite:
+  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
   test("the service declares three independent by-ID answer actions") {
-    val answers = ActivitySystem.bindings.filter(_.decl.actor.name == "service")
+    val answers =
+      ActivitySystem.bindings.filter(_.decl.actor.name == "service") // scalafix:ok DisableSyntax.==
     assertEquals(
       answers.map(_.decl),
       List(
@@ -36,7 +39,7 @@ class ActivityByIDRegression extends munit.FunSuite:
     val c = action match
       case c: Class              => c
       case a: Action[EmptyTuple] => a()
-    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get
+    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
     effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(s, c.values).head
 
   test("every service result is carried by Product without hiding a public status") {
@@ -54,21 +57,24 @@ class ActivityByIDRegression extends munit.FunSuite:
       val visible = after.facts.filter(ActivitySystem.refinement.visible).map(_.toString)
       val source = ActivitySystem.refinement.toProduct(before)
       val target = ActivitySystem.refinement.toProduct(after.state)
-      val binding = product.ActivityProduct.bindings.find(_.decl == c.decl).get
+      val binding =
+        product.ActivityProduct.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
       val carriers = effectOf[product.State, Outcome, product.Fact](binding.decl, binding.function)(
         source,
         c.values
       )
       assert(
         carriers.exists(p =>
-          p.outcome == after.outcome && p.state == target && p.facts.map(_.toString) == visible
+          p.outcome == after.outcome && p.state == target && p.facts.map(
+            _.toString
+          ) == visible // scalafix:ok DisableSyntax.==
         ) ||
-          (before.phase == system.Phase.unstarted && source == target && visible.isEmpty),
+          (before.phase == system.Phase.unstarted && source == target && visible.isEmpty), // scalafix:ok DisableSyntax.==
         s"service refinement $before -> $after"
       )
       // A failure answer applies a pending reset, which restarts the count; nothing else moves it.
       val restarts = ActivitySystem.states.pendingReset(before) &&
-        c.decl == service.respondFailedByID.decl
+        c.decl == service.respondFailedByID.decl // scalafix:ok DisableSyntax.==
       assertEquals(after.state.attempts: Int, if restarts then 0 else before.attempts)
       assertEquals(after.state.scheduleToClose, before.scheduleToClose)
       assertEquals(after.state.scheduleToStart, before.scheduleToStart)
@@ -80,13 +86,15 @@ class ActivityByIDRegression extends munit.FunSuite:
   test("cancellation without held work settles before any by-ID disposition") {
     for
       before <- summon[Finite[system.State]].values
-      if before.phase == system.Phase.scheduled || before.phase == system.Phase.paused
+      if before.phase == system.Phase.scheduled || before.phase == system.Phase.paused // scalafix:ok DisableSyntax.==
     do
       val after = take(before, client.requestCancel)
       assertEquals(after.state, before.copy(phase = system.Phase.canceled))
       assertEquals(after.facts, List(system.Fact.statusCanceled))
       assertEquals(after.outcome, Outcome.accepted)
-      val binding = product.ActivityProduct.bindings.find(_.decl == client.requestCancel.decl).get
+      val binding = product.ActivityProduct.bindings
+        .find(_.decl == client.requestCancel.decl)
+        .get // scalafix:ok DisableSyntax.==
       val carriers = effectOf[product.State, Outcome, product.Fact](binding.decl, binding.function)(
         ActivitySystem.refinement.toProduct(before),
         Nil
@@ -182,8 +190,8 @@ class ActivityByIDRegression extends munit.FunSuite:
       assert(!holds(after.copy(state = after.state.copy(phase = system.Phase.scheduled))))
     assertEquals(
       witnesses.head._1.scenario.actions.count {
-        case a: Action[EmptyTuple] => a.decl.actor == temporal.actors.worker.worker
-        case c: Class              => c.decl.actor == temporal.actors.worker.worker
+        case a: Action[EmptyTuple] => a.decl.actor eq temporal.actors.worker.worker
+        case c: Class              => c.decl.actor eq temporal.actors.worker.worker
         case _: Composed           => false
       },
       0

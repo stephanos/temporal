@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 import temporal.capabilities.{Pausable, Pollable}
 
@@ -72,3 +73,9 @@ class PausableSuite extends munit.FunSuite:
       assert(!holds(property, Phase.paused, Phase.started))
       assert(!holds(property, Phase.paused, Phase.pausedWhileHeld))
       assert(holds(property, Phase.pausedWhileHeld, Phase.started))
+      for before <- Finite[Phase].values; after <- Finite[Phase].values do
+        assertEquals(
+          holds(property, before, after),
+          before != Phase.paused || (after != Phase.started && after != Phase.pausedWhileHeld), // scalafix:ok DisableSyntax.!=
+          s"$before -> $after"
+        )

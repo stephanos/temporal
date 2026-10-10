@@ -1,0 +1,240 @@
+package framework
+
+object DiscoveryFixtures:
+  enum State derives Finite:
+    case open, closed
+  enum Outcome derives Finite:
+    case done
+  enum RolePhase derives Finite:
+    case pending extends RolePhase, Waiting
+    case settled extends RolePhase, Closed
+  import State.*
+  val actor = Actor("tester")
+  val advance = action("advance", actor)
+  val retreat = action("retreat", actor)
+  val stayed = choice
+  val advanced = choice
+
+  object Original extends Machine[State, Outcome, Nothing]:
+    def init = open
+    def end(s: DiscoveryFixtures.State) = s.equals(closed)
+    object rules
+        extends Bindings(
+          advance ~> ((_: DiscoveryFixtures.State) => List(Step(Outcome.done, closed)))
+        )
+
+  object Added
+      extends Derived(
+        Original.rebind(
+          advance ~> ((s: State) =>
+            choose(
+              stayed -> List(Step(Outcome.done, s)),
+              advanced -> List(Step(Outcome.done, closed))
+            )
+          )
+        )
+      )
+
+  final case class Joined(value: State)
+  object JoinedSource extends Composition[Joined](_.value -> Added)
+  object JoinedReplacement extends Composition(JoinedSource.withMember(_.value -> Original))
+
+  object Mapped extends Derived(Added.refining(Original)(identity))
+  object capabilityOwner extends Machine[State, Outcome, Nothing]:
+    def init = State.open
+    def end(s: DiscoveryFixtures.State) = s.equals(State.closed)
+    object rules
+        extends Bindings(advance ~> ((s: DiscoveryFixtures.State) => List(Step(Outcome.done, s))))
+    object capabilities extends Capabilities
+  object queryOwner extends Derived(Original.restrict(advance))
+  object propertyOwner extends Derived(Original.restrict(advance))
+  object RoleSource
+      extends Machine[RolePhase, Outcome, Nothing],
+        Phased[RolePhase, RolePhase](identity):
+    def init = RolePhase.pending
+    object rules extends Bindings(advance ~> ((s: RolePhase) => List(Step(Outcome.done, s))))
+  lazy val bounded = query("bounded")
+    .verify(propertyOwner.property("holds").holds(_ => true))
+    .in(queryOwner.scenario("free").free)
+    .limits(Limits(steps = 1, actions = 1, search = 4))
+  object queries:
+    val one: Query = bounded
+    val many: Seq[Query] = Seq(bounded)
+  lazy val progress = Original.leadsTo("reaches")(_ => true, _ => true, 1)
+  lazy val realization = realize.Realization(
+    machine = Added,
+    producer = "fixture",
+    producerVersion = "1",
+    roles = Vector.empty,
+    correlation = realize.Correlation("", "", "", "", 0, 0, 0, 0, 0, 0),
+    scripts = Vector.empty
+  )
+
+  object exports:
+    val first = irFile("discovery-first")(Original)
+  object newOwner:
+    val second = irFile("discovery-added")(Added)
+
+class IrFileDiscoveryTest extends munit.FunSuite:
+  import DiscoveryFixtures.*
+
+  test("compiled new owners and derived sources enter the closure without a registry edit") {
+    val files = IrFile.discover("framework")
+    assertEquals(files.map(_.name), Vector("discovery-added", "discovery-first"))
+    val subjects = files.find(_.name.equals("discovery-added")).get.subjects()
+    assertEquals(
+      subjects.map(IrFile.identity),
+      Vector(IrFile.identity(Added), IrFile.identity(Original))
+    )
+    for subject <- subjects do
+      subject match
+        case machine: Machine[?, ?, ?] =>
+          val results = MachineLaws.check(machine, Some(Vector("tester.advance")))
+          assertEquals(results.size, 4)
+          assert(!results.exists(_.disposition.equals("failed")), results.toString)
+        case other => fail(other.toString)
+  }
+
+  test("a name collision and a duplicate declaration identity are refused") {
+    def instance = new Machine[State, Outcome, Nothing]:
+      override def name = "duplicate"
+      def init = State.open
+      def end(s: State) = s.equals(State.closed)
+      object rules extends Bindings(advance ~> ((s: State) => List(Step(Outcome.done, s))))
+    val a = instance
+    val b = instance
+    val duplicate =
+      intercept[IllegalArgumentException](irFile("duplicate-fixture")(a, b).subjects())
+    assert(duplicate.getMessage.contains("repeats declaration identity"))
+    object Collision extends Derived(Original.restrict(advance)):
+      override def name = Original.name
+    val collision = intercept[IllegalArgumentException](
+      irFile("collision-fixture")(Original, Collision).subjects()
+    )
+    assert(collision.getMessage.contains("colliding model names"))
+  }
+
+  test("ordered alternatives pass and independent binding order rejects a permutation") {
+    val results = MachineLaws.check(Added, Some(Vector("tester.advance")))
+    assertEquals(
+      results.find(_.law.equals("repeatable ordered relation")).get.disposition,
+      "passed"
+    )
+    object Permuted extends Machine[State, Outcome, Nothing]:
+      def init = State.open
+      def end(s: State) = s.equals(State.closed)
+      object rules
+          extends Bindings(
+            retreat ~> ((s: State) => List(Step(Outcome.done, s))),
+            advance ~> ((s: State) => List(Step(Outcome.done, s)))
+          )
+    val changed = MachineLaws.check(Permuted, Some(Vector("tester.advance", "tester.retreat")))
+    assertEquals(changed.find(_.law.equals("binding order")).get.disposition, "failed")
+    object DuplicateBinding extends Machine[State, Outcome, Nothing]:
+      def init = State.open
+      def end(s: State) = s.equals(State.closed)
+      object rules
+          extends Bindings(
+            advance ~> ((s: State) => List(Step(Outcome.done, s))),
+            advance ~> ((s: State) => List(Step(Outcome.done, s)))
+          )
+    val duplicate = MachineLaws
+      .check(DuplicateBinding, Some(Vector("tester.advance", "tester.advance")))
+      .find(_.law.equals("binding order"))
+      .get
+    assertEquals(duplicate.disposition, "failed")
+    assert(duplicate.reason.contains("bound more than once"))
+  }
+
+  test(
+    "compositions, maps, query sections, progress, capabilities and realizations retain their owners"
+  ) {
+    val file = irFile("complete-root-fixture")(
+      JoinedReplacement,
+      Mapped,
+      queries,
+      progress,
+      capabilityOwner.capabilities,
+      realization
+    )
+    val expected = Vector(
+      JoinedReplacement,
+      JoinedSource,
+      Added,
+      Original,
+      Mapped,
+      queryOwner,
+      propertyOwner,
+      capabilityOwner
+    )
+    assertEquals(file.subjects().map(IrFile.identity).toSet, expected.map(IrFile.identity).toSet)
+    assertEquals(file.subjects().distinct.size, expected.size)
+    assertEquals(
+      MachineLaws.check(Mapped, Some(Vector("tester.advance"))).head.disposition,
+      "passed"
+    )
+    object ReboundMap
+        extends Derived(Mapped.rebind(advance ~> ((s: State) => List(Step(Outcome.done, s)))))
+    assertEquals(
+      MachineLaws.check(ReboundMap, Some(Vector("tester.advance"))).head.disposition,
+      "passed"
+    )
+    object RestrictedMap extends Derived(Mapped.restrict(advance))
+    assertEquals(
+      MachineLaws.check(RestrictedMap, Some(Vector("tester.advance"))).head.disposition,
+      "inapplicable"
+    )
+  }
+
+  test("refinement images outside the target domain and nonrepeatable relations fail") {
+    object Narrow
+        extends Machine[State, Outcome, Nothing](using
+          Finite.of(State.open),
+          Finite[Outcome],
+          Finite[Nothing]
+        ):
+      def init = State.open
+      def end(s: State) = s.equals(State.closed)
+      object rules extends Bindings(advance ~> ((s: State) => List(Step(Outcome.done, s))))
+    object BadImage extends Derived(Original.refining(Narrow)(identity))
+    val image = MachineLaws.check(BadImage, Some(Vector("tester.advance"))).head
+    assertEquals(image.disposition, "failed")
+    assert(image.reason.contains("maps outside"))
+
+    val counter = java.util.concurrent.atomic.AtomicInteger()
+    object Unrepeatable
+        extends Derived(
+          Original.rebind(
+            advance ~> ((s: State) =>
+              List(
+                Step(Outcome.done, if counter.getAndIncrement().equals(0) then s else State.closed)
+              )
+            )
+          )
+        )
+    val relation = MachineLaws
+      .check(Unrepeatable, Some(Vector("tester.advance")))
+      .find(_.law.equals("repeatable ordered relation"))
+      .get
+    assertEquals(relation.disposition, "failed")
+    assert(relation.reason.contains("ordered alternatives"))
+  }
+
+  test("closedness mismatches and partial refinement maps are reported as failures") {
+    object BadClosedness extends Derived(RoleSource.refining(RoleSource)(_ => RolePhase.pending))
+    val closedness = MachineLaws
+      .check(BadClosedness, Some(Vector("tester.advance")))
+      .find(_.law.equals("closedness"))
+      .get
+    assertEquals(closedness.disposition, "failed")
+    assert(closedness.reason.contains("different Closed role"))
+    object Partial
+        extends Derived(
+          Original.refining(Original)(s =>
+            if s.equals(State.closed) then throw IllegalArgumentException("unmapped closed") else s
+          )
+        )
+    val totality = MachineLaws.check(Partial, Some(Vector("tester.advance"))).head
+    assertEquals(totality.disposition, "failed")
+    assert(totality.reason.contains("unmapped closed"))
+  }

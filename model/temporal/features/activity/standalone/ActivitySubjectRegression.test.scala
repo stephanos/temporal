@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 import temporal.features.activity.{deadline, timers, Failure, Timeout, TimeoutType}
 import temporal.features.activity.standalone.*
@@ -26,6 +27,7 @@ import framework.outcomes.Outcome
 import framework.realize.{Reason, RunExpectation}
 
 class ActivitySubjectRegression extends munit.FunSuite:
+  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
   private type Subject = Derived[system.State, Outcome, system.Fact, system.Phase]
   private type ActivityStep = Step[system.State, Outcome, system.Fact]
   private type Predicate = (system.State, ActivityStep) => Boolean
@@ -102,9 +104,13 @@ class ActivitySubjectRegression extends munit.FunSuite:
     )
     assertEquals(RetryFailures.states.completedOnRetry, completedOnRetry)
     val completes: Predicate = (_, after) =>
-      after.state.phase == system.Phase.completed && after.records(system.Fact.statusCompleted)
+      after.state.phase == system.Phase.completed && after.records(
+        system.Fact.statusCompleted
+      ) // scalafix:ok DisableSyntax.==
     def timesOut(kind: TimeoutType): Predicate = (_, after) =>
-      after.state.phase == system.Phase.timedOut && after.records(system.Fact.statusTimedOut(kind))
+      after.state.phase == system.Phase.timedOut && after.records(
+        system.Fact.statusTimedOut(kind)
+      ) // scalafix:ok DisableSyntax.==
     val claims = List(
       Claim(Completion, Completion.properties.completes, Some(worker.respondCompleted), completes),
       Claim(Pausing, Pausing.properties.completes, Some(worker.respondCompleted), completes),
@@ -119,20 +125,25 @@ class ActivitySubjectRegression extends munit.FunSuite:
         RetryFailures.properties.nonRetryableFails,
         Some(worker.respondFailed(Failure.fatal)),
         (_, after) =>
-          after.state.phase == system.Phase.failed && after.records(system.Fact.statusFailed)
+          after.state.phase == system.Phase.failed && after.records(
+            system.Fact.statusFailed
+          ) // scalafix:ok DisableSyntax.==
       ),
       Claim(
         RetryFailures,
         RetryFailures.properties.retryCompletes,
         Some(worker.respondCompleted),
-        (_, after) => after.state == completedOnRetry && after.records(system.Fact.statusCompleted)
+        (_, after) =>
+          after.state == completedOnRetry && after.records(
+            system.Fact.statusCompleted
+          ) // scalafix:ok DisableSyntax.==
       ),
       Claim(
         RetryFailures,
         RetryFailures.properties.retryExhausts,
         Some(worker.respondFailed(Failure.retryable)),
         (_, after) =>
-          (after.state == completedOnRetry.copy(
+          (after.state == completedOnRetry.copy( // scalafix:ok DisableSyntax.==
             phase = system.Phase.scheduled,
             dispatch = system.Dispatch.backoff,
             attempts = UpTo(1),
@@ -140,7 +151,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
           ) && after.records(system.Fact.statusScheduled) && after.records(
             system.Fact.attemptCount
           )) ||
-            (after.state == completedOnRetry.copy(
+            (after.state == completedOnRetry.copy( // scalafix:ok DisableSyntax.==
               phase = system.Phase.failed,
               maxAttempts = MaxAttempts.two
             ) && after.records(system.Fact.statusFailed))
@@ -150,7 +161,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
         Cancellation.properties.cancelRequestedWhileStarted,
         Some(client.requestCancel),
         (_, after) =>
-          after.state.phase == system.Phase.cancelRequested &&
+          after.state.phase == system.Phase.cancelRequested && // scalafix:ok DisableSyntax.==
             after.records(system.Fact.statusCancelRequested)
       ),
       Claim(
@@ -158,15 +169,19 @@ class ActivitySubjectRegression extends munit.FunSuite:
         Cancellation.properties.canceledByWorker,
         Some(worker.respondCanceled),
         (_, after) =>
-          after.state.phase == system.Phase.canceled && after.records(system.Fact.statusCanceled)
+          after.state.phase == system.Phase.canceled && after.records(
+            system.Fact.statusCanceled
+          ) // scalafix:ok DisableSyntax.==
       ),
       Claim(
         DispatchEligibility,
         DispatchEligibility.properties.dispatchRequiresReady,
         None,
         (before, after) =>
-          !(before.phase == system.Phase.scheduled && after.records(system.Fact.statusStarted)) ||
-            before.dispatch == system.Dispatch.now
+          !(before.phase == system.Phase.scheduled && after.records(
+            system.Fact.statusStarted
+          )) || // scalafix:ok DisableSyntax.==
+            before.dispatch == system.Dispatch.now // scalafix:ok DisableSyntax.==
       ),
       Claim(
         DispatchEligibility,
@@ -174,7 +189,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
         None,
         (before, after) =>
           !after.records(system.Fact.statusTimedOut(TimeoutType.scheduleToStart)) ||
-            (before.phase == system.Phase.scheduled && before.dispatch == system.Dispatch.now)
+            (before.phase == system.Phase.scheduled && before.dispatch == system.Dispatch.now) // scalafix:ok DisableSyntax.==
       ),
       Claim(
         Timeouts,

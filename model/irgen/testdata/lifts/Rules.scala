@@ -7,8 +7,8 @@
 // lifter's tests lift the roots `rules` lists and compare the IR with expected/rules.json.
 package fixture.rules
 
-import framework.*
-
+import framework.*; import framework.Finite.given
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 enum Light derives Finite:
   case off, on, broken
 
@@ -43,11 +43,11 @@ object Switch extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light)
   override def end(s: State) = states.broken(s)
   val evidence: PartialFunction[Fact, String] = { case Fact.worn => "wear" }
 
-  object states:
+  object states: // format: off
     // A broken lamp, its state named through the machine, `State`, and as `Lamp` (below).
-    def broken(s: State) = s.light == Light.broken
-    def brokenLamp(s: Lamp) = s.light == Light.broken
-
+    def broken(s: State) = s.light == Light.broken // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def brokenLamp(s: Lamp) = s.light == Light.broken // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
     // The presses counted so far, one more, up to two.
     def worn(p: UpTo[2]): UpTo[2] = UpTo((p + 1).min(2))
 
@@ -55,9 +55,9 @@ object Switch extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light)
     def light(s: Lamp) = enter(s.copy(light = Light.on, presses = states.worn(s.presses)), Fact.lit)
     def dark(s: Lamp) = enter(s.copy(light = Light.off), Fact.darkened)
     def refuse(s: Lamp, k: Knob) = List(Step[Lamp, Outcome, Fact](Outcome.refused, s))
-    def turned(s: Lamp, k: Knob) =
-      enter[Lamp, Outcome, Fact](s.copy(light = if k == Knob.up then Light.on else Light.off))
-    def wear(s: Lamp) = enter(s.copy(light = Light.broken), Fact.worn)
+    def turned(s: Lamp, k: Knob) = // format: off
+      enter[Lamp, Outcome, Fact](s.copy(light = if k == Knob.up then Light.on else Light.off)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def wear(s: Lamp) = enter(s.copy(light = Light.broken), Fact.worn) // format: on
     def keep(s: Lamp) = stay[Lamp, Outcome, Fact](s)
 
   object monitors:
@@ -73,13 +73,13 @@ object Switch extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light)
     on(hand.turn) {
       when(Light.off) ~> effects.turned
       when(Light.broken) ~> effects.refuse
-    }
-    on(clock.tick)(where(s => s.presses == 2 && s.light.in(Light.off, Light.on)) ~> effects.wear)
-    disabled(clock.rest)
+    } // format: off
+    on(clock.tick)(where(s => s.presses == 2 && s.light.in(Light.off, Light.on)) ~> effects.wear) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    disabled(clock.rest) // format: on
 
-  object properties:
-    val pressLights = property when hand.press holds (after => after.state.light != Light.broken)
-
+  object properties: // format: off
+    val pressLights = property when hand.press holds (after => after.state.light != Light.broken) // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+    // format: on
   object queries:
     val pressedTwice = scenario.actions(hand.press, hand.press)
     val pressing = query verify properties.pressLights in pressedTwice limits two total 18
@@ -94,31 +94,31 @@ object Switch extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light)
 object Core:
   import Switch.effects.*
 
-  def pressStep(s: Lamp) =
-    if s.light == Light.off then light(s) else if s.light == Light.on then dark(s) else Nil
-
+  def pressStep(s: Lamp) = // format: off
+    if s.light == Light.off then light(s) else if s.light == Light.on then dark(s) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
   def turnStep(s: Lamp, k: Knob) = k match
-    case Knob.down =>
-      if s.light == Light.on then dark(s)
-      else if s.light == Light.off then turned(s, k)
-      else if s.light == Light.broken then refuse(s, k)
-      else Nil
-    case Knob.up =>
-      if s.light == Light.on then light(s)
-      else if s.light == Light.off then turned(s, k)
-      else if s.light == Light.broken then refuse(s, k)
-      else Nil
+    case Knob.down => // format: off
+      if s.light == Light.on then dark(s) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      else if s.light == Light.off then turned(s, k) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      else if s.light == Light.broken then refuse(s, k) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      else Nil // format: on
+    case Knob.up => // format: off
+      if s.light == Light.on then light(s) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      else if s.light == Light.off then turned(s, k) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      else if s.light == Light.broken then refuse(s, k) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      else Nil // format: on
 
-  def tickStep(s: Lamp) =
-    if s.presses == 2 && s.light.in(Light.off, Light.on) then wear(s) else Nil
-
+  def tickStep(s: Lamp) = // format: off
+    if s.presses == 2 && s.light.in(Light.off, Light.on) then wear(s) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
   def restStep(s: Lamp): List[Step[Lamp, Outcome, Fact]] = Nil
 
 // `Switch` in the core: its rules are the step functions `Core` writes out, bound by hand.
 object CoreSwitch extends Machine[Lamp, Outcome, Fact]:
-  val init = Lamp(Light.off, UpTo(0))
-  def end(s: State) = s.light == Light.broken
-  val evidence: PartialFunction[Fact, String] = { case Fact.worn => "wear" }
+  val init = Lamp(Light.off, UpTo(0)) // format: off
+  def end(s: State) = s.light == Light.broken // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  val evidence: PartialFunction[Fact, String] = { case Fact.worn => "wear" } // format: on
 
   object monitors:
     val neverWorn = Switch.monitors.neverWorn
@@ -153,9 +153,9 @@ object Loose extends Derived(Switch.rebind(on(hand.press)(always ~> Switch.effec
 
 // A lamp that also dims while it is off: rules a derivation adds.
 object Dimming
-    extends Derived(
-      Switch.extend(on(clock.dim)(where(_.light == Light.off) ~> Switch.effects.keep))
-    )
+    extends Derived( // format: off
+      Switch.extend(on(clock.dim)(where(_.light == Light.off) ~> Switch.effects.keep)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    ) // format: on
 
 object Plain extends Derived(Switch.unmonitored)
 
