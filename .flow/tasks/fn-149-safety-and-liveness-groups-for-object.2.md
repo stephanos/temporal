@@ -12,19 +12,19 @@ Enforce safety and liveness declaration placement. Advances R1, R2, R3 of the pa
 
 ### Approach
 - Enforce placement from resolved declaration kind: Property and safety monitor references in safety, Progress in liveness. Resolve aliases and factory/bundle outputs before checking; attribute the misplaced authored binding to its source.
-- Reuse section/order lint machinery (or its fn-141 successor), not a second semantic classifier. Accept omitted empty groups and allow helper definitions without treating them as claims.
+- Reuse the actual section/order lint machinery left by fn-156, not a hypothetical fn-141 successor or a second semantic classifier. Accept omitted empty groups and allow helper definitions without treating them as claims.
 - Retain existing progress bound/assumption admission and compiler type checks. Add source-attributed negative specimens for crossed kinds, aliases that conceal a crossed kind, bad bounds and incompatible owners.
 - Prepare the final flat-layout refusal, activated with task 4's migration so intermediate tasks retain a usable tree.
 
 ### Investigation targets
 **Required:**
 - `model/irgen/Structure.scala:545` - section ownership.
-- `model/irgen/Order.scala` - source-order rules.
+- `model/irgen/Order.scala:325` - current unified Claim kind and nested-section refusal at :668.
 - `model/irgen/Claims.scala:372` - progress bound admission.
 - `model/irgen/test/Fixtures.test.scala` - refusal assertions.
 
 ### Key context
-Re-anchor paths and interfaces against completed fn-140/fn-141 and the approved schema/package moves before editing. Keep this work outside the activity batch and serialize shared regeneration with it and the schema chain; no new spec-close dependency is implied.
+Conditional Batch 2 entry follows the committed fn-140.6 witness seal. Re-anchor to the actual fn-155 mapping, fn-156 enforcement and fn-140 vocabulary; future APIs remain unknown here. Fn-141 comes later. Root owns placement/source gates; .5's final grouping seal precedes fn-123.1, and closure waits fn-123.8. Shared heavy work uses the real `/tmp/umpire-heavy-gates.lock`.
 
 ### Quick commands
 ```bash
