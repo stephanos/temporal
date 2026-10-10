@@ -1,0 +1,45 @@
+---
+satisfies: [R8]
+---
+# fn-156-let-the-scala-compiler-and-lint-enforce.8 Report Draft capture confinement from an isolated baseline
+
+## Description
+Deliver R8's capture-checking finding independently from the source-changing lane. Start only from fn-155's committed closure, but wait for none of tasks .1-.6. Work in a private disposable checkout/compiler project and publish no shared tracked source or docs; integration task .7 publishes the report.
+
+**Size:** M
+**Files:** private scratch copies of `model/framework/Syntax.scala` and compiler directives; `.flow/tmp/fn156/capture/report.md` and linked diagnostic examples.
+**Touches:** [.flow/tmp/fn156/capture/**]
+
+### Approach
+
+- Record the immutable fn-155 baseline SHA and compiler version, and create a private disposable worktree/project with isolated compiler caches and outputs. Read copies of shared source; never switch, edit or compile against the concurrently changing integration checkout. Lock any genuine production-sized command via actual flock/fcntl ownership of `/tmp/umpire-heavy-gates.lock`; small isolated probes need not monopolize it.
+- Use project research tier gpt-6-astra high for report-only investigation. Re-fetch official pinned-release capture-checking docs. Time-box the entire spike to two elapsed days. Compiler incompatibility and experimental-feature restrictions are legitimate report outcomes, not a reason to change the toolchain silently.
+- Exercise valid effects and Draft escapes through return values, retained closures, object fields and nested effects. Record acceptance/rejection diagnostics and minimal examples for each, required API/type changes, soundness limitations and adoption cost. No merged capture source change or adoption.
+- Defer a validation stuck beyond one hour across attempts unless it blocks all other available work; preserve logs, unmet experiment coverage and revisit conditions. Deliver the report with available evidence within the overall two-day limit, explicitly identifying any unanswered confinement cases.
+- Hand `.flow/tmp/fn156/capture/report.md` plus source/toolchain hashes to .7. Source lane changes affect neither this scratch checkout nor the report; .7 documents that the finding is for the fn-155 pinned baseline and assesses any changed Draft/compiler input before publishing.
+
+### Investigation targets
+
+**Required:**
+- `model/framework/Syntax.scala:125` - Draft context at the committed baseline.
+- `model/framework/Syntax.scala:171` - effect scope.
+- `model/project.scala` and `model/irgen/project.scala` - baseline compiler versions/options.
+- `.plans/SCALA.md` - prior investigation context, read-only here.
+
+### Quick commands
+
+Run disposable actual-compiler capture compiles with private inputs, recorded start/end timestamps and complete diagnostics. Keep report and examples in the capture-only scratch subtree. Do not merge disposable source changes or touch the null-trial report section.
+
+## Acceptance
+- [ ] Report states whether the pinned compiler can prove Draft confinement, with valid-use and all specified escape evidence, limitations and adoption cost; unsupported or deferred cases are explicit.
+- [ ] Baseline SHA, compiler version, actual diagnostics and start/end timestamps demonstrate the two-day elapsed bound; report handoff is reproducible.
+- [ ] Disposable capture experiments make no shared tracked source/docs change, use isolated inputs/caches and retain any stuck-validation unanswered cases without passing credit.
+
+
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:
