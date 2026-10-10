@@ -268,10 +268,12 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
       "WITHHOLDING_MODE_SDK_PENDING"
     )
     val hints = realization.path("behavior").path("visibility").elements().asScala.toSeq
-    val heartbeat = hints.filter(_.path("cause").asText() == "CAUSE_KIND_ACTIVITY_HEARTBEAT") // scalafix:ok DisableSyntax.==; typed equality
+    val heartbeat = hints.filter(
+      _.path("cause").asText() == "CAUSE_KIND_ACTIVITY_HEARTBEAT"
+    ) // scalafix:ok DisableSyntax.==; typed equality
     assertEquals(heartbeat.size, 1)
-    assertEquals(heartbeat.head.path("eventuallyWithin").path("intervalMs").asText(), "250")
-    assertEquals(heartbeat.head.path("eventuallyWithin").path("atMostMs").asText(), "2000")
+    assertEquals(heartbeat.head.path("eventuallyWithin").path("interval").asText(), "0.250s")
+    assertEquals(heartbeat.head.path("eventuallyWithin").path("atMost").asText(), "2s")
 
 class Fixtures extends munit.FunSuite:
   // A test builds a fixture with scala-cli and lifts it in a JVM of its own.
@@ -655,7 +657,8 @@ class Fixtures extends munit.FunSuite:
 
   // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).
   private val hintRejects: Seq[String] =
-    Seq("builtWrite", "builtRead").map("fixture.hintrejects.HintRejects$package$." + _)
+    Seq("builtWrite", "builtRead", "elapsedOutOfRange")
+      .map("fixture.hintrejects.HintRejects$package$." + _)
 
   // fn-126 decision 20: what a machine is for, as its markers say (lifts/MarkerRejects.scala).
   private val markerRejects: Seq[String] =
@@ -782,7 +785,9 @@ class Fixtures extends munit.FunSuite:
   private def rejections(): String =
     val lift = ran("rejects")
     assert(
-      lift.exit != 0 && !Files.exists(lifted("rejects")), // scalafix:ok DisableSyntax.!=; typed equality
+      lift.exit != 0 && !Files.exists(
+        lifted("rejects")
+      ), // scalafix:ok DisableSyntax.!=; typed equality
       "the lifter wrote the rejected declarations' IR"
     )
     refused(lift).map(_ + "\n").mkString
@@ -810,11 +815,15 @@ class Fixtures extends munit.FunSuite:
     val path = expected.resolve(file)
     if update then
       everyLift
-      if !Files.exists(path) || Files.readString(path) != lifted then // scalafix:ok DisableSyntax.!=; typed equality
-        Files.writeString(path, lifted): Unit
+      // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
+      if !Files.exists(path) || Files.readString(path) != lifted
+      // scalafix:on DisableSyntax.!=
+      then Files.writeString(path, lifted): Unit
     else
       assert(
-        Files.isRegularFile(path) && Files.readString(path) == lifted, // scalafix:ok DisableSyntax.==; typed equality
+        Files.isRegularFile(path) && Files.readString(
+          path
+        ) == lifted, // scalafix:ok DisableSyntax.==; typed equality
         s"${root.relativize(path)} is stale; make umpire-gen-model rewrites it. Lifted: $scratch"
       )
 
@@ -1182,7 +1191,9 @@ class Fixtures extends munit.FunSuite:
     if update then Files.writeString(shared, written): Unit
     else
       assert(
-        Files.isRegularFile(shared) && Files.readString(shared) == written, // scalafix:ok DisableSyntax.==; typed equality
+        Files.isRegularFile(shared) && Files.readString(
+          shared
+        ) == written, // scalafix:ok DisableSyntax.==; typed equality
         s"${root.relativize(shared)} is stale; UMPIRE_LIFTER_UPDATE=1 rewrites it"
       )
 
@@ -1503,7 +1514,9 @@ class Fixtures extends munit.FunSuite:
         .path("functions")
         .elements()
         .asScala
-        .find(_.path("name").asText() == s"fixture.rules.Switch$$.states$$.$name") // scalafix:ok DisableSyntax.==; typed equality
+        .find(
+          _.path("name").asText() == s"fixture.rules.Switch$$.states$$.$name"
+        ) // scalafix:ok DisableSyntax.==; typed equality
         .getOrElse(fail(s"no function $name"))
         .deepCopy[ObjectNode]()
       f.remove(java.util.List.of("name", "position"))
@@ -1598,7 +1611,12 @@ class Fixtures extends munit.FunSuite:
       declarations("derived", pairs.flatMap((a, b) => Seq(a, b)).map(objectRoot("derived")))
     for (derived, spelled) <- pairs do assertEquals(machine(derived), machine(spelled), derived)
     def named(name: String) =
-      model.path("machines").elements().asScala.find(_.path("name").asText() == name).get // scalafix:ok DisableSyntax.==; typed equality
+      model
+        .path("machines")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .get // scalafix:ok DisableSyntax.==; typed equality
     def actions(name: String) = named(name)
       .path("steps")
       .elements()
@@ -1662,7 +1680,9 @@ class Fixtures extends munit.FunSuite:
           .path("functions")
           .elements()
           .asScala
-          .find(_.path("name").asText() == m.path(field).asText()) // scalafix:ok DisableSyntax.==; typed equality
+          .find(
+            _.path("name").asText() == m.path(field).asText()
+          ) // scalafix:ok DisableSyntax.==; typed equality
           .get
           .deepCopy[ObjectNode]()
         f.remove(java.util.List.of("name", "position"))
@@ -1689,10 +1709,14 @@ class Fixtures extends munit.FunSuite:
       .asScala
       .find(_.path("name").asText().endsWith(".resumeSugar"))
       .get
+    // R4 refuses a whole-case wildcard on a Model enum, and the earlier guarded arm leaves no typed
+    // remainder, so the fallback arm names every case as written.
+    val cases = Seq("idle", "running", "paused", "done")
+      .map(c => s"""{"literal":{"enum":{"type":"fixture.sugar.Phase","case":"$c"}}}""")
     assertEquals(
       resume.at("/body/match/cases/1/pattern").toString,
-      """{"wildcard":{}}""",
-      "a wildcard arm lifts as a wildcard"
+      s"""{"alternatives":{"patterns":[${cases.mkString(",")}]}}""",
+      "a fallback arm that names every case lifts as their alternatives"
     )
 
   // fn-135.2: each `is { }` val of `Blocked` beside the def of `Defined` it stands for, read by a
@@ -1742,7 +1766,10 @@ class Fixtures extends munit.FunSuite:
         .map(e => s"fixture.blocks.Defined$$.effects$$.$e/"),
       "each effect block is a function of its own"
     )
-    assert(blocked("properties").size == 2, blocked("properties").keys) // scalafix:ok DisableSyntax.==; typed equality
+    assert(
+      blocked("properties").size == 2,
+      blocked("properties").keys
+    ) // scalafix:ok DisableSyntax.==; typed equality
 
   // fn-135.5: each `effect { }` val of `Derived`, which records the status of the phase it assigns,
   // beside the def of `Written` that records it by hand (lifts/StatusFacts.scala). Every machine and
@@ -1786,7 +1813,9 @@ class Fixtures extends munit.FunSuite:
       .path("types")
       .elements()
       .asScala
-      .find(_.path("name").asText() == "fixture.statusfacts.Phase") // scalafix:ok DisableSyntax.==; typed equality
+      .find(
+        _.path("name").asText() == "fixture.statusfacts.Phase"
+      ) // scalafix:ok DisableSyntax.==; typed equality
       .get
     assertEquals(
       phase.path("enum").toString,
@@ -1850,7 +1879,13 @@ class Fixtures extends munit.FunSuite:
       "each role test is lifted"
     )
     def cases(name: String) =
-      model.path("types").elements().asScala.find(_.path("name").asText() == name).get.path("enum") // scalafix:ok DisableSyntax.==; typed equality
+      model
+        .path("types")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .get
+        .path("enum") // scalafix:ok DisableSyntax.==; typed equality
     assertEquals(cases("fixture.roles.Phase"), cases("fixture.roles.Bare"))
 
   // fn-139.1: each step function of `DoorSystem`, whose rules reject with `rejects`, beside
@@ -1869,7 +1904,10 @@ class Fixtures extends munit.FunSuite:
     // parameter reads as the argument the call passes.
     def spelled(n: JsonNode, vars: Map[String, JsonNode] = Map.empty): JsonNode =
       val callee = n.path("call").path("function").asText()
-      if Seq("locked", "missing").exists(e => callee == effects + e) then // scalafix:ok DisableSyntax.==; typed equality
+      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+      if Seq("locked", "missing").exists(e => callee == effects + e)
+      // scalafix:on DisableSyntax.==
+      then
         val f = functions(callee)
         val param = f.path("params").get(0).path("name").asText()
         spelled(f.path("body"), Map(param -> spelled(n.path("call").path("args").get(0), vars)))
@@ -2058,7 +2096,12 @@ class Fixtures extends munit.FunSuite:
     val (counted, _, _) = declarations("totals", Seq("lampCounted"))
     val (plainCounted, _, _) = declarations("totals", Seq("plainLampCounted"))
     def countedTotal(m: com.fasterxml.jackson.databind.JsonNode, name: String) =
-      m.path("queries").elements().asScala.find(_.path("name").asText() == name).get.path("total") // scalafix:ok DisableSyntax.==; typed equality
+      m.path("queries")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .get
+        .path("total") // scalafix:ok DisableSyntax.==; typed equality
     assertEquals(countedTotal(counted, "lamp.anyLit").asText(), "12")
     assertEquals(countedTotal(plainCounted, "plainLamp.anyLit").asText(), "4")
 
@@ -2106,11 +2149,16 @@ class Fixtures extends munit.FunSuite:
       .path("functions")
       .elements()
       .asScala
-      .find(_.path("name").asText() == prefix + name) // scalafix:ok DisableSyntax.==; typed equality
+      .find(
+        _.path("name").asText() == prefix + name
+      ) // scalafix:ok DisableSyntax.==; typed equality
       .getOrElse(fail(s"the choices fixture lifted no function $name"))
     def all(n: JsonNode, keep: JsonNode => Boolean): List[JsonNode] =
       (if keep(n) then List(n) else Nil) ++ n.elements().asScala.toList.flatMap(all(_, keep))
-    def steps(f: JsonNode) = all(f, _.at("/construct/type").asText() == "framework.Step") // scalafix:ok DisableSyntax.==; typed equality
+    def steps(f: JsonNode) = all(
+      f,
+      _.at("/construct/type").asText() == "framework.Step"
+    ) // scalafix:ok DisableSyntax.==; typed equality
     def choices(f: JsonNode) = steps(f).map(_.at("/construct/choice").asText())
     def calls(f: JsonNode) = all(f, _.has("call")).map(_.at("/call/function").asText())
     val written = Seq(
@@ -2184,7 +2232,8 @@ class Fixtures extends munit.FunSuite:
         unqueried.map(designObject) ++ Seq("switchQueries", "flickedBothOnce")
     val (model, _, _) = declarations("members", roots)
     def all(kind: String) = model.path(kind).elements().asScala.toList
-    def named(name: String)(n: JsonNode) = n.path("name").asText() == name // scalafix:ok DisableSyntax.==; typed equality
+    def named(name: String)(n: JsonNode) =
+      n.path("name").asText() == name // scalafix:ok DisableSyntax.==; typed equality
     def texts(n: JsonNode, field: String) =
       n.elements().asScala.map(_.path(field).asText()).toList
     // Each derived design replaces the interface its own queue refines, not its base's.
@@ -2203,7 +2252,9 @@ class Fixtures extends munit.FunSuite:
       assertEquals(texts(c.path("syncs"), "name"), List("dispatch", "admit", "settle"), d)
       assertEquals(c.path("members").get(1).path("replaces").asText(), target, d)
     def scenarioKeys(machine: String, name: String) = all("scenarios")
-      .find(s => s.path("machine").asText() == machine && named(name)(s)) // scalafix:ok DisableSyntax.==; typed equality
+      .find(s =>
+        s.path("machine").asText() == machine && named(name)(s)
+      ) // scalafix:ok DisableSyntax.==; typed equality
       .getOrElse(fail(s"no Scenario $name of $machine"))
       .path("keys")
       .elements()
@@ -2303,7 +2354,9 @@ class Fixtures extends munit.FunSuite:
     val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("taskqueue"))
     def all(kind: String) = model.path(kind).elements().asScala.toList
     def named(kind: String, name: String) =
-      all(kind).find(_.path("name").asText() == name).getOrElse(fail(s"no $kind $name")) // scalafix:ok DisableSyntax.==; typed equality
+      all(kind)
+        .find(_.path("name").asText() == name)
+        .getOrElse(fail(s"no $kind $name")) // scalafix:ok DisableSyntax.==; typed equality
     def names(n: JsonNode, field: String) = n.elements().asScala.map(_.path(field).asText()).toList
     // The queue's declarations are named where they are declared, temporal/foundations/taskqueue.
     val queue = "temporal.foundations.taskqueue."
@@ -2326,7 +2379,9 @@ class Fixtures extends munit.FunSuite:
       )
       .toSet
     assert(fromActivity.isEmpty, fromActivity.mkString(", "))
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     assert(!all("machines").exists(_.path("entity").asText() == "activity"))
+    // scalafix:on DisableSyntax.==
 
   // fn-112.4: claim patterns and shared claims (lifts/Patterns.scala).
   // Each claim pattern beside its lambda spelling, on the machine and on the composition, and each
@@ -2362,7 +2417,9 @@ class Fixtures extends munit.FunSuite:
         val param = f.path("params").get(0).path("name").asText()
         val arg = inlined(o.path("call").path("args").get(0), holds)
         rewrite(f.path("body").deepCopy[JsonNode]()) {
+          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
           case v: ObjectNode if v.path("var").asText() == param => arg.deepCopy[JsonNode]()
+          // scalafix:on DisableSyntax.==
         }
     }
     def strip(n: JsonNode): Unit =
@@ -2375,7 +2432,9 @@ class Fixtures extends munit.FunSuite:
         .path("properties")
         .elements()
         .asScala
+        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         .find(p => p.path("machine").asText() == machine && p.path("name").asText() == name)
+        // scalafix:on DisableSyntax.==
         .getOrElse(fail(s"the patterns fixture lifted no Property $name of $machine"))
     def property(machine: String, name: String): String =
       val p = found(machine, name).deepCopy[ObjectNode]()
@@ -2614,7 +2673,9 @@ class Fixtures extends munit.FunSuite:
     val properties = model.path("properties").elements().asScala.toSeq
     val functions =
       model.path("functions").elements().asScala.toSeq.map(f => f.path("name").asText() -> f).toMap
-    def property(name: String) = properties.find(_.path("name").asText() == name).get // scalafix:ok DisableSyntax.==; typed equality
+    def property(name: String) = properties
+      .find(_.path("name").asText() == name)
+      .get // scalafix:ok DisableSyntax.==; typed equality
     def reads(name: String) =
       functions(property(name).path("holds").asText()).findValuesAsText("function").asScala.toSet
     val overridden = property("selectedFailures.fatal.failureEndsFailed")
@@ -2756,12 +2817,17 @@ class Fixtures extends munit.FunSuite:
         val defaults = terminalBody
           .findParents("literal")
           .asScala
-          .filter(e => e.path("literal").has("bool") && e.path("position") == declaration) // scalafix:ok DisableSyntax.==; typed equality
+          .filter(e =>
+            e.path("literal").has("bool") && e.path("position") == declaration
+          ) // scalafix:ok DisableSyntax.==; typed equality
         assertEquals(defaults.size, 1)
         assertEquals(defaults.head.path("literal").path("bool").asBoolean(), false)
       val terminal = terminalBody.findValuesAsText("case").asScala
       assert(terminal.contains(kind), terminal.toString)
-      assert(!terminal.contains(if kind == "start" then "schedule" else "start"), terminal.toString) // scalafix:ok DisableSyntax.==; typed equality
+      assert(
+        !terminal.contains(if kind == "start" then "schedule" else "start"),
+        terminal.toString
+      ) // scalafix:ok DisableSyntax.==; typed equality
       val selector = properties
         .find(
           _.path("name").asText() == // scalafix:ok DisableSyntax.==; typed equality
@@ -2773,12 +2839,15 @@ class Fixtures extends munit.FunSuite:
         selector
           .path("action")
           .asText()
-          .endsWith(if instance == "schedule" then "scheduleExpired" else "startExpired") // scalafix:ok DisableSyntax.==; typed equality
+          .endsWith(if instance == "schedule" then "scheduleExpired"
+          else "startExpired") // scalafix:ok DisableSyntax.==; typed equality
       )
       if instance == "schedule" then // scalafix:ok DisableSyntax.==; typed equality
         assert(selector.path("inputs").path(0).path("bool").asBoolean())
     for property <- Seq("deadlineReturnsToWaiting", "deadlinePauses") do
-      val p = properties.find(_.path("name").asText() == s"deadlineTimers.start.$property").get // scalafix:ok DisableSyntax.==; typed equality
+      val p = properties
+        .find(_.path("name").asText() == s"deadlineTimers.start.$property")
+        .get // scalafix:ok DisableSyntax.==; typed equality
       val facts = functions(p.path("holds").asText()).findValuesAsText("case").asScala
       assert(facts.contains("schedule") && facts.contains("start"), facts.toString)
     val scenarios = model.path("scenarios").elements().asScala.toSeq
@@ -2849,7 +2918,9 @@ class Fixtures extends munit.FunSuite:
       Files.readAllLines(testdata.resolve("lifts/DeadlineCapabilityRejects.scala")).asScala
     for (root, field) <- cases do
       val out = lifted(s"deadline-refused-$root")
-      val section = if root == "AmbiguousClaim" then "queries" else "capabilities" // scalafix:ok DisableSyntax.==; typed equality
+      val section =
+        if root == "AmbiguousClaim" then "queries"
+        else "capabilities" // scalafix:ok DisableSyntax.==; typed equality
       val result = lift(
         liftsJars,
         modelClasspath.toString,
@@ -2908,7 +2979,10 @@ class Fixtures extends munit.FunSuite:
     val now = Files.readString(lifted("shifted"))
     def lines(ir: String) = ir.replaceAll("\"line\": [0-9]+", "\"line\": _")
     assertNotEquals(now, was, "moving the declarations did not move their lines")
-    assert(lines(now) == lines(was), "moving the declarations down changed more than their lines") // scalafix:ok DisableSyntax.==; typed equality
+    assert(
+      lines(now) == lines(was),
+      "moving the declarations down changed more than their lines"
+    ) // scalafix:ok DisableSyntax.==; typed equality
 
   concurrently("a jar's prefix may be an argument of its own"):
     val out = lifted("presence-prefix-argument")
@@ -2948,7 +3022,9 @@ class Fixtures extends munit.FunSuite:
       .path("actions")
       .elements()
       .asScala
-      .filter(_.path("id").asText() == "fixture.binding.worker.take") // scalafix:ok DisableSyntax.==; typed equality
+      .filter(
+        _.path("id").asText() == "fixture.binding.worker.take"
+      ) // scalafix:ok DisableSyntax.==; typed equality
       .toList
     assertEquals(shared.size, 1)
     assertEquals(shared.head.path("on").asText(), "job")
@@ -2961,7 +3037,9 @@ class Fixtures extends munit.FunSuite:
       .path("actions")
       .elements()
       .asScala
-      .find(_.path("id").asText() == "fixture.binding.worker.respond") // scalafix:ok DisableSyntax.==; typed equality
+      .find(
+        _.path("id").asText() == "fixture.binding.worker.respond"
+      ) // scalafix:ok DisableSyntax.==; typed equality
       .get
     assertEquals(respond.path("on").asText(), "job")
     assertEquals(respond.path("examples").size(), 2)
@@ -2969,7 +3047,9 @@ class Fixtures extends munit.FunSuite:
       .path("actions")
       .elements()
       .asScala
-      .find(_.path("id").asText() == "fixture.binding.caller.create") // scalafix:ok DisableSyntax.==; typed equality
+      .find(
+        _.path("id").asText() == "fixture.binding.caller.create"
+      ) // scalafix:ok DisableSyntax.==; typed equality
       .get
     assertEquals(create.path("creates").asText(), "job")
     for machine <- json.path("machines").elements().asScala do
@@ -2979,7 +3059,9 @@ class Fixtures extends munit.FunSuite:
           .path("steps")
           .elements()
           .asScala
-          .exists(_.path("action").asText() == "fixture.binding.worker.take") // scalafix:ok DisableSyntax.==; typed equality
+          .exists(
+            _.path("action").asText() == "fixture.binding.worker.take"
+          ) // scalafix:ok DisableSyntax.==; typed equality
       )
     val refusedOut = lifted("wrong-binding")
     val rejected = lift(
@@ -3124,19 +3206,33 @@ class Fixtures extends munit.FunSuite:
         Set("fixture.features.relay.user.start", "fixture.features.relay.user.complete")
       )
       assertEquals(
-        actions.find(_.get("name").asText() == "start").get.get("creates").asText(), // scalafix:ok DisableSyntax.==; typed equality
+        actions
+          .find(_.get("name").asText() == "start")
+          .get
+          .get("creates")
+          .asText(), // scalafix:ok DisableSyntax.==; typed equality
         "task"
       )
       assertEquals(
-        actions.find(_.get("name").asText() == "complete").get.get("on").asText(), // scalafix:ok DisableSyntax.==; typed equality
+        actions
+          .find(_.get("name").asText() == "complete")
+          .get
+          .get("on")
+          .asText(), // scalafix:ok DisableSyntax.==; typed equality
         "task"
       )
-      assert(actions.forall(_.get("actor").asText() == "user")) // scalafix:ok DisableSyntax.==; typed equality
+      assert(
+        actions.forall(_.get("actor").asText() == "user")
+      ) // scalafix:ok DisableSyntax.==; typed equality
       assert(actions.forall(_.get("position").get("file").asText().endsWith("relay/Relay.scala")))
-      assert(machines.forall(_.get("entity").asText() == "task")) // scalafix:ok DisableSyntax.==; typed equality
+      assert(
+        machines.forall(_.get("entity").asText() == "task")
+      ) // scalafix:ok DisableSyntax.==; typed equality
       assertEquals(
         machines
-          .find(_.get("name").asText() == "relaySystem") // scalafix:ok DisableSyntax.==; typed equality
+          .find(
+            _.get("name").asText() == "relaySystem"
+          ) // scalafix:ok DisableSyntax.==; typed equality
           .get
           .get("refines")
           .get("product")
@@ -3199,6 +3295,12 @@ class Fixtures extends munit.FunSuite:
       Some(
         Files
           .readString(testdata.resolve("layout/kinds/nexus/standalone/Standalone.scala"))
+          // Strict equality: the refinement compares phases with the evidence Finite supplies.
+          .replace(
+            "import framework.*\n",
+            "import framework.*\nimport framework.Finite.given\n" +
+              "val _ = () => summon[CanEqual[Phase, Phase]]\n"
+          )
           .replace(
             "  object effects:",
             "  object refinement extends Refinement(fixture.features.relay.product.RelayProduct):\n" +

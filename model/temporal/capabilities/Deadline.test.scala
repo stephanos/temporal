@@ -148,8 +148,10 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
         facts <- Nil +: Finite[Fact].values.map(List(_))
       do
         val expected =
+          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
           if !retryable || before.cancel || before.attempts == 1 then
-            Phase.timedOut // scalafix:ok DisableSyntax.==
+            // scalafix:on DisableSyntax.==
+            Phase.timedOut
           else if before.pause then Phase.paused
           else Phase.waiting
         val validFacts =

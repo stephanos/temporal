@@ -93,7 +93,9 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
         .path("functions")
         .elements()
         .asScala
-        .find(_.path("name") == property.path("holds")) // scalafix:ok DisableSyntax.==; typed equality
+        .find(
+          _.path("name") == property.path("holds")
+        ) // scalafix:ok DisableSyntax.==; typed equality
         .get
       val fromName = holds
         .path("body")
@@ -161,13 +163,17 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
         .path("properties")
         .elements()
         .asScala
-        .find(_.path("name").asText() == "same.terminalStatesAreFinal") // scalafix:ok DisableSyntax.==; typed equality
+        .find(
+          _.path("name").asText() == "same.terminalStatesAreFinal"
+        ) // scalafix:ok DisableSyntax.==; typed equality
         .get
       val holds = model
         .path("functions")
         .elements()
         .asScala
-        .find(_.path("name").asText() == property.path("holds").asText()) // scalafix:ok DisableSyntax.==; typed equality
+        .find(
+          _.path("name").asText() == property.path("holds").asText()
+        ) // scalafix:ok DisableSyntax.==; typed equality
         .get
       assertEquals(
         enumTypes(holds.path("body")),

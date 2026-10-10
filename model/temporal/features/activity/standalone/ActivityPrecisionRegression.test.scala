@@ -121,7 +121,7 @@ class ActivityPrecisionRegression extends munit.FunSuite:
     )
     for (realization, controller) <- realizations.zip(controllers) do
       val observed = if original.contains(realization) then
-        realization.observations.filter(_.id == attemptCount.name) // scalafix:ok DisableSyntax.==
+        realization.observations.filter(_.id == attemptCount.name)
       else
         realization.observations.filter(
           _.message == ActivityExecutionInfo.scalaDescriptor.fullName

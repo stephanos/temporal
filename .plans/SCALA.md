@@ -326,8 +326,8 @@ Open questions:
 The compiler migration does **not** retain `-Yexplicit-nulls`. The trial used Scala CLI 1.17.1,
 Scala 3.9.0 and Temurin 27+35, with the actual flag over all 40 independent callers: framework,
 authoring, irgen, the gate and 36 fixture projects. Each compile ran under the shared heavy-gate
-lock; its command, source hashes, output and exit status are retained in
-`.flow/tmp/fn156/batch/nulls/`. This is a counted adoption decision, not a passing full-suite claim.
+lock; its command, source hashes, output and exit status are retained in the fn-156 lane
+worktree's `.flow/tmp/fn156/batch/nulls/`. This is a counted adoption decision, not a passing full-suite claim.
 
 Framework, authoring and irgen compiled with zero diagnostics. The independent gate did not:
 19 located errors occur in `Gate.scala`, `ProtoLiterals.scala`, `SourceMetrics.scala` and
@@ -408,3 +408,12 @@ original file hashes and 25,191 positions without the null flag; broader managed
 fresh/native baseline reconciliation remain separate obligations.
 
 Reference: Scala's [explicit-null documentation](https://docs.scala-lang.org/scala3/reference/experimental/explicit-nulls.html).
+
+## fn-156 capture checking
+
+Capture checking is not adopted either. fn-156.8's report, `SCALA_CAPTURE_CHECKING.md`, finds that
+Scala 3.9.0 accepts three `Draft` escapes from the current `effect` API with the feature on, and that
+a scoped-capability API rejects all four tested escapes while keeping valid effects, at the cost of
+experimental framework types, changed Model accessor signatures and an unaudited boundary with
+unchecked code. The compiler, lint and law enforcement fn-156 did adopt is in `model/README.md`
+("What the compiler, the lint and the law tests enforce").

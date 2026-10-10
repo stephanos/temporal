@@ -75,7 +75,9 @@ final private[irgen] class Context(val index: Index):
     case Inlined(_, Nil, e) => blockCall(e)
     case Block(Nil, e)      => blockCall(e)
     case Apply(Apply(TypeApply(fn, types), usings), List(body))
-        if blockForms(fn.symbol.name) && fn.symbol.maybeOwner.fullName == syntaxOwner => // scalafix:ok DisableSyntax.==; typed equality
+        if blockForms(
+          fn.symbol.name
+        ) && fn.symbol.maybeOwner.fullName == syntaxOwner => // scalafix:ok DisableSyntax.==; typed equality
       Some(BlockCall(fn.symbol.name, types.map(_.tpe), usings, body))
     case _ => None
 
@@ -94,7 +96,9 @@ final private[irgen] class Context(val index: Index):
 
   // The refusal of a block written anywhere but as the right-hand side of a section's val.
   def misplacedBlock(form: String, at: Tree): Nothing =
-    val (member, section) = if form == "effect" then ("pause", "effects") else ("held", "states") // scalafix:ok DisableSyntax.==; typed equality
+    val (member, section) =
+      if form == "effect" then ("pause", "effects")
+      else ("held", "states") // scalafix:ok DisableSyntax.==; typed equality
     fail(
       at,
       s"`$form { ... }` declares a member of a machine object's section, " +
@@ -348,7 +352,9 @@ final private[irgen] class Context(val index: Index):
 
   // Whether `owner` is the section `name` of an object, such as a machine's `effects`.
   def isSection(owner: Symbol, name: String): Boolean =
-    owner.isClassDef && owner.flags.is(Flags.Module) && owner.name.stripSuffix("$") == name && // scalafix:ok DisableSyntax.==; typed equality
+    owner.isClassDef && owner.flags.is(Flags.Module) && owner.name.stripSuffix(
+      "$"
+    ) == name && // scalafix:ok DisableSyntax.==; typed equality
       !owner.maybeOwner.isPackageDef
 
   // ### Object forms: an object that is a machine or a composition (framework.Machine, framework.Derived,

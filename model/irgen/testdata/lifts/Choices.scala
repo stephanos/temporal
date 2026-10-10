@@ -42,7 +42,7 @@ val retry = action(Actor("matching"))
 val resume = action(Actor("user"))
 
 def oneMore(a: Active): Active = a match
-  case Active.none => Active.one
+  case Active.none                             => Active.one
   case _: Active.one.type | _: Active.two.type => Active.two
 
 // The admission specimen's committed admission: the message consumed, or retained and delivered

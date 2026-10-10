@@ -30,7 +30,9 @@ class ActivityRetryRegression extends munit.FunSuite:
       startToClose = Timeout.expires
     )
     val after = ActivitySystem.bindings
-      .find(_.decl == deadline.startToClose.decl) // scalafix:ok DisableSyntax.==
+      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+      .find(_.decl == deadline.startToClose.decl)
+      // scalafix:on DisableSyntax.==
       .get
       .function
       .asInstanceOf[system.State => List[Step[system.State, Outcome, system.Fact]]](before)
@@ -92,16 +94,20 @@ class ActivityRetryRegression extends munit.FunSuite:
     do
       val retryAllowed =
         before.phase != system.Phase.cancelRequested && // scalafix:ok DisableSyntax.!=
-          (before.maxAttempts == MaxAttempts.unlimited || // scalafix:ok DisableSyntax.==
-            (before.maxAttempts == MaxAttempts.two && before.attempts < 2) || // scalafix:ok DisableSyntax.==
+          (before.maxAttempts == MaxAttempts.unlimited ||
+            (before.maxAttempts == MaxAttempts.two && before.attempts < 2) ||
             (before.maxAttempts == MaxAttempts.one && before.attempts < 1)) // scalafix:ok DisableSyntax.==
       val after = take(before, deadline.startToClose())
       if retryAllowed then
+        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         val expectedPhase = if before.phase == system.Phase.pauseRequested then
-          system.Phase.paused // scalafix:ok DisableSyntax.==
+          // scalafix:on DisableSyntax.==
+          system.Phase.paused
         else system.Phase.scheduled
+        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         val status = if before.phase == system.Phase.pauseRequested then
-          system.Fact.statusPaused // scalafix:ok DisableSyntax.==
+          // scalafix:on DisableSyntax.==
+          system.Fact.statusPaused
         else system.Fact.statusScheduled
         assertEquals(
           after.state,

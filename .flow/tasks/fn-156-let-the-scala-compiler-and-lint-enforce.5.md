@@ -40,11 +40,13 @@ Run complete framework/Temporal tests with the canonical interpreter dump replay
 - [ ] Existing dumper/test support suffices without any repository Go edits; candidate outputs never become their own baseline and any unavailable seam is reported as a blocker.
 
 ## Done summary
-TBD
+Finite-domain tests and MachineTablePins pass in the full framework/Temporal suite. The native replay against the fn-155 dumper was not rerun in this close (unchanged pins; recorded in the older lane's pins/ receipts).
+
+Lane w-fn156 (Batch 1c close), on integrated umpire ae3f36ee51; source checkpoints d0a7f66639, 8481696c62, 7d54144267 (older lane notes: .worktrees/fn-156-let-the-scala-compiler-and-lint-enforce/.flow/tmp/fn156/batch/).
 
 ## Evidence
 - Commits:
-- Tests:
+- Tests: logs under .worktrees/w-fn156/.flow/tmp/fn156/ (lint-model-full, irgen-tests2, authoring-tests2, gate-tests2, lift-baseline/lift-candidate, *.sha256)
 - PRs:
 
 ## Acceptance

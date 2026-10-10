@@ -54,11 +54,13 @@ Run `mise exec -- scala-cli test --server=false model/project.scala model/framew
 - [ ] Every inventoried enum/state wildcard shape has a proven exhaustive source rewrite with narrow typed lowering, unchanged behavior and raw artifact bytes; pre-existing explicit matches and refusal causes stay unchanged. An infeasible shape stops the source lane with an unresolved R4/R9 conflict.
 
 ## Done summary
-TBD
+R1 flags are on in model/project.scala, model/irgen/project.scala and every positive fixture project; refusal fixtures keep their tested causes (irgen suite: unsupported/werror/crossed tests pass). Finite equality evidence (`framework.Finite.given`) and its negatives are in Equality.test.scala. Typed-remainder lowering keeps wildcard bytes. R9 bytes: a fresh lift of the final source and of the pre-fn-156 source (HEAD with the three fn-156 source commits reverse-applied, the same Duration lifter fix 89b7745f8c applied, and the mainline-only StepTables.scala removed because it needs fn-156's IrFile.subjects and declares no Model) are byte-identical: 11/11 files, 25,191 positions, no normalization (lift.sh; baseline-ir.sha256 = final-ir.sha256 at 35dca5a364).
+
+Lane w-fn156 (Batch 1c close), on integrated umpire ae3f36ee51; source checkpoints d0a7f66639, 8481696c62, 7d54144267 (older lane notes: .worktrees/fn-156-let-the-scala-compiler-and-lint-enforce/.flow/tmp/fn156/batch/).
 
 ## Evidence
 - Commits:
-- Tests:
+- Tests: logs under .worktrees/w-fn156/.flow/tmp/fn156/ (lint-model-full, irgen-tests2, authoring-tests2, gate-tests2, lift-baseline/lift-candidate, *.sha256)
 - PRs:
 
 ## Acceptance

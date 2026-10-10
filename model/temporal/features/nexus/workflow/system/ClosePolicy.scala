@@ -291,7 +291,7 @@ object RejectAfterClose
         s.handler == Handler.running // scalafix:ok DisableSyntax.==; typed equality
     // A cancel request is in flight to a handler still working. A closed run's request is still
     // delivered.
-    def cancelInFlight(s: State) = s.intent != Intent.none && s.handler == Handler.running // scalafix:ok DisableSyntax.!= DisableSyntax.==; typed equality
+    def cancelInFlight(s: State) = s.intent != Intent.none && s.handler == Handler.running // scalafix:ok DisableSyntax.!=, DisableSyntax.==; typed equality
 
     // The schedule-to-close deadline can fire: the owner knows no outcome, and the run is not closed,
     // whose history is frozen.
@@ -652,7 +652,7 @@ object RejectAfterClose
         before: CloseResetState,
         after: Step[CloseResetState, Answer, CloseFact]
     ) =
-      before.known != Knowledge.expired && after.state.known == Knowledge.expired implies // scalafix:ok DisableSyntax.!= DisableSyntax.==; typed equality
+      before.known != Knowledge.expired && after.state.known == Knowledge.expired implies // scalafix:ok DisableSyntax.!=, DisableSyntax.==; typed equality
         !nothingOwed(before)
     // format: off
     def designClaims(m: Machine[CloseResetState, Answer, CloseFact]) =

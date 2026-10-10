@@ -40,11 +40,13 @@ Run the changed seeded fixture tests and gate checker tests, then `make lint-mod
 - [ ] Every rule runs in the existing JDK 25 workflow or the permitted existing irgen/gate seam with its coverage stated; exact production artifact bytes stay pinned.
 
 ## Done summary
-TBD
+R4/R5 rules in model/irgen/Conventions.scala run in lift and in `make lint-model-conventions` (exit 0). Close fixes: a package's import of itself is permitted (derived code; the unsupported fixture was refused for it), Sugar's fallback arm now pins its explicit alternatives (R4 refuses the wildcard and the guarded first arm leaves no typed remainder; fixture-only IR change, production bytes identical), foreign-single-level variant gets Finite evidence, Realizations fixture kept under the overlap threshold.
+
+Lane w-fn156 (Batch 1c close), on integrated umpire ae3f36ee51; source checkpoints d0a7f66639, 8481696c62, 7d54144267 (older lane notes: .worktrees/fn-156-let-the-scala-compiler-and-lint-enforce/.flow/tmp/fn156/batch/).
 
 ## Evidence
 - Commits:
-- Tests:
+- Tests: logs under .worktrees/w-fn156/.flow/tmp/fn156/ (lint-model-full, irgen-tests2, authoring-tests2, gate-tests2, lift-baseline/lift-candidate, *.sha256)
 - PRs:
 
 ## Acceptance

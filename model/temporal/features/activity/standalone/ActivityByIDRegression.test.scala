@@ -67,7 +67,7 @@ class ActivityByIDRegression extends munit.FunSuite:
         carriers.exists(p =>
           p.outcome == after.outcome && p.state == target && p.facts.map(
             _.toString
-          ) == visible // scalafix:ok DisableSyntax.==
+          ) == visible
         ) ||
           (before.phase == system.Phase.unstarted && source == target && visible.isEmpty), // scalafix:ok DisableSyntax.==
         s"service refinement $before -> $after"

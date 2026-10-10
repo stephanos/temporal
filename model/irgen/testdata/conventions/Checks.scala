@@ -5,7 +5,11 @@ package fixture.conventions
 
 import framework.*
 import framework.Finite.given CanEqual[?, ?]
-import temporal.features.nexus.workflow.system.{Phase as WorkflowPhase, Fact as WorkflowFact, State as WorkflowState}
+import temporal.features.nexus.workflow.system.{
+  Fact as WorkflowFact,
+  Phase as WorkflowPhase,
+  State as WorkflowState
+}
 
 enum Kind derives Finite:
   case a, b, c
@@ -23,7 +27,7 @@ object Checked extends Machine[State, Outcome, Nothing]:
   def end(s: State) = s.kind == Kind.a
   def plain(k: Kind) = k match
     case Kind.a => true
-    case _ => false
+    case _      => false
   def bound(k: Kind) = k match
     case rest @ _ => rest == Kind.a
   def typedWhole(k: Kind) = k match
@@ -35,11 +39,10 @@ object Checked extends Machine[State, Outcome, Nothing]:
   def dotted(k: Kind) = k.in(Kind.a, Kind.b)
   def unrelated(s: String) = s match
     case "a" => true
-    case _ => false
+    case _   => false
 
 enum Unrelated:
   case a, b
 
 def unrelatedEnum(s: Unrelated) = s match
   case _ => true
-

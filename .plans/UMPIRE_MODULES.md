@@ -416,6 +416,16 @@ the gate's process seam; scala-cli has no test-scoped file directive, so this on
 dependency of the IR generator on the gate is a recorded exception. The IR generator suite rewrites its expected
 files only when the gate passes `UMPIRE_LIFTER_UPDATE`.
 
+Since fn-156 the authoring, IR generator and positive fixture builds compile with `-Werror`,
+`-Wunused:all -Wvalue-discard -Wnonunit-statement -Wsafe-init -Wimplausible-patterns` and
+`-language:strictEquality`; the gate has strict equality without `-Werror`. `lint-model` also runs
+`lint-model-conventions`, the IR generator's `umpire.irgen.lintConventions` over the compiled TASTy
+of the authoring, IR generator and gate roots with their tests. It holds Scala imports and qualified
+references to the "Permitted domain dependencies" column above (`R4.module-import`,
+`R4.module-reference`), bans unqualified cross-level `Phase`/`Fact`/`State` imports (`R5`), whole-case
+enum/state wildcards and infix `in`. These checks live in the IR generator, beside its declaration
+order lint, because they read types; fn-141 inherits them with the lint extraction.
+
 Since task 14 the IR generator's fixtures are plain `.scala` files in `model/irgen/testdata`, which
 `//> using exclude` keeps out of the IR generator's build; the tests copy a fixture to scratch before
 building it. Scalafmt checks all fixtures; fn-113 formatted the five formerly excluded `lifts`

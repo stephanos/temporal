@@ -35,7 +35,8 @@ private[irgen] trait Syntax:
   private def sugarCall(t: Term): Option[(String, List[List[Term]])] = t match
     case Apply(fn, args)  => sugarCall(fn).map((n, as) => (n, as :+ args))
     case TypeApply(fn, _) => sugarCall(fn)
-    case r: Ref if r.symbol.maybeOwner.fullName == sugarOwner => Some(r.symbol.name -> Nil) // scalafix:ok DisableSyntax.==; typed equality
+    case r: Ref if r.symbol.maybeOwner.fullName == sugarOwner =>
+      Some(r.symbol.name -> Nil) // scalafix:ok DisableSyntax.==; typed equality
     // A guard of a machine's rules reads `phase.in(a, b)` as the rules repeat it.
     case r: Ref if r.symbol.maybeOwner.fullName == "framework.Rules" && r.symbol.name == "in" => // scalafix:ok DisableSyntax.==; typed equality
       Some("in" -> Nil)
@@ -133,7 +134,8 @@ private[irgen] trait Syntax:
     object constructed extends TreeAccumulator[Option[Term]]:
       def foldTree(found: Option[Term], tree: Tree)(owner: Symbol) =
         found.orElse(tree match
-          case Apply(fn, args) if fn.symbol == phase.primaryConstructor => args.lift(index) // scalafix:ok DisableSyntax.==; typed equality
+          case Apply(fn, args) if fn.symbol == phase.primaryConstructor =>
+            args.lift(index) // scalafix:ok DisableSyntax.==; typed equality
           case _ => foldOverTree(None, tree)(owner))
     val declared = defs.get(caseSym).orElse(scala.util.Try(caseSym.tree).toOption)
     declared
@@ -237,7 +239,10 @@ private[irgen] trait Syntax:
           s"not ${other.written}"
       )
     val assigns = lifted.collect { case a: Assign => a }
-    for (a, i) <- assigns.zipWithIndex; first <- assigns.take(i).find(_.field == a.field) do // scalafix:ok DisableSyntax.==; typed equality
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+    for (a, i) <- assigns.zipWithIndex; first <- assigns.take(i).find(_.field == a.field)
+    // scalafix:on DisableSyntax.==
+    do
       fail(
         a.at,
         s"$block assigns ${a.field} twice, at ${where(first.at)} and here: assign each field once"
@@ -288,7 +293,10 @@ private[irgen] trait Syntax:
           val name = resolve(declared) match
             case r: Ref => r.symbol.name
             case other  => other.show
-          for (r, f) <- recorded.flatten if f.kind == status.kind do // scalafix:ok DisableSyntax.==; typed equality
+          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+          for (r, f) <- recorded.flatten if f.kind == status.kind
+          // scalafix:on DisableSyntax.==
+          do
             fail(
               r.at,
               s"$block records $name, which its assignment of ${a.field} already records: " +
@@ -329,7 +337,8 @@ private[irgen] trait Syntax:
   // Hook: whether a class is written with inputs supplied by name, which `named` lifts. Core form:
   // none of its own; `classOf` asks it before it reads a positional call, as in
   // `case _ if namedClass(t) => named(t)`.
-  def namedClass(t: Term): Boolean = sugarCall(t).exists(_._1 == "apply") // scalafix:ok DisableSyntax.==; typed equality
+  def namedClass(t: Term): Boolean =
+    sugarCall(t).exists(_._1 == "apply") // scalafix:ok DisableSyntax.==; typed equality
 
   // Hook: a class whose inputs are supplied by name, `token := value`, lifted as its positional call:
   // the values in the order the action declares its input tokens, each input not supplied at its
@@ -413,14 +422,18 @@ private[irgen] trait Syntax:
   // `refusal` naming the slot, where the field is not of that message.
   private def kitSelector(slot: Term, root: TypeRepr, at: Term, refusal: String): Term =
     val (scopes, selectors) = applied(slot)
-      .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "field") // scalafix:ok DisableSyntax.==; typed equality
+      .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "field")
       .map(_._2)
       .getOrElse(Nil)
-      .partition(a => a.tpe.baseClasses.exists(_.fullName == "temporal.realize.FieldScope")) // scalafix:ok DisableSyntax.==; typed equality
+      .partition(a =>
+        a.tpe.baseClasses.exists(_.fullName == "temporal.realize.FieldScope")
+      ) // scalafix:ok DisableSyntax.==; typed equality
     (scopes, selectors) match
       case (List(s), List(selector))
           if s.tpe
-            .baseType(s.tpe.baseClasses.find(_.fullName == "temporal.realize.FieldScope").get) // scalafix:ok DisableSyntax.==; typed equality
+            .baseType(
+              s.tpe.baseClasses.find(_.fullName == "temporal.realize.FieldScope").get
+            ) // scalafix:ok DisableSyntax.==; typed equality
             .typeArgs
             .headOption
             .exists(_ =:= root) =>
@@ -485,7 +498,9 @@ private[irgen] trait Syntax:
       }
       .map { (readCall, targets) =>
         val (path, cardinality) = applied(readCall)
-          .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "read") // scalafix:ok DisableSyntax.==; typed equality
+          .filter((fn, _) =>
+            fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "read"
+          ) // scalafix:ok DisableSyntax.==; typed equality
           .collect { case (_, path :: cardinality :: _) => (path, cardinality) }
           .getOrElse(
             fail(t, s"into finishes the `read(path, cardinality)` before it, not ${t.show}")
@@ -537,7 +552,9 @@ private[irgen] trait Syntax:
   // `Realizations.declaration` asks it before it reads a core Proto.
   def protoLiteral(b: Bound, into: Descriptor): Option[PMessage] =
     applied(b.term)
-      .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "proto") // scalafix:ok DisableSyntax.==; typed equality
+      .filter((fn, _) =>
+        fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "proto"
+      ) // scalafix:ok DisableSyntax.==; typed equality
       .map { (_, args) =>
         val message = b.term.tpe.widen.dealias.typeArgs.headOption
           .getOrElse(fail(b.term, "a protobuf literal needs a message type"))
@@ -604,8 +621,10 @@ private[irgen] trait Syntax:
                 irMessage(irField(valueD, "message", t), t),
                 t
               )
-              if field.scalaType != ScalaType.Message(messageDescriptor(inner, t)) then // scalafix:ok DisableSyntax.!=; typed equality
-                fail(t, s"${field.name} holds no message, so no scope writes it")
+              // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
+              if field.scalaType != ScalaType.Message(messageDescriptor(inner, t))
+              // scalafix:on DisableSyntax.!=
+              then fail(t, s"${field.name} holds no message, so no scope writes it")
               List((t, name, PMessage(Map(irField(valueD, "message", t) -> m))))
             // A scope passed in, applied where it is written.
             case Some((Select(fn, "apply"), _)) if passedScope(Bound(fn, line.env)) =>
@@ -631,8 +650,9 @@ private[irgen] trait Syntax:
   private def literalField(slot: Term, message: TypeRepr, at: Term): (String, FieldDescriptor) =
     val path = selectorPath(message, kitSelector(slot, message, at, literalScope), slot)
     val name = path match
-      case direct if !direct.exists(c => c == '.' || c == '[' || c == '<') => direct // scalafix:ok DisableSyntax.==; typed equality
-      case oneof if oneof.matches("[^.\\[<>]+<[^<>]+>")                    =>
+      case direct if !direct.exists(c => c == '.' || c == '[' || c == '<') =>
+        direct // scalafix:ok DisableSyntax.==; typed equality
+      case oneof if oneof.matches("[^.\\[<>]+<[^<>]+>") =>
         oneof.substring(oneof.indexOf('<') + 1, oneof.length - 1)
       case _ => fail(at, s"$path is no field of ${message.show}: a literal sets its own fields")
     val field = messageDescriptor(message, at).fields
@@ -652,8 +672,10 @@ private[irgen] trait Syntax:
     if isNamed(tpe, "framework.realize.TypedProto") then
       kind("message", valueOf(irField(valueD, "message", at), value))
     else if isNamed(tpe, "framework.realize.TypedProtoValue") then typedProtoValue(value, valueD)
-    else if tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.realize.Addressee") then // scalafix:ok DisableSyntax.==; typed equality
-      kind("role_id", PString(textOfBound(value)))
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+    else if tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.realize.Addressee")
+    // scalafix:on DisableSyntax.==
+    then kind("role_id", PString(textOfBound(value)))
     else if isNamed(tpe, "framework.realize.Name") then
       kind("named", valueOf(irField(valueD, "named", at), value))
     else if field.isMapField then
@@ -661,7 +683,8 @@ private[irgen] trait Syntax:
       val entry = irMessage(irField(map, "entries", at), at)
       val r = reduce(value)
       val pairs = applied(r.term) match
-        case Some((fn, args)) if fn.symbol.name == "apply" => args.flatMap(varargs) // scalafix:ok DisableSyntax.==; typed equality
+        case Some((fn, args)) if fn.symbol.name == "apply" =>
+          args.flatMap(varargs) // scalafix:ok DisableSyntax.==; typed equality
         case _ => fail(r.term, s"a map is written out, `Map(key -> text, ...)`, not ${r.term.show}")
       val entries = pairs.map { p =>
         p match
@@ -726,13 +749,19 @@ private[irgen] trait Syntax:
     val factType = value.kind match
       case ir.Value.Kind.Enum(e) => e.`type`
       case _                     => irTypeName(fact.tpe.widen.dealias.typeSymbol)
-    for c <- compositions.values if c.stateType == irTypeName(state.typeSymbol) do // scalafix:ok DisableSyntax.==; typed equality
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+    for c <- compositions.values if c.stateType == irTypeName(state.typeSymbol)
+    // scalafix:on DisableSyntax.==
+    do
       val m = c.members
         .find(_.field == field) // scalafix:ok DisableSyntax.==; typed equality
         .getOrElse(
           fail(at, s"records reads the facts of $field, and no member of ${c.name} fills it")
         )
-      for machine <- machineNamed(m.machine) if machine.factType != factType do // scalafix:ok DisableSyntax.!=; typed equality
+      // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
+      for machine <- machineNamed(m.machine) if machine.factType != factType
+      // scalafix:on DisableSyntax.!=
+      do
         val records = if machine.factType.isEmpty then "no" else machine.factType
         fail(
           at,
@@ -758,14 +787,22 @@ private[irgen] trait Syntax:
   def patterned(t: Term): Boolean = t match
     case _: Apply =>
       val sym = t.symbol
-      (sym.maybeOwner.fullName == sugarOwner && finishers.contains(sym.name)) || // scalafix:ok DisableSyntax.==; typed equality
+      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+      (sym.maybeOwner.fullName == sugarOwner && finishers.contains(
+        // scalafix:on DisableSyntax.==
+        sym.name
+      )) ||
       finished.get(sym.maybeOwner.fullName).contains(sym.name)
     case _ => false
 
   // `builder.word(arg)`, a claim pattern begun: the word, the builder, its state type and `arg`.
   private def begun(t: Term): Option[(String, Term, TypeRepr, Term)] = t match
     case Apply(Apply(TypeApply(fn, state :: _), List(builder)), List(arg))
-        if fn.symbol.maybeOwner.fullName == sugarOwner && finishers.contains(fn.symbol.name) => // scalafix:ok DisableSyntax.==; typed equality
+        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+        if fn.symbol.maybeOwner.fullName == sugarOwner && finishers.contains(
+          // scalafix:on DisableSyntax.==
+          fn.symbol.name
+        ) =>
       Some((fn.symbol.name, builder, state.tpe, arg))
     case _ => None
 
@@ -782,15 +819,19 @@ private[irgen] trait Syntax:
     val (start, finish) = t match
       case Apply(call @ Apply(TypeApply(Select(r, w @ "keeps"), _), List(x)), List(_))
           if call.symbol.maybeOwner.fullName == "framework.Once" && (call.tpe match // scalafix:ok DisableSyntax.==; typed equality
-            case m: MethodType => m.isImplicit && m.paramTypes.size == 1 && // scalafix:ok DisableSyntax.==; typed equality
+            case m: MethodType =>
+              m.isImplicit && m.paramTypes.size == 1 &&
               m.paramTypes.head.typeSymbol.fullName == "scala.CanEqual" // scalafix:ok DisableSyntax.==; typed equality
-            case _ => false) => (r, Some(w -> x))
+            case _ => false) =>
+        (r, Some(w -> x))
       case Apply(TypeApply(Select(r, w @ "keeps"), _), List(x)) => (r, Some(w -> x))
       case Apply(Select(r, w @ ("from" | "unless")), List(x))   => (r, Some(w -> x))
       case _                                                    => (t, None)
     val (word, builder, state, arg) = begun(start).getOrElse {
       val w = finish.fold(t.symbol.name)(_._1)
-      val begins = finishers.collectFirst { case (b, f) if f == w => b }.getOrElse(w) // scalafix:ok DisableSyntax.==; typed equality
+      val begins = finishers
+        .collectFirst { case (b, f) if f == w => b }
+        .getOrElse(w) // scalafix:ok DisableSyntax.==; typed equality
       val written = start match
         case r: Ref => r.symbol.name
         case other  => other.show
@@ -847,7 +888,8 @@ private[irgen] trait Syntax:
           call(stepFunction(r, fn, w), after)
         )
       case _ => fail(t, s"not a claim pattern: ${t.show}")
-    val transition = !(word == "never" && finish.isEmpty) // scalafix:ok DisableSyntax.==; typed equality
+    val transition =
+      !(word == "never" && finish.isEmpty) // scalafix:ok DisableSyntax.==; typed equality
     val params =
       (if transition then Seq(ir.Param("before", Some(typeRef(state, t)))) else Nil) :+ stepParam
     functions(fn) =
@@ -875,7 +917,9 @@ private[irgen] trait Syntax:
       // The author's predicate, by the def it names, or as a function of its own named after the word.
       val kept = stepFunction(promise, id, word)
       val read =
-        (if word == "stickyAcross" then Seq(variable("before")) else Nil) :+ variable("after") // scalafix:ok DisableSyntax.==; typed equality
+        (if word == "stickyAcross" then Seq(variable("before")) else Nil) :+ variable(
+          "after"
+        ) // scalafix:ok DisableSyntax.==; typed equality
       val broken = ir.Param("broken", Some(bool))
       val (next, violated) = (s"$id.next", s"$id.violated")
       functions(next) = ir.Function(
@@ -932,7 +976,11 @@ private[irgen] trait Syntax:
   private def outcomeOf(ok: Term, form: String): ir.Expr =
     val shared = ok match
       case r: Ref
-          if resolveSymbol(r).maybeOwner == Symbol.requiredModule("framework.Ok").moduleClass => // scalafix:ok DisableSyntax.==; typed equality
+          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+          if resolveSymbol(r).maybeOwner == Symbol
+            // scalafix:on DisableSyntax.==
+            .requiredModule("framework.Ok")
+            .moduleClass =>
         Some(enumLiteral(sharedOutcome.companionModule.fieldMember("accepted"), ok))
       case _ => None
     shared.getOrElse(declaredOutcome(ok, form))

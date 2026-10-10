@@ -1158,6 +1158,56 @@ method descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization make
 standalone activity and `jobsCode` in a lifter fixture; each was `null` at run time, where only the
 lifter, which reads the trees, had read it.
 
+### What the compiler, the lint and the law tests enforce
+
+The authoring, IR generator and fixture builds compile with `-Werror -Wunused:all -Wvalue-discard
+-Wnonunit-statement -Wsafe-init -Wimplausible-patterns -language:strictEquality`
+(`model/project.scala`, `model/irgen/project.scala`, each positive fixture's `project.scala`). A
+discarded builder result, an unused value and a comparison of two unrelated types fail to compile.
+The gate, `model/check`, has strict equality but not `-Werror`, for the reason its `project.scala`
+gives; the refusal fixtures keep their own options, so each still fails for the reason it tests.
+
+Strict equality needs a `CanEqual` for each type compared with `==`. Every `Finite` type has one,
+`given [T](using Finite[T]): CanEqual[T, T]` in `framework.Finite`, which a file brings in with
+`import framework.Finite.given`; deriving `Finite` alone does not put it in scope. A type that is
+compared and is not `Finite` declares `derives CanEqual` itself. Nothing grants `CanEqual[Any, Any]`
+or evidence between two levels' types, so `Phase == OtherPhase` stays a compile error
+(`model/framework/Equality.test.scala`). Scala 3.9 reports the `Finite.given` import unused where
+only the compiler's equality check reads it (scala/scala3#25755); such a file keeps it with a
+`val _ = () => summon[CanEqual[T, T]]` witness rather than a warning exemption. Scalafix's
+`DisableSyntax.noUniversalEquality` is on as well. A comparison the compiler has checked carries
+`// scalafix:ok DisableSyntax.==` (or `!=`) on the operator's own line; where the formatter would
+move that comment, a trailing `// format: off` … `// format: on` pair keeps the line whole.
+
+`make lint-model-conventions`, part of `make lint-model`, reads the compiled TASTy of the framework,
+the Models, the IR generator and the gate, with their tests, and refuses, each at its file and line:
+
+| Rule | Refused |
+| --- | --- |
+| `R4.enum-wildcard` | `case _ =>`, or a name bound to it, matching a whole Model enum or state. Name the remaining cases; a constructor's payload, `case Handler.done(_)`, stays a wildcard. |
+| `R4.dotted-in` | membership written infix, `value in (…)`, not `value.in(…)` |
+| `R4.module-import`, `R4.module-reference` | an import or qualified reference the Scala rows of `.plans/UMPIRE_MODULES.md` do not permit |
+| `R5.cross-level-import` | one level's `Phase`, `Fact` or `State` imported unqualified into another level's file, by name or wildcard; a renamed alias or a qualified reference is fine |
+
+The section order of a machine and of a composition stays the declaration-order lint's (c) above.
+The IR generator lifts a final unguarded, nonbinding alternative that covers exactly the cases left
+as it lifted the wildcard it replaced, so naming the cases changes no IR byte; a guarded, binding,
+incomplete or overlapping remainder is refused (`model/irgen/testdata/enumPatterns`).
+
+The generic law tests (`model/framework/MachineLaws.test.scala`, run over the Models by
+`model/temporal/ExportedLaws.test.scala`)
+find their machines themselves: every machine and composition the `irFile` exports reach, through
+derivations, refinements, compositions, Queries, capabilities and realizations. A machine added to
+an export is checked without a test edit for refinement totality and closedness, repeatable ordered
+results and its binding order (`model/testdata/binding-order.tsv`); each law a machine cannot meet
+is printed with its reason. A test whose subject is a `Finite` domain iterates the whole domain, and
+`MachineTablePins` holds every activity and Nexus machine's interpreter-built table to the pins in
+`model/testdata/table-pins`.
+
+`-Yexplicit-nulls` and capture checking are not on. `.plans/SCALA.md` counts the explicit-nulls
+findings and why the flag was dropped; `.plans/SCALA_CAPTURE_CHECKING.md` reports what capture
+checking could prove of `Draft` and what adopting it would cost.
+
 ### Starting a new feature
 
 Copy the template, `model/irgen/testdata/layout/lamp/`, to `model/temporal/features/<feature>/`, and
