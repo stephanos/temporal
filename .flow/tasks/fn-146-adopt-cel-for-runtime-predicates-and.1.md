@@ -45,9 +45,23 @@ Pin one format 4.0 contract for CEL, Duration and evidence/state normalization. 
 - [ ] Unknown format and mismatched companion negative tests pass.
 - [ ] Focused format/identity unit proofs pass; full protocol/recordedrun and assessment gates run at the shared fn-148.7 close after fn-148.6 activates 4.0.
 ## Done summary
-TBD
+# CEL format and identity boundary
 
+Task fn-146-adopt-cel-for-runtime-predicates-and.1 establishes the coordinated successor-format contract, pre-payload admission, deterministic bounded CEL identity rules, and the executable migration inventory of 65 Cases and seven recorded Run companions. Casefile remains JSON-only; runtime-schema identity belongs to Testpilot internal/ir. No CEL evaluator, descriptor adapter or public format 4.0 activation is claimed by this task.
+
+Integrated source commits: 6934d3d87dc50d357bc55a15be27356065912fc8 and 84b1f26b30. The correction preserves ProtoJSON null-as-unset semantics: null version rejects 0.0 with FormatError and offline ReasonIncompatible before decoding retired payloads, while malformed whole documents remain malformed. Actual worker RED/green receipts cover numeric syntax, null, whitespace and malformed controls; full affected-package JSON records 474 passing test events and no failures. Existing compiler changes do not alter these Go inputs.
+
+The original independent correctness/contracts/integration fan-out found one introduced P2 null-version issue. Single resumed Codex review returned SHIP and marked that finding fixed, with no new blocking findings. Receipt: /tmp/impl-review-receipt-401634b59261-fn-146-adopt-cel-for-runtime-predicates-and.1.json; session 01a12679-feb4-7f50-8279-f6fa10b4f529. Review snapshot 2c41ae37aea03e0d1a15e1da6133064bf48b55b6 has byte-identical Testpilot/proto/API/go.mod/go.sum inputs to the integrated target, verified by git diff --quiet. Review metadata is integrated at eb6bbf014c76341a058c95ceb257e946e0673f4b. Writer and reviewer are the same model family; the review ran in the independent existing reviewer session, not by the conductor.
+
+Root reran the exact focused Quick on the integrated target under the actual /tmp/umpire-heavy-gates.lock: exit 0, twenty package passes and two no-test packages; seven passing packages have no selected tests. Log: .flow/tmp/fn146/boundary-integrated/quick.log. This is focused task evidence, not a full tooling or successor-format replay gate. Original correction evidence remains at the fn146 worker's .flow/tmp/fn146/task1/correction-{summary.md,evidence.json,green.jsonl,quick.log,lint.log}; original baseline/manifests remain unchanged.
+
+Only fn-148.6 activates emission/admission of 4.0 after consumer integration; fn-148.7 regenerates all managed Cases/companions and supplies full protocol, assessment, replay, canonical gates and live evidence. Formats are not emitted as intermediate migrations. Authoring predecessors remain final integration reconciliation obligations. Those obligations and fn146 R2–R7 remain open in the actively implementing format batch.
+
+Tier: session (jev-unavailable(no_key)); explicit project implementer/reviewer pins retained.
+stage: impl-review - ran (single resumed review, SHIP; original three-axis fan-out retained)
+stage: plan-sync - skipped(config: planSync.enabled=false)
+Tracker sync: n/a (bridge inactive)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6934d3d87dc50d357bc55a15be27356065912fc8, 84b1f26b30, eb6bbf014c76341a058c95ceb257e946e0673f4b
+- Tests: flock /tmp/umpire-heavy-gates.lock mise exec -- go test -tags test_dep -run 'Test.*(Format|Identity|Companion)' ./common/testing/testpilot/... (integrated target, exit 0; .flow/tmp/fn146/boundary-integrated/quick.log), git diff --quiet 2c41ae37aea03e0d1a15e1da6133064bf48b55b6 HEAD -- common/testing/testpilot api/testpilot proto/internal/temporal/server/api/testpilot go.mod go.sum (exit 0), worker full affected-package JSON: facade339/evaluation135 pass test events, zero fail events; actual null RED retained, Codex resumed implementation review SHIP, receipt /tmp/impl-review-receipt-401634b59261-fn-146-adopt-cel-for-runtime-predicates-and.1.json; finding fixed, git diff --check
 - PRs:

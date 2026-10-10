@@ -370,7 +370,7 @@ still belongs exclusively to fn-148.6. CEL adoption is decided; no additional pr
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-146.1 | 🔄 in progress | Format/identity contract and null-version correction integrated; focused tests green; resumed review pending; no early 4.0 activation |
+| fn-146.1 | ✅ done | Format/identity boundary and null-version correction integrated; focused tests pass and resumed review SHIP; 4.0 activation/artifact replay remain fn-148.6/.7 |
 | fn-146.2 | 🔄 in progress | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
 | fn-146.3 | 🔄 in progress | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
 | fn-146.4 | 🔄 in progress | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
@@ -569,7 +569,7 @@ generation for compositions is outside this spec.
 | fn-150.1 | ⏸️ deferred | Complete scoped implementation checkpoint; 29 focused tests and lint pass, original Quick OOM before/after and after private daemon exit; review and closure held |
 | fn-150.2 | ⬜ todo | Structured fairness references, inherited/replacement mapping |
 | fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
-| fn-150.4 | ⬜ todo | Bound, fairness, holes, starts and witness-replay regressions |
+| fn-150.4 | 🔄 in progress | Independent bound/fairness/hole/start/replay regressions on preserved checker checkpoint; batch-first work-ahead, no full-gate credit |
 | fn-150.5 | ⬜ todo | Temporal positive/negative example, docs and integrated gates |
 
 Waves: `.1` then `.2`; `.3` and `.4` are parallel candidates; `.5` joins them.

@@ -14,7 +14,7 @@
   ],
   "id": "fn-146-adopt-cel-for-runtime-predicates-and",
   "impl_review_rounds": {
-    "fn-146-adopt-cel-for-runtime-predicates-and.1": 1
+    "fn-146-adopt-cel-for-runtime-predicates-and.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -185,9 +185,54 @@
       "task": "fn-146-adopt-cel-for-runtime-predicates-and.1",
       "timestamp": "2026-10-10T15:46:15.438600Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "cb7a9e09809426c0386bb0cd65233f2ed44f26e2f471bdf363e9ea9b6fca3015",
+      "backend": "codex",
+      "base_sha": "a27ac4f2afb98f31d7406b327f721e825d97d2e0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ed41b3bf6398c8b77fa73124b1f0aea9",
+            "classification": "introduced",
+            "findingId": "finding-ed41b3bf6398c8b77fa73124b1f0aea9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2c41ae37aea03e0d1a15e1da6133064bf48b55b6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1139,
+      "output_sha256": "dc56e3a489beb0ca6d27768a5e3d8dbb7d1875be41d01161d78f5dc56f0f4fe7",
+      "reservation_id": "7a591766a75a42e49fa83c831f6cee80",
+      "round_consumed": true,
+      "scope": "impl:fn-146-adopt-cel-for-runtime-predicates-and.1",
+      "superseded_by": null,
+      "task": "fn-146-adopt-cel-for-runtime-predicates-and.1",
+      "timestamp": "2026-10-10T16:06:16.391101Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-146-adopt-cel-for-runtime-predicates-and.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -211,5 +256,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T15:46:15.445796Z"
+  "updated_at": "2026-10-10T16:06:16.396520Z"
 }
