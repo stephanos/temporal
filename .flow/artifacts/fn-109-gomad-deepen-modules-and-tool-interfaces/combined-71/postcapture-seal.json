@@ -1,0 +1,36 @@
+{
+  "all_handles_terminal": true,
+  "comparison_valid": true,
+  "execution_input_binding_sha256": "7937b6c0ccc9a5a1d4b9400547dfaa1c731e12f8664af81897a9911c8f879d87",
+  "explicit_member_count": 20,
+  "files_sha256": {
+    "actual-go-settings.json": "4c74511915af9a0056deab35637401d3335939338970015e26bab4998b11a9b3",
+    "environment.json": "9d3165aa3238274b0cd2e082b19308792e7ab8b811640b0ca3d9a24eda3ae0c0",
+    "integrated-lint.json": "c9bb2aa9579abec6813a49e49e8dddbb23b22e885b05753f934f69a07c5eb036",
+    "integrated-lint.log": "ea4c5ef9740f766987f618011eafb5cac0f1bd2c16e9ee9c1280cd5bdd3c5148",
+    "lint-comparison.json": "61bb84c4173aae72fe5843e0cb5f121921bc8bd211d30728165eca55b5bd6353",
+    "ordinary-environment-comparison.json": "19c950b90ba75869088f27c3ba664cea84272d917cb9f2ed942b544ad7568324",
+    "ordinary-runner.json": "cd92366d02d878825a7a5ab3725cff498991e1f2dab813991949821c31a3b277",
+    "ordinary-runner.log": "cabf7ee75f4dc67c22c4accbff811ceb4b27ed73266f58482e3fdad435107380",
+    "outcome-comparison.json": "d65dad952fa2b26197261710303a95c71e4ab13b09d3905ada47549c38c70672",
+    "preparation-note.md": "76c712e4317873e4c829d4b6552c50034293f33608e3b0fd16ea2c99375dfefd",
+    "run-binding.json": "7937b6c0ccc9a5a1d4b9400547dfaa1c731e12f8664af81897a9911c8f879d87",
+    "run-gates.py": "a9634214a0825dda385e883550cd96bd1a610bf31bc1d44bc6a99d895cf8bd7c",
+    "source-after.json": "c7ddd860dbee3b27a56970c2f912b2cb3a3cf48820fd855778eae2b8216b9b16",
+    "source-before.json": "c7ddd860dbee3b27a56970c2f912b2cb3a3cf48820fd855778eae2b8216b9b16",
+    "summary.json": "33b8c619b315e42deb2656e249aef12a8981ba82cdc4178d51f2cfd788553c4c",
+    "tools.json": "47068d265b75e4dca463625d5c37f36f32ba5c05179956659639e58760c20689",
+    "vet-darwin-arm64.json": "8292427caff8f79688d3e51ed5f0401afd67994b015a654072f20c71e5baf575",
+    "vet-darwin-arm64.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "vet-linux-amd64.json": "844b7abe4da1587213e9eb9c84f32b374e7ab3a8a959df8754dc1857e95f1e2c",
+    "vet-linux-amd64.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "head": "a2ba5377ed35ab2b248746b615d31a2123d2a852",
+  "metadata_matches_pre_gate_binding": {
+    "actual_go_settings": true,
+    "environment_comparison": true
+  },
+  "scope": "Postcapture hashes bind actual metadata, logs, per-command receipts and derived comparisons after capture. This is not a retroactive pre-execution binding of outputs.",
+  "source_before_after_equal": true,
+  "utc_created": "2026-10-10T05:10:11.484878+00:00"
+}

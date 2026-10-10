@@ -1,0 +1,431 @@
+{
+  "admitted_baseline_full_blocks_for_removal": [],
+  "admitted_removal_locations_and_codes": [],
+  "baseline_count": 50,
+  "baseline_full_blocks": [
+    "tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Sprintf(\"artifact manifest cannot copy a %s field\", source.Kind()))\n\t\t^",
+    "tools/gomad3/artifact/publication.go:39:22: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Artifact{}, errors.New(\"World payload paths must use the canonical artifact layout\")\n\t\t                   ^",
+    "tools/gomad3/cmd/gomad/internal/cli/application.go:187:14: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)\n\t\t           ^",
+    "tools/gomad3/deterministicio/profile.go:211:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Errorf(\"encode deterministic I/O inventory: %w\", err))\n\t\t^",
+    "tools/gomad3/internal/compatibilitypack/schema.go:275:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source inventory is not sorted and unique\")\n\t\t       ^",
+    "tools/gomad3/internal/compatibilitypack/schema.go:316:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source name is invalid\")\n\t\t       ^",
+    "tools/gomad3/internal/compatibilitypack/schema.go:319:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"Go source identity is invalid: %w\", err)\n\t\t       ^",
+    "tools/gomad3/runner/campaign.go:11:4: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\t\tpanic(\"gomad3: duplicate execution completion\")\n\t\t\t^",
+    "tools/gomad3/runner/campaign.go:25:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(\"gomad3: execution completion order has an unresolved gap\")\n\t\t^",
+    "tools/gomad3/runner/completion.go:39:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\terr = fmt.Errorf(\"World record seed or schema does not match seed %d\", seed)\n\t\t\t      ^",
+    "tools/gomad3/runner/inspect.go:647:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d\", kind))\n\t\t^",
+    "tools/gomad3/runner/internal/execution/launch_plan_unix.go:321:2: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\tpanic(fmt.Sprintf(\"unknown descriptor resource %q\", resource))\n\t^",
+    "tools/gomad3/runner/internal/execution/process.go:152:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World record and transition limits must be positive\")\n\t\t       ^",
+    "tools/gomad3/runner/internal/execution/process_unix.go:722:18: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn result, fmt.Errorf(\"World child record exceeded its configured bound\")\n\t\t               ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:45:46: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn world.Snapshot{}, world.Snapshot{}, fmt.Errorf(\"World transition count mismatch\")\n\t\t                                           ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:56:46: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn world.Snapshot{}, world.Snapshot{}, fmt.Errorf(\"World semantic or transition identity mismatch\")\n\t\t                                           ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:84:20: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Bundle{}, fmt.Errorf(\"World transition limit must be positive\")\n\t\t                 ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:147:20: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Bundle{}, fmt.Errorf(\"World transition payload requires %d bytes, limit is %d\", len(transitionBytes), transitionLimit)\n\t\t                 ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:188:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World quiescence terminal has detail\")\n\t\t\t       ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:192:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World error terminal omitted detail\")\n\t\t\t       ^",
+    "tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World seed does not match target seed\")\n\t\t            ^",
+    "tools/gomad3/runner/runner.go:401:33: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn SeedSelection{}, nil, fmt.Errorf(\"Runner build identity is required for campaign resume\")\n\t\t\t                             ^",
+    "tools/gomad3/target/internal/build/context.go:40:21: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Context{}, fmt.Errorf(\"Go target package %s is not a directory\", source)\n\t\t                  ^",
+    "tools/gomad3/target/internal/build/context.go:59:20: ST1005: error strings should not be capitalized (staticcheck)\n\treturn Context{}, fmt.Errorf(\"Go target package %s has no owning go.mod\", source)\n\t                  ^",
+    "tools/gomad3/world/mailbox/mailbox.go:115:31: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn world.Quiescence{}, fmt.Errorf(\"World delivered unknown mailbox event %d\", delivery.EventID)\n\t\t\t                           ^",
+    "tools/gomad3/world/mailbox/mailbox.go:132:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn Snapshot{}, fmt.Errorf(\"World contains an incompatible mailbox-owned request %d\", request.ID)\n\t\t\t                   ^",
+    "tools/gomad3/world/process/config.go:28:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World transition limit must be positive\")\n\t\t            ^",
+    "tools/gomad3/world/process/session.go:28:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World child session requires a World\")\n\t\t            ^",
+    "tools/gomad3/world/process/session.go:40:27: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, errors.Join(fmt.Errorf(\"World child file descriptors are unavailable\"), cleanupErr)\n\t\t                        ^",
+    "tools/gomad3/world/process/session.go:58:27: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, errors.Join(fmt.Errorf(\"World seed does not match the execution configuration\"), output.Close())\n\t\t                        ^",
+    "tools/gomad3/world/process/session.go:108:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal error is required\")\n\t\t       ^",
+    "tools/gomad3/world/process/session.go:115:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World child session is invalid\")\n\t\t       ^",
+    "tools/gomad3/world/process/session.go:146:22: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.Join(fmt.Errorf(\"World recording omitted its header\"), session.output.Close())\n\t\t                   ^",
+    "tools/gomad3/world/recording.go:64:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World recording is already active\")\n\t\t            ^",
+    "tools/gomad3/world/recording.go:80:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World terminal error is required\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:95:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World error terminal kind is required\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:102:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recorder is invalid\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:107:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recorder is not active\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:121:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recording byte accounting changed\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:148:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World quiescence terminal has error detail\")\n\t\t\t       ^",
+    "tools/gomad3/world/recording.go:152:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World error terminal omitted detail\")\n\t\t\t       ^",
+    "tools/gomad3/world/recording.go:175:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal has no matching quiescence transition\")\n\t\t       ^",
+    "tools/gomad3/world/recording.go:179:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal does not match the final quiescence transition\")\n\t\t       ^",
+    "tools/gomad3/world/recording.go:228:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World recording exceeds its size bound\")\n\t\t            ^",
+    "tools/gomad3/world/replay.go:62:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World replay plan exceeds its bound\")\n\t\t            ^",
+    "tools/gomad3/world/replay.go:69:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan exceeds its bound\")\n\t\t                     ^",
+    "tools/gomad3/world/replay.go:72:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan is not valid UTF-8\")\n\t\t                     ^",
+    "tools/gomad3/world/replay.go:94:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan is not canonical\")\n\t\t                     ^",
+    "tools/gomad3/world/world.go:202:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(\"invalid request state\")\n\t\t^",
+    "tools/gomad3/world/world.go:216:5: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\t\t\tpanic(\"queued request has no queued event\")\n\t\t\t\t^"
+  ],
+  "baseline_log_sha256": "58f7d66a25f2f336a8aa2defe1f199e029a4013e8f53688a3a6cf4485024b095",
+  "comparison_valid": true,
+  "current_count": 50,
+  "current_full_blocks": [
+    "tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Sprintf(\"artifact manifest cannot copy a %s field\", source.Kind()))\n\t\t^",
+    "tools/gomad3/artifact/publication.go:39:22: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Artifact{}, errors.New(\"World payload paths must use the canonical artifact layout\")\n\t\t                   ^",
+    "tools/gomad3/cmd/gomad/internal/cli/application.go:187:14: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)\n\t\t           ^",
+    "tools/gomad3/deterministicio/profile.go:211:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Errorf(\"encode deterministic I/O inventory: %w\", err))\n\t\t^",
+    "tools/gomad3/internal/compatibilitypack/schema.go:275:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source inventory is not sorted and unique\")\n\t\t       ^",
+    "tools/gomad3/internal/compatibilitypack/schema.go:316:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source name is invalid\")\n\t\t       ^",
+    "tools/gomad3/internal/compatibilitypack/schema.go:319:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"Go source identity is invalid: %w\", err)\n\t\t       ^",
+    "tools/gomad3/runner/campaign.go:11:4: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\t\tpanic(\"gomad3: duplicate execution completion\")\n\t\t\t^",
+    "tools/gomad3/runner/campaign.go:25:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(\"gomad3: execution completion order has an unresolved gap\")\n\t\t^",
+    "tools/gomad3/runner/completion.go:39:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\terr = fmt.Errorf(\"World record seed or schema does not match seed %d\", seed)\n\t\t\t      ^",
+    "tools/gomad3/runner/inspect.go:647:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d\", kind))\n\t\t^",
+    "tools/gomad3/runner/internal/execution/launch_plan_unix.go:321:2: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\tpanic(fmt.Sprintf(\"unknown descriptor resource %q\", resource))\n\t^",
+    "tools/gomad3/runner/internal/execution/process.go:152:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World record and transition limits must be positive\")\n\t\t       ^",
+    "tools/gomad3/runner/internal/execution/process_unix.go:722:18: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn result, fmt.Errorf(\"World child record exceeded its configured bound\")\n\t\t               ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:45:46: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn world.Snapshot{}, world.Snapshot{}, fmt.Errorf(\"World transition count mismatch\")\n\t\t                                           ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:56:46: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn world.Snapshot{}, world.Snapshot{}, fmt.Errorf(\"World semantic or transition identity mismatch\")\n\t\t                                           ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:84:20: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Bundle{}, fmt.Errorf(\"World transition limit must be positive\")\n\t\t                 ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:147:20: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Bundle{}, fmt.Errorf(\"World transition payload requires %d bytes, limit is %d\", len(transitionBytes), transitionLimit)\n\t\t                 ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:188:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World quiescence terminal has detail\")\n\t\t\t       ^",
+    "tools/gomad3/runner/internal/execution/worldrecord.go:192:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World error terminal omitted detail\")\n\t\t\t       ^",
+    "tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World seed does not match target seed\")\n\t\t            ^",
+    "tools/gomad3/runner/runner.go:401:33: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn SeedSelection{}, nil, fmt.Errorf(\"Runner build identity is required for campaign resume\")\n\t\t\t                             ^",
+    "tools/gomad3/target/internal/build/context.go:40:21: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Context{}, fmt.Errorf(\"Go target package %s is not a directory\", source)\n\t\t                  ^",
+    "tools/gomad3/target/internal/build/context.go:59:20: ST1005: error strings should not be capitalized (staticcheck)\n\treturn Context{}, fmt.Errorf(\"Go target package %s has no owning go.mod\", source)\n\t                  ^",
+    "tools/gomad3/world/mailbox/mailbox.go:115:31: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn world.Quiescence{}, fmt.Errorf(\"World delivered unknown mailbox event %d\", delivery.EventID)\n\t\t\t                           ^",
+    "tools/gomad3/world/mailbox/mailbox.go:132:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn Snapshot{}, fmt.Errorf(\"World contains an incompatible mailbox-owned request %d\", request.ID)\n\t\t\t                   ^",
+    "tools/gomad3/world/process/config.go:28:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World transition limit must be positive\")\n\t\t            ^",
+    "tools/gomad3/world/process/session.go:28:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World child session requires a World\")\n\t\t            ^",
+    "tools/gomad3/world/process/session.go:40:27: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, errors.Join(fmt.Errorf(\"World child file descriptors are unavailable\"), cleanupErr)\n\t\t                        ^",
+    "tools/gomad3/world/process/session.go:58:27: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, errors.Join(fmt.Errorf(\"World seed does not match the execution configuration\"), output.Close())\n\t\t                        ^",
+    "tools/gomad3/world/process/session.go:108:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal error is required\")\n\t\t       ^",
+    "tools/gomad3/world/process/session.go:115:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World child session is invalid\")\n\t\t       ^",
+    "tools/gomad3/world/process/session.go:146:22: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.Join(fmt.Errorf(\"World recording omitted its header\"), session.output.Close())\n\t\t                   ^",
+    "tools/gomad3/world/recording.go:64:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World recording is already active\")\n\t\t            ^",
+    "tools/gomad3/world/recording.go:80:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World terminal error is required\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:95:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World error terminal kind is required\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:102:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recorder is invalid\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:107:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recorder is not active\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:121:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recording byte accounting changed\")\n\t\t                    ^",
+    "tools/gomad3/world/recording.go:148:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World quiescence terminal has error detail\")\n\t\t\t       ^",
+    "tools/gomad3/world/recording.go:152:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World error terminal omitted detail\")\n\t\t\t       ^",
+    "tools/gomad3/world/recording.go:175:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal has no matching quiescence transition\")\n\t\t       ^",
+    "tools/gomad3/world/recording.go:179:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal does not match the final quiescence transition\")\n\t\t       ^",
+    "tools/gomad3/world/recording.go:228:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World recording exceeds its size bound\")\n\t\t            ^",
+    "tools/gomad3/world/replay.go:62:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World replay plan exceeds its bound\")\n\t\t            ^",
+    "tools/gomad3/world/replay.go:69:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan exceeds its bound\")\n\t\t                     ^",
+    "tools/gomad3/world/replay.go:72:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan is not valid UTF-8\")\n\t\t                     ^",
+    "tools/gomad3/world/replay.go:94:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan is not canonical\")\n\t\t                     ^",
+    "tools/gomad3/world/world.go:202:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(\"invalid request state\")\n\t\t^",
+    "tools/gomad3/world/world.go:216:5: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\t\t\tpanic(\"queued request has no queued event\")\n\t\t\t\t^"
+  ],
+  "current_log_sha256": "ea4c5ef9740f766987f618011eafb5cac0f1bd2c16e9ee9c1280cd5bdd3c5148",
+  "exact_source_line_mappings": [],
+  "integrated_errortype_disposition": "unreached when make stops at golangci recipe; otherwise no separate invocation trace",
+  "integrated_errortype_reached": false,
+  "introduced": [],
+  "lint_source_mapping_reference": "b4047ac5451693e01b0fc220b58650b600fddcca",
+  "mapping_gaps": [],
+  "preserved": [
+    {
+      "after": "tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Sprintf(\"artifact manifest cannot copy a %s field\", source.Kind()))\n\t\t^",
+      "before": "tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Sprintf(\"artifact manifest cannot copy a %s field\", source.Kind()))\n\t\t^"
+    },
+    {
+      "after": "tools/gomad3/artifact/publication.go:39:22: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Artifact{}, errors.New(\"World payload paths must use the canonical artifact layout\")\n\t\t                   ^",
+      "before": "tools/gomad3/artifact/publication.go:39:22: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Artifact{}, errors.New(\"World payload paths must use the canonical artifact layout\")\n\t\t                   ^"
+    },
+    {
+      "after": "tools/gomad3/cmd/gomad/internal/cli/application.go:187:14: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)\n\t\t           ^",
+      "before": "tools/gomad3/cmd/gomad/internal/cli/application.go:187:14: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)\n\t\t           ^"
+    },
+    {
+      "after": "tools/gomad3/deterministicio/profile.go:211:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Errorf(\"encode deterministic I/O inventory: %w\", err))\n\t\t^",
+      "before": "tools/gomad3/deterministicio/profile.go:211:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Errorf(\"encode deterministic I/O inventory: %w\", err))\n\t\t^"
+    },
+    {
+      "after": "tools/gomad3/internal/compatibilitypack/schema.go:275:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source inventory is not sorted and unique\")\n\t\t       ^",
+      "before": "tools/gomad3/internal/compatibilitypack/schema.go:275:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source inventory is not sorted and unique\")\n\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/internal/compatibilitypack/schema.go:316:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source name is invalid\")\n\t\t       ^",
+      "before": "tools/gomad3/internal/compatibilitypack/schema.go:316:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source name is invalid\")\n\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/internal/compatibilitypack/schema.go:319:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"Go source identity is invalid: %w\", err)\n\t\t       ^",
+      "before": "tools/gomad3/internal/compatibilitypack/schema.go:319:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"Go source identity is invalid: %w\", err)\n\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/runner/campaign.go:11:4: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\t\tpanic(\"gomad3: duplicate execution completion\")\n\t\t\t^",
+      "before": "tools/gomad3/runner/campaign.go:11:4: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\t\tpanic(\"gomad3: duplicate execution completion\")\n\t\t\t^"
+    },
+    {
+      "after": "tools/gomad3/runner/campaign.go:25:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(\"gomad3: execution completion order has an unresolved gap\")\n\t\t^",
+      "before": "tools/gomad3/runner/campaign.go:25:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(\"gomad3: execution completion order has an unresolved gap\")\n\t\t^"
+    },
+    {
+      "after": "tools/gomad3/runner/completion.go:39:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\terr = fmt.Errorf(\"World record seed or schema does not match seed %d\", seed)\n\t\t\t      ^",
+      "before": "tools/gomad3/runner/completion.go:39:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\terr = fmt.Errorf(\"World record seed or schema does not match seed %d\", seed)\n\t\t\t      ^"
+    },
+    {
+      "after": "tools/gomad3/runner/inspect.go:647:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d\", kind))\n\t\t^",
+      "before": "tools/gomad3/runner/inspect.go:647:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d\", kind))\n\t\t^"
+    },
+    {
+      "after": "tools/gomad3/runner/internal/execution/launch_plan_unix.go:321:2: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\tpanic(fmt.Sprintf(\"unknown descriptor resource %q\", resource))\n\t^",
+      "before": "tools/gomad3/runner/internal/execution/launch_plan_unix.go:321:2: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\tpanic(fmt.Sprintf(\"unknown descriptor resource %q\", resource))\n\t^"
+    },
+    {
+      "after": "tools/gomad3/runner/internal/execution/process.go:152:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World record and transition limits must be positive\")\n\t\t       ^",
+      "before": "tools/gomad3/runner/internal/execution/process.go:152:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World record and transition limits must be positive\")\n\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/runner/internal/execution/process_unix.go:722:18: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn result, fmt.Errorf(\"World child record exceeded its configured bound\")\n\t\t               ^",
+      "before": "tools/gomad3/runner/internal/execution/process_unix.go:722:18: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn result, fmt.Errorf(\"World child record exceeded its configured bound\")\n\t\t               ^"
+    },
+    {
+      "after": "tools/gomad3/runner/internal/execution/worldrecord.go:45:46: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn world.Snapshot{}, world.Snapshot{}, fmt.Errorf(\"World transition count mismatch\")\n\t\t                                           ^",
+      "before": "tools/gomad3/runner/internal/execution/worldrecord.go:45:46: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn world.Snapshot{}, world.Snapshot{}, fmt.Errorf(\"World transition count mismatch\")\n\t\t                                           ^"
+    },
+    {
+      "after": "tools/gomad3/runner/internal/execution/worldrecord.go:56:46: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn world.Snapshot{}, world.Snapshot{}, fmt.Errorf(\"World semantic or transition identity mismatch\")\n\t\t                                           ^",
+      "before": "tools/gomad3/runner/internal/execution/worldrecord.go:56:46: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn world.Snapshot{}, world.Snapshot{}, fmt.Errorf(\"World semantic or transition identity mismatch\")\n\t\t                                           ^"
+    },
+    {
+      "after": "tools/gomad3/runner/internal/execution/worldrecord.go:84:20: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Bundle{}, fmt.Errorf(\"World transition limit must be positive\")\n\t\t                 ^",
+      "before": "tools/gomad3/runner/internal/execution/worldrecord.go:84:20: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Bundle{}, fmt.Errorf(\"World transition limit must be positive\")\n\t\t                 ^"
+    },
+    {
+      "after": "tools/gomad3/runner/internal/execution/worldrecord.go:147:20: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Bundle{}, fmt.Errorf(\"World transition payload requires %d bytes, limit is %d\", len(transitionBytes), transitionLimit)\n\t\t                 ^",
+      "before": "tools/gomad3/runner/internal/execution/worldrecord.go:147:20: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Bundle{}, fmt.Errorf(\"World transition payload requires %d bytes, limit is %d\", len(transitionBytes), transitionLimit)\n\t\t                 ^"
+    },
+    {
+      "after": "tools/gomad3/runner/internal/execution/worldrecord.go:188:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World quiescence terminal has detail\")\n\t\t\t       ^",
+      "before": "tools/gomad3/runner/internal/execution/worldrecord.go:188:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World quiescence terminal has detail\")\n\t\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/runner/internal/execution/worldrecord.go:192:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World error terminal omitted detail\")\n\t\t\t       ^",
+      "before": "tools/gomad3/runner/internal/execution/worldrecord.go:192:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World error terminal omitted detail\")\n\t\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World seed does not match target seed\")\n\t\t            ^",
+      "before": "tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World seed does not match target seed\")\n\t\t            ^"
+    },
+    {
+      "after": "tools/gomad3/runner/runner.go:401:33: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn SeedSelection{}, nil, fmt.Errorf(\"Runner build identity is required for campaign resume\")\n\t\t\t                             ^",
+      "before": "tools/gomad3/runner/runner.go:401:33: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn SeedSelection{}, nil, fmt.Errorf(\"Runner build identity is required for campaign resume\")\n\t\t\t                             ^"
+    },
+    {
+      "after": "tools/gomad3/target/internal/build/context.go:40:21: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Context{}, fmt.Errorf(\"Go target package %s is not a directory\", source)\n\t\t                  ^",
+      "before": "tools/gomad3/target/internal/build/context.go:40:21: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Context{}, fmt.Errorf(\"Go target package %s is not a directory\", source)\n\t\t                  ^"
+    },
+    {
+      "after": "tools/gomad3/target/internal/build/context.go:59:20: ST1005: error strings should not be capitalized (staticcheck)\n\treturn Context{}, fmt.Errorf(\"Go target package %s has no owning go.mod\", source)\n\t                  ^",
+      "before": "tools/gomad3/target/internal/build/context.go:59:20: ST1005: error strings should not be capitalized (staticcheck)\n\treturn Context{}, fmt.Errorf(\"Go target package %s has no owning go.mod\", source)\n\t                  ^"
+    },
+    {
+      "after": "tools/gomad3/world/mailbox/mailbox.go:115:31: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn world.Quiescence{}, fmt.Errorf(\"World delivered unknown mailbox event %d\", delivery.EventID)\n\t\t\t                           ^",
+      "before": "tools/gomad3/world/mailbox/mailbox.go:115:31: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn world.Quiescence{}, fmt.Errorf(\"World delivered unknown mailbox event %d\", delivery.EventID)\n\t\t\t                           ^"
+    },
+    {
+      "after": "tools/gomad3/world/mailbox/mailbox.go:132:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn Snapshot{}, fmt.Errorf(\"World contains an incompatible mailbox-owned request %d\", request.ID)\n\t\t\t                   ^",
+      "before": "tools/gomad3/world/mailbox/mailbox.go:132:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn Snapshot{}, fmt.Errorf(\"World contains an incompatible mailbox-owned request %d\", request.ID)\n\t\t\t                   ^"
+    },
+    {
+      "after": "tools/gomad3/world/process/config.go:28:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World transition limit must be positive\")\n\t\t            ^",
+      "before": "tools/gomad3/world/process/config.go:28:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World transition limit must be positive\")\n\t\t            ^"
+    },
+    {
+      "after": "tools/gomad3/world/process/session.go:28:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World child session requires a World\")\n\t\t            ^",
+      "before": "tools/gomad3/world/process/session.go:28:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World child session requires a World\")\n\t\t            ^"
+    },
+    {
+      "after": "tools/gomad3/world/process/session.go:40:27: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, errors.Join(fmt.Errorf(\"World child file descriptors are unavailable\"), cleanupErr)\n\t\t                        ^",
+      "before": "tools/gomad3/world/process/session.go:40:27: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, errors.Join(fmt.Errorf(\"World child file descriptors are unavailable\"), cleanupErr)\n\t\t                        ^"
+    },
+    {
+      "after": "tools/gomad3/world/process/session.go:58:27: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, errors.Join(fmt.Errorf(\"World seed does not match the execution configuration\"), output.Close())\n\t\t                        ^",
+      "before": "tools/gomad3/world/process/session.go:58:27: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, errors.Join(fmt.Errorf(\"World seed does not match the execution configuration\"), output.Close())\n\t\t                        ^"
+    },
+    {
+      "after": "tools/gomad3/world/process/session.go:108:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal error is required\")\n\t\t       ^",
+      "before": "tools/gomad3/world/process/session.go:108:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal error is required\")\n\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/world/process/session.go:115:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World child session is invalid\")\n\t\t       ^",
+      "before": "tools/gomad3/world/process/session.go:115:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World child session is invalid\")\n\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/world/process/session.go:146:22: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.Join(fmt.Errorf(\"World recording omitted its header\"), session.output.Close())\n\t\t                   ^",
+      "before": "tools/gomad3/world/process/session.go:146:22: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.Join(fmt.Errorf(\"World recording omitted its header\"), session.output.Close())\n\t\t                   ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:64:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World recording is already active\")\n\t\t            ^",
+      "before": "tools/gomad3/world/recording.go:64:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World recording is already active\")\n\t\t            ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:80:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World terminal error is required\")\n\t\t                    ^",
+      "before": "tools/gomad3/world/recording.go:80:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World terminal error is required\")\n\t\t                    ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:95:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World error terminal kind is required\")\n\t\t                    ^",
+      "before": "tools/gomad3/world/recording.go:95:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World error terminal kind is required\")\n\t\t                    ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:102:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recorder is invalid\")\n\t\t                    ^",
+      "before": "tools/gomad3/world/recording.go:102:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recorder is invalid\")\n\t\t                    ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:107:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recorder is not active\")\n\t\t                    ^",
+      "before": "tools/gomad3/world/recording.go:107:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recorder is not active\")\n\t\t                    ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:121:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recording byte accounting changed\")\n\t\t                    ^",
+      "before": "tools/gomad3/world/recording.go:121:23: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn Recording{}, fmt.Errorf(\"World recording byte accounting changed\")\n\t\t                    ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:148:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World quiescence terminal has error detail\")\n\t\t\t       ^",
+      "before": "tools/gomad3/world/recording.go:148:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World quiescence terminal has error detail\")\n\t\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:152:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World error terminal omitted detail\")\n\t\t\t       ^",
+      "before": "tools/gomad3/world/recording.go:152:11: ST1005: error strings should not be capitalized (staticcheck)\n\t\t\treturn fmt.Errorf(\"World error terminal omitted detail\")\n\t\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:175:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal has no matching quiescence transition\")\n\t\t       ^",
+      "before": "tools/gomad3/world/recording.go:175:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal has no matching quiescence transition\")\n\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:179:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal does not match the final quiescence transition\")\n\t\t       ^",
+      "before": "tools/gomad3/world/recording.go:179:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"World terminal does not match the final quiescence transition\")\n\t\t       ^"
+    },
+    {
+      "after": "tools/gomad3/world/recording.go:228:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World recording exceeds its size bound\")\n\t\t            ^",
+      "before": "tools/gomad3/world/recording.go:228:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World recording exceeds its size bound\")\n\t\t            ^"
+    },
+    {
+      "after": "tools/gomad3/world/replay.go:62:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World replay plan exceeds its bound\")\n\t\t            ^",
+      "before": "tools/gomad3/world/replay.go:62:15: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn nil, fmt.Errorf(\"World replay plan exceeds its bound\")\n\t\t            ^"
+    },
+    {
+      "after": "tools/gomad3/world/replay.go:69:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan exceeds its bound\")\n\t\t                     ^",
+      "before": "tools/gomad3/world/replay.go:69:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan exceeds its bound\")\n\t\t                     ^"
+    },
+    {
+      "after": "tools/gomad3/world/replay.go:72:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan is not valid UTF-8\")\n\t\t                     ^",
+      "before": "tools/gomad3/world/replay.go:72:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan is not valid UTF-8\")\n\t\t                     ^"
+    },
+    {
+      "after": "tools/gomad3/world/replay.go:94:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan is not canonical\")\n\t\t                     ^",
+      "before": "tools/gomad3/world/replay.go:94:24: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn ReplayPlan{}, fmt.Errorf(\"World replay plan is not canonical\")\n\t\t                     ^"
+    },
+    {
+      "after": "tools/gomad3/world/world.go:202:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(\"invalid request state\")\n\t\t^",
+      "before": "tools/gomad3/world/world.go:202:3: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\tpanic(\"invalid request state\")\n\t\t^"
+    },
+    {
+      "after": "tools/gomad3/world/world.go:216:5: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\t\t\tpanic(\"queued request has no queued event\")\n\t\t\t\t^",
+      "before": "tools/gomad3/world/world.go:216:5: use of `panic` forbidden because \"Please avoid using panic in application code\" (forbidigo)\n\t\t\t\tpanic(\"queued request has no queued event\")\n\t\t\t\t^"
+    }
+  ],
+  "removed": [],
+  "retained_source_manifest_sha256": "d73b8d89ebd7a9435cf1b2885d6ac832bd0ed559af4a8eebb27ab65bea4304d6",
+  "source_mapping_input_sha256": {
+    "tools/gomad3/artifact/manifest_copy.go": {
+      "current_sha256": "f1dad686d9f2fc59ebde1f0f484bafa6dcfad7fb1f84d1d3fe7878eeb44d7dae",
+      "reference_sha256": "f1dad686d9f2fc59ebde1f0f484bafa6dcfad7fb1f84d1d3fe7878eeb44d7dae",
+      "retained_combined70_source_sha256": "f1dad686d9f2fc59ebde1f0f484bafa6dcfad7fb1f84d1d3fe7878eeb44d7dae"
+    },
+    "tools/gomad3/artifact/publication.go": {
+      "current_sha256": "44d9d007b0b09397654e62e24596f8321e14366a6797a6f31fc63ec1fb827671",
+      "reference_sha256": "44d9d007b0b09397654e62e24596f8321e14366a6797a6f31fc63ec1fb827671",
+      "retained_combined70_source_sha256": "44d9d007b0b09397654e62e24596f8321e14366a6797a6f31fc63ec1fb827671"
+    },
+    "tools/gomad3/cmd/gomad/internal/cli/application.go": {
+      "current_sha256": "76845acd589505a1023a575416e2eb0e67ec4f56e7512b76ce14b73fb0e46d51",
+      "reference_sha256": "76845acd589505a1023a575416e2eb0e67ec4f56e7512b76ce14b73fb0e46d51",
+      "retained_combined70_source_sha256": "76845acd589505a1023a575416e2eb0e67ec4f56e7512b76ce14b73fb0e46d51"
+    },
+    "tools/gomad3/deterministicio/profile.go": {
+      "current_sha256": "d068900a3b76bc91e5b94f0d67e00e67e225c50c0f3d23cbf92ce992ef0c5f21",
+      "reference_sha256": "d068900a3b76bc91e5b94f0d67e00e67e225c50c0f3d23cbf92ce992ef0c5f21",
+      "retained_combined70_source_sha256": "d068900a3b76bc91e5b94f0d67e00e67e225c50c0f3d23cbf92ce992ef0c5f21"
+    },
+    "tools/gomad3/internal/compatibilitypack/schema.go": {
+      "current_sha256": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed",
+      "reference_sha256": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed",
+      "retained_combined70_source_sha256": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed"
+    },
+    "tools/gomad3/runner/campaign.go": {
+      "current_sha256": "f76d2c59da4fc899587c5ef4f048cecdde608589cd332dd85d0ee149a93d83e9",
+      "reference_sha256": "f76d2c59da4fc899587c5ef4f048cecdde608589cd332dd85d0ee149a93d83e9",
+      "retained_combined70_source_sha256": "f76d2c59da4fc899587c5ef4f048cecdde608589cd332dd85d0ee149a93d83e9"
+    },
+    "tools/gomad3/runner/completion.go": {
+      "current_sha256": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5",
+      "reference_sha256": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5",
+      "retained_combined70_source_sha256": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5"
+    },
+    "tools/gomad3/runner/inspect.go": {
+      "current_sha256": "94d69de99dbb7a30c9a307dfd4a2e51b35f24b49aaf0ae0d1da5f77766af7359",
+      "reference_sha256": "94d69de99dbb7a30c9a307dfd4a2e51b35f24b49aaf0ae0d1da5f77766af7359",
+      "retained_combined70_source_sha256": "94d69de99dbb7a30c9a307dfd4a2e51b35f24b49aaf0ae0d1da5f77766af7359"
+    },
+    "tools/gomad3/runner/internal/execution/launch_plan_unix.go": {
+      "current_sha256": "52e6c04e83e59be86ca580aa700130108280d65fdcb33da8f47e5082e69bf964",
+      "reference_sha256": "52e6c04e83e59be86ca580aa700130108280d65fdcb33da8f47e5082e69bf964",
+      "retained_combined70_source_sha256": "52e6c04e83e59be86ca580aa700130108280d65fdcb33da8f47e5082e69bf964"
+    },
+    "tools/gomad3/runner/internal/execution/process.go": {
+      "current_sha256": "b86a0493baac035cf932787853899a112469c9f3708746b29d6cc3af68e4e4a0",
+      "reference_sha256": "b86a0493baac035cf932787853899a112469c9f3708746b29d6cc3af68e4e4a0",
+      "retained_combined70_source_sha256": "b86a0493baac035cf932787853899a112469c9f3708746b29d6cc3af68e4e4a0"
+    },
+    "tools/gomad3/runner/internal/execution/process_unix.go": {
+      "current_sha256": "388f3756e72b11c5e52bc7c71911f04816af2a308d9b83966ce1c72138674df6",
+      "reference_sha256": "388f3756e72b11c5e52bc7c71911f04816af2a308d9b83966ce1c72138674df6",
+      "retained_combined70_source_sha256": "388f3756e72b11c5e52bc7c71911f04816af2a308d9b83966ce1c72138674df6"
+    },
+    "tools/gomad3/runner/internal/execution/worldrecord.go": {
+      "current_sha256": "45f18b3c145cb0ce36dd837c3f837b6d3bec26f4c44eb427b5749232538eb882",
+      "reference_sha256": "45f18b3c145cb0ce36dd837c3f837b6d3bec26f4c44eb427b5749232538eb882",
+      "retained_combined70_source_sha256": "45f18b3c145cb0ce36dd837c3f837b6d3bec26f4c44eb427b5749232538eb882"
+    },
+    "tools/gomad3/runner/replay_operation.go": {
+      "current_sha256": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49",
+      "reference_sha256": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49",
+      "retained_combined70_source_sha256": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49"
+    },
+    "tools/gomad3/runner/runner.go": {
+      "current_sha256": "dcfe7f2d14c4bbddba89bf536a010eddd2b690e6b47f0aecc5bc2a800664160e",
+      "reference_sha256": "dcfe7f2d14c4bbddba89bf536a010eddd2b690e6b47f0aecc5bc2a800664160e",
+      "retained_combined70_source_sha256": "dcfe7f2d14c4bbddba89bf536a010eddd2b690e6b47f0aecc5bc2a800664160e"
+    },
+    "tools/gomad3/target/internal/build/context.go": {
+      "current_sha256": "c998794068b981697124b63a8a8c544bc678d08bdb94e6873ae6cfc5356febed",
+      "reference_sha256": "c998794068b981697124b63a8a8c544bc678d08bdb94e6873ae6cfc5356febed",
+      "retained_combined70_source_sha256": "c998794068b981697124b63a8a8c544bc678d08bdb94e6873ae6cfc5356febed"
+    },
+    "tools/gomad3/world/mailbox/mailbox.go": {
+      "current_sha256": "3bc2d360dab408f4486a5df47b6618057f7aee7b0b3071e3a112cfdc9d896818",
+      "reference_sha256": "3bc2d360dab408f4486a5df47b6618057f7aee7b0b3071e3a112cfdc9d896818",
+      "retained_combined70_source_sha256": "3bc2d360dab408f4486a5df47b6618057f7aee7b0b3071e3a112cfdc9d896818"
+    },
+    "tools/gomad3/world/process/config.go": {
+      "current_sha256": "60310264d60091ae2ee9d6f13521fb976f7ca4fb54a740b78a3bd4584af06454",
+      "reference_sha256": "60310264d60091ae2ee9d6f13521fb976f7ca4fb54a740b78a3bd4584af06454",
+      "retained_combined70_source_sha256": "60310264d60091ae2ee9d6f13521fb976f7ca4fb54a740b78a3bd4584af06454"
+    },
+    "tools/gomad3/world/process/session.go": {
+      "current_sha256": "cce3686d15374f697ae063bba9a3c748a888a33ce9a4eae56f33690e1a257ae7",
+      "reference_sha256": "cce3686d15374f697ae063bba9a3c748a888a33ce9a4eae56f33690e1a257ae7",
+      "retained_combined70_source_sha256": "cce3686d15374f697ae063bba9a3c748a888a33ce9a4eae56f33690e1a257ae7"
+    },
+    "tools/gomad3/world/recording.go": {
+      "current_sha256": "fc00c9af42ebb2cb74fa593b9c026205a2df19bf4634e99a532f697c7fb4fc27",
+      "reference_sha256": "fc00c9af42ebb2cb74fa593b9c026205a2df19bf4634e99a532f697c7fb4fc27",
+      "retained_combined70_source_sha256": "fc00c9af42ebb2cb74fa593b9c026205a2df19bf4634e99a532f697c7fb4fc27"
+    },
+    "tools/gomad3/world/replay.go": {
+      "current_sha256": "3e32d751adb715f3ae1c3d0e66fdd40f05946ca77d251fb0c7ade417cde302ee",
+      "reference_sha256": "3e32d751adb715f3ae1c3d0e66fdd40f05946ca77d251fb0c7ade417cde302ee",
+      "retained_combined70_source_sha256": "3e32d751adb715f3ae1c3d0e66fdd40f05946ca77d251fb0c7ade417cde302ee"
+    },
+    "tools/gomad3/world/world.go": {
+      "current_sha256": "5de21e439b3f04aa8bb9dc44b6ce21c95b556952fb4b70d98f403dbb2d4b68c6",
+      "reference_sha256": "5de21e439b3f04aa8bb9dc44b6ce21c95b556952fb4b70d98f403dbb2d4b68c6",
+      "retained_combined70_source_sha256": "5de21e439b3f04aa8bb9dc44b6ce21c95b556952fb4b70d98f403dbb2d4b68c6"
+    }
+  },
+  "unadmitted_removed_full_blocks": []
+}

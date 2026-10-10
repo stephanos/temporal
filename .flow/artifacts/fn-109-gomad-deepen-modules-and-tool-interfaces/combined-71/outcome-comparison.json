@@ -1,0 +1,387 @@
+{
+  "admitted_original_names": [
+    "TestCancellationIsAHostFailure",
+    "TestCancellationIsAHostFailure/choice-exploration",
+    "TestCancellationIsAHostFailure/seed",
+    "TestCancellationIsAHostFailure/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/simulation-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/choice-exploration",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/seed",
+    "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/simulation-exploration",
+    "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy",
+    "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/choice-exploration",
+    "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/seed",
+    "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/simulation-exploration"
+  ],
+  "baseline_counts": {
+    "fail": 240,
+    "pass": 421,
+    "skip": 12
+  },
+  "baseline_log_sha256": "5c51d0d093fa218cb42d26b30bcb5c039c30c63272144f0a3ca59db2f3f28089",
+  "baseline_non_json_lines": [],
+  "comparison_requirement": "Exactly the 60 listed emitted original parent/child names change fail to pass; all 673 original names remain present; no new names or other outcome changes are admitted.",
+  "comparison_valid": true,
+  "current_counts": {
+    "fail": 180,
+    "pass": 481,
+    "skip": 12
+  },
+  "current_log_sha256": "cabf7ee75f4dc67c22c4accbff811ceb4b27ed73266f58482e3fdad435107380",
+  "current_non_json_lines": [],
+  "missing_original_outcomes": [],
+  "new_control_outcomes": {},
+  "newly_reached_original_subtests": {},
+  "original_changes": [
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCancellationIsAHostFailure"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCancellationIsAHostFailure/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCancellationIsAHostFailure/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCancellationIsAHostFailure/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/simulation-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/choice-exploration"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/seed"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/simulation-exploration"
+    }
+  ],
+  "unadmitted_newly_reached_original_subtests": {},
+  "unadmitted_original_changes": []
+}
