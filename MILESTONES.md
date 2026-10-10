@@ -289,8 +289,10 @@ documentation and disjoint conversion work may run in parallel. Task 6 joins the
 #### fn-149: Safety and liveness groups for object properties
 
 [Spec](.flow/specs/fn-149-safety-and-liveness-groups-for-object.md) has five M tasks covering all six
-criteria. Its refreshed plan passed independent review on 2026-10-10; implementation is not started.
-It follows fn-140's witness seal, before fault work, and shares closure at fn-123.8.
+criteria. Its refreshed plan passed independent review on 2026-10-10. The independent Go report
+lane (.3) is admitted as work-ahead on a pinned integrated baseline; it changes no Scala,
+schema or managed artifact. Grouping integration follows fn-140's witness seal, before fault
+work, and closure remains shared at fn-123.8.
 
 Split authored claims into `properties.safety` and `properties.liveness`, enforce declaration kinds,
 and carry the distinction into existing diagnostics and reports. Liveness retains explicit bounds
@@ -304,7 +306,7 @@ linked at fn-123.8, even after its committed source seal releases fault implemen
 | --- | --- | --- |
 | fn-149.1 | ⬜ todo | Group discovery and independent runtime/lifter registration proof |
 | fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
-| fn-149.3 | ⬜ todo | Derived safety/liveness classification in existing reports |
+| fn-149.3 | 🔄 in progress | Derived safety/liveness classification and distinct claim/search bounds; independent Go reporting work-ahead |
 | fn-149.4 | ⬜ todo | Model/capability migration with complete independent behavior and identity seal |
 | fn-149.5 | ⬜ todo | Author docs and final grouping seal before fn-123; shared gate/review/live close at fn-123.8 |
 
