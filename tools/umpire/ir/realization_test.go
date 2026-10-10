@@ -382,7 +382,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		}, "command start-nexus-operation of script workflow: temporal.api.command.v1.Command sets command_type twice"},
 		{"a deadline below zero", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			admCommand(t, admScript(t, r, "controller"), "await-close").Timeout = elapsedFixture(-1)
-		}, "command await-close of script controller has a deadline of -1 milliseconds"},
+		}, "command await-close of script controller.timeout: Duration must be nonnegative"},
 		// Evidence fields and the identities they name.
 		{"an evidence field with no id", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Fields = []*umpirespb.EvidenceField{{Path: "attempt"}}
