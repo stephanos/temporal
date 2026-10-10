@@ -339,40 +339,40 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     }
 
   object capabilities extends Capabilities:
-    val retryableHandlerError: Capability = Retries[State, Phase, 2](
+    val retryableHandlerError: Capability = Retryable[State, Phase, 2](
       failure = handler.reply(Reply.handlerError(true)),
       retryable = true,
       attemptCount = states.attemptCount,
       maximumAttempts = states.maximumAttempts,
       retriesRemaining = states.retriesRemaining
     )
-    val fatalHandlerError: Capability = Retries[State, Phase, 2](
+    val fatalHandlerError: Capability = Retryable[State, Phase, 2](
       failure = handler.reply(Reply.handlerError(false)),
       retryable = false,
       attemptCount = states.attemptCount,
       maximumAttempts = states.maximumAttempts,
       retriesRemaining = states.retriesRemaining
     )
-    val networkFailure: Capability = Retries[State, Phase, 2](
+    val networkFailure: Capability = Retryable[State, Phase, 2](
       failure = network.fault,
       retryable = true,
       attemptCount = states.attemptCount,
       maximumAttempts = states.maximumAttempts,
       retriesRemaining = states.retriesRemaining
     )
-    val scheduleToCloseDeadline: Capability = Deadline[State, Phase, Live, Fact](
+    val scheduleToCloseDeadline: Capability = Expirable[State, Phase, Live, Fact](
       timer = deadline.scheduleToClose,
       armed = states.scheduleToCloseArmed,
       timeout = Fact.nexusOperationTimedOut(TimeoutType.scheduleToClose),
       timeoutFacts = states.timeoutFacts
     )
-    val scheduleToStartDeadline: Capability = Deadline[State, Phase, Waiting, Fact](
+    val scheduleToStartDeadline: Capability = Expirable[State, Phase, Waiting, Fact](
       timer = deadline.scheduleToStart,
       armed = states.scheduleToStartArmed,
       timeout = Fact.nexusOperationTimedOut(TimeoutType.scheduleToStart),
       timeoutFacts = states.timeoutFacts
     )
-    val startToCloseDeadline: Capability = Deadline[State, Phase, Held, Fact](
+    val startToCloseDeadline: Capability = Expirable[State, Phase, Held, Fact](
       timer = deadline.startToClose,
       armed = states.startToCloseArmed,
       timeout = Fact.nexusOperationTimedOut(TimeoutType.startToClose),

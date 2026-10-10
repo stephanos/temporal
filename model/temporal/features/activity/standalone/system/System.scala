@@ -620,7 +620,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         ))
       }
   // format: on
-    // Retries' and Deadline's laws as the activity keeps them: a pending reset applies first, as
+    // Retryable's and Expirable's laws as the activity keeps them: a pending reset applies first, as
     // a failure or one of the attempt's own deadlines ends the held attempt, whatever the failure's
     // retryability or the policy left (attempt.go:201-216, statemachine.go:317-345). With no reset
     // pending each states its companion's settlement exactly.
@@ -732,7 +732,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       expect = inconclusive(Reason.explanationsDisagree)
     )
     val describable: Capability = Describable(statusTable = activityStatus)
-    val retryableFailure: Capability = Retries[State, Phase, MaxAttempts.Bound](
+    val retryableFailure: Capability = Retryable[State, Phase, MaxAttempts.Bound](
       failure = activityWorker.respondFailed(Failure.retryable),
       retryable = true,
       attemptCount = states.attemptCount,
@@ -741,7 +741,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       pendingPause = Some(states.pendingPause),
       pendingCancel = Some(states.pendingCancel)
     )
-    val fatalFailure: Capability = Retries[State, Phase, MaxAttempts.Bound](
+    val fatalFailure: Capability = Retryable[State, Phase, MaxAttempts.Bound](
       failure = activityWorker.respondFailed(Failure.fatal),
       retryable = false,
       attemptCount = states.attemptCount,
@@ -750,19 +750,19 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       pendingPause = Some(states.pendingPause),
       pendingCancel = Some(states.pendingCancel)
     )
-    val scheduleToCloseDeadline: Capability = Deadline[State, Phase, Live, Fact](
+    val scheduleToCloseDeadline: Capability = Expirable[State, Phase, Live, Fact](
       timer = deadline.scheduleToClose,
       armed = states.scheduleToCloseArmed,
       timeout = Fact.statusTimedOut(TimeoutType.scheduleToClose),
       timeoutFacts = states.timeoutFacts
     )
-    val scheduleToStartDeadline: Capability = Deadline[State, Phase, Waiting, Fact](
+    val scheduleToStartDeadline: Capability = Expirable[State, Phase, Waiting, Fact](
       timer = deadline.scheduleToStart,
       armed = states.scheduleToStartArmed,
       timeout = Fact.statusTimedOut(TimeoutType.scheduleToStart),
       timeoutFacts = states.timeoutFacts
     )
-    val startToCloseDeadline: Capability = Deadline[State, Phase, Held, Fact](
+    val startToCloseDeadline: Capability = Expirable[State, Phase, Held, Fact](
       timer = deadline.startToClose,
       armed = states.startToCloseArmed,
       timeout = Fact.statusTimedOut(TimeoutType.startToClose),
@@ -772,7 +772,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       pendingPause = Some(states.pendingPause),
       pendingCancel = Some(states.pendingCancel)
     )
-    val heartbeatDeadline: Capability = Deadline[State, Phase, Held, Fact](
+    val heartbeatDeadline: Capability = Expirable[State, Phase, Held, Fact](
       timer = deadline.heartbeat,
       armed = states.heartbeatArmed,
       timeout = Fact.statusTimedOut(TimeoutType.heartbeat),
@@ -786,34 +786,34 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // retryability or the policy is read (attempt.go:201-216, statemachine.go:317-345); the
     // schedule-to-close deadline keeps its terminal law.
     overriding(
-      Retries.failureReturnsToWaiting[State, Phase] -> properties.resetFailureReturnsToWaiting,
+      Retryable.failureReturnsToWaiting[State, Phase] -> properties.resetFailureReturnsToWaiting,
       because = states.pendingResetReason,
       of = Seq(retryableFailure, fatalFailure)
     )
     overriding(
-      Retries.failureEndsFailed[State, Phase] -> properties.resetFailureEndsFailed,
+      Retryable.failureEndsFailed[State, Phase] -> properties.resetFailureEndsFailed,
       because = states.pendingResetReason,
       of = Seq(retryableFailure, fatalFailure)
     )
     overriding(
-      Retries.failurePauses[State, Phase] -> properties.resetFailurePauses,
+      Retryable.failurePauses[State, Phase] -> properties.resetFailurePauses,
       because = states.pendingResetReason,
       of = Seq(retryableFailure, fatalFailure)
     )
     overriding(
-      (Deadline.deadlineTimesOut[State, Phase]: AnyRef) ->
+      (Expirable.deadlineTimesOut[State, Phase]: AnyRef) ->
         (properties.resetDeadlineTimesOut: AnyRef),
       because = states.pendingResetReason,
       of = Seq(startToCloseDeadline, heartbeatDeadline)
     )
     overriding(
-      (Deadline.deadlineReturnsToWaiting[State, Phase]: AnyRef) ->
+      (Expirable.deadlineReturnsToWaiting[State, Phase]: AnyRef) ->
         (properties.resetDeadlineReturnsToWaiting: AnyRef),
       because = states.pendingResetReason,
       of = Seq(startToCloseDeadline, heartbeatDeadline)
     )
     overriding(
-      (Deadline.deadlinePauses[State, Phase]: AnyRef) ->
+      (Expirable.deadlinePauses[State, Phase]: AnyRef) ->
         (properties.resetDeadlinePauses: AnyRef),
       because = states.pendingResetReason,
       of = Seq(startToCloseDeadline, heartbeatDeadline)
@@ -823,15 +823,15 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
   object queries:
     capabilities.bound(
       three,
-      Retries.failureReturnsToWaiting[State, Phase] -> eight,
-      Retries.failureEndsFailed[State, Phase] -> eight,
-      Retries.failurePauses[State, Phase] -> eight,
-      Retries.failureCancels[State, Phase] -> eight,
-      Retries.attemptCountIsWithinPolicy[State, MaxAttempts.Bound] -> eight,
-      Deadline.firesInWindow[State, Phase, Live] -> eight,
-      (Deadline.deadlineTimesOut[State, Phase]: AnyRef) -> eight,
-      (Deadline.deadlineReturnsToWaiting[State, Phase]: AnyRef) -> eight,
-      (Deadline.deadlinePauses[State, Phase]: AnyRef) -> eight
+      Retryable.failureReturnsToWaiting[State, Phase] -> eight,
+      Retryable.failureEndsFailed[State, Phase] -> eight,
+      Retryable.failurePauses[State, Phase] -> eight,
+      Retryable.failureCancels[State, Phase] -> eight,
+      Retryable.attemptCountIsWithinPolicy[State, MaxAttempts.Bound] -> eight,
+      Expirable.firesInWindow[State, Phase, Live] -> eight,
+      (Expirable.deadlineTimesOut[State, Phase]: AnyRef) -> eight,
+      (Expirable.deadlineReturnsToWaiting[State, Phase]: AnyRef) -> eight,
+      (Expirable.deadlinePauses[State, Phase]: AnyRef) -> eight
     )
 
     val any = scenario.free
