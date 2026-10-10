@@ -86,6 +86,25 @@ a failed lower bound. Re-anchor changed executable inputs, resume the frozen com
 and outstanding controls, then review .1 before any .2/.3/.4 repair. R3 strict assertions,
 canonical full Go -json/test_dep/-p 2/-timeout 30m, ordinary no-update Cases/fixtures/model
 gates, fn-154 JSON work and separate Canary/Batch 5 debt remain unweakened.
+
+Blocked:
+# Deferred at the owner's explicit request
+
+On 2026-10-10 the owner asked to defer fn-157 for now, then authorized fn-156 and fn-146 implementation in parallel. Fn-157.1 is deferred, not complete or reviewed. All worker and child commands are terminal. No constructor-partition harness, directory, build or primary probe was created. Production source is unchanged.
+
+Retain the worktree at `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-157-bound-native-verification-memory-and` and its `.flow/tmp/fn157/task1/` evidence. Frozen source HEAD is `f7b2e2ee7d938da6c7bdb5a37d8232e0252f4dcc`; executable activation pin is `551bf89c68f9b8dd3ac8ec219e65f96f0aa85890`. Later integrated commits alter overview/planning only.
+
+The original 574-file seal and controls-resume 525-file seal remain intact. Root independently verified the new controls-remaining-v2 151-file seal. Its summary SHA256 is `401eea3d7928b1f1024bba395cd8cb788b76e165e6836dd29ad1e395c047dd4b`, evidence SHA256 `3edbecd0802eb24c34307e523c612eecbf351bbf367209b786f0f90f069c0239`, and seal-file SHA256 `f6cb67db78e2e9b9c6f2d69349266bac7cbcae38ff7914e7820f6133e0c991c6`. Manifest SHA256 is `f4ebd1f4178a7601c3d3febbbc2db820c350a98e89b712d9e1b06c85b686f67b`.
+
+Current preservation includes all seven Models/340 Query answer/replay records, 61 claimed owners (59 complete streams and two typed refusals), 275 non-primary Lower results and twelve Cases. The latest generation covers five additional Cases with eight no-server executor Runs/139 events, all 116 Query bindings on three Models, eighteen associated tables/126,062 ordered rows and three complete through refinements/1,306 rows plus one typed refusal. Retain natural inconclusive and forged-completion negative results. The owner-qualified inventory negative passed. The frozen repeated-Build nested Row.Results alias RED remains evidence.
+
+Cumulative native evidence is 114 probes/596.297063286 measured wall seconds. Five original surfaces remain missing, including the primary 65-Query Lower oracle and dependent generated/conformance/dump joins. Complete oracle and repair_allowed remain false. No full native/model/case gate, production repair or fn-155 closure credit follows from the partial captures. External Quint JSON remains fn-154; Activity semantic debt remains Batch 5.
+
+Read-only research identifies overlapping Realizer/Check/replay interpretations, transition clone allocations and pre-Lower canonical fingerprint strings as candidate peaks. A future separately pinned constructor-lifetime partition must preserve typed receipt provenance and first match every ordinary output on the six complete Models before any primary attempt. One non-primary Query receipt has a typed Cause; generic JSON receipt reconstruction is not yet an accepted seam. The proposed diagnostic is now deferred, not currently authorized to run.
+
+Resume only when the owner revives fn-157. Re-anchor executable inputs, inspect `deferral-20261010-{summary.md,evidence.json}` outside the sealed subtrees, preserve all three seals and all RED receipts, then complete the independent oracle/causal measurements before any .2/.3/.4 repair. Unchanged canonical domains, strict assertions, default memory policy, -p2 concurrency, real shared heavy lock and normal no-update gates remain required. No paid provisioning, swap, shared-daemon termination or unowned cleanup is authorized.
+
+stage: impl-review - skipped(policy: incomplete measurement and explicit owner deferral)
 ## Evidence
 - Commits:
 - Tests:

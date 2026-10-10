@@ -4,13 +4,13 @@ satisfies: [R1, R2, R4]
 # fn-156-let-the-scala-compiler-and-lint-enforce.1 Enable warning checks and prove finite equality evidence
 
 ## Description
+Implement R1 and the core equality proof for R2, plus the early R4/R9 byte-preserving match proof. The source lane proceeds only after both positive/negative compiler evidence and exhaustive-match compatibility proofs succeed.
 
-Implement R1 and the core equality proof for R2, plus the early R4/R9 byte-preserving match proof. Establish the strict, committed fn-155 comparison baseline before changing build inputs. The source lane proceeds only after both positive/negative compiler evidence and exhaustive-match compatibility proofs succeed.
+Execution-order amendment, explicitly authorized by the owner on 2026-10-10: implement this lane in parallel with fn-146 while fn-157 is deferred. For initial implementation and focused proofs, pin the current integrated local umpire source containing committed fn-155.1–.5 and the complete filename/raw-byte manifests of both managed artifact trees before changing build inputs. This supersedes the requirement to wait for fn-155 closure before starting, not the strict equivalence requirements. Fn-155.6 remains blocked; its missing complete fresh-generation provenance and gates cannot be inherited as passing evidence. Reconcile against the eventual closed fn-155 baseline before final baseline acceptance, full source rollout or spec closure. Never use fn-155's identity/position projection as fn-156's raw-byte oracle. Return precise partial proof and outstanding holds if full equivalence cannot yet be established.
 
 **Size:** M
 **Files:** `model/project.scala`, `model/irgen/project.scala`, positive fixture `project.scala` files, `model/framework/Domain.scala`, `model/framework/IrFile.scala`, compiler tests and scratch proof evidence.
 **Touches:** [model/project.scala, model/irgen/project.scala, model/irgen/testdata/**/project.scala, model/framework/Domain.scala, model/framework/IrFile.scala, model/framework/*test.scala, .flow/tmp/fn156/source/**]
-
 ## Approach
 
 - Re-anchor fn-155's committed closure, input hashes and dumper. Freeze the complete filename/raw-byte manifests of both managed artifact trees. Keep the original baseline immutable throughout this spec. The fn-155 effect-name and position projection is not this task's equivalence harness.

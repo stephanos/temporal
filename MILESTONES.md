@@ -160,7 +160,7 @@ Final validation remains deferred, not passed. Canonical generation attempts ret
 The focused four-test QualifiedNames retry passed unchanged, while complete scratch lowering was
 killed and produced no Cases. Evidence and revisit conditions are recorded in fn-155.6's Flow
 block reason and its preserved task6 worktree. The seventeen passing scoped partitions grant no
-whole-artifact or closure credit. Fn-155 stays open and continues to hold fn-156; independently
+whole-artifact or closure credit. Fn-155 stays open and continues to hold fn-156's final baseline acceptance; independently
 verifiable work may proceed without relaxing its complete provenance contract.
 Read-only kernel attribution confirms global OOM for the scratch generator and candidate
 lowering test. The host has about 16 GB RAM and no swap; victim RSS does not establish required
@@ -173,7 +173,10 @@ unintegrated and unreviewed. The original failures and the later kernel excerpts
 
 [Spec](.flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md) is scheduled immediately
 after fn-155, before batch 2, by the owner's instruction on 2026-10-09. Its eight-task plan passed
-independent review and is ready; implementation starts from fn-155's committed closure.
+independent review and is ready. On 2026-10-10 the owner authorized isolated implementation
+ahead of fn-155's closure, in parallel with fn-146, and deferred fn-157. Task .1 pins the current
+integrated fn-155.1–.5 source and complete managed raw-byte manifests before edits; fn-155.6's
+missing fresh-generation proof remains a reconciliation hold, not inherited passing evidence.
 The source lane runs .1 through .6 in order. Report-only .8 runs independently in an isolated
 checkout of the same baseline; .7 joins both lanes for documentation and the full close.
 
@@ -305,6 +308,10 @@ Testpilot owns the restricted CEL environment and descriptor-aware value adapter
 Umpire lowers symbolic realization operands into it. Finite Model expressions, `ModelValue` and
 descriptor-exact `ValueType` remain separate. Formats and identities move together, without legacy
 runtime paths. Tasks run in order; admission and value adaptation share edit surfaces.
+On 2026-10-10 the owner authorized this Testpilot implementation lane in parallel with fn-156.
+Task .1 can establish its format/identity boundary against the integrated local baseline.
+Authoring predecessors remain final integration holds, especially for .6; format 4.0 activation
+still belongs exclusively to fn-148.6. CEL adoption is decided; no additional prototype is planned.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -600,9 +607,32 @@ unchanged whole primary Producer and ordinary compiler overlap, retaining effect
 and all original inputs/assertions. All production repairs remain held. Managed artifacts and
 fresh lifted candidates have separate pins; historical source freshness is not assumed.
 
+The dedicated read-only memory investigation found three complete interpretations overlapping
+inside `NewProducer`: its Realizer, Check's first binding and independent replay binding. The
+retained Producer heap profile attributes 1,037.53 MiB of 2,348.56 MiB sampled retained allocations
+to transition-slice clones. This is a snapshot allocation-site account, not the OOM peak or a
+measured saving. Check also builds complete canonical fingerprint strings before Lower, making
+incremental exact-byte hashing another candidate; streaming final Case output alone misses this
+failure phase. No production correction or successful memory budget follows from these findings.
+
+A possible future disposable .1 diagnostic separates the complete frozen Check/replay process from a
+whole-Model lowering Realizer, supplying sealed receipts to unchanged Lower and private producer
+code through a pinned test-only constructor seam. It must first match all 275 ordinary outputs
+on the six complete Models, including standings, errors, artifacts, identities and inventories.
+Only that comparison can admit the primary Model's full 65-Query capture. A mismatch rejects
+the seam; successful capture supplies a functional oracle, never unchanged constructor or
+canonical gate-fit credit. All prior evidence and the caller-mutation RED remain preserved.
+
+The owner deferred fn-157 on 2026-10-10. All workers and owned commands are terminal; the
+constructor experiment never started. The third immutable evidence generation seals 151 files;
+all three seals were independently verified. Remaining controls bring the native diagnostic total
+to 114 probes / 596.297 executed seconds, with 28 captured surfaces, one captured RED and five
+still missing. These are partial functional receipts, not complete-oracle, repair or gate-fit credit.
+Resume from the preserved deferral handover and seals, without rerunning or changing their inputs.
+
 | Task | Status | What |
 | --- | --- | --- |
-| fn-157.1 | 🔄 in progress | Remaining independent preservation controls; primary Producer and ordinary generator OOM hold remains; no repair or closure credit |
+| fn-157.1 | ⏸️ deferred | Owner deferred after three immutable seals; complete primary oracle still missing; constructor experiment not started; no repair or gate-fit credit |
 | fn-157.2 | ⬜ todo | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
 | fn-157.3 | ⬜ todo | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
 | fn-157.4 | ⬜ todo | Repair owned gate/lift scratch lifetimes or establish provisioned capacity with ordinary overlap |
