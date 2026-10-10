@@ -20,7 +20,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-10T00:35:19.893385Z",
+  "plan_reviewed_at": "2026-10-10T00:47:42.204643Z",
   "review_attempts": [
     {
       "artifact_sha256": "ac7fbe11cce10da1f4f88ed9bd266d8fee7e9e6ddfd3ddb395ee66f8d9c7c9d6",
@@ -156,10 +156,46 @@
       "timestamp": "2026-10-10T00:35:19.880089Z",
       "tool_calls": 18,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0114235c291bbb37eab352b662319a8e8b88c58e615253f397634c2765bdef7c",
+      "backend": "codex",
+      "base_sha": "f7726f57ed575ae5efe932743e2ec9353b674fb1",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "447acbf52d7e59c3a62e600cc5e0531e2edfc136",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 379130,
+      "output_sha256": "434c324001de56cd0c1981a34f34af3779f785b6f47634a2cfc4bda17bb63c0d",
+      "reservation_id": "481aca4f61cb4f278598810a75a7a424",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T00:47:42.182580Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan": 2,
+    "plan": 3,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -181,5 +217,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T00:43:12.921400Z"
+  "updated_at": "2026-10-10T00:47:42.209758Z"
 }
