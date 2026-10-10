@@ -1,0 +1,70 @@
+# fn-109.70 independent supplemental evidence review
+
+The supplemental packet supplies the admitted current retained-environment proof and current shell-bound Make observations for the frozen three-assignment candidate. Findings are critical 0, important 0 and minor 0. The original review's two important capture gaps and one minor inventory gap remain historical limits, explicitly preserved by this separate successor domain. This evidence audit supplies no formal Flow implementation review, Done or SHIP verdict.
+
+## Scope and authority
+
+The reviewed worker is `/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence`, with observed BASE and HEAD `fd9cfc4026db966a877597a9658a0af589f18aea`. Candidate `tools/gomad3/runner/choice_exploration_divergence_test.go` remains SHA-256 `5537ed38a236827a37b99a85e8584e886d6252d62e9d16311f514758034587c7`. The existing read-only preservation checker freshly passed, reconstructing the complete BASE SHA-256 `93b138931736026645f0c4f05940a95ef8fe301de36bc3dbab3bea9c4c4b23df` after removing exactly three assignments, with three insertions, zero deletions and no excluded product-path changes. The successor changes no product source.
+
+Primary dispatch HEAD was `d3e7d1ad12e9d44bbc8418c9fe267705b7692c42`; my closing pre-report read observed `a9fff3ed4e1093a75f555ab13850e68ce51f4dc4`. Root owns those primary checkpoints. The primary owner spec still hashes to `851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c`. The additive admission hashes to `887ef4be2e99594d4111828e9ea3fd89d5b15c29d2fc031a9221f8c1852a5079`, and the copied worker admission matches those bytes. The initial evidence review remains SHA-256 `9c693bb209af0eb2da4b579f29ac40f8471e44bc8fc332f42da2d63ca7d18034`. The separate source review remains `d104004c3fbf7fd028061766aa87cc9990169eb2154e82ca713b4cf637ad1828`; this audit does not duplicate its source-correctness verdict.
+
+I read primary AGENTS.md, the complete Gomad README, MILESTONES.md, the complete owner spec, task 70, original admission and preparation note, initial evidence review, successor admission and handover, adapter and all five successor Perl scripts, the original environment/preservation checkers, both Makefiles and the relevant retained logs and receipts. Read-only `flowctl usage` preceded `flowctl brief`. I applied the review-code and verification-before-completion skills within the explicitly assigned single-reviewer scope, and read the Flow-Next prose contract before writing this report.
+
+Requested reviewer routing is `gpt-6.1-sol` at high, in a fresh context and the same GPT family as the writer. Actual execution-model telemetry is unavailable. Requested routing is not independently verified runtime identity. I spawned no agents. I ran only read-only file/hash/JSON/Perl checks and the already-read non-Go preservation and successor receipt verifiers, through `login:false`, `env -u BASH_ENV bash -c` and an explicit assigned `cd`. I ran no Go, go-env, Make, build, test, lint, vet, generator, wrapper, preflight, tool-version probe, cache operation, cleanup, native gate, CI, PR, push, Git write or Flow mutation. My only file mutation is this primary report, outside both worker seals.
+
+## Exact immutable domains
+
+I independently verified every seal member's SHA-256, rejected duplicates and paths outside its direct domain, and compared the explicit member set with actual direct files. The original domain has exactly 115 sealed members and its seal, 116 direct files. The successor domain has exactly 44 sealed members and its separate seal, 45 direct files. Neither seal includes itself or this primary report. The successor directory does not extend the original member set.
+
+| Domain | Seal SHA-256 | Summary SHA-256 | Evidence SHA-256 |
+| --- | --- | --- | --- |
+| Original | `83085c16386950d0fa3d7ddf27b18a60da7c5fb4213166c619545539a7016ead` | `99518e5efa1be6eb5e7e6035e11286bc361a0c2db130bf2b091f6280cd1ea707` | `c968752ad33fcd3e6a1d65989d382bd91400f3ae291374fd595e27af5959ad9f` |
+| Supplemental | `83bb1814654a71a323ab3cf7efa67082ad5a132579d850323f2971a23d31c0b6` | `44f0c5f2815f6d8b5a99d98f848cb042f96f718dba0d437c566d54621a61376b` | `3a3bf65b5af316a8a2d2d310b667c213b5906eb7931d73d77603a78ef1c7b917` |
+
+All six successor source manifests match current bytes across 8,448 hashed rows, with 432 explicit ABSENT rows still absent. These totals count repeated entries across distinct manifests, rather than unique product files. Every principal checker, original receipt and raw environment input consumed by the retained-byte proof is present in its source capture. The first supplemental validation manifest already contains the complete 132 actual materialized `tests/` files, including 113 top-level `_test.go` files. I enumerated those files independently and compared every hash with that first capture. Later audit additions do not retroactively supply its input inventory.
+
+## Current environment and helper bindings
+
+I independently enumerated the original domain's 19 command receipts and checked that the supplemental proof argv consumes that exact set without omissions or duplicates. Their 38 receipt-bound raw environment captures retain their actual content hashes. For each capture, I replaced exactly one `/go-build[0-9]+=/tmp/go-build` fragment inside its GOGCCFLAGS JSON value, using the same narrow anchored rule as the original checker. Every remaining byte matches within all 19 pairs. I separately recomputed the same narrow equality for both current Make raw-environment pairs. Non-Go successor captures are byte-equal and explicitly state that go-env was not invoked.
+
+The adapter SHA-256 is `9febddc3bab0bd2831a869f8b2f7a555e198d8125d5e3649dd7a39f37c2c1c03`. Its source, tool and routing captures bracket each principal command and are repeated after the environment helper completes. The receipt compares all three observations for each domain and records a separate wrapper hash after the helper. The retained-byte proof binds its actual script, Perl executable and all consumed original receipt/raw bytes across its own execution. The two Make helpers bind the unchanged original `check-environment.pl`, its two actual raw inputs and Perl after the helper, as well as before it. Both helper outputs and their exact argv are retained and hashed.
+
+This proves current verification of retained bytes and current helper stability at the measured observations. The original helper's missing post-execution checker/Perl observation stays unproved. No successor hash or seal identifies the original unmeasured interpreter or auxiliary executable at its historical execution time.
+
+## Current tools, Make routing and standards observations
+
+All 30 successor significant executable hashes match current bytes. The original 26 entries are preserved exactly, with `/bin/sh`, `/usr/bin/dash`, `/usr/bin/rm` and `/usr/bin/grep` added. The routing manifest records each measured literal invocation path and resolved target; all recorded resolutions still match. `/bin/sh` has literal link `dash`, resolves to `/usr/bin/dash`, and both path hashes are `87630eb41654f7888e28fa5ef3ed0a351682e939d382b9239a24a8aefe84aeb9`. The same routing and byte identities recur before, after and after-helper in every receipt.
+
+Both actual Make argv preserve the original argv with the sole added final argument `SHELL=/bin/sh`. Validation is `make -C tools/gomad3 validate SHELL=/bin/sh`. Fast lint retains actual BASE `fd9cfc4026db966a877597a9658a0af589f18aea`, `GOLANGCI_LINT_FIX=false`, `ALL_TEST_TAGS=test_dep` and the recorded lint/errortype paths. I compared the two argument arrays independently with their original receipts.
+
+The measured Make executable hashes to `b12eeb672d64e798b84f297c116651ccbb3ca726a108c74ffe9a60d85547315d`, equal to the original retained tool entry. A read of that binary confirms its `4.4.1` version string without executing it. The root Makefile eagerly evaluates `MODULE_ROOT := $(lastword $(shell grep -e "^module " go.mod))` after exporting its rooted LOCALBIN prefix. Its invocation selects the absolute supplied LOCALBIN; the nested/root default also identifies ROOT/.bin as a possible prefix. I checked the current ROOT/.bin and rooted absolute-LOCALBIN prefix for grep/git/go/make/find shadows and found none. This reasoning uses the retained Make 4.4.1 bytes and the actual Makefile/argv. It makes no general claim about older Make export behavior or historical unmeasured prefix contents. Ignored installations and full inherited environment remain outside qualification.
+
+The validation raw log records all four version/protocol/boundary/compiler check commands, patch/overlay and script ownership checks, compatibility-pack check, the `test_dep` host-pack test and qualification-manifest `-check`. Its principal exit is 0; captured source remains unchanged. Fresh fast lint records exit 0 for 55 host packages and `diff: 50/0`, retaining 2,995 cache warning lines and six sparse-directory find warnings. I parsed the complete log to verify those counts; the warning lines report cache persistence failures with `no space left on device`. Additional info-level cache failures remain in the raw log. This is a diff-filtered standards observation, with no aggregate lint GREEN or fresh unfiltered Runner/full original-base comparison claim. Internal Make errortype argv is not exposed by the raw output, so its reachability is not newly certified.
+
+## Receipts, failures and release
+
+I independently checked all seven receipt hashes against the handover, every raw/helper-output hash, every referenced manifest hash and each copied receipt field. All record worker cwd/HEAD, exact principal argv, numerical exit and elapsed seconds, external TERM900/kill15 bounds, stable source/tool/routing/wrapper observations and environment-helper exit 0. UTC principal end minus start equals recorded elapsed. Every helper begins at or after its principal ends and completes before the stated release.
+
+| Receipt | Principal exit | Principal elapsed seconds | Environment-helper exit |
+| --- | --- | --- | --- |
+| retained-environment-proof | 0 | 0 | 0 |
+| current-validate | 0 | 3 | 0 |
+| current-fast-lint | 0 | 7 | 0 |
+| current-binding-audit | 2 | 0 | 0 |
+| current-binding-audit-corrected | 0 | 0 | 0 |
+| lane-process-check | 255 | 0 | 0 |
+| lane-process-check-attributed | 0 | 0 | 0 |
+
+The failed binding-audit raw output names Perl's refusal to `do` a relative path without `./`. Its separately named corrected argv changes that verifier-path spelling only for the audit's consumed arguments and retains the failed receipt/raw bytes as additional binding inputs. The verifier/audit scripts remain unchanged. The corrected audit's exit 0 agrees with my independent first-validation, argv, tool and raw-environment checks. I also freshly ran `verify-successor.pl` against all seven receipts, including their nonzero principal exits, and it returned 0 for their binding checks.
+
+The initial process checker selects the unrelated `make successor-fixed-point` PID 1390727 and retains exit 255. Its full raw listing and failure name that process. The attributed successor reads a complete `ps -eo pid,ppid,etime,args` result before filtering, records its 47-row count, retains the gate candidate's actual `/proc` cwd `/Users/stephan/Workspace/skunkworks/bungee-lang`, excludes it by measured cwd/argv and records no task-attributable gate candidate. Its raw output retains the row count and selected candidate evidence, rather than all 47 rows. The checker and ps identities are execution-bound; no unrelated process mutation is present.
+
+The handover lists seven terminal handle IDs `45770`, `16928`, `33608`, `61199`, `54074`, `44774` and `48735`, consistent with seven complete receipts and the final attributed process result. It records release at `2026-10-10T03:57:39Z`, after the last process principal and its environment helper. Principal times exclude later capture and receipt-writing work; separate helper timestamps preserve that distinction. I did not reobserve past tool-session handles or rerun a live process check. Release and no-probes-after-release remain explicit worker/root handover observations, supported by terminal receipts rather than a retrospective continuous process monitor.
+
+`contract-red.log` retains the verifier rejection of an original receipt missing `post_helper_source_manifest_sha256`, with the reported exit 255 and a matching raw digest. Its evidence explicitly discloses that a timestamp was not retained. I treat it as an auxiliary capture-contract diagnostic, not an additional fully bound principal execution or acceptance gate.
+
+## Bounds and disposition
+
+The literal ignored generator-cache link still names `/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success/tools/gomad3/.toolchain/generator-cache`; its recorded resolved route matches current filesystem reads. Fast lint uses the original default `/home/agent/.cache/golangci-lint`, with no override in the retained wrapper. I infer no cache-content qualification, cache cleanup, installation repair or hermetic execution. Full tool installations, Perl modules, C headers/libc, nonselected inherited environment and historical ignored-prefix state remain unqualified.
+
+The successor satisfactorily addresses the three admitted current capture corrections while retaining every original historical limitation and failed attempt. Original RED/focused/configured Runner lint/direct vets/standalone errortype/boundary evidence was not rerun solely for these gaps and retains the initial audit's bounds. Root still owns integration, checkpoints, the combined70 ordinary comparison, complete original-base lint-block comparison, broader static batch and Flow lifecycle. Task 70 and still-owned aggregate source acceptance remain open. Native fn-128/fn-149 stays deferred and unverified. This review grants no supported-native full-host pass, replay qualification, determinism/soak bound, CI, PR or push authority.
