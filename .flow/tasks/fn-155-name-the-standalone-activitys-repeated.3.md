@@ -29,6 +29,14 @@ Scope: (System rule `because` references only; Activity.scala example text value
 - [ ] The Pins step-table test passes unchanged, including fact order
 - [ ] `project.py` on a scratch lift shows only positions, mapped identities and recorded structural-review entries
 - [ ] `make umpire-check-cases` shows no Case name change, or the change is mapped
+
+### Implementation evidence pointers
+
+Worker evidence is retained at `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task3/.flow/tmp/fn-155/task3/`: `handover-summary.md`, `handover-evidence.json`, `mapping.md`, `structural.py`, `structural-review.json`, `case-proof.json` and `proof-manifest.json`. The manifest seals 785 private files; SHA-256 `9da48370bb935976bc413f19de39a1ea67fe3dd5a63079a622882c8c57e239e2`. The conductor's integration receipt is `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-155-name-the-standalone-activitys-repeated/.flow/tmp/fn155-integration/task3-integrated.json`, binding worker source `96c554b1ab70fce0ccddf0888663feeac6dcc572` to integrated source `f5d28cc3ca28660c6a4ec2740ae6eea7fcad4af7` on normalized base `b5736f7cc3359c495f0b36e72bc0c5b54ab1dbde`.
+
+The unchanged raw projection stays RED (12 race, 12 record, 21 standalone paths). The separate structural proof accounts for six Product rule bodies over all nine complete states with action inputs arbitrary and 24 rejected mutation controls, plus Task2's retained resetSettles nine-path, thirteen-phase proof and rejected wrong landing. Sixteen freshly lifted source partitions match the complete fresh Model declarations; all twenty unique fresh Activity Cases are raw-byte-exact to sealed originals, with no coordinate exception. Mapping records direct-helper differences outside enabled guards and preserves pending-pause and ordered multi-fact behavior.
+
+Worker Pins and model lint are scoped GREEN. Canonical all-machine generation, managed-tree agreement, the original manifest, Nexus inventory, fixtures and full Go gates retain their recorded RED/unobserved or inventory-only status; no canonical, live or full-gate credit is claimed. Task6 owns joined-candidate regeneration and gates. Initial formatting and wrapper type-shape failures remain retained alongside corrected scoped evidence. Formal task review and closure remain pending.
 ## Acceptance
 - [ ] TBD
 
