@@ -79,28 +79,28 @@ class NexusOutcomePins extends munit.FunSuite:
     assertEquals(rejectingCells, expectedCount, s"${machine.name} rejecting cells")
 
   private val productRejections =
-    import product.Phase.*
+    import product.Phase
     List(
       ExpectedRejection[product.State](
         nexusHandler.complete.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled ||
-            s.phase == timedOut || s.phase == terminated, // scalafix:ok DisableSyntax.==
+          s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled ||
+            s.phase == Phase.timedOut || s.phase == Phase.terminated, // scalafix:ok DisableSyntax.==
         "rejected(notFound)"
       )
     )
 
   private val standaloneRejections =
-    import standalone.system.Phase.*
+    import standalone.system.Phase
     List(
       ExpectedRejection[standalone.system.State](
         standalone.client.requestCancel.decl,
         None,
         s =>
           !s.cancelRequested &&
-            (s.phase == succeeded || s.phase == failed || s.phase == canceled ||
-              s.phase == terminated), // scalafix:ok DisableSyntax.==
+            (s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled ||
+              s.phase == Phase.terminated), // scalafix:ok DisableSyntax.==
         "rejected(failedPrecondition)",
         "operation already completed"
       ),
@@ -108,21 +108,21 @@ class NexusOutcomePins extends munit.FunSuite:
         standalone.client.terminate.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled, // scalafix:ok DisableSyntax.==
+          s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled, // scalafix:ok DisableSyntax.==
         "rejected(failedPrecondition)",
         "operation already completed"
       )
     )
 
   private val workflowRejections =
-    import workflow.system.Phase.*
+    import workflow.system.Phase
     List(
       ExpectedRejection[workflow.system.State](
         workflow.handler.complete.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled ||
-            s.phase == timedOut, // scalafix:ok DisableSyntax.==
+          s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled ||
+            s.phase == Phase.timedOut, // scalafix:ok DisableSyntax.==
         "rejected(notFound)"
       )
     )

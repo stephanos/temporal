@@ -36,9 +36,7 @@ enum Fact derives Finite:
 import Fact.nexusOperationTerminated as NT
 
 object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
-  import Phase.*
-
-  val init = system.State(phase = unstarted, cancelRequested = false)
+  val init = system.State(phase = Phase.unstarted, cancelRequested = false)
   // A path ends where the operation is over: `end` reads the Closed role.
   override def end(s: State) = s.phase.in[Closed]
 
@@ -70,50 +68,50 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     import Fact.*
 
     def start(@unused s: State) =
-      enter(system.State(phase = scheduled, cancelRequested = false), statusScheduled)
+      enter(system.State(phase = Phase.scheduled, cancelRequested = false), statusScheduled)
 
     // TransitionStarted, or a synchronous completion straight from scheduled; a canceled answer
     // settles it canceled (operation.go invocationResultCancel, onCanceled).
-    def syncSuccess(s: State) = enter(s.copy(phase = succeeded), nexusOperationCompleted)
-    def syncFailure(s: State) = enter(s.copy(phase = failed), nexusOperationFailed)
-    def syncCanceled(s: State) = enter(s.copy(phase = canceled), nexusOperationCanceled)
-    def async(s: State) = enter(s.copy(phase = started), nexusOperationStarted)
+    def syncSuccess(s: State) = enter(s.copy(phase = Phase.succeeded), nexusOperationCompleted)
+    def syncFailure(s: State) = enter(s.copy(phase = Phase.failed), nexusOperationFailed)
+    def syncCanceled(s: State) = enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
+    def async(s: State) = enter(s.copy(phase = Phase.started), nexusOperationStarted)
 
     // An async operation's completion; a canceled failure settles it canceled.
     def complete(s: State, r: Resolution) =
       r match
-        case Resolution.succeeded => enter(s.copy(phase = succeeded), nexusOperationCompleted)
-        case Resolution.failed    => enter(s.copy(phase = failed), nexusOperationFailed)
-        case Resolution.canceled  => enter(s.copy(phase = canceled), nexusOperationCanceled)
+        case Resolution.succeeded => enter(s.copy(phase = Phase.succeeded), nexusOperationCompleted)
+        case Resolution.failed    => enter(s.copy(phase = Phase.failed), nexusOperationFailed)
+        case Resolution.canceled  => enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
 
     // RequestCancel records the request and leaves the operation live: it is sent to the handler
     // only once started (operation.go RequestCancel).
     def requestCancel(s: State) = enter(s.copy(cancelRequested = true), statusCancelRequested)
 
     // Terminate settles a live operation terminated (TransitionTerminated).
-    def terminate(s: State) = enter(s.copy(phase = terminated), nexusOperationTerminated)
+    def terminate(s: State) = enter(s.copy(phase = Phase.terminated), nexusOperationTerminated)
 
     // A control that repeats a request the operation took is the same request, answered OK.
     def repeated(s: State) = stay(s)
 
   object rules extends Rules:
     on(client.start) {
-      when(unstarted) ~> effects.start
+      when(Phase.unstarted) ~> effects.start
     }
     on(handler.reply(Reply.syncSuccess)) {
-      when(scheduled) ~> effects.syncSuccess
+      when(Phase.scheduled) ~> effects.syncSuccess
     }
     on(handler.reply(Reply.operationFailed)) {
-      when(scheduled) ~> effects.syncFailure
+      when(Phase.scheduled) ~> effects.syncFailure
     }
     on(handler.reply(Reply.operationCanceled)) {
-      when(scheduled) ~> effects.syncCanceled
+      when(Phase.scheduled) ~> effects.syncCanceled
     }
     on(handler.reply(Reply.async)) {
-      when(scheduled) ~> effects.async
+      when(Phase.scheduled) ~> effects.async
     }
     on(handler.complete) {
-      when(started) ~> effects.complete
+      when(Phase.started) ~> effects.complete
     }
 
     // A repeated cancel request is the same request; one of a closed operation is alreadyCompleted,
@@ -129,10 +127,10 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // A repeated terminate of a terminated operation is the same request, answered OK; any other
     // control of a closed one is alreadyCompleted (operation.go Terminate).
     on(client.terminate) {
-      when(terminated) ~> effects.repeated
-      when(succeeded, failed, canceled) ~>
+      when(Phase.terminated) ~> effects.repeated
+      when(Phase.succeeded, Phase.failed, Phase.canceled) ~>
         rejects(Rejection.failedPrecondition).because("operation already completed")
-      when(scheduled, started) ~> effects.terminate
+      when(Phase.scheduled, Phase.started) ~> effects.terminate
     }
 
   // What the operation promises of its own: its reading of closed rejection, which its capabilities

@@ -86,8 +86,6 @@ given Finite[State] =
 // concurrency-limit rejection, which names no operation and is not modeled until a Query needs it.
 
 object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
-  import Phase.*
-
   // Where every path begins: before the operation exists, with every deadline at its first value.
   val init = system.State(
     phase = Phase.unscheduled,
@@ -166,7 +164,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     ) =
       enter(
         system.State(
-          phase = scheduled,
+          phase = Phase.scheduled,
           attempts = 0,
           scheduleToClose = scheduleToClose,
           scheduleToStart = scheduleToStart,
@@ -182,15 +180,16 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     def reply(s: State, reply: Reply) =
       require(states.validAttempts(s.attempts))
       reply match
-        case Reply.syncSuccess       => enter(s.copy(phase = succeeded), nexusOperationCompleted)
-        case Reply.async             => enter(s.copy(phase = started), nexusOperationStarted)
-        case Reply.operationFailed   => enter(s.copy(phase = failed), nexusOperationFailed)
-        case Reply.operationCanceled => enter(s.copy(phase = canceled), nexusOperationCanceled)
+        case Reply.syncSuccess => enter(s.copy(phase = Phase.succeeded), nexusOperationCompleted)
+        case Reply.async       => enter(s.copy(phase = Phase.started), nexusOperationStarted)
+        case Reply.operationFailed   => enter(s.copy(phase = Phase.failed), nexusOperationFailed)
+        case Reply.operationCanceled =>
+          enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
         case Reply.handlerError(retryable) =>
-          if !retryable then enter(s.copy(phase = failed), nexusOperationFailed)
+          if !retryable then enter(s.copy(phase = Phase.failed), nexusOperationFailed)
           else
             enter(
-              s.copy(phase = backingOff, attempts = states.saturatingSucc(s.attempts)),
+              s.copy(phase = Phase.backingOff, attempts = states.saturatingSucc(s.attempts)),
               Fact.pendingAttempts
             )
 
@@ -198,7 +197,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     def backOff(s: State) =
       require(states.validAttempts(s.attempts))
       enter(
-        s.copy(phase = backingOff, attempts = states.saturatingSucc(s.attempts)),
+        s.copy(phase = Phase.backingOff, attempts = states.saturatingSucc(s.attempts)),
         Fact.pendingAttempts
       )
 
@@ -212,29 +211,29 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // backingOff phase to have skipped, could write the completion alone.
     def complete(s: State, resolution: Resolution) =
       val startedFirst =
-        if s.phase != started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; typed equality
+        if s.phase != Phase.started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; typed equality
       resolution match
         case Resolution.succeeded =>
-          enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
+          enter(s.copy(phase = Phase.succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
         case Resolution.failed =>
-          enter(s.copy(phase = failed), (startedFirst ++ List(nexusOperationFailed))*)
+          enter(s.copy(phase = Phase.failed), (startedFirst ++ List(nexusOperationFailed))*)
         case Resolution.canceled =>
-          enter(s.copy(phase = canceled), (startedFirst ++ List(nexusOperationCanceled))*)
+          enter(s.copy(phase = Phase.canceled), (startedFirst ++ List(nexusOperationCanceled))*)
     // format: on
     // The backoff timer. It is what makes backingOff a phase the operation leaves rather than a state
     // it is stuck in, and it records nothing: a retry writes no history event.
-    def retry(s: State) = enter(s.copy(phase = scheduled))
+    def retry(s: State) = enter(s.copy(phase = Phase.scheduled))
 
     // One of the three deadlines firing; the timed-out event records which.
     def timeOut(s: State, t: TimeoutType) =
-      enter(s.copy(phase = timedOut), nexusOperationTimedOut(t))
+      enter(s.copy(phase = Phase.timedOut), nexusOperationTimedOut(t))
 
   object rules extends Rules:
     on(caller.schedule) {
-      when(unscheduled) ~> effects.schedule
+      when(Phase.unscheduled) ~> effects.schedule
     }
     on(handler.reply) {
-      when(scheduled) ~> effects.reply
+      when(Phase.scheduled) ~> effects.reply
     }
 
     // A completion resolves any running phase, and is not found once the operation is over; an
@@ -246,13 +245,13 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       when[Live] ~> effects.complete
     }
     on(network.fault) {
-      when(scheduled) ~> effects.backOff
+      when(Phase.scheduled) ~> effects.backOff
     }
     on(worker.stop) {
       always ~> effects.keep
     }
     on(timers.backoff) {
-      when(backingOff) ~> effects.retry
+      when(Phase.backingOff) ~> effects.retry
     }
     // format: off
     // Each deadline fires only when the schedule command set it. Schedule-to-close covers the whole

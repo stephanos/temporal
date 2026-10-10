@@ -86,6 +86,8 @@ private object CallerDeclarations:
       )
     )
 
+  // The pendingAttempts observation: DescribeWorkflowExecution's pending operation's `attempt`
+  // (`pending_nexus_operations[].attempt`), which the await below polls.
   val pending = Evidence.read(
     id = evidenceId(system.Fact.pendingAttempts),
     records = system.Fact.pendingAttempts,

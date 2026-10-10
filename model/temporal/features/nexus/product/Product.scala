@@ -34,9 +34,7 @@ enum Fact derives Finite:
 // the System machine by the refinement declared there.
 
 object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
-  import Phase.*
-
-  val init = product.State(scheduled)
+  val init = product.State(Phase.scheduled)
   override def end(s: State) = s.phase.in[Closed]
 
   // The product's phase sets.
@@ -48,29 +46,29 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
   object effects:
     import Fact.*
 
-    def succeed(s: State) = enter(s.copy(phase = succeeded), nexusOperationCompleted)
+    def succeed(s: State) = enter(s.copy(phase = Phase.succeeded), nexusOperationCompleted)
 
     def complete(s: State, resolution: Resolution) = // format: off
-      val startedFirst = if s.phase != started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+      val startedFirst = if s.phase != Phase.started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
       resolution match // format: on
         case Resolution.succeeded =>
-          enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
+          enter(s.copy(phase = Phase.succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
         case Resolution.failed =>
-          enter(s.copy(phase = failed), (startedFirst ++ List(nexusOperationFailed))*)
+          enter(s.copy(phase = Phase.failed), (startedFirst ++ List(nexusOperationFailed))*)
         case Resolution.canceled =>
-          enter(s.copy(phase = canceled), (startedFirst ++ List(nexusOperationCanceled))*)
+          enter(s.copy(phase = Phase.canceled), (startedFirst ++ List(nexusOperationCanceled))*)
 
-    def terminate(s: State) = enter(s.copy(phase = terminated), nexusOperationTerminated)
+    def terminate(s: State) = enter(s.copy(phase = Phase.terminated), nexusOperationTerminated)
 
-    def start(s: State) = enter(s.copy(phase = started), nexusOperationStarted)
+    def start(s: State) = enter(s.copy(phase = Phase.started), nexusOperationStarted)
 
-    def fail(s: State) = enter(s.copy(phase = failed), nexusOperationFailed)
+    def fail(s: State) = enter(s.copy(phase = Phase.failed), nexusOperationFailed)
 
-    def cancel(s: State) = enter(s.copy(phase = canceled), nexusOperationCanceled)
+    def cancel(s: State) = enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
 
     // One of the operation's deadlines firing. Which deadline is the System's account of how, so
     // the product machine has one timer.
-    def timeOut(s: State) = enter(s.copy(phase = timedOut), nexusOperationTimedOut)
+    def timeOut(s: State) = enter(s.copy(phase = Phase.timedOut), nexusOperationTimedOut)
 
   object rules extends Rules:
     // The handler's reply to the server's start request moves only an operation that has not
@@ -78,19 +76,19 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
     // the product machine does not know about backing off, which is the whole of what the System
     // machine adds.
     on(handler.reply(Reply.syncSuccess)) {
-      when(scheduled) ~> effects.succeed
+      when(Phase.scheduled) ~> effects.succeed
     }
     on(handler.reply(Reply.async)) {
-      when(scheduled) ~> effects.start
+      when(Phase.scheduled) ~> effects.start
     }
     on(handler.reply(Reply.operationFailed)) {
-      when(scheduled) ~> effects.fail
+      when(Phase.scheduled) ~> effects.fail
     }
     on(handler.reply(Reply.operationCanceled)) {
-      when(scheduled) ~> effects.cancel
+      when(Phase.scheduled) ~> effects.cancel
     }
     on(handler.reply(Reply.handlerError(false))) {
-      when(scheduled) ~> effects.fail
+      when(Phase.scheduled) ~> effects.fail
     }
 
     // An asynchronous completion settles a running operation, and is not found once it is over.
@@ -98,13 +96,17 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
       when[Closed] ~> rejects(Rejection.notFound)
     }
     on(handler.complete(Resolution.succeeded)) {
-      when(scheduled, started) ~> ((s: State) => effects.complete(s, Resolution.succeeded))
+      when(Phase.scheduled, Phase.started) ~> ((s: State) =>
+        effects.complete(s, Resolution.succeeded)
+      )
     }
     on(handler.complete(Resolution.failed)) {
-      when(scheduled, started) ~> ((s: State) => effects.complete(s, Resolution.failed))
+      when(Phase.scheduled, Phase.started) ~> ((s: State) => effects.complete(s, Resolution.failed))
     }
     on(handler.complete(Resolution.canceled)) {
-      when(scheduled, started) ~> ((s: State) => effects.complete(s, Resolution.canceled))
+      when(Phase.scheduled, Phase.started) ~> ((s: State) =>
+        effects.complete(s, Resolution.canceled)
+      )
     }
 
     // A transport fault is an ordinary action of the network, and the handler's worker stopping is a
@@ -113,12 +115,12 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
     // be indistinguishable from a stutter, which the refinement would read as this step.
     disabled(network.fault, worker.stop)
     on(client.terminate) {
-      when(scheduled, started) ~> effects.terminate
+      when(Phase.scheduled, Phase.started) ~> effects.terminate
     }
 
     // The deadline fires while the operation runs.
     on(timers.timeout) {
-      when(scheduled, started) ~> effects.timeOut
+      when(Phase.scheduled, Phase.started) ~> effects.timeOut
     }
 
   // A same-step claim names the action it is about under `when` and holds of the step that action
