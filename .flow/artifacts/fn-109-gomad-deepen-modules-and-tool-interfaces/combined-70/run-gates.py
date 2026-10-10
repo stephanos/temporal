@@ -81,6 +81,17 @@ SEALED_OUTPUT_NAMES = (
 def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
+def make_tool_routes(path):
+    shell = Path('/bin/sh')
+    grep = shutil.which('grep', path=path)
+    if not grep:
+        raise ValueError('Make eager grep executable is absent from its actual search path')
+    return {'shell_path': str(shell),
+            'shell_link_target': os.readlink(shell) if shell.is_symlink() else None,
+            'shell_resolved_target': str(shell.resolve(strict=True)),
+            'grep_search_path': path, 'grep_selected_path': grep,
+            'grep_resolved_target': str(Path(grep).resolve(strict=True))}
+
 def git(*args):
     return subprocess.check_output(['git', *args], cwd=ROOT)
 
@@ -412,11 +423,15 @@ def main():
     if settings_after != before:
         raise ValueError('Source changed during effective Go settings capture')
     actual_go = json.loads(settings.stdout)
+    make_path = str(ROOT / '.bin') + ':' + env['PATH']
+    routing = make_tool_routes(make_path)
     tool_paths = [GO_ROOT / 'bin/go', GO_ROOT / 'bin/gofmt', GO_ROOT / 'VERSION',
                   *sorted((GO_ROOT / 'pkg/tool/linux_arm64').glob('*')),
                   TOOLS / 'golangci-lint-v2.13.0', TOOLS / 'errortype',
                   Path(shutil.which('make', path=env['PATH'])), Path(shutil.which('git', path=env['PATH'])),
-                  Path(shutil.which('timeout', path=env['PATH'])), Path(sys.executable)]
+                  Path(shutil.which('timeout', path=env['PATH'])), Path(sys.executable),
+                  Path('/bin/sh'), Path(routing['shell_resolved_target']),
+                  Path(routing['grep_selected_path']), Path(routing['grep_resolved_target'])]
     for variable in ('CC', 'CXX'):
         command = shlex.split(actual_go[variable])
         compiler = shutil.which(command[0], path=env['PATH']) if command else None
@@ -427,10 +442,22 @@ def main():
     selected_env = {key: value for key, value in env.items() if key.startswith(('GO', 'CGO')) or key in ('PATH', 'TMPDIR', 'TZ', 'SANDBOX_START_DIR')}
     save('environment.json', {'used': selected_env, 'cleared_ambient_names': removed})
     baseline_env = json.loads((BASELINE / 'environment.json').read_text())['used']
+    baseline_tools = json.loads((BASELINE / 'tools.json').read_text())
+    baseline_make_argv = json.loads((BASELINE / 'integrated-lint.json').read_text())['argv']
     baseline_actual_go = json.loads(json.loads((BASELINE / 'actual-go-settings.json').read_text())['stdout'])
     baseline_argv = json.loads((BASELINE / 'ordinary-runner.json').read_text())['argv']
     current_argv = ['go', '-C', 'tools/gomad3', 'test', '-tags', 'test_dep', '-count=1', '-json', './runner']
     save('ordinary-environment-comparison.json', {
+         'baseline_tools_manifest_sha256': sha(BASELINE / 'tools.json'),
+         'current_tools_manifest_sha256': sha(PACKET / 'tools.json'),
+         'recorded_tool_identity_differences': {path: {'baseline': baseline_tools.get(path), 'current': tools.get(path)}
+           for path in sorted(baseline_tools.keys() | tools.keys()) if baseline_tools.get(path) != tools.get(path)},
+         'current_make_tool_routes': routing,
+         'baseline_make_tool_routes': baseline_binding.get('make_tool_routes'),
+         'baseline_integrated_lint_argv': baseline_make_argv,
+         'current_explicit_make_shell_argument': 'SHELL=/bin/sh',
+         'baseline_explicit_make_shell_arguments': [entry for entry in baseline_make_argv if entry.startswith('SHELL=')],
+         'historical_selected_tools_limit': 'Retained historical tool manifests bind only their listed paths and retained route metadata. Missing shell routes or grep entries cannot establish historical execution identities; current additions do not retroactively bind older runs.',
          'baseline_environment_sha256': sha(BASELINE / 'environment.json'),
          'current_environment_sha256': sha(PACKET / 'environment.json'),
          'recorded_setting_differences': {key: {'baseline': baseline_env.get(key), 'current': selected_env.get(key)}
@@ -447,6 +474,7 @@ def main():
          'limits': 'Selective environment capture preserves unset CGO configuration and records effective defaults for both batches. Inherited nonselected variables and C headers are not bound; no hermetic execution claim.'})
     save('run-binding.json', {'head': head, 'baseline_frozen_head': REFERENCE,
          'baseline_postcapture_seal_sha256': BASELINE_SEAL_SHA,
+         'make_tool_routes': routing, 'make_tool_routes_pre_gate_sha256': manifest_digest(routing),
          'baseline_named_counts': dict(collections.Counter(baseline_names.values())), 'cwd': str(ROOT), 'wrapper_sha256': sha(__file__), 'wrapper_argv': sys.argv,
          'source_manifest_sha256': sha(PACKET / 'source-before.json'), 'source_count': len(before['files']),
          'relevant_source_count': before['relevant_source_count'],
@@ -466,7 +494,7 @@ def main():
                     'Any observed ordinary Runner or original-base lint failures remain source-owned; transferred native owners stay deferred.']})
     commands = [
         ('ordinary-runner', ['go', '-C', 'tools/gomad3', 'test', '-tags', 'test_dep', '-count=1', '-json', './runner'], {}),
-        ('integrated-lint', ['make', 'lint-code-gomad3', 'GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c',
+        ('integrated-lint', ['make', 'lint-code-gomad3', 'SHELL=/bin/sh', 'GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c',
          'GOLANGCI_LINT_FIX=false', 'GOLANGCI_LINT=' + str(TOOLS / 'golangci-lint-v2.13.0'),
          'ERRORTYPE=' + str(TOOLS / 'errortype'), 'ALL_TEST_TAGS=test_dep'], {}),
         ('vet-darwin-arm64', ['go', '-C', 'tools/gomad3', 'vet', '-tags', 'test_dep', './runner', './internal/gomadtool/conformance', './runner/internal/execution'], {'GOOS': 'darwin', 'GOARCH': 'arm64', 'CGO_ENABLED': '0'}),
@@ -476,7 +504,8 @@ def main():
     for name, command, overrides in commands:
         command_before = inputs()
         tools_before = {path: sha(path) for path in tools}
-        if command_before != before or tools_before != tools or git('rev-parse', 'HEAD').decode().strip() != head:
+        routing_before = make_tool_routes(make_path)
+        if command_before != before or tools_before != tools or routing_before != routing or git('rev-parse', 'HEAD').decode().strip() != head:
             raise ValueError('Source changed before gate ' + name)
         started = time.monotonic()
         utc_start = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -487,7 +516,9 @@ def main():
         command_after = inputs()
         tools_after = {path: sha(path) for path in tools}
         tools_stable = tools_after == tools_before == tools
-        stable = command_after == command_before == before and tools_stable and git('rev-parse', 'HEAD').decode().strip() == head
+        routing_after = make_tool_routes(make_path)
+        routing_stable = routing_after == routing_before == routing
+        stable = command_after == command_before == before and tools_stable and routing_stable and git('rev-parse', 'HEAD').decode().strip() == head
         receipt = {'name': name, 'argv': command, 'outer_timeout_seconds': 900, 'exit': code,
                    'utc_start': utc_start, 'utc_end': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                    'elapsed_seconds': time.monotonic() - started, 'source_before_after_equal': stable,
@@ -497,6 +528,10 @@ def main():
                    'tools_before_manifest_sha256': manifest_digest(tools_before),
                    'tools_after_manifest_sha256': manifest_digest(tools_after),
                    'tools_before_after_equal': tools_stable,
+                   'make_tool_routes_before': routing_before, 'make_tool_routes_after': routing_after,
+                   'make_tool_routes_before_manifest_sha256': manifest_digest(routing_before),
+                   'make_tool_routes_after_manifest_sha256': manifest_digest(routing_after),
+                   'make_tool_routes_before_after_equal': routing_stable,
                    'run_binding_sha256': sha(PACKET / 'run-binding.json'), 'handle_terminal': True}
         save(name + '.json', receipt)
         receipts.append(receipt)
