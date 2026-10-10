@@ -120,10 +120,6 @@ type executionRunner interface {
 	Run(context.Context, execution.Spec) (execution.Result, error)
 }
 
-type executionDependencies struct {
-	executor executionRunner
-}
-
 type ArtifactReplayer interface {
 	Replay(context.Context, ReplaySpec) (ReplayResult, error)
 }
@@ -384,7 +380,7 @@ func exploreWith(ctx context.Context, config CampaignSpec, dependencies executio
 		return CampaignResult{}, err
 	}
 	if len(request.CoordinatorCommand) != 0 {
-		if request.Preparer != nil || request.executor != nil || request.Replayer != nil {
+		if request.Preparer != nil || request.injected() || request.Replayer != nil {
 			return CampaignResult{}, fmt.Errorf("isolated Runner does not accept injected preparation or execution")
 		}
 		return runIsolated(ctx, request)
@@ -682,7 +678,7 @@ func runSeed(ctx context.Context, config campaignRequest, executor executionRunn
 	environment := environmentForSeed(baseEnvironment, job.seed)
 	arguments := append([]string(nil), prepared.Argv[1:]...)
 	var ioConfig []byte
-	ioConfig, completion.err = profile.BootstrapFrame(prepared, config.RunnerBuild, job.seed)
+	ioConfig, completion.err = config.bootstrapFrame(profile, prepared, config.RunnerBuild, job.seed)
 	var choiceCapability *execution.ChoiceCapability
 	if completion.err == nil {
 		choiceCapability, completion.err = choiceCapabilityForJob(config, prepared, job)

@@ -47,6 +47,7 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 		return processResult(0, "success", "")
 	}}
 	config, dependencies := testConfig(t, preparer, executor, "1-6", PolicyAll, 2)
+	dependencies = scriptedPreparationDependencies(t, config.Preparer, dependencies.executor)
 	summary, err := exploreWith(context.Background(), config, dependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -592,6 +593,7 @@ func TestRunPublishesConnectedWorldBundle(t *testing.T) {
 		return result
 	}}, "7", PolicyAll, 1)
 	config.WorldTransitionLimit = 1 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -627,6 +629,7 @@ func TestRunClassifiesConnectedWorldDeadlock(t *testing.T) {
 		return result
 	}}, "7", PolicyAll, 1)
 	config.WorldTransitionLimit = 1 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -661,6 +664,7 @@ func TestRunCountsConnectedWorldReplayDivergence(t *testing.T) {
 		return result
 	}}, "7", PolicyAll, 1)
 	config.WorldTransitionLimit = 1 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -687,6 +691,7 @@ func TestRunRejectsInvalidConnectedWorldBeforePublication(t *testing.T) {
 		return result
 	}}, "7", PolicyAll, 1)
 	config.WorldTransitionLimit = 1 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "world_record" {
@@ -706,6 +711,7 @@ func TestRunRejectsInvalidConnectedWorldBeforePublication(t *testing.T) {
 
 func TestRunRejectsPreparedTargetMutationBeforeFailurePublication(t *testing.T) {
 	config, configDependencies := testConfig(t, newFakePreparer(t), mutatingExecutor{}, "1", PolicyAll, 1)
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "prepared_target_integrity" {

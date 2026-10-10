@@ -129,7 +129,7 @@ func (local *localCampaign) validateRequest() error {
 			local.resumePlan = preflight.Plan
 			var resumed CampaignSpec
 			resumed, local.selection, local.baseEnvironment, local.readOnlyMounts, local.prepared, err = resumeConfiguration(local.config, local.resumePlan)
-			local.config = campaignRequestFromSpecWith(resumed, executionDependencies{executor: local.config.executor})
+			local.config = campaignRequestFromSpecWith(resumed, local.config.executionDependencies)
 			local.config.resumePreflight = preflight
 		}
 		if err != nil {
@@ -247,7 +247,7 @@ func (local *localCampaign) prepareTarget() error {
 			return &HostError{Reason: "target_preparation_setup", Err: err}
 		}
 		local.config.Target.PreparationRoot = local.journal.PreparedPath()
-		local.prepared, err = preparation.Prepare(local.overallCtx, preparation.Request{
+		local.prepared, err = local.config.prepareTarget(local.overallCtx, preparation.Request{
 			Target: local.config.Target, Environment: local.config.Environment, Preparer: local.config.Preparer,
 		})
 		if err != nil {

@@ -1,0 +1,5 @@
+--- FAIL: TestRunRejectsPreparedTargetMutationBeforeFailurePublication (0.10s)
+    runner_test.go:712: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x9e64c0254d0)}
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	0.113s
+FAIL

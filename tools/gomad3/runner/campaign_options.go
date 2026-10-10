@@ -88,12 +88,13 @@ type campaignGuidanceOptions struct {
 }
 
 type campaignRuntime struct {
+	executionDependencies
+
 	SupervisorCommand    []string
 	CoordinatorCommand   []string
 	RunnerBuild          string
 	Progress             CampaignEventFunc
 	Preparer             Preparer
-	executor             executionRunner
 	Replayer             ArtifactReplayer
 	guidancePlan         *campaign.GuidancePlan
 	resumePreflight      *campaign.ResumePreflight
@@ -209,7 +210,7 @@ func campaignRequestForExplore(spec CampaignSpec, dependencies executionDependen
 
 func campaignRequestFromSpecWith(spec CampaignSpec, dependencies executionDependencies) campaignRequest {
 	request := campaignRequestFromSpec(spec)
-	request.executor = dependencies.executor
+	request.executionDependencies = dependencies
 	return request
 }
 

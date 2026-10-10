@@ -7,9 +7,13 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync/atomic"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/internal/preparation"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+	"go.temporal.io/server/tools/gomad3/target"
 )
 
 // These tests pin the behavior that keys on whether an operation runs its
@@ -156,6 +160,65 @@ func TestInjectionCharacterizationIsolatedExploreRejectsEverySubstitution(t *tes
 			configure(&config, &dependency)
 			if _, err := exploreWith(context.Background(), config, dependency); err == nil || err.Error() != "isolated Runner does not accept injected preparation or execution" {
 				t.Fatalf("isolated Explore with an injected %s error = %v", name, err)
+			}
+		})
+	}
+}
+
+func TestInjectionCharacterizationIsolatedPreparationDependencies(t *testing.T) {
+	for _, test := range []struct {
+		name          string
+		prepare       bool
+		bootstrap     bool
+		invalidSeeds  bool
+		missingResume bool
+	}{
+		{name: "prepare only", prepare: true},
+		{name: "bootstrap only", bootstrap: true},
+		{name: "combined", prepare: true, bootstrap: true},
+		{name: "injection before seed validation", prepare: true, bootstrap: true, invalidSeeds: true},
+		{name: "resume preflight before injection", prepare: true, bootstrap: true, missingResume: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var calls atomic.Int32
+			config, dependencies := testConfig(t, nil, nil, "7", PolicyAll, 1)
+			marker := filepath.Join(t.TempDir(), "coordinator-started")
+			command := filepath.Join(t.TempDir(), "coordinator")
+			if err := os.WriteFile(command, []byte("#!/bin/sh\n: > \"$1\"\nexit 91\n"), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			config.CoordinatorCommand = []string{command, marker}
+			if test.prepare {
+				dependencies.prepare = func(context.Context, preparation.Request) (target.Prepared, error) {
+					calls.Add(1)
+					return target.Prepared{}, errors.New("isolated preparation callback invoked")
+				}
+			}
+			if test.bootstrap {
+				dependencies.bootstrap = func(deterministicio.Spec, target.Prepared, string, uint64) ([]byte, error) {
+					calls.Add(1)
+					return nil, errors.New("isolated bootstrap callback invoked")
+				}
+			}
+			if test.invalidSeeds {
+				config.Seeds = "invalid"
+			}
+			if test.missingResume {
+				config.ResumeCampaign = filepath.Join(t.TempDir(), "missing-campaign")
+			}
+			result, err := exploreWith(context.Background(), config, dependencies)
+			if test.missingResume {
+				if !errors.Is(err, os.ErrNotExist) {
+					t.Fatalf("resume preflight error = %v", err)
+				}
+			} else if err == nil || err.Error() != "isolated Runner does not accept injected preparation or execution" {
+				t.Fatalf("isolated injection error = %v", err)
+			}
+			if dependencies.executor != nil || calls.Load() != 0 || !reflect.DeepEqual(result, CampaignResult{}) {
+				t.Fatalf("isolated execution ran: executor=%v callbacks=%d result=%#v", dependencies.executor, calls.Load(), result)
+			}
+			if _, err := os.Stat(marker); !errors.Is(err, os.ErrNotExist) {
+				t.Fatalf("coordinator started: %v", err)
 			}
 		})
 	}

@@ -1,0 +1,14 @@
+go version go1.27.1 linux/arm64
+linux
+arm64
+/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64
+/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache
+/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc
+file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download
+off
+
+off
+local
+
+83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt
+/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache

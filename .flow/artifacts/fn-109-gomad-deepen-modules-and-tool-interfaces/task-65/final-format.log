@@ -1,0 +1,8 @@
+tools/gomad3/runner/preparation_dependencies.go: OK
+tools/gomad3/runner/runner.go: OK
+tools/gomad3/runner/campaign_options.go: OK
+tools/gomad3/runner/runner_local.go: OK
+tools/gomad3/runner/preparation_fixture_test.go: OK
+tools/gomad3/runner/preparation_dependencies_test.go: OK
+tools/gomad3/runner/runner_test.go: OK
+tools/gomad3/runner/executor_injection_characterization_test.go: OK

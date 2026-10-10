@@ -1,0 +1,45 @@
+{
+  "commits": [],
+  "base_commit": "41ca15aefb849747a7fe73cb1821e0b7bf93bf58",
+  "tests": [
+    "go -C tools/gomad3 test -tags test_dep -count=1 -run '^TestRunRejectsPreparedTargetMutationBeforeFailurePublication$' ./runner",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures|TestRunPublishesConnectedWorldBundle|TestRunClassifiesConnectedWorldDeadlock|TestRunCountsConnectedWorldReplayDivergence|TestRunRejectsInvalidConnectedWorldBeforePublication|TestRunRejectsPreparedTargetMutationBeforeFailurePublication|TestPreparationDependencies.*|TestInjectionCharacterizationIsolated.*|TestRunPreparationFailureLeavesClassifiedPartial|TestWaitForProgressStartObservesPreparationFailure|TestLocalCampaignPreparationShortCircuits|TestLocalCompletionErrorPrecedence|TestLocalFinalization.*|TestPortableProfilePublicGuardsRemainFirst)$' ./runner ./deterministicio",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -timeout=8m -json -run '^(TestPackageArchitecture|TestRunnerExecutionInjectionIsPrivate|TestRunnerRequestsCompileInExternalModule|TestExactModuleEdges|TestPureModulesHaveNoHostEffects)$' .",
+    "make -C tools/gomad3 validate",
+    "go -C tools/gomad3 vet -tags test_dep ./runner",
+    "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner",
+    "bash -c 'test -z \"$(gofmt -l tools/gomad3/runner/preparation_dependencies.go tools/gomad3/runner/runner.go tools/gomad3/runner/campaign_options.go tools/gomad3/runner/runner_local.go tools/gomad3/runner/preparation_fixture_test.go tools/gomad3/runner/preparation_dependencies_test.go tools/gomad3/runner/runner_test.go tools/gomad3/runner/executor_injection_characterization_test.go)\" && cmp <(git show HEAD:tools/gomad3/runner/runner_test.go) <(sed \"/scriptedPreparationDependencies(t, config.Preparer, /d\" tools/gomad3/runner/runner_test.go) && git diff --check && sha256sum -c .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-65/product-final.sha256'",
+    "bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config ../../.github/.golangci.yml ./runner'",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=41ca15aefb849747a7fe73cb1821e0b7bf93bf58 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep"
+  ],
+  "prs": [],
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/.gomad-runner-preparation-research.ETZ8a4ZF/preparation",
+  "uncommitted": true,
+  "candidate_manifest": "product-final.sha256",
+  "candidate_manifest_sha256": "37c0b4c4c7c8bdd90e964acfb473a58fdda1118f3a248462e3df3ee1fb2dfa02",
+  "source_manifest_sha256": "cbb9d9685512c60acb99596e5dfe360610c2a96c4973982c078ef2d1ed4f46a4",
+  "receipts": [
+    "baseline-red.json",
+    "baseline-lint.json",
+    "focused-initial.json",
+    "final-lint.json",
+    "final-focused.json",
+    "final-boundaries-corrected.json",
+    "final-validate-corrected.json",
+    "final-vet-corrected.json",
+    "final-errortype-corrected.json",
+    "final-format-corrected.json",
+    "final-lint-corrected.json",
+    "final-fast-lint.json",
+    "final-tool-identity.json"
+  ],
+  "remaining": [
+    "Fresh root-owned independent current-source review and integration",
+    "Root-owned frozen joined ordinary Runner observation and original-base lint comparison",
+    "Required unfiltered source lint remains RED6",
+    "Native fn-128/fn-149 qualification remains deferred and unverified"
+  ],
+  "all_command_handles_terminal": true,
+  "execution_lane_released": true
+}

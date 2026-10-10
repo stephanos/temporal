@@ -1,0 +1,27 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-runner-preparation-research.ETZ8a4ZF/preparation",
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-timeout=8m",
+    "-json",
+    "-run",
+    "^(TestPackageArchitecture|TestRunnerExecutionInjectionIsPrivate|TestRunnerRequestsCompileInExternalModule|TestExactModuleEdges|TestPureModulesHaveNoHostEffects)$",
+    "."
+  ],
+  "exit": 0,
+  "elapsed_seconds": 38,
+  "head": "41ca15aefb849747a7fe73cb1821e0b7bf93bf58",
+  "source_manifest_sha256": "cbb9d9685512c60acb99596e5dfe360610c2a96c4973982c078ef2d1ed4f46a4",
+  "absent_manifest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tools_sha256": "dc5cc91120c023dca4efbf613928d51b163a663de080111b3989df05c87d5df9",
+  "wrapper_sha256": "717502f745326aaddbebd0cd7b9153eb2b648e14eb12828bcfbb527f5879dd9c",
+  "environment_sha256": "217ab22bb3f775b7c822dc5fa54059004b182fc44c74d76f0f25f94e7edfc201",
+  "raw_log_sha256": "536f5ac794d766f96a5230ba794703aa1a3f96f448e7894e30b9ca6a8a5105a9",
+  "post_source_match_exit": 0
+}
