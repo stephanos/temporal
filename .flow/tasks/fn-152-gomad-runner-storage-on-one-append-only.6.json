@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T12:45:52.002542Z",
+  "depends_on": [
+    "fn-152-gomad-runner-storage-on-one-append-only.1",
+    "fn-152-gomad-runner-storage-on-one-append-only.2"
+  ],
+  "id": "fn-152-gomad-runner-storage-on-one-append-only.6",
+  "priority": null,
+  "spec": "fn-152-gomad-runner-storage-on-one-append-only",
+  "spec_path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.6.md",
+  "status": "todo",
+  "title": "Replay corpus admissions and evictions into the live hash index",
+  "updated_at": "2026-10-10T12:45:52.002542Z"
+}

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T12:45:52.002758Z",
+  "depends_on": [
+    "fn-152-gomad-runner-storage-on-one-append-only.6",
+    "fn-152-gomad-runner-storage-on-one-append-only.7"
+  ],
+  "id": "fn-152-gomad-runner-storage-on-one-append-only.8",
+  "priority": null,
+  "spec": "fn-152-gomad-runner-storage-on-one-append-only",
+  "spec_path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.8.md",
+  "status": "todo",
+  "title": "Expose log and corpus state through existing Inspect dispatch and migrate consumers",
+  "updated_at": "2026-10-10T12:45:52.002758Z"
+}

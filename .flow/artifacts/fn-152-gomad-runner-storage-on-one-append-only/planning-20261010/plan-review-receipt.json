@@ -1,0 +1,72 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "headSha": "b341e60602d2fbebf2721bd9c64014c23b3e30b7",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "b341e60602d2fbebf2721bd9c64014c23b3e30b7",
+          "path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.md",
+          "side": "head",
+          "startLine": 15
+        },
+        "body": "The plan restores policy and skips committed ordinals but does not define recovery of outstanding attempts once that policy is satisfied. `NewSeedController` starts stopped with zero active attempts when restored failures satisfy the policy (`controller.go:99\u2013109`). The uninterrupted first-failure characterization commits one failure plus two cancelled outcomes (`seed_completion_characterization_test.go:115\u2013121`). A crash immediately after the failure commit therefore resumes to one outcome instead of three. Budget policies likewise leave active attempts to drain. Generic controller-progress persistence does not specify how those outstanding ordinals and classifications survive.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-df999b4084a6c7ef8b1cfbfa7f1c8ed758b17639c14dbe9be7f75d2bd93ef0c4",
+        "id": "finding-ff61c3a1e09450b5cb0d0a8c2130aae5",
+        "lastSeenReceiptId": "review-9c419a9d5aa4747c623203e5696984a67973836cef458248bf0a5316af1ba718",
+        "ordinal": 1,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Specify the durable stop/drain transition and recovery rules for outstanding ordinals, including already-completed buffered results and committed cancellations. Add explicit interruption controls between the stopping failure and each drained outcome, preserving the uninterrupted logical outcome set.",
+        "title": "The plan restores policy and skips committed ordinals but does not define recovery of outstanding attempts once that policy is satisfied"
+      },
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "b341e60602d2fbebf2721bd9c64014c23b3e30b7",
+          "path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.1.md",
+          "side": "head",
+          "startLine": 15
+        },
+        "body": "The new log contract specifies locking and framing but omits filesystem identity, containment and permission guards. Current campaign reads pin the directory, verify its identity and enforce private modes; `hostfs.openRegular` rejects symlinks, nonregular files, multiple links and changed identities. Reusing only hostfs locking does not preserve those protections. Two roots could reference one physical log through separate links while acquiring different locks, or recovery could truncate a symlink target outside its owned root. This defeats both exclusive-writer and ownership guarantees.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-df999b4084a6c7ef8b1cfbfa7f1c8ed758b17639c14dbe9be7f75d2bd93ef0c4",
+        "id": "finding-f5fef54f31d51fa715028448d106cbde",
+        "lastSeenReceiptId": "review-9c419a9d5aa4747c623203e5696984a67973836cef458248bf0a5316af1ba718",
+        "ordinal": 2,
+        "rIds": [
+          "R1",
+          "R7"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Require pinned-root containment, private directory/file modes, regular single-link log files, and descriptor identity checks before append or truncation. Retain negative controls for aliases, symlinks, wrong modes and directory/file replacement.",
+        "title": "The new log contract specifies locking and framing but omits filesystem identity, containment and permission guards"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-9c419a9d5aa4747c623203e5696984a67973836cef458248bf0a5316af1ba718",
+    "supersedesReceiptId": "review-df999b4084a6c7ef8b1cfbfa7f1c8ed758b17639c14dbe9be7f75d2bd93ef0c4"
+  },
+  "id": "fn-152-gomad-runner-storage-on-one-append-only",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nThe revised epic and tasks 10/4 specify durable admissions, actual completion receipts, atomic stop/drain commits, restoration of cancelled ordinals, and interruption tests. Tasks 2/3 also protect pending evidence during recovery.\n\nTask 1 now requires pinned roots, private modes, regular single-link files, descriptor identity checks, guarded locking, and deterministic replacement/alias tests before append or repair.\n\nNo remaining blocking findings. The updated tasks align with the epic and dependency order. Test strategy, committed-progress observability, bounded memory/payload requirements, and filesystem security/privacy requirements are stated. Task scopes retain focused owners and explicit scope-growth controls.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "c0c2b157207b4e9c906d1825b3afaebd",
+  "session_id": "01a125da-acc5-7de0-956f-ff7806e42c6e",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-10T13:03:36.412438Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

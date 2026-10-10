@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T13:00:42.082684Z",
+  "depends_on": [
+    "fn-152-gomad-runner-storage-on-one-append-only.3"
+  ],
+  "id": "fn-152-gomad-runner-storage-on-one-append-only.10",
+  "priority": null,
+  "spec": "fn-152-gomad-runner-storage-on-one-append-only",
+  "spec_path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.10.md",
+  "status": "todo",
+  "title": "Persist bounded admission and terminal receipts with atomic policy stop/drain",
+  "updated_at": "2026-10-10T13:00:42.082684Z"
+}

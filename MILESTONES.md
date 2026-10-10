@@ -330,6 +330,23 @@ CI, PR, or push authority.
 | [fn-155.7](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.7.md) | ⬜ Todo | Measure size, record the files/DNS decision and annotate dependent work |
 | [fn-155.8](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.8.md) | ⬜ Todo | Admit the edge's socket entry points in capability guard and closure policy |
 
+<a id="append-log-storage-fn-152"></a>
+
+## Runner append-log storage — [fn-152](.flow/specs/fn-152-gomad-runner-storage-on-one-append-only.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-152.1](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.1.md) | ⬜ Todo | Add protected framing, guarded opens and read-only versus writer replay |
+| [fn-152.2](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.2.md) | ⬜ Todo | Gate artifact lineage and owned live-reference cleanup |
+| [fn-152.3](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.3.md) | ⬜ Todo | Replace campaign lifecycle, recovery and resume files with one log |
+| [fn-152.4](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.md) | ⬜ Todo | Integrate durable seed outcomes, scheduling and resume |
+| [fn-152.5](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.5.md) | ⬜ Todo | Commit both exploration strategies through one atomic round owner |
+| [fn-152.6](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.6.md) | ⬜ Todo | Replay corpus admission and eviction into the bounded live hash index |
+| [fn-152.7](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.7.md) | ⬜ Todo | Concatenate source-scoped shard logs after complete preflight |
+| [fn-152.8](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.8.md) | ⬜ Todo | Inspect log and corpus state and migrate storage consumers |
+| [fn-152.9](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md) | ⬜ Todo | Retain integrated crash evidence and update current storage contracts |
+| [fn-152.10](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.10.md) | ⬜ Todo | Persist admitted work and terminal receipts with atomic policy stop/drain |
+
 <a id="quality-assessment-2026-10-01"></a>
 
 ## Determinism assurance and test strategy — [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md)

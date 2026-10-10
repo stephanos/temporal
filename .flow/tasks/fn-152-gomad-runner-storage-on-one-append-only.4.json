@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T12:45:52.002426Z",
+  "depends_on": [
+    "fn-152-gomad-runner-storage-on-one-append-only.3",
+    "fn-152-gomad-runner-storage-on-one-append-only.10"
+  ],
+  "id": "fn-152-gomad-runner-storage-on-one-append-only.4",
+  "priority": null,
+  "spec": "fn-152-gomad-runner-storage-on-one-append-only",
+  "spec_path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.md",
+  "status": "todo",
+  "title": "Commit seed outcomes and controller progress atomically during run and resume",
+  "updated_at": "2026-10-10T13:01:12.160793Z"
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "scope": "fn152 planning only; no implementation or source/native acceptance",
+  "source_head": "b341e60602d2fbebf2721bd9c64014c23b3e30b7",
+  "spec": "fn-152-gomad-runner-storage-on-one-append-only",
+  "task_count": 10,
+  "requirements": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "R7",
+    "R8",
+    "R9",
+    "R10"
+  ],
+  "review": {
+    "mode": "codex",
+    "verdict": "SHIP",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "session_id": "01a125da-acc5-7de0-956f-ff7806e42c6e",
+    "timestamp": "2026-10-10T13:03:36.412438Z",
+    "receipt_path": "plan-review-receipt.json",
+    "receipt_sha256": "5d65fad38c4ab0d7ced74b340a8c05655758054f660b68ef6a62b332a5ad7d7e"
+  },
+  "input_capture": {
+    "spec_markdown_sha256": "c36ff356093f9b04bfef0e1b5dde6b2291358494bf80ad208b5428405450c7fe",
+    "spec_metadata_sha256": "ee86ae88e0042b19f46979369d40f545e324b78870da463364d413f551f3865e"
+  },
+  "reviewed_files": {
+    ".flow/specs/fn-152-gomad-runner-storage-on-one-append-only.json": "086591cbbc284f6e6fd5cc1a764713709171abd48f9955888313684fe309d935",
+    ".flow/specs/fn-152-gomad-runner-storage-on-one-append-only.md": "11e38eebf64097ff1851c09afd2611f5dfee83cbd6fb8fed9054f2723c3f9f1b",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.1.json": "e61f53937012f965d5bf0f87b42379f0675405885c23976c69d93a36eb849573",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.1.md": "adaad0996b92629080cbbe5bb5c9a4af1415a087cee6138655978f85c5dde1b3",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.2.json": "740bba1d34d67bc59969f936194d4912d86fe1cac6c85d7ca6565b0339e18cf7",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.2.md": "05cc9615c2aac8921ec9aca5e7b07e186e12e67e11d193ebd7404bb88530dd84",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.3.json": "27bca86ed7b587bfd0a39d15c89eeee22095a88e59bfdbf7545508c598f67f7f",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.3.md": "199accbc970ea36fe42dcdca7963989ea4737115d7fd10baf39bbd0061dfc006",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.json": "af8a49e8cbd5f62157436da2c4cf81473708eebf01ac83a847d958220631ad26",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.md": "91badeb9a975f85eb0b38e644e6f94206eb02c501ed3fd6b5096b3594a40d53a",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.5.json": "91af150719fad7595ac0c661e1444f67f94e753bde2b38b6b3352d4d385e19a2",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.5.md": "b5950fc34e11eba08c9e87ec1e3e69e46ac17650115f270cc56826394529a5fe",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.6.json": "c0cefd05271e3daebde49234d1c5e014832fb63bced74021df24ef798a70e417",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.6.md": "0af5e3087c6ce3fc3a10b3942e1d8bddbe43f5cb82bd113e960f1588863b5da0",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.7.json": "f1a659e1fb078effa3142aa4bb5f96b7f116accfd7a840288c391cb0f2b22e30",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.7.md": "ac0592df9447fc391c9291890a8999876e207328628c0c8df6c5dd7c788eab78",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.8.json": "c4e88df5d39695579067dfaa6fe5d20fb5eef31008e65ca88b76eef305183e68",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.8.md": "8b1df549d8741afb12d7a66990b0a59ef9c2ecaf0e5e797235a2a2aed38725ef",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.json": "c138b4729fbcf146fba550c12729bac86174c895aeafabaee81fc83592cad54e",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md": "627c5bbecc663fdb32d9d48cf2d37940498d3a52c2cce0c8e67b3939c635a9d3",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.10.json": "16954a68ce5a785d9c01fc19580cd120e9c07a0465e275c89e816e5a7cb52747",
+    ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.10.md": "26e7fc715678f9f252171370e340c6ffa557c3dca088e975949cf237297c173f"
+  },
+  "post_review_formatting": {
+    "description": "Remove exactly one EOF blank line; Flow normalizes trailing newlines in plan review identity. Only updated_at changed in metadata on set-plan.",
+    "normalized_review_identity_unchanged": true,
+    "metadata_updated_at_before": "2026-10-10T13:03:36.425096Z",
+    "metadata_updated_at_after": "2026-10-10T13:08:10.448117Z",
+    "final_file_sha256": {
+      ".flow/specs/fn-152-gomad-runner-storage-on-one-append-only.json": "53e23822e483077dfd395b82b3097816a7f2c1263e42b41bd25e96829f7b5b11",
+      ".flow/specs/fn-152-gomad-runner-storage-on-one-append-only.md": "0535c17615c5f73ddce57780e50580d2f647f07334de89b31e9cdd0a7c3d4669"
+    }
+  }
+}

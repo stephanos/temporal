@@ -1,0 +1,147 @@
+{
+  "branch_name": "fn-152-gomad-runner-storage-on-one-append-only",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T23:27:40.316878Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-152-gomad-runner-storage-on-one-append-only",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-10T13:03:36.424211Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "3165b85ff2ef691ba844e9a96cb656fa1ce980f77e2a62c8537834f38fea291c",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ff61c3a1e09450b5cb0d0a8c2130aae5",
+            "classification": "introduced",
+            "findingId": "finding-ff61c3a1e09450b5cb0d0a8c2130aae5",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f5fef54f31d51fa715028448d106cbde",
+            "classification": "introduced",
+            "findingId": "finding-f5fef54f31d51fa715028448d106cbde",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b341e60602d2fbebf2721bd9c64014c23b3e30b7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 437707,
+      "output_sha256": "1b7743a254ac02c7d9509c854de839531e8aae145cea1723cff51dfe3ce43193",
+      "reservation_id": "0086c8d7de25459f9f609d9572268354",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T12:51:25.979803Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ccbcfe9b596b4b48759df47c8d69524d33e3d60ed272609926021ad580c56b72",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ff61c3a1e09450b5cb0d0a8c2130aae5",
+            "classification": "introduced",
+            "findingId": "finding-ff61c3a1e09450b5cb0d0a8c2130aae5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f5fef54f31d51fa715028448d106cbde",
+            "classification": "introduced",
+            "findingId": "finding-f5fef54f31d51fa715028448d106cbde",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b341e60602d2fbebf2721bd9c64014c23b3e30b7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 910,
+      "output_sha256": "d7f47e11dcdad62978db314890dc840695e224129cbd8ab1f9577408dc88a9f6",
+      "reservation_id": "c0c2b157207b4e9c906d1825b3afaebd",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T13:03:36.416594Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-152-gomad-runner-storage-on-one-append-only.md",
+  "status": "open",
+  "title": "Gomad runner storage on one append-only log",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-10T13:08:10.448117Z"
+}
