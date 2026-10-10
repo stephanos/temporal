@@ -52,13 +52,16 @@ object StepTablesFixture:
   // changed fact.
   enum Noted derives Finite:
     case lit, dark
+
   object Facts extends Machine[Lamp, Said, Noted]:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
+
     object rules
         extends Bindings(
           hand.press ~> ((s: Lamp) => List(Step(Said.ok, s.copy(light = Lit.on), List(Noted.lit))))
         )
+
   object Faulted
       extends Derived(
         Facts.rebind(
@@ -68,5 +71,6 @@ object StepTablesFixture:
           )
         )
       )
+
   // The switch whose press wears it out: a changed rule result.
   object Derived1 extends Derived(Switch.rebind(hand.press ~> Switch.effects.wear))
