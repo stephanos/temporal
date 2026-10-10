@@ -296,7 +296,7 @@ func TestAdmissionRejectsUndeclaredNamesAndArities(t *testing.T) {
 		}, admDeclaredAt + "152: no machine or composition nowhere"},
 		{"progress machine", "declarations", func(m *umpirespb.Model) {
 			m.GetProgress()[0].Machine = "nowhere"
-		}, admDeclaredAt + "113: no machine nowhere"},
+		}, admDeclaredAt + "113: no machine or composition nowhere"},
 		{"query property", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "durableStays").GetProperty().Name = "nothing"
 		}, admDeclaredAt + "163: query durableStays: no Property nothing of disk"},
@@ -367,6 +367,50 @@ func TestAdmissionRejectsCrossedTypes(t *testing.T) {
 			admComposition(m, "pair").GetMembers()[1].Machine = "disk"
 		}, admDeclaredAt + "124: member back of pair holds fixture.declarations.StoreState, not the state fixture.declarations.DiskState of disk"},
 	})
+}
+
+func TestAdmissionChecksProgressOwnerStateAndBound(t *testing.T) {
+	model := func(owner string) *umpirespb.Model {
+		m := admFixture(t, "declarations")
+		p := m.Progress[0]
+		p.Machine, p.Assumptions = owner, nil
+		state := "fixture.declarations.DiskState"
+		if owner == "pair" {
+			state = "fixture.declarations.PairState"
+		}
+		for _, name := range []string{p.GetFrom(), p.GetTo()} {
+			f := function(m, name)
+			f.Params[0].Type = interp.Named(state)
+			f.Body = &umpirespb.Expr{Position: f.GetPosition(), Kind: &umpirespb.Expr_Literal{
+				Literal: &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: true}}}}
+		}
+		return m
+	}
+	for _, owner := range []string{"disk", "pair"} {
+		t.Run(owner, func(t *testing.T) {
+			require.NoError(t, Validate(model(owner)))
+			for _, role := range []string{"from", "to"} {
+				t.Run(role+" state", func(t *testing.T) {
+					m := model(owner)
+					p := m.Progress[0]
+					name := p.GetFrom()
+					if role == "to" {
+						name = p.GetTo()
+					}
+					function(m, name).Params[0].Type = interp.Named("fixture.declarations.StoreState")
+					require.ErrorContains(t, Validate(m), admDeclaredAt+"113: "+owner+".durableEventually: "+
+						role+" takes fixture.declarations.StoreState, not the state ")
+				})
+			}
+			for _, bound := range []int32{0, -1} {
+				m := model(owner)
+				m.Progress[0].Within = bound
+				require.ErrorContains(t, Validate(m), admDeclaredAt+"113: progress claim durableEventually of "+owner+" is within ")
+			}
+		})
+	}
+	m := model("missing")
+	require.ErrorContains(t, Validate(m), admDeclaredAt+"113: no machine or composition missing")
 }
 
 func TestAdmissionRejectsDuplicates(t *testing.T) {

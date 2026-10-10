@@ -1136,11 +1136,17 @@ func (v *validator) containsItself(at *umpirespb.Position, name string, holds ma
 
 func (v *validator) progress(p *umpirespb.Progress) {
 	at := p.GetPosition()
-	if v.machines[p.GetMachine()] == nil {
-		v.report(at, "no machine %s", p.GetMachine())
+	v.claimed(at, p.GetMachine())
+	state := v.machines[p.GetMachine()].GetStateType()
+	if c := v.compositions[p.GetMachine()]; c != nil {
+		state = c.GetStateType()
 	}
-	v.arity(at, p.GetMachine()+"."+p.GetName(), p.GetFrom(), 1)
-	v.arity(at, p.GetMachine()+"."+p.GetName(), p.GetTo(), 1)
+	owner := p.GetMachine() + "." + p.GetName()
+	for _, predicate := range []struct{ role, name string }{{"from", p.GetFrom()}, {"to", p.GetTo()}} {
+		if f := v.arity(at, owner, predicate.name, 1); f != nil && state != "" && !accepts(f.GetParams()[0].GetType(), interp.Named(state)) {
+			v.report(at, "%s: %s takes %s, not the state %s", owner, predicate.role, Spell(f.GetParams()[0].GetType()), state)
+		}
+	}
 	v.assumptionRefs(at, p.GetAssumptions())
 	if p.GetWithin() < 1 {
 		v.report(at, "progress claim %s of %s is within %d steps, fewer than one", p.GetName(), p.GetMachine(), p.GetWithin())
