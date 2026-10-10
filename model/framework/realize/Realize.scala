@@ -346,6 +346,7 @@ final case class Name(prefix: String, fixture: Boolean = false, suffix: String =
 trait Activation
 
 object Activation:
+
   // The run's own controller, which makes a Case's calls and works its controls.
   case object Controller extends Activation
 

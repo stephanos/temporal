@@ -7,10 +7,13 @@ package foundations.taskqueue
 package system
 
 import scala.annotation.unused
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import product.{TaskQueueProduct, TaskQueueProductUnderStorageLoss}
 import QueueOutcome.given
+
 val _ = () => summon[CanEqual[Custody, Custody]]
+
 // ### The detailed provider, and the providers derived from it. The violating providers each differ
 // from the detailed provider in what one ordinary crash does, and neither assumes storage loss. They
 // are negative controls a feature may compose its own design with: the replacement is what must fail.
@@ -281,6 +284,7 @@ object LossyMatchingQueue
 object ForgetfulQueue
     extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.effects.forgetfulCrash)),
       NegativeControl:
+
   object queries:
     val forgetfulQueueQueries =
       TaskQueueSystem.queries.providerQueries(ForgetfulQueue)
@@ -289,5 +293,6 @@ object ForgetfulQueue
 object VolatileQueue
     extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.effects.volatileCrash)),
       NegativeControl:
+
   object queries:
     val volatileQueueQueries = TaskQueueSystem.queries.providerQueries(VolatileQueue)

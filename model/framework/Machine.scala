@@ -545,6 +545,7 @@ final private[framework] class Built[S, O, F, M <: Model](
       DerivedFrom[M]:
   def init: S = starts.head
   def end(s: S): Boolean = isEnd(s)
+
   object rules extends RuleBook[S, O, F]:
     private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
   final override private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] = bound

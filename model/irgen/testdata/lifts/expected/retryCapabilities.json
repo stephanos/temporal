@@ -3658,7 +3658,7 @@
     "name": "waitingFailures.property.waitingFailures.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/capabilities/Closable.scala",
-      "line": 44
+      "line": 47
     },
     "params": [ {
       "name": "before",
@@ -3674,21 +3674,21 @@
     "body": {
       "position": {
         "file": "model/temporal/capabilities/Closable.scala",
-        "line": 45
+        "line": 48
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/capabilities/Closable.scala",
-            "line": 45
+            "line": 48
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/capabilities/Closable.scala",
-                "line": 45
+                "line": 48
               },
               "binary": {
                 "op": "OP_CONTAINS",
@@ -3701,7 +3701,7 @@
                     "base": {
                       "position": {
                         "file": "model/temporal/capabilities/Closable.scala",
-                        "line": 45
+                        "line": 48
                       },
                       "var": "before"
                     },
@@ -3735,27 +3735,27 @@
         "right": {
           "position": {
             "file": "model/temporal/capabilities/Closable.scala",
-            "line": 46
+            "line": 49
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/capabilities/Closable.scala",
-                "line": 46
+                "line": 49
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/capabilities/Closable.scala",
-                    "line": 46
+                    "line": 49
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/capabilities/Closable.scala",
-                        "line": 46
+                        "line": 49
                       },
                       "var": "after"
                     },
@@ -3765,7 +3765,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/capabilities/Closable.scala",
-                    "line": 46
+                    "line": 49
                   },
                   "var": "before"
                 }
@@ -3774,20 +3774,20 @@
             "right": {
               "position": {
                 "file": "model/temporal/capabilities/Closable.scala",
-                "line": 46
+                "line": 49
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/capabilities/Closable.scala",
-                    "line": 46
+                    "line": 49
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/capabilities/Closable.scala",
-                        "line": 46
+                        "line": 49
                       },
                       "var": "after"
                     },
@@ -4746,7 +4746,7 @@
     "name": "waitingFailures.property.waitingFailures.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/capabilities/Closable.scala",
-      "line": 26
+      "line": 29
     },
     "params": [ {
       "name": "before",
@@ -4762,21 +4762,21 @@
     "body": {
       "position": {
         "file": "model/temporal/capabilities/Closable.scala",
-        "line": 27
+        "line": 30
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/capabilities/Closable.scala",
-            "line": 27
+            "line": 30
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/capabilities/Closable.scala",
-                "line": 27
+                "line": 30
               },
               "binary": {
                 "op": "OP_CONTAINS",
@@ -4789,7 +4789,7 @@
                     "base": {
                       "position": {
                         "file": "model/temporal/capabilities/Closable.scala",
-                        "line": 27
+                        "line": 30
                       },
                       "var": "before"
                     },
@@ -4823,7 +4823,7 @@
         "right": {
           "position": {
             "file": "model/temporal/capabilities/Closable.scala",
-            "line": 28
+            "line": 31
           },
           "binary": {
             "op": "OP_EQ",
@@ -4836,13 +4836,13 @@
                 "base": {
                   "position": {
                     "file": "model/temporal/capabilities/Closable.scala",
-                    "line": 28
+                    "line": 31
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/capabilities/Closable.scala",
-                        "line": 28
+                        "line": 31
                       },
                       "var": "after"
                     },
@@ -4861,7 +4861,7 @@
                 "base": {
                   "position": {
                     "file": "model/temporal/capabilities/Closable.scala",
-                    "line": 28
+                    "line": 31
                   },
                   "var": "before"
                 },
@@ -5413,7 +5413,7 @@
       "name": "temporal.capabilities.Closable.closedIsRejectedUniformly",
       "position": {
         "file": "model/temporal/capabilities/Closable.scala",
-        "line": 36
+        "line": 39
       }
     }
   }, {
@@ -5535,7 +5535,7 @@
       "name": "temporal.capabilities.Closable.terminalStatesAreFinal",
       "position": {
         "file": "model/temporal/capabilities/Closable.scala",
-        "line": 20
+        "line": 23
       }
     }
   } ],

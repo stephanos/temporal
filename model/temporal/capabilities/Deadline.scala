@@ -1,10 +1,13 @@
 // A selected timer fires only inside its armed role and settles from before-state retry policy.
 package temporal.capabilities
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 final case class Deadline[S, P, R, F <: Product](
     timer: ClassRef,
     armed: S => Boolean,

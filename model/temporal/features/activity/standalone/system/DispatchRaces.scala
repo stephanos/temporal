@@ -4,14 +4,17 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.outcomes.Outcome
 import framework.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
 import framework.realize.{Reason, RunExpectation}
 import temporal.realize.satisfied
 import Bounds.three
 import product.ActivityProduct
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 // The record with the one response-loss budget a lost admission response consumes.
 final case class AdmissionResponseState(record: AdmissionState, lossAvailable: Boolean)
     derives Finite
@@ -37,10 +40,12 @@ object HeldDispatch
   val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
     "statusTimedOut"
   }
+
   // It refines the product as the corrected design does.
   object refinement extends Refinement(ActivityProduct):
     def toProduct(s: State): product.State = ActivityRecord.refinement.toProduct(s)
     def visible(f: AdmissionFact) = ActivityRecord.refinement.visible(f)
+
   object effects:
     // Admission as the corrected design decides it, with no failure of its durable update.
     def admitCommitted(s: State) =

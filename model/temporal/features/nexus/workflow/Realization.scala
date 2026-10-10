@@ -294,12 +294,16 @@ object AsyncNexus
       learned = Vector(completionAuthority),
       observations = Vector(historyEvent, correlated)
     ):
+
   object controller extends Controller(callerItems*)
+
   object workers extends Workers(workflowScript, handlerScript)
+
   object evidence extends Evidences((Vector(scheduled) ++ historyKinds.evidence :+ pending)*)
 
 // The forged control's realization: AsyncNexus, with the workflow inspected after the scheduled
 // event.
 object ForgedControl extends DerivesFrom(AsyncNexus, TrustingCaller):
+
   object changes
       extends Changes(inserting(after = awaitScheduled)(perform(caller.inspect -> inspectWorkflow)))

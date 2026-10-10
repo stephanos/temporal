@@ -1,4 +1,5 @@
 package umpire.irgen
+
 import TestEquality.given
 
 import java.nio.file.{Files, Path}

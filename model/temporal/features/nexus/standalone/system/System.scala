@@ -4,7 +4,8 @@ package standalone
 package system
 
 import scala.annotation.unused
-import framework.*; import framework.Finite.given CanEqual[?, ?]
+import framework.*
+import framework.Finite.given CanEqual[?, ?]
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.Reason
 import temporal.capabilities.*
@@ -20,16 +21,20 @@ enum Phase derives Finite:
   case failed extends Phase, Failed
   case canceled extends Phase, Canceled
   case terminated extends Phase, Terminated
+
 import Fact.{nexusOperationCompleted as NC, nexusOperationStarted as NS}
 // 7 phases and whether a cancel was requested: 14 states.
 final case class State(phase: Phase, cancelRequested: Boolean) derives Finite
 import Fact.{nexusOperationCanceled as NX, nexusOperationFailed as NF}
+
 // What a step records: the status it lands in, and the cancel request Describe reports.
 enum Fact derives Finite:
   case statusScheduled, nexusOperationStarted, statusCancelRequested
   case nexusOperationCompleted, nexusOperationFailed, nexusOperationCanceled,
     nexusOperationTerminated
+
 import Fact.nexusOperationTerminated as NT
+
 object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
   import Phase.*
 

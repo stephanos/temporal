@@ -18,6 +18,7 @@ object DiscoveryFixtures:
   object Original extends Machine[State, Outcome, Nothing]:
     def init = open
     def end(s: DiscoveryFixtures.State) = s.equals(closed)
+
     object rules
         extends Bindings(
           advance ~> ((_: DiscoveryFixtures.State) => List(Step(Outcome.done, closed)))
@@ -36,27 +37,37 @@ object DiscoveryFixtures:
       )
 
   final case class Joined(value: State)
+
   object JoinedSource extends Composition[Joined](_.value -> Added)
+
   object JoinedReplacement extends Composition(JoinedSource.withMember(_.value -> Original))
 
   object Mapped extends Derived(Added.refining(Original)(identity))
+
   object capabilityOwner extends Machine[State, Outcome, Nothing]:
     def init = State.open
     def end(s: DiscoveryFixtures.State) = s.equals(State.closed)
+
     object rules
         extends Bindings(advance ~> ((s: DiscoveryFixtures.State) => List(Step(Outcome.done, s))))
+
     object capabilities extends Capabilities
+
   object queryOwner extends Derived(Original.restrict(advance))
+
   object propertyOwner extends Derived(Original.restrict(advance))
+
   object RoleSource
       extends Machine[RolePhase, Outcome, Nothing],
         Phased[RolePhase, RolePhase](identity):
     def init = RolePhase.pending
+
     object rules extends Bindings(advance ~> ((s: RolePhase) => List(Step(Outcome.done, s))))
   lazy val bounded = query("bounded")
     .verify(propertyOwner.property("holds").holds(_ => true))
     .in(queryOwner.scenario("free").free)
     .limits(Limits(steps = 1, actions = 1, search = 4))
+
   object queries:
     val one: Query = bounded
     val many: Seq[Query] = Seq(bounded)
@@ -72,6 +83,7 @@ object DiscoveryFixtures:
 
   object exports:
     val first = irFile("discovery-first")(Original)
+
   object newOwner:
     val second = irFile("discovery-added")(Added)
 

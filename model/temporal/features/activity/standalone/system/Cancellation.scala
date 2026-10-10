@@ -4,10 +4,14 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import Bounds.four
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 object Cancellation extends Derived(ActivitySystem.rebind()):
+
   object properties:
     val cancelRequestedWhileStarted =
       property when client.requestCancel holds { s => // format: off

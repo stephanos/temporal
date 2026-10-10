@@ -1,4 +1,5 @@
 package framework
+
 import framework.Finite.given
 // The Nexus and shared-worker rejection cells, recorded before they adopted the shared Outcome.
 

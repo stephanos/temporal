@@ -7,7 +7,9 @@ package foundations.taskqueue
 package product
 
 import scala.annotation.unused
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // ### The opaque provider: the interface, and the interface under the storage-loss assumption
 
@@ -21,6 +23,7 @@ object TaskQueueProduct
     // A message is outstanding: committed, and not yet acknowledged.
     def holding(s: State) =
       s.outstanding.in(Outstanding.committed, Outstanding.deliveredOnce, Outstanding.deliveredTwice)
+
   object effects:
     def enqueueView(s: State) =
       choose(

@@ -4,15 +4,19 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import temporal.realize.satisfied
 import Bounds.{four, three}
 import Timeout.expires
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 // Model-only witnesses of a pending reset: it applies on a fatal failure, on an exhausted policy
 // and on an attempt's own deadline, keeps a requested pause, loses to a completion, a cancellation
 // and schedule-to-close, and outranks a pause and a repeated reset. No realization runs them.
 object ResetSettlement extends Derived(ActivitySystem.unmonitored):
+
   object properties:
     // A first attempt again, dispatched at once, of an activity with no deadline set.
     val restarted =
@@ -48,6 +52,7 @@ object ResetSettlement extends Derived(ActivitySystem.unmonitored):
     val resetStaysPending = property when client.reset(ResetPause.resume) holds { s =>
       s.state.phase == Phase.resetRequested // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     }
+
   object queries:
     val resetThenFatal = scenario.actions(
       client.start(),
@@ -122,6 +127,7 @@ object ResetSettlement extends Derived(ActivitySystem.unmonitored):
 // from the pause's, and it stays a Model-only witness; a retried activity's reset would rewind a
 // delivered count, which only a held reset declares to the Driver.
 object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
+
   object properties:
     // Paused before any attempt, with no deadline set, its count restarted.
     val keptPaused =
@@ -129,6 +135,7 @@ object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
     val resetKeptPaused = property when client.reset(ResetPause.keepPaused) holds { s =>
       s.state == keptPaused && s.records(Fact.statusPaused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
+
   object queries:
     val pausedThenReset = scenario.actions(
       client.start(),
@@ -140,10 +147,12 @@ object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
 // A reset of a held attempt, applied when the attempt's heartbeat deadline ends it: the server's
 // next delivery is a first attempt again, which completes, though the policy allowed one attempt.
 object DeferredReset extends Derived(ActivitySystem.unmonitored):
+
   object properties:
     val resetAttemptCompletes = property when worker.respondCompleted holds { s => // format: off
       s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
+
   object queries:
     val resetThenHeartbeatTimedOut = scenario.actions(
       client.start(heartbeat := expires, maxAttempts := MaxAttempts.one),

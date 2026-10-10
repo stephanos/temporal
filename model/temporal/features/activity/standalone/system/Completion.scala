@@ -4,11 +4,15 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import temporal.realize.satisfied
 import Bounds.three
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 object Completion extends Derived(ActivitySystem.rebind()):
+
   object properties:
     val completes =
       property when worker.respondCompleted holds { s => // format: off

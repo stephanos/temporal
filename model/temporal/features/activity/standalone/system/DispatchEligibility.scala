@@ -4,12 +4,16 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import temporal.realize.satisfied
 import Bounds.four
 import Timeout.expires
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 object DispatchEligibility extends Derived(ActivitySystem.rebind()):
+
   object properties:
     // A dispatch delay remains pending across pause/unpause (model.go:239-244,355-376).
     val dispatchRequiresReady = property.holdsAcross { (before, after) => // format: off

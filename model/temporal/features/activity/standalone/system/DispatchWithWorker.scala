@@ -4,9 +4,11 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import actors.worker.{worker as process, Phase as WorkerPhase, State as WorkerState}
 import Timeout.expires
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // The System machine and its worker, as the standalone activity composition holds them.
 final case class StandaloneActivityState(activity: State, worker: WorkerState)
@@ -24,6 +26,7 @@ object StandaloneActivity
       _.worker -> ActivityWorker
     ),
       Phased[StandaloneActivityState, Phase](_.activity.phase):
+
   object syncs extends Syncs:
     sync(_.activity -> process.stop, _.worker -> process.stop)
     sync(_.activity -> worker.poll, _.worker -> process.serve)

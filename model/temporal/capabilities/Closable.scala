@@ -1,10 +1,13 @@
 // Closing an entity; Closed phases define the terminal statuses its Properties read.
 package temporal.capabilities
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 final case class Closable[S, P, O](rejected: O)(using
     @unused phasing: Phasing[S, P],
     @unused finite: Finite[P],

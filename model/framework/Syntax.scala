@@ -673,6 +673,7 @@ abstract class Rules[S, O, F, P](using
       decl -> (if never.contains(decl) then Bound.Disabled[S, O, F]()
                else Bound.Ruled(written.filter(_.decl == decl).toVector)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
                // format: on
+
 // Evidence that a case's phases are of the type the rules' projection reads: the rules of a machine
 // that mixes in `Phased[State, Phase](_.phase)` name phases with `when`, and the rules of
 // one that is not `Phased`, whose phase type is `Nothing`, name none. Core form: none of its own;

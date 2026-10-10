@@ -1,4 +1,5 @@
 package framework
+
 import framework.Finite.given
 // What the standalone activity Model's effects do, run as Scala.
 

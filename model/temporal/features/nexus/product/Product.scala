@@ -6,7 +6,8 @@ package temporal
 package features.nexus
 package product
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.actors.worker.worker
 

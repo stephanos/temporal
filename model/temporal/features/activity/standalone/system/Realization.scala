@@ -75,12 +75,14 @@ val activityStatus = described.table
 // Raw API data: Describe counts scheduling, while the independent Model counts delivery. Even
 // zero-delivery Cases can report public attempt 1. This is no correlated count-equality claim.
 private val publicAttemptCount = Observed[ActivityExecutionInfo](attemptCount.name)
+
 private val readAttemptCount = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION) {
   read(Field[DescribeActivityExecutionResponse, ActivityExecutionInfo](_.getInfo), Cardinality.one)
     .into(publicAttemptCount)
 }
 
 private val rawHeartbeatDetails = Observed[Payloads](heartbeatDetails.name)
+
 private val readHeartbeatDetails = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION) {
   field(_.includeHeartbeatDetails) := Operand.flag(true)
   read(
@@ -92,6 +94,7 @@ private val readHeartbeatDetails = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION
 
 private val activityRunFieldForInfo =
   EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId))
+
 private def describeRead(id: String, records: RealizationFact, confirms: Taking*) = Evidence.read(
   id = evidenceId(id),
   records = records,
@@ -102,21 +105,26 @@ private def describeRead(id: String, records: RealizationFact, confirms: Taking*
   fields = Vector(activityRunFieldForInfo),
   confirms = Vector(confirms*)
 )
+
 private def statusIs(status: io.temporal.api.enums.v1.ActivityExecutionStatus) =
   Condition.equal(
     Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
     Operand.enumValue(status)
   )
+
 private def runStateIs(state: io.temporal.api.enums.v1.PendingActivityState) =
   Condition.equal(
     Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
     Operand.enumValue(state)
   )
+
 private val heartbeatReceipt = describeRead("heartbeatReceived", system.Fact.heartbeatReceived)
+
 private val receivedHeartbeat = Condition.all(
   Condition.greater(Field[ActivityExecutionInfo, Long](_.totalHeartbeatCount), Operand.number(0)),
   Condition.present(Field[ActivityExecutionInfo, Option[Payloads]](_.heartbeatDetails))
 )
+
 private val awaitHeartbeatReceipt = await(heartbeatReceipt, calls)(receivedHeartbeat) {
   field(_.includeHeartbeatDetails) := Operand.flag(true)
 }
@@ -127,7 +135,9 @@ private val heartbeatFailure = Condition.equal(
   ),
   Operand.enumValue(TIMEOUT_TYPE_HEARTBEAT)
 )
+
 private val heartbeatCompleted = describeRead("heartbeatCompleted", system.Fact.statusCompleted)
+
 private val awaitHeartbeatRetryCompletion = await(heartbeatCompleted, calls)(
   Condition.all(
     statusIs(ACTIVITY_EXECUTION_STATUS_COMPLETED),
@@ -136,11 +146,13 @@ private val awaitHeartbeatRetryCompletion = await(heartbeatCompleted, calls)(
 ) {
   field(_.includeLastFailure) := Operand.flag(true)
 }
+
 private val heartbeatExpired = describeRead(
   "heartbeatExpired",
   system.Fact.heartbeatTimedOut,
   Taking(deadline.heartbeat, 1)
 )
+
 private val awaitHeartbeatExpiration = await(heartbeatExpired, calls)(
   Condition.all(
     statusIs(ACTIVITY_EXECUTION_STATUS_TIMED_OUT),
@@ -149,6 +161,7 @@ private val awaitHeartbeatExpiration = await(heartbeatExpired, calls)(
 ) {
   field(_.includeLastFailure) := Operand.flag(true)
 }
+
 private val readHeartbeatAttemptCount = readAttemptCount.withFields {
   field(_.includeLastFailure) := Operand.flag(true)
 }
@@ -157,14 +170,17 @@ private def responseIs(response: ActivityAttemptResponse) = Condition.equal(
   Field[InstructionOutcome, ActivityAttemptResponse](_.getActivityAttempt.response),
   Operand.enumValue(response)
 )
+
 private val heartbeatInvoked = Condition.equal(
   Field[InstructionOutcome, Boolean](_.getActivityAttempt.heartbeatInvoked),
   Operand.flag(true)
 )
+
 private val heartbeatInvokedField = EvidenceField.typed(
   "heartbeatInvoked",
   Field[InstructionOutcome, Boolean](_.getActivityAttempt.heartbeatInvoked)
 )
+
 private def attemptRecord(
     script: Script,
     number: Long,
@@ -215,6 +231,7 @@ private val stopWorker = fault(taskQueue, FaultKind.workerStop)
 
 // Each Case runs an activity type of its own, so two Cases on one worker never share one.
 private val activityType = perCase("activity")
+
 private val activation =
   WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
 
@@ -225,9 +242,11 @@ private val startActivity = rpc(calls, METHOD_START_ACTIVITY_EXECUTION) {
   field(_.getTaskQueue.name) := taskQueueName
   field(_.requestId) := run
 }
+
 private val startUnlimited = startActivity.withFields {
   field(_.getRetryPolicy.maximumAttempts) := Operand.integer(0)
 }
+
 // The start of a class that sets no start-to-close deadline. The server refuses a start that sets
 // neither a start-to-close nor a schedule-to-close deadline, so it carries a start-to-close
 // deadline no Case lives to see.
@@ -238,12 +257,15 @@ private val startUnreached = startUnlimited.withFields {
 private val startOne = startActivity.withFields {
   field(_.getRetryPolicy.maximumAttempts) := Operand.integer(1)
 }
+
 private val startOneUnreached = startOne.withFields {
   field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
 }
+
 private val startTwo = startActivity.withFields {
   field(_.getRetryPolicy.maximumAttempts) := Operand.integer(MaxAttempts.bound)
 }
+
 private val startTwoUnreached = startTwo.withFields {
   field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
 }
@@ -258,6 +280,7 @@ private val terminateActivity = rpc(calls, METHOD_TERMINATE_ACTIVITY_EXECUTION) 
 // cancel it after the deadline fires. Neither depends on SDK-worker shutdown or matching unloads.
 private val unstartedDispatch =
   Actuator("unstarted-dispatch", ControlKind.HoldDispatched(worker.poll), taskQueue)
+
 private val holdDispatchBeforePause = hold(unstartedDispatch)
 private val holdDispatchBeforeTimeout = hold(unstartedDispatch)
 private val releaseDispatchAfterPause = release(unstartedDispatch)
@@ -301,8 +324,10 @@ private val timeoutAttempts = script(
 private val heartbeatPayloads = Proto[Payloads](
   ProtoField.typed(Field(_.payloads), ProtoValue.messages(jsonPayload("heartbeat")))
 )
+
 private val heartbeatAttempt = attemptHeartbeat(heartbeatPayloads)
 private val pendingHeartbeatAttempt = attemptPending
+
 private val heartbeatAttempts = script(
   "heartbeat-attempts",
   activation
@@ -325,6 +350,7 @@ private val scheduledAgain = "statusScheduledAgain"
 // and a timeout class fires at the deadline its start sets.
 object Standalone
     extends Realizes(ActivitySystem, observations = Vector(correlated, publicAttemptCount)):
+
   // The one order every functional Query's path makes its calls in. A pause is read back only of an
   // activity no worker has taken: a running worker may be delivered the first attempt, and answer
   // it, before the pause lands, and a held attempt's pause is a request whose release schedules
@@ -393,7 +419,9 @@ object Standalone
         ),
         everyCase(readAttemptCount)
       )
+
   object workers extends Workers(attempts)
+
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startActivity),
@@ -426,19 +454,26 @@ object Standalone
           Taking(client.unpause, 1)
         )
       )
+
   object controls extends Controls(unstartedDispatch)
 
 object CompletionExecution extends DerivesFrom(Standalone, Completion)
+
 object RetryFailuresExecution extends DerivesFrom(Standalone, RetryFailures)
+
 object CancellationExecution extends DerivesFrom(Standalone, Cancellation)
+
 object PausingExecution extends DerivesFrom(Standalone, Pausing)
+
 object DispatchExecution extends DerivesFrom(Standalone, DispatchEligibility)
+
 object TimeoutsExecution extends DerivesFrom(Standalone, Timeouts)
 
 // Uses the unchanged System rows, but only the timeout path's second-delivery evidence. The first
 // attempt withholds its answer until its armed deadline; the second completes or exhausts retries.
 object RetryAfterTimeout
     extends Realizes(TimeoutRetry, observations = Vector(correlated, publicAttemptCount)):
+
   object controller
       extends Controller(
         deadlines[StartActivityExecutionRequest](
@@ -456,7 +491,9 @@ object RetryAfterTimeout
         onPath(worker.respondFailed(Failure.retryable))(described.await(system.Fact.statusFailed)),
         everyCase(readAttemptCount)
       )
+
   object workers extends Workers(timeoutAttempts)
+
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startActivity),
@@ -484,6 +521,7 @@ object HeartbeatThenCompletion
       HeartbeatCompletion,
       observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails)
     ):
+
   object controller
       extends Controller(
         deadlines[StartActivityExecutionRequest](
@@ -502,7 +540,9 @@ object HeartbeatThenCompletion
         onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted)),
         everyCase(readAttemptCount)
       )
+
   object workers extends Workers(heartbeatAttempts)
+
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startActivity),
@@ -528,6 +568,7 @@ object RetryAfterHeartbeat
       HeartbeatRetry,
       observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails)
     ):
+
   object controller
       extends Controller(
         deadlines[StartActivityExecutionRequest](
@@ -546,7 +587,9 @@ object RetryAfterHeartbeat
         onPath(worker.respondCompleted)(awaitHeartbeatRetryCompletion),
         everyCase(readHeartbeatAttemptCount)
       )
+
   object workers extends Workers(heartbeatAttempts)
+
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startActivity),
@@ -581,6 +624,7 @@ object ExhaustAfterHeartbeat
       HeartbeatExhaustion,
       observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails)
     ):
+
   object controller
       extends Controller(
         deadlines[StartActivityExecutionRequest](
@@ -601,6 +645,7 @@ object ExhaustAfterHeartbeat
       )
 
   object workers extends Workers(heartbeatAttempts)
+
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startActivity),
@@ -624,39 +669,49 @@ object ExhaustAfterHeartbeat
 
 private val activityExecutionRun = Learned("activity-execution-run", LearnedKind.text)
 private val executionRun = Operand.learnedValue[String](activityExecutionRun.id)
+
 private val runCalls = RequestBase(
   workflowService,
   "namespace" -> workerNamespace,
   "activity_id" -> run,
   "run_id" -> executionRun
 )
+
 private val startExternal = startActivity.withFields {
   field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
   read(Field[StartActivityExecutionResponse, String](_.runId), Cardinality.one)
     .into(Target.Bind(activityExecutionRun.id))
 }
+
 private val answerIdentity = Operand.text("external-answer-controller")
+
 private val respondCompletedById = rpc(runCalls, METHOD_RESPOND_ACTIVITY_TASK_COMPLETED_BY_ID) {
   field(_.identity) := answerIdentity
 }
+
 private val respondFailedById = rpc(runCalls, METHOD_RESPOND_ACTIVITY_TASK_FAILED_BY_ID) {
   field(_.identity) := answerIdentity
   field(_.getFailure) := applicationFailure("ExternalFailure", "external fatal failure", false)
 }
+
 private val respondCanceledById = rpc(runCalls, METHOD_RESPOND_ACTIVITY_TASK_CANCELED_BY_ID) {
   field(_.identity) := answerIdentity
 }
+
 private val requestExternalCancellation = requestCancelActivity.extended {
   field(_.runId) := executionRun
   field(_.identity) := Operand.text("external-cancel-controller")
   field(_.requestId) := run
 }
+
 private val terminateExternal = terminateActivity.extended {
   field(_.runId) := executionRun
 }
+
 private val readExternalAttemptCount = readAttemptCount.extended {
   field(_.runId) := executionRun
 }
+
 private val externalCleanup = command(terminateExternal, regardless = true)
 
 private val externalStarted = describeRead(
@@ -664,38 +719,48 @@ private val externalStarted = describeRead(
   system.Fact.statusStarted,
   Taking(worker.poll, 1)
 )
+
 private val externalCancelRequested = describeRead(
   "externalCancelRequested",
   system.Fact.statusCancelRequested,
   Taking(client.requestCancel, 1)
 )
+
 private val externalCompleted = describeRead(
   "externalCompleted",
   system.Fact.statusCompleted,
   Taking(service.respondCompletedByID, 1)
 )
+
 private val externalFailed = describeRead(
   "externalFailed",
   system.Fact.statusFailed,
   Taking(service.respondFailedByID(Failure.fatal), 1)
 )
+
 private val externalCanceled = describeRead(
   "externalCanceled",
   system.Fact.statusCanceled,
   Taking(service.respondCanceledByID, 1)
 )
+
 private val running = statusIs(ACTIVITY_EXECUTION_STATUS_RUNNING)
+
 private val heldStarted = Condition.all(
   running,
   runStateIs(PENDING_ACTIVITY_STATE_STARTED)
 )
+
 private val heldCancelRequested = Condition.all(
   running,
   runStateIs(PENDING_ACTIVITY_STATE_CANCEL_REQUESTED)
 )
+
 private val awaitExternalStarted = await(externalStarted, runCalls)(heldStarted) {}
+
 private val awaitExternalCancelRequested =
   await(externalCancelRequested, runCalls)(heldCancelRequested) {}
+
 private def terminalExternal(status: io.temporal.api.enums.v1.ActivityExecutionStatus) =
   Condition.all(
     statusIs(status),
@@ -704,41 +769,49 @@ private def terminalExternal(status: io.temporal.api.enums.v1.ActivityExecutionS
       Field[ActivityExecutionInfo, Option[com.google.protobuf.timestamp.Timestamp]](_.closeTime)
     )
   )
+
 private val awaitExternalCompleted = await(externalCompleted, runCalls)(
   terminalExternal(ACTIVITY_EXECUTION_STATUS_COMPLETED)
 ) {
   field(_.includeOutcome) := Operand.flag(true)
 }
+
 private val awaitExternalFailed = await(externalFailed, runCalls)(
   terminalExternal(ACTIVITY_EXECUTION_STATUS_FAILED)
 ) {
   field(_.includeOutcome) := Operand.flag(true)
 }
+
 private val awaitExternalCanceled = await(externalCanceled, runCalls)(
   terminalExternal(ACTIVITY_EXECUTION_STATUS_CANCELED)
 ) {
   field(_.includeOutcome) := Operand.flag(true)
 }
+
 private val failurePublication = ActivityPublication("external-failure-pending")
 private val cancellationPublication = ActivityPublication("external-cancellation-pending")
 private val awaitFailurePublication = awaitActivityPublication(failurePublication)
 private val awaitCancellationPublication = awaitActivityPublication(cancellationPublication)
 private val failurePending = attemptPending(respondFailedById)
 private val cancellationPending = attemptPending(respondCanceledById)
+
 private val externalFailureAttempts = script(
   "external-failure-attempts",
   activation
 )(onPath(service.respondFailedByID(Failure.fatal))(failurePending))
+
 private val externalCancellationAttempts = script(
   "external-cancellation-attempts",
   activation
 )(onPath(service.respondCanceledByID)(cancellationPending))
+
 private val scheduledExternalSettlement = ActivityExternalSettlement.Scheduled(
   carrier = startExternal,
   answer = respondCompletedById,
   settlement = awaitExternalCompleted,
   cleanup = externalCleanup
 )
+
 private val fatalExternalSettlement = ActivityExternalSettlement(
   carrier = startExternal,
   activity = externalFailureAttempts,
@@ -749,6 +822,7 @@ private val fatalExternalSettlement = ActivityExternalSettlement(
   settlement = awaitExternalFailed,
   cleanup = externalCleanup
 )
+
 private val canceledExternalSettlement = ActivityExternalSettlement(
   carrier = startExternal,
   activity = externalCancellationAttempts,
@@ -767,6 +841,7 @@ object ScheduledCompletionByID
       learned = Vector(activityExecutionRun),
       observations = Vector(correlated, publicAttemptCount)
     ):
+
   object controller
       extends Controller(
         perform(client.start() -> startExternal),
@@ -774,11 +849,13 @@ object ScheduledCompletionByID
         everyCase(awaitExternalCompleted),
         everyCase(readExternalAttemptCount)
       )
+
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startExternal),
         externalCompleted
       )
+
   object serverSteps extends ServerSteps(scheduledExternalSettlement)
 
 object HeldFailureByID
@@ -787,6 +864,7 @@ object HeldFailureByID
       learned = Vector(activityExecutionRun),
       observations = Vector(correlated, publicAttemptCount)
     ):
+
   object controller
       extends Controller(
         perform(client.start() -> startExternal),
@@ -796,7 +874,9 @@ object HeldFailureByID
         everyCase(awaitExternalFailed),
         everyCase(readExternalAttemptCount)
       )
+
   object workers extends Workers(externalFailureAttempts)
+
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startExternal),
@@ -809,6 +889,7 @@ object HeldFailureByID
         ),
         externalFailed
       )
+
   object serverSteps extends ServerSteps(fatalExternalSettlement)
 
 object HeldCancellationByID
@@ -817,6 +898,7 @@ object HeldCancellationByID
       learned = Vector(activityExecutionRun),
       observations = Vector(correlated, publicAttemptCount)
     ):
+
   object controller
       extends Controller(
         perform(client.start() -> startExternal),
@@ -828,7 +910,9 @@ object HeldCancellationByID
         everyCase(awaitExternalCanceled),
         everyCase(readExternalAttemptCount)
       )
+
   object workers extends Workers(externalCancellationAttempts)
+
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startExternal),
@@ -842,6 +926,7 @@ object HeldCancellationByID
         externalCancelRequested,
         externalCanceled
       )
+
   object serverSteps extends ServerSteps(canceledExternalSettlement)
 
 // ### Reset
@@ -855,25 +940,33 @@ private val startResetOne = startOne.withFields {
   read(Field[StartActivityExecutionResponse, String](_.runId), Cardinality.one)
     .into(Target.Bind(activityExecutionRun.id))
 }
+
 private val resetHeldActivity = rpc(runCalls, METHOD_RESET_ACTIVITY_EXECUTION) {
   field(_.identity) := Operand.text("reset-controller")
   field(_.keepPaused) := Operand.flag(false)
   field(_.requestId) := run
 }
+
 private val resetPublication = ActivityPublication("reset-pending")
 private val awaitResetPublication = awaitActivityPublication(resetPublication)
+
 private val resetStarted =
   describeRead("resetStarted", system.Fact.statusStarted, Taking(worker.poll, 1))
+
 private val awaitResetHeld = await(resetStarted, runCalls)(heldStarted) {}
+
 private val resetCompleted = describeRead(
   "resetCompleted",
   system.Fact.statusCompleted,
   Taking(worker.respondCompleted, 1)
 )
+
 private val awaitResetCompleted = await(resetCompleted, runCalls)(
   terminalExternal(ACTIVITY_EXECUTION_STATUS_COMPLETED)
 ) {}
+
 private val pendingResetAttempt = attemptPending
+
 private val resetAttempts = script(
   "reset-attempts",
   activation
@@ -901,6 +994,7 @@ object ResetAfterHeartbeat
       learned = Vector(activityExecutionRun),
       observations = Vector(correlated, publicAttemptCount)
     ):
+
   object controller
       extends Controller(
         perform(
@@ -913,7 +1007,9 @@ object ResetAfterHeartbeat
         everyCase(awaitResetCompleted),
         everyCase(readExternalAttemptCount)
       )
+
   object workers extends Workers(resetAttempts)
+
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startResetOne),
@@ -945,6 +1041,7 @@ object ResetAfterHeartbeat
         ),
         resetCompleted
       )
+
   object serverSteps
       extends ServerSteps(
         ServerStep(deadline.heartbeat, CauseKind.timer, deadlineMs, TimeoutBasis.heartbeat),
@@ -959,6 +1056,7 @@ object ResetAfterHeartbeat
 
 private val dispatchHold =
   Actuator("hold-dispatch", ControlKind.HoldDispatched(history.dispatch), taskQueue)
+
 private val holdDispatch = hold(dispatchHold)
 
 // The hold lets no dispatch reach admission before the release, and the release records every
@@ -969,6 +1067,7 @@ private val releaseDispatch =
 // That admission committed `decision`, as the release's record of the delivery names it.
 private def decided(decision: DeliveryAdmissionDecision): Condition[InstructionOutcome] =
   Condition.equal(Field(_.getDeliveryAdmission.decision), Operand.enumValue(decision))
+
 private val admitted = decided(DELIVERY_ADMISSION_DECISION_ADMITTED)
 private val rejected = decided(DELIVERY_ADMISSION_DECISION_REJECTED)
 
@@ -1014,6 +1113,7 @@ private def committed(
 // see, competes with no delivery.
 object HeldDelivery
     extends Realizes(HeldDispatch, observations = Vector(correlated, publicAttemptCount)):
+
   object controller
       extends Controller(
         everyCase(startUnreached),
@@ -1023,6 +1123,7 @@ object HeldDelivery
         perform(worker.poll -> releaseDispatch),
         everyCase(readAttemptCount)
       )
+
   object evidence
       extends Evidences(
         answered(AdmissionFact.dispatchSent, holdDispatch),
@@ -1030,6 +1131,7 @@ object HeldDelivery
         committed(AdmissionFact.admissionRejected, releaseDispatch)(rejected),
         committed(AdmissionFact.attemptAdmitted, releaseDispatch, exhaustive = true)(admitted)
       )
+
   object controls extends Controls(dispatchHold)
 
 // ### The lost admission answer
@@ -1044,6 +1146,7 @@ private val loseAdmissionResponse =
 // One lost admission answer, with its durable decision observed before the response is replaced.
 object LostAdmissionResponse
     extends Realizes(LostStartAnswer, observations = Vector(correlated, publicAttemptCount)):
+
   object controller
       extends Controller(
         everyCase(startUnreached),
@@ -1051,6 +1154,7 @@ object LostAdmissionResponse
         perform(foundations.taskqueue.fault.ackLoss -> loseAdmissionResponse),
         everyCase(readAttemptCount)
       )
+
   object evidence
       extends Evidences(
         answered(AdmissionResponseFact.dispatchSent, holdDispatch),
@@ -1061,4 +1165,5 @@ object LostAdmissionResponse
           fields = Vector(attemptField(Field(_.getDeliveryAdmission.attempt)))
         )(admitted, Condition.greater(Field(_.getDeliveryAdmission.attempt), Operand.integer(0)))
       )
+
   object controls extends Controls(dispatchHold)

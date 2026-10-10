@@ -9,11 +9,13 @@ package features.nexus
 package workflow
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
 import framework.realize.{PropertyOutcome, RunExpectation, Variation}
 import temporal.actors.worker.worker
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // ### Signature
 
@@ -34,6 +36,7 @@ object TrustingCaller
     case Fact.pendingAttempts           => pendingAttempts.name
   }
   val unobservable = List(timers.backoff)
+
   object effects:
     def inspect(s: State) = stay(s)
     // The System's completion of an operation once scheduled: not found once it is over, and

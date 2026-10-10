@@ -52,10 +52,12 @@ private val startOperation = rpc(calls, METHOD_START_NEXUS_OPERATION_EXECUTION) 
   field(_.operation) := Operand.text(operationName)
   field(_.requestId) := run
 }
+
 private val requestCancelOperation =
   rpc(calls, METHOD_REQUEST_CANCEL_NEXUS_OPERATION_EXECUTION) {
     field(_.requestId) := run
   }
+
 private val terminateOperation =
   rpc(calls, METHOD_TERMINATE_NEXUS_OPERATION_EXECUTION) {
     field(_.requestId) := run
@@ -68,6 +70,7 @@ private val standaloneEnabled = RequiredSetting(key = settingKey, value = "true"
 
 // One standalone operation a controller starts on the Case's endpoint.
 object Standalone extends Realizes(NexusSystem, requiredSettings = Vector(standaloneEnabled)):
+
   object controller
       extends Controller(
         perform(client.start -> startOperation),
@@ -75,6 +78,7 @@ object Standalone extends Realizes(NexusSystem, requiredSettings = Vector(standa
         perform(client.terminate -> terminateOperation),
         onPath(client.terminate)(described.await(OperationFact.nexusOperationTerminated))
       )
+
   object evidence
       extends Evidences(
         answered(OperationFact.statusScheduled, startOperation),

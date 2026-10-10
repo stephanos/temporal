@@ -8,12 +8,15 @@ package standalone
 package product
 
 import scala.annotation.unused
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
 import Bounds.three
 import actors.worker.worker as process
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 // What DescribeActivityExecution shows. Each case declares the status fact a step that enters it
 // records.
 enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:

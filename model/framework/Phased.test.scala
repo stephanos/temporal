@@ -1,4 +1,5 @@
 package framework
+
 import framework.Finite.given
 
 object PhasedFixture:
@@ -24,22 +25,26 @@ object PhasedFixture:
 
   object DefaultEnd extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.absent)
+
     object rules extends Rules
 
   object OverrideEnd extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.absent)
     override def end(s: State) = s.phase == Phase.paused // scalafix:ok DisableSyntax.==
+
     object rules extends Rules
 
   object DefaultPair
       extends Composition[Pair](_.left -> DefaultEnd, _.right -> DefaultEnd),
         Phased[Pair, Phase](_.left.phase):
+
     object syncs extends Syncs
 
   object OverridePair
       extends Composition[Pair](_.left -> DefaultEnd, _.right -> DefaultEnd),
         Phased[Pair, Phase](_.left.phase):
     override def end(s: State) = s.left.phase == Phase.paused // scalafix:ok DisableSyntax.==
+
     object syncs extends Syncs
 
   object DerivedPair extends DerivedComposition(DefaultPair.withMember(_.right -> OverrideEnd)):
@@ -49,11 +54,13 @@ object PhasedFixture:
     val phase = summon[Phasing[Pair, Phase]]
 
   object DerivedOverride extends DerivedComposition(OverridePair.withMember(_.right -> DefaultEnd))
+
   object DerivedOverrideAgain
       extends DerivedComposition(DerivedOverride.withMember(_.right -> OverrideEnd))
 
   object PlainPair extends Composition[Pair](_.left -> DefaultEnd, _.right -> DefaultEnd):
     def end(s: State) = true
+
     object syncs extends Syncs
 
   object PlainDerivedPair extends Composition(PlainPair.withMember(_.right -> OverrideEnd))
@@ -62,6 +69,7 @@ object PhasedFixture:
       extends Machine[OpenPhase, Answer, Nothing],
         Phased[OpenPhase, OpenPhase](identity):
     val init = OpenPhase.waiting
+
     object rules extends Rules
 
   object OpenOverride
@@ -69,6 +77,7 @@ object PhasedFixture:
         Phased[OpenPhase, OpenPhase](identity):
     val init = OpenPhase.waiting
     override def end(s: State) = s == OpenPhase.waiting // scalafix:ok DisableSyntax.==
+
     object rules extends Rules
 
 class PhasedSuite extends munit.FunSuite:

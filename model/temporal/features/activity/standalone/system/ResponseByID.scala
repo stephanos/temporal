@@ -4,18 +4,23 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.realize.Reason
 import temporal.realize.inconclusive
 import Bounds.{four, three}
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 // A closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule
 // out a silent rejected repeat: the explanations of each By-ID witness disagree, as terminate's do.
 object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
+
   object properties:
     val completedByID = property when service.respondCompletedByID holds { after => // format: off
       after.state.phase == Phase.completed && after.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
+
   object queries:
     val scheduledCompletion = scenario.actions(client.start(), service.respondCompletedByID)
     val scheduledCompletedByID =
@@ -24,10 +29,12 @@ object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
         .expect(inconclusive(Reason.explanationsDisagree))
 
 object ByIDFailure extends Derived(ActivitySystem.unmonitored):
+
   object properties: // format: off
     val fatalFailureByID = property when service.respondFailedByID(Failure.fatal) holds { after =>
       after.state.phase == Phase.failed && after.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
+
   object queries:
     val heldFatalFailure = scenario.actions(
       client.start(),
@@ -40,6 +47,7 @@ object ByIDFailure extends Derived(ActivitySystem.unmonitored):
         .expect(inconclusive(Reason.explanationsDisagree))
 
 object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
+
   object properties:
     val cancelIsRequested =
       property("activitySystem.cancelIsRequested") when client.requestCancel holds (
@@ -48,6 +56,7 @@ object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
     val canceledByID = property when service.respondCanceledByID holds { after => // format: off
       after.state.phase == Phase.canceled && after.records(Fact.statusCanceled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
+
   object queries:
     val heldCancellation = scenario.actions(
       client.start(),

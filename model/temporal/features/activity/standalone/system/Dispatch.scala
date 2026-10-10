@@ -6,7 +6,8 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
 import Bounds.{four, three}
@@ -106,6 +107,7 @@ object ActivityRecord
   val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
     "statusTimedOut"
   }
+
   // The record's status sets, which a composition reads through `activity`, and its counts.
   object states: // format: off
     def twoActive(s: State) = s.active == Active.two // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
@@ -331,7 +333,9 @@ object TrustingActivityRecord
       })
     ),
       NegativeControl:
+
   object capabilities extends AdmissionCapabilities
+
   object queries:
     capabilities.bound(five)
     val trustingActivityRecordQueries =

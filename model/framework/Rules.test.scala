@@ -1,4 +1,5 @@
 package framework
+
 import framework.Finite.given
 // The object forms' runtime wiring, run as Scala: a machine object is the machine, its `rules` the
 // one section it reads, lowered to one step function per action, and an overlap is refused as the
@@ -76,6 +77,7 @@ object RulesFixture:
   object Overlapping extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object rules extends Rules:
       on(hand.turn(Knob.up))(when(Lit.off, Lit.on) ~> Switch.effects.light)
       on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned) // scalafix:ok DisableSyntax.==
@@ -83,6 +85,7 @@ object RulesFixture:
   object Unfelt extends Machine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
+
     object rules extends Rules:
       on(hand.press)(always ~> Switch.effects.light)
       disabled(clock.tick)
@@ -92,8 +95,10 @@ object RulesFixture:
   object Projected extends Machine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
+
     object states:
       def dark(l: Lit) = l != Lit.on // scalafix:ok DisableSyntax.!=
+
     object rules
         extends Bindings(
           hand.press ~> ((s: Lamp) =>
@@ -109,8 +114,10 @@ object RulesFixture:
   object PhasedLamp extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object states:
       def dark(l: Lit) = l != Lit.on // scalafix:ok DisableSyntax.!=
+
     object rules extends Rules:
       on(hand.press) {
         when(Lit.on) ~> Switch.effects.dark
@@ -121,6 +128,7 @@ object RulesFixture:
   object OverlappingPhased extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object rules extends Rules:
       on(hand.turn(Knob.up))(when(Lit.off, Lit.on) ~> Switch.effects.light)
       on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned) // scalafix:ok DisableSyntax.==
@@ -139,8 +147,10 @@ object RulesFixture:
     import outcomes.Rejection
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object effects:
       def light(s: Lamp) = enter[Lamp, Outcome, Nothing](s.copy(light = Lit.on))
+
     object rules extends Rules:
       on(hand.press) {
         when(Lit.off) ~> effects.light
@@ -157,6 +167,7 @@ object RulesFixture:
   object Grouped extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = s.light == Lit.broken // scalafix:ok DisableSyntax.==
+
     object rules extends Rules:
       from(hand) {
         import hand.*
@@ -178,6 +189,7 @@ object RulesFixture:
   object Plain extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = s.light == Lit.broken // scalafix:ok DisableSyntax.==
+
     object rules extends Rules:
       on(hand.press) {
         when(Lit.off) ~> Switch.effects.light
@@ -193,6 +205,7 @@ object RulesFixture:
   object Spread extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object rules extends Rules:
       on(hand.press)(when(Lit.off) ~> Switch.effects.light)
       on(hand.press, clock.tick)(when(Lit.broken) ~> Switch.effects.wear)
@@ -202,6 +215,7 @@ object RulesFixture:
   object Nested extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object rules extends Rules:
       on(hand.press) {
         on(clock.tick)(always ~> Switch.effects.wear)
@@ -210,6 +224,7 @@ object RulesFixture:
   object NestedFrom extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object rules extends Rules:
       from(hand) {
         from(clock) {
@@ -220,6 +235,7 @@ object RulesFixture:
   object Foreign extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object rules extends Rules:
       from(hand) {
         on(clock.tick)(always ~> Switch.effects.wear)
@@ -228,12 +244,14 @@ object RulesFixture:
   object NamedTwice extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object rules extends Rules:
       on(hand.press, clock.tick, hand.press)(always ~> Switch.effects.wear)
 
   object DisabledTarget extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object rules extends Rules:
       disabled(clock.tick)
       on(hand.press, clock.tick)(always ~> Switch.effects.wear)
@@ -241,6 +259,7 @@ object RulesFixture:
   object AcrossBlocks extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
+
     object rules extends Rules:
       on(hand.turn)(when(Lit.off) ~> Switch.effects.turned)
       on(hand.turn(Knob.down)) {
@@ -254,6 +273,7 @@ object RulesFixture:
 
   object Twins extends Composition[Pair](_.left -> Switch, _.right -> Unfelt):
     def end(s: Pair) = Switch.end(s.left)
+
     object syncs extends Syncs:
       sync(_.left -> hand.press, _.right -> hand.press)
 
@@ -685,8 +705,10 @@ object RoleRulesFixture:
     type Press = Door => List[Step[Door, Said, Nothing]]
     val init = Door(Stage.unstarted)
     override def end(s: Door) = s.stage.in[Closed]
+
     object effects:
       def open(s: Door) = stay[Door, Said, Nothing](s)
+
     object rules extends Rules:
       on(hand.press) {
         when[Waiting] ~> effects.open

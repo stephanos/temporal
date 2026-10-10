@@ -1,4 +1,5 @@
 package framework
+
 import framework.Finite.given
 
 import temporal.capabilities.Deadline
@@ -38,6 +39,7 @@ object DeadlineFixture:
 
   object Record extends Machine[Snapshot, Answer, Fact], Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.active, UpTo[1](0), true, true, false, false)
+
     object rules extends Rules
     val deadline = Deadline[Snapshot, Phase, Held, DeadlineFixture.Fact](
       expired,
@@ -54,10 +56,12 @@ object DeadlineFixture:
     case active extends TerminalPhase, Held
     case timedOut extends TerminalPhase, TimedOut
   final case class TerminalState(phase: TerminalPhase) derives Finite
+
   object TerminalRecord
       extends Machine[TerminalState, Answer, Fact],
         Phased[TerminalState, TerminalPhase](_.phase):
     val init = TerminalState(TerminalPhase.active)
+
     object rules extends Rules
     val deadline = Deadline[TerminalState, TerminalPhase, Held, DeadlineFixture.Fact](
       expired,
@@ -71,10 +75,12 @@ object DeadlineFixture:
     case waiting extends RetryPhase, Waiting
     case timedOut extends RetryPhase, TimedOut
   final case class RetryState(phase: RetryPhase) derives Finite
+
   object RetryRecord
       extends Machine[RetryState, Answer, Fact],
         Phased[RetryState, RetryPhase](_.phase):
     val init = RetryState(RetryPhase.active)
+
     object rules extends Rules
     def remaining(s: RetryState): Boolean =
       s.phase == RetryPhase.active // scalafix:ok DisableSyntax.==

@@ -1,4 +1,5 @@
 package framework
+
 import framework.Finite.given
 
 import temporal.capabilities.Retries
@@ -33,6 +34,7 @@ object RetryFixture:
 
   object Record extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.waiting, UpTo[2](0), false, false)
+
     object rules extends Rules
     val retries = Retries(
       failure = failure,
@@ -56,6 +58,7 @@ object RetryFixture:
       extends Machine[WaitingState, Answer, Nothing],
         Phased[WaitingState, WaitingPhase](_.phase):
     val init = WaitingState(WaitingPhase.waiting)
+
     object rules extends Rules
     val retries = Retries(
       failure = failure,

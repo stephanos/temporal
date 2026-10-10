@@ -1,4 +1,5 @@
 package framework
+
 import framework.Finite.given
 
 import temporal.features.activity.Timeout

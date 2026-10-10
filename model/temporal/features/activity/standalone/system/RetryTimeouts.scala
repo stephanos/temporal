@@ -4,15 +4,19 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.realize.Reason
 import temporal.realize.inconclusive
 import Timeout.expires
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 // The same System state and rules, with a realization whose second delivery confirms a timeout,
 // not a failed answer. One kind confirms all the occurrences it names, so the failure-retry kind
 // cannot evidence a path on which no failed answer occurs.
 object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
+
   object properties:
     val completesAfterTimeout = property when worker.respondCompleted holds { s => // format: off
       s.state == RetryFailures.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
@@ -27,6 +31,7 @@ object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
         maxAttempts = MaxAttempts.two
       ) && s.records(Fact.statusFailed) // format: on
     }
+
   object queries:
     val timedOutThenCompleted = scenario.actions(
       client.start(startToClose := expires, maxAttempts := MaxAttempts.two),

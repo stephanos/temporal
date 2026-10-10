@@ -1,4 +1,5 @@
 package framework
+
 import framework.Finite.given
 
 import temporal.capabilities.Closable
@@ -16,6 +17,7 @@ object ClosingFixture:
 
   object Record extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.open)
+
     object rules extends Rules
     val closing = Closable(rejected = Answer.rejected)
     val finality = Closable.terminalStatesAreFinal(this)

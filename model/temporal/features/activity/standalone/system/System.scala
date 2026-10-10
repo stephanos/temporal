@@ -6,7 +6,8 @@ package standalone
 package system
 
 import scala.annotation.unused
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.Reason
 import temporal.capabilities.*
@@ -14,7 +15,9 @@ import temporal.realize.inconclusive
 import Bounds.three
 import actors.worker.worker as process
 import product.ActivityProduct
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 // It begins before the activity exists, so unstarted is one phase.
 enum Phase derives Finite:
   case unstarted

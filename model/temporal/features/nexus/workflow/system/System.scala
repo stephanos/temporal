@@ -9,7 +9,8 @@ package workflow
 package system
 
 import scala.annotation.unused
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.{Alternative, Exploration, Reason, Variation}
 import temporal.capabilities.*
@@ -18,7 +19,9 @@ import temporal.Bounds.{four, three}
 import temporal.actors.worker.{worker, Phase as WorkerPhase, State as WorkerState}
 import product.NexusProduct
 import Timeout.expires
+
 val _ = () => summon[CanEqual[Phase, Phase]]
+
 // It begins before the operation exists, so unscheduled is one phase.
 enum Phase derives Finite:
   case unscheduled
@@ -29,7 +32,9 @@ enum Phase derives Finite:
   case failed extends Phase, Failed
   case canceled extends Phase, Canceled
   case timedOut extends Phase, TimedOut
+
 import Fact.{nexusOperationCompleted as NC, nexusOperationStarted as NS}
+
 // The attempt count is `0..attemptBound`.
 final case class State(
     phase: Phase,
@@ -38,12 +43,16 @@ final case class State(
     scheduleToStart: Timeout,
     startToClose: Timeout
 )
+
 import Fact.{nexusOperationCanceled as NX, nexusOperationFailed as NF}
+
 // Which timer fired. The history event records it, so a Contract that did not check it would pass a
 // run that timed out on the wrong deadline.
 enum TimeoutType derives Finite:
   case scheduleToClose, scheduleToStart, startToClose
+
 import Fact.nexusOperationTimedOut as NT
+
 enum Fact derives Finite:
   case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
     nexusOperationFailed,
@@ -495,6 +504,7 @@ object NexusCaller
       _.worker -> HandlerWorker
     ),
       Phased[NexusCallerState, Phase](_.operation.phase):
+
   object syncs extends Syncs:
     sync(_.operation -> worker.stop, _.worker -> worker.stop)
     sync(_.operation -> handler.reply, _.worker -> worker.serve)

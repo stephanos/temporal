@@ -28,7 +28,8 @@ package workflow
 package system
 
 // `Answer` here is the designs' delivery answer.
-import framework.*; import framework.Finite.given CanEqual[?, ?]
+import framework.*
+import framework.Finite.given CanEqual[?, ?]
 import Answer.given
 
 // ### Types: one logical operation, the original run and one reset successor
@@ -1007,6 +1008,7 @@ object AckByOriginal
         )
     ),
       NegativeControl:
+
   object properties:
     val ackByOriginalProgress = AckByOriginal.leadsTo("outcomeReachesOwner")(
       RejectAfterClose.states.isDone,
@@ -1029,6 +1031,7 @@ object RetainAndRoute
             .deliver(Policy.retainAndRoute, Redelivery.untilAck, _, _))
         )
     ):
+
   object properties:
     val retainAndRouteProgress = RetainAndRoute.leadsTo("outcomeReachesOwner")(
       RejectAfterClose.states.isDone,
@@ -1068,6 +1071,7 @@ object ForgetsCancelOnReset
       )
     ),
       NegativeControl:
+
   object queries:
     val forgetsCancelOnResetQueries = RejectAfterClose.queries.designQueries(ForgetsCancelOnReset)
 
@@ -1080,6 +1084,7 @@ object TruncatesOnReset
       )
     ),
       NegativeControl:
+
   object queries:
     val truncatesOnResetQueries = RejectAfterClose.queries.designQueries(TruncatesOnReset)
 
@@ -1093,6 +1098,7 @@ object RetainAndRouteBoundedRetry
             .deliver(Policy.retainAndRoute, Redelivery.once, _, _))
         )
     ):
+
   object properties:
     val retainAndRouteBoundedRetryProgress =
       RetainAndRouteBoundedRetry.leadsTo("outcomeReachesOwner")(
@@ -1135,6 +1141,7 @@ object RejectAfterCloseWithDeadline
         )
     ),
       NegativeControl:
+
   object properties:
     val rejectAfterCloseWithDeadlineProgress =
       RejectAfterCloseWithDeadline.leadsTo("outcomeReachesOwner")(
@@ -1165,6 +1172,7 @@ object AckByOriginalWithDeadline
         )
     ),
       NegativeControl:
+
   object properties:
     val ackByOriginalWithDeadlineProgress =
       AckByOriginalWithDeadline.leadsTo("outcomeReachesOwner")(
@@ -1190,6 +1198,7 @@ object RetainAndRouteWithDeadline
           }
         )
     ):
+
   object properties:
     val retainAndRouteWithDeadlineProgress =
       RetainAndRouteWithDeadline.leadsTo("outcomeReachesOwner")(

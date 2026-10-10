@@ -17,6 +17,7 @@ enum Resolution derives Finite:
 // at both levels.
 
 val operation = Entity()
+
 object Inputs:
   val reply = input[Reply]
 val resolution = input[Resolution]
@@ -34,7 +35,9 @@ object handler extends Actor:
 
 object network extends Actor:
   val fault = action(this).on(operation)
+
 object client extends Client:
   val terminate = action(this).on(operation)
+
 object timers:
   val timeout = timer

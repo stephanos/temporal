@@ -17,7 +17,8 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
 import Bounds.three
@@ -29,6 +30,7 @@ import foundations.taskqueue.system.{
   TaskQueueSystem,
   VolatileQueue
 }
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // ### Types
 
@@ -97,6 +99,7 @@ object RecordOverQueue
     extends Composition[OverQueue](_.activity -> RecordMember, _.queue -> TaskQueueProduct),
       Phased[OverQueue, AdmissionPhase](_.activity.phase):
   override def end(s: State) = ActivityRecord.end(s.activity)
+
   object syncs extends Syncs:
     sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
     sync("admit", _.activity -> worker.poll, _.queue -> queue.deliver)
@@ -158,7 +161,9 @@ object RecordOverQueue
 object TrustingRecordOverQueue
     extends DerivedComposition(RecordOverQueue.withMember(_.activity -> TrustingRecordMember)),
       NegativeControl:
+
   object capabilities extends OverQueueCapabilities(this)
+
   object queries:
     capabilities.bound(five)
     val trustingRecordOverQueueQueries =
@@ -173,6 +178,7 @@ object RecordOverMatching
       Phased[OverMatching, AdmissionPhase](_.activity.phase),
       FailureModel:
   override def end(s: State) = ActivityRecord.end(s.activity)
+
   object syncs extends Syncs:
     sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
     sync("admit", _.activity -> worker.poll, _.queue -> queue.deliver)
@@ -249,7 +255,9 @@ object RecordOverMatching
 object TrustingRecordOverMatching
     extends DerivedComposition(RecordOverMatching.withMember(_.activity -> TrustingRecordMember)),
       NegativeControl:
+
   object capabilities extends OverMatchingCapabilities(this)
+
   object queries:
     capabilities.bound(twelve)
     val trustingRecordOverMatchingQueries =
@@ -269,7 +277,9 @@ object RecordOverVolatile
 object RecordOverLossyMatching
     extends DerivedComposition(RecordOverMatching.withMember(_.queue -> LossyMatchingQueue)),
       FailureModel:
+
   object capabilities extends OverMatchingCapabilities(this)
+
   object queries:
     capabilities.bound(twelve)
     val recordOverLossyMatchingQueries =

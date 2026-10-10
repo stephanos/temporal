@@ -1,4 +1,5 @@
 package framework
+
 import framework.Finite.given
 
 import temporal.capabilities.{Pausable, Pollable}
@@ -27,8 +28,10 @@ object PausingFixture:
 
   object Record extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.waiting)
+
     object effects:
       def keep(s: State) = stay[Snapshot, Answer, Nothing](s)
+
     object rules extends Rules:
       on(user.pause, user.unpause, worker.poll) {
         always ~> effects.keep

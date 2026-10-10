@@ -4,14 +4,18 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.realize.Reason
 import temporal.realize.inconclusive
 import Bounds.three
 import actors.worker.worker as process
 import Timeout.expires
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 object Timeouts extends Derived(ActivitySystem.rebind()):
+
   object properties:
     // Terminal deadline witnesses record which deadline settled the activity. Start-to-close
     // uses a one-attempt start.
@@ -44,6 +48,7 @@ object Timeouts extends Derived(ActivitySystem.rebind()):
       query find properties.startToCloseFires in startToCloseExpires limits three
 
 object CompetingTimeouts extends Derived(ActivitySystem.rebind()):
+
   object properties:
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
       s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons

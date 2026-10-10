@@ -4,12 +4,16 @@ package features.activity
 package standalone
 package system
 
-import framework.*; import framework.Finite.given
+import framework.*
+import framework.Finite.given
 import framework.realize.Reason
 import temporal.realize.{inconclusive, satisfied}
 import Bounds.three
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 object RetryFailures extends Derived(ActivitySystem.rebind()):
+
   object states:
     // Completed on the second attempt of an activity with no deadline set.
     val completedOnRetry =
