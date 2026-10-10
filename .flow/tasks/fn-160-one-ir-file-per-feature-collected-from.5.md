@@ -86,7 +86,7 @@ interpreter tables."
 
 ## Evidence
 - Commits: ea5264bc23 (feat: capture and check), 65fceb4993 (fix: native streams keyed by family),
-  c2511048e3 (fix: projected IR declarations qualified by family), plus the lint fix (see the
+  c2511048e3 (fix: projected IR declarations qualified by family), 1446b369be (lint fix and this record; see the
   handoff)
 - Tests:
   - `scala-cli test model/check`: 89 passed, of which EquivalenceSuite has 11. They cover a
