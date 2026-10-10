@@ -152,3 +152,8 @@ Task21 directly depends on task51’s bounded test-only correction from reviewed
 ### Remaining diagnostic correction — 2026-10-09
 
 Task52 owns the 59 remaining unchecked maintainer stderr writes retained by fn112.10 at `eb82ea59a4`. It preserves primary outcomes, report ordering and publications and supplies its own source checks and independent review. Task21 consumes that correction and implements nothing; all other acceptance, original-base source lint, preservation and transferred native obligations remain unchanged.
+
+
+## Format-compatibility amendment (2026-10-09)
+
+Per the spec's 2026-10-09 amendment, byte-for-byte and format compatibility is no longer required. Drop the R18 audit items for unchanged fixed-identity canonical bytes, recorded-format preservation and the fn-114.11/.12 refusal recognitions as byte-preservation evidence. fn-109.35 and fn-109.41 are superseded by fn-152 and fn-153 and are not required for completion. Now also depends on fn-109.63.

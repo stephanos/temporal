@@ -101,6 +101,9 @@ Local evidence (linux/arm64 development host only; built with an uncommitted des
 - The evidence file is .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task3-relocation-evidence.md.
 
 Remaining native gates: toolchain build plus test-toolchain, test-builder, test-host, test-live-capability (env and Write guard), test-runtime, and test-upstream (crypto/rand, syscall) on darwin/arm64 and linux/amd64, compared with the fn-110.1 baseline dispositions. Linux execution is incomplete.
+
+Blocked:
+Waits for fn-155.7 (syscall-level I/O boundary decision), per the owner's 2026-10-09 choice to gate this task. This task rewrites code the boundary decision may replace; resume once fn-155.7 records its decision and annotates this task. flowctl does not support cross-spec task dependencies, so the gate is recorded as a block.
 ## Evidence
 - Commits:
 - Tests:

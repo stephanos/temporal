@@ -48,70 +48,81 @@ and native deferrals; this priority grants no PR, push or CI authority.
 
 1. Finish fn-112 task 10's retained source acceptance for the delivered soak gate and shared documentation. Actual native soak runs and measured bounds remain with fn-149.4 and fn-128.5/.7; no workflow dispatch is authorized.
 2. Reconcile the combined D26/fn-110 source candidate, fn-112 tasks 5/16/9, D27 and fn-109 tasks 2-6 against their retained source checks, preservation and source reviews. Keep lint, both-source-set static checks, generated validation, first-baseline and preservation requirements open wherever unproved. Native runtime/clock proof belongs to deferred fn-149.1 and fn-128.1/.4/.7.
-3. Continue fn-109 tasks 7-12, fn-110 tasks 3-4, then fn-109 tasks 13-21 and fn-110 task 5 in their source delivery order, including the admitted correction owners. Predecessor source integration/review and retained source acceptance remain required. Missing native qualification now owned by fn-149 or fn-128 cannot block source admission or completion; unproved source requirements still do.
+3. Continue fn-109 tasks 7-12, fn-110 tasks 3-4, then fn-109 tasks 13-21 and fn-110 task 5 in coherent implementation batches, including the admitted correction owners. Respect implementation dependencies within each batch; validate and review the integrated batch before completing its tasks. Missing native qualification now owned by fn-149 or fn-128 cannot block source admission or completion; unproved source requirements still do.
 4. Resume fn-105 D8-D10's shared source work when the real checkout is available. Native Darwin consumer analyses/packs/replay/guidance belong to fn-149.3; Linux execution belongs to fn-128.6. Neither native owner removes the actual-checkout/source-review prerequisite.
 5. Keep fn-149 deferred until an explicit Darwin qualification request and native darwin/arm64 execution are available. Then establish its pinned candidate/runtime, retain inherited integration/model/pack and downstream evidence, and reconcile an actual scheduled/dispatched soak plus final matrix. Publication and CI actions need separate authority.
 6. Keep fn-128 and its Linux CI work deferred until an explicit Linux qualification request and native linux/amd64 execution are available. Its eventual sequence remains baseline, causal D12 strict-replay fix, D21-triggered D11 audit, native model/consumer/soak evidence and final Linux matrix. No PR or CI run is part of the current work.
 
-## Verification instructions for agents
+## Batch-first execution strategy
 
-Apply this workflow to Gomad milestone work. Optimize elapsed time by choosing checks that
-cover the changed behavior and reusing valid results from the same source revision.
+Owner decision (2026-10-10). Optimize milestone execution for implemented and verified
+capabilities per hour. Accept temporary breaking changes and integration risk to finish larger
+coherent batches. This strategy supersedes older per-task green-start, source-admission packet,
+review, commit and evidence-duplication requirements in milestone specs/tasks. Functional
+acceptance, explicit qualification prerequisites, fn-155 priority, native deferrals and the
+safety constraints below remain binding. Reconcile conflicting Flow orchestration metadata
+once when selecting a batch; preserve historical results and their meaning.
 
-Be wary of overthinking: follow the existing acceptance criteria, choose a grounded
-recommendation, and move to implementation. Revisit a decision only when new evidence warrants it.
-
-1. **Check cheap boundaries first.** Run focused regressions during implementation. After
-   import or package-boundary changes, run `TestPackageArchitecture` in the nested module's
-   root package. Run `make -C tools/gomad3 validate` before broad tests when changing files
-   that may affect generated code, protocol identities, or toolchain inputs. Check the
-   generator's input list before editing a shared host/runtime file.
-2. **Run one full host gate per frozen batch.** Use
-   `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host` with the pinned native Go
-   on `PATH` and the documented toolchain setup. This includes Runner and CLI packages;
-   count it as covering their overlapping task test commands instead of running both broad
-   suites. Retain focused regression evidence and identify the packages covered. Runtime,
-   overlay, integration, race, and platform-specific requirements still need their own gates.
-3. **Scope reruns to the new change.** After a small review fix, run the affected regression,
-   package, and relevant boundary checks. Repeat the full gate when a shared dependency,
-   runtime or protocol change, broader regression, or unresolved coverage concern warrants
-   it; record the reason. Documentation-only edits need document/diff checks. Keep source
-   stable during each test command and identify the revision each result covers.
-4. **Keep handoffs small.** Retain the meaningful failing regression, final passing commands,
-   exit codes, elapsed times, source revision, and review verdict in one task handover.
-   Reference existing evidence instead of copying it into successive manifests and reports.
-   Keep generated binaries, bulk traces, and scratch snapshots local unless delivery requires
-   them. Use one independent review for a completed batch; re-review actionable fixes.
-5. **Commit each task separately.** After its source checks and review pass, commit the task's
-   implementation, tests, documentation, and Flow records together before starting the next
-   task. This supersedes older
-   task instructions reserving commits for the user. If a required gate still owned by the task
-   is unavailable, commit verified progress and keep its acceptance open. Record transferred
-   native gates under fn-128/fn-149 and link the owning task from the source task. Complete the source
-   task only after all requirements it still owns pass. Preserve unrelated
-   changes; push only when authorized. Broaden testing only for a concrete remaining risk,
-   and retry an unchanged environment failure only when its cause or relevant inputs change.
+1. **Batch the whole repair.** Default to 4-8 related existing tasks or one complete subsystem
+   migration, adjusting for actual ownership and coupling. Group repeated Runner preparation,
+   cleanup and lint repairs by affected subsystem. Use existing Flow owners and R-IDs; create
+   a new owner only for a genuinely uncovered requirement. Record the batch's outcome, write
+   surfaces, integration dependencies and final checks once. Tiny call-site fixes do not each
+   need another research fan-out, spec, plan review or admission packet.
+2. **Parallelize implementation.** Dispatch independent ownership surfaces together and keep
+   available agents working on code, tests, consumer migrations or necessary research. Use
+   isolated worktrees for concurrent writers. A dependent surface may develop against a
+   declared provisional interface while its predecessor is implemented; integrate in dependency
+   order and prove the required contracts before completion. An explicit native-first gate or
+   missing external checkout still holds. Put tightly coupled edits in one worker's batch
+   instead of making artificial parallel tasks that collide in the same file.
+3. **Allow intermediate breakage.** Compile failures, red tests/lint and temporary API/format
+   incompatibilities are acceptable inside the batch. Record failures, finish the coordinated
+   changes, update consumers and regenerate outputs before final acceptance. Preserve intended
+   final capabilities and safety contracts; tests must verify the intended behavior rather than
+   conceal a regression. Whole-file byte reconstruction and exhaustive environment/manifest
+   sealing are not default requirements for ordinary test or refactoring batches. Use them
+   only where a concrete identity, replay, qualification or preservation contract requires them.
+4. **Validate the integrated batch once.** Run focused regressions during development. On the
+   frozen integrated candidate, run affected lint and package/boundary checks, plus
+   `make -C tools/gomad3 validate` when generator, protocol or toolchain inputs changed. Run one
+   full host gate per batch with
+   `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host` on a supported native host;
+   count it toward overlapping Runner/CLI task commands. Runtime, overlay, integration, race
+   and platform-specific requirements retain their own coverage. On an unsupported host,
+   identify portable checks as portable and retain native acceptance with its owner. After a
+   small review fix, rerun affected checks; repeat broad gates only for changed shared inputs
+   or a concrete uncovered risk. Documentation-only edits need document/diff checks.
+5. **Review and commit by batch.** Obtain one independent review of the integrated batch,
+   covering its task/R-ID mapping, then address actionable findings together. Commit coherent
+   implementation, tests, documentation and Flow records together; local checkpoints during
+   a temporarily broken batch are allowed. Per-task commits, reviews and green baselines are
+   not start barriers for the next edit within that batch. Complete each Flow task only when
+   the batch evidence proves every requirement it still owns. A required gate that remains
+   red or unavailable stays open; it does not halt unrelated implementation batches.
+6. **Keep one evidence handover.** Record candidate revision, relevant tool versions, commands,
+   numeric exits, meaningful regression results, remaining failures and the independent review
+   verdict in one batch handover. Map each existing task/R-ID to that evidence. Reference raw
+   logs and prior valid results rather than copying reports into successive verification
+   packets. Add capture machinery only to answer a specific unresolved risk. Keep bulk traces,
+   binaries and scratch snapshots local unless delivery requires them.
 
 ### Orchestration
 
-- **Root ownership.** The root/main agent owns task selection, dependencies, scope, dispatch,
-  integration, independent review coordination, Flow lifecycle, and completion. It remains
-  accountable for verifying every owned acceptance requirement against the integrated candidate.
-  The root may edit orchestration documentation and lifecycle metadata; it routes task code
-  and test fixes back to workers.
-- **Worker ownership.** Use a fresh task-worker subagent for each task's investigation,
-  implementation, tests, evidence, and review fixes. Independent reviewers assess the integrated
-  changes and supply review verdicts; workers cannot certify their own acceptance.
-- **Durable handovers.** Give each task a uniquely named, small handover using the evidence
-  fields above. Bind the actual source and tool inputs, commands and results, and remaining
-  requirements. Reference existing evidence and the independent review verdict.
-- **Parallel boundaries.** Implement tasks in parallel only when their dependencies are
-  independent and their scopes disjoint, using isolated worktrees. Serialize overlapping work
-  and shared Go, build, lint, and generator gates. Keep the checked source frozen throughout
-  each gate and bind its results to that candidate before integration or completion.
-- **Root context.** Retain decisions, dependencies, and handover pointers in the root context.
-  Resume workers from authoritative Flow records, handovers, and referenced evidence. Keep
-  full task histories with their workers and artifacts to reduce root context growth.
+- **Root ownership.** The conductor selects batches, defines ownership and interfaces,
+  dispatches workers, integrates changes and owns Flow completion. Keep decisions and evidence
+  pointers in the root context; route implementation and review fixes to workers.
+- **Worker ownership.** Assign a fresh implementation worker per coherent batch or disjoint
+  ownership surface. Reuse that worker across related tasks and review fixes. Workers may
+  delegate independent surfaces; keep one committer per mutable worktree. Independent reviewers
+  assess integrated changes; workers cannot certify their own acceptance.
+- **Shared resources.** Parallelize independent Go/build/lint checks when isolated worktrees,
+  temporary directories and cache/output ownership prevent interference. Serialize writes to
+  the same files, shared generation outputs and target integration. Freeze the source checked
+  by each command and bind final batch results to the integrated candidate.
+- **Throughput feedback.** If planning, repeated gates or evidence paperwork dominates a batch,
+  consolidate it before dispatching more tiny tasks. Report completed capabilities, remaining
+  failures and the next batch; commit counts and artifact volume are not progress metrics.
 
 Apply this division of work within the immediate delivery order, Flow rules, verification
 requirements, and native deferrals above. It grants no additional native qualification,
@@ -243,8 +254,8 @@ CI, PR, or push authority.
 | [fn-109.14](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md) | ⬜ Todo | Hide generic model-wire slots behind typed network and volume commands |
 | [fn-109.15](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.15.md) | ⬜ Todo | Characterize simulation progress ordering and choose the lifecycle interface from two designs |
 | [fn-109.16](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.16.md) | ⬜ Todo | Implement the simulation progress lifecycle owner and remove caller-side accounting |
-| [fn-109.17](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.17.md) | ⬜ Todo | Select backend-specific network listener and connection implementations at creation |
-| [fn-109.18](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md) | ⬜ Todo | Select backend-specific filesystem handle and mapping implementations at creation |
+| [fn-109.17](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.17.md) | ⛔ Blocked | Select backend-specific network listener and connection implementations at creation; waits for fn-155.7 |
+| [fn-109.18](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md) | ⛔ Blocked | Select backend-specific filesystem handle and mapping implementations at creation; waits for fn-155.7 |
 | [fn-109.19](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.19.md) | 🚧 In progress | Architecture digest lint repaired; original acceptance remains open |
 | [fn-109.20](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.20.md) | ⬜ Todo | Reconcile architectural guidance with delivered owners and interfaces (D5). |
 | [fn-109.21](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md) | ⬜ Todo | Run final qualification and retain the finding completion matrix |
@@ -312,7 +323,7 @@ CI, PR, or push authority.
 | --- | --- | --- |
 | [fn-110.1](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.1.md) | ✅ Done | Record the patch, overlay, and qualification baseline |
 | [fn-110.2](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.md) | ✅ Done | Move the three scheduler implementations into the runtime overlay |
-| [fn-110.3](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.3.md) | ⬜ Todo | Relocate crypto initialization and syscall declarations to overlays |
+| [fn-110.3](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.3.md) | ⛔ Blocked | Relocate crypto initialization and syscall declarations to overlays; waits for fn-155.7 |
 | [fn-110.4](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md) | ⬜ Todo | Emit the canonical one-context-line patch and pin regeneration to the descriptor |
 | [fn-110.5](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.5.md) | ⬜ Todo | Qualify the final candidate and publish measurements and guidance |
 

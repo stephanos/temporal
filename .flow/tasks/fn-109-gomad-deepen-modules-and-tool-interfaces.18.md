@@ -116,6 +116,9 @@ host/test-host qualification remain open. Pipe and root-process fixtures have
 compiled/linked but have not executed. Developmental shim checks supply no
 native acceptance. Preserve D12, resolved D14 and the strict-delay watchdog
 disposition. Keep task 18 and R12 open until required native gates pass.
+
+Blocked:
+Waits for fn-155.7 (syscall-level I/O boundary decision), per the owner's 2026-10-09 choice to gate this task. This task rewrites code the boundary decision may replace; resume once fn-155.7 records its decision and annotates this task. flowctl does not support cross-spec task dependencies, so the gate is recorded as a block.
 ## Evidence
 - Commits:
 - Tests:
@@ -124,3 +127,8 @@ disposition. Keep task 18 and R12 open until required native gates pass.
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
+
+
+## Format-compatibility amendment (2026-10-09)
+
+Per the spec's 2026-10-09 amendment, byte-for-byte and format compatibility is no longer required. Byte and format preservation no longer apply. Optional, not required: compare the volume durability engine with gosim's pending-operations design and adopt it only if it is better tested and reduces code. Must pass `make -C tools/gomad3 overlay-test test-toolchain test-simulation` on current source.

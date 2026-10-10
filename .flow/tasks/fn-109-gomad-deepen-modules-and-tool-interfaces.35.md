@@ -73,6 +73,8 @@ preflight and corrected read-only pass are disclosed in acceptance-open.md.
 stage: impl-review - skipped(policy: conductor-deferred; fresh source review passed, full/native qualification remains red)
 stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
 
+Blocked:
+Superseded by the fn-109 2026-10-09 amendment. With byte and format compatibility dropped, fn-152 (Runner storage on one append-only log) and fn-153 (retire canonical JSON and private atomic writes) delete the code this task would harden. Not required for fn-109 completion.
 ## Evidence
 - Commits: Source-progress commit containing this task's corpus source/tests and frozen proof; resolve from Git history. No push.
 - Tests: Worker handover.md/evidence.json, independent-source-review.md/json and root-reaudit.json under .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/.

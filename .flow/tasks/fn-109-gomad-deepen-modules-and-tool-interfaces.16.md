@@ -100,3 +100,8 @@ Keep task 16 acceptance and R11 open. No Flow completion or push is included.
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
+
+
+## Format-compatibility amendment (2026-10-09)
+
+Per the spec's 2026-10-09 amendment, byte-for-byte and format compatibility is no longer required. Byte and format preservation no longer apply. Must pass `make -C tools/gomad3 overlay-test test-toolchain test-simulation` on current source.

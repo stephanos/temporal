@@ -109,3 +109,8 @@ ORIGINAL_QUALIFICATION_OPEN: The seven existing target aliases (including the tw
 - Commits:
 - Tests:
 - PRs:
+
+
+## Format-compatibility amendment (2026-10-09)
+
+Per the spec's 2026-10-09 amendment, byte-for-byte and format compatibility is no longer required. Capability and cache digests need only be stable within one Gomad build; golden canonical bytes are no longer required. Preserve the digest's role (cache hits and misses on the same inputs).

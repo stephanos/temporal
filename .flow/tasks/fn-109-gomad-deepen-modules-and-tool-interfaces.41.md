@@ -62,6 +62,8 @@ Task41 remains blocked for its original matched-first-baseline, preservation/pre
 
 Durable evidence is under .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-41/, including the scope amendment and actual plan-review SHIP, amended worker receipts, source proof, root integrated output and independent progress reviews. Task21 retains its direct dependency and consumes these results. Formal implementation review remains deferred because the original required tree is red and qualification incomplete. Resume the remaining acceptance when its independent corrective owners and native Darwin source-bound gates can qualify the frozen combined candidate.
 
+Blocked:
+Superseded by the fn-109 2026-10-09 amendment. With byte and format compatibility dropped, fn-152 (Runner storage on one append-only log) and fn-153 (retire canonical JSON and private atomic writes) delete the code this task would harden. Not required for fn-109 completion.
 ## Evidence
 - Commits:
 - Tests:

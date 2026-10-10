@@ -63,3 +63,8 @@ stage: plan-sync - skipped(config: disabled; task remains blocked rather than do
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
+
+
+## Format-compatibility amendment (2026-10-09)
+
+Per the spec's 2026-10-09 amendment, byte-for-byte and format compatibility is no longer required. Literal BASE canonical state/segment evidence and round-identity byte equality are no longer required; preserve the stopping predicates and round semantics behaviorally. Do not harden exploration-journal code that fn-152 replaces.
