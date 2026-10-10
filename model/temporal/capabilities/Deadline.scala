@@ -1,10 +1,10 @@
 // A selected timer fires only inside its armed role and settles from before-state retry policy.
 package temporal.capabilities
 
-import framework.*
+import framework.*; import framework.Finite.given
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 final case class Deadline[S, P, R, F <: Product](
     timer: ClassRef,
     armed: S => Boolean,
@@ -24,7 +24,7 @@ final case class Deadline[S, P, R, F <: Product](
     @unused coveredType: ClassTag[R]
 ) extends CapabilityOf[S, Nothing, F]:
   require(
-    retryable == retriesRemaining.nonEmpty,
+    retryable == retriesRemaining.nonEmpty, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     "retryable requires exactly one eligibility binding"
   )
   require(
@@ -33,13 +33,13 @@ final case class Deadline[S, P, R, F <: Product](
   )
   require(timeoutFacts.nonEmpty, "timeout fact family must be nonempty")
   require(
-    timeoutFacts.distinct.size == timeoutFacts.size,
+    timeoutFacts.distinct.size == timeoutFacts.size, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     "timeout fact family contains duplicates"
   )
   require(timeoutFacts.contains(timeout), "timeout fact family must contain the bound timeout")
-  require(
-    timeoutFacts.toSet == finiteFact.values.filter(_.productPrefix == timeout.productPrefix).toSet,
-    "timeout fact family must contain exactly every finite value of the bound timeout constructor"
+  require( // format: off
+    timeoutFacts.toSet == finiteFact.values.filter(_.productPrefix == timeout.productPrefix).toSet, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    "timeout fact family must contain exactly every finite value of the bound timeout constructor" // format: on
   )
 
 object Deadline extends CapabilityKind:

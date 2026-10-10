@@ -38,29 +38,7 @@ func Lower(o *umpirespb.Operand, projected protoreflect.MessageDescriptor, name 
 	}
 	switch k := o.GetKind().(type) {
 	case *umpirespb.Operand_Literal:
-		var value *celpb.Value
-		switch v := k.Literal.GetKind().(type) {
-		case *umpirespb.ProtoValue_Text:
-			value = &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: v.Text}}
-		case *umpirespb.ProtoValue_Flag:
-			value = &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: v.Flag}}
-		case *umpirespb.ProtoValue_Number:
-			value = &celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: v.Number}}
-		case *umpirespb.ProtoValue_Named:
-			if name == nil {
-				return nil, fmt.Errorf("a literal name is unresolved")
-			}
-			value = &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: name(v.Named)}}
-		case *umpirespb.ProtoValue_EnumName:
-			var err error
-			value, err = Enum(v.EnumName)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			return nil, fmt.Errorf("a literal operand is a text, a flag, a number, an enum value or a name")
-		}
-		return cel.Literal(value), nil
+		return lowerLiteral(k.Literal, name)
 	case *umpirespb.Operand_Environment:
 		return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: k.Environment}}), nil
 	case *umpirespb.Operand_LearnedValue:
@@ -97,29 +75,58 @@ func Lower(o *umpirespb.Operand, projected protoreflect.MessageDescriptor, name 
 		}
 		return cel.Not(of), nil
 	case *umpirespb.Operand_All:
-		if len(k.All.GetOperands()) == 0 {
-			return nil, fmt.Errorf("is a conjunction of no operand")
-		}
-		var operands []*testpilotspb.Expression
-		for _, operand := range k.All.GetOperands() {
-			child, err := lower(operand)
-			if err != nil {
-				return nil, err
-			}
-			operands = append(operands, child)
-		}
-		return cel.All(operands...), nil
+		return lowerAll(k.All.GetOperands(), lower)
 	default:
-		return nil, fmt.Errorf("an operand of no known kind")
+		return nil, errors.New("an operand of no known kind")
 	}
+}
+
+func lowerLiteral(literal *umpirespb.ProtoValue, name func(*umpirespb.Name) string) (*testpilotspb.Expression, error) {
+	var value *celpb.Value
+	switch v := literal.GetKind().(type) {
+	case *umpirespb.ProtoValue_Text:
+		value = &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: v.Text}}
+	case *umpirespb.ProtoValue_Flag:
+		value = &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: v.Flag}}
+	case *umpirespb.ProtoValue_Number:
+		value = &celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: v.Number}}
+	case *umpirespb.ProtoValue_Named:
+		if name == nil {
+			return nil, errors.New("a literal name is unresolved")
+		}
+		value = &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: name(v.Named)}}
+	case *umpirespb.ProtoValue_EnumName:
+		var err error
+		value, err = Enum(v.EnumName)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.New("a literal operand is a text, a flag, a number, an enum value or a name")
+	}
+	return cel.Literal(value), nil
+}
+
+func lowerAll(children []*umpirespb.Operand, lower func(*umpirespb.Operand) (*testpilotspb.Expression, error)) (*testpilotspb.Expression, error) {
+	if len(children) == 0 {
+		return nil, errors.New("is a conjunction of no operand")
+	}
+	operands := make([]*testpilotspb.Expression, 0, len(children))
+	for _, operand := range children {
+		child, err := lower(operand)
+		if err != nil {
+			return nil, err
+		}
+		operands = append(operands, child)
+	}
+	return cel.All(operands...), nil
 }
 
 // Enum resolves authored names to descriptor-exact CEL enum values at lowering time.
 func Enum(name string) (*celpb.Value, error) {
 	var found protoreflect.EnumValueDescriptor
 	var ambiguous bool
-	var enums func(protoreflect.EnumDescriptors)
-	enums = func(es protoreflect.EnumDescriptors) {
+	var enums = func(es protoreflect.EnumDescriptors) {
 		for i := 0; i < es.Len(); i++ {
 			e := es.Get(i)
 			short := name[strings.LastIndex(name, ".")+1:]

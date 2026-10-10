@@ -1,4 +1,5 @@
 package umpire.irgen
+import TestEquality.given
 
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration.*
@@ -92,7 +93,7 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
         .path("functions")
         .elements()
         .asScala
-        .find(_.path("name") == property.path("holds"))
+        .find(_.path("name") == property.path("holds")) // scalafix:ok DisableSyntax.==; typed equality
         .get
       val fromName = holds
         .path("body")
@@ -107,7 +108,7 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
         .path("functions")
         .elements()
         .asScala
-        .find(_.path("name").asText() == fromName)
+        .find(_.path("name").asText() == fromName) // scalafix:ok DisableSyntax.==; typed equality
         .get
         .path("body")
       assertEquals(enumCases(paused), Seq("paused"))
@@ -124,7 +125,7 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
         .path("functions")
         .elements()
         .asScala
-        .find(_.path("name").asText() == neverName)
+        .find(_.path("name").asText() == neverName) // scalafix:ok DisableSyntax.==; typed equality
         .get
         .path("body")
       assertEquals(enumCases(running), Seq("pausedWhileHeld", "started"))
@@ -160,13 +161,13 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
         .path("properties")
         .elements()
         .asScala
-        .find(_.path("name").asText() == "same.terminalStatesAreFinal")
+        .find(_.path("name").asText() == "same.terminalStatesAreFinal") // scalafix:ok DisableSyntax.==; typed equality
         .get
       val holds = model
         .path("functions")
         .elements()
         .asScala
-        .find(_.path("name").asText() == property.path("holds").asText())
+        .find(_.path("name").asText() == property.path("holds").asText()) // scalafix:ok DisableSyntax.==; typed equality
         .get
       assertEquals(
         enumTypes(holds.path("body")),

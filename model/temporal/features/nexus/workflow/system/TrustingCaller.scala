@@ -9,12 +9,12 @@ package features.nexus
 package workflow
 package system
 
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
 import framework.realize.{PropertyOutcome, RunExpectation, Variation}
 import temporal.actors.worker.worker
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // ### Signature
 
 // A failed callback completes the forged control's operation two ways: as the success the control
@@ -44,9 +44,9 @@ object TrustingCaller
       else NexusSystem.effects.complete(s, resolution)
     // The control deliberately predicts success for a failed callback. The runtime still sends
     // failure.
-    def forgedComplete(s: State, resolution: Resolution) =
-      if resolution == Resolution.failed then
-        choose(forged -> settle(s, Resolution.succeeded), sent -> settle(s, resolution))
+    def forgedComplete(s: State, resolution: Resolution) = // format: off
+      if resolution == Resolution.failed then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        choose(forged -> settle(s, Resolution.succeeded), sent -> settle(s, resolution)) // format: on
       else settle(s, resolution)
 
   // The System machine's rules, its completion forged and the inspection added.
@@ -74,17 +74,17 @@ object TrustingCaller
     }
     on(deadline.scheduleToClose) {
       when[Live].where(
-        _.scheduleToClose == Timeout.expires
+        _.scheduleToClose == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToClose))
     }
     on(deadline.scheduleToStart) {
       when[Waiting].where(
-        _.scheduleToStart == Timeout.expires
+        _.scheduleToStart == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToStart))
     }
     on(deadline.startToClose) {
       where(s =>
-        s.phase == Phase.started && s.startToClose == Timeout.expires
+        s.phase == Phase.started && s.startToClose == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.startToClose))
     }
 

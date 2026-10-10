@@ -43,7 +43,7 @@ class Overlap extends munit.FunSuite:
       .toVector
 
   private def runs(lines: Vector[String]): Iterator[Vector[String]] =
-    lines.sliding(run).filter(_.size == run)
+    lines.sliding(run).filter(_.size == run) // scalafix:ok DisableSyntax.==; typed equality
 
   // For each fixture with shared lines, the numbers of those lines, beside the files they are in.
   private def shared(fixtures: Seq[Path], live: Seq[Path]): Map[Path, (Seq[Int], Set[Path])] =
@@ -52,7 +52,7 @@ class Overlap extends munit.FunSuite:
       val lines = substantive(fixture)
       val hits = lines.indices
         .sliding(run)
-        .filter(_.size == run)
+        .filter(_.size == run) // scalafix:ok DisableSyntax.==; typed equality
         .flatMap { window =>
           owners.get(window.map(lines(_)._1).toVector).map(window -> _)
         }

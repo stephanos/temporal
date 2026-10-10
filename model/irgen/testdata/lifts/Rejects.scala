@@ -4,7 +4,7 @@
 // step functions are written out binds them by hand in the core, `object rules extends Bindings(...)`.
 package fixture.rejects
 
-import framework.*
+import framework.*; import framework.Finite.given
 
 enum Note derives Finite:
   case ping
@@ -106,9 +106,9 @@ object Refining extends Machine[Flag, Outcome, Nothing]:
     def toProduct(f: Flag) = f
   object rules extends Bindings(flip ~> flipStep)
 
-val flips: Property[Flag] =
-  Second.property holds (after => after.outcome == Outcome.accepted)
-val flipping: Scenario[Flag] = Refining.scenario.starts(Flag(false)).actions(flip)
+val flips: Property[Flag] = // format: off
+  Second.property holds (after => after.outcome == Outcome.accepted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+val flipping: Scenario[Flag] = Refining.scenario.starts(Flag(false)).actions(flip) // format: on
 val secondFlips: Scenario[Flag] = Second.scenario.starts(Flag(false)).actions(flip)
 val one: Limits = Limits(steps = 1, actions = 1, search = 8)
 
@@ -241,7 +241,7 @@ val unnamedTwice: Vector[Query] = Vector(
 // A Property in the body of a function, which no val names.
 def unnamedChecks(m: Machine[Flag, Outcome, Nothing]): Vector[Query] = Vector(
   query("unnamedProperty") verify (m.property holds (after =>
-    after.outcome == Outcome.accepted
+    after.outcome == Outcome.accepted // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
   )) in secondFlips limits one
 )
 val unnamedProperty: Vector[Query] = unnamedChecks(Second)
@@ -616,9 +616,9 @@ object WatchingElsewhere extends Machine[Flag, Outcome, Nothing]:
   object monitors:
     val watch = elsewhereWatch
   object rules extends Bindings(flip ~> flipStep)
-val elsewhereFlips: Property[Flag] =
-  WatchingElsewhere.property holds (after => after.outcome == Outcome.accepted)
-val watchElsewhere: Vector[Query] = Vector(
+val elsewhereFlips: Property[Flag] = // format: off
+  WatchingElsewhere.property holds (after => after.outcome == Outcome.accepted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+val watchElsewhere: Vector[Query] = Vector( // format: on
   query("watchedThere") verify elsewhereFlips in WatchingElsewhere
     .scenario("there")
     .starts(Flag(false))
@@ -730,11 +730,11 @@ val glow = input[Dim]
 val shade = input[Dim]
 val bright = action(Actor("fixture")).input(level).input(glow)
 val tint = action(Actor("fixture")).input(shade)
-def brightStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] =
-  List(Step(Outcome.accepted, Lamp(a == b)))
+def brightStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] = // format: off
+  List(Step(Outcome.accepted, Lamp(a == b))) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 def tintStep(l: Lamp, a: Dim): List[Step[Lamp, Outcome, Nothing]] =
-  List(Step(Outcome.accepted, Lamp(a == Dim.high)))
-object BrightLamp extends Machine[Lamp, Outcome, Nothing]:
+  List(Step(Outcome.accepted, Lamp(a == Dim.high))) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+object BrightLamp extends Machine[Lamp, Outcome, Nothing]: // format: on
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(bright ~> brightStep, tint ~> tintStep, dim ~> dimStep)
@@ -759,9 +759,9 @@ val namedNoTokens: Query = query verify brightLit in strungDim limits one
 
 // An action that declares one token twice.
 val doubleTint = action(Actor("fixture")).input(shade).input(shade)
-def doubleTintStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] =
-  List(Step(Outcome.accepted, Lamp(a == b)))
-object DoubleTintLamp extends Machine[Lamp, Outcome, Nothing]:
+def doubleTintStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] = // format: off
+  List(Step(Outcome.accepted, Lamp(a == b))) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+object DoubleTintLamp extends Machine[Lamp, Outcome, Nothing]: // format: on
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(doubleTint ~> doubleTintStep)
@@ -785,9 +785,9 @@ object Below extends Machine[BelowState, Outcome, Nothing]:
   val init = BelowState(UpTo(0))
   def end(s: State) = true
   object rules extends Bindings(flip ~> (b => List(Step(Outcome.accepted, b))))
-val belowFree = Below.scenario.free
-val belowAny = Below.property holds (after => after.state.count == 0)
-val upToNegative: Query = query verify belowAny in belowFree limits one
+val belowFree = Below.scenario.free // format: off
+val belowAny = Below.property holds (after => after.state.count == 0) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+val upToNegative: Query = query verify belowAny in belowFree limits one // format: on
 
 // ### fn-112.11: the total each Query asserts (2 states of Flag x 1 scheduled flip = 2)
 
@@ -895,9 +895,9 @@ object ChoiceKept extends Machine[Lamp, Outcome, Nothing]:
 // A case class one field of which is no claim: it bundles none, so building it declares nothing.
 final case class Mixed(flipped: Property[Flag], count: Int)
 
-def mixedClaims(m: Machine[Flag, Outcome, Nothing]): Mixed =
-  Mixed(m.property("mixedFlips") holds (after => after.outcome == Outcome.accepted), 1)
-def mixedQueries(m: Machine[Flag, Outcome, Nothing]): Vector[Query] =
+def mixedClaims(m: Machine[Flag, Outcome, Nothing]): Mixed = // format: off
+  Mixed(m.property("mixedFlips") holds (after => after.outcome == Outcome.accepted), 1) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+def mixedQueries(m: Machine[Flag, Outcome, Nothing]): Vector[Query] = // format: on
   val claims = mixedClaims(m)
   Vector(query(s"${m.name}.mixedFlips") verify claims.flipped in secondFlips limits one total 2)
 val mixedBundle: Vector[Query] = mixedQueries(Second)
@@ -945,24 +945,24 @@ object UnnamedInHelper extends Machine[Lamp, Outcome, Nothing]:
 // ### Expressions at the wrong level (fn-120 R13): a step made where no step function is
 
 // A start computed from a step.
-object LevelStart extends Machine[Lamp, Outcome, Nothing]:
-  val init = if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false)
-  def end(s: State) = true
+object LevelStart extends Machine[Lamp, Outcome, Nothing]: // format: off
+  val init = if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(s: State) = true // format: on
   object rules extends Bindings(flip ~> lampStep)
 
 // An `end` that asks whether a step function gives a step.
 object LevelEnds extends Machine[Lamp, Outcome, Nothing]:
-  val init = Lamp(false)
-  def end(l: State) = lampStep(l) == Nil
-  object rules extends Bindings(flip ~> lampStep)
+  val init = Lamp(false) // format: off
+  def end(l: State) = lampStep(l) == Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object rules extends Bindings(flip ~> lampStep) // format: on
 
 // Evidence that makes a step.
 object LevelEvidence extends Machine[Lamp, Outcome, Dropped]:
   val init = Lamp(false)
   def end(s: State) = true
-  val evidence: PartialFunction[Dropped, String] = {
-    case Dropped.kept    => if lampStep(Lamp(false)) == Nil then "keptData" else "keptAgain"
-    case Dropped.lost(_) => "lostData"
+  val evidence: PartialFunction[Dropped, String] = { // format: off
+    case Dropped.kept    => if lampStep(Lamp(false)) == Nil then "keptData" else "keptAgain" // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    case Dropped.lost(_) => "lostData" // format: on
   }
   object rules extends Bindings()
 
@@ -970,9 +970,9 @@ object LevelEvidence extends Machine[Lamp, Outcome, Dropped]:
 object LevelRefinement extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
-  object refinement extends Refinement(OneStart):
-    def toProduct(l: Lamp) = if lampStep(l) == Nil then l else Lamp(!l.lit)
-  object rules extends Bindings(flip ~> lampStep)
+  object refinement extends Refinement(OneStart): // format: off
+    def toProduct(l: Lamp) = if lampStep(l) == Nil then l else Lamp(!l.lit) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object rules extends Bindings(flip ~> lampStep) // format: on
 
 // A monitor whose next state asks which steps the step function gives.
 val levelWatch: Monitor[Lamp, Outcome, Nothing, Boolean] =
@@ -987,40 +987,40 @@ object LevelMonitor extends Machine[Lamp, Outcome, Nothing]:
   object rules extends Bindings(flip ~> lampStep)
 
 // A step function whose precondition asks whether another step function gives a step.
-def requiringStep(l: Lamp): List[LampStep] =
-  require(lampStep(l) != Nil)
-  lampStep(l)
+def requiringStep(l: Lamp): List[LampStep] = // format: off
+  require(lampStep(l) != Nil) // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  lampStep(l) // format: on
 object LevelRequire extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(flip ~> requiringStep)
-
+// format: off
 // A same-step Property that asks what the step function gives after the step.
-val levelHolds = OneStart.property holds (after => lampStep(after.state) == Nil)
-val levelProperty: Query = query verify levelHolds in lampFlips limits one total 2
+val levelHolds = OneStart.property holds (after => lampStep(after.state) == Nil) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+val levelProperty: Query = query verify levelHolds in lampFlips limits one total 2 // format: on
 
 // A transition Property that asks whether the step is one the step function gives.
 val levelAcross =
   OneStart.property holdsAcross ((before, after) => lampStep(before).contains(after))
 val levelTransition: Query = query verify levelAcross in lampFlips limits one total 2
-
+// format: off
 // A claim pattern whose predicate makes a step.
-def lampStepped(after: Step[Lamp, Outcome, Nothing]): Boolean = lampStep(after.state) == Nil
-val levelNever = OneStart.property.never(lampStepped)
+def lampStepped(after: Step[Lamp, Outcome, Nothing]): Boolean = lampStep(after.state) == Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+val levelNever = OneStart.property.never(lampStepped) // format: on
 val levelPattern: Query = query verify levelNever in lampFlips limits one total 2
-
+// format: off
 // A progress claim whose source asks whether a step function gives a step.
-val levelProgress = OneStart.leadsTo("levelSettles")(l => lampStep(l) == Nil, l => l.lit, 2)
+val levelProgress = OneStart.leadsTo("levelSettles")(l => lampStep(l) == Nil, l => l.lit, 2) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 
 // A composition whose `end` asks whether a member's step function gives a step.
 object LevelComposition extends Composition[Lamps](_.left -> OneStart, _.right -> OneStart):
-  def end(c: State) = lampStep(c.left) == Nil
-  object syncs extends Syncs
+  def end(c: State) = lampStep(c.left) == Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object syncs extends Syncs // format: on
 
 // A Scenario whose start is computed from a step.
-val levelStarted =
-  OneStart.scenario.starts(if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false))
-val levelLit = OneStart.property holds (after => after.state.lit)
+val levelStarted = // format: off
+  OneStart.scenario.starts(if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+val levelLit = OneStart.property holds (after => after.state.lit) // format: on
 val levelScenario: Query =
   query verify levelLit in levelStarted.actions(flip) limits one total 2
 
@@ -1063,9 +1063,9 @@ object EmptyEffect extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
   object effects:
-    def brighten(s: Bulb) =
-      if s.glow == Glow.bright then disabled else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
-  object rules extends Rules:
+    def brighten(s: Bulb) = // format: off
+      if s.glow == Glow.bright then disabled else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object rules extends Rules: // format: on
     on(bulbHand.squeeze)(always ~> effects.brighten)
 
 // A step function bound by hand among the rules, in no `on` block.
@@ -1096,9 +1096,9 @@ object FromStatement extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow]
 object PhaseLambda extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
   override def end(s: Bulb) = true
-  object rules extends Rules:
-    on(bulbHand.squeeze)(when((g: Glow) => g == Glow.dim) ~> Ruled.effects.brighten)
-
+  object rules extends Rules: // format: off
+    on(bulbHand.squeeze)(when((g: Glow) => g == Glow.dim) ~> Ruled.effects.brighten) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
 // An action both disabled and fired by a rule.
 object DisabledFired extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
@@ -1159,9 +1159,9 @@ object NilEffect extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: State) = true
   object effects:
-    def brighten(s: State) =
-      if s.glow == Glow.bright then Nil else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
-  object rules extends Rules:
+    def brighten(s: State) = // format: off
+      if s.glow == Glow.bright then Nil else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object rules extends Rules: // format: on
     on(bulbHand.squeeze)(always ~> effects.brighten)
 
 // A monitor of another state type than the machine that watches it.

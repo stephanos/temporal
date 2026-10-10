@@ -74,6 +74,7 @@ type Table struct {
 	rowsFrom    map[string][]int
 	unknownFrom map[string][]int
 	parts       map[string][]string
+	composed    *composing
 	model       *tableModel
 	err         error
 }

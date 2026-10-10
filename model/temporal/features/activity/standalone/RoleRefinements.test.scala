@@ -1,22 +1,13 @@
 package framework
 // The standalone activity's refinements whose System and Product phases both take roles keep
 // closedness: a System state is Closed exactly when its Product image is, over every Finite state.
-// A role-carrying refinement added later is added here by name.
-
-import temporal.features.activity.standalone.system.{ActivityRecord, ActivitySystem, HeldDispatch}
+// Export discovery retains the Scala phase and refinement evidence for every instance.
 
 class RoleRefinements extends munit.FunSuite:
-  test("ActivitySystem.refinement keeps closedness"):
-    assertEquals(
-      Refinement.unclosed(ActivitySystem.refinement)(_.phase, _.phase),
-      IndexedSeq.empty
-    )
-
-  test("ActivityRecord.refinement keeps closedness"):
-    assertEquals(
-      Refinement.unclosed(ActivityRecord.refinement)(_.phase, _.phase),
-      IndexedSeq.empty
-    )
-
-  test("HeldDispatch.refinement keeps closedness"):
-    assertEquals(Refinement.unclosed(HeldDispatch.refinement)(_.phase, _.phase), IndexedSeq.empty)
+  test("every discovered activity role refinement keeps closedness"):
+    val prefix = "temporal.features.activity.standalone.system."
+    val results =
+      ExportedLaws.results.filter(r => r.subject.startsWith(prefix) && r.law.equals("closedness"))
+    val passed = results.filter(_.disposition.equals("passed")).map(_.subject).toSet
+    assert(Set("ActivitySystem", "ActivityRecord", "HeldDispatch").map(prefix + _).subsetOf(passed))
+    for result <- results do assert(!result.disposition.equals("failed"), result.toString)

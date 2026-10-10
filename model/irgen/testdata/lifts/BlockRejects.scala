@@ -3,27 +3,27 @@
 // returns, and a block reading a field through an accessor of any shape but the fixed one.
 package fixture.blockrejects
 
-import framework.*
+import framework.*; import framework.Finite.given
 import fixture.blocks.{phase, phase_=, retried, retried_=, user, Fact, Job, Outcome, Phase, given}
-
+// format: off
 // Reads the phase it compares rather than one field.
-def idle(using v: View[Job]): Boolean = v.get(_.phase) == Phase.idle
-
+def idle(using v: View[Job]): Boolean = v.get(_.phase) == Phase.idle // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+// format: on
 object NestedIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
   override def end(s: State) = true
-  object states:
-    val nested = is(phase == Phase.done && is(phase == Phase.idle)(Job(Phase.idle, false)))
-  object effects:
+  object states: // format: off
+    val nested = is(phase == Phase.done && is(phase == Phase.idle)(Job(Phase.idle, false))) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object effects: // format: on
     def keep(s: Job) = stay[Job, Outcome, Fact](s)
   object rules extends Rules:
     on(user.start)(where(states.nested) ~> effects.keep)
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 object HeaderIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  override def end(s: State) = true
-  val done = is(phase == Phase.done)
-  object effects:
+  override def end(s: State) = true // format: off
+  val done = is(phase == Phase.done) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object effects: // format: on
     def keep(s: Job) = stay[Job, Outcome, Fact](s)
   object rules extends Rules:
     on(user.start)(where(done) ~> effects.keep)
@@ -31,9 +31,9 @@ object HeaderIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase)
 object DefIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
   override def end(s: State) = true
-  object states:
-    def done = is(phase == Phase.done)
-  object effects:
+  object states: // format: off
+    def done = is(phase == Phase.done) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object effects: // format: on
     def keep(s: Job) = stay[Job, Outcome, Fact](s)
   object rules extends Rules:
     on(user.start)(where(states.done) ~> effects.keep)
@@ -94,9 +94,9 @@ object ReadAfterAssigned extends Machine[Job, Outcome, Fact], Phased[Job, Phase]
   override def end(s: State) = true
   object effects:
     val finish = effect {
-      phase = Phase.done
-      retried = phase == Phase.running
-    }
+      phase = Phase.done // format: off
+      retried = phase == Phase.running // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
   object rules extends Rules:
     on(user.finish)(always ~> effects.finish)
 
@@ -116,7 +116,7 @@ object BareExpression extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.
   override def end(s: State) = true
   object effects:
     val finish = effect {
-      phase == Phase.running
+      phase == Phase.running // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       phase = Phase.done
     }
   object rules extends Rules:

@@ -5,7 +5,7 @@
 // refer to.
 package fixture.sugar
 
-import framework.*
+import framework.*; import framework.Finite.given
 
 enum Phase derives Finite:
   case idle, running, paused, done
@@ -33,18 +33,18 @@ val retryUnknown = hole
 type JobStep = Step[Job, Outcome, Fact]
 
 // enter: one step with the ok outcome, its facts listed.
-def startSugar(j: Job): List[JobStep] =
-  if j.phase == Phase.idle then enter(j.copy(phase = Phase.running), Fact.started) else disabled
+def startSugar(j: Job): List[JobStep] = // format: off
+  if j.phase == Phase.idle then enter(j.copy(phase = Phase.running), Fact.started) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 def startCore(j: Job): List[JobStep] =
-  if j.phase == Phase.idle then
-    List(Step(Outcome.accepted, j.copy(phase = Phase.running), List(Fact.started)))
+  if j.phase == Phase.idle then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    List(Step(Outcome.accepted, j.copy(phase = Phase.running), List(Fact.started))) // format: on
   else Nil
 
 // enter(...).because(...): the step's explanation.
 def pauseSugar(j: Job): List[JobStep] = j.phase match
   case Phase.running =>
     enter(j.copy(phase = Phase.paused), Fact.paused).because("a running job pauses")
-  case _ => disabled
+  case _: Phase.idle.type | _: Phase.paused.type | _: Phase.done.type => disabled
 def pauseCore(j: Job): List[JobStep] = j.phase match
   case Phase.running =>
     List(
@@ -55,16 +55,16 @@ def pauseCore(j: Job): List[JobStep] = j.phase match
         "a running job pauses"
       )
     )
-  case _ => Nil
+  case _: Phase.idle.type | _: Phase.paused.type | _: Phase.done.type => Nil
 
-// in: membership in a finite set of cases, the default arm a wildcard.
+// in: membership in a finite set of cases, with every fallback case named.
 def resumeSugar(j: Job): List[JobStep] = j.phase match
-  case p if p.in(Phase.paused, Phase.idle) => enter(j.copy(phase = Phase.running))
-  case _                                   => disabled
+  case p @ (Phase.idle | Phase.running | Phase.paused | Phase.done) if p.in(Phase.paused, Phase.idle) => enter(j.copy(phase = Phase.running))
+  case Phase.idle | Phase.running | Phase.paused | Phase.done => disabled
 def resumeCore(j: Job): List[JobStep] = j.phase match
-  case p if List(Phase.paused, Phase.idle).contains(p) =>
+  case p @ (Phase.idle | Phase.running | Phase.paused | Phase.done) if List(Phase.paused, Phase.idle).contains(p) =>
     List(Step(Outcome.accepted, j.copy(phase = Phase.running)))
-  case _ => Nil
+  case Phase.idle | Phase.running | Phase.paused | Phase.done => Nil
 
 // in with one member, and enter with several facts.
 def finishSugar(j: Job): List[JobStep] =
@@ -80,11 +80,11 @@ def pokeSugar(j: Job): List[JobStep] = stay(j)
 def pokeCore(j: Job): List[JobStep] = List(Step(Outcome.accepted, j))
 
 // implies whose right side reaches a hole only where its left side holds.
-def retrySugar(j: Job): List[JobStep] =
-  if j.phase == Phase.done && j.retried implies retryUnknown.reached then stay(j) else disabled
+def retrySugar(j: Job): List[JobStep] = // format: off
+  if j.phase == Phase.done && j.retried implies retryUnknown.reached then stay(j) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 def retryCore(j: Job): List[JobStep] =
-  if !(j.phase == Phase.done && j.retried) || retryUnknown.reached then
-    List(Step(Outcome.accepted, j))
+  if !(j.phase == Phase.done && j.retried) || retryUnknown.reached then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    List(Step(Outcome.accepted, j)) // format: on
   else Nil
 
 // disabled alone.
@@ -125,12 +125,12 @@ object Cored extends Machine[Job, Outcome, Fact]:
 val recordsSugar = Sugared.property when start holds (after => after.records(Fact.started))
 val recordsCore = Cored.property when start holds (after => after.facts.contains(Fact.started))
 
-val impliesSugar = Sugared.property holds (after =>
-  after.state.phase == Phase.done implies after.records(Fact.finished)
-)
-val impliesCore = Cored.property holds (after =>
-  !(after.state.phase == Phase.done) || after.facts.contains(Fact.finished)
-)
+val impliesSugar = Sugared.property holds (after => // format: off
+  after.state.phase == Phase.done implies after.records(Fact.finished) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+) // format: on
+val impliesCore = Cored.property holds (after => // format: off
+  !(after.state.phase == Phase.done) || after.facts.contains(Fact.finished) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+) // format: on
 
 val pausedSugar = Sugared.property holdsAcross { (before, after) =>
   before.phase.in(Phase.paused) implies !after.records(Fact.paused)
@@ -152,11 +152,11 @@ val claims: Vector[Query] = Vector(
   query("pausedSugarStart") verify pausedSugar in sugaredStart limits run total 8,
   query("pausedCoreStart") verify pausedCore in coredStart limits run total 8
 )
-
+// format: off
 // sticky and stickyAcross: a promise that once broken stays broken, each beside the monitor it stands
 // for, all four watching one machine.
-def neverRefused(after: JobStep): Boolean = after.outcome != Outcome.refused
-def retriedStays(before: Job, after: JobStep): Boolean = !before.retried || after.state.retried
+def neverRefused(after: JobStep): Boolean = after.outcome != Outcome.refused // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+def retriedStays(before: Job, after: JobStep): Boolean = !before.retried || after.state.retried // format: on
 
 val refusedOnce = sticky(neverRefused)
 val refusedOnceSpelled = monitor[Job, Outcome, Fact, Boolean](false)((broken, before, after) =>
@@ -169,9 +169,9 @@ val retriedLostSpelled = monitor[Job, Outcome, Fact, Boolean](false)((broken, be
 )(broken => broken)
 
 object Watched extends Machine[Job, Outcome, Fact]:
-  val init = Job(Phase.idle, false)
-  def end(j: State) = j.phase == Phase.done
-
+  val init = Job(Phase.idle, false) // format: off
+  def end(j: State) = j.phase == Phase.done // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
   object monitors:
     val refused = refusedOnce
     val refusedSpelled = refusedOnceSpelled

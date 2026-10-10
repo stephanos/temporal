@@ -3,7 +3,7 @@
 // tests lift `Relay` and `Tallying` and compare the IR with expected/channels.json.
 package fixture.channels
 
-import framework.*
+import framework.*; import framework.Finite.given
 
 enum Note derives Finite:
   case ping, pong
@@ -40,9 +40,9 @@ def flashStep(r: RelayState, s: Signal): List[Step[RelayState, Outcome, Nothing]
   if r.radio.isEmpty then List(Step(Outcome.accepted, r.copy(radio = r.radio.send(s)))) else Nil
 
 // Receiving a note: the channel already dropped the delivered message.
-def hear(r: RelayState, n: Note): List[Step[RelayState, Outcome, Nothing]] =
-  if n == Note.ping then List(Step(Outcome.accepted, r.copy(heard = Heard.note))) else Nil
-
+def hear(r: RelayState, n: Note): List[Step[RelayState, Outcome, Nothing]] = // format: off
+  if n == Note.ping then List(Step(Outcome.accepted, r.copy(heard = Heard.note))) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
 def tune(r: RelayState, s: Signal): List[Step[RelayState, Outcome, Nothing]] =
   List(Step(Outcome.accepted, r.copy(heard = Heard.signal)))
 
@@ -80,9 +80,9 @@ val count = timer
 def countStep(t: Tally): List[Step[Tally, Outcome, Nothing]] =
   if t.counts.isEmpty then List(Step(Outcome.accepted, t.copy(counts = t.counts.send(2)))) else Nil
 
-def counted(t: Tally, n: Int): List[Step[Tally, Outcome, Nothing]] =
-  if n == 2 then List(Step(Outcome.accepted, t.copy(heard = Heard.note))) else Nil
-
+def counted(t: Tally, n: Int): List[Step[Tally, Outcome, Nothing]] = // format: off
+  if n == 2 then List(Step(Outcome.accepted, t.copy(heard = Heard.note))) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
 object Tallying extends Machine[Tally, Outcome, Nothing]:
   val init = Tally(Heard.nothing, tally.empty)
   def end(tally: State) = true

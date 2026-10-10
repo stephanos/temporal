@@ -936,7 +936,12 @@ class GateSuite extends munit.FunSuite:
   private val otherForward =
     Acceptance(Accepted.waived, "legacy", Vector("legacy.p"), "a sidecar's")
   private def waiver(subject: String, because: String) =
-    Acceptance(Accepted.waived, subject.takeWhile(_ != '.'), Vector(subject), because)
+    Acceptance(
+      Accepted.waived,
+      subject.takeWhile(_ != '.'),
+      Vector(subject),
+      because
+    ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
 
   test("the accepted findings file is read and written as umpire-lint writes it"):
     val ir = Tools.here.directory.resolve("model/ir")

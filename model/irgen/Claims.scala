@@ -47,6 +47,7 @@ private enum Decl:
 private[irgen] trait Claims:
   self: Lifting =>
   import ctx.*
+  import Equality.given
   import ctx.quotes.reflect.*
 
   // ### Claims: Properties, Scenarios, Queries and progress, folded with their arguments bound
@@ -94,16 +95,16 @@ private[irgen] trait Claims:
       value: V,
       at: Tree,
       what: String
-  ): Unit =
+  )(using CanEqual[V, V]): Unit =
     into.get(key) match
-      case Some(existing) if existing != value =>
+      case Some(existing) if existing != value => // scalafix:ok DisableSyntax.!=; typed equality
         fail(at, s"$what is declared twice, and both would share one Definition ID")
       case _ => into(key) = value
 
   // Limits, named by their `name` or else by `named`, the val that declares them.
   def limitsOf(t: Term, named: => String): ir.Limits = arguments(t) match
     case Apply(Select(companion, "apply"), List(name, steps, actions, search))
-        if companion.tpe.typeSymbol.companionClass.fullName == "framework.Limits" =>
+        if companion.tpe.typeSymbol.companionClass.fullName == "framework.Limits" => // scalafix:ok DisableSyntax.==; typed equality
       val l = ir.Limits(
         if isDefault(name) then named else constString(name),
         constInt(steps).toInt,
@@ -114,7 +115,7 @@ private[irgen] trait Claims:
         (bound, v) <- Seq("steps" -> l.steps, "actions" -> l.actions, "search" -> l.search)
         if v < 0
       do fail(t, s"limits ${l.name} declare $v $bound; a bound is at least 0")
-      for (other, at) <- limitsNamed.get(l.name) if other != l do
+      for (other, at) <- limitsNamed.get(l.name) if other != l do // scalafix:ok DisableSyntax.!=; typed equality
         fail(
           t,
           s"limits ${l.name} are declared twice with different bounds, here and at $at: a Query's " +
@@ -135,10 +136,10 @@ private[irgen] trait Claims:
   // than the Scenario, the one the Scenario's machine declares it refines. `Machine[S, O, F]` does not
   // carry the type it refines, so this is where a Property of an unrelated machine is refused.
   def readsThrough(name: String, p: ir.ClaimRef, s: ir.ClaimRef, at: Tree): Boolean =
-    if p.machine == s.machine then false
+    if p.machine == s.machine then false // scalafix:ok DisableSyntax.==; typed equality
     else
       machineNamed(s.machine).map(_.getRefines.product).filter(_.nonEmpty) match
-        case Some(product) if product == p.machine => true
+        case Some(product) if product == p.machine => true // scalafix:ok DisableSyntax.==; typed equality
         case Some(product)                         =>
           fail(
             at,
@@ -172,7 +173,7 @@ private[irgen] trait Claims:
       limits = Some(limits)
     )
     // Two Queries of one Scenario and Property named by neither would share the name they take.
-    for existing <- queries.get(name) if named.isEmpty && existing != q do
+    for existing <- queries.get(name) if named.isEmpty && existing != q do // scalafix:ok DisableSyntax.!=; typed equality
       fail(
         at,
         s"this Query of ${p.name} in ${s.name} takes the name $name from its Scenario and " +
@@ -219,7 +220,7 @@ private[irgen] trait Claims:
     if isMachine(cls.typeRef) then machineOf(module, at).name else compositionOf(module, at).name
 
   // Whether a call is one of `Declares`'s, `property` or `scenario`, which every model inherits.
-  def declared(t: Term): Boolean = t.symbol.maybeOwner.fullName == "framework.Declares"
+  def declared(t: Term): Boolean = t.symbol.maybeOwner.fullName == "framework.Declares" // scalafix:ok DisableSyntax.==; typed equality
 
   // What a declaration of the lifted sources folds to, with the helper function parameters bound
   // in `env`. `named` is the name of the val whose right-hand side `t` is: a declaration that takes
@@ -246,7 +247,7 @@ private[irgen] trait Claims:
     case r: Ref if env.contains(r.symbol)      => env(r.symbol)
     // `s"..."`, with each argument folded to its text.
     case Apply(Select(Apply(Select(sc, "apply"), List(parts)), "s"), List(args))
-        if sc.symbol.fullName == "scala.StringContext" =>
+        if sc.symbol.fullName == "scala.StringContext" => // scalafix:ok DisableSyntax.==; typed equality
       val texts = varargs(args).map(a => textOf(fold(a, env), a))
       Decl.Text(varargs(parts).map(constString).zipAll(texts, "", "").map(_ + _).mkString)
     case Select(m, "name") if declares(m.tpe) => Decl.Text(modelName(fold(m, env), m))
@@ -282,7 +283,7 @@ private[irgen] trait Claims:
             name = name,
             position = Some(pos(t)),
             holds = stepFunction(f, s"$m.property", name),
-            transition = op == "holdsAcross",
+            transition = op == "holdsAcross", // scalafix:ok DisableSyntax.==; typed equality
             when = when.fold(ir.Property.When.Empty)(
               _.fold(ir.Property.When.WhenClass(_), ir.Property.When.WhenAction(_))
             )
@@ -316,7 +317,7 @@ private[irgen] trait Claims:
     case Apply(TypeApply(Select(q, form @ ("find" | "verify")), _), List(p)) =>
       fold(q, env, named) match
         case Decl.QueryNamed(name) =>
-          val f = if form == "find" then ir.Query.Form.FORM_FIND else ir.Query.Form.FORM_VERIFY
+          val f = if form == "find" then ir.Query.Form.FORM_FIND else ir.Query.Form.FORM_VERIFY // scalafix:ok DisableSyntax.==; typed equality
           Decl.QueryOn(name, f, claimOf(fold(p, env), p))
         case other => fail(t, s"$form asks a Query, not $other")
     case Apply(TypeApply(Select(q, "in"), _), List(s)) =>
@@ -349,7 +350,7 @@ private[irgen] trait Claims:
           query(name, form, p, s, limits, t)
         case other => fail(t, s"limits bounds a Query, not $other")
     case Apply(Select(companion, "apply"), _)
-        if companion.tpe.typeSymbol.companionClass.fullName == "framework.Limits" =>
+        if companion.tpe.typeSymbol.companionClass.fullName == "framework.Limits" => // scalafix:ok DisableSyntax.==; typed equality
       Decl.Bounds(limitsOf(t, captured(named, "Limits", "`Limits(\"...\", ...)`", t)))
     // A bundle of claims one shared def declares together, such as `queueClaims(m)`
     // declares of a provider: built by its case class's constructor, each claim folded, and read
@@ -408,7 +409,7 @@ private[irgen] trait Claims:
       // folded above, and any other declares nothing (its constructor has no body to read).
       val built =
         if fn.symbol.isClassConstructor then fn.symbol.owner
-        else if fn.symbol.name == "apply" && fn.symbol.flags.is(Flags.Synthetic) then
+        else if fn.symbol.name == "apply" && fn.symbol.flags.is(Flags.Synthetic) then // scalafix:ok DisableSyntax.==; typed equality
           fn.symbol.owner.companionClass
         else Symbol.noSymbol
       defs(fn.symbol) match
@@ -430,8 +431,8 @@ private[irgen] trait Claims:
     val machine = queries(name).getScenario.machine
     // A monitor the expected Run names is one the Query's machine watches.
     for
-      watched <- machines.values.find(_.name == machine)
-      m <- run.monitors if !watched.monitors.exists(monitors.get(_).exists(_.name == m.name))
+      watched <- machines.values.find(_.name == machine) // scalafix:ok DisableSyntax.==; typed equality
+      m <- run.monitors if !watched.monitors.exists(monitors.get(_).exists(_.name == m.name)) // scalafix:ok DisableSyntax.==; typed equality
     do
       fail(
         expected,
@@ -487,7 +488,7 @@ private[irgen] trait Claims:
     case Select(e, "toLong") if isNamed(e.tpe, "scala.Int") => unwidened(e)
     case _                                                  => t
   private def widens(f: Symbol): Boolean =
-    f.name == "int2long" && f.maybeOwner.fullName.stripSuffix("$") == "scala.Int"
+    f.name == "int2long" && f.maybeOwner.fullName.stripSuffix("$") == "scala.Int" // scalafix:ok DisableSyntax.==; typed equality
 
   // The body of a declaring function `d` at its call `t`, its arguments bound: each value folded, each
   // function-valued argument to the def of the lifted sources it names, and each type parameter to
@@ -553,7 +554,7 @@ private[irgen] trait Claims:
   // A declaring def's name as written: an `apply` by its object's.
   def declaringName(d: DefDef): String =
     val owner = d.symbol.maybeOwner
-    if d.name == "apply" && owner.flags.is(Flags.Module) then owner.name.stripSuffix("$")
+    if d.name == "apply" && owner.flags.is(Flags.Module) then owner.name.stripSuffix("$") // scalafix:ok DisableSyntax.==; typed equality
     else d.name
 
   def argument(p: ValDef, d: DefDef, a: Term, env: Map[Symbol, Decl]): Decl =
@@ -601,14 +602,14 @@ private[irgen] trait Claims:
       case Some(machine) => only(machine)
       case None          =>
         val c = compositions.values
-          .find(_.name == m)
+          .find(_.name == m) // scalafix:ok DisableSyntax.==; typed equality
           .getOrElse(
             fail(at, s"Scenario $scenario names $m, which is no lifted machine or composition")
           )
         val fields = types.get(c.stateType).map(_.getRecord.fields.map(_.name)).getOrElse(Nil)
         val starts = fields.map { field =>
           val member = c.members
-            .find(_.field == field)
+            .find(_.field == field) // scalafix:ok DisableSyntax.==; typed equality
             .getOrElse(
               fail(at, s"Scenario $scenario of $m names no start, and no member fills $field")
             )

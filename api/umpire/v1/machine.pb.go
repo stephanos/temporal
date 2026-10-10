@@ -880,7 +880,10 @@ type Assumption struct {
 	Name     string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Position *Position `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
 	// Actions, by id, that the assumption makes weakly fair: one that stays enabled is taken.
-	Fair          []string `protobuf:"bytes,4,rep,name=fair,proto3" json:"fair,omitempty"`
+	Fair []string `protobuf:"bytes,4,rep,name=fair,proto3" json:"fair,omitempty"`
+	// Composed classes made weakly fair under this assumption. Member selections map to every
+	// composed class that steps them, including syncs; enabledness is that of the composed class.
+	FairRefs      []*ComposedActionRef `protobuf:"bytes,5,rep,name=fair_refs,json=fairRefs,proto3" json:"fair_refs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -943,6 +946,150 @@ func (x *Assumption) GetFair() []string {
 	return nil
 }
 
+func (x *Assumption) GetFairRefs() []*ComposedActionRef {
+	if x != nil {
+		return x.FairRefs
+	}
+	return nil
+}
+
+// A fairness selection on one composition, independent of separator-joined class keys.
+type ComposedActionRef struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Composition string                 `protobuf:"bytes,1,opt,name=composition,proto3" json:"composition,omitempty"`
+	// The member field, required for action selections and absent for sync selections.
+	Member string `protobuf:"bytes,2,opt,name=member,proto3" json:"member,omitempty"`
+	// Types that are valid to be assigned to Selection:
+	//
+	//	*ComposedActionRef_Action
+	//	*ComposedActionRef_ActionClass
+	//	*ComposedActionRef_Sync
+	//	*ComposedActionRef_SyncClass
+	Selection     isComposedActionRef_Selection `protobuf_oneof:"selection"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ComposedActionRef) Reset() {
+	*x = ComposedActionRef{}
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ComposedActionRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ComposedActionRef) ProtoMessage() {}
+
+func (x *ComposedActionRef) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ComposedActionRef.ProtoReflect.Descriptor instead.
+func (*ComposedActionRef) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ComposedActionRef) GetComposition() string {
+	if x != nil {
+		return x.Composition
+	}
+	return ""
+}
+
+func (x *ComposedActionRef) GetMember() string {
+	if x != nil {
+		return x.Member
+	}
+	return ""
+}
+
+func (x *ComposedActionRef) GetSelection() isComposedActionRef_Selection {
+	if x != nil {
+		return x.Selection
+	}
+	return nil
+}
+
+func (x *ComposedActionRef) GetAction() string {
+	if x != nil {
+		if x, ok := x.Selection.(*ComposedActionRef_Action); ok {
+			return x.Action
+		}
+	}
+	return ""
+}
+
+func (x *ComposedActionRef) GetActionClass() *ActionClass {
+	if x != nil {
+		if x, ok := x.Selection.(*ComposedActionRef_ActionClass); ok {
+			return x.ActionClass
+		}
+	}
+	return nil
+}
+
+func (x *ComposedActionRef) GetSync() string {
+	if x != nil {
+		if x, ok := x.Selection.(*ComposedActionRef_Sync); ok {
+			return x.Sync
+		}
+	}
+	return ""
+}
+
+func (x *ComposedActionRef) GetSyncClass() *ActionClass {
+	if x != nil {
+		if x, ok := x.Selection.(*ComposedActionRef_SyncClass); ok {
+			return x.SyncClass
+		}
+	}
+	return nil
+}
+
+type isComposedActionRef_Selection interface {
+	isComposedActionRef_Selection()
+}
+
+type ComposedActionRef_Action struct {
+	// Every class of this member action, by id.
+	Action string `protobuf:"bytes,3,opt,name=action,proto3,oneof"`
+}
+
+type ComposedActionRef_ActionClass struct {
+	// One class of this member action, with its typed inputs.
+	ActionClass *ActionClass `protobuf:"bytes,4,opt,name=action_class,json=actionClass,proto3,oneof"`
+}
+
+type ComposedActionRef_Sync struct {
+	// Every class of the sync of this name.
+	Sync string `protobuf:"bytes,5,opt,name=sync,proto3,oneof"`
+}
+
+type ComposedActionRef_SyncClass struct {
+	// One sync class: ActionClass.action is the sync name and inputs are the first move's inputs
+	// followed by the second move's inputs, in each action's input order.
+	SyncClass *ActionClass `protobuf:"bytes,6,opt,name=sync_class,json=syncClass,proto3,oneof"`
+}
+
+func (*ComposedActionRef_Action) isComposedActionRef_Selection() {}
+
+func (*ComposedActionRef_ActionClass) isComposedActionRef_Selection() {}
+
+func (*ComposedActionRef_Sync) isComposedActionRef_Selection() {}
+
+func (*ComposedActionRef_SyncClass) isComposedActionRef_Selection() {}
+
 // A declared hole: behavior the Model leaves unknown on purpose, which makes a result that reaches it
 // incomplete.
 type Hole struct {
@@ -957,7 +1104,7 @@ type Hole struct {
 
 func (x *Hole) Reset() {
 	*x = Hole{}
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[8]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -969,7 +1116,7 @@ func (x *Hole) String() string {
 func (*Hole) ProtoMessage() {}
 
 func (x *Hole) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[8]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -982,7 +1129,7 @@ func (x *Hole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Hole.ProtoReflect.Descriptor instead.
 func (*Hole) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Hole) GetId() string {
@@ -1024,7 +1171,7 @@ type Composition struct {
 
 func (x *Composition) Reset() {
 	*x = Composition{}
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[9]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1036,7 +1183,7 @@ func (x *Composition) String() string {
 func (*Composition) ProtoMessage() {}
 
 func (x *Composition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[9]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1049,7 +1196,7 @@ func (x *Composition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Composition.ProtoReflect.Descriptor instead.
 func (*Composition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Composition) GetFamily() string {
@@ -1116,7 +1263,7 @@ type Member struct {
 
 func (x *Member) Reset() {
 	*x = Member{}
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[10]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1128,7 +1275,7 @@ func (x *Member) String() string {
 func (*Member) ProtoMessage() {}
 
 func (x *Member) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[10]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1141,7 +1288,7 @@ func (x *Member) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Member.ProtoReflect.Descriptor instead.
 func (*Member) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{10}
+	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Member) GetField() string {
@@ -1177,7 +1324,7 @@ type Sync struct {
 
 func (x *Sync) Reset() {
 	*x = Sync{}
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[11]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1189,7 +1336,7 @@ func (x *Sync) String() string {
 func (*Sync) ProtoMessage() {}
 
 func (x *Sync) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[11]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1202,7 +1349,7 @@ func (x *Sync) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sync.ProtoReflect.Descriptor instead.
 func (*Sync) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{11}
+	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Sync) GetName() string {
@@ -1238,7 +1385,7 @@ type SyncMove struct {
 
 func (x *SyncMove) Reset() {
 	*x = SyncMove{}
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[12]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1250,7 +1397,7 @@ func (x *SyncMove) String() string {
 func (*SyncMove) ProtoMessage() {}
 
 func (x *SyncMove) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[12]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1263,7 +1410,7 @@ func (x *SyncMove) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncMove.ProtoReflect.Descriptor instead.
 func (*SyncMove) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{12}
+	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SyncMove) GetMember() string {
@@ -1291,7 +1438,7 @@ type ActionClass struct {
 
 func (x *ActionClass) Reset() {
 	*x = ActionClass{}
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[13]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1303,7 +1450,7 @@ func (x *ActionClass) String() string {
 func (*ActionClass) ProtoMessage() {}
 
 func (x *ActionClass) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[13]
+	mi := &file_temporal_server_api_umpire_v1_machine_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1316,7 +1463,7 @@ func (x *ActionClass) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActionClass.ProtoReflect.Descriptor instead.
 func (*ActionClass) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{13}
+	return file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ActionClass) GetAction() string {
@@ -1415,13 +1562,23 @@ const file_temporal_server_api_umpire_v1_machine_proto_rawDesc = "" +
 	"\x05after\x18\n" +
 	" \x01(\tH\x00R\x05afterB\n" +
 	"\n" +
-	"\bevaluate\"\x89\x01\n" +
+	"\bevaluate\"\xd8\x01\n" +
 	"\n" +
 	"Assumption\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12C\n" +
 	"\bposition\x18\x03 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12\x12\n" +
-	"\x04fair\x18\x04 \x03(\tR\x04fair\"o\n" +
+	"\x04fair\x18\x04 \x03(\tR\x04fair\x12M\n" +
+	"\tfair_refs\x18\x05 \x03(\v20.temporal.server.api.umpire.v1.ComposedActionRefR\bfairRefs\"\xa8\x02\n" +
+	"\x11ComposedActionRef\x12 \n" +
+	"\vcomposition\x18\x01 \x01(\tR\vcomposition\x12\x16\n" +
+	"\x06member\x18\x02 \x01(\tR\x06member\x12\x18\n" +
+	"\x06action\x18\x03 \x01(\tH\x00R\x06action\x12O\n" +
+	"\faction_class\x18\x04 \x01(\v2*.temporal.server.api.umpire.v1.ActionClassH\x00R\vactionClass\x12\x14\n" +
+	"\x04sync\x18\x05 \x01(\tH\x00R\x04sync\x12K\n" +
+	"\n" +
+	"sync_class\x18\x06 \x01(\v2*.temporal.server.api.umpire.v1.ActionClassH\x00R\tsyncClassB\v\n" +
+	"\tselection\"o\n" +
 	"\x04Hole\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12C\n" +
@@ -1464,63 +1621,67 @@ func file_temporal_server_api_umpire_v1_machine_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_umpire_v1_machine_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_temporal_server_api_umpire_v1_machine_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_temporal_server_api_umpire_v1_machine_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_temporal_server_api_umpire_v1_machine_proto_goTypes = []any{
-	(Channel_Order)(0),    // 0: temporal.server.api.umpire.v1.Channel.Order
-	(*Action)(nil),        // 1: temporal.server.api.umpire.v1.Action
-	(*Example)(nil),       // 2: temporal.server.api.umpire.v1.Example
-	(*Machine)(nil),       // 3: temporal.server.api.umpire.v1.Machine
-	(*StepBinding)(nil),   // 4: temporal.server.api.umpire.v1.StepBinding
-	(*Refinement)(nil),    // 5: temporal.server.api.umpire.v1.Refinement
-	(*Channel)(nil),       // 6: temporal.server.api.umpire.v1.Channel
-	(*Monitor)(nil),       // 7: temporal.server.api.umpire.v1.Monitor
-	(*Assumption)(nil),    // 8: temporal.server.api.umpire.v1.Assumption
-	(*Hole)(nil),          // 9: temporal.server.api.umpire.v1.Hole
-	(*Composition)(nil),   // 10: temporal.server.api.umpire.v1.Composition
-	(*Member)(nil),        // 11: temporal.server.api.umpire.v1.Member
-	(*Sync)(nil),          // 12: temporal.server.api.umpire.v1.Sync
-	(*SyncMove)(nil),      // 13: temporal.server.api.umpire.v1.SyncMove
-	(*ActionClass)(nil),   // 14: temporal.server.api.umpire.v1.ActionClass
-	(*Position)(nil),      // 15: temporal.server.api.umpire.v1.Position
-	(*Param)(nil),         // 16: temporal.server.api.umpire.v1.Param
-	(*Value)(nil),         // 17: temporal.server.api.umpire.v1.Value
-	(*Expr)(nil),          // 18: temporal.server.api.umpire.v1.Expr
-	(*TypeRef)(nil),       // 19: temporal.server.api.umpire.v1.TypeRef
-	(*emptypb.Empty)(nil), // 20: google.protobuf.Empty
+	(Channel_Order)(0),        // 0: temporal.server.api.umpire.v1.Channel.Order
+	(*Action)(nil),            // 1: temporal.server.api.umpire.v1.Action
+	(*Example)(nil),           // 2: temporal.server.api.umpire.v1.Example
+	(*Machine)(nil),           // 3: temporal.server.api.umpire.v1.Machine
+	(*StepBinding)(nil),       // 4: temporal.server.api.umpire.v1.StepBinding
+	(*Refinement)(nil),        // 5: temporal.server.api.umpire.v1.Refinement
+	(*Channel)(nil),           // 6: temporal.server.api.umpire.v1.Channel
+	(*Monitor)(nil),           // 7: temporal.server.api.umpire.v1.Monitor
+	(*Assumption)(nil),        // 8: temporal.server.api.umpire.v1.Assumption
+	(*ComposedActionRef)(nil), // 9: temporal.server.api.umpire.v1.ComposedActionRef
+	(*Hole)(nil),              // 10: temporal.server.api.umpire.v1.Hole
+	(*Composition)(nil),       // 11: temporal.server.api.umpire.v1.Composition
+	(*Member)(nil),            // 12: temporal.server.api.umpire.v1.Member
+	(*Sync)(nil),              // 13: temporal.server.api.umpire.v1.Sync
+	(*SyncMove)(nil),          // 14: temporal.server.api.umpire.v1.SyncMove
+	(*ActionClass)(nil),       // 15: temporal.server.api.umpire.v1.ActionClass
+	(*Position)(nil),          // 16: temporal.server.api.umpire.v1.Position
+	(*Param)(nil),             // 17: temporal.server.api.umpire.v1.Param
+	(*Value)(nil),             // 18: temporal.server.api.umpire.v1.Value
+	(*Expr)(nil),              // 19: temporal.server.api.umpire.v1.Expr
+	(*TypeRef)(nil),           // 20: temporal.server.api.umpire.v1.TypeRef
+	(*emptypb.Empty)(nil),     // 21: google.protobuf.Empty
 }
 var file_temporal_server_api_umpire_v1_machine_proto_depIdxs = []int32{
-	15, // 0: temporal.server.api.umpire.v1.Action.position:type_name -> temporal.server.api.umpire.v1.Position
-	16, // 1: temporal.server.api.umpire.v1.Action.inputs:type_name -> temporal.server.api.umpire.v1.Param
+	16, // 0: temporal.server.api.umpire.v1.Action.position:type_name -> temporal.server.api.umpire.v1.Position
+	17, // 1: temporal.server.api.umpire.v1.Action.inputs:type_name -> temporal.server.api.umpire.v1.Param
 	2,  // 2: temporal.server.api.umpire.v1.Action.examples:type_name -> temporal.server.api.umpire.v1.Example
-	17, // 3: temporal.server.api.umpire.v1.Example.value:type_name -> temporal.server.api.umpire.v1.Value
-	15, // 4: temporal.server.api.umpire.v1.Machine.position:type_name -> temporal.server.api.umpire.v1.Position
-	18, // 5: temporal.server.api.umpire.v1.Machine.starts:type_name -> temporal.server.api.umpire.v1.Expr
-	18, // 6: temporal.server.api.umpire.v1.Machine.ends:type_name -> temporal.server.api.umpire.v1.Expr
+	18, // 3: temporal.server.api.umpire.v1.Example.value:type_name -> temporal.server.api.umpire.v1.Value
+	16, // 4: temporal.server.api.umpire.v1.Machine.position:type_name -> temporal.server.api.umpire.v1.Position
+	19, // 5: temporal.server.api.umpire.v1.Machine.starts:type_name -> temporal.server.api.umpire.v1.Expr
+	19, // 6: temporal.server.api.umpire.v1.Machine.ends:type_name -> temporal.server.api.umpire.v1.Expr
 	4,  // 7: temporal.server.api.umpire.v1.Machine.steps:type_name -> temporal.server.api.umpire.v1.StepBinding
 	5,  // 8: temporal.server.api.umpire.v1.Machine.refines:type_name -> temporal.server.api.umpire.v1.Refinement
-	15, // 9: temporal.server.api.umpire.v1.StepBinding.position:type_name -> temporal.server.api.umpire.v1.Position
-	15, // 10: temporal.server.api.umpire.v1.Channel.position:type_name -> temporal.server.api.umpire.v1.Position
-	19, // 11: temporal.server.api.umpire.v1.Channel.message:type_name -> temporal.server.api.umpire.v1.TypeRef
+	16, // 9: temporal.server.api.umpire.v1.StepBinding.position:type_name -> temporal.server.api.umpire.v1.Position
+	16, // 10: temporal.server.api.umpire.v1.Channel.position:type_name -> temporal.server.api.umpire.v1.Position
+	20, // 11: temporal.server.api.umpire.v1.Channel.message:type_name -> temporal.server.api.umpire.v1.TypeRef
 	0,  // 12: temporal.server.api.umpire.v1.Channel.order:type_name -> temporal.server.api.umpire.v1.Channel.Order
-	15, // 13: temporal.server.api.umpire.v1.Monitor.position:type_name -> temporal.server.api.umpire.v1.Position
-	19, // 14: temporal.server.api.umpire.v1.Monitor.state:type_name -> temporal.server.api.umpire.v1.TypeRef
-	18, // 15: temporal.server.api.umpire.v1.Monitor.initial:type_name -> temporal.server.api.umpire.v1.Expr
-	20, // 16: temporal.server.api.umpire.v1.Monitor.every_step:type_name -> google.protobuf.Empty
-	20, // 17: temporal.server.api.umpire.v1.Monitor.at_ends:type_name -> google.protobuf.Empty
-	15, // 18: temporal.server.api.umpire.v1.Assumption.position:type_name -> temporal.server.api.umpire.v1.Position
-	15, // 19: temporal.server.api.umpire.v1.Hole.position:type_name -> temporal.server.api.umpire.v1.Position
-	15, // 20: temporal.server.api.umpire.v1.Composition.position:type_name -> temporal.server.api.umpire.v1.Position
-	11, // 21: temporal.server.api.umpire.v1.Composition.members:type_name -> temporal.server.api.umpire.v1.Member
-	12, // 22: temporal.server.api.umpire.v1.Composition.syncs:type_name -> temporal.server.api.umpire.v1.Sync
-	18, // 23: temporal.server.api.umpire.v1.Composition.ends:type_name -> temporal.server.api.umpire.v1.Expr
-	13, // 24: temporal.server.api.umpire.v1.Sync.first:type_name -> temporal.server.api.umpire.v1.SyncMove
-	13, // 25: temporal.server.api.umpire.v1.Sync.second:type_name -> temporal.server.api.umpire.v1.SyncMove
-	17, // 26: temporal.server.api.umpire.v1.ActionClass.inputs:type_name -> temporal.server.api.umpire.v1.Value
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	16, // 13: temporal.server.api.umpire.v1.Monitor.position:type_name -> temporal.server.api.umpire.v1.Position
+	20, // 14: temporal.server.api.umpire.v1.Monitor.state:type_name -> temporal.server.api.umpire.v1.TypeRef
+	19, // 15: temporal.server.api.umpire.v1.Monitor.initial:type_name -> temporal.server.api.umpire.v1.Expr
+	21, // 16: temporal.server.api.umpire.v1.Monitor.every_step:type_name -> google.protobuf.Empty
+	21, // 17: temporal.server.api.umpire.v1.Monitor.at_ends:type_name -> google.protobuf.Empty
+	16, // 18: temporal.server.api.umpire.v1.Assumption.position:type_name -> temporal.server.api.umpire.v1.Position
+	9,  // 19: temporal.server.api.umpire.v1.Assumption.fair_refs:type_name -> temporal.server.api.umpire.v1.ComposedActionRef
+	15, // 20: temporal.server.api.umpire.v1.ComposedActionRef.action_class:type_name -> temporal.server.api.umpire.v1.ActionClass
+	15, // 21: temporal.server.api.umpire.v1.ComposedActionRef.sync_class:type_name -> temporal.server.api.umpire.v1.ActionClass
+	16, // 22: temporal.server.api.umpire.v1.Hole.position:type_name -> temporal.server.api.umpire.v1.Position
+	16, // 23: temporal.server.api.umpire.v1.Composition.position:type_name -> temporal.server.api.umpire.v1.Position
+	12, // 24: temporal.server.api.umpire.v1.Composition.members:type_name -> temporal.server.api.umpire.v1.Member
+	13, // 25: temporal.server.api.umpire.v1.Composition.syncs:type_name -> temporal.server.api.umpire.v1.Sync
+	19, // 26: temporal.server.api.umpire.v1.Composition.ends:type_name -> temporal.server.api.umpire.v1.Expr
+	14, // 27: temporal.server.api.umpire.v1.Sync.first:type_name -> temporal.server.api.umpire.v1.SyncMove
+	14, // 28: temporal.server.api.umpire.v1.Sync.second:type_name -> temporal.server.api.umpire.v1.SyncMove
+	18, // 29: temporal.server.api.umpire.v1.ActionClass.inputs:type_name -> temporal.server.api.umpire.v1.Value
+	30, // [30:30] is the sub-list for method output_type
+	30, // [30:30] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_machine_proto_init() }
@@ -1536,13 +1697,19 @@ func file_temporal_server_api_umpire_v1_machine_proto_init() {
 		(*Monitor_AtEnds)(nil),
 		(*Monitor_After)(nil),
 	}
+	file_temporal_server_api_umpire_v1_machine_proto_msgTypes[8].OneofWrappers = []any{
+		(*ComposedActionRef_Action)(nil),
+		(*ComposedActionRef_ActionClass)(nil),
+		(*ComposedActionRef_Sync)(nil),
+		(*ComposedActionRef_SyncClass)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_umpire_v1_machine_proto_rawDesc), len(file_temporal_server_api_umpire_v1_machine_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   14,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

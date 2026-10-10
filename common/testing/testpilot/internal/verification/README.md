@@ -82,6 +82,14 @@ available; a path into an arm the event may lack is absent, so an unguarded comp
 native CEL error on an event without the arm. An explicit availability guard can make that read
 irrelevant under CEL Boolean semantics.
 
+Format 4 applies the Program/Profile response-byte and fanout source ceilings to typed payload
+arms before native snapshot. This uses the raw-wire plus decoded-member accounting of typed
+Observation checks, excluding the adapter-generated canonical type URL from the payload allowance.
+Native Value/Any/name storage, packed member traversal and deterministic sorting have separate
+prepared work reservations. Empty payloads remain valid at a one-byte source cap; over-cap payloads
+return a source-located LimitExceeded and leave sequence, Verdict, state and support unchanged.
+Offline evaluation reaches the same check. The hard global limits remain additional ceilings.
+
 A correlated capability's trigger, response and correlation are `Expression`s in the correlated
 context and bind through the same restricted native CEL environment as ordinary Contract predicates.
 Step references expose bounded collections, so presence is a size test and equality with one atom

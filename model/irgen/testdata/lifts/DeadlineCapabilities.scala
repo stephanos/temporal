@@ -1,6 +1,6 @@
 package fixture.deadlinecapabilities
 
-import framework.*
+import framework.*; import framework.Finite.given
 import temporal.capabilities.Deadline
 
 enum Phase derives Finite:
@@ -58,15 +58,15 @@ object Steps:
   def remaining(s: DeadlineState): Boolean = s.eligible
   def pendingPause(s: DeadlineState): Boolean = s.pause
   def pendingCancel(s: DeadlineState): Boolean = s.cancel
-
+  // format: off
   def schedule(s: DeadlineState, tick: Boolean): List[Step[DeadlineState, Answer, Fact]] =
-    if tick && dispatchArmed(s) && s.phase == Phase.waiting then
-      enter(s.copy(phase = Phase.timedOut), Fact.timeout(TimeoutType.schedule))
+    if tick && dispatchArmed(s) && s.phase == Phase.waiting then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      enter(s.copy(phase = Phase.timedOut), Fact.timeout(TimeoutType.schedule)) // format: on
     else disabled
 
-  def start(s: DeadlineState): List[Step[DeadlineState, Answer, Fact]] =
-    if s.armed && s.phase == Phase.held then
-      if s.cancel || !s.eligible then
+  def start(s: DeadlineState): List[Step[DeadlineState, Answer, Fact]] = // format: off
+    if s.armed && s.phase == Phase.held then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      if s.cancel || !s.eligible then // format: on
         enter(s.copy(phase = Phase.timedOut), Fact.timeout(TimeoutType.start))
       else
         enter(s.copy(phase = if s.pause then Phase.suspended else Phase.waiting, eligible = false))
@@ -161,10 +161,10 @@ object SimpleDeadlines
     extends Machine[SimplePhase, Answer, Fact],
       Phased[SimplePhase, SimplePhase](p => p):
   val init = SimplePhase.waiting
-  val evidence: PartialFunction[Fact, String] = { case Fact.timeout(_) => "timeout" }
-  def armed(s: SimplePhase): Boolean = s == SimplePhase.waiting
-  def remaining(s: SimplePhase): Boolean = s == SimplePhase.waiting
-  def expire(s: SimplePhase): List[Step[SimplePhase, Answer, Fact]] =
+  val evidence: PartialFunction[Fact, String] = { case Fact.timeout(_) => "timeout" } // format: off
+  def armed(s: SimplePhase): Boolean = s == SimplePhase.waiting // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def remaining(s: SimplePhase): Boolean = s == SimplePhase.waiting // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def expire(s: SimplePhase): List[Step[SimplePhase, Answer, Fact]] = // format: on
     if armed(s) then enter(SimplePhase.waiting) else disabled
   object rules extends Bindings(startExpired ~> expire)
   object capabilities extends Capabilities:

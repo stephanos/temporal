@@ -719,13 +719,25 @@ fmt-model:
 # run's output whole, after its title. The sugar check builds the gate, which lint-model-check builds
 # with other options, so it runs after them.
 MODEL_LINTS := lint-model-models lint-model-irgen lint-model-irgen-lifts lint-model-check
-.PHONY: $(MODEL_LINTS) lint-model-syntax
+.PHONY: $(MODEL_LINTS) lint-model-syntax lint-model-conventions
 
 lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Checking model formatting..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/irgen $(MODEL_ROOT)/check
 	@$(MAKE) --no-print-directory -j4 --output-sync=target $(MODEL_LINTS)
 	@$(MAKE) --no-print-directory lint-model-syntax
+	@$(MAKE) --no-print-directory lint-model-conventions
+
+# Unlike semantic lifting, this lint reads framework and test TASTy as well as production Models.
+lint-model-conventions: $(MODEL_PROTO_JARS) $(MODEL_JAR)
+	@printf $(COLOR) "Checking typed model conventions and imports..."
+	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_SOURCES) -f -o $(MODEL_BUILD)/model-conventions.jar
+	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_SOURCES) > $(MODEL_BUILD)/model-conventions.classpath
+	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_ROOT)/irgen -f -o $(MODEL_BUILD)/irgen-conventions.jar
+	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_ROOT)/irgen > $(MODEL_BUILD)/irgen-conventions.classpath
+	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_ROOT)/check -f -o $(MODEL_BUILD)/check-conventions.jar
+	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_ROOT)/check > $(MODEL_BUILD)/check-conventions.classpath
+	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_ROOT)/irgen -M umpire.irgen.lintConventions -- $(MODEL_BUILD)/model-conventions.jar=model/,$(MODEL_BUILD)/irgen-conventions.jar=model/irgen/,$(MODEL_BUILD)/check-conventions.jar=model/check/ $(MODEL_BUILD)/model-conventions.classpath $(MODEL_BUILD)/irgen-conventions.classpath $(MODEL_BUILD)/check-conventions.classpath
 
 lint-model-models:
 	@printf $(COLOR) "Linting model files..."

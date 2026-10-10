@@ -66,7 +66,7 @@ private[check] object SyntaxRule:
     override def toString: String = s"$file:$line: $reason"
 
   // Where a definition sits.
-  enum Place:
+  enum Place derives CanEqual:
     // Top-level, a member of an object, or an extension method.
     case Sugar
 
@@ -88,7 +88,7 @@ private[check] object SyntaxRule:
   ):
     def shown: String = name.fold("an anonymous given")(n => s"`$n`")
 
-  private enum Kind:
+  private enum Kind derives CanEqual:
     case Object, Template, Extension, Other
 
   // A line that opens a block: its indentation, what it opens, where it starts, and, for an
@@ -128,11 +128,14 @@ private[check] object SyntaxRule:
         else if ")]}".indexOf(c) >= 0 then depth - 1
         else depth
       .tail
-    Some(depths.indexWhere(_ == 0)).filter(_ >= 0)
+    Some(depths.indexWhere(_ == 0))
+      .filter(_ >= 0) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
 
   // What follows an extension's type and value parameters on its line; none while they go on.
   @tailrec private def afterParameters(text: String): Option[String] =
-    val rest = text.dropWhile(_ == ' ')
+    val rest = text.dropWhile(
+      _ == ' '
+    ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
     if rest.startsWith("(") || rest.startsWith("[") then
       closing(rest) match
         case Some(end) => afterParameters(rest.substring(end + 1))
@@ -142,7 +145,12 @@ private[check] object SyntaxRule:
   private def definition(text: String, line: Int, docAt: Seq[Int], place: Place) = text match
     case definitionLine(modifiers, keyword, rest) =>
       val named =
-        if keyword == "given" then givenName.findPrefixMatchOf(rest).map(_.group(1))
+        if keyword == "given" then // scalafix:ok DisableSyntax.==; typed equality
+          givenName
+            .findPrefixMatchOf(rest)
+            .map(
+              _.group(1)
+            )
         else nameAt.findPrefixMatchOf(rest).map(_.matched)
       Some(
         Definition(keyword, named.map(unquoted), line, docAt, modifiers.contains("private"), place)
@@ -152,7 +160,9 @@ private[check] object SyntaxRule:
   // The source with its comments and strings blanked: offsets and line breaks unchanged.
   def code(source: String): String =
     val blanked = ProtoLiterals.code(source, ProtoLiterals.literals(source))
-    blanked.indices.map(i => if source(i) == '\n' then '\n' else blanked(i)).mkString
+    blanked.indices
+      .map(i => if source(i) == '\n' then '\n' else blanked(i))
+      .mkString // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
 
   // The definitions of a source whose comments and strings are blanked, each at its place.
   def definitions(code: String): Vector[Definition] =
@@ -166,14 +176,21 @@ private[check] object SyntaxRule:
         if trimmed.isEmpty || ")]}".indexOf(trimmed.head) >= 0 || trimmed.startsWith("package ")
         then (stack, found)
         else
-          val (indent, start, line) = (text.indexWhere(_ != ' '), starts(index), index + 1)
+          val (indent, start, line) = (
+            text.indexWhere(_ != ' '),
+            starts(index),
+            index + 1
+          ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
           val open = stack.dropWhile(_.indent >= indent)
           val place = open match
-            case Nil                                     => Place.Sugar
-            case top :: _ if top.kind == Kind.Object     => Place.Sugar
-            case top :: _ if top.kind == Kind.Extension  => Place.Sugar
-            case top :: Nil if top.kind == Kind.Template => Place.TemplateMember
-            case _                                       => Place.Inner
+            case Nil                                 => Place.Sugar
+            case top :: _ if top.kind == Kind.Object =>
+              Place.Sugar // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+            case top :: _ if top.kind == Kind.Extension =>
+              Place.Sugar // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+            case top :: Nil if top.kind == Kind.Template =>
+              Place.TemplateMember // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+            case _ => Place.Inner
           def opened(kind: Kind) = Container(indent, kind, start, defined = false)
           trimmed match
             case extensionLine(rest) =>
@@ -183,18 +200,19 @@ private[check] object SyntaxRule:
             case _ =>
               // The first definition of an extension's block may be documented above the extension.
               val docAt = open match
-                case top :: _ if top.kind == Kind.Extension && !top.defined =>
+                case top :: _ if top.kind == Kind.Extension && !top.defined => // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
                   Seq(start, top.header)
                 case _ => Seq(start)
               definition(trimmed, line, docAt, place) match
                 case Some(defined) =>
                   // An object local to a body is a local too; its members are no sugar.
                   val kind = defined.keyword match
-                    case "object" if place != Place.Inner => Kind.Object
-                    case "class" | "trait" | "enum"       => Kind.Template
-                    case _                                => Kind.Other
+                    case "object" if place != Place.Inner =>
+                      Kind.Object // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+                    case "class" | "trait" | "enum" => Kind.Template
+                    case _                          => Kind.Other
                   val marked = open match
-                    case top :: rest if top.kind == Kind.Extension =>
+                    case top :: rest if top.kind == Kind.Extension => // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
                       top.copy(defined = true) :: rest
                     case other => other
                   (opened(kind) :: marked, found :+ defined)
@@ -209,8 +227,14 @@ private[check] object SyntaxRule:
       comments: Vector[(Int, Int)]
   ):
     lazy val definitions: Vector[Definition] = SyntaxRule.definitions(code)
-    def isSyntax: Boolean = file == "Syntax.scala" || file.endsWith("/Syntax.scala")
-    def lineAt(offset: Int): Int = code.substring(0, offset).count(_ == '\n') + 1
+    def isSyntax: Boolean = file == "Syntax.scala" || file.endsWith(
+      "/Syntax.scala"
+    ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+    def lineAt(offset: Int): Int = code
+      .substring(0, offset)
+      .count(
+        _ == '\n'
+      ) + 1 // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
 
     // The doc comment that ends right before `at`, with blank lines and annotations between: the run
     // of `//` lines, each on a line of its own, that ends there.
@@ -295,7 +319,7 @@ private[check] object SyntaxRule:
   private def sugar(file: Source): Vector[Definition] =
     val lifter = file.file.startsWith("model/irgen/")
     file.definitions.filter: d =>
-      !d.isPrivate && (d.place == Place.Sugar || (lifter && d.place == Place.TemplateMember))
+      !d.isPrivate && (d.place == Place.Sugar || (lifter && d.place == Place.TemplateMember)) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
 
   private def undocumented(file: Source): Vector[Finding] =
     sugar(file).flatMap: d =>
@@ -323,7 +347,9 @@ private[check] object SyntaxRule:
 
   private def misplaced(file: Source): Vector[Finding] =
     file.definitions
-      .filter(d => d.place == Place.Sugar && d.name.exists(sugarNames))
+      .filter(d =>
+        d.place == Place.Sugar && d.name.exists(sugarNames)
+      ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
       .map: d =>
         Finding(
           file.file,
@@ -334,7 +360,9 @@ private[check] object SyntaxRule:
 
   private def reaching(tree: Tree, files: Vector[Source]): Vector[Finding] =
     val inTree = files.filter(f => tree.holds(f.file))
-    val (syntax, core) = inTree.partition(_.file == tree.syntax)
+    val (syntax, core) = inTree.partition(
+      _.file == tree.syntax
+    ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
     val names = syntax.flatMap(sugar).flatMap(_.name).toSet
     val modules = Set("Syntax", "Syntax$package", "syntax")
     // A name the core declares itself reads as that declaration: `def in` of QueryOn is no sugar.

@@ -205,8 +205,17 @@ irrelevant. CEL Boolean error suppression and short-circuit rules apply. Enum al
 number after nominal descriptor admission; float32 fields widen only after float32 rounding.
 Admitted unknown enum numbers, unknown message wire fields and opaque Any bytes are preserved.
 Descriptor-typed Duration comparison preserves the full protobuf range without Go duration overflow.
-Cancellation and cost
-exhaustion fail the current evaluation before its state effects commit.
+Cancellation and cost exhaustion fail the current evaluation before its state effects commit.
+Prepared input-work reservations include native Value/Any storage, descriptor names, packed scalar
+traversal and deterministic field/map sorting; response bytes alone cannot bound these costs.
+
+Format 4 adds an explicit source-input ceiling for typed Run Event payloads before CEL snapshot.
+The Program/Profile response-byte and fanout ceilings apply to their raw wire and decoded-member
+accounting, with the hard global limits still enforced. The adapter's canonical type URL is envelope
+metadata and does not consume this payload allowance; its storage and traversal are reserved
+separately. An empty payload can therefore fit a one-byte source ceiling. An over-cap payload fails
+with a located LimitExceeded error before sequence, rule state or support commits, equally online
+and offline. This new payload ceiling is a named semantic delta for final corpus reconciliation.
 
 Instruction timeout, evidence interval, wait-hint bound, both Program duration ceilings, Contract
 elapsed deadline and Run Event elapsed coordinate use protobuf Duration at exact whole-millisecond

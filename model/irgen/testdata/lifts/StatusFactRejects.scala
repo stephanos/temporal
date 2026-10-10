@@ -4,9 +4,9 @@
 // status, which would hand the draft no status to record.
 package fixture.statusfactrejects
 
-import framework.*
+import framework.*; import framework.Finite.given
 import fixture.statusfacts.{phase, phase_=, user, Fact, Job, Outcome, Phase, given}
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // Assigns the phase without handing the draft the phase it assigns.
 def stage(using v: View[Job]): Phase = v.get(_.phase)
 def stage_=(p: Phase)(using d: Draft[Job, ?, ?]): Unit = d.set(_.copy(phase = p))
@@ -26,9 +26,9 @@ object ComputedStatus extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.
   val init = Job(Phase.idle, UpTo(0))
   override def end(s: State) = true
   object effects:
-    val pause = effect {
-      phase = if phase == Phase.running then Phase.paused else Phase.running
-    }
+    val pause = effect { // format: off
+      phase = if phase == Phase.running then Phase.paused else Phase.running // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
   object rules extends Rules:
     on(user.pause)(always ~> effects.pause)
 

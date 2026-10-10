@@ -43,6 +43,11 @@ class Choices extends munit.FunSuite:
       choose[Boolean, Outcome, String](committed -> lit(false), redelivered -> lit(false)),
       Nil
     )
+    for first <- Finite[Boolean].values; second <- Finite[Boolean].values do
+      assertEquals(
+        choose[Boolean, Outcome, String](committed -> lit(first), redelivered -> lit(second)),
+        lit(first) ++ lit(second)
+      )
 
   test("choose refuses a token named twice and an alternative of more than one step"):
     interceptMessage[IllegalArgumentException](

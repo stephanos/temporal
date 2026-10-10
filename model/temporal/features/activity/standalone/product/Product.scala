@@ -8,12 +8,12 @@ package standalone
 package product
 
 import scala.annotation.unused
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
 import Bounds.three
 import actors.worker.worker as process
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // What DescribeActivityExecution shows. Each case declares the status fact a step that enters it
 // records.
 enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
@@ -50,9 +50,9 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
   override def end(s: State) = s.phase.in[Closed]
 
   object states:
-    def status(s: State) = s.phase
-    val paused = is(phase == Phase.paused)
-
+    def status(s: State) = s.phase // format: off
+    val paused = is(phase == Phase.paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
   object effects:
     val pauseApplied = choice
     val pausePending = choice
@@ -280,10 +280,10 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     // its pause property keeps the former, narrower meaning of "running": started. The protocol
     // machine has enough state to use Pausable's role-derived Property directly.
     def pausedDoesNotStartAttempt(m: Declares[State]): Property[State] =
-      m.property
-        .never(s => s.state.phase == started)
-        .from(_.phase == paused)
-
+      m.property // format: off
+        .never(s => s.state.phase == started) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        .from(_.phase == paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        // format: on
   object capabilities extends Capabilities:
     val closable: Capability = Closable(
       rejected = Outcome.rejected(Rejection.notFound)

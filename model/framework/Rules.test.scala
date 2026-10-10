@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 // The object forms' runtime wiring, run as Scala: a machine object is the machine, its `rules` the
 // one section it reads, lowered to one step function per action, and an overlap is refused as the
 // rules object is constructed.
@@ -34,7 +35,7 @@ object RulesFixture:
   object Switch extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     Trace.initialized += "Switch"
     val init = Lamp(Lit.off, UpTo(0))
-    override def end(s: Lamp) = s.light == Lit.broken
+    override def end(s: Lamp) = s.light == Lit.broken // scalafix:ok DisableSyntax.==
     def presses(s: Lamp): UpTo[2] = UpTo((s.presses + 1).min(2))
 
     object effects:
@@ -45,7 +46,9 @@ object RulesFixture:
         Step[Lamp, Said, Nothing](Said.refused, s)
       )
       def turned(s: Lamp, k: Knob) =
-        enter[Lamp, Said, Nothing](s.copy(light = if k == Knob.up then Lit.on else Lit.off))
+        enter[Lamp, Said, Nothing](
+          s.copy(light = if k == Knob.up then Lit.on else Lit.off)
+        ) // scalafix:ok DisableSyntax.==
       def wear(s: Lamp) = enter[Lamp, Said, Nothing](s.copy(light = Lit.broken))
 
     object rules extends Rules:
@@ -60,7 +63,9 @@ object RulesFixture:
         when(Lit.off) ~> effects.turned
         when(Lit.broken) ~> effects.refuse
       }
-      on(clock.tick)(where(s => s.presses == 2 && s.light != Lit.broken) ~> effects.wear)
+      on(clock.tick)(
+        where(s => s.presses == 2 && s.light != Lit.broken) ~> effects.wear
+      ) // scalafix:ok DisableSyntax.==, DisableSyntax.!=
 
   // The switch whose press is its own effect wherever it fires, and whose tick never fires.
   object Stuck extends Derived(Switch.rebind(hand.press ~> Switch.effects.wear))
@@ -73,7 +78,7 @@ object RulesFixture:
     override def end(s: Lamp) = true
     object rules extends Rules:
       on(hand.turn(Knob.up))(when(Lit.off, Lit.on) ~> Switch.effects.light)
-      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
+      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned) // scalafix:ok DisableSyntax.==
 
   object Unfelt extends Machine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
@@ -88,11 +93,11 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
     object states:
-      def dark(l: Lit) = l != Lit.on
+      def dark(l: Lit) = l != Lit.on // scalafix:ok DisableSyntax.!=
     object rules
         extends Bindings(
           hand.press ~> ((s: Lamp) =>
-            if s.light == Lit.on then Switch.effects.dark(s)
+            if s.light == Lit.on then Switch.effects.dark(s) // scalafix:ok DisableSyntax.==
             else if states.dark(s.light) then Switch.effects.light(s)
             else Nil
           ),
@@ -105,7 +110,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
     object states:
-      def dark(l: Lit) = l != Lit.on
+      def dark(l: Lit) = l != Lit.on // scalafix:ok DisableSyntax.!=
     object rules extends Rules:
       on(hand.press) {
         when(Lit.on) ~> Switch.effects.dark
@@ -118,7 +123,7 @@ object RulesFixture:
     override def end(s: Lamp) = true
     object rules extends Rules:
       on(hand.turn(Knob.up))(when(Lit.off, Lit.on) ~> Switch.effects.light)
-      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
+      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned) // scalafix:ok DisableSyntax.==
 
   // A derivation of a `Phased` machine reads its phase, with its phase type, and so does a
   // derivation of that.
@@ -145,19 +150,19 @@ object RulesFixture:
 
   // The switch's sets of lights, which a case names with `when(set)`.
   object lights:
-    def unlit(l: Lit) = l != Lit.on
+    def unlit(l: Lit) = l != Lit.on // scalafix:ok DisableSyntax.!=
 
   // One machine in the grouped forms, `from` with its import, `when` and an `on` of two classes,
   // and in the plain form, separate qualified `on` blocks, rule for rule.
   object Grouped extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    override def end(s: Lamp) = s.light == Lit.broken
+    override def end(s: Lamp) = s.light == Lit.broken // scalafix:ok DisableSyntax.==
     object rules extends Rules:
       from(hand) {
         import hand.*
         on(press) {
           when(Lit.off) ~> Switch.effects.light
-          when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
+          when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark // scalafix:ok DisableSyntax.==
         }
         on(turn(Knob.up), turn(Knob.down)) {
           when(lights.unlit) ~> Switch.effects.wear
@@ -165,20 +170,24 @@ object RulesFixture:
       }
       from(clock) {
         import clock.*
-        on(tick)(when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear)
+        on(tick)(
+          when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear
+        ) // scalafix:ok DisableSyntax.==
       }
 
   object Plain extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    override def end(s: Lamp) = s.light == Lit.broken
+    override def end(s: Lamp) = s.light == Lit.broken // scalafix:ok DisableSyntax.==
     object rules extends Rules:
       on(hand.press) {
         when(Lit.off) ~> Switch.effects.light
-        when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
+        when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark // scalafix:ok DisableSyntax.==
       }
       on(hand.turn(Knob.up))(when(lights.unlit) ~> Switch.effects.wear)
       on(hand.turn(Knob.down))(when(lights.unlit) ~> Switch.effects.wear)
-      on(clock.tick)(when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear)
+      on(clock.tick)(
+        when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear
+      ) // scalafix:ok DisableSyntax.==
 
   // One action in several blocks whose cases hold in no common state.
   object Spread extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
@@ -236,7 +245,9 @@ object RulesFixture:
       on(hand.turn)(when(Lit.off) ~> Switch.effects.turned)
       on(hand.turn(Knob.down)) {
         when(Lit.on) ~> Switch.effects.dark
-        when(lights.unlit).where(_.presses == 0) ~> Switch.effects.wear
+        when(lights.unlit).where(
+          _.presses == 0
+        ) ~> Switch.effects.wear // scalafix:ok DisableSyntax.==
       }
 
   final case class Pair(left: Lamp, right: Lamp)
@@ -259,7 +270,7 @@ class RulesTest extends munit.FunSuite:
   type Turn = (Lamp, Knob) => List[Step[Lamp, Said, Nothing]]
 
   def step(m: Machine[Lamp, Said, Nothing], a: Action[?]): AnyRef =
-    m.bindings.find(_.decl == a.decl).get.function
+    m.bindings.find(_.decl == a.decl).get.function // scalafix:ok DisableSyntax.==
 
   def press(m: Machine[Lamp, Said, Nothing], s: Lamp): List[Lamp] =
     step(m, hand.press)
@@ -296,6 +307,28 @@ class RulesTest extends munit.FunSuite:
       turn(Switch, Lamp(Lit.broken, UpTo(0)), Knob.up).map(_.outcome),
       List(Said.refused)
     )
+    for state <- Finite[Lamp].values do
+      val expected = state.light match
+        case Lit.off =>
+          List(state.copy(light = Lit.on, presses = UpTo[2]((state.presses + 1).min(2))))
+        case Lit.on     => List(state.copy(light = Lit.off))
+        case Lit.broken => Nil
+      assertEquals(press(Switch, state), expected, state)
+      for knob <- Finite[Knob].values do
+        val expected = state.light match
+          case Lit.broken => List(Step[Lamp, Said, Nothing](Said.refused, state))
+          case Lit.off    =>
+            enter[Lamp, Said, Nothing](state.copy(light = if knob == Knob.up then Lit.on
+            else Lit.off)) // scalafix:ok DisableSyntax.==
+          case Lit.on =>
+            enter[Lamp, Said, Nothing](
+              if knob == Knob.up then
+                state.copy(presses =
+                  UpTo[2]((state.presses + 1).min(2))
+                ) // scalafix:ok DisableSyntax.==
+              else state.copy(light = Lit.off)
+            )
+        assertEquals(turn(Switch, state, knob), expected, (state, knob))
   }
 
   test("disabled binds an action no state enables") {
@@ -311,6 +344,14 @@ class RulesTest extends munit.FunSuite:
     assertEquals(press(Stuck, Lamp(Lit.broken, UpTo(0))), Nil)
     assertEquals(press(Loose, Lamp(Lit.broken, UpTo(0))).map(_.light), List(Lit.broken))
     assertEquals(turn(Stuck, lit, Knob.down).map(_.state.light), List(Lit.off))
+    for state <- Finite[Lamp].values do
+      assertEquals(
+        press(Stuck, state),
+        if state.light == Lit.broken then Nil else List(state.copy(light = Lit.broken))
+      ) // scalafix:ok DisableSyntax.==
+      assertEquals(press(Loose, state), List(state.copy(light = Lit.broken)))
+      for knob <- Finite[Knob].values do
+        assertEquals(turn(Stuck, state, knob), turn(Switch, state, knob))
   }
 
   test(
@@ -412,6 +453,9 @@ class RulesTest extends munit.FunSuite:
   test("a derived machine reads its source's phase projection, with its phase type") {
     assertEquals(PhasedStuck.phase.projection(lit), Lit.on)
     assertEquals(PhasedStucker.phase.projection(off), Lit.off)
+    for state <- Finite[Lamp].values do
+      assertEquals(PhasedStuck.phase.projection(state), state.light)
+      assertEquals(PhasedStucker.phase.projection(state), state.light)
   }
 
   test("a derived machine cannot replace its final source end with Phased's default") {
@@ -444,7 +488,7 @@ class RulesTest extends munit.FunSuite:
     val refused = intercept[IllegalArgumentException](
       Switch.rebind(on(hand.press) {
         always ~> Switch.effects.wear
-        where(_.light == Lit.off) ~> Switch.effects.dark
+        where(_.light == Lit.off) ~> Switch.effects.dark // scalafix:ok DisableSyntax.==
       })
     )
     assertEquals(
@@ -490,10 +534,24 @@ class RulesTest extends munit.FunSuite:
       pressed(broken),
       List(Step[Lamp, Outcome, Nothing](Outcome.rejected(Rejection.notFound), broken))
     )
+    for state <- Finite[Lamp].values do
+      val expected = state.light match
+        case Lit.off => Step[Lamp, Outcome, Nothing](Outcome.accepted, state.copy(light = Lit.on))
+        case Lit.on  =>
+          Step[Lamp, Outcome, Nothing](
+            Outcome.rejected(Rejection.failedPrecondition),
+            state,
+            Nil,
+            "the lamp is lit"
+          )
+        case Lit.broken => Step[Lamp, Outcome, Nothing](Outcome.rejected(Rejection.notFound), state)
+      assertEquals(pressed(state), List(expected), state)
   }
 
   // Every step of a machine, by action, state and class, as the bindings give them.
-  def steps(m: Machine[Lamp, Said, Nothing]): List[(String, Lamp, List[Any], Any)] =
+  def steps(
+      m: Machine[Lamp, Said, Nothing]
+  ): List[(String, Lamp, List[Any], List[Step[Lamp, Said, Nothing]])] =
     for
       b <- m.bindings.toList
       s <- Finite[Lamp].values.toList
@@ -501,9 +559,10 @@ class RulesTest extends munit.FunSuite:
     yield
       // scalafix:off DisableSyntax.asInstanceOf
       val result = inputs match
-        case Nil       => b.function.asInstanceOf[Lamp => Any](s)
-        case List(one) => b.function.asInstanceOf[(Lamp, Any) => Any](s, one)
-        case _         => fail("the fixture's actions take at most one input")
+        case Nil       => b.function.asInstanceOf[Lamp => List[Step[Lamp, Said, Nothing]]](s)
+        case List(one) =>
+          b.function.asInstanceOf[(Lamp, Any) => List[Step[Lamp, Said, Nothing]]](s, one)
+        case _ => fail("the fixture's actions take at most one input")
       // scalafix:on DisableSyntax.asInstanceOf
       (b.decl.name, s, inputs, result)
 
@@ -517,7 +576,7 @@ class RulesTest extends munit.FunSuite:
   test("from, when, when(set), when(...).where and on(a, b) build the qualified table") {
     assertEquals(Grouped.bindings.map(_.decl), Plain.bindings.map(_.decl))
     assertEquals(steps(Grouped), steps(Plain))
-    assert(steps(Grouped).exists((_, _, _, result) => result != Nil))
+    assert(steps(Grouped).exists((_, _, _, result) => result.nonEmpty))
   }
 
   test("an action or class sits in several blocks whose cases hold in no common state") {
@@ -525,6 +584,12 @@ class RulesTest extends munit.FunSuite:
     assertEquals(press(Spread, off).map(_.light), List(Lit.on))
     assertEquals(press(Spread, lit).map(_.light), List(Lit.off))
     assertEquals(press(Spread, Lamp(Lit.broken, UpTo(0))).map(_.light), List(Lit.broken))
+    for state <- Finite[Lamp].values do
+      val expected = state.light match
+        case Lit.off    => state.copy(light = Lit.on, presses = UpTo[2]((state.presses + 1).min(2)))
+        case Lit.on     => state.copy(light = Lit.off)
+        case Lit.broken => state
+      assertEquals(press(Spread, state), List(expected), state)
   }
 
   test("a block in a block, a from in a from and an action its declarer does not declare") {

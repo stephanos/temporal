@@ -9,7 +9,7 @@ package workflow
 package system
 
 import scala.annotation.unused
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.{Alternative, Exploration, Reason, Variation}
 import temporal.capabilities.*
@@ -18,7 +18,7 @@ import temporal.Bounds.{four, three}
 import temporal.actors.worker.{worker, Phase as WorkerPhase, State as WorkerState}
 import product.NexusProduct
 import Timeout.expires
-
+val _ = () => summon[CanEqual[Phase, Phase]]
 // It begins before the operation exists, so unscheduled is one phase.
 enum Phase derives Finite:
   case unscheduled
@@ -29,7 +29,7 @@ enum Phase derives Finite:
   case failed extends Phase, Failed
   case canceled extends Phase, Canceled
   case timedOut extends Phase, TimedOut
-
+import Fact.{nexusOperationCompleted as NC, nexusOperationStarted as NS}
 // The attempt count is `0..attemptBound`.
 final case class State(
     phase: Phase,
@@ -38,12 +38,12 @@ final case class State(
     scheduleToStart: Timeout,
     startToClose: Timeout
 )
-
+import Fact.{nexusOperationCanceled as NX, nexusOperationFailed as NF}
 // Which timer fired. The history event records it, so a Contract that did not check it would pass a
 // run that timed out on the wrong deadline.
 enum TimeoutType derives Finite:
   case scheduleToClose, scheduleToStart, startToClose
-
+import Fact.nexusOperationTimedOut as NT
 enum Fact derives Finite:
   case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
     nexusOperationFailed,
@@ -102,11 +102,11 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     def attemptCount(s: State): Int = s.attempts
     def maximumAttempts(@unused s: State): Option[UpTo[2]] = None: Option[UpTo[2]]
     def retriesRemaining(@unused s: State): Boolean = true
-
-    def scheduleToCloseArmed(s: State): Boolean = s.scheduleToClose == Timeout.expires
-    def scheduleToStartArmed(s: State): Boolean = s.scheduleToStart == Timeout.expires
-    def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires
-
+    // format: off
+    def scheduleToCloseArmed(s: State): Boolean = s.scheduleToClose == Timeout.expires // scalafix:ok DisableSyntax.==; typed equality
+    def scheduleToStartArmed(s: State): Boolean = s.scheduleToStart == Timeout.expires // scalafix:ok DisableSyntax.==; typed equality
+    def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires // scalafix:ok DisableSyntax.==; typed equality
+    // format: on
     val timeoutFacts = Seq(
       Fact.nexusOperationTimedOut(TimeoutType.scheduleToClose),
       Fact.nexusOperationTimedOut(TimeoutType.scheduleToStart),
@@ -138,8 +138,8 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
 
     // The backoff timer records nothing a Run can read: a retry writes no history event.
     def visible(f: Fact): Boolean = f match
-      case Fact.nexusOperationScheduled | Fact.pendingAttempts => false
-      case _                                                   => true
+      case Fact.nexusOperationScheduled | Fact.pendingAttempts       => false
+      case _: NS.type | _: NC.type | _: NF.type | _: NX.type | _: NT => true
     def visibleOutcomes(@unused o: Outcome): Boolean = false
     val unobservable = List(timers.backoff)
 
@@ -197,13 +197,13 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // the step keeps the state and records nothing. On a path it is confirmed by the evidence of the
     // step after it, and the Case says so in a Known Gap.
     def keep(s: State) = stay(s)
-
+    // format: off
     // An asynchronous completion. Before a start, the server records a Started event first, which is
     // why the evidence is two facts and not one -- and why the product machine, which has no
     // backingOff phase to have skipped, could write the completion alone.
     def complete(s: State, resolution: Resolution) =
       val startedFirst =
-        if s.phase != started then List(nexusOperationStarted) else Nil
+        if s.phase != started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; typed equality
       resolution match
         case Resolution.succeeded =>
           enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
@@ -211,7 +211,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
           enter(s.copy(phase = failed), (startedFirst ++ List(nexusOperationFailed))*)
         case Resolution.canceled =>
           enter(s.copy(phase = canceled), (startedFirst ++ List(nexusOperationCanceled))*)
-
+    // format: on
     // The backoff timer. It is what makes backingOff a phase the operation leaves rather than a state
     // it is stuck in, and it records nothing: a retry writes no history event.
     def retry(s: State) = enter(s.copy(phase = scheduled))
@@ -245,25 +245,25 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     on(timers.backoff) {
       when(backingOff) ~> effects.retry
     }
-
+    // format: off
     // Each deadline fires only when the schedule command set it. Schedule-to-close covers the whole
     // operation, schedule-to-start the wait for the handler to accept, and start-to-close the
     // handler's own work.
     on(deadline.scheduleToClose) {
-      when[Live].where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
+      when[Live].where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut( // scalafix:ok DisableSyntax.==; typed equality
         _,
         TimeoutType.scheduleToClose
       ))
     }
     // Waiting for the handler to accept: what the schedule-to-start deadline covers.
     on(deadline.scheduleToStart) {
-      when[Waiting].where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
+      when[Waiting].where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut( // scalafix:ok DisableSyntax.==; typed equality
         _,
         TimeoutType.scheduleToStart
       ))
     }
     on(deadline.startToClose) {
-      when[Held].where(_.startToClose == Timeout.expires) ~> (effects.timeOut(
+      when[Held].where(_.startToClose == Timeout.expires) ~> (effects.timeOut( // scalafix:ok DisableSyntax.==; typed equality
         _,
         TimeoutType.startToClose
       ))
@@ -272,14 +272,14 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
   object properties:
     // A synchronous reply settles the operation as succeeded, and the completed event records it.
     val syncSucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
-      s.state.phase == Phase.succeeded && s.records(Fact.nexusOperationCompleted)
+      s.state.phase == Phase.succeeded && s.records(Fact.nexusOperationCompleted) // scalafix:ok DisableSyntax.==; typed equality
     }
 
     // An asynchronous reply starts the operation, and the started event records it.
     val asyncStarts = property when handler.reply(Reply.async) holds { s =>
-      s.state.phase == Phase.started && s.records(Fact.nexusOperationStarted)
+      s.state.phase == Phase.started && s.records(Fact.nexusOperationStarted) // scalafix:ok DisableSyntax.==; typed equality
     }
-
+    // format: on
     // A successful completion is recorded by the completed event. Neither the phase nor the outcome
     // is fixed: a completion resolves any running phase, and accepted is every earlier step's
     // outcome too, so a clause fixing it would be answered before the completion.
@@ -290,14 +290,14 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // A failed completion is recorded by the failed event.
     val completionFails = property when handler.complete(Resolution.failed) holds
       (_.records(Fact.nexusOperationFailed))
-
+    // format: off
     // A non-retryable handler error settles the operation as failed, and the failed event records
     // it.
     val handlerErrorFails =
       property when handler.reply(Reply.handlerError(false)) holds { s =>
-        s.state.phase == Phase.failed && s.records(Fact.nexusOperationFailed)
+        s.state.phase == Phase.failed && s.records(Fact.nexusOperationFailed) // scalafix:ok DisableSyntax.==; typed equality
       }
-
+    // format: on
     // Succeeded on the second attempt of an operation with no deadline set. A claim fixes one state,
     // so every field is named.
     val succeededOnRetry =
@@ -308,24 +308,24 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
         scheduleToStart = Timeout.unset,
         startToClose = Timeout.unset
       )
-
+    // format: off
     // A synchronous reply to the retried attempt settles the operation as succeeded on its second
     // attempt: the count the retryable failure raised is still one, and the completed event records
     // the reply.
     val retrySucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
-      s.state == succeededOnRetry && s.records(Fact.nexusOperationCompleted)
+      s.state == succeededOnRetry && s.records(Fact.nexusOperationCompleted) // scalafix:ok DisableSyntax.==; typed equality
     }
-
+    // format: on
     // The schedule-to-start deadline settles an operation no handler started as timed out, and the
     // timed-out event records which deadline it was.
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
-      s.state.phase == Phase.timedOut &&
+      s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; typed equality
       s.records(Fact.nexusOperationTimedOut(TimeoutType.scheduleToStart))
     }
 
     // The start-to-close deadline settles a started operation no handler completed as timed out.
     val startToCloseFires = property when deadline.startToClose holds { s =>
-      s.state.phase == Phase.timedOut &&
+      s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; typed equality
       s.records(Fact.nexusOperationTimedOut(TimeoutType.startToClose))
     }
 
@@ -498,14 +498,14 @@ object NexusCaller
   object syncs extends Syncs:
     sync(_.operation -> worker.stop, _.worker -> worker.stop)
     sync(_.operation -> handler.reply, _.worker -> worker.serve)
-
+  // format: off
   object properties:
     // The cross-entity claim: every reply, of any class, leaves the handler's worker polling, so no
     // handler replies while its worker is stopped.
     val repliedByPollingWorker = property
       .whenAction(synced(_.operation -> handler.reply))
-      .holds(_.state.worker.phase == WorkerPhase.polling)
-
+      .holds(_.state.worker.phase == WorkerPhase.polling) // scalafix:ok DisableSyntax.==; typed equality
+  // format: on
   object queries:
     // The cross-entity claim, verified over the path on which a retryable reply backs the operation
     // off; the handler's worker then stops, so the retried attempt is never answered and the

@@ -1,6 +1,9 @@
 package framework
 
 import scala.collection.mutable
+import java.nio.file.{Files, Path}
+import java.util.jar.JarFile
+import scala.jdk.CollectionConverters.*
 import framework.realize.Realization
 
 // A checked-in IR file, `model/ir/<name>.json`, and the declarations that are its roots, named by
@@ -20,26 +23,34 @@ import framework.realize.Realization
 // so a design can be kept out of the checked files. The file's `source` lists its roots' fully
 // qualified names.
 final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot]):
-  // Constructs every root and what it reaches, as the gate does for every IR file (a Model test
-  // beside the Models): each machine's rules, so an overlap of two of them is refused here, the
-  // members of each composition, the machine each machine refines, the source of each derivation,
-  // and the machines each Query, capability declaration, progress claim and realization names. It
-  // gives the names of the machines and compositions constructed, which the gate's test holds to
-  // every machine the file's IR lifts, so no lifted machine escapes the check of its rules.
-  def construct(): Set[String] = reached().map(_.name).toSet
-
-  // The machines and compositions constructing the roots reaches, each once, in the order first
-  // reached: what `construct` names, and what a step-table baseline (StepTables) reads.
-  private[framework] def reached(): Seq[Model] =
-    val seen = mutable.LinkedHashSet.empty[Model]
+  // Every reachable declaration, retaining the typed instances and their finite witnesses.
+  def subjects(): Vector[Model] =
+    val seen = java.util.IdentityHashMap[Model, java.lang.Boolean]()
+    val declarations = mutable.LinkedHashMap.empty[String, Model]
     def model(m: Model): Unit =
-      if seen.add(m) then
+      if !seen.containsKey(m) then
+        seen.put(m, java.lang.Boolean.TRUE): Unit
+        val declared = m match
+          case _: Built[?, ?, ?, ?] => false // format: off
+          case c: Composition[?]   => !c.getClass.getName.contains("$anon")
+          case _                   => true // format: on
+        if declared then
+          val id = IrFile.identity(m)
+          require(
+            declarations.get(id).forall(_ eq m),
+            s"$name repeats declaration identity $id with distinct instances"
+          )
+          declarations.update(id, m)
         m match
           case machine: Machine[?, ?, ?] =>
-            machine.bindings: Unit
             machine.reaches.foreach(model)
-          case c: Composition[?] => c.members.foreach(model)
-          case _                 => ()
+          case c: Composition[?] =>
+            c.members.foreach(model)
+            c.shape match
+              case Composition.Shape.Of(source)      => model(source)
+              case Composition.Shape.With(source, _) => model(source)
+              case Composition.Shape.Members(_)      => ()
+          case _ => ()
     def query(q: Query): Unit = Seq(q.scenario.machine, q.property.machine).foreach(model)
     def root(r: Any): Unit = r match
       case m: Machine[?, ?, ?]      => model(m)
@@ -51,7 +62,24 @@ final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot])
       case c: Capabilities[?, ?, ?] => model(c.model)
       case section: AnyRef          => IrFile.queriesOf(section).foreach(root)
     roots.foreach(root)
-    seen.toSeq
+    val subjects = declarations.values.toVector
+    val collisions = subjects.groupBy(_.name).filter(_._2.sizeIs > 1)
+    require(
+      collisions.isEmpty,
+      s"$name has colliding model names: " + collisions.toSeq
+        .sortBy(_._1)
+        .map((n, ms) => s"$n: ${ms.map(IrFile.identity).mkString(", ")}")
+        .mkString("; ")
+    )
+    subjects
+
+  // Constructs each reachable machine's rules, refusing overlaps as the model gate does.
+  def construct(): Set[String] =
+    val declarations = subjects()
+    declarations.foreach:
+      case machine: Machine[?, ?, ?] => machine.bindings: Unit
+      case _                         => ()
+    declarations.map(_.name).toSet
 
 object IrFile:
   private[framework] val made = mutable.ArrayBuffer.empty[IrFile]
@@ -59,12 +87,78 @@ object IrFile:
   // Every IR file declared so far: each `irFile` val of an object that has initialized.
   def declared: Seq[IrFile] = made.synchronized(made.toSeq)
 
+  def identity(model: Model): String = model.getClass.getName.stripSuffix("$").replace('$', '.')
+
+  // The compiled declaration universe initializes owners, independently of any generated files.
+  def discover(packagePrefix: String): Vector[IrFile] =
+    val loader = getClass.getClassLoader
+    val prefix = packagePrefix.replace('.', '/') + "/"
+    val classes = mutable.TreeSet.empty[String]
+    def directory(path: Path): Unit =
+      if Files.isDirectory(path) then
+        val stream = Files.walk(path)
+        try
+          stream.iterator.asScala
+            .filter(p => p.toString.endsWith("$.class"))
+            .foreach: p =>
+              classes.add(
+                packagePrefix + "." + path
+                  .relativize(p)
+                  .toString
+                  .stripSuffix(".class")
+                  .replace(java.io.File.separatorChar, '.')
+              ): Unit
+        finally stream.close()
+    loader
+      .getResources(prefix.stripSuffix("/"))
+      .asScala
+      .foreach: url =>
+        if url.getProtocol.equals("file") then directory(Path.of(url.toURI))
+    System
+      .getProperty("java.class.path")
+      .split(java.io.File.pathSeparator)
+      .foreach: entry =>
+        val path = Path.of(entry)
+        if Files.isDirectory(path) then directory(path.resolve(prefix))
+        else if entry.endsWith(".jar") && Files.isRegularFile(path) then
+          val jar = JarFile(path.toFile)
+          try
+            jar.entries.asScala
+              .filter(e => e.getName.startsWith(prefix) && e.getName.endsWith("$.class"))
+              .foreach(e => classes.add(e.getName.stripSuffix(".class").replace('/', '.')): Unit)
+          finally jar.close()
+    val files = classes.toVector.flatMap: name =>
+      val cls = java.lang.Class.forName(name, false, loader)
+      val getters = cls.getDeclaredMethods.toVector
+        .filter(m =>
+          m.getParameterCount.equals(0) && java.lang.reflect.Modifier.isPublic(m.getModifiers) &&
+            classOf[IrFile].isAssignableFrom(m.getReturnType)
+        )
+        .sortBy(_.getName)
+      if getters.isEmpty then Vector.empty
+      else
+        val owner = cls.getField("MODULE$").get(null) // scalafix:ok DisableSyntax.null
+        getters.map(m =>
+          m.invoke(owner) match
+            case file: IrFile => file
+            case other        => throw IllegalStateException(s"$name.${m.getName} returned $other")
+        )
+    val duplicates = files.groupBy(_.name).filter(_._2.sizeIs > 1)
+    require(
+      duplicates.isEmpty,
+      s"duplicate IR export names: ${duplicates.keys.toSeq.sorted.mkString(", ")}"
+    )
+    require(files.nonEmpty, s"no compiled IR exports found in $packagePrefix")
+    files.sortBy(_.name)
+
   // The Queries and lists of Queries a `queries` section declares, read as the members it declares
   // with no parameter: the section is no class of the framework, so its members are found as the
   // object's own, as `Refinement.declaredBy` finds a machine's refinement.
   private def queriesOf(section: AnyRef): Seq[Any] =
     section.getClass.getDeclaredMethods.toSeq
-      .filter(m => m.getParameterCount == 0 && java.lang.reflect.Modifier.isPublic(m.getModifiers))
+      .filter(m => // format: off
+        m.getParameterCount == 0 && java.lang.reflect.Modifier.isPublic(m.getModifiers) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      ) // format: on
       .filter(m =>
         classOf[Query].isAssignableFrom(m.getReturnType) ||
           classOf[scala.collection.Seq[?]].isAssignableFrom(m.getReturnType)

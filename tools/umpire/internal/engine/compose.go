@@ -21,11 +21,21 @@ type compositionSync struct {
 type composedAction struct {
 	key   string
 	moves []memberMove
+	sync  string
 }
 
 type memberMove struct {
 	member int
 	action string
+}
+
+func (a composedAction) selects(member int, selection string, exact bool) bool {
+	if member < 0 {
+		return len(a.moves) == 2 && a.sync == selection
+	}
+	return slices.ContainsFunc(a.moves, func(move memberMove) bool {
+		return move.member == member && (move.action == selection || (!exact && actionName(move.action) == selection))
+	})
 }
 
 // composing is the part of building a composition that reads keys only.
@@ -72,7 +82,7 @@ func (b *composing) assumptions() ([]Assumption, error) {
 	var out []Assumption
 	for i := range b.members {
 		for _, a := range b.tables[i].Assumptions {
-			fair, err := b.composedFair(i, a)
+			fair, err := b.composedFair(i, a, false)
 			if err != nil {
 				return nil, err
 			}
@@ -98,27 +108,45 @@ func mergeAssumption(out []Assumption, a Assumption) []Assumption {
 
 // composedFair is the composed classes a member's fair classes, or actions, step: its own classes
 // keyed "<member>_<class>" and the synchronized steps it takes part in.
-func (b *composing) composedFair(member int, a Assumption) ([]string, error) {
+func (b *composing) composedFair(member int, a Assumption, exact bool) ([]string, error) {
 	var out []string
 	for _, f := range a.Fair {
 		found := false
 		for _, ca := range b.actions {
-			for _, mv := range ca.moves {
-				if mv.member == member && (mv.action == f || actionName(mv.action) == f) {
-					found = true
-					if !slices.Contains(out, ca.key) {
-						out = append(out, ca.key)
-					}
-				}
+			if !ca.selects(member, f, exact) {
+				continue
+			}
+			found = true
+			if !slices.Contains(out, ca.key) {
+				out = append(out, ca.key)
 			}
 		}
 		if !found {
+			if member < 0 {
+				return nil, errorf(b.owner, "the assumption %s makes %s fair, which is no sync of %s", a.Name, f, b.name)
+			}
 			machine := b.tables[member].Machine
 			return nil, errorf(b.owner, "the assumption %s of %s makes %s fair, which is no action of %s",
 				a.Name, machine, f, machine)
 		}
 	}
 	return out, nil
+}
+
+// ComposedFair maps exact member classes through the same mapper as inherited assumptions.
+// An empty member selects sync names. It reads immutable composition metadata and changes no table.
+func (t *Table) ComposedFair(member string, a Assumption) ([]string, error) {
+	if t.composed == nil {
+		return nil, errorf(t.Owner, "%s is no composition", t.Machine)
+	}
+	i := -1
+	if member != "" {
+		i = t.composed.memberIndex(member)
+		if i < 0 {
+			return nil, errorf(t.Owner, "%s has no member %s", t.Machine, member)
+		}
+	}
+	return t.composed.composedFair(i, a, true)
 }
 
 func (b *composing) memberIndex(field string) int {
@@ -148,7 +176,7 @@ func (b *composing) collectActions() error {
 		for _, x := range firsts {
 			for _, y := range seconds {
 				key := s.name + strings.TrimPrefix(x, s.refs[0][1]) + strings.TrimPrefix(y, s.refs[1][1])
-				b.actions = append(b.actions, composedAction{key, []memberMove{{first, x}, {second, y}}})
+				b.actions = append(b.actions, composedAction{key: key, moves: []memberMove{{first, x}, {second, y}}, sync: s.name})
 			}
 		}
 	}
@@ -170,7 +198,7 @@ func (b *composing) collectOwnActions(synced map[[2]string]bool) error {
 			if !b.admitsClasses(1, 1) {
 				return b.limit
 			}
-			b.actions = append(b.actions, composedAction{field + "_" + a, []memberMove{{i, a}}})
+			b.actions = append(b.actions, composedAction{key: field + "_" + a, moves: []memberMove{{i, a}}})
 		}
 	}
 	return nil
@@ -320,6 +348,11 @@ func (b *composing) explore(starts [][]string) map[string]bool {
 // for, its actions, and its outcomes, facts and state fields prefixed per member.
 func (b *composing) catalogs(reached map[string]bool) *Table {
 	t := &Table{Machine: b.name, Owner: b.owner, Family: b.family, parts: map[string][]string{}}
+	t.composed = &composing{name: b.name, owner: b.owner, actions: b.actions}
+	for i, member := range b.members {
+		t.composed.members = append(t.composed.members, compositionMember{field: member.field})
+		t.composed.tables = append(t.composed.tables, &Table{Machine: b.tables[i].Machine})
+	}
 	for k := range reached {
 		t.States = append(t.States, k)
 		t.parts[k] = b.split[k]

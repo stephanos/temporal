@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 import temporal.features.activity.{deadline, Failure, Timeout, TimeoutType}
 import temporal.features.activity.standalone.{
@@ -21,10 +22,11 @@ import temporal.features.activity.standalone.system.{
 import framework.outcomes.{Outcome, Rejection}
 
 class ActivityResetRegression extends munit.FunSuite:
+  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
   private type ActivityStep = Step[system.State, Outcome, system.Fact]
 
   private def take(s: system.State, c: Class): List[ActivityStep] =
-    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get
+    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
     effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(s, c.values)
       .map(_.copy(because = ""))
 
@@ -45,7 +47,8 @@ class ActivityResetRegression extends munit.FunSuite:
   private val pending = List(system.Phase.resetRequested, system.Phase.resetKeepingPause)
   private def restarted(before: system.State): system.State = before.copy(
     phase =
-      if before.phase == system.Phase.resetKeepingPause then system.Phase.paused
+      if before.phase == system.Phase.resetKeepingPause then
+        system.Phase.paused // scalafix:ok DisableSyntax.==
       else system.Phase.scheduled,
     dispatch = system.Dispatch.now,
     attempts = UpTo(0)
@@ -54,8 +57,12 @@ class ActivityResetRegression extends munit.FunSuite:
   test("reset is one per-RPC client action whose one input is keep_paused") {
     assertEquals(client.reset.decl.tokens, List(Some(pausing)))
     assertEquals(client.reset.decl.domains.map(_.values.toList), List(ResetPause.values.toList))
-    assert(ActivitySystem.bindings.exists(_.decl == client.reset.decl))
-    assert(product.ActivityProduct.bindings.exists(_.decl == client.reset.decl))
+    assert(
+      ActivitySystem.bindings.exists(_.decl == client.reset.decl)
+    ) // scalafix:ok DisableSyntax.==
+    assert(
+      product.ActivityProduct.bindings.exists(_.decl == client.reset.decl)
+    ) // scalafix:ok DisableSyntax.==
     assertEquals(summon[Finite[system.State]].values.size, 5616)
   }
 
@@ -64,9 +71,11 @@ class ActivityResetRegression extends munit.FunSuite:
       val after = take(before, c)
       before.phase match
         case system.Phase.scheduled | system.Phase.paused =>
-          val keeps = before.phase == system.Phase.paused && c == resets(1)
+          val keeps =
+            before.phase == system.Phase.paused && c == resets(1) // scalafix:ok DisableSyntax.==
           val dispatch =
-            if before.dispatch == system.Dispatch.backoff then system.Dispatch.now
+            if before.dispatch == system.Dispatch.backoff then
+              system.Dispatch.now // scalafix:ok DisableSyntax.==
             else before.dispatch
           val landing = if keeps then system.Phase.paused else system.Phase.scheduled
           assertEquals(
@@ -84,13 +93,18 @@ class ActivityResetRegression extends munit.FunSuite:
           assertEquals(after.map(_.facts), List(List(system.Fact.statusStarted)))
         case system.Phase.pauseRequested =>
           val (phase, fact) =
-            if c == resets(1) then system.Phase.resetKeepingPause -> system.Fact.statusPaused
+            if c == resets(1) then
+              system.Phase.resetKeepingPause -> system.Fact.statusPaused // scalafix:ok DisableSyntax.==
             else system.Phase.resetRequested -> system.Fact.statusStarted
           assertEquals(after.map(_.state), List(before.copy(phase = phase)))
           assertEquals(after.map(_.facts), List(List(fact)))
-        case phase =>
+        case phase @ (system.Phase.unstarted | system.Phase.cancelRequested |
+            system.Phase.resetRequested | system.Phase.resetKeepingPause | system.Phase.completed |
+            system.Phase.failed | system.Phase.canceled | system.Phase.terminated |
+            system.Phase.timedOut) =>
           val why =
-            if phase == system.Phase.unstarted || phase.in[Closed] then Rejection.notFound
+            if phase == system.Phase.unstarted || phase.in[Closed] then
+              Rejection.notFound // scalafix:ok DisableSyntax.==
             else Rejection.failedPrecondition
           assertEquals(after.map(_.state), List(before), s"rejected reset $before")
           assertEquals(after.map(_.facts), List(Nil))
@@ -112,15 +126,17 @@ class ActivityResetRegression extends munit.FunSuite:
           after.map(_.facts),
           List(
             List(
-              if before.phase == system.Phase.resetKeepingPause then system.Fact.statusPaused
+              if before.phase == system.Phase.resetKeepingPause then
+                system.Fact.statusPaused // scalafix:ok DisableSyntax.==
               else system.Fact.statusScheduled,
               system.Fact.attemptCount
             )
           )
         )
       for (timer, armed) <- List(
-          deadline.startToClose() -> (before.startToClose == Timeout.expires),
-          deadline.heartbeat() -> (before.heartbeat == Timeout.expires)
+          deadline.startToClose() -> (before.startToClose == Timeout.expires), // scalafix:ok DisableSyntax.==
+          deadline
+            .heartbeat() -> (before.heartbeat == Timeout.expires) // scalafix:ok DisableSyntax.==
         )
       do
         val after = take(before, timer)
@@ -169,15 +185,18 @@ class ActivityResetRegression extends munit.FunSuite:
       val visible = after.facts.filter(ActivitySystem.refinement.visible).map(_.productPrefix)
       val source = ActivitySystem.refinement.toProduct(before)
       val target = ActivitySystem.refinement.toProduct(after.state)
-      val binding = product.ActivityProduct.bindings.find(_.decl == c.decl).get
+      val binding =
+        product.ActivityProduct.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
       val carriers = effectOf[product.State, Outcome, product.Fact](binding.decl, binding.function)(
         source,
         c.values
       )
       assert(
         carriers.exists(p =>
-          p.outcome == after.outcome && p.state == target && p.facts.map(_.productPrefix) == visible
-        ) || (source == target && visible.isEmpty),
+          p.outcome == after.outcome && p.state == target && p.facts.map(
+            _.productPrefix
+          ) == visible // scalafix:ok DisableSyntax.==
+        ) || (source == target && visible.isEmpty), // scalafix:ok DisableSyntax.==
         s"reset refinement $c $before -> $after"
       )
     assertEquals(Refinement.unclosed(ActivitySystem.refinement)(_.phase, _.phase), IndexedSeq.empty)
@@ -187,7 +206,9 @@ class ActivityResetRegression extends munit.FunSuite:
     val settles = ActivitySystem.properties.resetSettles
     val precedence = ActivitySystem.properties.controlPrecedence
     // A held attempt was dispatched, so no reachable held state waits on a dispatch delay.
-    val dispatched = states.filter(s => !s.phase.in[Held] || s.dispatch == system.Dispatch.now)
+    val dispatched = states.filter(s =>
+      !s.phase.in[Held] || s.dispatch == system.Dispatch.now
+    ) // scalafix:ok DisableSyntax.==
     val all = dispatched.flatMap(before =>
       ActivitySystem.bindings
         .flatMap(b =>
@@ -205,7 +226,8 @@ class ActivityResetRegression extends munit.FunSuite:
         Outcome.accepted,
         restarted(before),
         List(
-          if before.phase == system.Phase.resetKeepingPause then system.Fact.statusPaused
+          if before.phase == system.Phase.resetKeepingPause then
+            system.Fact.statusPaused // scalafix:ok DisableSyntax.==
           else system.Fact.statusScheduled
         )
       )
@@ -214,7 +236,8 @@ class ActivityResetRegression extends munit.FunSuite:
         "fatality recorded" -> applied.copy(facts = applied.facts :+ system.Fact.statusFailed),
         "keepPaused landing" -> applied.copy(state =
           applied.state.copy(phase =
-            if applied.state.phase == system.Phase.paused then system.Phase.scheduled
+            if applied.state.phase == system.Phase.paused then
+              system.Phase.scheduled // scalafix:ok DisableSyntax.==
             else system.Phase.paused
           )
         ),
@@ -237,7 +260,8 @@ class ActivityResetRegression extends munit.FunSuite:
         ),
         "policy changed" -> applied.copy(state =
           applied.state.copy(maxAttempts =
-            if before.maxAttempts == MaxAttempts.one then MaxAttempts.two else MaxAttempts.one
+            if before.maxAttempts == MaxAttempts.one then MaxAttempts.two
+            else MaxAttempts.one // scalafix:ok DisableSyntax.==
           )
         )
       )
@@ -245,11 +269,12 @@ class ActivityResetRegression extends munit.FunSuite:
       for phase <- List(system.Phase.started, system.Phase.pauseRequested) do
         val undone = Step(Outcome.accepted, before.copy(phase = phase))
         assert(!holds(precedence, before, undone), s"pause or unpause undid a reset: $before")
-    for before <- states if before.phase == system.Phase.cancelRequested; phase <- pending do
+    for before <- states if before.phase == system.Phase.cancelRequested; phase <- pending
+    do // scalafix:ok DisableSyntax.==
       assert(!holds(precedence, before, Step(Outcome.accepted, before.copy(phase = phase))))
     for
       before <- states
-      if before.phase == system.Phase.started && before.attempts > 0
+      if before.phase == system.Phase.started && before.attempts > 0 // scalafix:ok DisableSyntax.==
     do
       val rewound = Step(Outcome.accepted, before.copy(attempts = UpTo(0)))
       assert(!holds(settles, before, rewound), s"a held attempt rewound without reset: $before")
@@ -264,8 +289,9 @@ class ActivityResetRegression extends munit.FunSuite:
       assert(property.decl.when.contains(c))
       for before <- states; after <- take(before, c) do
         assert(holds(property, before, after), s"$c $before -> $after")
-        if before.phase == system.Phase.scheduled || before.phase == system.Phase.paused then
-          if before.dispatch == system.Dispatch.backoff then
+        if before.phase == system.Phase.scheduled || before.phase == system.Phase.paused
+        then // scalafix:ok DisableSyntax.==
+          if before.dispatch == system.Dispatch.backoff then // scalafix:ok DisableSyntax.==
             assert(
               !holds(
                 property,
@@ -283,7 +309,7 @@ class ActivityResetRegression extends munit.FunSuite:
             )
           for
             landing <- List(system.Phase.scheduled, system.Phase.paused)
-            if landing != after.state.phase
+            if landing != after.state.phase // scalafix:ok DisableSyntax.!=
           do assert(!holds(property, before, after.copy(state = after.state.copy(phase = landing))))
   }
 
@@ -324,7 +350,7 @@ class ActivityResetRegression extends munit.FunSuite:
           case other                 => fail(s"unexpected $other")
         seen :+ take(seen.last, cls).head.state
       }
-      assert(path.size == query.scenario.actions.size + 1)
+      assert(path.size == query.scenario.actions.size + 1) // scalafix:ok DisableSyntax.==
     assertEquals(
       DeferredReset.queries.deferredResetCompletes.expectedRun,
       Some(temporal.realize.satisfied)

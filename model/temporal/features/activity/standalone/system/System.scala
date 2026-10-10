@@ -6,7 +6,7 @@ package standalone
 package system
 
 import scala.annotation.unused
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.Reason
 import temporal.capabilities.*
@@ -14,7 +14,7 @@ import temporal.realize.inconclusive
 import Bounds.three
 import actors.worker.worker as process
 import product.ActivityProduct
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // It begins before the activity exists, so unstarted is one phase.
 enum Phase derives Finite:
   case unstarted
@@ -103,32 +103,32 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       case MaxAttempts.unlimited => None
       case MaxAttempts.one       => Some(UpTo(1))
       case MaxAttempts.two       => Some(UpTo(MaxAttempts.bound))
-
-    def pendingPause(s: State): Boolean = s.phase == pauseRequested
-    def pendingCancel(s: State): Boolean = s.phase == cancelRequested
+    // format: off
+    def pendingPause(s: State): Boolean = s.phase == pauseRequested // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def pendingCancel(s: State): Boolean = s.phase == cancelRequested // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     def pendingReset(s: State): Boolean = s.phase.in(resetRequested, resetKeepingPause)
-
+    // format: on
     def landingPhase(s: State): Phase =
       if s.phase.in(pauseRequested, resetKeepingPause) then paused else scheduled
-
+    // format: off
     def landingStatus(s: State): Fact =
-      if landingPhase(s) == paused then Fact.statusPaused else Fact.statusScheduled
+      if landingPhase(s) == paused then Fact.statusPaused else Fact.statusScheduled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 
     // A reset discards a retry backoff but keeps a start delay (operator_commands.go:410-416).
-    def resetDispatch(d: Dispatch): Dispatch = if d == Dispatch.backoff then Dispatch.now else d
+    def resetDispatch(d: Dispatch): Dispatch = if d == Dispatch.backoff then Dispatch.now else d // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 
     // A pending reset applied: a first attempt, dispatched at once, paused only where it was kept.
     def resetApplied(before: State, after: State): Boolean =
-      after.attempts == 0 && after.dispatch == Dispatch.now &&
-        after.phase == (if before.phase == resetKeepingPause then paused else scheduled)
+      after.attempts == 0 && after.dispatch == Dispatch.now && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        after.phase == (if before.phase == resetKeepingPause then paused else scheduled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 
     def scheduleToCloseArmed(s: State): Boolean =
-      s.scheduleToClose == Timeout.expires && s.dispatch != Dispatch.startDelay
+      s.scheduleToClose == Timeout.expires && s.dispatch != Dispatch.startDelay // scalafix:ok DisableSyntax.==, DisableSyntax.!=; strictEquality checks native comparisons
     def scheduleToStartArmed(s: State): Boolean =
-      s.scheduleToStart == Timeout.expires && s.dispatch == Dispatch.now
-    def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires
-    def heartbeatArmed(s: State): Boolean = s.heartbeat == Timeout.expires
-
+      s.scheduleToStart == Timeout.expires && s.dispatch == Dispatch.now // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def heartbeatArmed(s: State): Boolean = s.heartbeat == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
     val timeoutFacts = Seq(
       Fact.statusTimedOut(TimeoutType.scheduleToClose),
       Fact.statusTimedOut(TimeoutType.scheduleToStart),
@@ -175,7 +175,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
   object effects:
     import Fact.*
-
+    // format: off
     // The start creates the activity, with the deadlines its inputs set.
     def schedule(
         @unused s: State,
@@ -189,7 +189,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       enter(
         system.State(
           phase = scheduled,
-          dispatch = if startDelay == Timeout.expires then Dispatch.startDelay else Dispatch.now,
+          dispatch = if startDelay == Timeout.expires then Dispatch.startDelay else Dispatch.now, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           attempts = UpTo(0),
           scheduleToClose = scheduleToClose,
           scheduleToStart = scheduleToStart,
@@ -199,7 +199,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         ),
         statusScheduled
       )
-
+    // format: on
     // This independent counter advances on delivery; Describe counts an attempt from scheduling.
     def startAttempt(s: State) =
       enter(
@@ -381,16 +381,16 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // settlement must match the corresponding By-ID rows.
     from(temporal.features.activity.standalone.worker) {
       import temporal.features.activity.standalone.worker.*
-
+      // format: off
       on(poll) {
-        when(scheduled).where(_.dispatch == Dispatch.now) ~> effects.startAttempt
+        when(scheduled).where(_.dispatch == Dispatch.now) ~> effects.startAttempt // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       }
       on(heartbeat) {
         when[Held] ~> effects.heartbeat
         when(unstarted, scheduled, paused) ~> rejects(Rejection.notFound)
         when[Closed] ~> rejects(Rejection.notFound)
       }
-
+      // format: on
       // A worker's answer settles the attempt it holds. A retryable failure backs a started attempt
       // off, settles a cancel-requested one as canceled and lands a pause-requested one in paused
       // (TransitionAttemptFailedWhilePauseRequested). A canceled answer needs a cancel request.
@@ -468,15 +468,15 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
     from(timers) {
       import timers.*
-
+      // format: off
       on(startDelay) {
-        when[Live].where(_.dispatch == Dispatch.startDelay) ~> effects.dispatchNow
+        when[Live].where(_.dispatch == Dispatch.startDelay) ~> effects.dispatchNow // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       }
       on(backoff) {
-        when[Live].where(_.dispatch == Dispatch.backoff) ~> effects.dispatchNow
+        when[Live].where(_.dispatch == Dispatch.backoff) ~> effects.dispatchNow // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       }
     }
-
+      // format: on
     from(deadline) {
       import deadline.*
 
@@ -522,18 +522,18 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(resetKeepingPause).where(states.heartbeatArmed) ~> effects.applyResetOnHeartbeat
       }
     }
-
+  // format: off
   // The lifecycle-wide control and reset laws; focused settlement claims live in subject files.
   // The activity and worker's cross-entity claim is the composition's, and the dispatch record's
   // are Dispatch.scala's.
   object properties:
     val cancelIsNotUndone = property.holdsAcross { (before, after) =>
-      (before.phase == Phase.cancelRequested) implies
-        (after.state.phase == Phase.cancelRequested || after.state.phase.in[Closed])
+      (before.phase == Phase.cancelRequested) implies // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        (after.state.phase == Phase.cancelRequested || after.state.phase.in[Closed]) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     }
 
     val terminated = property when client.terminate holds { s =>
-      s.state.phase == Phase.terminated && s.records(Fact.statusTerminated)
+      s.state.phase == Phase.terminated && s.records(Fact.statusTerminated) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     }
 
     // A pending reset ends only as its held attempt does: a completion wins, a cancellation or a
@@ -544,31 +544,31 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // attempt's count never goes back but where a waiting or paused activity restarts, with no
     // backoff left.
     val resetSettles = property.holdsAcross { (before, after) =>
-      val restarted = after.state.attempts == 0 && after.state.dispatch == Dispatch.now &&
-        after.state.scheduleToClose == before.scheduleToClose &&
-        after.state.scheduleToStart == before.scheduleToStart &&
-        after.state.startToClose == before.startToClose &&
-        after.state.heartbeat == before.heartbeat &&
-        after.state.maxAttempts == before.maxAttempts &&
+      val restarted = after.state.attempts == 0 && after.state.dispatch == Dispatch.now && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        after.state.scheduleToClose == before.scheduleToClose && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        after.state.scheduleToStart == before.scheduleToStart && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        after.state.startToClose == before.startToClose && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        after.state.heartbeat == before.heartbeat && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        after.state.maxAttempts == before.maxAttempts && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
         !after.records(Fact.statusFailed) &&
         !after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose)) &&
         !after.records(Fact.statusTimedOut(TimeoutType.scheduleToStart)) &&
         !after.records(Fact.statusTimedOut(TimeoutType.startToClose)) &&
         !after.records(Fact.statusTimedOut(TimeoutType.heartbeat))
       if states.pendingReset(before) then
-        after.state == before ||
-        (after.state.phase == Phase.completed && after.records(Fact.statusCompleted)) ||
-        after.state.phase == Phase.cancelRequested ||
-        after.state.phase == Phase.terminated ||
-        (after.state.phase == Phase.timedOut &&
+        after.state == before || // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        (after.state.phase == Phase.completed && after.records(Fact.statusCompleted)) || // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        after.state.phase == Phase.cancelRequested || // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        after.state.phase == Phase.terminated || // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        (after.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))) ||
-        (restarted && after.state.phase == states.landingPhase(before) &&
+        (restarted && after.state.phase == states.landingPhase(before) && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           after.records(states.landingStatus(before)))
       else
-        before.phase == Phase.unstarted || after.state.attempts >= before.attempts ||
+        before.phase == Phase.unstarted || after.state.attempts >= before.attempts || // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
         (before.phase.in(Phase.scheduled, Phase.paused) &&
           after.state.phase.in(Phase.scheduled, Phase.paused) &&
-          after.state.attempts == 0 && after.state.dispatch != Dispatch.backoff)
+          after.state.attempts == 0 && after.state.dispatch != Dispatch.backoff) // scalafix:ok DisableSyntax.==, DisableSyntax.!=; strictEquality checks native comparisons
     }
 
     // A reset of a waiting or paused activity restarts it at once: its count is zero and a retry
@@ -576,7 +576,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     val resetResumes = property.when(client.reset(ResetPause.resume)) holdsAcross {
       (before, after) =>
         !before.phase.in(Phase.scheduled, Phase.paused) ||
-        (after.state == before.copy(
+        (after.state == before.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           phase = Phase.scheduled,
           attempts = UpTo(0),
           dispatch = states.resetDispatch(before.dispatch)
@@ -587,14 +587,14 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     val resetKeepsPaused =
       property.when(client.reset(ResetPause.keepPaused)) holdsAcross { (before, after) =>
         !before.phase.in(Phase.scheduled, Phase.paused) ||
-        (after.state == before.copy(
+        (after.state == before.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           attempts = UpTo(0),
           dispatch = states.resetDispatch(before.dispatch)
         ) && after.records(
-          if before.phase == Phase.paused then Fact.statusPaused else Fact.statusScheduled
+          if before.phase == Phase.paused then Fact.statusPaused else Fact.statusScheduled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
         ))
       }
-
+  // format: on
     // Retries' and Deadline's laws as the activity keeps them: a pending reset applies first, as
     // a failure or one of the attempt's own deadlines ends the held attempt, whatever the failure's
     // retryability or the policy left (attempt.go:201-216, statemachine.go:317-345). With no reset
@@ -688,14 +688,14 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
             pendingPause(before)) ||
           (after.state.phase.in[Suspended] && timeoutFacts.forall(f => !after.records(f)))
       )
-
+    // format: off
     // Cancel > Reset > Pause: no step makes a reset pending over a pending cancellation, and no
     // step turns a pending reset back into a pause request or a plain attempt (model.go:156-158).
     val controlPrecedence = property.holdsAcross { (before, after) =>
-      (before.phase != Phase.cancelRequested || !states.pendingReset(after.state)) &&
+      (before.phase != Phase.cancelRequested || !states.pendingReset(after.state)) && // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
       (!states.pendingReset(before) || !after.state.phase.in(Phase.started, Phase.pauseRequested))
     }
-
+    // format: on
   // A terminate settles it, and DescribeActivityExecution reports its status by `activityStatus`.
   // The terminate find starts the activity and stops the worker before the control. The held
   // cancellation-request claim is authored on ByIDCancellation's complete service path below.

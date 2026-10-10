@@ -9,7 +9,6 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/interp"
-	"google.golang.org/protobuf/proto"
 )
 
 // clause is one lowered requirement as an operation-correlated clause: from the operation's first
@@ -290,7 +289,7 @@ func (p *production) correlatedContract(plan projectionPlan, clauses []clause) *
 }
 
 func internState(c *testpilotspb.CorrelatedContract, seen map[string]string, candidate *testpilotspb.CorrelatedState) string {
-	key := messageKey(candidate)
+	key := stateKey(candidate)
 	if id, found := seen[key]; found {
 		return id
 	}
@@ -302,7 +301,7 @@ func internState(c *testpilotspb.CorrelatedContract, seen map[string]string, can
 }
 
 func internResult(c *testpilotspb.CorrelatedContract, seen map[string]string, candidate *testpilotspb.CorrelatedResult) string {
-	key := messageKey(candidate)
+	key := resultKey(candidate)
 	if id, found := seen[key]; found {
 		return id
 	}
@@ -313,12 +312,33 @@ func internResult(c *testpilotspb.CorrelatedContract, seen map[string]string, ca
 	return id
 }
 
-func messageKey(m proto.Message) string {
-	b, err := (proto.MarshalOptions{Deterministic: true}).Marshal(m)
-	if err != nil {
-		panic(err)
+func keyPart(value string) string {
+	return strconv.Itoa(len(value)) + ":" + value
+}
+
+func modelValueKey(value *testpilotspb.ModelValue) string {
+	if value == nil {
+		return "0"
 	}
-	return string(b)
+	return "1" + keyPart(value.GetDefinitionId()) + keyPart(value.GetValue()) + keyPart(string(value.ProtoReflect().GetUnknown()))
+}
+
+func valuesKey(values []*testpilotspb.ModelValue) string {
+	parts := make([]string, 0, len(values)+1)
+	parts = append(parts, keyPart(strconv.Itoa(len(values))))
+	for _, value := range values {
+		parts = append(parts, modelValueKey(value))
+	}
+	return strings.Join(parts, "")
+}
+
+func stateKey(state *testpilotspb.CorrelatedState) string {
+	return modelValueKey(state.GetAtom()) + valuesKey(state.GetFields()) + keyPart(string(state.ProtoReflect().GetUnknown()))
+}
+
+func resultKey(result *testpilotspb.CorrelatedResult) string {
+	return modelValueKey(result.GetAction()) + keyPart(result.GetStateId()) + modelValueKey(result.GetOutcome()) +
+		valuesKey(result.GetFacts()) + keyPart(string(result.ProtoReflect().GetUnknown()))
 }
 
 func (p *production) fields(state string) []*testpilotspb.ModelValue {

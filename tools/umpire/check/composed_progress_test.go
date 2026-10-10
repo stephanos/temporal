@@ -126,7 +126,7 @@ func TestComposedProgressKeepsUnsupportedAndSubjectFailures(t *testing.T) {
 			m.Functions = append(m.Functions, watched.Functions[len(watched.Functions)-2:]...)
 			m.Monitors, m.Machines[0].Monitors = watched.Monitors, watched.Machines[0].Monitors
 		}, Unsupported, "names monitors"},
-		{"claim fairness", func(m *umpirespb.Model, _ *Scope) {
+		{"unscoped legacy fairness", func(m *umpirespb.Model, _ *Scope) {
 			m.Progress[1].Assumptions = []string{"generic.tickRuns"}
 		}, Unsupported, "fairness"},
 		{"composition ceiling", func(_ *umpirespb.Model, scope *Scope) {

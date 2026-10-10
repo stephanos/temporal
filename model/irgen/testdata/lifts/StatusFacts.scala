@@ -7,8 +7,8 @@
 // names and positions, and the phase enum to lift as an enum with no fields.
 package fixture.statusfacts
 
-import framework.*
-
+import framework.*; import framework.Finite.given
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 enum Fact derives Finite:
   case statusIdle, statusRunning, statusPaused, attempted
 
@@ -40,9 +40,9 @@ object user extends Actor:
   val refuse = action(this)
 
 object Derived extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
-  val init = Job(Phase.idle, UpTo(0))
-  override def end(s: State) = s.phase == Phase.paused
-
+  val init = Job(Phase.idle, UpTo(0)) // format: off
+  override def end(s: State) = s.phase == Phase.paused // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
   object effects:
     val start = effect { phase = Phase.running }
     val resume = effect { phase = Phase.running }
@@ -61,9 +61,9 @@ object Derived extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
     on(user.refuse)(when(Phase.paused) ~> effects.refuse)
 
 object Written extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
-  val init = Job(Phase.idle, UpTo(0))
-  override def end(s: State) = s.phase == Phase.paused
-
+  val init = Job(Phase.idle, UpTo(0)) // format: off
+  override def end(s: State) = s.phase == Phase.paused // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
   object effects:
     def start(s: Job) = enter(s.copy(phase = Phase.running), Fact.statusRunning)
     def resume(s: Job) = enter(s.copy(phase = Phase.running), Fact.statusRunning)

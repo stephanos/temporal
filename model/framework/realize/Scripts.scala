@@ -115,8 +115,8 @@ extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](call: Instruction.T
 // What a fact reads as on a system: one value of type `V` for each fact the table lists, such as
 // the status a describe call reports while the fact holds. The table is declared once beside the
 // realization and consulted by value, `table(fact)`; the lifter looks the fact up when it lifts.
-final class StatusTable[V] private[realize] (val entries: Vector[(Fact, V)]):
-  def apply(fact: Fact): V = entries.collectFirst { case (f, v) if f == fact => v }.get
+final class StatusTable[V] private[realize] (val entries: Vector[(Fact, V)]): // format: off
+  def apply(fact: Fact): V = entries.collectFirst { case (f, v) if java.util.Objects.equals(f, fact) => v }.get // format: on
 
 // A table of what each fact reads as, `statusTable(fact -> value, …)`, each fact listed once.
 def statusTable[V](entries: (Fact, V)*): StatusTable[V] = StatusTable(entries.toVector)

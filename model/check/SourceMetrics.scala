@@ -61,8 +61,12 @@ private[check] object SourceMetrics:
       value.matches("[A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_-]+")
     then "composition key"
     else if ProtoLiterals.category(value, context, code).nonEmpty then "Temporal API name"
-    else if lastVal.findAllMatchIn(context).toSeq.lastOption.exists(_.group(1) == value) then
-      "own name"
+    else if lastVal
+      .findAllMatchIn(context)
+      .toSeq
+      .lastOption
+      .exists(_.group(1) == value) // scalafix:ok DisableSyntax.==; typed equality
+    then "own name"
     else if known(value) then "repeated name"
     else if context.matches(declaring) then "declared name"
     else "id"
@@ -90,7 +94,10 @@ private[check] object SourceMetrics:
         Literal(file, l.line, classify(text, code, l.start, l.end, l.value, known), l.value)
       )
     }
-    (texts.map((file, text) => file -> text.count(_ == '\n')), literals)
+    (
+      texts.map((file, text) => file -> text.count(_ == '\n')),
+      literals
+    ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
 
   def report(root: Path, directories: Seq[Path]): String =
     val out = new StringBuilder
@@ -104,9 +111,10 @@ private[check] object SourceMetrics:
       out ++= s"== $title\n"
       out ++= s"sources sha256 ${digest.digest().map("%02x".format(_)).mkString}\n"
       for (file, n) <- lines do
-        out ++= f"$n%6d lines ${literals.count(_.file == file)}%5d literals  $file%n"
+        out ++= f"$n%6d lines ${literals.count(_.file == file)}%5d literals  $file%n" // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
       out ++= f"${lines.map(_._2).sum}%6d lines ${literals.size}%5d literals  total%n"
-      for c <- categories do out ++= f"${literals.count(_.category == c)}%5d $c%n"
+      for c <- categories do
+        out ++= f"${literals.count(_.category == c)}%5d $c%n" // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
       if listed then
         for l <- literals do out ++= s"${l.file}:${l.line}: ${l.category}: ${l.value}\n"
     val all = directories.map(d => d -> sources(d))

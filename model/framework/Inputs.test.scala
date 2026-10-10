@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 // Input tokens, inputs supplied by name and bounded counters, run as Scala. The IR generator's
 // fixtures (irgen/testdata/lifts/Inputs.scala) prove the IR; these pin the framework's own values.
 
@@ -40,6 +41,14 @@ class Inputs extends munit.FunSuite:
       start(Timeout.expires, Timeout.unset, Timeout.expires)
     )
     assertEquals(respond(answer := Answer.failed(true)), respond(Answer.failed(true)))
+    for a <- Finite[Timeout].values; b <- Finite[Timeout].values; c <- Finite[Timeout].values do
+      assertEquals(
+        start(scheduleToClose := a, scheduleToStart := b, startToClose := c),
+        start(a, b, c)
+      )
+      assertEquals(start(scheduleToStart := b), start(Timeout.unset, b, Timeout.unset))
+      assertEquals(start(startToClose := c, scheduleToClose := a), start(a, Timeout.unset, c))
+    for value <- Finite[Answer].values do assertEquals(respond(answer := value), respond(value))
 
   test("a call by name refuses a token of another action and a token supplied twice"):
     intercept[IllegalArgumentException](start(answer := Answer.completed): Unit): Unit
@@ -55,6 +64,20 @@ class Inputs extends munit.FunSuite:
       four(Timeout.unset, Timeout.unset, Timeout.expires, true)
     )
     assertEquals(four().values, List(Timeout.unset, Timeout.unset, Timeout.unset, false))
+    for
+      a <- Finite[Timeout].values
+      b <- Finite[Timeout].values
+      c <- Finite[Timeout].values
+      flag <- Finite[Boolean].values
+    do
+      assertEquals(
+        four(scheduleToClose := a, scheduleToStart := b, startToClose := c, enabled := flag),
+        four(a, b, c, flag)
+      )
+      assertEquals(
+        four(startToClose := c, enabled := flag),
+        four(Timeout.unset, Timeout.unset, c, flag)
+      )
 
   test(
     "a fifth typed input reaches the rule in position, with named defaults and invalid calls refused"
@@ -74,18 +97,40 @@ class Inputs extends munit.FunSuite:
     )
     object FiveInputs extends Machine[Counted, outcomes.Outcome, Answer]:
       val init = Counted(UpTo(0), Timeout.unset)
-      def end(s: Counted): Boolean = s.attempts == 1
+      def end(s: Counted): Boolean = s.attempts == 1 // scalafix:ok DisableSyntax.==
       object rules extends Rules:
         on(five) {
           always ~> (
             (s: Counted, a: Timeout, b: Timeout, c: Timeout, flag: Boolean, result: Answer) =>
-              enter(s.copy(attempts = UpTo(if flag && a == b then 1 else 0), timeout = c), result)
+              enter(
+                s.copy(attempts = UpTo(if flag && a == b then 1 else 0), timeout = c),
+                result
+              ) // scalafix:ok DisableSyntax.==
           )
         }
     val binding = FiveInputs.bindings.head
     val after = effectOf(binding.decl, binding.function)(FiveInputs.init, supplied.values).head
     assertEquals(after.state, Counted(UpTo(1), Timeout.expires))
     assertEquals(after.facts, List(Answer.completed))
+    for state <- Finite[Counted].values; values <- classesOf(five.decl) do
+      val expected = values match
+        case List(a: Timeout, b: Timeout, c: Timeout, flag: Boolean, result: Answer) =>
+          assertEquals(
+            five(
+              scheduleToClose := a,
+              scheduleToStart := b,
+              startToClose := c,
+              enabled := flag,
+              answer := result
+            ),
+            five(a, b, c, flag, result)
+          )
+          enter(
+            state.copy(attempts = UpTo(if flag && a == b then 1 else 0), timeout = c),
+            result
+          ) // scalafix:ok DisableSyntax.==
+        case other => fail(s"unexpected five-input class $other")
+      assertEquals(effectOf(binding.decl, binding.function)(state, values), expected)
     assert(
       compiletime.testing
         .typeCheckErrors("""
@@ -154,7 +199,11 @@ class Inputs extends munit.FunSuite:
         flag: Boolean,
         result: Answer,
         attempts: UpTo[2]
-    ) => enter(s.copy(attempts = if flag && a == b then attempts else UpTo(0), timeout = c), result)
+    ) =>
+      enter(
+        s.copy(attempts = if flag && a == b then attempts else UpTo(0), timeout = c),
+        result
+      ) // scalafix:ok DisableSyntax.==
     val execute = effectOf[Counted, outcomes.Outcome, Answer](six.decl, step)
     assertEquals(
       execute(Counted(UpTo(0), Timeout.unset), six().values).head.state,
@@ -174,7 +223,7 @@ class Inputs extends munit.FunSuite:
     )
     object SixInputs extends Machine[Counted, outcomes.Outcome, Answer]:
       val init = Counted(UpTo(0), Timeout.unset)
-      def end(s: Counted): Boolean = s.attempts == 2
+      def end(s: Counted): Boolean = s.attempts == 2 // scalafix:ok DisableSyntax.==
       object rules extends Rules:
         on(six) {
           always ~> step
@@ -198,6 +247,37 @@ class Inputs extends munit.FunSuite:
       lowered(Counted(UpTo(0), Timeout.unset), supplied.values).head.facts,
       List(Answer.completed)
     )
+    for state <- Finite[Counted].values; values <- classesOf(six.decl) do
+      val expected = values match
+        case List(
+              a: Timeout,
+              b: Timeout,
+              c: Timeout,
+              flag: Boolean,
+              result: Answer,
+              attempts: Int
+            ) =>
+          val bounded = UpTo[2](attempts)
+          assertEquals(
+            six(
+              scheduleToClose := a,
+              scheduleToStart := b,
+              startToClose := c,
+              enabled := flag,
+              answer := result,
+              count := bounded
+            ),
+            six(a, b, c, flag, result, bounded)
+          )
+          step(state, a, b, c, flag, result, bounded)
+        case other => fail(s"unexpected six-input class $other")
+      assertEquals(execute(state, values), expected)
+      assertEquals(
+        effectOf[Counted, outcomes.Outcome, Answer](direct.decl, direct.function)(state, values),
+        expected
+      )
+      assertEquals(effectOf(binding.decl, binding.function)(state, values), expected)
+      assertEquals(lowered(state, values), expected)
     intercept[IllegalArgumentException](
       six(answer := Answer.completed, answer := Answer.completed): Unit
     ): Unit

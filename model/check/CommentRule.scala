@@ -14,7 +14,11 @@ private[check] object CommentRule:
       .comments
       .collect:
         case (start, _) if source.startsWith("/*", start) =>
-          source.substring(0, start).count(_ == '\n') + 1
+          source
+            .substring(0, start)
+            .count(
+              _ == '\n'
+            ) + 1 // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
 
   // Build output is no source, and model/build is large enough that the walk must not enter it.
   private val skipped = Set("build", ".scala-build", ".bsp")

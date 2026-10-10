@@ -16,7 +16,7 @@ import (
 	sdkpb "go.temporal.io/api/sdk/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"

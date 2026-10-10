@@ -5,7 +5,7 @@
 // `queries` section bounds, and a bound override of a Property not brought and of one waived.
 package fixture.capabilitysectionrejects
 
-import framework.*
+import framework.*; import framework.Finite.given
 import fixture.capabilitysections.{hold, release, take, three, Answer, Note, Phase}
 import fixture.capabilitysections.{Holdable, Sealable, Takeable, Tasks, TaskState}
 
@@ -91,7 +91,7 @@ object EmptyReason extends Machine[TaskState, Answer, Note]:
   object capabilities extends Capabilities:
     val sealable: Capability =
       Sealable(status = Tasks.phase, done = Tasks.done, refused = Answer.gone)
-    except(Sealable.sealedStaysSealed, because = " ")
+    except(Sealable.sealedStaysSealed[TaskState, Phase], because = " ")
   object queries:
     capabilities.bound(three)
 
@@ -122,6 +122,6 @@ object OverrideWaived extends Machine[TaskState, Answer, Note]:
   object capabilities extends Capabilities:
     val sealable: Capability =
       Sealable(status = Tasks.phase, done = Tasks.done, refused = Answer.gone)
-    except(Sealable.sealedIsRefused, because = "a fixture's waiver")
+    except(Sealable.sealedIsRefused[TaskState, Phase, Answer], because = "a fixture's waiver")
   object queries:
-    capabilities.bound(three, Sealable.sealedIsRefused -> three)
+    capabilities.bound(three, Sealable.sealedIsRefused[TaskState, Phase, Answer] -> three)

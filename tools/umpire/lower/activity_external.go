@@ -12,7 +12,7 @@ import (
 
 func externalSucceeded(ref *testpilotspb.InstructionReference) *testpilotspb.Expression {
 	status := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: ref, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}})
-	return cel.All(cel.Present(status), cp.Equal(status, cp.Literal(cp.Enum("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))))
+	return cel.All(cel.Present(status), cp.Equal(status, cp.Literal(cp.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED))))
 }
 
 func (a *adapter) controllerID() string {

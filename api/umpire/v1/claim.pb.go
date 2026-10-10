@@ -1373,7 +1373,7 @@ func (x *Limits) GetSearch() int32 {
 // `within` steps, under the named assumptions.
 type Progress struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The machine's name.
+	// The machine's or composition's name.
 	Machine  string    `protobuf:"bytes,1,opt,name=machine,proto3" json:"machine,omitempty"`
 	Name     string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Position *Position `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`

@@ -4,24 +4,24 @@ package features.activity
 package standalone
 package system
 
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.realize.Reason
 import temporal.realize.inconclusive
 import Bounds.three
 import actors.worker.worker as process
 import Timeout.expires
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 object Timeouts extends Derived(ActivitySystem.rebind()):
   object properties:
     // Terminal deadline witnesses record which deadline settled the activity. Start-to-close
     // uses a one-attempt start.
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
-      s.state.phase == Phase.timedOut &&
+      s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       s.records(Fact.statusTimedOut(TimeoutType.scheduleToStart))
     }
 
     val startToCloseFires = property when deadline.startToClose holds { s =>
-      s.state.phase == Phase.timedOut &&
+      s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       s.records(Fact.statusTimedOut(TimeoutType.startToClose))
     }
 
@@ -46,12 +46,12 @@ object Timeouts extends Derived(ActivitySystem.rebind()):
 object CompetingTimeouts extends Derived(ActivitySystem.rebind()):
   object properties:
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
-      s.state.phase == Phase.timedOut &&
+      s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       s.records(Fact.statusTimedOut(TimeoutType.scheduleToStart))
     }
 
     val scheduleToCloseFires = property when deadline.scheduleToClose holds { s =>
-      s.state.phase == Phase.timedOut &&
+      s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       s.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))
     }
 

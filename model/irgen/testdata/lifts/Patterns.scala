@@ -5,7 +5,7 @@
 // and require one IR, but for names, positions and the names of the functions they refer to.
 package fixture.patterns
 
-import framework.*
+import framework.*; import framework.Finite.given
 
 enum Phase derives Finite:
   case idle, running, paused, done
@@ -30,20 +30,20 @@ val finish = action(Actor("worker"))
 
 type JobStep = Step[JobState, Outcome, Fact]
 
-def startStep(j: JobState): List[JobStep] =
-  if j.phase == Phase.idle then enter(JobState(Phase.running, Active.one), Fact.started)
-  else disabled
-def pauseStep(j: JobState): List[JobStep] =
-  if j.phase == Phase.running then enter(j.copy(phase = Phase.paused), Fact.paused) else disabled
-def finishStep(j: JobState): List[JobStep] =
+def startStep(j: JobState): List[JobStep] = // format: off
+  if j.phase == Phase.idle then enter(JobState(Phase.running, Active.one), Fact.started) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  else disabled // format: on
+def pauseStep(j: JobState): List[JobStep] = // format: off
+  if j.phase == Phase.running then enter(j.copy(phase = Phase.paused), Fact.paused) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+def finishStep(j: JobState): List[JobStep] = // format: on
   if j.phase.in(Phase.running, Phase.paused) then
     enter(JobState(Phase.done, Active.none), Fact.finished, Fact.released)
   else disabled
 
 object Job extends Machine[JobState, Outcome, Fact]:
-  val init = JobState(Phase.idle, Active.none)
-  def end(j: State) = j.phase == Phase.done
-
+  val init = JobState(Phase.idle, Active.none) // format: off
+  def end(j: State) = j.phase == Phase.done // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
   object rules extends Bindings(start ~> startStep, pause ~> pauseStep, finish ~> finishStep)
 
 // The lamp's state, named apart from the machine object `Lamp`.
@@ -69,18 +69,18 @@ final case class PairState(job: JobState, lamp: LampState) derives Finite
 
 type PairStep = Step[PairState, String, String]
 
-object Pair extends Composition[PairState](_.job -> Job, _.lamp -> Lamp):
-  def end(p: State) = p.job.phase == Phase.done
-  object syncs extends Syncs
+object Pair extends Composition[PairState](_.job -> Job, _.lamp -> Lamp): // format: off
+  def end(p: State) = p.job.phase == Phase.done // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  object syncs extends Syncs // format: on
 
 // ### The predicates the claims name, over the job and over the pair's job
-
-def isPaused(j: JobState): Boolean = j.phase == Phase.paused
-def isRunning(j: JobState): Boolean = j.phase == Phase.running
-def isDone(j: JobState): Boolean = j.phase == Phase.done
-def isActive(j: JobState): Boolean = j.active != Active.none
-def twoActive(j: JobState): Boolean = j.active == Active.two
-def jobPhase(j: JobState): Phase = j.phase
+// format: off
+def isPaused(j: JobState): Boolean = j.phase == Phase.paused // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+def isRunning(j: JobState): Boolean = j.phase == Phase.running // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+def isDone(j: JobState): Boolean = j.phase == Phase.done // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+def isActive(j: JobState): Boolean = j.active != Active.none // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+def twoActive(j: JobState): Boolean = j.active == Active.two // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+def jobPhase(j: JobState): Phase = j.phase // format: on
 def startedStep(after: JobStep): Boolean = isRunning(after.state)
 def twoActiveStep(after: JobStep): Boolean = twoActive(after.state)
 def released(after: JobStep): Boolean = after.records(Fact.released)
@@ -98,9 +98,9 @@ def pairReleased(after: PairStep): Boolean = after.records(_.job, Fact.released)
 // ### Each pattern on the machine, beside its lambda spelling
 
 val doneKeeps = Job.property.once(isDone).keeps(_.phase)
-val doneKeepsCore = Job.property holdsAcross { (before, after) =>
-  !isDone(before) || after.state.phase == before.phase
-}
+val doneKeepsCore = Job.property holdsAcross { (before, after) => // format: off
+  !isDone(before) || after.state.phase == before.phase // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+} // format: on
 
 val noTwo = Job.property.never(twoActiveStep)
 val noTwoCore = Job.property holds (after => !twoActiveStep(after))
@@ -123,9 +123,9 @@ val activeStaysCore = Job.property holdsAcross { (before, after) =>
 // ### Each pattern on the composition, through the member projection
 
 val pairDoneKeeps = Pair.property.once(pairDone).keeps(_.job.phase)
-val pairDoneKeepsCore = Pair.property holdsAcross { (before, after) =>
-  !pairDone(before) || after.state.job.phase == before.job.phase
-}
+val pairDoneKeepsCore = Pair.property holdsAcross { (before, after) => // format: off
+  !pairDone(before) || after.state.job.phase == before.job.phase // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+} // format: on
 
 val pairNoTwo = Pair.property.never(pairTwoStep)
 val pairNoTwoCore = Pair.property holds (after => !pairTwoStep(after))
@@ -153,27 +153,27 @@ val lampFlipped = Pair.property holds (after => after.records(_.lamp, LampFact.f
 val lampFlippedCore = Pair.property holds (after => after.facts.contains("lamp_flipped"))
 
 // ### Each pattern with a lambda of its own, lifted as `holds` lifts one
-
-val doneKeepsInline = Job.property.once(_.phase == Phase.done).keeps(_.phase)
-val noTwoInline = Job.property.never(_.state.active == Active.two)
+// format: off
+val doneKeepsInline = Job.property.once(_.phase == Phase.done).keeps(_.phase) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+val noTwoInline = Job.property.never(_.state.active == Active.two) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 val notStartedInline =
-  Job.property.never(_.state.phase == Phase.running).from(_.phase == Phase.paused)
-val doneStaysInline = Job.property.stays(_.phase == Phase.done)
+  Job.property.never(_.state.phase == Phase.running).from(_.phase == Phase.paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+val doneStaysInline = Job.property.stays(_.phase == Phase.done) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 val activeStaysInline =
-  Job.property.stays(_.active != Active.none).unless(_.records(Fact.released))
-
+  Job.property.stays(_.active != Active.none).unless(_.records(Fact.released)) // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+// format: on
 val doneKeepsInlineCore = Job.property holdsAcross { (before, after) =>
-  !(before.phase == Phase.done) || after.state.phase == before.phase
-}
-val noTwoInlineCore = Job.property holds (after => !(after.state.active == Active.two))
-val notStartedInlineCore = Job.property holdsAcross { (before, after) =>
-  !(before.phase == Phase.paused) || !(after.state.phase == Phase.running)
+  !(before.phase == Phase.done) || after.state.phase == before.phase // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+} // format: off
+val noTwoInlineCore = Job.property holds (after => !(after.state.active == Active.two)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+val notStartedInlineCore = Job.property holdsAcross { (before, after) => // format: on
+  !(before.phase == Phase.paused) || !(after.state.phase == Phase.running) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 }
 val doneStaysInlineCore = Job.property holdsAcross { (before, after) =>
-  !(before.phase == Phase.done) || after.state.phase == Phase.done
+  !(before.phase == Phase.done) || after.state.phase == Phase.done // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 }
 val activeStaysInlineCore = Job.property holdsAcross { (before, after) =>
-  !(before.active != Active.none) || after.state.active != Active.none ||
+  !(before.active != Active.none) || after.state.active != Active.none || // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
   after.records(Fact.released)
 }
 
@@ -187,8 +187,8 @@ def notAdmittedWhilePaused[S](m: Declares[S])(
 
 def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
   m.property("atMostOneActive").never(s => twoActive(s.state))
-
-def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P): Property[S] =
+// format: off
+def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P)(using CanEqual[P, P]): Property[S] = // format: on
   m.property("terminalStays").once(terminal).keeps(phase)
 
 val jobNotAdmitted = notAdmittedWhilePaused(Job)(isPaused, isRunning)
@@ -197,10 +197,10 @@ val jobNotAdmittedCore = Job.property("notAdmittedWhilePausedCore") holdsAcross 
 }
 val jobOneActive = atMostOneActive(Job)(twoActive)
 val jobOneActiveCore = Job.property("atMostOneActiveCore") holds (after => !twoActive(after.state))
-val jobTerminal = terminalStays(Job)(isDone, jobPhase)
+val jobTerminal = terminalStays(Job)(isDone, jobPhase) // format: off
 val jobTerminalCore = Job.property("terminalStaysCore") holdsAcross { (before, after) =>
-  !isDone(before) || after.state.phase == before.phase
-}
+  !isDone(before) || after.state.phase == before.phase // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+} // format: on
 
 val pairNotAdmitted = notAdmittedWhilePaused(Pair)(pairPaused, pairRunning)
 val pairNotAdmittedCore = Pair.property("notAdmittedWhilePausedCore") holdsAcross {
@@ -209,10 +209,10 @@ val pairNotAdmittedCore = Pair.property("notAdmittedWhilePausedCore") holdsAcros
 val pairOneActive = atMostOneActive(Pair)(pairTwo)
 val pairOneActiveCore =
   Pair.property("atMostOneActiveCore") holds (after => !pairTwo(after.state))
-val pairTerminal = terminalStays(Pair)(pairDone, pairPhase)
+val pairTerminal = terminalStays(Pair)(pairDone, pairPhase) // format: off
 val pairTerminalCore = Pair.property("terminalStaysCore") holdsAcross { (before, after) =>
-  !pairDone(before) || after.state.job.phase == before.job.phase
-}
+  !pairDone(before) || after.state.job.phase == before.job.phase // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+} // format: on
 
 // ### One Query per Property, so a lift of `claims` reaches every one
 

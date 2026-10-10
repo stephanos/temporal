@@ -394,7 +394,7 @@ func TestTheRetryCaseFailsItsFirstAttemptAndReadsItsSecondFromTheRunsRecord(t *t
 		RunKeyed:    true,
 	}},
 		Operation: cp.Literal(cp.Text(c.GetProgram().GetEvidence()[0].GetScope()[0].GetValue().GetCel().GetExpr().GetConstExpr().GetStringValue())),
-		Guard:     cp.Equal(cp.Path(cp.ProjectedValue(), "status"), cp.Literal(cp.Enum("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED")))},
+		Guard:     cp.Equal(cp.Path(cp.ProjectedValue(), "status"), cp.Literal(cp.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)))},
 		declared["statusScheduled"])
 	protorequire.ProtoEqual(t, &testpilotspb.EvidenceDeclaration{Operation: cp.Path(cp.ProjectedValue(), "activity_id"),
 		Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describeActivity, Path: "info"}}},

@@ -158,7 +158,9 @@ final class Gate(tools: Tools, log: PrintStream):
     val stamp = s"$hash scalapb:$scalapb scala:$scala"
     val stampFile = build.resolve("ir.stamp")
     val current = Seq(irJar, stampFile).forall(Files.isRegularFile(_))
-      && Files.readString(stampFile).trim == stamp
+      && Files
+        .readString(stampFile)
+        .trim == stamp // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
     if !(ifStale && current) then
       // An output of an earlier run is removed first, so one scala-cli did not write is missing
       // rather than taken for new. File times cannot tell: a mounted file system may stamp them with
@@ -234,7 +236,10 @@ final class Gate(tools: Tools, log: PrintStream):
     if !Files.isRegularFile(apiDescriptor) then
       throw GateError("proto/api.binpb is missing; run make proto/api.binpb")
     val checked = tools.run("make", Seq("-q", "proto/api.binpb"))
-    if checked.exit == 1 then throw GateError("proto/api.binpb is stale; run make proto/api.binpb")
+    if checked.exit == 1 then
+      throw GateError(
+        "proto/api.binpb is stale; run make proto/api.binpb"
+      ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
     checked.orFail()
     generateIr(ifStale = true)
 
@@ -314,7 +319,9 @@ final class Gate(tools: Tools, log: PrintStream):
       s" options:$apiOptions scalapb:$scalapb scala:$scala"
     val stampFile = build.resolve("api.stamp")
     val current = Seq(apiJar, stampFile).forall(Files.isRegularFile(_)) &&
-      Files.readString(stampFile).trim == stamp
+      Files
+        .readString(stampFile)
+        .trim == stamp // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
     if !(ifStale && current) then
       Files.deleteIfExists(stampFile)
       val classes = Files.createDirectories(sources.resolve("classes"))
@@ -528,7 +535,10 @@ object Gate:
       " | gate --check-syntax | gate --check-comments | gate --check-block-form"
 
   private def same(checkedIn: Path, produced: Path) =
-    Files.isRegularFile(checkedIn) && Files.mismatch(checkedIn, produced) == -1L
+    Files.isRegularFile(checkedIn) && Files.mismatch(
+      checkedIn,
+      produced
+    ) == -1L // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
 
   private def files(directory: Path): Set[String] =
     val stream = Files.list(directory)
@@ -538,7 +548,12 @@ object Gate:
   // Where two texts first differ, which is enough to see what moved; both files are kept whole.
   private def difference(checkedIn: String, lifted: String): String =
     val (was, now) = (checkedIn.linesIterator.toVector, lifted.linesIterator.toVector)
-    val at = was.map(Some(_)).zipAll(now.map(Some(_)), None, None).indexWhere(_ != _)
+    val at = was
+      .map(Some(_))
+      .zipAll(now.map(Some(_)), None, None)
+      .indexWhere(
+        _ != _
+      ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
     def line(text: Vector[String]) = text.lift(at).fold("nothing")(l => s"`${l.take(200)}`")
     if at < 0 then "its lines are the same and its line endings differ"
     else s"line ${at + 1} is ${line(was)} and lifts to ${line(now)}"
@@ -595,7 +610,8 @@ object Gate:
       val held =
         if Files.isRegularFile(target) then Accepted.read(Files.readString(target)) else Vector()
       val accepted = Accepted.withWaivers(held, machines, waivers)
-      if accepted == held then None
+      if accepted == held then // scalafix:ok DisableSyntax.==; typed equality
+        None
       else if update then
         Files.writeString(target, Accepted.encode(accepted)): Unit
         None
@@ -627,9 +643,18 @@ object Gate:
     val flags = arguments.toSet
     val generate = flags("--generate-ir") || flags("--generate-api")
     val valid = flags.subsetOf(known) &&
-      (if flags("--check-syntax") then flags == Set("--check-syntax")
-       else if flags("--check-comments") then flags == Set("--check-comments")
-       else if flags("--check-block-form") then flags == Set("--check-block-form")
+      (if flags("--check-syntax") then
+         flags == Set(
+           "--check-syntax"
+         ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+       else if flags("--check-comments") then
+         flags == Set(
+           "--check-comments"
+         ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+       else if flags("--check-block-form") then
+         flags == Set(
+           "--check-block-form"
+         ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
        else if generate then
          !flags("--update") && !flags("--skip-go-checks") &&
          !(flags("--generate-ir") && flags("--generate-api"))
@@ -664,6 +689,7 @@ object Gate:
 
 // An accepted lint finding, as umpire-lint reads and writes one (tools/umpire/lint/accept.go).
 final case class Acceptance(kind: String, owner: String, subjects: Vector[String], because: String)
+    derives CanEqual
 
 // The accepted findings beside an IR file, `<file>.lint.json`, read and written as umpire-lint's
 // encoder writes them, and the waivers the lifter writes beside the IR file it lifted a
@@ -685,10 +711,16 @@ object Accepted:
     val stated = waivers.map((machine, subject, because) =>
       subject -> Acceptance(waived, machine, Vector(subject), because)
     )
-    def ours(a: Acceptance) = a.kind == waived && machines(a.owner)
+    def ours(a: Acceptance) = a.kind == waived && machines(
+      a.owner
+    ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
     val kept = accepted
       .flatMap(a =>
-        if !ours(a) then Seq(a) else a.subjects.flatMap(s => stated.find(_._1 == s)).map(_._2)
+        if !ours(a) then Seq(a)
+        else
+          a.subjects
+            .flatMap(s => stated.find(_._1 == s))
+            .map(_._2) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
       )
       .distinct
     val placed = kept.filter(ours).flatMap(_.subjects).toSet
@@ -742,7 +774,11 @@ object Accepted:
 private[check] object Json:
   def parse(text: String): Any =
     val (v, end) = value(text, space(text, 0))
-    if space(text, end) != text.length then fail(end, "text after the value")
+    if space(text, end) != text.length then
+      fail(
+        end,
+        "text after the value"
+      ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
     v
 
   def fields(v: Any, what: String): Map[String, Any] = v match
@@ -765,8 +801,9 @@ private[check] object Json:
       case '\t'                                           => "\\t"
       case '\b'                                           => "\\b"
       case '\f'                                           => "\\f"
-      case c if c < ' ' || c == '\u2028' || c == '\u2029' => f"\\u${c.toInt}%04x"
-      case c                                              => c.toString
+      case c if c < ' ' || c == '\u2028' || c == '\u2029' =>
+        f"\\u${c.toInt}%04x" // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+      case c => c.toString
     }.mkString("\"", "", "\"")
 
   private def fail(at: Int, what: String): Nothing =
@@ -792,28 +829,58 @@ private[check] object Json:
 
   @scala.annotation.tailrec
   private def members(text: String, i: Int, done: Vector[(String, Any)]): (Any, Int) =
-    if i < text.length && text(i) == '}' && done.isEmpty then (done.toMap, i + 1)
+    if i < text.length && text(i).equals('}') && done.isEmpty
+    then
+      (
+        done.toMap,
+        i + 1
+      )
     else
-      if i >= text.length || text(i) != '"' then fail(i, "a field name is missing")
+      if i >= text.length || text(i) != '"' then
+        fail(
+          i,
+          "a field name is missing"
+        ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
       val (key, afterKey) = string(text, i + 1, StringBuilder())
       val colon = space(text, afterKey)
-      if colon >= text.length || text(colon) != ':' then fail(colon, "a colon is missing")
+      if colon >= text.length || text(colon) != ':' then
+        fail(
+          colon,
+          "a colon is missing"
+        ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
       val (v, afterValue) = value(text, space(text, colon + 1))
       val next = space(text, afterValue)
       val all = done :+ (key.toString -> v)
-      if next < text.length && text(next) == ',' then members(text, space(text, next + 1), all)
-      else if next < text.length && text(next) == '}' then (all.toMap, next + 1)
+      if next < text.length && text(next).equals(',')
+      then
+        members(
+          text,
+          space(text, next + 1),
+          all
+        )
+      else if next < text.length && text(next).equals('}')
+      then
+        (
+          all.toMap,
+          next + 1
+        )
       else fail(next, "a comma or a brace is missing")
 
   @scala.annotation.tailrec
   private def elements(text: String, i: Int, done: Vector[Any]): (Any, Int) =
-    if i < text.length && text(i) == ']' && done.isEmpty then (done, i + 1)
+    if i < text.length && text(i).equals(']') && done.isEmpty
+    then (done, i + 1)
     else
       val (v, afterValue) = value(text, i)
       val next = space(text, afterValue)
-      if next < text.length && text(next) == ',' then
-        elements(text, space(text, next + 1), done :+ v)
-      else if next < text.length && text(next) == ']' then (done :+ v, next + 1)
+      if next < text.length && text(next) == ',' // scalafix:ok DisableSyntax.==; typed equality
+      then elements(text, space(text, next + 1), done :+ v)
+      else if next < text.length && text(next).equals(']')
+      then
+        (
+          done :+ v,
+          next + 1
+        )
       else fail(next, "a comma or a bracket is missing")
 
   @scala.annotation.tailrec

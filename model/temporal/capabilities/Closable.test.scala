@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 import temporal.capabilities.Closable
 
@@ -49,3 +50,19 @@ class ClosableSuite extends munit.FunSuite:
     assert(rejection(open, Step(Answer.accepted, done)))
     assert(rejection(done, Step(Answer.rejected, done)))
     assert(!rejection(done, Step(Answer.accepted, done)))
+    for
+      before <- Finite[Snapshot].values
+      after <- Finite[Snapshot].values
+      answer <- Finite[Answer].values
+    do
+      val step = Step[Snapshot, Answer, Nothing](answer, after)
+      assertEquals(
+        finality(before, step),
+        before.phase == Phase.open || before.phase == after.phase, // scalafix:ok DisableSyntax.==
+        s"$before -> $step"
+      )
+      assertEquals(
+        rejection(before, step),
+        before.phase == Phase.open || (answer == Answer.rejected && before == after), // scalafix:ok DisableSyntax.==
+        s"$before -> $step"
+      )

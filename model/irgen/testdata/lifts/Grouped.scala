@@ -4,7 +4,7 @@
 // machine of the two, but for names and positions.
 package fixture.grouped
 
-import framework.*
+import framework.*; import framework.Finite.given
 
 enum Mode derives Finite:
   case idle, busy, halted
@@ -27,13 +27,13 @@ object clock:
   val cool = timer
 
 // The modes both machines name a set of, so one function serves both.
-object Modes:
-  def working(m: Mode) = m != Mode.halted
-
+object Modes: // format: off
+  def working(m: Mode) = m != Mode.halted // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  // format: on
 object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
-  val init = Kettle(Mode.idle, UpTo(0))
-  override def end(s: State) = s.mode == Mode.halted
-
+  val init = Kettle(Mode.idle, UpTo(0)) // format: off
+  override def end(s: State) = s.mode == Mode.halted // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
   object effects:
     def heat(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.busy))
     def rest(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.idle))
@@ -44,9 +44,9 @@ object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_
     from(cook) {
       import cook.*
       on(fill) {
-        when(Mode.idle) ~> effects.heat
-        when(Mode.busy).where(_.boils == 2) ~> effects.halt
-      }
+        when(Mode.idle) ~> effects.heat // format: off
+        when(Mode.busy).where(_.boils == 2) ~> effects.halt // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      } // format: on
       on(set(Dial.low), set(Dial.high)) {
         when(Modes.working) ~> effects.refuse
       }
@@ -57,9 +57,9 @@ object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_
     }
 
 object Plain extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
-  val init = Kettle(Mode.idle, UpTo(0))
-  override def end(s: State) = s.mode == Mode.halted
-
+  val init = Kettle(Mode.idle, UpTo(0)) // format: off
+  override def end(s: State) = s.mode == Mode.halted // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  // format: on
   object effects:
     def heat(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.busy))
     def rest(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.idle))
@@ -68,9 +68,9 @@ object Plain extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.m
 
   object rules extends Rules:
     on(cook.fill) {
-      when(Mode.idle) ~> effects.heat
-      when(Mode.busy).where(_.boils == 2) ~> effects.halt
-    }
+      when(Mode.idle) ~> effects.heat // format: off
+      when(Mode.busy).where(_.boils == 2) ~> effects.halt // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
     on(cook.set(Dial.low))(when(Modes.working) ~> effects.refuse)
     on(cook.set(Dial.high))(when(Modes.working) ~> effects.refuse)
     on(clock.cool)(when(Mode.busy, Mode.halted) ~> effects.rest)

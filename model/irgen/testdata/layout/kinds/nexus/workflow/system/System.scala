@@ -1,9 +1,9 @@
 package fixture.features.nexus.workflow
 package system
 
-import framework.*
+import framework.*; import framework.Finite.given
 import product.NexusProduct
-
+val _ = () => summon[CanEqual[Phase, Phase]]
 enum Phase derives Finite:
   case idle, done
 

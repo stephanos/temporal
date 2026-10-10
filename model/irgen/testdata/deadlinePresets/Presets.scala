@@ -1,6 +1,6 @@
 package fixture.deadlinepresets
 
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.outcomes.Outcome
 import framework.realize.*
 import temporal.realize.*

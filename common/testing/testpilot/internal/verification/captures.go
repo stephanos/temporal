@@ -291,18 +291,19 @@ func (a *admission) expressionWork(e *ir.Expression, values map[string]*celpb.Va
 	}
 	// Native CEL charges evaluation, activation reads and the returned value independently.
 	work := int64(4)
+	storage := int64(0)
 	if literal, ok := inlined(e, values); ok {
-		for range 4 {
-			if err := add(&work, int64(proto.Size(literal)), a.prepared.limits.MaxWorkPerEvent); err != nil {
-				return 0, err
-			}
-		}
+		storage = int64(proto.Size(literal))
 	} else if e.Operator() == ir.ReferenceValue || e.Operator() == ir.ReadPath {
-		// Validation, payload traversal, snapshot ownership and CEL adaptation each visit input.
-		for range 4 {
-			if err := add(&work, a.valueBytes(e.Type()), a.prepared.limits.MaxWorkPerEvent); err != nil {
-				return 0, err
-			}
+		storage = a.valueBytes(e.Type())
+	}
+	if storage > 0 {
+		cost, err := ir.SnapshotValueWorkBound(e.Type(), storage, a.prepared.program.Limits().MaxPathFanout)
+		if err != nil {
+			return 0, err
+		}
+		if err := add(&work, cost, a.prepared.limits.MaxWorkPerEvent); err != nil {
+			return 0, err
 		}
 	}
 	for _, child := range e.Children() {
@@ -391,7 +392,13 @@ func (a *admission) transitionWork(m *machine, indexes []int, values map[string]
 }
 
 func (a *admission) valueBytes(typ ir.Type) int64 {
-	if typ.Cardinality() == ir.Singular && (typ.Enum() != nil || typ.Scalar() == testpilotspb.SCALAR_KIND_BOOLEAN || typ.Scalar() >= testpilotspb.SCALAR_KIND_INT32 && typ.Scalar() <= testpilotspb.SCALAR_KIND_DOUBLE) {
+	if typ.Cardinality() == ir.Singular && typ.Enum() != nil {
+		return 32 + int64(len(typ.Enum().FullName()))
+	}
+	if typ.Cardinality() == ir.Singular && typ.Message() != nil {
+		return a.prepared.program.Limits().MaxResponseBytes + 64 + int64(len(typ.Message().FullName()))
+	}
+	if typ.Cardinality() == ir.Singular && (typ.Scalar() == testpilotspb.SCALAR_KIND_BOOLEAN || typ.Scalar() >= testpilotspb.SCALAR_KIND_INT32 && typ.Scalar() <= testpilotspb.SCALAR_KIND_DOUBLE) {
 		return 32
 	}
 	return a.prepared.program.Limits().MaxResponseBytes

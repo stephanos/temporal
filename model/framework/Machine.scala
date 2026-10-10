@@ -37,7 +37,10 @@ def choose[S, O, F](
 ): List[Step[S, O, F]] =
   val alternatives = first +: second +: rest
   for (token, steps) <- alternatives do
-    require(alternatives.count(_._1 eq token) == 1, "a choice names one alternative of a choose")
+    require( // format: off
+      alternatives.count(_._1 eq token) == 1, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      "a choice names one alternative of a choose" // format: on
+    )
     require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
   alternatives.flatMap(_._2).toList
 
@@ -100,7 +103,7 @@ final case class Rule[S, O, F] private[framework] (
     effect: (S, List[Any]) => List[Step[S, O, F]]
 ):
   // Whether it fires the class of the inputs `inputs`.
-  def fires(inputs: List[Any]): Boolean = values.forall(_ == inputs)
+  def fires(inputs: List[Any]): Boolean = values.forall(java.util.Objects.equals(_, inputs))
 
 // The rules of one `on` block, which a derivation binds in its source's place.
 final case class RuleGroup[S, O, F] private[framework] (rules: Vector[Rule[S, O, F]])
@@ -303,7 +306,7 @@ private[framework] def overlap[S, O, F](
     added: Rule[S, O, F]
 ): Option[String] =
   val pairs = for
-    earlier <- rules.view if earlier.decl == added.decl
+    earlier <- rules.view if earlier.decl == added.decl // scalafix:ok DisableSyntax.==
     inputs <- classesOf(added.decl).view if earlier.fires(inputs) && added.fires(inputs)
     s <- states.values.view if earlier.guard(s) && added.guard(s)
   yield (earlier, inputs, s)
@@ -322,7 +325,7 @@ private[framework] def writtenAction(code: String): String =
   path
     .findAllIn(untyped)
     .map(_.stripSuffix(".apply"))
-    .find(p => p.nonEmpty && p != "framework" && p != "apply")
+    .find(p => p.nonEmpty && p != "framework" && p != "apply") // scalafix:ok DisableSyntax.!=
     .fold(code)(_.split('.').last)
 
 // A machine: a transition relation over the finite state type `S` with outcomes `O` and facts `F`.
@@ -391,7 +394,23 @@ abstract class Machine[S, O, F](using
   // The machines this one is made from, which constructing it constructs as well
   // (IrFile.construct): the machine its `object refinement` refines, and for a derivation its
   // source and the machine a `refining` names.
-  private[framework] def reaches: Seq[Model] = Refinement.declaredBy(this).toSeq
+  private[framework] def refinementEvidence: Option[Refinement[S, ?]] =
+    Refinement
+      .declaredBy(this)
+      .map(_.asInstanceOf[Refinement[S, ?]]) // scalafix:ok DisableSyntax.asInstanceOf
+
+  private[framework] def phaseEvidence: Option[S => Any] =
+    if !declaresPhase then None
+    else
+      getClass.getMethod("phased").invoke(this) match
+        case phasing: Phasing[?, ?] =>
+          Some(
+            phasing.asInstanceOf[Phasing[S, ?]].projection // scalafix:ok DisableSyntax.asInstanceOf
+          )
+        case other =>
+          throw IllegalStateException(s"$name declares an invalid phase projection: $other")
+
+  private[framework] def reaches: Seq[Model] = refinementEvidence.toSeq.map(_.of)
 
   // One step function per action: the rules of each, lowered (Rules.lowered).
   private[framework] def bindings: List[StepBinding[S, O, F]] =
@@ -399,9 +418,10 @@ abstract class Machine[S, O, F](using
 
   private def built(
       table: => Vector[(ActionDecl, Bound[S, O, F])],
-      also: Model*
-  ): Machine[S, O, F] & DerivedFrom[this.type] =
-    Built[S, O, F, this.type](objectName(this), List(init), end, table, this, also)(using
+      keepRefinement: Boolean = true
+  ): Machine[S, O, F] & DerivedFrom[this.type] = // format: off
+    Built[S, O, F, this.type](objectName(this), List(init), end, table, this, Seq.empty,
+      if keepRefinement then refinementEvidence else None)(using // format: on
       fs,
       fo,
       ff
@@ -413,7 +433,7 @@ abstract class Machine[S, O, F](using
   def restrict(keep: Action[?]*): Machine[S, O, F] & DerivedFrom[this.type] =
     val decls = keep.map(_.decl).toSet
     // It keeps its source's monitors and assumptions, which are about the state and the machine.
-    built(table.filter((d, _) => decls(d)))
+    built(table.filter((d, _) => decls(d)), keepRefinement = false)
 
   // A machine that binds other step functions or rules to actions this one binds, each in its
   // place, and keeps everything else this machine declares. `action ~> effect` keeps that action's
@@ -454,9 +474,19 @@ abstract class Machine[S, O, F](using
   // A machine that refines `product` through `map` in place of the refinement this one declares,
   // and keeps the facts and outcomes that refinement lets the refined machine see.
   def refining[PS, PO, PF](product: Machine[PS, PO, PF])(
-      @unused map: S => PS
+      map: S => PS
   ): Machine[S, O, F] & DerivedFrom[this.type] =
-    built(table, product)
+    val refinement = new Refinement[S, PS](using machineOwner)(product):
+      def toProduct(s: S): PS = map(s)
+    Built[S, O, F, this.type](
+      objectName(this),
+      List(init),
+      end,
+      table,
+      this,
+      Seq(product),
+      Some(refinement)
+    )(using fs, fo, ff)
 
   // A machine whose checks also make the assumptions named, each once, after this one's.
   def assuming(@unused added: Assumption*): Machine[S, O, F] & DerivedFrom[this.type] =
@@ -464,7 +494,7 @@ abstract class Machine[S, O, F](using
 
   // A machine without this one's monitors and refinement: the same transitions, for a composition
   // a member's monitors may not watch (model/SEMANTICS.md leaves that undefined).
-  def unmonitored: Machine[S, O, F] & DerivedFrom[this.type] = built(table)
+  def unmonitored: Machine[S, O, F] & DerivedFrom[this.type] = built(table, keepRefinement = false)
 
 // A machine derived from another, declared as an object that is it:
 // `object LateRecord extends Derived(OrderRecord.rebind(...))`, named after the object. The
@@ -494,7 +524,10 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
   final override private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     derivation.table
   final override private[framework] def reaches: Seq[Model] =
-    derivation +: Refinement.declaredBy(this).toSeq
+    derivation +: refinementEvidence.toSeq.map(_.of)
+  final override private[framework] def refinementEvidence: Option[Refinement[S, ?]] =
+    super.refinementEvidence.orElse(derivation.refinementEvidence)
+  final override private[framework] def phaseEvidence: Option[S => Any] = derivation.phaseEvidence
 
 // A machine a derivation makes from another: its name, its starts and ends, what it binds each
 // action to, its source and the other machines it is made from. What else it declares only the
@@ -505,7 +538,8 @@ final private[framework] class Built[S, O, F, M <: Model](
     isEnd: S => Boolean,
     bound: => Vector[(ActionDecl, Bound[S, O, F])],
     private[framework] val source: M,
-    also: Seq[Model]
+    also: Seq[Model],
+    refinement: Option[Refinement[S, ?]]
 )(using Finite[S], Finite[O], Finite[F])
     extends Machine[S, O, F],
       DerivedFrom[M]:
@@ -515,3 +549,8 @@ final private[framework] class Built[S, O, F, M <: Model](
     private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
   final override private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] = bound
   final override private[framework] def reaches: Seq[Model] = source +: also
+  final override private[framework] def refinementEvidence: Option[Refinement[S, ?]] = refinement
+  final override private[framework] def phaseEvidence: Option[S => Any] = source match
+    case machine: Machine[?, ?, ?] =>
+      machine.asInstanceOf[Machine[S, ?, ?]].phaseEvidence // scalafix:ok DisableSyntax.asInstanceOf
+    case _ => None

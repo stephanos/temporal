@@ -46,6 +46,7 @@ private[irgen] def unrefuted(all: Seq[Refutation]): Seq[LiftError] =
 private[irgen] trait Markers:
   self: Lifting =>
   import ctx.*
+  import Equality.given
   import ctx.quotes.reflect.*
 
   // Each refusal of the markers of what this lift lifted, at the declaring object's position, and
@@ -62,7 +63,7 @@ private[irgen] trait Markers:
 
     // The object each lifted machine and composition is declared by, where it is one.
     def objectOf(key: String): Option[Symbol] =
-      defs.keys.find(s => s.fullName == key && objectForm(s)).map(moduleClassOf)
+      defs.keys.find(s => s.fullName == key && objectForm(s)).map(moduleClassOf) // scalafix:ok DisableSyntax.==; typed equality
     def marked(cls: Option[Symbol], marker: Symbol): Boolean =
       cls.exists(_.typeRef.derivesFrom(marker))
 
@@ -78,10 +79,10 @@ private[irgen] trait Markers:
       c.members.flatMap(member => byName.get(member.machine).toSeq.flatMap(faultsOf)).distinct
 
     def over(name: String): Seq[ir.Query] =
-      queries.values.filter(_.getScenario.machine == name).toSeq
+      queries.values.filter(_.getScenario.machine == name).toSeq // scalafix:ok DisableSyntax.==; typed equality
     def violated(q: ir.Query): Boolean =
-      q.expectedRun.exists(_.property == ir.RunExpectation.Outcome.OUTCOME_VIOLATED)
-    def refutable(q: ir.Query): Boolean = q.form == ir.Query.Form.FORM_VERIFY || violated(q)
+      q.expectedRun.exists(_.property == ir.RunExpectation.Outcome.OUTCOME_VIOLATED) // scalafix:ok DisableSyntax.==; typed equality
+    def refutable(q: ir.Query): Boolean = q.form == ir.Query.Form.FORM_VERIFY || violated(q) // scalafix:ok DisableSyntax.==; typed equality
 
     def negativeControl(
         name: String,
@@ -93,7 +94,7 @@ private[irgen] trait Markers:
         val p = at.getOrElse(ir.Position())
         val refuted = refinementChecked || over(name).exists(refutable)
         refutations += Refutation(name, s"${p.file}:${p.line}", refuted)
-      for m <- machines.values if m.refines.exists(_.product == name) do
+      for m <- machines.values if m.refines.exists(_.product == name) do // scalafix:ok DisableSyntax.==; typed equality
         refuse(
           at,
           s"$name is a negative control, and ${m.name} refines it: a deliberately wrong design is " +
@@ -161,4 +162,4 @@ private[irgen] trait Markers:
 
   // The Definition IDs of the faults: the actions the actor `fault` takes.
   private def faultActions: Set[String] =
-    actions.values.filter(_.actor == "fault").map(_.id).toSet
+    actions.values.filter(_.actor == "fault").map(_.id).toSet // scalafix:ok DisableSyntax.==; typed equality

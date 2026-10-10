@@ -14,7 +14,7 @@ import (
 	"go.temporal.io/sdk/temporal"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
-	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 )

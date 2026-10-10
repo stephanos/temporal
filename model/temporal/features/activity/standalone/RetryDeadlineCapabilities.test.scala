@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 
 import temporal.capabilities.{Deadline, Retries}
 import temporal.features.activity.{deadline as activityDeadline, Failure, TimeoutType}
@@ -10,6 +11,10 @@ import temporal.features.nexus.workflow.system as nexus
 import framework.outcomes.Outcome
 
 class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
+  val _ = () => summon[CanEqual[activity.Phase, activity.Phase]]
+  private def present(value: Any): Boolean = value match
+    case option: Option[?] => option.nonEmpty
+    case other             => fail(s"expected optional capability binding, got $other")
   private def fields(section: AnyRef, name: String): Map[String, Any] =
     val binding = section.getClass
       .getMethod(name)
@@ -55,8 +60,8 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       val binding = fields(section, name)
       assertEquals(binding("failure"), failure)
       assertEquals(binding("retryable"), retryable)
-      assertEquals(binding("pendingPause") != None, controlled)
-      assertEquals(binding("pendingCancel") != None, controlled)
+      assertEquals(present(binding("pendingPause")), controlled)
+      assertEquals(present(binding("pendingCancel")), controlled)
     for (section, name, timer, timeout, retryable) <- Seq(
         (
           activity.ActivitySystem.capabilities,
@@ -113,9 +118,9 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       assertEquals(binding("timer"), timer)
       assertEquals(binding("timeout"), timeout)
       assertEquals(binding("retryable"), retryable)
-      assertEquals(binding("retriesRemaining") != None, retryable)
-      assertEquals(binding("pendingPause") != None, retryable)
-      assertEquals(binding("pendingCancel") != None, retryable)
+      assertEquals(present(binding("retriesRemaining")), retryable)
+      assertEquals(present(binding("pendingPause")), retryable)
+      assertEquals(present(binding("pendingCancel")), retryable)
   }
 
   private def take[S, F](
@@ -123,7 +128,7 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       before: S,
       action: Class
   ): List[Step[S, Outcome, F]] =
-    val binding = machine.bindings.find(_.decl == action.decl).get
+    val binding = machine.bindings.find(_.decl == action.decl).get // scalafix:ok DisableSyntax.==
     effectOf(binding.decl, binding.function)(before, action.values)
 
   private def holds[S, O, F](
@@ -176,7 +181,7 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
             before,
             Step(RetryFixture.Answer.accepted, before.copy(phase = landing))
           ),
-          landing == expected
+          landing == expected // scalafix:ok DisableSyntax.==
         )
 
     import DeadlineFixture.Record.given
@@ -208,7 +213,7 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
             before,
             Step(DeadlineFixture.Answer.accepted, before.copy(phase = landing))
           ),
-          landing == expected
+          landing == expected // scalafix:ok DisableSyntax.==
         )
   }
 
@@ -369,7 +374,8 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       assert(properties.forall(_.decl.when.contains(action)))
       val after = take(activity.ActivitySystem, before, action).head
       assert(holds(properties, before, after), s"before=$before after=$after")
-      for landing <- summon[Finite[activity.Phase]].values if landing != after.state.phase do
+      for landing <- summon[Finite[activity.Phase]].values if landing != after.state.phase
+      do // scalafix:ok DisableSyntax.!=
         assert(
           !holds(properties, before, after.copy(state = after.state.copy(phase = landing))),
           s"wrong landing before=$before landing=$landing"
@@ -409,9 +415,9 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         after.copy(facts = after.facts :+ activity.Fact.statusTimedOut(TimeoutType.startToClose))
       if pending(before) then
         assert(holds(own, before, after), s"$action before=$before after=$after")
-        for wrong <- landings if wrong.state != after.state do
+        for wrong <- landings if wrong.state != after.state do // scalafix:ok DisableSyntax.!=
           assert(!holds(own, before, wrong), s"$action before=$before wrong=$wrong")
-        if deadlines.exists((timer, _, _) => timer == action) then
+        if deadlines.exists((timer, _, _) => timer == action) then // scalafix:ok DisableSyntax.==
           assert(!holds(own, before, withTimeout), s"$action before=$before wrong=$withTimeout")
         else assert(holds(own, before, withTimeout), s"$action before=$before after=$withTimeout")
       else
@@ -423,13 +429,17 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     // retryable failure or timeout of a plain pending reset lands where the companion expects.
     val refused =
       resets.filter((before, _, _, companion, after) => !holds(companion, before, after))
-    assert(refused.exists((_, action, _, _, _) => action == worker.respondFailed(Failure.fatal)))
+    assert(
+      refused.exists((_, action, _, _, _) => action == worker.respondFailed(Failure.fatal))
+    ) // scalafix:ok DisableSyntax.==
     assert(
       refused.exists((before, _, _, _, _) =>
         !activity.ActivitySystem.states.retriesRemaining(before)
       )
     )
-    assert(refused.exists((before, _, _, _, _) => before.phase == activity.Phase.resetKeepingPause))
+    assert(
+      refused.exists((before, _, _, _, _) => before.phase == activity.Phase.resetKeepingPause)
+    ) // scalafix:ok DisableSyntax.==
   }
 
   test("Nexus handler and network retry bindings remain unlimited at represented saturation") {
@@ -542,14 +552,16 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
           activityDeadlineSettlement(
             timer,
             timeout,
-            kind == TimeoutType.startToClose || kind == TimeoutType.heartbeat
+            kind == TimeoutType.startToClose || kind == TimeoutType.heartbeat // scalafix:ok DisableSyntax.==
           )
         assert(holds(properties, before, after), s"$timer before=$before after=$after")
-        for landing <- summon[Finite[activity.Phase]].values if landing != after.state.phase do
+        for landing <- summon[Finite[activity.Phase]].values if landing != after.state.phase
+        do // scalafix:ok DisableSyntax.!=
           assert(!holds(properties, before, after.copy(state = after.state.copy(phase = landing))))
-        if after.state.phase == activity.Phase.timedOut then
+        if after.state.phase == activity.Phase.timedOut then // scalafix:ok DisableSyntax.==
           assert(!holds(properties, before, after.copy(facts = Nil)))
-          for other <- activity.ActivitySystem.states.timeoutFacts if other != timeout do
+          for other <- activity.ActivitySystem.states.timeoutFacts if other != timeout
+          do // scalafix:ok DisableSyntax.!=
             assert(!holds(properties, before, after.copy(facts = List(other))))
         else
           for terminalFact <- activity.ActivitySystem.states.timeoutFacts do
@@ -568,11 +580,13 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         val timeout = nexus.Fact.nexusOperationTimedOut(kind)
         val property = Deadline.deadlineTimesOut(nexus.NexusSystem)(timer, false, timeout)
         assert(holds(Seq(property), before, after))
-        for landing <- summon[Finite[nexus.Phase]].values if landing != nexus.Phase.timedOut do
+        for landing <- summon[Finite[nexus.Phase]].values if landing != nexus.Phase.timedOut
+        do // scalafix:ok DisableSyntax.!=
           assert(
             !holds(Seq(property), before, after.copy(state = after.state.copy(phase = landing)))
           )
         assert(!holds(Seq(property), before, after.copy(facts = Nil)))
-        for other <- nexus.NexusSystem.states.timeoutFacts if other != timeout do
+        for other <- nexus.NexusSystem.states.timeoutFacts if other != timeout
+        do // scalafix:ok DisableSyntax.!=
           assert(!holds(Seq(property), before, after.copy(facts = List(other))))
   }

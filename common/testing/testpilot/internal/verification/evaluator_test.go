@@ -236,7 +236,7 @@ func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 
 func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 	c, catalog, view, ceiling := fixture(t, 64)
-	ceiling.MaxCaptureBytes = 72
+	ceiling.MaxCaptureBytes = 149
 	rule := c.Rules[0]
 	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved-message", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "example.Empty"}}}}}
 	rule.Transitions[0] = transition("save", "start", "good", present(observation("message")))

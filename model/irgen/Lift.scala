@@ -74,7 +74,7 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
             val declared = Lifting(Context(index)).irFiles(errors += "" -> _)
             // A declaration the lifter cannot read may be the one asked for, so nothing is lifted.
             if errors.isEmpty then
-              for name <- only.distinct.sorted if !declared.exists(_._1 == name) do
+              for name <- only.distinct.sorted if !declared.exists(_._1 == name) do // scalafix:ok DisableSyntax.==; typed equality
                 errors += "" -> LiftError(
                   s"IR file $name",
                   "no irFile of the lifted sources declares it"
@@ -169,7 +169,7 @@ private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftErro
         case (first, firstOver) +: again if again.nonEmpty =>
           again.map((where, over) =>
             val which =
-              if where == first then s"this declaration over $over and the one over $firstOver"
+              if where == first then s"this declaration over $over and the one over $firstOver" // scalafix:ok DisableSyntax.==; typed equality
               else s"this declaration and the one at $first"
             LiftError(
               where,

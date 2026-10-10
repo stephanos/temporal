@@ -7,7 +7,7 @@ import (
 	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -106,21 +106,31 @@ func TestPrepareLocatesPayloadPathsTheFilterCannotCarry(t *testing.T) {
 		predicate *testpilotspb.Expression
 		category  ir.ErrorCategory
 		path      string
+		work      int64
 	}{
-		{name: "an arm every kind requires", kinds: []testpilotspb.RunEventKind{faulted}, predicate: faultKind},
+		{name: "an arm every kind requires", kinds: []testpilotspb.RunEventKind{faulted}, predicate: faultKind, work: 84822},
 		{name: "an arm no kind carries", kinds: []testpilotspb.RunEventKind{completed}, predicate: faultKind, category: ir.Unknown, path: located},
-		{name: "an arm some kind may lack", kinds: []testpilotspb.RunEventKind{completed, faulted}, predicate: faultKind},
-		{name: "a guarded arm some kind may lack", kinds: []testpilotspb.RunEventKind{completed, faulted}, predicate: all(present(payloadField("fault_injected", "kind")), faultKind)},
-		{name: "an optional arm", kinds: []testpilotspb.RunEventKind{completed}, predicate: equal(payloadField("outcome", "detail"), textLiteral(""))},
+		{name: "an arm some kind may lack", kinds: []testpilotspb.RunEventKind{completed, faulted}, predicate: faultKind, work: 84822},
+		{name: "a guarded arm some kind may lack", kinds: []testpilotspb.RunEventKind{completed, faulted}, predicate: all(present(payloadField("fault_injected", "kind")), faultKind), work: 169329},
+		{name: "an optional arm", kinds: []testpilotspb.RunEventKind{completed}, predicate: equal(payloadField("outcome", "detail"), textLiteral("")), work: 117246},
 		{name: "an unknown arm", kinds: []testpilotspb.RunEventKind{faulted}, predicate: equal(payloadField("observations", "observation_id"), textLiteral("")), category: ir.Unknown, path: located + ".path"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
+			if tc.work > 0 {
+				limits.MaxWorkPerEvent = tc.work
+			}
 			c.Rules[0].Transitions[0].EventFilter.Kinds = tc.kinds
 			c.Rules[0].Transitions[0].Predicate = tc.predicate
-			_, err := Prepare(c, cat, view, limits, nil)
+			prepared, err := Prepare(c, cat, view, limits, nil)
 			if tc.category == "" {
 				require.NoError(t, err)
+				require.Equal(t, tc.work, prepared.workPerEvent)
+				limits.MaxWorkPerEvent--
+				_, err := Prepare(c, cat, view, limits, nil)
+				var diagnostic *ir.Error
+				require.ErrorAs(t, err, &diagnostic)
+				require.Equal(t, ir.LimitExceeded, diagnostic.Category)
 				return
 			}
 			var admissionErr *ir.Error
@@ -137,11 +147,19 @@ func TestPrepareLocatesPayloadPathsTheFilterCannotCarry(t *testing.T) {
 // read of a zero value.
 func TestEvaluatorReadsAnUncarriedPayloadAsAbsent(t *testing.T) {
 	c, cat, view, limits := fixture(t)
+	limits.MaxWorkPerEvent = 113136
 	r := c.Rules[0]
 	r.Transitions[0].EventFilter.Kinds = []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}
 	r.Transitions[0].Predicate = present(payloadField("outcome", "detail"))
 	p, err := Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
+	require.Equal(t, limits.MaxWorkPerEvent, p.workPerEvent)
+	tooSmall := proto.CloneOf(limits)
+	tooSmall.MaxWorkPerEvent--
+	_, err = Prepare(c, cat, view, tooSmall, nil)
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, ir.LimitExceeded, diagnostic.Category)
 	carrying := event(3, 20, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
 	carrying.Payload = &testpilotspb.RunEvent_Outcome{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}
 	run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{

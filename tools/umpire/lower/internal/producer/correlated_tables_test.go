@@ -42,3 +42,16 @@ func TestCorrelatedTablesInternCompleteOrderedSemantics(t *testing.T) {
 	}
 	require.True(t, proto.Equal(build(), build()), "local IDs and table order are deterministic")
 }
+
+func TestCorrelatedTableKeysPreserveArbitraryStringPairs(t *testing.T) {
+	c := &testpilotspb.CorrelatedContract{}
+	seen := map[string]string{}
+	state := func(definition, value string) string {
+		return internState(c, seen, &testpilotspb.CorrelatedState{Atom: &testpilotspb.ModelValue{DefinitionId: definition, Value: value}})
+	}
+	require.Equal(t, "s1", state("a", "b:c"))
+	require.Equal(t, "s2", state("a:b", "c"))
+	require.Equal(t, "s3", state("", "\x00\xff"))
+	require.Equal(t, "s3", state("", "\x00\xff"))
+	require.Equal(t, "\x00\xff", c.States[2].GetAtom().GetValue())
+}

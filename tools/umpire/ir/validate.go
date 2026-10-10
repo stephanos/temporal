@@ -51,6 +51,12 @@ func Validate(m *umpirespb.Model) error {
 	}
 	for _, a := range m.GetAssumptions() {
 		v.actionRefs(a.GetPosition(), a.GetFair())
+		if len(a.GetFair()) > 0 && len(a.GetFairRefs()) > 0 {
+			v.report(a.GetPosition(), "assumption %s mixes legacy and composed fairness", a.GetName())
+		}
+		for _, ref := range a.GetFairRefs() {
+			v.fairRef(a, ref)
+		}
 	}
 	for _, c := range m.GetCompositions() {
 		v.composition(c)
@@ -86,7 +92,7 @@ func Validate(m *umpirespb.Model) error {
 func newValidator(m *umpirespb.Model) *validator {
 	v := &validator{declared: map[string]bool{}, types: map[string]*umpirespb.Type{}, functions: map[string]*umpirespb.Function{},
 		actions: map[string]*umpirespb.Action{}, channels: map[string]*umpirespb.Channel{},
-		monitors: map[string]*umpirespb.Monitor{}, assumptions: map[string]bool{}, holes: map[string]bool{},
+		monitors: map[string]*umpirespb.Monitor{}, assumptions: map[string]*umpirespb.Assumption{}, holes: map[string]bool{},
 		machines: map[string]*umpirespb.Machine{}, compositions: map[string]*umpirespb.Composition{},
 		properties: map[claim]bool{}, scenarios: map[claim]bool{}, calls: map[string][]string{},
 		in: interp.NewInterpreter(m), returning: map[string]bool{}}
@@ -114,7 +120,7 @@ func newValidator(m *umpirespb.Model) *validator {
 	}
 	for _, a := range m.GetAssumptions() {
 		v.once(a.GetPosition(), "assumptions with id", a.GetId())
-		v.assumptions[a.GetId()] = true
+		v.assumptions[a.GetId()] = a
 	}
 	for _, h := range m.GetHoles() {
 		v.once(h.GetPosition(), "holes with id", h.GetId())
@@ -260,7 +266,7 @@ func (v *validator) actionRefs(at *umpirespb.Position, ids []string) {
 
 func (v *validator) assumptionRefs(at *umpirespb.Position, ids []string) {
 	for _, id := range ids {
-		if !v.assumptions[id] {
+		if v.assumptions[id] == nil {
 			v.report(at, "no assumption %s", id)
 		}
 	}
@@ -274,7 +280,7 @@ type validator struct {
 	actions      map[string]*umpirespb.Action
 	channels     map[string]*umpirespb.Channel
 	monitors     map[string]*umpirespb.Monitor
-	assumptions  map[string]bool
+	assumptions  map[string]*umpirespb.Assumption
 	holes        map[string]bool
 	machines     map[string]*umpirespb.Machine
 	compositions map[string]*umpirespb.Composition
@@ -701,6 +707,7 @@ func (v *validator) machine(m *umpirespb.Machine) {
 	}
 	v.watched(m)
 	v.assumptionRefs(at, m.GetAssumes())
+	v.assumptionOwner(at, m.GetName(), m.GetAssumes())
 	v.holds(m)
 }
 
@@ -1148,8 +1155,152 @@ func (v *validator) progress(p *umpirespb.Progress) {
 		}
 	}
 	v.assumptionRefs(at, p.GetAssumptions())
+	v.assumptionOwner(at, p.GetMachine(), p.GetAssumptions())
 	if p.GetWithin() < 1 {
 		v.report(at, "progress claim %s of %s is within %d steps, fewer than one", p.GetName(), p.GetMachine(), p.GetWithin())
+	}
+}
+
+func (v *validator) assumptionOwner(at *umpirespb.Position, owner string, ids []string) {
+	for _, id := range ids {
+		for _, ref := range v.assumptions[id].GetFairRefs() {
+			if ref.GetComposition() != owner || v.compositions[owner] == nil {
+				v.report(at, "%s: assumption %s selects fairness on composition %s, not on %s", owner, id, ref.GetComposition(), owner)
+			}
+		}
+	}
+}
+
+func (v *validator) fairRef(a *umpirespb.Assumption, ref *umpirespb.ComposedActionRef) {
+	at, owner := a.GetPosition(), "assumption "+a.GetName()
+	c := v.compositions[ref.GetComposition()]
+	if c == nil {
+		v.report(at, "%s: no composition %s", owner, ref.GetComposition())
+		return
+	}
+	switch selected := ref.GetSelection().(type) {
+	case *umpirespb.ComposedActionRef_Action:
+		v.fairMember(c, ref.GetMember(), selected.Action, nil, at, owner)
+	case *umpirespb.ComposedActionRef_ActionClass:
+		v.fairMember(c, ref.GetMember(), selected.ActionClass.GetAction(), selected.ActionClass, at, owner)
+	case *umpirespb.ComposedActionRef_Sync:
+		v.fairSync(c, ref.GetMember(), selected.Sync, nil, at, owner)
+	case *umpirespb.ComposedActionRef_SyncClass:
+		v.fairSync(c, ref.GetMember(), selected.SyncClass.GetAction(), selected.SyncClass, at, owner)
+	default:
+		v.report(at, "%s: no known fairness selection on %s", owner, c.GetName())
+	}
+}
+
+func (v *validator) fairMember(c *umpirespb.Composition, field, action string, class *umpirespb.ActionClass, at *umpirespb.Position, owner string) {
+	if field == "" {
+		v.report(at, "%s: an action fairness selection on %s requires a member field; an unscoped member selection is ambiguous", owner, c.GetName())
+		return
+	}
+	members := slices.DeleteFunc(slices.Clone(c.GetMembers()), func(m *umpirespb.Member) bool { return m.GetField() != field })
+	if len(members) != 1 {
+		if len(members) == 0 {
+			v.report(at, "%s: %s has no member %s", owner, c.GetName(), field)
+		} else {
+			v.report(at, "%s: member %s of %s is ambiguous", owner, field, c.GetName())
+		}
+		return
+	}
+	mm := v.machines[members[0].GetMachine()]
+	if class != nil {
+		v.actionClass(owner, mm, class, at)
+		return
+	}
+	if v.actions[action] == nil {
+		v.report(at, "%s: no action %s", owner, action)
+	} else if !slices.ContainsFunc(mm.GetSteps(), func(step *umpirespb.StepBinding) bool { return step.GetAction() == action }) {
+		v.report(at, "%s: member %s of %s binds no action %s", owner, field, c.GetName(), action)
+	}
+}
+
+func (v *validator) fairSync(c *umpirespb.Composition, member, name string, class *umpirespb.ActionClass, at *umpirespb.Position, owner string) {
+	if member != "" {
+		v.report(at, "%s: sync selection names member %s", owner, member)
+		return
+	}
+	syncs := slices.DeleteFunc(slices.Clone(c.GetSyncs()), func(s *umpirespb.Sync) bool { return s.GetName() != name })
+	if len(syncs) != 1 {
+		if len(syncs) == 0 {
+			v.report(at, "%s: %s has no sync %s", owner, c.GetName(), name)
+		} else {
+			v.report(at, "%s: sync %s of %s is ambiguous", owner, name, c.GetName())
+		}
+		return
+	}
+	if class == nil {
+		return
+	}
+	var moves [2][]*umpirespb.Action
+	for i, move := range []*umpirespb.SyncMove{syncs[0].GetFirst(), syncs[0].GetSecond()} {
+		for _, mb := range c.GetMembers() {
+			if mb.GetField() != move.GetMember() {
+				continue
+			}
+			for _, step := range v.machines[mb.GetMachine()].GetSteps() {
+				if action := v.actions[step.GetAction()]; action.GetName() == move.GetAction() {
+					moves[i] = append(moves[i], action)
+				}
+			}
+		}
+	}
+	v.fairSyncInputs(owner, name, at, moves, class.GetInputs())
+}
+
+func syncParameterChoices(moves [2][]*umpirespb.Action) [][]*umpirespb.Param {
+	var choices [][]*umpirespb.Param
+	for _, first := range moves[0] {
+		for _, second := range moves[1] {
+			choices = append(choices, append(slices.Clone(first.GetInputs()), second.GetInputs()...))
+		}
+	}
+	return choices
+}
+
+func (v *validator) fairParametersMatch(params []*umpirespb.Param, values []interp.Value) bool {
+	if len(params) != len(values) {
+		return false
+	}
+	for i, param := range params {
+		if !v.in.Conforms(values[i], param.GetType()) {
+			return false
+		}
+	}
+	return true
+}
+
+func (v *validator) fairSyncInputs(owner, name string, at *umpirespb.Position, moves [2][]*umpirespb.Action, inputs []*umpirespb.Value) {
+	values := make([]interp.Value, len(inputs))
+	for i, input := range inputs {
+		v.value(input, at)
+		values[i] = v.in.Literal(input)
+	}
+	choices := syncParameterChoices(moves)
+	matches := slices.DeleteFunc(slices.Clone(choices), func(params []*umpirespb.Param) bool { return !v.fairParametersMatch(params, values) })
+	if len(matches) == 1 {
+		return
+	}
+	if len(matches) > 1 {
+		v.report(at, "%s: sync %s has ambiguous typed inputs", owner, name)
+		return
+	}
+	candidates := slices.DeleteFunc(slices.Clone(choices), func(params []*umpirespb.Param) bool { return len(params) != len(values) })
+	if len(candidates) == 0 {
+		if len(choices) > 0 && !slices.ContainsFunc(choices, func(params []*umpirespb.Param) bool { return len(params) != len(choices[0]) }) {
+			v.report(at, "%s: sync %s takes %d inputs, not %d", owner, name, len(choices[0]), len(values))
+		} else {
+			v.report(at, "%s: sync %s has no declared input arity for %d inputs", owner, name, len(values))
+		}
+		return
+	}
+	for i, param := range candidates[0] {
+		if !v.in.Conforms(values[i], param.GetType()) {
+			v.report(at, "%s: sync %s takes a %s for %s, not %s", owner, name, Spell(param.GetType()), param.GetName(), values[i].Key())
+		}
 	}
 }
 

@@ -47,7 +47,9 @@ class BlockFormRuleSuite extends munit.FunSuite:
       )
     assertEquals(status, 1)
     assertEquals(
-      err.toString.linesIterator.map(_.takeWhile(_ != ' ')).toVector,
+      err.toString.linesIterator
+        .map(_.takeWhile(_ != ' '))
+        .toVector, // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
       Vector("model/temporal/features/Rules.scala:2:")
     )
     assert(err.toString.contains("block-form rule: write the rule as a block"), err.toString)

@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 // The Nexus and shared-worker rejection cells, recorded before they adopted the shared Outcome.
 
 import temporal.features.nexus.handler as nexusHandler
@@ -10,6 +11,7 @@ import temporal.actors.worker as sharedWorker
 import framework.outcomes.Outcome
 
 class NexusOutcomePins extends munit.FunSuite:
+  val _ = () => summon[CanEqual[product.Phase, product.Phase]]
   final case class ExpectedStep[S, F](
       outcome: String,
       state: S,
@@ -60,7 +62,9 @@ class NexusOutcomePins extends munit.FunSuite:
         state <- states.values
       yield
         val matches = rules.filter(r =>
-          r.decl == binding.decl && r.inputs.forall(_ == inputs) && r.guard(state)
+          r.decl == binding.decl && r.inputs.forall(_.equals(inputs)) && r.guard(
+            state
+          ) // scalafix:ok DisableSyntax.==
         )
         assert(
           matches.sizeIs <= 1,
@@ -80,8 +84,8 @@ class NexusOutcomePins extends munit.FunSuite:
         nexusHandler.complete.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled ||
-            s.phase == timedOut || s.phase == terminated,
+          s.phase == succeeded || s.phase == failed || s.phase == canceled || // scalafix:ok DisableSyntax.==
+            s.phase == timedOut || s.phase == terminated, // scalafix:ok DisableSyntax.==
         "rejected(notFound)"
       )
     )
@@ -94,15 +98,16 @@ class NexusOutcomePins extends munit.FunSuite:
         None,
         s =>
           !s.cancelRequested &&
-            (s.phase == succeeded || s.phase == failed || s.phase == canceled ||
-              s.phase == terminated),
+            (s.phase == succeeded || s.phase == failed || s.phase == canceled || // scalafix:ok DisableSyntax.==
+              s.phase == terminated), // scalafix:ok DisableSyntax.==
         "rejected(failedPrecondition)",
         "operation already completed"
       ),
       ExpectedRejection[standalone.system.State](
         standalone.client.terminate.decl,
         None,
-        s => s.phase == succeeded || s.phase == failed || s.phase == canceled,
+        s =>
+          s.phase == succeeded || s.phase == failed || s.phase == canceled, // scalafix:ok DisableSyntax.==
         "rejected(failedPrecondition)",
         "operation already completed"
       )
@@ -115,8 +120,8 @@ class NexusOutcomePins extends munit.FunSuite:
         workflow.handler.complete.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled ||
-            s.phase == timedOut,
+          s.phase == succeeded || s.phase == failed || s.phase == canceled || // scalafix:ok DisableSyntax.==
+            s.phase == timedOut, // scalafix:ok DisableSyntax.==
         "rejected(notFound)"
       )
     )

@@ -11,7 +11,7 @@
 // The kinds are the fixture's own, each a case class whose companion defines its Properties.
 package fixture.capabilitysections
 
-import framework.*
+import framework.*; import framework.Finite.given
 
 enum Phase derives Finite:
   case queued, running, held, done
@@ -40,22 +40,22 @@ val release = action(client)
 final case class Sealable[S, P, O](status: S => P, done: P => Boolean, refused: O)
     extends CapabilityOf[S, O, Nothing]
 
-object Sealable extends CapabilityKind:
+object Sealable extends CapabilityKind: // format: off
   // No step leaves a done status.
-  def sealedStaysSealed[S, P](m: Declares[S])(status: S => P, done: P => Boolean): Property[S] =
-    m.property holdsAcross ((before, after) =>
-      !done(status(before)) || status(after.state) == status(before)
-    )
+  def sealedStaysSealed[S, P](m: Declares[S])(status: S => P, done: P => Boolean)(using CanEqual[P, P]): Property[S] = // format: on
+    m.property holdsAcross ((before, after) => // format: off
+      !done(status(before)) || status(after.state) == status(before) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    ) // format: on
 
   // Every step from a done status keeps the state and answers `refused`.
-  def sealedIsRefused[S, P](m: Declares[S])(
+  def sealedIsRefused[S, P, O](m: Declares[S] { type Outcome = O })(
       status: S => P,
       done: P => Boolean,
-      refused: m.Outcome
-  ): Property[S] =
-    m.property holdsAcross ((before, after) =>
-      !done(status(before)) || (after.state == before && after.outcome == refused)
-    )
+      refused: O
+  )(using CanEqual[S, S], CanEqual[O, O]): Property[S] =
+    m.property holdsAcross ((before, after) => // format: off
+      !done(status(before)) || (after.state == before && after.outcome == refused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    ) // format: on
 
 // The task is held by `hold` and released by `release`; `held` says where it is.
 final case class Holdable[S](
@@ -78,35 +78,35 @@ object Takeable extends CapabilityKind
 
 // The tasks' status sets and step functions; a control of a done task is answered `gone`.
 object Tasks:
-  def phase(t: TaskState): Phase = t.phase
-  def done(p: Phase): Boolean = p == Phase.done
-  def held(t: TaskState): Boolean = t.phase == Phase.held
-  def working(t: TaskState): Boolean = t.phase == Phase.running
-  def over(t: TaskState): Boolean = done(t.phase)
+  def phase(t: TaskState): Phase = t.phase // format: off
+  def done(p: Phase): Boolean = p == Phase.done // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def held(t: TaskState): Boolean = t.phase == Phase.held // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def working(t: TaskState): Boolean = t.phase == Phase.running // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def over(t: TaskState): Boolean = done(t.phase) // format: on
 
   private def gone(t: TaskState): List[Step[TaskState, Answer, Note]] = List(Step(Answer.gone, t))
 
-  def take(t: TaskState): List[Step[TaskState, Answer, Note]] =
-    if t.phase == Phase.queued then enter(TaskState(Phase.running), Note.started) else disabled
+  def take(t: TaskState): List[Step[TaskState, Answer, Note]] = // format: off
+    if t.phase == Phase.queued then enter(TaskState(Phase.running), Note.started) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
   def finish(t: TaskState): List[Step[TaskState, Answer, Note]] =
-    if t.phase == Phase.running then enter(TaskState(Phase.done), Note.finished) else disabled
-  def hold(t: TaskState): List[Step[TaskState, Answer, Note]] =
+    if t.phase == Phase.running then enter(TaskState(Phase.done), Note.finished) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def hold(t: TaskState): List[Step[TaskState, Answer, Note]] = // format: on
     if done(t.phase) then gone(t)
     else if t.phase.in(Phase.queued, Phase.running) then enter(TaskState(Phase.held), Note.heldNote)
     else disabled
   def release(t: TaskState): List[Step[TaskState, Answer, Note]] =
-    if done(t.phase) then gone(t)
-    else if t.phase == Phase.held then enter(TaskState(Phase.queued), Note.released)
-    else disabled
+    if done(t.phase) then gone(t) // format: off
+    else if t.phase == Phase.held then enter(TaskState(Phase.queued), Note.released) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    else disabled // format: on
 
   // The chore's answer to a done task: it keeps the state, whatever it answers.
-  def refusedOrKept[S, P](m: Declares[S])(
+  def refusedOrKept[S, P, O](m: Declares[S] { type Outcome = O })(
       status: S => P,
       done: P => Boolean,
-      refused: m.Outcome
-  ): Property[S] =
-    m.property holdsAcross ((before, after) => !done(status(before)) || after.state == before)
-
+      refused: O
+  )(using CanEqual[S, S]): Property[S] = // format: off
+    m.property holdsAcross ((before, after) => !done(status(before)) || after.state == before) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    // format: on
 val three = Limits(steps = 3, actions = 3, search = 512)
 val two = Limits(steps = 2, actions = 2, search = 256)
 
@@ -131,7 +131,7 @@ object Task extends Machine[TaskState, Answer, Note]:
 
   // Free verify Queries: 4 states x 4 classes x 3 steps = 48, sealedIsRefused's x 2 steps = 32.
   object queries:
-    capabilities.bound(three, Sealable.sealedIsRefused -> two)
+    capabilities.bound(three, Sealable.sealedIsRefused[TaskState, Phase, Answer] -> two)
 
     // Pinned: 4 states x min(3 steps, 2 scheduled) = 8.
     val heldThenTaken = scenario.actions(hold, take)
@@ -148,11 +148,11 @@ object Chore extends Machine[TaskState, Answer, Note]:
 
   object capabilities extends Capabilities:
     val sealable: Capability =
-      Sealable(status = Tasks.phase, done = Tasks.done, refused = Answer.gone)
+      Sealable(status = Tasks.phase, done = Tasks.done, refused = Answer.gone) // format: off
     val holdable: Capability = Holdable(hold = hold, release = release, held = Tasks.held)
-    except(Sealable.sealedStaysSealed, because = "a fixture's waiver: the chore keeps no status")
-    overriding(
-      Sealable.sealedIsRefused -> Tasks.refusedOrKept,
+    except(Sealable.sealedStaysSealed[TaskState, Phase], because = "a fixture's waiver: the chore keeps no status") // format: on
+    overriding( // format: off
+      Sealable.sealedIsRefused[TaskState, Phase, Answer] -> Tasks.refusedOrKept[TaskState, Phase, Answer], // format: on
       because = "a fixture's override: the chore answers a done task as it likes"
     )
 
@@ -182,7 +182,7 @@ abstract class PairCapabilities(c: Composition[PairState])(using
   val takeable: Capability =
     Takeable(take = c.own(_.left, take), working = through(_.left, Tasks.working))
   except(
-    Sealable.sealedIsRefused,
+    Sealable.sealedIsRefused[PairState, Phase, String],
     because = "a fixture's shared waiver: a pair answers a done task with its member's outcome"
   )
 

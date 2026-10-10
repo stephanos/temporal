@@ -43,7 +43,7 @@ const (
 	// The fields none of the Models lifted at the capture sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
-	schemaAddedSupplement = `{"properties":[{"name":"p","origin":{"name":"o","position":{"file":"f"}}}],"queries":[{"name":"q","total":"48","expectedRun":{"reason":"REASON_HOLE","conformanceReason":"REASON_INCOMPLETE","disposition":"DISPOSITION_COMPLETED","cleanup":"CLEANUP_SUCCEEDED","monitors":[{"reason":"REASON_HOLE"}]}}],"functions":[{"name":"g","body":{"construct":{"type":"framework.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
+	schemaAddedSupplement = `{"assumptions":[{"fairRefs":[{"composition":"c","member":"m","action":"a"},{"composition":"c","member":"m","actionClass":{"action":"a","inputs":[{"int":"1"}]}},{"composition":"c","sync":"s"},{"composition":"c","syncClass":{"action":"s","inputs":[{"int":"1"}]}}]}],"properties":[{"name":"p","origin":{"name":"o","position":{"file":"f"}}}],"queries":[{"name":"q","total":"48","expectedRun":{"reason":"REASON_HOLE","conformanceReason":"REASON_INCOMPLETE","disposition":"DISPOSITION_COMPLETED","cleanup":"CLEANUP_SUCCEEDED","monitors":[{"reason":"REASON_HOLE"}]}}],"functions":[{"name":"g","body":{"construct":{"type":"framework.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
 		`"scripts":[{"items":[{"command":{"timeout":"0.001s","poll":{"interval":"0.001s"}}}]}],` +
 		`"behavior":{"visibility":[{"id":"v","position":{"file":"f"},"method":"/s/W","read":"/s/R","eventuallyWithin":{"position":{"file":"f"},"interval":"0.001s","atMost":"0.002s"}},{"cause":"CAUSE_KIND_TIMER"}],` +
 		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"interval":"0.001s"}}],` +
@@ -209,6 +209,7 @@ var (
 		// (fn-129.3).
 		{message: "Realization", field: schemaFieldOf("reset_settlements", 20, schemaRepeated, schemaMessage, "ActivityResetSettlement",
 			"resetSettlements")},
+		{message: "Assumption", field: schemaFieldOf("fair_refs", 5, schemaRepeated, schemaMessage, "ComposedActionRef", "fairRefs")},
 	}
 	// An expected Run's reasons, prose at the capture, are the judge's ids since fn-124.5, so the
 	// captured wire bytes no longer encode their expected Runs as the schema now reads them.
@@ -230,6 +231,14 @@ var (
 			"REASON_UNEXPLAINED", "REASON_EXPLANATIONS_DISAGREE", "REASON_NEVER_EVALUATED", "REASON_UNREADABLE", "REASON_EVERY_EXPLANATION_VIOLATES")},
 	}
 	schemaAddedMessages = []schemaAddedMessage{
+		{after: "Assumption", message: &descriptorpb.DescriptorProto{Name: proto.String("ComposedActionRef"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("composition", 1, schemaOptional, schemaString, "", "composition"),
+			schemaFieldOf("member", 2, schemaOptional, schemaString, "", "member"),
+			schemaFieldOf("action", 3, schemaOptional, schemaString, "", "action", 0),
+			schemaFieldOf("action_class", 4, schemaOptional, schemaMessage, "ActionClass", "actionClass", 0),
+			schemaFieldOf("sync", 5, schemaOptional, schemaString, "", "sync", 0),
+			schemaFieldOf("sync_class", 6, schemaOptional, schemaMessage, "ActionClass", "syncClass", 0),
+		}, OneofDecl: []*descriptorpb.OneofDescriptorProto{{Name: proto.String("selection")}}}},
 		// Realization.required_settings' entry.
 		{after: "Realization", message: &descriptorpb.DescriptorProto{Name: proto.String("RequiredSetting"), Field: []*descriptorpb.FieldDescriptorProto{
 			{Name: proto.String("key"), Number: proto.Int32(1), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),

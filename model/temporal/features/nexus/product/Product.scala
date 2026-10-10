@@ -6,7 +6,7 @@ package temporal
 package features.nexus
 package product
 
-import framework.*
+import framework.*; import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.actors.worker.worker
 
@@ -49,9 +49,9 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
 
     def succeed(s: State) = enter(s.copy(phase = succeeded), nexusOperationCompleted)
 
-    def complete(s: State, resolution: Resolution) =
-      val startedFirst = if s.phase != started then List(nexusOperationStarted) else Nil
-      resolution match
+    def complete(s: State, resolution: Resolution) = // format: off
+      val startedFirst = if s.phase != started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+      resolution match // format: on
         case Resolution.succeeded =>
           enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
         case Resolution.failed =>

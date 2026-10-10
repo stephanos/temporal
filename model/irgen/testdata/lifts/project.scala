@@ -2,7 +2,7 @@
 // lifter to refuse. They build against the framework and Temporal Models the gate packaged.
 //> using scala 3.9.0
 //> using jvm 27
-//> using options -Werror -deprecation -feature -unchecked -Wunused:all -Wvalue-discard -Wnonunit-statement -Wsafe-init -Wimplausible-patterns
+//> using options -Werror -deprecation -feature -unchecked -Wunused:all -Wvalue-discard -Wnonunit-statement -Wsafe-init -Wimplausible-patterns -language:strictEquality
 // Model/capability parameters are intentionally retained to pin the lifter's declared signatures.
 //> using options "-Wconf:id=E198&msg=unused explicit parameter:s"
 // These expressions deliberately reach the lifter's bare-expression, unheaded-rule and wrong-field

@@ -99,7 +99,9 @@ class ToolsSuite extends munit.FunSuite:
     assert(refused(held.tools(work).find("protoc")).startsWith("protoc is missing: "))
     val path = held.directory.resolve("bin/java").toString
     assertEquals(
-      refused(held.tools(work).find(path)).takeWhile(_ != '.'),
+      refused(held.tools(work).find(path)).takeWhile(
+        _ != '.'
+      ), // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
       s"$path is missing: it is not an executable file"
     )
 

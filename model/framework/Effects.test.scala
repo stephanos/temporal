@@ -1,4 +1,5 @@
 package framework
+import framework.Finite.given
 // The block forms run as Scala: an `effect { }` block yields the steps of its method form, and an
 // `is { }` block answers as its predicate. Field assignments, `record` and the one-argument
 // `reject` compile only inside an effect block.
@@ -32,8 +33,8 @@ object EffectsFixture:
     override def end(s: Job) = true
 
     object states:
-      val busy = is(phase == Phase.busy)
-      val retried = is(phase == Phase.busy && tries == UpTo[2](1))
+      val busy = is(phase == Phase.busy) // scalafix:ok DisableSyntax.==
+      val retried = is(phase == Phase.busy && tries == UpTo[2](1)) // scalafix:ok DisableSyntax.==
 
     object effects:
       val start = effect {
@@ -92,6 +93,7 @@ object EffectsFixture:
 
 class EffectsTest extends munit.FunSuite:
   import EffectsFixture.*
+  val _ = () => summon[CanEqual[Phase, Phase]]
 
   type Effect = Job => List[Step[Job, Said, Note]]
 
@@ -136,20 +138,25 @@ class EffectsTest extends munit.FunSuite:
       stage = Stage.resting
       record(Status.resting)
     }
-    val refused = intercept[IllegalArgumentException](twice(Tasker.init))
-    assert(
-      refused.getMessage.contains(
-        "an effect block records resting, which its assignment of a status already records: " +
-          "drop the record(resting)"
-      ),
-      refused.getMessage
-    )
+    for state <- Finite[Task].values do
+      val refused = intercept[IllegalArgumentException](twice(state))
+      assert(
+        refused.getMessage.contains(
+          "an effect block records resting, which its assignment of a status already records: " +
+            "drop the record(resting)"
+        ),
+        refused.getMessage
+      )
   }
 
   test("an is block answers as its predicate") {
     for s <- states do
-      assertEquals(Subject.states.busy(s), s.phase == Phase.busy, s)
-      assertEquals(Subject.states.retried(s), s.phase == Phase.busy && s.tries == UpTo[2](1), s)
+      assertEquals(Subject.states.busy(s), s.phase == Phase.busy, s) // scalafix:ok DisableSyntax.==
+      assertEquals(
+        Subject.states.retried(s),
+        s.phase == Phase.busy && s.tries == UpTo[2](1),
+        s
+      ) // scalafix:ok DisableSyntax.==
   }
 
   test("a rule binds an effect block and conditions on an is block") {
@@ -161,12 +168,18 @@ class EffectsTest extends munit.FunSuite:
     )
     assertEquals(press(Job(Phase.busy, UpTo(1))).map(_.state.phase), List(Phase.paused))
     assertEquals(press(Job(Phase.paused, UpTo(0))), Nil)
+    for state <- states do
+      val expected = state.phase match
+        case Phase.idle   => Subject.effects.start(state)
+        case Phase.busy   => Subject.effects.pause(state)
+        case Phase.paused => Nil
+      assertEquals(press(state), expected, state)
   }
 
   test("record, the one-argument reject and a field assignment compile only in an effect block") {
     given Owner[Job, Said, Note] = Owner(Subject)
     // The blocks compile here, so the errors below are the draft's.
-    assert(is(phase == Phase.idle)(Subject.init))
+    assert(is(phase == Phase.idle)(Subject.init)) // scalafix:ok DisableSyntax.==
     val draftOnly = "which only an `effect { }` block does"
     for (code, errors) <- List(
         "record(Note.started)" -> compileErrors("record(Note.started)"),

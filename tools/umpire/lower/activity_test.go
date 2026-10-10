@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	enumspb "go.temporal.io/api/enums/v1"
 	failurepb "go.temporal.io/api/failure/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -128,7 +129,7 @@ func TestAnActivityScriptLowersToItsAttemptsInOrder(t *testing.T) {
 	require.NotEmpty(t, worker.GetNamespaceBindingId())
 	require.NotEmpty(t, queue.GetResourceBindingId())
 
-	protorequire.ProtoEqual(t, cp.Equal(cp.Path(cp.ProjectedValue(), "status"), cp.Literal(cp.Enum("ACTIVITY_EXECUTION_STATUS_COMPLETED"))),
+	protorequire.ProtoEqual(t, cp.Equal(cp.Path(cp.ProjectedValue(), "status"), cp.Literal(cp.Enum(enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED))),
 		instruction(t, c, "controller", "await-closed").GetInstruction().GetReadEvidence().GetUntil())
 	// A conjunction, an order and a negation lower to the expressions of those names.
 	protorequire.ProtoEqual(t, cel.All(

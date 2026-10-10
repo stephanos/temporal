@@ -4,11 +4,11 @@ package features.activity
 package standalone
 package system
 
-import framework.*
+import framework.*; import framework.Finite.given
 import temporal.realize.satisfied
 import Bounds.{four, three}
 import Timeout.expires
-
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // Model-only witnesses of a pending reset: it applies on a fatal failure, on an exhausted policy
 // and on an attempt's own deadline, keeps a requested pause, loses to a completion, a cancellation
 // and schedule-to-close, and outranks a pause and a repeated reset. No realization runs them.
@@ -17,36 +17,36 @@ object ResetSettlement extends Derived(ActivitySystem.unmonitored):
     // A first attempt again, dispatched at once, of an activity with no deadline set.
     val restarted =
       ActivitySystem.init.copy(phase = Phase.scheduled)
-    val resetOnFatal = property when worker.respondFailed(Failure.fatal) holds { s =>
-      s.state == restarted && s.records(Fact.statusScheduled) && !s.records(Fact.statusFailed)
+    val resetOnFatal = property when worker.respondFailed(Failure.fatal) holds { s => // format: off
+      s.state == restarted && s.records(Fact.statusScheduled) && !s.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     }
     val resetOnExhaustion = property when worker.respondFailed(Failure.retryable) holds { s =>
-      s.state == restarted.copy(maxAttempts = MaxAttempts.one) && s.records(Fact.statusScheduled)
-    }
-    val resetOnTimeout = property when deadline.startToClose holds { s =>
-      s.state == restarted.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.one) &&
-      s.records(Fact.statusScheduled) &&
+      s.state == restarted.copy(maxAttempts = MaxAttempts.one) && s.records(Fact.statusScheduled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
+    val resetOnTimeout = property when deadline.startToClose holds { s => // format: off
+      s.state == restarted.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.one) && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      s.records(Fact.statusScheduled) && // format: on
       !s.records(Fact.statusTimedOut(TimeoutType.startToClose))
-    }
+    } // format: off
     val resetKeepsPause = property when worker.respondFailed(Failure.retryable) holds { s =>
-      s.state == restarted.copy(phase = Phase.paused) && s.records(Fact.statusPaused)
-    }
+      s.state == restarted.copy(phase = Phase.paused) && s.records(Fact.statusPaused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
     val completionWins = property when worker.respondCompleted holds { s =>
-      s.state.phase == Phase.completed && s.state.attempts == 1 &&
+      s.state.phase == Phase.completed && s.state.attempts == 1 && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       s.records(Fact.statusCompleted)
     }
     val scheduleToCloseStaysTerminal = property when deadline.scheduleToClose holds { s =>
-      s.state.phase == Phase.timedOut &&
+      s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       s.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))
     }
-    val cancellationReplacesReset = property when client.requestCancel holds { s =>
-      s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested)
-    }
-    val pauseLeavesResetPending = property when client.pause holds { s =>
-      s.state.phase == Phase.resetRequested && !s.records(Fact.statusPaused)
-    }
+    val cancellationReplacesReset = property when client.requestCancel holds { s => // format: off
+      s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
+    val pauseLeavesResetPending = property when client.pause holds { s => // format: off
+      s.state.phase == Phase.resetRequested && !s.records(Fact.statusPaused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
     val resetStaysPending = property when client.reset(ResetPause.resume) holds { s =>
-      s.state.phase == Phase.resetRequested
+      s.state.phase == Phase.resetRequested // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     }
   object queries:
     val resetThenFatal = scenario.actions(
@@ -125,10 +125,10 @@ object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
   object properties:
     // Paused before any attempt, with no deadline set, its count restarted.
     val keptPaused =
-      ActivitySystem.init.copy(phase = Phase.paused)
+      ActivitySystem.init.copy(phase = Phase.paused) // format: off
     val resetKeptPaused = property when client.reset(ResetPause.keepPaused) holds { s =>
-      s.state == keptPaused && s.records(Fact.statusPaused)
-    }
+      s.state == keptPaused && s.records(Fact.statusPaused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
   object queries:
     val pausedThenReset = scenario.actions(
       client.start(),
@@ -141,9 +141,9 @@ object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
 // next delivery is a first attempt again, which completes, though the policy allowed one attempt.
 object DeferredReset extends Derived(ActivitySystem.unmonitored):
   object properties:
-    val resetAttemptCompletes = property when worker.respondCompleted holds { s =>
-      s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
-    }
+    val resetAttemptCompletes = property when worker.respondCompleted holds { s => // format: off
+      s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    } // format: on
   object queries:
     val resetThenHeartbeatTimedOut = scenario.actions(
       client.start(heartbeat := expires, maxAttempts := MaxAttempts.one),

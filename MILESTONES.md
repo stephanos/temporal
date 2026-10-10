@@ -5,6 +5,11 @@ Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the o
 
 As of 2026-10-10.
 
+Execution is paused at the owner's request after wrapping the in-flight source checkpoints.
+The compiler, format and fairness checkpoints are integrated locally; no new work is scheduled.
+Open tasks remain in progress where acceptance, generation or review is still required.
+Fn-157 remains owner-deferred. Resume requires a new owner instruction.
+
 ## Keeping this page current
 
 - This page describes the present. Rewrite a status in place; do not append dated entries.
@@ -236,6 +241,13 @@ source edits by file ownership rather than serializing the entire rollout agains
 Task .1 proves sound equality evidence and byte-preserving exhaustive-match lowering before
 rollout; an infeasible proof stops that source lane without relaxing acceptance. The
 compile-versus-lift items from the same review remain notes on fn-141.
+Compiler source checkpoints are integrated as `8481696c62` and `7d54144267`. The latest v3
+compiler-only comparison preserves all eleven fresh raw outputs against the immutable pre-edit
+lift, including positions; root independently verified the bytes and jar hashes. Typed remainder
+prefix compatibility, finite role equivalence and the all-source inspector have focused passing
+evidence, with no golden changes. The counted 40-root explicit-nulls trial rejects uniform flag
+adoption without unsafe escapes; its findings are in `.plans/SCALA.md`. Full fixture/authoring
+reruns, formatting/lint, managed IR/Case regeneration, R9 reconciliation and review remain open.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -244,7 +256,7 @@ compile-versus-lift items from the same review remain notes on fn-141.
 | fn-156.3 | 🔄 in progress | Section order, dotted membership, permitted imports and exhaustive enum/state matches |
 | fn-156.4 | 🔄 in progress | Discover every exported machine for totality, closedness, relation and binding-order laws |
 | fn-156.5 | 🔄 in progress | Complete finite-domain tests and independent interpreter table pins for every Activity/Nexus machine |
-| fn-156.6 | 🔄 in progress | Explicit-nulls trial across compiler roots; adopt with boundary fixes or report findings and drop |
+| fn-156.6 | 🔄 in progress | Counted 40-root explicit-nulls trial/report committed; uniform flag rejected, final acceptance held |
 | fn-156.8 | ✅ done | Report-only Draft capture investigation: 30 verified compiler observations and three-axis SHIP review; no capture adoption; .7 retains publication/baseline reconciliation |
 | fn-156.7 | ⬜ todo | Join reports, document enforcement, exact artifact comparison, full gates and reviews; close |
 
@@ -376,10 +388,16 @@ Authoring predecessors remain final integration holds, especially for .6; format
 still belongs exclusively to fn-148.6. CEL adoption is decided; no additional prototype is planned.
 
 The coordinated Go/schema/generated-API source checkpoint is integrated as `49f6809ae9`.
-Fifteen focused native CEL, Duration and captured-message roundtrip tests pass on the integrated
-tree, including current-format offline admission and companion rejection controls. Owned lint
-and precise module-import inventory corrections remain in the source lane. Scala proposals await
-the compiler-only seal; managed artifacts, full gates, live corpus and shared review remain open.
+The corrective native-input work/limit, lint and precise module-import checkpoint is integrated
+as `823db65754`; the worker's final changed-package lint and focused checks passed. The final
+combined tree passed 52 focused top-level tests across six packages, including native captured
+message offline admission, payload limits, schema/ownership, fairness and claim reporting.
+Typed Run Event payload response-byte/fanout admission is an explicit format 4 source-policy
+delta: only fixed descriptor-derived canonical TypeURL overhead is compensated, never above the
+unchanged global hard cap; empty native payloads remain admitted at response cap 1. Final corpus
+and default/ceiling reconciliation remains required. Extension-range protobuf resolver authority
+is unproven and remains an acceptance blocker. Scala proposals are unapplied; managed artifacts,
+full gates, live corpus, final cost measurements and shared review remain open.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -583,9 +601,9 @@ generation for compositions is outside this spec.
 | Task | Status | What |
 | --- | --- | --- |
 | fn-150.1 | ⏸️ deferred | Scoped admission/checker checkpoint integrated; original Quick OOM retained, review and closure held |
-| fn-150.2 | 🔄 in progress | Structured fairness references and inherited/replacement mapping; finite proto/Go work-ahead, Scala closure awaits compiler seal |
+| fn-150.2 | 🔄 in progress | Finite structured fairness checkpoint integrated; typed catalog, inheritance and exact member/sync pins pass; Scala/full acceptance held |
 | fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
-| fn-150.4 | 🔄 in progress | Boundary and typed replay checkpoint integrated; focused pins, engine suite and lint evidence retained; structured fairness and integrated acceptance remain |
+| fn-150.4 | 🔄 in progress | Boundary, typed replay and structured fairness checkpoints integrated; focused proofs retained, full gates/review remain |
 | fn-150.5 | ⬜ todo | Temporal positive/negative example, docs and integrated gates |
 
 Integration order: `.1` then `.2`; `.3` and `.4` join before `.5`. Source work may overlap
@@ -605,8 +623,12 @@ The conductor's integrated task .4 Quick is recorded under `.flow/tmp/fn150/inte
 That run exited 1: the engine package passed, but the unchanged Activity property-row checker
 hit the canonical 30-minute timeout during `startedByPollingWorker_is_about_the_backoff`.
 The checker package elapsed 1,846.865 seconds. Its terminal log and result are retained;
-this is not a restored full gate. Structured fairness work continues independently, and
-fn-157's owner deferral remains in force.
+this is not a restored full gate. Structured fairness source is integrated through `bd4511d8b1`,
+preserving both CEL/Duration and finite fairness schema inventories after a serial join repair.
+The final combined focused check passed; the join's inherited CEL lint failure and exact restoration
+of its unowned autofixes remain recorded separately. Scala closure, managed source-position
+reconciliation, canonical full checks and review remain open. Work is paused at the owner's request,
+and fn-157's owner deferral remains in force.
 
 The one unchanged Quick retry after the private fn-155 compiler daemon exited also failed
 naturally: exit 1 after 39.102 seconds, checker killed after 36.698 seconds and reader cached pass.

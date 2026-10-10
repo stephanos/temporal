@@ -101,6 +101,7 @@ func modelImportProblem(file string, external bool, imported string) string {
 	if name == "common/testing/testpilot" && owner == "internal" {
 		return "unapproved Testpilot helper dependency"
 	}
+	neutralDuration := name == "common/testing/testpilot/duration" && (owner == "realization" || owner == "lower" || owner == "conformance")
 	if strings.HasPrefix(name, "common/testing/testpilot/") && owner != "cmd" {
 		helper := strings.TrimPrefix(name, "common/testing/testpilot/")
 		allowed := false
@@ -108,13 +109,15 @@ func modelImportProblem(file string, external bool, imported string) string {
 		case "explore":
 			allowed = helper == "campaign" || helper == "replay" || helper == "recordedrun"
 		case "internal":
-			allowed = strings.HasPrefix(part, "internal/cli/") && helper == "publish"
+			allowed = strings.HasPrefix(part, "internal/cli/") && helper == "publish" || strings.HasPrefix(part, "internal/runtimecel/") && helper == "cel"
 		case "lower":
 			// The lowerer's own tests admit a lowered Case under the Driver's catalog; only its
 			// external test package follows a Case into a recorded Run.
-			allowed = test && !strings.Contains(part, "/internal/") && (helper == "temporal" || external && helper == "recordedrun")
+			allowed = helper == "cel" || neutralDuration || test && !strings.Contains(part, "/internal/") && (helper == "temporal" || external && helper == "recordedrun")
 		case "conformance":
-			allowed = test && (helper == "temporal" || helper == "temporal/control")
+			allowed = helper == "cel" || helper == "predicate" || neutralDuration || test && (helper == "temporal" || helper == "temporal/control")
+		case "realization":
+			allowed = neutralDuration
 		default:
 			return "unapproved Testpilot helper dependency"
 		}
@@ -122,13 +125,16 @@ func modelImportProblem(file string, external bool, imported string) string {
 			return "unapproved Testpilot helper dependency"
 		}
 	}
-	if (readerPackages[owner] || strings.HasPrefix(part, "internal/engine/")) && (strings.HasPrefix(name, "common/testing/testpilot") || strings.HasPrefix(name, "api/testpilot/")) {
+	if !neutralDuration && (readerPackages[owner] || strings.HasPrefix(part, "internal/engine/")) && (strings.HasPrefix(name, "common/testing/testpilot") || strings.HasPrefix(name, "api/testpilot/")) {
 		return "reader imports Testpilot"
 	}
 	if strings.HasPrefix(part, "internal/engine/") && strings.HasPrefix(name, "tools/umpire/") && !strings.HasPrefix(name, "tools/umpire/internal/engine") {
 		return "engine imports a higher layer"
 	}
 	if strings.HasPrefix(name, "tools/umpire/internal/engine") {
+		return ""
+	}
+	if name == "tools/umpire/internal/runtimecel" && (owner == "lower" || owner == "conformance") {
 		return ""
 	}
 	if strings.HasPrefix(name, "tools/umpire/") {
@@ -147,6 +153,9 @@ func modelImportProblem(file string, external bool, imported string) string {
 			if test {
 				allowed[owner] = append(allowed[owner], "ir")
 			}
+		}
+		if strings.HasPrefix(part, "internal/runtimecel/") {
+			allowed[owner] = []string{"interp", "realization"}
 		}
 		if test {
 			if owner == "realization" {
@@ -391,6 +400,24 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/conformance"},
 		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/export"},
 		{file: "tools/umpire/internal/cli/cli.go", dependency: module + "common/testing/testpilot"},
+		{file: "tools/umpire/lower/realization.go", dependency: module + "common/testing/testpilot/cel", allowed: true},
+		{file: "tools/umpire/lower/waits.go", dependency: module + "common/testing/testpilot/duration", allowed: true},
+		{file: "tools/umpire/conformance/guard.go", dependency: module + "common/testing/testpilot/predicate", allowed: true},
+		{file: "tools/umpire/conformance/guard_test.go", dependency: module + "common/testing/testpilot/cel", allowed: true},
+		{file: "tools/umpire/conformance/activity_test.go", dependency: module + "common/testing/testpilot/duration", allowed: true},
+		{file: "tools/umpire/realization/duration.go", dependency: module + "common/testing/testpilot/duration", allowed: true},
+		{file: "tools/umpire/internal/runtimecel/operand.go", dependency: module + "common/testing/testpilot/cel", allowed: true},
+		{file: "tools/umpire/internal/runtimecel/operand.go", dependency: module + "tools/umpire/realization", allowed: true},
+		{file: "tools/umpire/lower/realization.go", dependency: module + "tools/umpire/internal/runtimecel", allowed: true},
+		{file: "tools/umpire/conformance/guard.go", dependency: module + "tools/umpire/internal/runtimecel", allowed: true},
+		{file: "tools/umpire/ir/load_test.go", dependency: module + "common/testing/testpilot/duration"},
+		{file: "tools/umpire/interp/eval.go", dependency: module + "common/testing/testpilot/cel"},
+		{file: "tools/umpire/check/claims.go", dependency: module + "common/testing/testpilot/predicate"},
+		{file: "tools/umpire/realization/operand.go", dependency: module + "common/testing/testpilot/cel"},
+		{file: "tools/umpire/lower/lower.go", dependency: module + "common/testing/testpilot/predicate"},
+		{file: "tools/umpire/ir/load.go", dependency: module + "tools/umpire/internal/runtimecel"},
+		{file: "tools/umpire/conformance/guard.go", dependency: module + "tools/umpire/internal/cli"},
+		{file: "tools/umpire/internal/runtimecel/operand.go", dependency: module + "common/testing/testpilot"},
 		{file: "tools/umpire/cmd/x/main_test.go", dependency: module + "tests/testcore/testpilot"},
 		{file: "service/history/handler.go", dependency: module + "model/go/umpire"},
 	} {

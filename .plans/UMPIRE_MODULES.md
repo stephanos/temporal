@@ -73,6 +73,14 @@ projected evaluation to conformance, and `duration` checks exact whole-milliseco
 These packages depend only on Testpilot schema, its admitted catalog and standard runtime support.
 The Umpire finite evaluator and neutral symbolic operand IR remain independent of Testpilot.
 
+The closed Go import inventory admits `cel` only from lowering, its neutral
+`internal/runtimecel` operand translator and conformance; `predicate` only from conformance;
+and the schema-independent `duration` leaf only from realization admission, lowering and
+conformance. The operand translator reads `interp` source diagnostics and `realization` path
+authority, and only lowering/conformance call it. Finite `ir`, `interp`, `check` and the engine
+still reject Testpilot schemas and runtime helpers. Their Duration test fixtures construct
+native protobuf values locally without Testpilot imports or time.Duration narrowing.
+
 The leaf `evidence.proto` owns generalized extraction declarations, ordered declaration-ID response
 lifts and runtime evidence identities/values. `correlated.proto` owns Contract policy and complete
 state/result tables. Program extraction never derives or narrows the independent Contract policy.

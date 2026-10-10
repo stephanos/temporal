@@ -249,6 +249,24 @@ func (e *Evaluator) checkEvent(event *testpilotspb.RunEvent) (map[string]*celpb.
 	if err := ir.CheckSurface(event, ir.DefaultLimits()); err != nil {
 		return nil, err
 	}
+	message := event.ProtoReflect()
+	if arm := message.WhichOneof(message.Descriptor().Oneofs().ByName("payload")); arm != nil {
+		typ, known := e.prepared.catalog.RunEventPayloadType(arm.Name())
+		if !known {
+			return nil, invalid(ir.Malformed, "unknown Run Event payload arm")
+		}
+		value := ir.RunEventPayloadValue(event, arm.Name())
+		bounds := ir.DefaultLimits()
+		// The adapter creates this URL; it is ownership overhead, not source payload bytes.
+		envelopeBytes := int64(len("type.googleapis.com/") + len(typ.Message().FullName()))
+		if limits.MaxResponseBytes <= bounds.Bytes && envelopeBytes <= bounds.Bytes-limits.MaxResponseBytes {
+			bounds.Bytes = limits.MaxResponseBytes + envelopeBytes
+		}
+		bounds.Fanout = limits.MaxPathFanout
+		if err := e.prepared.catalog.CheckLiteral(value, typ, bounds); err != nil {
+			return nil, relocate(err, "run_event.payload."+string(arm.Name()))
+		}
+	}
 	values := make(map[string]*celpb.Value, len(event.Observations))
 	if len(event.Observations) > len(e.prepared.observations) {
 		return nil, invalid(ir.LimitExceeded, "observation count exceeded")
