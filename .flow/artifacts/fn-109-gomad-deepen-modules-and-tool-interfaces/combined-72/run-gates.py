@@ -74,11 +74,16 @@ def make_tool_routes(path):
     grep = shutil.which('grep', path=path)
     if not grep:
         raise ValueError('Make eager grep executable is absent from its actual search path')
+    find = shutil.which('find', path=path)
+    if not find:
+        raise ValueError('Make eager find executable is absent from its actual search path')
     return {'shell_path': str(shell),
             'shell_link_target': os.readlink(shell) if shell.is_symlink() else None,
             'shell_resolved_target': str(shell.resolve(strict=True)),
             'grep_search_path': path, 'grep_selected_path': grep,
-            'grep_resolved_target': str(Path(grep).resolve(strict=True))}
+            'grep_resolved_target': str(Path(grep).resolve(strict=True)),
+            'find_search_path': path, 'find_selected_path': find,
+            'find_resolved_target': str(Path(find).resolve(strict=True))}
 
 def git(*args):
     return subprocess.check_output(['git', *args], cwd=ROOT)
@@ -423,7 +428,8 @@ def main():
                   Path(shutil.which('make', path=env['PATH'])), Path(shutil.which('git', path=env['PATH'])),
                   Path(shutil.which('timeout', path=env['PATH'])), Path(sys.executable),
                   Path('/bin/sh'), Path(routing['shell_resolved_target']),
-                  Path(routing['grep_selected_path']), Path(routing['grep_resolved_target'])]
+                  Path(routing['grep_selected_path']), Path(routing['grep_resolved_target']),
+                  Path(routing['find_selected_path']), Path(routing['find_resolved_target'])]
     for variable in ('CC', 'CXX'):
         command = shlex.split(actual_go[variable])
         compiler = shutil.which(command[0], path=env['PATH']) if command else None
@@ -449,7 +455,7 @@ def main():
          'baseline_integrated_lint_argv': baseline_make_argv,
          'current_explicit_make_shell_argument': 'SHELL=/bin/sh',
          'baseline_explicit_make_shell_arguments': [entry for entry in baseline_make_argv if entry.startswith('SHELL=')],
-         'historical_selected_tools_limit': 'Retained historical tool manifests bind only their listed paths and retained route metadata. Missing shell routes or grep entries cannot establish historical execution identities; current additions do not retroactively bind older runs.',
+         'historical_selected_tools_limit': 'Retained historical tool manifests bind only their listed paths and retained route metadata. Missing shell routes, grep or find entries cannot establish historical execution identities. Combined70 omitted the selected/resolved find route and bytes; current additions do not retroactively bind older runs.',
          'baseline_environment_sha256': sha(BASELINE / 'environment.json'),
          'current_environment_sha256': sha(PACKET / 'environment.json'),
          'recorded_setting_differences': {key: {'baseline': baseline_env.get(key), 'current': selected_env.get(key)}
