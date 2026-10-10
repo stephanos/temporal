@@ -16,16 +16,7 @@ object ResetSettlement extends Derived(ActivitySystem.unmonitored):
   object properties:
     // A first attempt again, dispatched at once, of an activity with no deadline set.
     val restarted =
-      system.State(
-        phase = Phase.scheduled,
-        dispatch = Dispatch.now,
-        attempts = UpTo(0),
-        scheduleToClose = Timeout.unset,
-        scheduleToStart = Timeout.unset,
-        startToClose = Timeout.unset,
-        heartbeat = Timeout.unset,
-        maxAttempts = MaxAttempts.unlimited
-      )
+      ActivitySystem.init.copy(phase = Phase.scheduled)
     val resetOnFatal = property when worker.respondFailed(Failure.fatal) holds { s =>
       s.state == restarted && s.records(Fact.statusScheduled) && !s.records(Fact.statusFailed)
     }
@@ -134,16 +125,7 @@ object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
   object properties:
     // Paused before any attempt, with no deadline set, its count restarted.
     val keptPaused =
-      system.State(
-        phase = Phase.paused,
-        dispatch = Dispatch.now,
-        attempts = UpTo(0),
-        scheduleToClose = Timeout.unset,
-        scheduleToStart = Timeout.unset,
-        startToClose = Timeout.unset,
-        heartbeat = Timeout.unset,
-        maxAttempts = MaxAttempts.unlimited
-      )
+      ActivitySystem.init.copy(phase = Phase.paused)
     val resetKeptPaused = property when client.reset(ResetPause.keepPaused) holds { s =>
       s.state == keptPaused && s.records(Fact.statusPaused)
     }

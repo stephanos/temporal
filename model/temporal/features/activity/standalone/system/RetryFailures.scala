@@ -13,15 +13,9 @@ object RetryFailures extends Derived(ActivitySystem.rebind()):
   object states:
     // Completed on the second attempt of an activity with no deadline set.
     val completedOnRetry =
-      system.State(
+      ActivitySystem.init.copy(
         phase = Phase.completed,
-        dispatch = Dispatch.now,
-        attempts = UpTo(ActivitySystem.states.attemptBound),
-        scheduleToClose = Timeout.unset,
-        scheduleToStart = Timeout.unset,
-        startToClose = Timeout.unset,
-        heartbeat = Timeout.unset,
-        maxAttempts = MaxAttempts.unlimited
+        attempts = UpTo(ActivitySystem.states.attemptBound)
       )
 
   object properties:
