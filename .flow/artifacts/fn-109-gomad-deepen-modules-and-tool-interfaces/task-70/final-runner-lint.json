@@ -1,0 +1,25 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence",
+  "argv": [
+    "bash",
+    "-c",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config ../../.github/.golangci.yml ./runner"
+  ],
+  "exit": 1,
+  "started": "2026-10-10T03:29:38Z",
+  "ended": "2026-10-10T03:29:43Z",
+  "elapsed_seconds": 5,
+  "head": "fd9cfc4026db966a877597a9658a0af589f18aea",
+  "source_manifest_sha256": "2a1b63fe97199753cc29e63535c34003238dc9547dad4040aa4228faa4a6bc74",
+  "post_source_manifest_sha256": "2a1b63fe97199753cc29e63535c34003238dc9547dad4040aa4228faa4a6bc74",
+  "tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "post_tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "post_wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "environment_sha256": "6578c4f14ceb8bc5b0fbb656681d256e0b0cbab2c746850d66d5a6dd49226510",
+  "post_environment_sha256": "a9b519a63fb15402fe3b798c3587341b6178525ec1f3ac809576b3f7fe053ee3",
+  "environment_proof_sha256": "5f4126294962b4b51d47938799768fa0a7907a26291f832eb918a0a95e609386",
+  "raw_log_sha256": "1c18dda7b998bcb29f2774626bfd24078bd8dc35295b50b7061c7afcc8e20e39",
+  "pre_post_match_exit": 0,
+  "external_timeout_seconds": 900
+}

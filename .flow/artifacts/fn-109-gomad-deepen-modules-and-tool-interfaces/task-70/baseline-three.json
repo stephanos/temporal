@@ -1,0 +1,33 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence",
+  "argv": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./runner",
+    "-run",
+    "^TestRunChoiceExploration(DivergencePoliciesAndInspection|KeepsOtherErrorsAsHostErrors|RetainsOnlyPrefixMismatchReasons)$"
+  ],
+  "exit": 1,
+  "started": "2026-10-10T03:22:55Z",
+  "ended": "2026-10-10T03:23:08Z",
+  "elapsed_seconds": 13,
+  "head": "fd9cfc4026db966a877597a9658a0af589f18aea",
+  "source_manifest_sha256": "88addc4011e3b5374c18dc2095796b32dcc3cc3f9b5ea2034858c593ea36c2fa",
+  "post_source_manifest_sha256": "88addc4011e3b5374c18dc2095796b32dcc3cc3f9b5ea2034858c593ea36c2fa",
+  "tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "post_tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "post_wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "environment_sha256": "578927f5e196be8b00b99da1576594da05e58166de0006f49079941ab2f37144",
+  "post_environment_sha256": "08e169b3cdec96d043bf95580f7fb2a75e53ff5f9d4a41ca97929018301fd782",
+  "environment_proof_sha256": "b6b5e14963a637ad1aec47bd5065d56769262abbfe5e13a5c4d136b06879c906",
+  "raw_log_sha256": "eab13bbefefe93e5e690c3c62c652ac3dac247d383d77a81fd963e333959fda0",
+  "pre_post_match_exit": 0,
+  "external_timeout_seconds": 900
+}

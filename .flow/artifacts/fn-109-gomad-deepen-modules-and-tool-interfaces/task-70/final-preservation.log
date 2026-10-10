@@ -1,0 +1,1 @@
+PASS: three exact assignments; original=93b138931736026645f0c4f05940a95ef8fe301de36bc3dbab3bea9c4c4b23df candidate=5537ed38a236827a37b99a85e8584e886d6252d62e9d16311f514758034587c7 reconstructed=93b138931736026645f0c4f05940a95ef8fe301de36bc3dbab3bea9c4c4b23df; whole BASE restored; all excluded product paths unchanged

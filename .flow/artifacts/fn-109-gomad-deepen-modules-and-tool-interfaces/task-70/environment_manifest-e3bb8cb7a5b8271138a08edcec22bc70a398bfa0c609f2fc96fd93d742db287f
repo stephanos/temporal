@@ -1,0 +1,67 @@
+GOCACHE=/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache
+GOENV=off
+GOFLAGS=
+GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+GOMODCACHE=/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc
+GOPROXY=file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download
+GOSUMDB=off
+GOTOOLCHAIN=local
+GOWORK=off
+PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+SANDBOX_START_DIR=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence
+TMPDIR=/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/tmp
+TZ=UTC
+{
+	"AR": "ar",
+	"CC": "gcc",
+	"CGO_CFLAGS": "-O2 -g",
+	"CGO_CPPFLAGS": "",
+	"CGO_CXXFLAGS": "-O2 -g",
+	"CGO_ENABLED": "1",
+	"CGO_FFLAGS": "-O2 -g",
+	"CGO_LDFLAGS": "-O2 -g",
+	"CXX": "g++",
+	"GCCGO": "gccgo",
+	"GO111MODULE": "",
+	"GOARCH": "arm64",
+	"GOARM64": "v8.0",
+	"GOAUTH": "netrc",
+	"GOBIN": "/home/agent/go/bin",
+	"GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache",
+	"GOCACHEPROG": "",
+	"GODEBUG": "",
+	"GOENV": "",
+	"GOEXE": "",
+	"GOEXPERIMENT": "",
+	"GOFIPS140": "off",
+	"GOFLAGS": "",
+	"GOGCCFLAGS": "-fPIC -pthread -Wl,--no-gc-sections -fmessage-length=0 -ffile-prefix-map=/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/tmp/go-build3729026156=/tmp/go-build -gno-record-gcc-switches",
+	"GOHOSTARCH": "arm64",
+	"GOHOSTOS": "linux",
+	"GOINSECURE": "",
+	"GOMOD": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence/go.mod",
+	"GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+	"GONOPROXY": "",
+	"GONOSUMDB": "",
+	"GOOS": "linux",
+	"GOPACKAGESDRIVER": "",
+	"GOPATH": "/home/agent/go",
+	"GOPRIVATE": "",
+	"GOPROXY": "file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download",
+	"GOROOT": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64",
+	"GOSUMDB": "off",
+	"GOTELEMETRY": "local",
+	"GOTELEMETRYDIR": "/home/agent/.config/go/telemetry",
+	"GOTMPDIR": "",
+	"GOTOOLCHAIN": "local",
+	"GOTOOLDIR": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/pkg/tool/linux_arm64",
+	"GOVCS": "",
+	"GOVERSION": "go1.27.1",
+	"GOWORK": "off",
+	"PKG_CONFIG": "pkg-config"
+}
+Linux my-codex-build-v3 7.0.14 #1 SMP PREEMPT Mon Sep 21 06:45:23 UTC 2026 aarch64 GNU/Linux
+cwd=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence
+CGO_ENABLED_explicit=unset
+ABSENT tools/gomad3/.toolchain/generator-cache
+materialized tests/mixedbrain -> /Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence/tests/mixedbrain

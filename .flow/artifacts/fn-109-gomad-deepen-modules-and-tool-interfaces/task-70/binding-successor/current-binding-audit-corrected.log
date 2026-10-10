@@ -1,0 +1,7 @@
+PASS .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-70/binding-successor/retained-environment-proof.json principal_exit=0 post-helper source/tools/routing stable
+PASS .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-70/binding-successor/current-validate.json principal_exit=0 post-helper source/tools/routing stable
+PASS .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-70/binding-successor/current-fast-lint.json principal_exit=0 post-helper source/tools/routing stable
+PASS original tools=26 successor tools=30; /bin/sh=dash and rm/grep measured
+PASS first validation materialized tests=132 top-level tests=113 all hashes current
+PASS exact Make argv changed only by explicit SHELL=/bin/sh; default lint-cache warnings=2995 sparse-find warnings=6; diff-filtered 55 packages, not aggregate GREEN
+PASS retained environment proof: actual pairs=19 captures=38; historical limitations remain

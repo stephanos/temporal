@@ -1,0 +1,39 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence",
+  "argv": [
+    "/usr/bin/perl",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-70/binding-successor/check-owned-processes-attributed.pl"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T03:57:22Z",
+  "ended": "2026-10-10T03:57:22Z",
+  "elapsed_seconds": 0,
+  "head": "fd9cfc4026db966a877597a9658a0af589f18aea",
+  "source_manifest_sha256": "4008266f907e1d4dc8f0eacd5b12fd23e19575349f4f014378918b25ebf4da5e",
+  "post_source_manifest_sha256": "4008266f907e1d4dc8f0eacd5b12fd23e19575349f4f014378918b25ebf4da5e",
+  "tools_manifest_sha256": "350947836c95856c4541db390b826b1234f5855c4267c490f22b654ebdc41646",
+  "post_tools_manifest_sha256": "350947836c95856c4541db390b826b1234f5855c4267c490f22b654ebdc41646",
+  "wrapper_sha256": "9febddc3bab0bd2831a869f8b2f7a555e198d8125d5e3649dd7a39f37c2c1c03",
+  "post_wrapper_sha256": "9febddc3bab0bd2831a869f8b2f7a555e198d8125d5e3649dd7a39f37c2c1c03",
+  "environment_sha256": "1060f425b416293e2ade94200e4dad35a174e675fb2b2104c52d81fad1596c80",
+  "post_environment_sha256": "1060f425b416293e2ade94200e4dad35a174e675fb2b2104c52d81fad1596c80",
+  "environment_proof_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "raw_log_sha256": "5ad52a59fe0a1de6fc8bc2d2654dd09db51f3a401eb1c9292d1dc5f4b5ac639e",
+  "pre_post_match_exit": 0,
+  "external_timeout_seconds": 900,
+  "kill_after_seconds": 15,
+  "environment_capture_mode": "non-go",
+  "environment_proof_argv": [
+    "cmp",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-70/binding-successor/environment_manifest-1060f425b416293e2ade94200e4dad35a174e675fb2b2104c52d81fad1596c80",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-70/binding-successor/environment_manifest-1060f425b416293e2ade94200e4dad35a174e675fb2b2104c52d81fad1596c80"
+  ],
+  "environment_proof_started": "2026-10-10T03:57:24Z",
+  "environment_proof_ended": "2026-10-10T03:57:24Z",
+  "environment_proof_exit": 0,
+  "routing_manifest_sha256": "a59233840315017481f768409401c3463a76e5e72157db474822a451842aa08b",
+  "post_routing_manifest_sha256": "a59233840315017481f768409401c3463a76e5e72157db474822a451842aa08b",
+  "post_helper_routing_manifest_sha256": "a59233840315017481f768409401c3463a76e5e72157db474822a451842aa08b",
+  "post_helper_source_manifest_sha256": "4008266f907e1d4dc8f0eacd5b12fd23e19575349f4f014378918b25ebf4da5e",
+  "post_helper_tools_manifest_sha256": "350947836c95856c4541db390b826b1234f5855c4267c490f22b654ebdc41646"
+}

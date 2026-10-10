@@ -1,0 +1,30 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence",
+  "argv": [
+    "make",
+    "lint-code-fast",
+    "GOLANGCI_LINT_BASE_REV=fd9cfc4026db966a877597a9658a0af589f18aea",
+    "GOLANGCI_LINT_FIX=false",
+    "ALL_TEST_TAGS=test_dep",
+    "LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T03:29:21Z",
+  "ended": "2026-10-10T03:29:33Z",
+  "elapsed_seconds": 12,
+  "head": "fd9cfc4026db966a877597a9658a0af589f18aea",
+  "source_manifest_sha256": "2a1b63fe97199753cc29e63535c34003238dc9547dad4040aa4228faa4a6bc74",
+  "post_source_manifest_sha256": "2a1b63fe97199753cc29e63535c34003238dc9547dad4040aa4228faa4a6bc74",
+  "tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "post_tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "post_wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "environment_sha256": "9c8a77deb971d163d9e3cee48893eedf01ac900a01a7884259201033580b6388",
+  "post_environment_sha256": "46c3fbbcd6cefe617bd850954cac7300be6fbd0d48d3522fdad8aa507f55f2fd",
+  "environment_proof_sha256": "3fad2a4843f67865f0d82caabf828f87014e251ecbce7dc16fd1e6ed2e56418b",
+  "raw_log_sha256": "684fbccc6b5e5bec59fa1091a66df31a11fcf0cc12b389f8ac0962e0aebaa9cb",
+  "pre_post_match_exit": 0,
+  "external_timeout_seconds": 900
+}

@@ -66,6 +66,7 @@ func TestRunChoiceExplorationDivergencePoliciesAndInspection(t *testing.T) {
 	for _, policy := range []FailurePolicy{PolicyFirst, PolicyBudget, PolicyAll} {
 		t.Run(string(policy), func(t *testing.T) {
 			config, configDependencies := divergenceCampaignConfig(t, policy, 1)
+			configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 			summary, err := exploreWith(t.Context(), config, configDependencies)
 			if err != nil {
 				t.Fatal(err)
@@ -140,6 +141,7 @@ func TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			config, configDependencies := divergenceCampaignConfig(t, PolicyAll, 1)
 			configDependencies.executor.(*candidateDivergenceExecutor).change = test.change
+			configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 			summary, err := exploreWith(t.Context(), config, configDependencies)
 			var host *HostError
 			if !errors.As(err, &host) || host.Reason != test.reason {
@@ -246,6 +248,7 @@ func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {
 				}
 				return &execution.ChoiceReplayDivergenceError{Divergence: *d}
 			}
+			configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 			summary, err := exploreWith(t.Context(), config, configDependencies)
 			if err != nil {
 				t.Fatal(err)

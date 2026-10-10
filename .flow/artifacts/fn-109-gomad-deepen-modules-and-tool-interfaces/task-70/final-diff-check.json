@@ -1,0 +1,25 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence",
+  "argv": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T03:27:05Z",
+  "ended": "2026-10-10T03:27:05Z",
+  "elapsed_seconds": 0,
+  "head": "fd9cfc4026db966a877597a9658a0af589f18aea",
+  "source_manifest_sha256": "2a1b63fe97199753cc29e63535c34003238dc9547dad4040aa4228faa4a6bc74",
+  "post_source_manifest_sha256": "2a1b63fe97199753cc29e63535c34003238dc9547dad4040aa4228faa4a6bc74",
+  "tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "post_tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "post_wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "environment_sha256": "38b2570a6c5cb92aa8ac21b224cf6e7621eecce0403790b75cd0c58c0d4c2a6e",
+  "post_environment_sha256": "9790dfb6a7dfb08754645d592ef20a2c5ca0b2553fbe9b64faee13406a6f796f",
+  "environment_proof_sha256": "cc9bdedf95024197f88a297942c267663f8f20c7770ca2e24e3b1b05d601ff26",
+  "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "pre_post_match_exit": 0,
+  "external_timeout_seconds": 900
+}

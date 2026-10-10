@@ -1,0 +1,5 @@
+process_snapshot_argv=/usr/bin/ps -eo pid,ppid,etime,args
+snapshot_rows=47; only gate candidates retained below
+candidate PID=1390727 cwd=/Users/stephan/Workspace/skunkworks/bungee-lang argv=make successor-fixed-point
+foreign candidate excluded by actual cwd/argv; no mutation
+PASS actual process snapshot: no task-attributable Go/build/lint/vet/generator/test executable or timed gate remains

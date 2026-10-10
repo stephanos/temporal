@@ -1,0 +1,24 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-divergence",
+  "argv": [
+    "/usr/bin/perl",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-70/check-preservation.pl"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T03:26:46Z",
+  "ended": "2026-10-10T03:26:46Z",
+  "elapsed_seconds": 0,
+  "head": "fd9cfc4026db966a877597a9658a0af589f18aea",
+  "source_manifest_sha256": "7d0355fefc5093334bd5c65766375e4c267bed4ebe4eba2040dbebaad3a99049",
+  "post_source_manifest_sha256": "7d0355fefc5093334bd5c65766375e4c267bed4ebe4eba2040dbebaad3a99049",
+  "tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "post_tools_manifest_sha256": "c3161ceb3de149d3d3e67dd4ce210952adc347c8efcce2e538ef85e801bf3d61",
+  "wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "post_wrapper_sha256": "92b6ce6c28726556dccc33bd4c2a3c7dff4087a250a126bb3fb461a9adebff53",
+  "environment_sha256": "88997d9a24b1db7a4b0a2de174e8dd7e532195ba646c1faaaac19f4c4e4282e8",
+  "post_environment_sha256": "360fb2623038eabd939c0f99ddb7e3959daf1b6b9e12243271c00e3a1a4b5b78",
+  "environment_proof_sha256": "ce81b9135b16b8516202511d19e2a8e1906df63f125eaa62a5bba862e1feaa58",
+  "raw_log_sha256": "cf8783eb8af45d2b1b2369ff8e74753cfaf35bcec959be7203b69d1b93ebaf46",
+  "pre_post_match_exit": 0,
+  "external_timeout_seconds": 900
+}
