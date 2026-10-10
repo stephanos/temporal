@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T06:28:08.619522Z",
+  "depends_on": [
+    "fn-153-checked-property-examples-pilot.1"
+  ],
+  "id": "fn-153-checked-property-examples-pilot.2",
+  "priority": null,
+  "spec": "fn-153-checked-property-examples-pilot",
+  "spec_path": ".flow/tasks/fn-153-checked-property-examples-pilot.2.md",
+  "status": "todo",
+  "title": "Declare and lift typed Property illustrations",
+  "updated_at": "2026-10-10T06:28:08.619522Z"
+}
