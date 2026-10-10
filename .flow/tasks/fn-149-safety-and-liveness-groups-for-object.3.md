@@ -19,13 +19,13 @@ Expose derived claim classification in existing reports. Advances R4 of the pare
 
 ### Investigation targets
 **Required:**
-- `tools/umpire/check/checking.go:132` - receipt subject and progress part.
+- `tools/umpire/check/checking.go:133` - receipt subject and progress part.
 - `tools/umpire/check/checking.go:675` - progress receipt construction.
-- `tools/umpire/check/checking.go:244` - public Report contract and receipt consumers.
+- `tools/umpire/check/checking.go:240` - public Report contract; independent Query/Progress dispatch at :292 and receipt precedence at :184.
 - `tools/umpire/check/types_test.go` - public contract checks.
 
 ### Key context
-Re-anchor paths and interfaces against completed fn-140/fn-141 and the approved schema/package moves before editing. Keep this work outside the activity batch and serialize shared regeneration with it and the schema chain; no new spec-close dependency is implied.
+This Go report lane remains parallel with .1; it needs no new grouping-discovery API. Re-anchor to the accepted integrated source baseline and actual fn-140 vocabulary. Root owns Batch 2 entry/source gates; .5's final grouping seal precedes fn-123.1, and closure waits fn-123.8. Fn-141 runs later and supplies no reporting prerequisite.
 
 ### Quick commands
 ```bash
