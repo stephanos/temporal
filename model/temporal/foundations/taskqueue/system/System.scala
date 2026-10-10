@@ -9,6 +9,7 @@ package system
 import scala.annotation.unused
 import framework.*
 import framework.Finite.given
+import Bounds.{seven, twelve}
 import product.{TaskQueueProduct, TaskQueueProductUnderStorageLoss}
 import QueueOutcome.given
 
