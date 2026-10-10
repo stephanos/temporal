@@ -1,0 +1,16 @@
+{
+  "commits": [],
+  "base_commit": "7b75ae312a6641c6b00afbb63f44ae9a9dd0c2b2",
+  "tests": [
+    "go test -tags test_dep -count=1 -timeout=3s -json -run ^TestRunReportsPeriodicProgressWhileTargetIsRunning$ ./runner",
+    "go test -tags test_dep -count=1 -timeout=10s -json -run ^TestWaitForProgressStart ./runner",
+    "go vet -tags test_dep ./runner",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner",
+    "test -z \"$(gofmt -l tools/gomad3/runner/runner_test.go)\" && git diff --check",
+    "test -z \"$(gofmt -l tools/gomad3/runner/runner_test.go tools/gomad3/runner/progress_start_test.go)\" && git diff --check",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-62/.github/.golangci.yml ./runner",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=7b75ae312a6641c6b00afbb63f44ae9a9dd0c2b2 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-62/verify_packet.py"
+  ],
+  "prs": []
+}

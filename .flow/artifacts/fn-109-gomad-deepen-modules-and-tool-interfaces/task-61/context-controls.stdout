@@ -1,0 +1,8 @@
+=== RUN   TestBuildLockWaitContextControls
+=== RUN   TestBuildLockWaitContextControls/background
+=== RUN   TestBuildLockWaitContextControls/cancelable
+--- PASS: TestBuildLockWaitContextControls (0.00s)
+    --- PASS: TestBuildLockWaitContextControls/background (0.00s)
+    --- PASS: TestBuildLockWaitContextControls/cancelable (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain	0.005s

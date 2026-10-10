@@ -1,0 +1,47 @@
+{
+  "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+  "shell_command": "cd -- /Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61 && test \"$(pwd -P)\" = /Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61 && make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61",
+  "started_at": "2026-10-09T23:26:03.893846+00:00",
+  "elapsed_seconds": 2.542,
+  "exit_code": 2,
+  "timed_out": false,
+  "source_before_sha256": "0965d047c4803221aa245dc3e9b34d612c5f213c5b816e57961cde02cf0ca9db",
+  "source_after_sha256": "0965d047c4803221aa245dc3e9b34d612c5f213c5b816e57961cde02cf0ca9db",
+  "source_manifest_sha256": "d440fb313689d72ee52a2b2e568882908d873398b1bf11f18df15dee21b8cde0",
+  "source_manifest": "sources-0965d047c4803221aa245dc3e9b34d612c5f213c5b816e57961cde02cf0ca9db.json",
+  "auxiliary_before": {},
+  "auxiliary_after": {},
+  "head": "7b75ae312a6641c6b00afbb63f44ae9a9dd0c2b2",
+  "tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "gate_runner_sha256": "1e4be4986a1e2977a1564de76ffa46f5a62c1a3d089a88b76dd86dfd2cdc4d1c",
+  "environment": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/cache-61",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/tmp-61",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/tmp-61",
+    "GOLANGCI_LINT_CACHE": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/lint-cache-61",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "removed_environment": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "BASH_ENV"
+  ],
+  "sandbox_start_dir": "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61",
+  "stdout_sha256": "556b50e571c726c3bf331ff160259c75ee0fd180d0c32629de5bc94653c22b32",
+  "stderr_sha256": "3c7bd22c9c78c16842278f2d2ea81a5b295fd4f334d37d933040dd2416b4aef7",
+  "terminal": true,
+  "source_unchanged": true
+}

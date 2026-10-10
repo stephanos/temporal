@@ -1,0 +1,16 @@
+{
+  "receipts_checked": 17,
+  "protected_bound_inputs": 1062,
+  "changed": [
+    "tools/gomad3/runner/runner_test.go"
+  ],
+  "added": [
+    "tools/gomad3/runner/progress_start_test.go"
+  ],
+  "outside_periodic_fixture_byte_identical": true,
+  "heartbeat_block_byte_identical": true,
+  "completion_assertion_byte_identical": true,
+  "probe_deltas_exact": true,
+  "red_and_mutant_control_source_identical": true,
+  "inherited_runner_lint_stdout_identical": true
+}

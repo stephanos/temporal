@@ -8,7 +8,7 @@ import subprocess
 import sys
 import time
 
-ROOT = pathlib.Path('/Users/stephan/Workspace/skunkworks/gomad/temporal').resolve()
+ROOT = pathlib.Path(__file__).resolve().parents[4]
 OUT = pathlib.Path(__file__).resolve().parent
 GO = '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go'
 LINT = '/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0'
@@ -33,7 +33,8 @@ def bindings():
     paths = subprocess.check_output([
         'git', 'ls-files', '-z', 'tools/gomad3', 'tools/gomad3integration',
         '.github/workflows/gomad3.yml', '.github/.golangci.yml',
-        'Makefile', 'AGENTS.md', 'MILESTONES.md', 'cmd/tools/lintcode',
+        'Makefile', 'AGENTS.md', 'MILESTONES.md', 'go.mod', 'go.sum',
+        'tests/mixedbrain/go.mod', 'tests/mixedbrain/go.sum', 'cmd/tools/lintcode',
     ], cwd=ROOT).split(b'\0')
     files = {os.fsdecode(path): digest(ROOT / os.fsdecode(path)) for path in paths if path}
     fingerprint = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()

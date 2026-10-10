@@ -1,0 +1,9 @@
+{"Time":"2026-10-09T23:29:50.328790109Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-09T23:29:50.351214401Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning"}
+{"Time":"2026-10-09T23:29:50.351401234Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning","Output":"=== RUN   TestRunReportsPeriodicProgressWhileTargetIsRunning\n","OutputType":"frame"}
+{"Time":"2026-10-09T23:29:50.412761484Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning","Output":"    runner_test.go:149: runner completed before target execution started: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n","OutputType":"error"}
+{"Time":"2026-10-09T23:29:50.413899318Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning","Output":"--- FAIL: TestRunReportsPeriodicProgressWhileTargetIsRunning (0.06s)\n","OutputType":"frame"}
+{"Time":"2026-10-09T23:29:50.413978109Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning","Elapsed":0.06}
+{"Time":"2026-10-09T23:29:50.414005568Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-10-09T23:29:50.414247484Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/runner\t0.084s\n","OutputType":"frame"}
+{"Time":"2026-10-09T23:29:50.414308943Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":0.086}

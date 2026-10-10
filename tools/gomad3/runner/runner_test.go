@@ -127,6 +127,8 @@ func TestRunReportsPreparationProgressAndCompletedCounts(t *testing.T) {
 func TestRunReportsPeriodicProgressWhileTargetIsRunning(t *testing.T) {
 	executor := &progressGatedExecutor{started: make(chan struct{}), release: make(chan struct{})}
 	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
+	release := sync.OnceFunc(func() { close(executor.release) })
+	t.Cleanup(release)
 	config.ProgressInterval = time.Millisecond
 	updates := make(chan CampaignEvent, 16)
 	config.Progress = func(update CampaignEvent) error {
@@ -137,11 +139,15 @@ func TestRunReportsPeriodicProgressWhileTargetIsRunning(t *testing.T) {
 		return nil
 	}
 	completed := make(chan error, 1)
+	startupDeadline := time.NewTimer(config.OverallTimeout + config.TerminateGrace)
+	defer startupDeadline.Stop()
 	go func() {
 		_, err := exploreWith(context.Background(), config, configDependencies)
 		completed <- err
 	}()
-	<-executor.started
+	if err := waitForProgressStart(executor.started, completed, startupDeadline.C); err != nil {
+		t.Fatal(err)
+	}
 	heartbeats := 0
 	deadline := time.After(time.Second)
 	for heartbeats < 2 {
@@ -154,7 +160,7 @@ func TestRunReportsPeriodicProgressWhileTargetIsRunning(t *testing.T) {
 			t.Fatal("periodic running progress was not reported")
 		}
 	}
-	close(executor.release)
+	release()
 	if err := <-completed; err != nil {
 		t.Fatal(err)
 	}

@@ -1,0 +1,22 @@
+{
+  "receipts_checked": 17,
+  "protected_bound_inputs": 1062,
+  "changed": [
+    "tools/gomad3/runner/runner_test.go"
+  ],
+  "added": [
+    "tools/gomad3/runner/progress_start_test.go"
+  ],
+  "outside_periodic_fixture_byte_identical": true,
+  "heartbeat_block_byte_identical": true,
+  "completion_assertion_byte_identical": true,
+  "probe_deltas_exact": true,
+  "red_and_mutant_control_source_identical": true,
+  "inherited_runner_lint_stdout_identical": true,
+  "tools_identical_at_all_retained_observations": true,
+  "protected_overlay_files": 79,
+  "root_module_inputs_identical_to_immutable_base": {
+    "go.mod": "8f5c8b618955af605647a4a4cfc0f93a82f2c25423038166a3d9faafaba14b32",
+    "go.sum": "15dbb85a0134b17beba7707f6d9565eb55009ca05b05f0cd43ad5a6679f58849"
+  }
+}

@@ -1,0 +1,9 @@
+{"Time":"2026-10-09T23:30:03.969966074Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-09T23:30:03.975037116Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning"}
+{"Time":"2026-10-09T23:30:03.975108407Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning","Output":"=== RUN   TestRunReportsPeriodicProgressWhileTargetIsRunning\n","OutputType":"frame"}
+{"Time":"2026-10-09T23:30:04.011695199Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning","Output":"    runner_test.go:149: runner completed before target execution started: gomad3 Runner/host failure: target_preparation: progress-start preparation sentinel\n","OutputType":"error"}
+{"Time":"2026-10-09T23:30:04.012560782Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning","Output":"--- FAIL: TestRunReportsPeriodicProgressWhileTargetIsRunning (0.04s)\n","OutputType":"frame"}
+{"Time":"2026-10-09T23:30:04.012593366Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Test":"TestRunReportsPeriodicProgressWhileTargetIsRunning","Elapsed":0.04}
+{"Time":"2026-10-09T23:30:04.012672699Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-10-09T23:30:04.012978782Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/runner\t0.043s\n","OutputType":"frame"}
+{"Time":"2026-10-09T23:30:04.013008907Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":0.043}

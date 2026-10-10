@@ -1,0 +1,24 @@
+{
+  "base_commit": "7b75ae312a6641c6b00afbb63f44ae9a9dd0c2b2",
+  "candidate_sha256": "ba64e85358a6993e669a5a1925ab0cee8ece625fb43df987b9bdeca437b2cd15",
+  "lock_sha256": "24ff7ee94613156b4f01264e546b082058844503ba7f603f5288bae9a2678c6c",
+  "controls": {
+    "muted-observer": {
+      "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/tmp-61/controls/muted-observer-v2-build_test.go": "5279451e9e75efa4a22e9655d58b6905c9f50011604588f67597ffbf628b8c9f",
+      "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-61/muted-observer-v2-overlay.json": "2416ba021b0b121611ac0a63e99834bd3f686f478c4ec95b7ff71149101a0517"
+    },
+    "waited-false": {
+      "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/tmp-61/controls/waited-false-v2-build_test.go": "633a02479a4d003d4c602f609058178ddc24c698901fb4efa0b4f1918b9230ed",
+      "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/tmp-61/controls/waited-false-v2-lock.go": "f18b670922af91909c5b20455dbc0c51ef627517be8e47364f327a1cb383827d",
+      "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-61/waited-false-v2-overlay.json": "ac3c59222a5f69260e98467570e43f8177757bcc59f5a6ab40cf3628c9d0394d"
+    },
+    "bypassed-wait-sequential": {
+      "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/tmp-61/controls/bypassed-wait-sequential-v2-build_test.go": "7af8e6a401a17ef5f0adb0f65cc74a40948ece6e4d797cf196c7bd7bfacee957",
+      "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-61/bypassed-wait-sequential-v2-overlay.json": "670a9e5a02634b2fb6738009fc7073ba1fde054642132b2d418f75c53b9ab12c"
+    },
+    "context-controls": {
+      "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-61/context-controls-v2-overlay.json": "32f9a39ac7d8466ec1dc6c3cff21281c9e01ae961dd2cbbfd34f43e8dafff8be",
+      "/Users/stephan/Workspace/skunkworks/gomad-fn109-next.nDsJ0uMh/task-61/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-61/context_controls_test.go": "0f4a09378b259241bc27eb59105d28159b5c561fdb515cb9905c8244d290ab96"
+    }
+  }
+}

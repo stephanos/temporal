@@ -1,0 +1,58 @@
+=== RUN   TestBuildCleanupSnapshots
+--- PASS: TestBuildCleanupSnapshots (0.01s)
+=== RUN   TestBuildCleanupSnapshotPrimaryFailures
+=== RUN   TestBuildCleanupSnapshotPrimaryFailures/patch
+=== RUN   TestBuildCleanupSnapshotPrimaryFailures/overlay
+=== RUN   TestBuildCleanupSnapshotPrimaryFailures/unsupported
+--- PASS: TestBuildCleanupSnapshotPrimaryFailures (0.01s)
+    --- PASS: TestBuildCleanupSnapshotPrimaryFailures/patch (0.00s)
+    --- PASS: TestBuildCleanupSnapshotPrimaryFailures/overlay (0.00s)
+    --- PASS: TestBuildCleanupSnapshotPrimaryFailures/unsupported (0.00s)
+=== RUN   TestBuildCleanupTemporaryFile
+=== RUN   TestBuildCleanupTemporaryFile/644
+=== RUN   TestBuildCleanupTemporaryFile/755
+--- PASS: TestBuildCleanupTemporaryFile (0.01s)
+    --- PASS: TestBuildCleanupTemporaryFile/644 (0.01s)
+    --- PASS: TestBuildCleanupTemporaryFile/755 (0.00s)
+=== RUN   TestBuildCleanupRepeatedPublication
+--- PASS: TestBuildCleanupRepeatedPublication (0.02s)
+=== RUN   TestBuildCleanupPublicationFailures
+=== RUN   TestBuildCleanupPublicationFailures/after-stamp-publish
+=== RUN   TestBuildCleanupPublicationFailures/after-launcher-publish
+=== RUN   TestBuildCleanupPublicationFailures/stamp-rename
+=== RUN   TestBuildCleanupPublicationFailures/launcher-rename
+--- PASS: TestBuildCleanupPublicationFailures (1.37s)
+    --- PASS: TestBuildCleanupPublicationFailures/after-stamp-publish (0.69s)
+    --- PASS: TestBuildCleanupPublicationFailures/after-launcher-publish (0.23s)
+    --- PASS: TestBuildCleanupPublicationFailures/stamp-rename (0.23s)
+    --- PASS: TestBuildCleanupPublicationFailures/launcher-rename (0.22s)
+=== RUN   TestBuildRejectsUnsupportedHostBeforePreparingInputs
+--- PASS: TestBuildRejectsUnsupportedHostBeforePreparingInputs (0.00s)
+=== RUN   TestBuildPublishesAndReusesImmutableToolchain
+--- PASS: TestBuildPublishesAndReusesImmutableToolchain (0.24s)
+=== RUN   TestBuildSerializesConcurrentSameKey
+--- PASS: TestBuildSerializesConcurrentSameKey (0.29s)
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-lock
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-extract
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-patch
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-overlay
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-compile
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-build-publish
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-stamp-publish
+=== RUN   TestBuildInjectedFailuresLeaveNoTemporaryState/after-launcher-publish
+--- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState (1.10s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-lock (0.00s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-extract (0.01s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-patch (0.35s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-overlay (0.01s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-compile (0.01s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-build-publish (0.24s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-stamp-publish (0.25s)
+    --- PASS: TestBuildInjectedFailuresLeaveNoTemporaryState/after-launcher-publish (0.23s)
+=== RUN   TestBuildRejectsOverlayCollisionBeforePatching
+--- PASS: TestBuildRejectsOverlayCollisionBeforePatching (0.04s)
+=== RUN   TestBuildRejectsUnguardedFailureInjection
+--- PASS: TestBuildRejectsUnguardedFailureInjection (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain	3.086s
