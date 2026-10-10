@@ -567,7 +567,10 @@ globally OOM-killed; the gate exited 2 after 37.691 seconds. Its generated-proto
 remains a separate finding. RAM availability was not materially changed, so the primary Producer
 was not retried for a disk-only improvement. No successful full-gate scratch peak is established.
 
-Measurement .1 is now blocked on the complete independent oracle. Its terminal handover preserves
+Measurement .1 remains held on the complete independent oracle; root has resumed only the
+remaining independent error/replay/isolation controls and safe whole-Model captures. The primary
+Producer and unchanged ordinary gate are not retried without material memory improvement.
+Its earlier terminal handover preserves
 52 probes/412.923 measured wall seconds and 34 missing surfaces/controls; the one-hour limit was
 not reached. Root verified all 574 sealed evidence files. Revisit on capacity sufficient for the
 unchanged whole primary Producer and ordinary compiler overlap, retaining effective JVM scratch
@@ -576,7 +579,7 @@ fresh lifted candidates have separate pins; historical source freshness is not a
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-157.1 | ⏸️ deferred | Sealed partial oracle and causal measurements; primary Producer and ordinary generator OOM; complete reference output requires provisioned capacity |
+| fn-157.1 | 🔄 in progress | Remaining independent preservation controls; primary Producer and ordinary generator OOM hold remains; no repair or closure credit |
 | fn-157.2 | ⬜ todo | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
 | fn-157.3 | ⬜ todo | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
 | fn-157.4 | ⬜ todo | Repair owned gate/lift scratch lifetimes or establish provisioned capacity with ordinary overlap |
