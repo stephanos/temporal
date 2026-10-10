@@ -258,15 +258,7 @@ func loadOwnership(root string) (ownership, error) {
 		return policy, fmt.Errorf("read Gomad source classifications: %w", err)
 	}
 	for _, name := range []string{"sourceExclusions", "expectedModules", "hostSourcePackages"} {
-		object := file.Scope.Lookup(name)
-		if object == nil {
-			return policy, fmt.Errorf("gomad source classification %s is absent", name)
-		}
-		values, ok := object.Decl.(*ast.ValueSpec)
-		if !ok || len(values.Names) != 1 || len(values.Values) != 1 {
-			return policy, fmt.Errorf("gomad source classification %s must be a literal", name)
-		}
-		entries, err := literalPaths(name, values.Values[0])
+		entries, err := classificationPaths(file, name)
 		if err != nil {
 			return policy, err
 		}
@@ -278,15 +270,8 @@ func loadOwnership(root string) (ownership, error) {
 				policy.modules[gomadModule+"/"+entry] = true
 			}
 		case "hostSourcePackages":
-			for _, entry := range entries {
-				base := filepath.Base(entry)
-				if filepath.ToSlash(filepath.Dir(entry)) != "toolchain/runtime/testdata" || strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_") || strings.ContainsAny(base, "*?[]") || policy.hostPackages[entry] {
-					return policy, fmt.Errorf("invalid Gomad host source package %q", entry)
-				}
-				if err := regularHostDirectory(root, gomadModule+"/"+entry); err != nil {
-					return policy, err
-				}
-				policy.hostPackages[entry] = true
+			if err := policy.registerHostPackages(root, entries); err != nil {
+				return policy, err
 			}
 		default:
 			return policy, fmt.Errorf("unknown Gomad source classification %q", name)
@@ -315,6 +300,32 @@ func loadOwnership(root string) (ownership, error) {
 		policy.overlays[entry] = true
 	}
 	return policy, nil
+}
+
+func classificationPaths(file *ast.File, name string) ([]string, error) {
+	object := file.Scope.Lookup(name)
+	if object == nil {
+		return nil, fmt.Errorf("gomad source classification %s is absent", name)
+	}
+	values, ok := object.Decl.(*ast.ValueSpec)
+	if !ok || len(values.Names) != 1 || len(values.Values) != 1 {
+		return nil, fmt.Errorf("gomad source classification %s must be a literal", name)
+	}
+	return literalPaths(name, values.Values[0])
+}
+
+func (p ownership) registerHostPackages(root string, entries []string) error {
+	for _, entry := range entries {
+		base := filepath.Base(entry)
+		if filepath.ToSlash(filepath.Dir(entry)) != "toolchain/runtime/testdata" || strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_") || strings.ContainsAny(base, "*?[]") || p.hostPackages[entry] {
+			return fmt.Errorf("invalid Gomad host source package %q", entry)
+		}
+		if err := regularHostDirectory(root, gomadModule+"/"+entry); err != nil {
+			return err
+		}
+		p.hostPackages[entry] = true
+	}
+	return nil
 }
 
 func literalPaths(name string, expression ast.Expr) ([]string, error) {
@@ -404,15 +415,8 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 				return entry, nil
 			}
 		}
-		if !p.hostPackages[filepath.ToSlash(filepath.Dir(relative))] {
-			for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(relative)), "/") {
-				if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
-					return entry, fmt.Errorf("uncovered Gomad host source %s", path)
-				}
-			}
-			if within(relative, "toolchain/runtime") {
-				return entry, fmt.Errorf("uncovered Gomad host source %s", path)
-			}
+		if err := p.validateGomadHostSource(path, relative); err != nil {
+			return entry, err
 		}
 	default:
 	}
@@ -426,6 +430,20 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		}
 	}
 	return entry, fmt.Errorf("source has no module owner: %s", path)
+}
+
+func (p ownership) validateGomadHostSource(path, relative string) error {
+	if !p.hostPackages[filepath.ToSlash(filepath.Dir(relative))] {
+		for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(relative)), "/") {
+			if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
+				return fmt.Errorf("uncovered Gomad host source %s", path)
+			}
+		}
+		if within(relative, "toolchain/runtime") {
+			return fmt.Errorf("uncovered Gomad host source %s", path)
+		}
+	}
+	return nil
 }
 
 type listedPackage struct {
@@ -463,6 +481,19 @@ func coveredPackages(ctx context.Context, root, module, tags string, sources []s
 	if err != nil {
 		return nil, err
 	}
+	covered, err := packageSourceCoverage(data)
+	if err != nil {
+		return nil, err
+	}
+	for _, entry := range sources {
+		if !covered[filepath.Join(root, entry.path)] {
+			return nil, fmt.Errorf("uncovered host source %s: absent from Go package metadata", entry.path)
+		}
+	}
+	return packages, nil
+}
+
+func packageSourceCoverage(data []byte) (map[string]bool, error) {
 	covered := map[string]bool{}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	for {
@@ -484,12 +515,7 @@ func coveredPackages(ctx context.Context, root, module, tags string, sources []s
 			covered[filepath.Join(pkg.Dir, name)] = true
 		}
 	}
-	for _, entry := range sources {
-		if !covered[filepath.Join(root, entry.path)] {
-			return nil, fmt.Errorf("uncovered host source %s: absent from Go package metadata", entry.path)
-		}
-	}
-	return packages, nil
+	return covered, nil
 }
 
 func regularSource(root, path string) error {

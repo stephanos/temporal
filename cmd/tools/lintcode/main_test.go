@@ -7,6 +7,7 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,6 +23,93 @@ type lintCall struct {
 	Tool string
 	Dir  string
 	Args []string
+}
+
+func TestLintRuntimeHostRegistration(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name, entries, wantError string
+		symlinkAncestor          bool
+		wantPackages             map[string]bool
+	}{
+		{"absent directories", `"toolchain/runtime/testdata/vfdpointer", "toolchain/runtime/testdata/vfdnative"`, "", false, map[string]bool{"toolchain/runtime/testdata/vfdpointer": true, "toolchain/runtime/testdata/vfdnative": true}},
+		{"missing leaf under symlink", `"toolchain/runtime/testdata/vfdpointer", "toolchain/runtime/testdata/vfdnative"`, "uncovered source symlink tools/gomad3/toolchain/runtime/testdata/vfdpointer", true, map[string]bool{}},
+		{"partial registration and first error", `"toolchain/runtime/testdata/vfdpointer", "toolchain/runtime/testdata/.invalid", "toolchain/runtime/testdata/_later"`, `invalid Gomad host source package "toolchain/runtime/testdata/.invalid"`, false, map[string]bool{"toolchain/runtime/testdata/vfdpointer": true}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			repo := &lintRepo{t: t, root: t.TempDir()}
+			repo.write("tools/gomad3/internal/gomadtool/architecture/architecture.go", "package architecture\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\nvar hostSourcePackages = []string{"+tc.entries+"}\n")
+			repo.write("tools/gomad3/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
+			if tc.symlinkAncestor {
+				require.NoError(t, os.MkdirAll(filepath.Join(repo.root, "tools/gomad3/toolchain/runtime"), 0o700))
+				require.NoError(t, os.Symlink(t.TempDir(), filepath.Join(repo.root, "tools/gomad3/toolchain/runtime/testdata")))
+			}
+			policy, err := loadOwnership(repo.root)
+			if tc.wantError == "" {
+				require.NoError(t, err)
+				require.Equal(t, map[string]bool{"src/os/gomad.go": true}, policy.overlays)
+			} else {
+				require.EqualError(t, err, tc.wantError)
+				require.Empty(t, policy.overlays)
+			}
+			require.Equal(t, tc.wantPackages, policy.hostPackages)
+			require.Equal(t, []string{"testdata"}, policy.fixtures)
+			require.Equal(t, map[string]bool{"tools/gomad3/testdata/go.mod": true}, policy.modules)
+		})
+	}
+}
+
+func TestCoveredPackagesMetadata(t *testing.T) {
+	for _, tc := range []struct {
+		name, metadata, wantError string
+		paths, wantPackages       []string
+	}{
+		{"empty EOF", "", "uncovered host source ordinary/source.go: absent from Go package metadata", []string{"ordinary/source.go"}, nil},
+		{"whitespace EOF", " \n\t", "uncovered host source ordinary/source.go: absent from Go package metadata", []string{"ordinary/source.go"}, nil},
+		{"malformed trailing JSON", `{"Dir":"$ROOT/ordinary","GoFiles":["source.go"]} !`, "syntax", []string{"ordinary/source.go"}, nil},
+		{"truncated trailing JSON", `{"Dir":"$ROOT/ordinary","GoFiles":["source.go"]} {`, "unexpected EOF", []string{"ordinary/source.go"}, nil},
+		{"package error before dependencies", `{"Dir":"package-dir","Error":{"Err":"package problem"},"DepsErrors":[{"Err":"first dependency"},{"Err":"second dependency"}]}`, "go package package-dir: package problem", []string{"ordinary/source.go"}, nil},
+		{"first dependency error", `{"Dir":"package-dir","DepsErrors":[{"Err":"first dependency"},{"Err":"second dependency"}]}`, "go package package-dir: first dependency", []string{"ordinary/source.go"}, nil},
+		{"all source categories and multiple packages", `{"Dir":"$ROOT/ordinary","GoFiles":["source.go"],"CgoFiles":["cgo.go"],"IgnoredGoFiles":["ignored.go"],"TestGoFiles":["source_test.go"],"XTestGoFiles":["external_test.go"]} {"Dir":"$ROOT/aaa","GoFiles":["alpha.go"]}`, "", []string{"ordinary/external_test.go", "ordinary/ignored.go", "ordinary/cgo.go", "aaa/alpha.go", "ordinary/source_test.go", "ordinary/source.go"}, []string{"./aaa", "./ordinary"}},
+		{"uncovered source after valid metadata", `{"Dir":"$ROOT/ordinary","GoFiles":["source.go"]}`, "uncovered host source ordinary/missing.go: absent from Go package metadata", []string{"ordinary/source.go", "ordinary/missing.go"}, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			repo := &lintRepo{t: t, root: t.TempDir()}
+			var sources []source
+			for _, path := range tc.paths {
+				repo.write(path, "package sample\n")
+				sources = append(sources, source{path: path, module: "."})
+			}
+			repo.write("bin/go", "#!/bin/sh\nprintf '%s\\n' \"$PWD\" \"$@\" > \"$LINT_TEST_ARGS\"\nprintf '%s' \"$LINT_TEST_METADATA\"\n")
+			require.NoError(t, os.Chmod(filepath.Join(repo.root, "bin/go"), 0o700))
+			t.Setenv("PATH", filepath.Join(repo.root, "bin")+string(os.PathListSeparator)+os.Getenv("PATH"))
+			t.Setenv("LINT_TEST_ARGS", filepath.Join(repo.root, "args"))
+			t.Setenv("LINT_TEST_METADATA", strings.ReplaceAll(tc.metadata, "$ROOT", repo.root))
+			packages, err := coveredPackages(t.Context(), repo.root, ".", "test_dep", sources)
+			switch tc.wantError {
+			case "":
+				require.NoError(t, err)
+			case "syntax":
+				var syntaxError *json.SyntaxError
+				require.ErrorAs(t, err, &syntaxError)
+			case "unexpected EOF":
+				require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+			default:
+				require.EqualError(t, err, tc.wantError)
+			}
+			require.Equal(t, tc.wantPackages, packages)
+			args, err := os.ReadFile(filepath.Join(repo.root, "args"))
+			require.NoError(t, err)
+			wantArgs := repo.root + "\nlist\n-e\n-mod=readonly\n-json\n-tags\ntest_dep\n"
+			if tc.wantPackages != nil {
+				wantArgs += "./aaa\n./ordinary\n"
+			} else {
+				wantArgs += "./ordinary\n"
+			}
+			require.Equal(t, wantArgs, string(args))
+		})
+	}
 }
 
 func TestLintRuntimeHostPackages(t *testing.T) {
