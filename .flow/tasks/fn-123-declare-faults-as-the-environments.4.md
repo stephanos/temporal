@@ -17,7 +17,7 @@ Convert the shared task queue (R3, R4, R6, R11): `TaskQueueSystem` declares its 
 - Lint: add `fault-overridden` beside the kinds in `lint.go:29-87`, reported per binding that overrides a derived crash. Accept both with their reasons in the `.lint.json` the gate reads (`lint/accept.go`). Check whether the acceptance file needs a version bump and say so in the done summary.
 - Storage loss: binding a `storageLoss` fault derives one assumption per fault, named after it and appended after authored assumptions. Delete `storageLossAssumed` (`TaskQueue.scala:115`) and the `.assuming(storageLossAssumed)` calls (`System.scala:239`, `Product.scala:89`). A hand-written assumption that duplicates a derived one is refused at its line (extend the twice-assumed check at `Declarations.scala:906-909`). `queueOpaque` keeps its IR order before the derived one.
 - Check whether the assumption id feeds any Query Definition ID or Case fingerprint; if it does, stop for the owner (spec Open Questions).
-- Regenerate, then classify every changed line of `model/ir`, `model/cases` and the lift goldens against the recorded deltas (spec Edge Cases, "Behavior is frozen"). The pinned paths through `queue_crash` and `queue_ackLoss` must not change.
+- Regenerate in an isolated scratch checkout under the real `/tmp/umpire-heavy-gates.lock`, then classify every changed line against fn-149.5's final grouped baseline and composed fn-140/fn-155 mapping of `model/ir`, `model/cases` and the lift goldens against the recorded deltas (spec Edge Cases, "Behavior is frozen"). The pinned paths through `queue_crash` and `queue_ackLoss` must not change.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -38,8 +38,8 @@ Convert the shared task queue (R3, R4, R6, R11): `TaskQueueSystem` declares its 
 - [ ] `crashDetail` and the authored crash rule are gone from `TaskQueueSystem`, and task 3's table test passes against the regenerated queue.
 - [ ] `ForgetfulQueue` and `VolatileQueue` give the same counterexamples. Lint reports `fault-overridden` for each, and the gate fails if either acceptance is removed.
 - [ ] `storageLossAssumed` is gone. The system and the product share one derived assumption named `storageLoss`, after `queueOpaque` in IR order. A refusal fixture shows a duplicate hand-written assumption refused at its line.
-- [ ] The regenerated diff holds only the recorded deltas, and every changed line is classified in the done summary. Query answers and Case bytes are unchanged.
-- [ ] `make umpire-check-model`, `make umpire-check-cases`, `make umpire-check-lint` and `go test -tags test_dep ./tools/umpire/lint/...` pass.
+- [ ] Against fn-149.5's final grouped baseline, the regenerated diff holds only the recorded fault deltas, and every changed line is classified in the done summary. Query answers and Case bytes are unchanged.
+- [ ] `make umpire-check-model`, `make umpire-check-cases`, `make umpire-check-lint` and `go test -tags test_dep ./tools/umpire/lint/...` pass. Focused scratch proofs run here; production publication and complete gate evidence are linked from fn-123.8, without duplicate full-suite runs or early task closure.
 
 
 ## Done summary

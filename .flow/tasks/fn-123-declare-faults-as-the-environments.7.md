@@ -14,7 +14,7 @@ Trace output and the Quint export read the fault metadata (R7, R8). Traces mark 
 ### Approach
 - Trace: `RenderTrace` (`trace.go:36`) and the witness view (`:109`) render steps. Annotate a budget field with its fault, and for a derived-crash step list each changed field with its classification. Extend `TestTraceRenderingIsStableAndSourceLinked` (`trace_test.go:11`) with a derived crash and a budgeted fault.
 - Quint: the exporter refuses whole IR files with channels (`quint.go:83-84`). The converted machines' IR files carry no channels today, so they reach the per-action path. Emit the derived crash as an action whose effect applies the field map. An unsupported fault construct is an `UnsupportedError` with its Scala position (`slice.go:116-125`, built at `quint.go:144`), and nothing is exported around it.
-- Run `make umpire-check-backends` locally on the converted machines (agreement check, `export/agreement.go:26`) and record the result. It is not a CI gate (spec Open Questions).
+- Run focused scratch export and trace proofs here. Fn-123.8 owns the single complete local `make umpire-check-backends` on every converted machine the exporter does not already refuse (agreement check, `export/agreement.go:26`); link its result here, retaining explicit unsupported receipts. It is not a CI gate (spec Open Questions).
 
 ### Investigation targets
 **Required** (read before coding):
@@ -29,7 +29,7 @@ Trace output and the Quint export read the fault metadata (R7, R8). Traces mark 
 ## Acceptance
 - [ ] A trace through a budgeted fault marks the budget field with its fault; a trace through a derived crash lists each changed field and its classification. The trace golden test covers both.
 - [ ] The Quint export of the converted queue and `LostStartAnswer` carries the derived crash and the budget field. An unsupported fault construct is an `UnsupportedError` with its Scala position, with a test.
-- [ ] The Quint agreement check passes on every converted machine the exporter does not already refuse; the done summary records the local `make umpire-check-backends` result.
+- [ ] The Quint agreement check passes on every converted machine the exporter does not already refuse; the done summary links the single local `make umpire-check-backends` result owned by fn-123.8.
 - [ ] `go test -tags test_dep ./tools/umpire/explore/... ./tools/umpire/export/...` and `make lint-code-fast` pass.
 
 

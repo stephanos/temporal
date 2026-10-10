@@ -89,8 +89,8 @@ discovery/export approach before migrating Models.
   checked distinction so headings and evaluated claim kinds cannot disagree. [inferred]
 - Capture this as one cohesive spec. Validation, reporting and migration make a bare reminder
   insufficient to preserve the intended distinction. [inferred]
-- This preparation supports possible insertion between fn-140 and fn-123 in Batch 2. The conductor
-  alone decides placement and activation. Entry follows fn-140.6's committed witness seal;
+- The conductor selected fn-149 between fn-140 and fn-123 in Batch 2. Activation and readiness
+  remain conductor-owned. Entry follows fn-140.6's committed witness seal;
   fn-149's final grouping seal precedes fn-123's semantic fault changes. Fn-141's declaration
   lifting runs later in Batch 4 and supplies no prerequisite exporter here.
 
@@ -102,16 +102,16 @@ discovery/export approach before migrating Models.
   existing home; a grouped reference does not attach or register a monitor again.
 - The first tasks may temporarily accept flat declarations. The Model migration activates the
   final layout refusal, so intermediate tasks remain buildable and the completed surface is uniform.
-- Scheduling and readiness remain unchanged in this preparation. If inserted, use committed source
+- This wiring does not change scheduling metadata or readiness. Use committed source
   seals within Batch 2, with no fn-140 or fn-149 whole-spec dependency that would deadlock the shared
   close. Re-anchor to the actual fn-155 identity mapping, fn-156 enforcement and fn-140 witness,
   `when` and `.live` vocabulary at execution. Their future interfaces are not presumed complete.
 - Retain the decision in `.flow/memory/declined/generated-api-drift-verification.md` against broad
   generated-API drift verification and new CI coverage; use focused fixtures and existing gates.
 
-## Conditional Batch 2 execution
+## Selected Batch 2 execution
 
-If the conductor selects this insertion, fn-140.6 first seals its meaning-preserving witness
+The selected order is fn-140, then fn-149, then fn-123. Fn-140.6 first seals its meaning-preserving witness
 comparison. Task .4 then proves grouping against that frozen baseline through an isolated scratch
 regeneration. Task .5 includes its documentation and executable-layout changes in the final
 independent grouping/assessment-equivalence seal. Commit the source and seal before fn-123.1
@@ -126,7 +126,7 @@ never normalize away an unexplained delta or use the grouped output as its own b
 The five-task DAG stays unchanged. Tasks .1 and .3 are parallel source candidates, .2 follows .1,
 .4 joins .1/.2/.3, and .5 joins .3/.4. The source seal does not close this spec or its last task.
 Task .5 remains pending the shared fn-123.8 boundary, which performs the single production
-regeneration, full gates, independent review and live run for all inserted Batch 2 specs. Each
+regeneration, full gates, independent review and live run for all three Batch 2 specs. Each
 acceptance obligation links that evidence before any spec closes. Reuse unchanged passing evidence;
 repeat only affected checks after fixes. Historical native/Quint resource RED and strict Batch 5
 semantic failures retain their existing attribution and unresolved obligations.
@@ -138,9 +138,10 @@ mise exec -- scala-cli test model/irgen --test-only Fixtures
 go test -tags test_dep ./tools/umpire/check ./tools/umpire/internal/cli
 ```
 
-The final task prepares the grouping seal and documentation. If inserted into Batch 2, its integrated
-model, artifact, lint, full Go and live obligations use the single fn-123.8 shared close. Unscheduled
-preparation neither executes these commands nor grants passing-gate credit.
+The final task prepares the grouping seal and documentation. Its integrated model, artifact, lint,
+full Go and live obligations use the single fn-123.8 shared close. This planning-only wiring leaves
+fn-149 not-ready until the conductor releases it; it neither executes these commands nor grants
+passing-gate credit.
 
 ## Requirement coverage
 

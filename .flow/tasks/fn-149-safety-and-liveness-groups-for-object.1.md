@@ -27,7 +27,7 @@ Discover grouped claims and prove registration equivalence. Advances R1, R2 of t
 - `model/temporal/features/nexus/workflow/Workflow.scala:133` - no-Query explicit Progress roots.
 
 ### Key context
-Conditional Batch 2 entry follows the committed fn-140.6 witness seal. Re-anchor to the actual fn-155 mapping, fn-156 enforcement and fn-140 vocabulary; future APIs remain unknown here. Fn-141 comes later. Root owns placement/source gates; .5's final grouping seal precedes fn-123.1, and closure waits fn-123.8. Shared heavy work uses the real `/tmp/umpire-heavy-gates.lock`.
+Selected Batch 2 entry follows the committed fn-140.6 witness seal. Re-anchor to the actual fn-155 mapping, fn-156 enforcement and fn-140 vocabulary; future APIs remain unknown here. Fn-141 comes later. Root owns activation/readiness and source gates; .5's final grouping seal precedes fn-123.1, and closure waits fn-123.8. Shared heavy work uses the real `/tmp/umpire-heavy-gates.lock`.
 
 ### Quick commands
 ```bash
