@@ -90,15 +90,29 @@ private val readHeartbeatDetails = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION
     .into(rawHeartbeatDetails)
 }
 
-private val heartbeatReceipt = Evidence.read(
-  id = evidenceId(system.Fact.heartbeatReceived),
-  records = system.Fact.heartbeatReceived,
-  source = sourceId(system.Fact.heartbeatReceived),
+private val activityRunFieldForInfo =
+  EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId))
+private def describeRead(id: String, records: RealizationFact, confirms: Taking*) = Evidence.read(
+  id = evidenceId(id),
+  records = records,
+  source = sourceId(id),
   from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
   operation = Field[ActivityExecutionInfo, String](_.activityId),
   commitment = Commitment.reported,
-  fields = Vector(EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId)))
+  fields = Vector(activityRunFieldForInfo),
+  confirms = Vector(confirms*)
 )
+private def statusIs(status: io.temporal.api.enums.v1.ActivityExecutionStatus) =
+  Condition.equal(
+    Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
+    Operand.enumValue(status)
+  )
+private def runStateIs(state: io.temporal.api.enums.v1.PendingActivityState) =
+  Condition.equal(
+    Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
+    Operand.enumValue(state)
+  )
+private val heartbeatReceipt = describeRead("heartbeatReceived", system.Fact.heartbeatReceived)
 private val receivedHeartbeat = Condition.all(
   Condition.greater(Field[ActivityExecutionInfo, Long](_.totalHeartbeatCount), Operand.number(0)),
   Condition.present(Field[ActivityExecutionInfo, Option[Payloads]](_.heartbeatDetails))
@@ -113,46 +127,23 @@ private val heartbeatFailure = Condition.equal(
   ),
   Operand.enumValue(TIMEOUT_TYPE_HEARTBEAT)
 )
-private val heartbeatCompleted = Evidence.read(
-  id = evidenceId("heartbeatCompleted"),
-  records = system.Fact.statusCompleted,
-  source = sourceId("heartbeatCompleted"),
-  from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
-  operation = Field[ActivityExecutionInfo, String](_.activityId),
-  commitment = Commitment.reported,
-  fields = Vector(
-    EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId))
-  )
-)
+private val heartbeatCompleted = describeRead("heartbeatCompleted", system.Fact.statusCompleted)
 private val awaitHeartbeatRetryCompletion = await(heartbeatCompleted, calls)(
   Condition.all(
-    Condition.equal(
-      Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
-      Operand.enumValue(ACTIVITY_EXECUTION_STATUS_COMPLETED)
-    ),
+    statusIs(ACTIVITY_EXECUTION_STATUS_COMPLETED),
     heartbeatFailure
   )
 ) {
   field(_.includeLastFailure) := Operand.flag(true)
 }
-private val heartbeatExpired = Evidence.read(
-  id = evidenceId("heartbeatExpired"),
-  records = system.Fact.heartbeatTimedOut,
-  source = sourceId("heartbeatExpired"),
-  from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
-  operation = Field[ActivityExecutionInfo, String](_.activityId),
-  commitment = Commitment.reported,
-  fields = Vector(
-    EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId))
-  ),
-  confirms = Vector(Taking(deadline.heartbeat, 1))
+private val heartbeatExpired = describeRead(
+  "heartbeatExpired",
+  system.Fact.heartbeatTimedOut,
+  Taking(deadline.heartbeat, 1)
 )
 private val awaitHeartbeatExpiration = await(heartbeatExpired, calls)(
   Condition.all(
-    Condition.equal(
-      Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
-      Operand.enumValue(ACTIVITY_EXECUTION_STATUS_TIMED_OUT)
-    ),
+    statusIs(ACTIVITY_EXECUTION_STATUS_TIMED_OUT),
     heartbeatFailure
   )
 ) {
@@ -162,84 +153,59 @@ private val readHeartbeatAttemptCount = readAttemptCount.withFields {
   field(_.includeLastFailure) := Operand.flag(true)
 }
 
-private def heartbeatDelivered(attempts: Script, response: ActivityAttemptResponse) =
-  Evidence.runEvent(
-    id = evidenceId(system.Fact.statusStarted),
-    records = system.Fact.statusStarted,
-    source = runRecord,
-    from = Recorded.runEvent[InstructionOutcome](
-      EventKind.diagnostic,
-      controllerScript,
-      startActivity,
-      key = Operand.runKey(),
-      guard = Some(
-        Condition.all(
-          Condition.present(Field[InstructionOutcome, Option[ActivityAttempt]](_.activityAttempt)),
-          Condition.not(
-            Condition.equal(
-              Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
-              Operand.text("")
-            )
-          ),
-          Condition.equal(
-            Field[InstructionOutcome, ActivityAttemptResponse](_.getActivityAttempt.response),
-            Operand.enumValue(response)
-          ),
-          Condition.equal(
-            Field[InstructionOutcome, Boolean](_.getActivityAttempt.heartbeatInvoked),
-            Operand.flag(true)
-          )
-        )
-      ),
-      attempt = Some(AttemptOf(attempts, 1))
-    ),
-    commitment = Commitment.reported,
-    fields = Vector(
-      attemptField(Field(_.getActivityAttempt.sdkAttempt)),
-      deliveryField(Field(_.getActivityAttempt.deliveryId)),
-      activityRunField(Field(_.getActivityAttempt.activityRunId)),
-      EvidenceField.typed(
-        "heartbeatInvoked",
-        Field[InstructionOutcome, Boolean](_.getActivityAttempt.heartbeatInvoked)
-      )
-    ),
-    confirms = Vector(Taking(worker.poll, 1))
-  )
-
-private def heartbeatRetryDelivered(
-    attempts: Script,
+private def responseIs(response: ActivityAttemptResponse) = Condition.equal(
+  Field[InstructionOutcome, ActivityAttemptResponse](_.getActivityAttempt.response),
+  Operand.enumValue(response)
+)
+private val heartbeatInvoked = Condition.equal(
+  Field[InstructionOutcome, Boolean](_.getActivityAttempt.heartbeatInvoked),
+  Operand.flag(true)
+)
+private val heartbeatInvokedField = EvidenceField.typed(
+  "heartbeatInvoked",
+  Field[InstructionOutcome, Boolean](_.getActivityAttempt.heartbeatInvoked)
+)
+private def attemptRecord(
+    script: Script,
+    number: Long,
+    carrier: Instruction,
+    extraGuard: Condition[InstructionOutcome]*
+)(
     id: String,
     records: RealizationFact,
-    confirms: Taking*
+    extraFields: Vector[TypedEvidenceField[InstructionOutcome, ?]] = Vector.empty,
+    confirms: Vector[Taking] = Vector.empty
 ) = Evidence.runEvent(
-  id = id,
+  id = evidenceId(id),
   records = records,
   source = runRecord,
   from = Recorded.runEvent[InstructionOutcome](
     EventKind.diagnostic,
     controllerScript,
-    startActivity,
+    carrier,
     key = Operand.runKey(),
     guard = Some(
       Condition.all(
         Condition.present(Field[InstructionOutcome, Option[ActivityAttempt]](_.activityAttempt)),
-        Condition.not(
-          Condition.equal(
-            Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
-            Operand.text("")
+        (Vector(
+          Condition.not(
+            Condition.equal(
+              Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
+              Operand.text("")
+            )
           )
-        )
+        ) ++ extraGuard)*
       )
     ),
-    attempt = Some(AttemptOf(attempts, 2))
+    attempt = Some(AttemptOf(script, number))
   ),
   commitment = Commitment.reported,
-  fields = Vector(
+  fields = Vector[TypedEvidenceField[InstructionOutcome, ?]](
     attemptField(Field(_.getActivityAttempt.sdkAttempt)),
     deliveryField(Field(_.getActivityAttempt.deliveryId)),
     activityRunField(Field(_.getActivityAttempt.activityRunId))
-  ),
-  confirms = Vector(confirms*)
+  ) ++ extraFields,
+  confirms = confirms
 )
 
 // ### The controller
@@ -249,6 +215,8 @@ private val stopWorker = fault(taskQueue, FaultKind.workerStop)
 
 // Each Case runs an activity type of its own, so two Cases on one worker never share one.
 private val activityType = perCase("activity")
+private val activation =
+  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
 
 // The start every class of the start action makes, under the run's id; a class adds the deadlines
 // it sets.
@@ -309,8 +277,7 @@ private val withholdAttempt = attemptWithheld
 // The activity's attempts: each delivery to the worker is an attempt start, answered in order.
 private val attempts = script(
   "attempts",
-  WorkerActivation
-    .Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+  activation
 )(
   perform(
     worker.respondCompleted -> completeAttempt,
@@ -322,7 +289,7 @@ private val attempts = script(
 
 private val timeoutAttempts = script(
   "timeout-attempts",
-  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+  activation
 )(
   onPath(deadline.startToClose)(withholdAttempt),
   perform(
@@ -338,7 +305,7 @@ private val heartbeatAttempt = attemptHeartbeat(heartbeatPayloads)
 private val pendingHeartbeatAttempt = attemptPending
 private val heartbeatAttempts = script(
   "heartbeat-attempts",
-  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+  activation
 )(
   perform(worker.heartbeat -> heartbeatAttempt),
   onPath(deadline.heartbeat)(pendingHeartbeatAttempt),
@@ -539,7 +506,18 @@ object HeartbeatThenCompletion
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startActivity),
-        heartbeatDelivered(heartbeatAttempts, ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED),
+        attemptRecord(
+          heartbeatAttempts,
+          1,
+          startActivity,
+          responseIs(ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED),
+          heartbeatInvoked
+        )(
+          "statusStarted",
+          system.Fact.statusStarted,
+          extraFields = Vector(heartbeatInvokedField),
+          confirms = Vector(Taking(worker.poll, 1))
+        ),
         heartbeatReceipt,
         described(system.Fact.statusCompleted),
         delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity)
@@ -572,20 +550,28 @@ object RetryAfterHeartbeat
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startActivity),
-        heartbeatDelivered(heartbeatAttempts, ACTIVITY_ATTEMPT_RESPONSE_PENDING),
-        heartbeatReceipt,
-        heartbeatRetryDelivered(
+        attemptRecord(
           heartbeatAttempts,
-          evidenceId(system.Fact.heartbeatTimedOut),
+          1,
+          startActivity,
+          responseIs(ACTIVITY_ATTEMPT_RESPONSE_PENDING),
+          heartbeatInvoked
+        )(
+          "statusStarted",
+          system.Fact.statusStarted,
+          extraFields = Vector(heartbeatInvokedField),
+          confirms = Vector(Taking(worker.poll, 1))
+        ),
+        heartbeatReceipt,
+        attemptRecord(heartbeatAttempts, 2, startActivity)(
+          "heartbeatTimedOut",
           system.Fact.attemptCount,
-          Taking(deadline.heartbeat, 1),
-          Taking(worker.poll, 2)
+          confirms = Vector(Taking(deadline.heartbeat, 1), Taking(worker.poll, 2))
         ),
         heartbeatCompleted,
         delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
-        heartbeatRetryDelivered(
-          heartbeatAttempts,
-          evidenceId("heartbeatTimedOutKind"),
+        attemptRecord(heartbeatAttempts, 2, startActivity)(
+          "heartbeatTimedOutKind",
           system.Fact.heartbeatTimedOut
         )
       )
@@ -618,7 +604,18 @@ object ExhaustAfterHeartbeat
   object evidence
       extends Evidences(
         answered(system.Fact.statusScheduled, startActivity),
-        heartbeatDelivered(heartbeatAttempts, ACTIVITY_ATTEMPT_RESPONSE_PENDING),
+        attemptRecord(
+          heartbeatAttempts,
+          1,
+          startActivity,
+          responseIs(ACTIVITY_ATTEMPT_RESPONSE_PENDING),
+          heartbeatInvoked
+        )(
+          "statusStarted",
+          system.Fact.statusStarted,
+          extraFields = Vector(heartbeatInvokedField),
+          confirms = Vector(Taking(worker.poll, 1))
+        ),
         heartbeatReceipt,
         heartbeatExpired,
         delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
@@ -627,26 +624,26 @@ object ExhaustAfterHeartbeat
 
 private val activityExecutionRun = Learned("activity-execution-run", LearnedKind.text)
 private val executionRun = Operand.learnedValue[String](activityExecutionRun.id)
-private val startExternal = startActivity.withFields {
-  field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
-  read(Field[StartActivityExecutionResponse, String](_.runId), Cardinality.one)
-    .into(Target.Bind(activityExecutionRun.id))
-}
-private val byIDCalls = RequestBase(
+private val runCalls = RequestBase(
   workflowService,
   "namespace" -> workerNamespace,
   "activity_id" -> run,
   "run_id" -> executionRun
 )
+private val startExternal = startActivity.withFields {
+  field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
+  read(Field[StartActivityExecutionResponse, String](_.runId), Cardinality.one)
+    .into(Target.Bind(activityExecutionRun.id))
+}
 private val answerIdentity = Operand.text("external-answer-controller")
-private val respondCompletedById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_COMPLETED_BY_ID) {
+private val respondCompletedById = rpc(runCalls, METHOD_RESPOND_ACTIVITY_TASK_COMPLETED_BY_ID) {
   field(_.identity) := answerIdentity
 }
-private val respondFailedById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_FAILED_BY_ID) {
+private val respondFailedById = rpc(runCalls, METHOD_RESPOND_ACTIVITY_TASK_FAILED_BY_ID) {
   field(_.identity) := answerIdentity
   field(_.getFailure) := applicationFailure("ExternalFailure", "external fatal failure", false)
 }
-private val respondCanceledById = rpc(byIDCalls, METHOD_RESPOND_ACTIVITY_TASK_CANCELED_BY_ID) {
+private val respondCanceledById = rpc(runCalls, METHOD_RESPOND_ACTIVITY_TASK_CANCELED_BY_ID) {
   field(_.identity) := answerIdentity
 }
 private val requestExternalCancellation = requestCancelActivity.extended {
@@ -662,98 +659,64 @@ private val readExternalAttemptCount = readAttemptCount.extended {
 }
 private val externalCleanup = command(terminateExternal, regardless = true)
 
-private def externalRead(id: String, records: RealizationFact, confirms: Taking*) = Evidence.read(
-  id = evidenceId(id),
-  records = records,
-  source = sourceId(id),
-  from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
-  operation = Field[ActivityExecutionInfo, String](_.activityId),
-  commitment = Commitment.reported,
-  fields = Vector(activityRunFieldForInfo),
-  confirms = Vector(confirms*)
-)
-private val activityRunFieldForInfo =
-  EvidenceField.typed("activityRun", Field[ActivityExecutionInfo, String](_.runId))
-private val externalStarted = externalRead(
+private val externalStarted = describeRead(
   "externalStarted",
   system.Fact.statusStarted,
   Taking(worker.poll, 1)
 )
-private val externalCancelRequested = externalRead(
+private val externalCancelRequested = describeRead(
   "externalCancelRequested",
   system.Fact.statusCancelRequested,
   Taking(client.requestCancel, 1)
 )
-private val externalCompleted = externalRead(
+private val externalCompleted = describeRead(
   "externalCompleted",
   system.Fact.statusCompleted,
   Taking(service.respondCompletedByID, 1)
 )
-private val externalFailed = externalRead(
+private val externalFailed = describeRead(
   "externalFailed",
   system.Fact.statusFailed,
   Taking(service.respondFailedByID(Failure.fatal), 1)
 )
-private val externalCanceled = externalRead(
+private val externalCanceled = describeRead(
   "externalCanceled",
   system.Fact.statusCanceled,
   Taking(service.respondCanceledByID, 1)
 )
-private val running = Condition.equal(
-  Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
-  Operand.enumValue(ACTIVITY_EXECUTION_STATUS_RUNNING)
-)
+private val running = statusIs(ACTIVITY_EXECUTION_STATUS_RUNNING)
 private val heldStarted = Condition.all(
   running,
-  Condition.equal(
-    Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
-    Operand.enumValue(PENDING_ACTIVITY_STATE_STARTED)
-  )
+  runStateIs(PENDING_ACTIVITY_STATE_STARTED)
 )
 private val heldCancelRequested = Condition.all(
   running,
-  Condition.equal(
-    Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
-    Operand.enumValue(PENDING_ACTIVITY_STATE_CANCEL_REQUESTED)
-  )
+  runStateIs(PENDING_ACTIVITY_STATE_CANCEL_REQUESTED)
 )
-private val awaitExternalStarted = await(externalStarted, calls)(heldStarted) {
-  field(_.runId) := executionRun
-}
+private val awaitExternalStarted = await(externalStarted, runCalls)(heldStarted) {}
 private val awaitExternalCancelRequested =
-  await(externalCancelRequested, calls)(heldCancelRequested) {
-    field(_.runId) := executionRun
-  }
+  await(externalCancelRequested, runCalls)(heldCancelRequested) {}
 private def terminalExternal(status: io.temporal.api.enums.v1.ActivityExecutionStatus) =
   Condition.all(
-    Condition.equal(
-      Field[ActivityExecutionInfo, io.temporal.api.enums.v1.ActivityExecutionStatus](_.status),
-      Operand.enumValue(status)
-    ),
-    Condition.equal(
-      Field[ActivityExecutionInfo, io.temporal.api.enums.v1.PendingActivityState](_.runState),
-      Operand.enumValue(PENDING_ACTIVITY_STATE_UNSPECIFIED)
-    ),
+    statusIs(status),
+    runStateIs(PENDING_ACTIVITY_STATE_UNSPECIFIED),
     Condition.present(
       Field[ActivityExecutionInfo, Option[com.google.protobuf.timestamp.Timestamp]](_.closeTime)
     )
   )
-private val awaitExternalCompleted = await(externalCompleted, calls)(
+private val awaitExternalCompleted = await(externalCompleted, runCalls)(
   terminalExternal(ACTIVITY_EXECUTION_STATUS_COMPLETED)
 ) {
-  field(_.runId) := executionRun
   field(_.includeOutcome) := Operand.flag(true)
 }
-private val awaitExternalFailed = await(externalFailed, calls)(
+private val awaitExternalFailed = await(externalFailed, runCalls)(
   terminalExternal(ACTIVITY_EXECUTION_STATUS_FAILED)
 ) {
-  field(_.runId) := executionRun
   field(_.includeOutcome) := Operand.flag(true)
 }
-private val awaitExternalCanceled = await(externalCanceled, calls)(
+private val awaitExternalCanceled = await(externalCanceled, runCalls)(
   terminalExternal(ACTIVITY_EXECUTION_STATUS_CANCELED)
 ) {
-  field(_.runId) := executionRun
   field(_.includeOutcome) := Operand.flag(true)
 }
 private val failurePublication = ActivityPublication("external-failure-pending")
@@ -764,11 +727,11 @@ private val failurePending = attemptPending(respondFailedById)
 private val cancellationPending = attemptPending(respondCanceledById)
 private val externalFailureAttempts = script(
   "external-failure-attempts",
-  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+  activation
 )(onPath(service.respondFailedByID(Failure.fatal))(failurePending))
 private val externalCancellationAttempts = script(
   "external-cancellation-attempts",
-  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+  activation
 )(onPath(service.respondCanceledByID)(cancellationPending))
 private val scheduledExternalSettlement = ActivityExternalSettlement.Scheduled(
   carrier = startExternal,
@@ -892,7 +855,7 @@ private val startResetOne = startOne.withFields {
   read(Field[StartActivityExecutionResponse, String](_.runId), Cardinality.one)
     .into(Target.Bind(activityExecutionRun.id))
 }
-private val resetHeldActivity = rpc(byIDCalls, METHOD_RESET_ACTIVITY_EXECUTION) {
+private val resetHeldActivity = rpc(runCalls, METHOD_RESET_ACTIVITY_EXECUTION) {
   field(_.identity) := Operand.text("reset-controller")
   field(_.keepPaused) := Operand.flag(false)
   field(_.requestId) := run
@@ -900,71 +863,23 @@ private val resetHeldActivity = rpc(byIDCalls, METHOD_RESET_ACTIVITY_EXECUTION) 
 private val resetPublication = ActivityPublication("reset-pending")
 private val awaitResetPublication = awaitActivityPublication(resetPublication)
 private val resetStarted =
-  externalRead("resetStarted", system.Fact.statusStarted, Taking(worker.poll, 1))
-private val awaitResetHeld = await(resetStarted, calls)(heldStarted) {
-  field(_.runId) := executionRun
-}
-private val resetCompleted = externalRead(
+  describeRead("resetStarted", system.Fact.statusStarted, Taking(worker.poll, 1))
+private val awaitResetHeld = await(resetStarted, runCalls)(heldStarted) {}
+private val resetCompleted = describeRead(
   "resetCompleted",
   system.Fact.statusCompleted,
   Taking(worker.respondCompleted, 1)
 )
-private val awaitResetCompleted = await(resetCompleted, calls)(
+private val awaitResetCompleted = await(resetCompleted, runCalls)(
   terminalExternal(ACTIVITY_EXECUTION_STATUS_COMPLETED)
-) {
-  field(_.runId) := executionRun
-}
+) {}
 private val pendingResetAttempt = attemptPending
 private val resetAttempts = script(
   "reset-attempts",
-  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+  activation
 )(
   onPath(deadline.heartbeat)(pendingResetAttempt),
   perform(worker.respondCompleted -> completeAttempt)
-)
-
-// The record of one attempt group of the reset script, told apart by what its worker offered: the
-// fresh first attempt's completion, not the held group's pending sentinel. Both are the server's
-// attempt 1, as the reset declares, and each names its own delivery.
-private def resetDelivered(
-    number: Long,
-    response: ActivityAttemptResponse,
-    id: String,
-    records: RealizationFact,
-    confirms: Taking*
-) = Evidence.runEvent(
-  id = evidenceId(id),
-  records = records,
-  source = runRecord,
-  from = Recorded.runEvent[InstructionOutcome](
-    EventKind.diagnostic,
-    controllerScript,
-    startResetOne,
-    key = Operand.runKey(),
-    guard = Some(
-      Condition.all(
-        Condition.present(Field[InstructionOutcome, Option[ActivityAttempt]](_.activityAttempt)),
-        Condition.not(
-          Condition.equal(
-            Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
-            Operand.text("")
-          )
-        ),
-        Condition.equal(
-          Field[InstructionOutcome, ActivityAttemptResponse](_.getActivityAttempt.response),
-          Operand.enumValue(response)
-        )
-      )
-    ),
-    attempt = Some(AttemptOf(resetAttempts, number))
-  ),
-  commitment = Commitment.reported,
-  fields = Vector(
-    attemptField(Field(_.getActivityAttempt.sdkAttempt)),
-    deliveryField(Field(_.getActivityAttempt.deliveryId)),
-    activityRunField(Field(_.getActivityAttempt.activityRunId))
-  ),
-  confirms = Vector(confirms*)
 )
 
 private val deferredResetSettlement = ActivityResetSettlement(
@@ -1009,17 +924,22 @@ object ResetAfterHeartbeat
           call = resetHeldActivity,
           Taking(client.reset(ResetPause.resume), 1)
         ),
-        resetDelivered(
+        attemptRecord(
+          resetAttempts,
           2,
-          ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
+          startResetOne,
+          responseIs(ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED)
+        )(
           "attemptCount",
           system.Fact.attemptCount,
-          Taking(deadline.heartbeat, 1),
-          Taking(worker.poll, 2)
+          confirms = Vector(Taking(deadline.heartbeat, 1), Taking(worker.poll, 2))
         ),
-        resetDelivered(
+        attemptRecord(
+          resetAttempts,
           2,
-          ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
+          startResetOne,
+          responseIs(ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED)
+        )(
           "resetHeartbeatTimedOut",
           system.Fact.heartbeatTimedOut
         ),
