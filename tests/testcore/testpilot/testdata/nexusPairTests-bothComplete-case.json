@@ -1,7 +1,7 @@
 {
   "caseId": "temporal.case.nexusPairTests.bothComplete",
   "version": {
-    "major": 1
+    "major": 4
   },
   "provenance": {
     "producerId": "temporal.nexus.caller.testpilot",
@@ -291,41 +291,122 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "workflow_type.name",
                     "value": {
-                      "literal": {
-                        "textValue": "umpire-nexusPairTests-bothComplete-workflow"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "stringValue": "umpire-nexusPairTests-bothComplete-workflow"
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "task_queue.name",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.task-queue.resource"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.task-queue.resource"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "request_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
@@ -386,43 +467,105 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "execution.workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "maximum_page_size",
                     "value": {
-                      "literal": {
-                        "signedIntegerValue": "64"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "int64Value": "64"
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "wait_new_event",
                     "value": {
-                      "literal": {
-                        "boolValue": true
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "boolValue": true
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "history_event_filter_type",
                     "value": {
-                      "literal": {
-                        "enumValue": {
-                          "name": "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "identExpr": {
+                            "name": "v0"
+                          }
                         }
-                      }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "literal": {
+                            "enumValue": {
+                              "type": "temporal.api.enums.v1.HistoryEventFilterType",
+                              "value": 2
+                            }
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
@@ -439,35 +582,83 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "execution.workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   }
                 ],
                 "until": {
-                  "present": {
-                    "operand": {
-                      "path": {
-                        "operand": {
-                          "reference": {
-                            "projectedValue": {}
+                  "cel": {
+                    "expr": {
+                      "id": "1",
+                      "callExpr": {
+                        "target": {
+                          "id": "2",
+                          "identExpr": {
+                            "name": "v0"
                           }
                         },
-                        "path": "attributes<nexus_operation_scheduled_event_attributes>"
+                        "function": "hasValue"
                       }
                     }
-                  }
-                },
-                "pollIntervalMilliseconds": "250"
+                  },
+                  "bindings": [
+                    {
+                      "variable": "v0",
+                      "reference": {
+                        "projectedValue": {}
+                      },
+                      "path": "attributes<nexus_operation_scheduled_event_attributes>"
+                    }
+                  ]
+                }
               }
             }
           },
@@ -481,32 +672,80 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "execution.workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "maximum_page_size",
                     "value": {
-                      "literal": {
-                        "signedIntegerValue": "64"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "int64Value": "64"
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "wait_new_event",
                     "value": {
-                      "literal": {
-                        "boolValue": true
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "boolValue": true
+                          }
+                        }
                       }
                     }
                   }
@@ -514,7 +753,6 @@
                 "responseReads": [
                   {
                     "path": "history.events[*]",
-                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
                     "targets": [
                       {
                         "observationId": "history-event"
@@ -522,13 +760,9 @@
                       {
                         "correlatedEvidence": {
                           "observationId": "correlated-evidence",
-                          "rules": [
-                            {
-                              "evidenceId": "evidence.started"
-                            },
-                            {
-                              "evidenceId": "completed"
-                            }
+                          "evidenceIds": [
+                            "evidence.started",
+                            "completed"
                           ]
                         }
                       }
@@ -595,14 +829,18 @@
             "instruction": {
               "awaitInstruction": {
                 "instruction": {
-                  "entrypointId": "workflow",
                   "instructionId": "start-nexus-operation-1"
                 }
               }
             },
             "guard": {
-              "literal": {
-                "boolValue": true
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "boolValue": true
+                  }
+                }
               }
             }
           },
@@ -611,14 +849,18 @@
             "instruction": {
               "awaitInstruction": {
                 "instruction": {
-                  "entrypointId": "workflow",
                   "instructionId": "start-nexus-operation-2"
                 }
               }
             },
             "guard": {
-              "literal": {
-                "boolValue": true
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "boolValue": true
+                  }
+                }
               }
             }
           },
@@ -627,19 +869,29 @@
             "instruction": {
               "finish": {
                 "result": {
-                  "literal": {
-                    "textValue": "done"
+                  "cel": {
+                    "expr": {
+                      "id": "1",
+                      "constExpr": {
+                        "stringValue": "done"
+                      }
+                    }
                   }
                 }
               }
             },
             "guard": {
-              "literal": {
-                "boolValue": true
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "boolValue": true
+                  }
+                }
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -664,7 +916,7 @@
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -689,7 +941,7 @@
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -710,11 +962,43 @@
           {
             "fieldId": "run",
             "value": {
-              "textValue": "nexusPairTests-bothComplete"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "stringValue": "nexusPairTests-bothComplete"
+                  }
+                }
+              }
             }
           }
         ],
-        "operation": "event_id"
+        "operation": {
+          "cel": {
+            "expr": {
+              "id": "1",
+              "callExpr": {
+                "target": {
+                  "id": "2",
+                  "identExpr": {
+                    "name": "v0"
+                  }
+                },
+                "function": "value"
+              }
+            }
+          },
+          "bindings": [
+            {
+              "variable": "v0",
+              "reference": {
+                "projectedValue": {}
+              },
+              "path": "event_id"
+            }
+          ]
+        },
+        "kind": "evidence.scheduled"
       },
       {
         "evidenceId": "evidence.started",
@@ -726,11 +1010,43 @@
           {
             "fieldId": "run",
             "value": {
-              "textValue": "nexusPairTests-bothComplete"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "stringValue": "nexusPairTests-bothComplete"
+                  }
+                }
+              }
             }
           }
         ],
-        "operation": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id"
+        "operation": {
+          "cel": {
+            "expr": {
+              "id": "1",
+              "callExpr": {
+                "target": {
+                  "id": "2",
+                  "identExpr": {
+                    "name": "v0"
+                  }
+                },
+                "function": "value"
+              }
+            }
+          },
+          "bindings": [
+            {
+              "variable": "v0",
+              "reference": {
+                "projectedValue": {}
+              },
+              "path": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id"
+            }
+          ]
+        },
+        "kind": "evidence.started"
       },
       {
         "evidenceId": "completed",
@@ -742,15 +1058,47 @@
           {
             "fieldId": "run",
             "value": {
-              "textValue": "nexusPairTests-bothComplete"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "stringValue": "nexusPairTests-bothComplete"
+                  }
+                }
+              }
             }
           }
         ],
-        "operation": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
+        "operation": {
+          "cel": {
+            "expr": {
+              "id": "1",
+              "callExpr": {
+                "target": {
+                  "id": "2",
+                  "identExpr": {
+                    "name": "v0"
+                  }
+                },
+                "function": "value"
+              }
+            }
+          },
+          "bindings": [
+            {
+              "variable": "v0",
+              "reference": {
+                "projectedValue": {}
+              },
+              "path": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
+            }
+          ]
+        },
+        "kind": "completed"
       }
     ],
     "instructionDefaults": {
-      "timeoutMilliseconds": "10000",
+      "timeout": "10s",
       "maxAttempts": "1"
     },
     "runOrderIsCausal": true
@@ -760,7 +1108,6 @@
     "rules": [
       {
         "ruleId": "relation",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "initialStateId": "pending",
         "states": [
           {
@@ -791,7 +1138,7 @@
             "transitionId": "capture-nexusOperationScheduled-relation",
             "sourceStateId": "pending",
             "targetStateId": "nexusOperationScheduled",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "captureAssignments": [
               {
                 "captureId": "nexusOperationScheduled-relation",
@@ -804,90 +1151,170 @@
               ]
             },
             "predicate": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "observationId": "history-event"
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "left": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "callExpr": {
+                    "function": "_&&_",
+                    "args": [
+                      {
+                        "id": "2",
+                        "callExpr": {
+                          "target": {
+                            "id": "3",
+                            "identExpr": {
+                              "name": "v0"
                             }
                           },
-                          "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
+                          "function": "hasValue"
                         }
                       },
-                      "right": {
-                        "reference": {
-                          "instanceValueId": "operation"
+                      {
+                        "id": "4",
+                        "callExpr": {
+                          "function": "_==_",
+                          "args": [
+                            {
+                              "id": "5",
+                              "callExpr": {
+                                "target": {
+                                  "id": "6",
+                                  "identExpr": {
+                                    "name": "v1"
+                                  }
+                                },
+                                "function": "value"
+                              }
+                            },
+                            {
+                              "id": "7",
+                              "callExpr": {
+                                "target": {
+                                  "id": "8",
+                                  "identExpr": {
+                                    "name": "v2"
+                                  }
+                                },
+                                "function": "value"
+                              }
+                            }
+                          ]
                         }
                       }
-                    }
+                    ]
                   }
-                ]
-              }
+                }
+              },
+              "bindings": [
+                {
+                  "variable": "v0",
+                  "reference": {
+                    "observationId": "history-event"
+                  }
+                },
+                {
+                  "variable": "v1",
+                  "reference": {
+                    "observationId": "history-event"
+                  },
+                  "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
+                },
+                {
+                  "variable": "v2",
+                  "reference": {
+                    "instanceValueId": "operation"
+                  }
+                }
+              ]
             }
           },
           {
             "transitionId": "match-nexusOperationCompleted-relation",
             "sourceStateId": "nexusOperationScheduled",
             "targetStateId": "satisfied",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
               ]
             },
             "predicate": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "captureId": "nexusOperationScheduled-relation"
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "left": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "captureId": "nexusOperationScheduled-relation"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "callExpr": {
+                    "function": "_&&_",
+                    "args": [
+                      {
+                        "id": "2",
+                        "callExpr": {
+                          "target": {
+                            "id": "3",
+                            "identExpr": {
+                              "name": "v0"
                             }
                           },
-                          "path": "event_id"
+                          "function": "hasValue"
                         }
                       },
-                      "right": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
+                      {
+                        "id": "4",
+                        "callExpr": {
+                          "function": "_==_",
+                          "args": [
+                            {
+                              "id": "5",
+                              "callExpr": {
+                                "target": {
+                                  "id": "6",
+                                  "identExpr": {
+                                    "name": "v1"
+                                  }
+                                },
+                                "function": "value"
+                              }
+                            },
+                            {
+                              "id": "7",
+                              "callExpr": {
+                                "target": {
+                                  "id": "8",
+                                  "identExpr": {
+                                    "name": "v2"
+                                  }
+                                },
+                                "function": "value"
+                              }
                             }
-                          },
-                          "path": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
+                          ]
                         }
                       }
-                    }
+                    ]
                   }
-                ]
-              }
+                }
+              },
+              "bindings": [
+                {
+                  "variable": "v0",
+                  "reference": {
+                    "captureId": "nexusOperationScheduled-relation"
+                  }
+                },
+                {
+                  "variable": "v1",
+                  "reference": {
+                    "captureId": "nexusOperationScheduled-relation"
+                  },
+                  "path": "event_id"
+                },
+                {
+                  "variable": "v2",
+                  "reference": {
+                    "observationId": "history-event"
+                  },
+                  "path": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
+                }
+              ]
             }
           }
         ],
@@ -908,7 +1335,7 @@
               {
                 "instanceValueId": "operation",
                 "value": {
-                  "textValue": "complete-1"
+                  "stringValue": "complete-1"
                 }
               }
             ]
@@ -919,7 +1346,7 @@
               {
                 "instanceValueId": "operation",
                 "value": {
-                  "textValue": "complete-2"
+                  "stringValue": "complete-2"
                 }
               }
             ]
@@ -939,24 +1366,286 @@
         "history",
         "source.scheduled"
       ],
-      "initialState": {
-        "definitionId": "unscheduled",
-        "value": "unscheduled"
-      },
+      "initialStateId": "s1",
       "transitions": [
         {
-          "priorState": {
+          "priorStateId": "s1",
+          "resultId": "r1"
+        },
+        {
+          "priorStateId": "s2",
+          "resultId": "r2"
+        },
+        {
+          "priorStateId": "s3",
+          "resultId": "r3"
+        },
+        {
+          "priorStateId": "s4",
+          "resultId": "r4"
+        }
+      ],
+      "projectionRules": [
+        {
+          "kind": "completed",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "resultIds": [
+            "r3"
+          ]
+        },
+        {
+          "kind": "evidence.scheduled",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "resultIds": [
+            "r1"
+          ]
+        },
+        {
+          "kind": "evidence.started",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "resultIds": [
+            "r2"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "ruleId": "fact-nexusOperationCompleted",
+          "trigger": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "_==_",
+                  "args": [
+                    {
+                      "id": "2",
+                      "callExpr": {
+                        "target": {
+                          "id": "3",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "constExpr": {
+                        "stringValue": "schedule-unset-unset-unset"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "schedule-unset-unset-unset"
+                  }
+                }
+              }
+            ]
+          },
+          "response": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "_==_",
+                  "args": [
+                    {
+                      "id": "2",
+                      "callExpr": {
+                        "target": {
+                          "id": "3",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "constExpr": {
+                        "stringValue": "nexusOperationCompleted"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_FACT",
+                    "definitionId": "nexusOperationCompleted"
+                  }
+                }
+              }
+            ]
+          },
+          "bound": "2",
+          "ending": "TRACE_ENDING_PARTIAL"
+        },
+        {
+          "ruleId": "state-succeeded",
+          "trigger": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "_==_",
+                  "args": [
+                    {
+                      "id": "2",
+                      "callExpr": {
+                        "target": {
+                          "id": "3",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "constExpr": {
+                        "stringValue": "schedule-unset-unset-unset"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "schedule-unset-unset-unset"
+                  }
+                }
+              }
+            ]
+          },
+          "response": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "_==_",
+                  "args": [
+                    {
+                      "id": "2",
+                      "callExpr": {
+                        "target": {
+                          "id": "3",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "constExpr": {
+                        "stringValue": "succeeded"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_STATE",
+                    "definitionId": "succeeded"
+                  }
+                }
+              }
+            ]
+          },
+          "bound": "2",
+          "ending": "TRACE_ENDING_PARTIAL"
+        }
+      ],
+      "states": [
+        {
+          "stateId": "s1",
+          "atom": {
             "definitionId": "unscheduled",
             "value": "unscheduled"
           },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "unscheduled"
+            }
+          ]
+        },
+        {
+          "stateId": "s2",
+          "atom": {
+            "definitionId": "pair.scheduled",
+            "value": "scheduled"
+          },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "scheduled"
+            }
+          ]
+        },
+        {
+          "stateId": "s3",
+          "atom": {
+            "definitionId": "pair.started",
+            "value": "started"
+          },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "started"
+            }
+          ]
+        },
+        {
+          "stateId": "s4",
+          "atom": {
+            "definitionId": "succeeded",
+            "value": "succeeded"
+          },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "succeeded"
+            }
+          ]
+        }
+      ],
+      "results": [
+        {
+          "resultId": "r1",
           "action": {
             "definitionId": "schedule-unset-unset-unset",
             "value": "schedule-unset-unset-unset"
           },
-          "state": {
-            "definitionId": "pair.scheduled",
-            "value": "scheduled"
-          },
+          "stateId": "s2",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
@@ -966,33 +1655,15 @@
               "definitionId": "nexusOperationScheduled",
               "value": "nexusOperationScheduled"
             }
-          ],
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "unscheduled"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "scheduled"
-            }
           ]
         },
         {
-          "priorState": {
-            "definitionId": "pair.scheduled",
-            "value": "scheduled"
-          },
+          "resultId": "r2",
           "action": {
             "definitionId": "handlerReply-async",
             "value": "handlerReply-async"
           },
-          "state": {
-            "definitionId": "pair.started",
-            "value": "started"
-          },
+          "stateId": "s3",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
@@ -1002,33 +1673,15 @@
               "definitionId": "nexusOperationStarted",
               "value": "nexusOperationStarted"
             }
-          ],
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "scheduled"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "started"
-            }
           ]
         },
         {
-          "priorState": {
-            "definitionId": "pair.started",
-            "value": "started"
-          },
+          "resultId": "r3",
           "action": {
             "definitionId": "complete-succeeded",
             "value": "complete-succeeded"
           },
-          "state": {
-            "definitionId": "succeeded",
-            "value": "succeeded"
-          },
+          "stateId": "s4",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
@@ -1038,239 +1691,19 @@
               "definitionId": "nexusOperationCompleted",
               "value": "nexusOperationCompleted"
             }
-          ],
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "started"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "succeeded"
-            }
           ]
         },
         {
-          "priorState": {
-            "definitionId": "succeeded",
-            "value": "succeeded"
-          },
+          "resultId": "r4",
           "action": {
             "definitionId": "complete-succeeded",
             "value": "complete-succeeded"
           },
-          "state": {
-            "definitionId": "succeeded",
-            "value": "succeeded"
-          },
+          "stateId": "s4",
           "outcome": {
             "definitionId": "notFound",
             "value": "notFound"
-          },
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "succeeded"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "succeeded"
-            }
-          ]
-        }
-      ],
-      "projectionRules": [
-        {
-          "kind": "completed",
-          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
-          "outputs": [
-            {
-              "action": {
-                "definitionId": "complete-succeeded",
-                "value": "complete-succeeded"
-              },
-              "state": {
-                "definitionId": "succeeded",
-                "value": "succeeded"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "facts": [
-                {
-                  "definitionId": "nexusOperationCompleted",
-                  "value": "nexusOperationCompleted"
-                }
-              ],
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "succeeded"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "evidence.scheduled",
-          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
-          "outputs": [
-            {
-              "action": {
-                "definitionId": "schedule-unset-unset-unset",
-                "value": "schedule-unset-unset-unset"
-              },
-              "state": {
-                "definitionId": "pair.scheduled",
-                "value": "scheduled"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "facts": [
-                {
-                  "definitionId": "nexusOperationScheduled",
-                  "value": "nexusOperationScheduled"
-                }
-              ],
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "scheduled"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "evidence.started",
-          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
-          "outputs": [
-            {
-              "action": {
-                "definitionId": "handlerReply-async",
-                "value": "handlerReply-async"
-              },
-              "state": {
-                "definitionId": "pair.started",
-                "value": "started"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "facts": [
-                {
-                  "definitionId": "nexusOperationStarted",
-                  "value": "nexusOperationStarted"
-                }
-              ],
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "started"
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "ruleId": "fact-nexusOperationCompleted",
-          "trigger": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_ACTION",
-                    "definitionId": "schedule-unset-unset-unset"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "schedule-unset-unset-unset"
-                }
-              }
-            }
-          },
-          "response": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_FACT",
-                    "definitionId": "nexusOperationCompleted"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "nexusOperationCompleted"
-                }
-              }
-            }
-          },
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "bound": "2",
-          "ending": "TRACE_ENDING_PARTIAL"
-        },
-        {
-          "ruleId": "state-succeeded",
-          "trigger": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_ACTION",
-                    "definitionId": "schedule-unset-unset-unset"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "schedule-unset-unset-unset"
-                }
-              }
-            }
-          },
-          "response": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_STATE",
-                    "definitionId": "succeeded"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "succeeded"
-                }
-              }
-            }
-          },
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "bound": "2",
-          "ending": "TRACE_ENDING_PARTIAL"
-        }
-      ],
-      "initialStateFields": [
-        {
-          "definitionId": "phase",
-          "value": "unscheduled"
+          }
         }
       ]
     }

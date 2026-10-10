@@ -1,7 +1,7 @@
 {
   "caseId": "testpilot.synthetic.case",
   "version": {
-    "major": 1
+    "major": 4
   },
   "provenance": {
     "producerId": "standalone.lean.testpilot",
@@ -36,13 +36,26 @@
             "instruction": {
               "finish": {
                 "result": {
-                  "literal": {
-                    "messageValue": {
-                      "@type": "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion",
-                      "major": 1,
-                      "minor": 2
+                  "cel": {
+                    "expr": {
+                      "id": "1",
+                      "identExpr": {
+                        "name": "v0"
+                      }
                     }
-                  }
+                  },
+                  "bindings": [
+                    {
+                      "variable": "v0",
+                      "literal": {
+                        "objectValue": {
+                          "@type": "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion",
+                          "major": 1,
+                          "minor": 2
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -54,7 +67,7 @@
       "entrypointId": "cleanup"
     },
     "instructionDefaults": {
-      "timeoutMilliseconds": "1000",
+      "timeout": "1s",
       "maxAttempts": "1"
     }
   },
@@ -63,7 +76,6 @@
     "rules": [
       {
         "ruleId": "completion",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "initialStateId": "open",
         "states": [
           {
@@ -80,15 +92,20 @@
             "transitionId": "complete",
             "sourceStateId": "open",
             "targetStateId": "done",
-            "supportKind": "CONTRACT_SUPPORT_KIND_NONE",
+            "supportsEvent": false,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_RUN_CLOSED"
               ]
             },
             "predicate": {
-              "literal": {
-                "boolValue": true
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "boolValue": true
+                  }
+                }
               }
             }
           }

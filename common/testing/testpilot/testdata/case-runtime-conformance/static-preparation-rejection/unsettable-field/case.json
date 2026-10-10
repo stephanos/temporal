@@ -1,7 +1,7 @@
 {
   "caseId": "temporal.case.conformance.static-rejection.unsettable-field",
   "version": {
-    "major": 1
+    "major": 4
   },
   "provenance": {
     "producerId": "temporal.case.compiler",
@@ -65,7 +65,7 @@
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -94,7 +94,7 @@
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           },
           {
@@ -102,14 +102,19 @@
             "instruction": {
               "finish": {
                 "result": {
-                  "literal": {
-                    "textValue": "done"
+                  "cel": {
+                    "expr": {
+                      "id": "1",
+                      "constExpr": {
+                        "stringValue": "done"
+                      }
+                    }
                   }
                 }
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -140,7 +145,7 @@
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -155,7 +160,6 @@
     "rules": [
       {
         "ruleId": "result",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "initialStateId": "pending",
         "states": [
           {
@@ -172,15 +176,20 @@
             "transitionId": "complete",
             "sourceStateId": "pending",
             "targetStateId": "terminal",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
               ]
             },
             "predicate": {
-              "literal": {
-                "boolValue": true
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "boolValue": true
+                  }
+                }
               }
             }
           }

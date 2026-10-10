@@ -418,8 +418,10 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 			require.Equal(t, artifact.Contract.Correlated.ProjectionFingerprint, rules[0].GetProjectionFingerprint())
 			_, catalog, fixtureView, ceiling, correlated := correlatedFixture(t, 1)
 			// The structured fixtures project six events over a nine-row table, so one event's
-			// projection work is larger than the atomic fixtures' ceiling allows.
-			ceiling.MaxWorkPerEvent = 1000000
+			// projection work is larger than the atomic fixtures' ceiling allows. Format 4.0 charges
+			// the complete state and result payloads it expands: 21577026 for one event of the
+			// two-operation fixture, against 1000000 before.
+			ceiling.MaxWorkPerEvent = 25000000
 			program, err := execution.Prepare(&artifact, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: fixtureView.Limits()})
 			require.NoError(t, err)
 			view := program.View()

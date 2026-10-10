@@ -1,7 +1,7 @@
 {
   "caseId": "temporal.case.systemInfoTests.answered",
   "version": {
-    "major": 1
+    "major": 4
   },
   "provenance": {
     "producerId": "temporal.system.info.testpilot",
@@ -181,7 +181,6 @@
                 "responseReads": [
                   {
                     "path": "server_version",
-                    "cardinality": "READ_CARDINALITY_ONE",
                     "targets": [
                       {
                         "observationId": "server-version"
@@ -192,7 +191,7 @@
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -212,15 +211,47 @@
           {
             "fieldId": "scope.run",
             "value": {
-              "textValue": "systemInfoTests-answered"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "stringValue": "systemInfoTests-answered"
+                  }
+                }
+              }
             }
           }
         ],
-        "operation": "protocol_code"
+        "operation": {
+          "cel": {
+            "expr": {
+              "id": "1",
+              "callExpr": {
+                "target": {
+                  "id": "2",
+                  "identExpr": {
+                    "name": "v0"
+                  }
+                },
+                "function": "value"
+              }
+            }
+          },
+          "bindings": [
+            {
+              "variable": "v0",
+              "reference": {
+                "projectedValue": {}
+              },
+              "path": "protocol_code"
+            }
+          ]
+        },
+        "kind": "instructionCompleted"
       }
     ],
     "instructionDefaults": {
-      "timeoutMilliseconds": "10000",
+      "timeout": "10s",
       "maxAttempts": "1"
     }
   },
@@ -237,24 +268,232 @@
       "sources": [
         "source.run"
       ],
-      "initialState": {
-        "definitionId": "unqueried",
-        "value": "unqueried"
-      },
+      "initialStateId": "s1",
       "transitions": [
         {
-          "priorState": {
+          "priorStateId": "s1",
+          "resultId": "r1"
+        }
+      ],
+      "projectionRules": [
+        {
+          "kind": "instructionCompleted",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "resultIds": [
+            "r1"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "ruleId": "fact-systemInfoReturned",
+          "trigger": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "_==_",
+                  "args": [
+                    {
+                      "id": "2",
+                      "callExpr": {
+                        "target": {
+                          "id": "3",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "constExpr": {
+                        "stringValue": "getSystemInfo"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "getSystemInfo"
+                  }
+                }
+              }
+            ]
+          },
+          "response": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "_==_",
+                  "args": [
+                    {
+                      "id": "2",
+                      "callExpr": {
+                        "target": {
+                          "id": "3",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "constExpr": {
+                        "stringValue": "systemInfoReturned"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_FACT",
+                    "definitionId": "systemInfoReturned"
+                  }
+                }
+              }
+            ]
+          },
+          "ending": "TRACE_ENDING_PARTIAL"
+        },
+        {
+          "ruleId": "state-queried",
+          "trigger": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "_==_",
+                  "args": [
+                    {
+                      "id": "2",
+                      "callExpr": {
+                        "target": {
+                          "id": "3",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "constExpr": {
+                        "stringValue": "getSystemInfo"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "getSystemInfo"
+                  }
+                }
+              }
+            ]
+          },
+          "response": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "_==_",
+                  "args": [
+                    {
+                      "id": "2",
+                      "callExpr": {
+                        "target": {
+                          "id": "3",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "constExpr": {
+                        "stringValue": "queried"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_STATE",
+                    "definitionId": "queried"
+                  }
+                }
+              }
+            ]
+          },
+          "ending": "TRACE_ENDING_PARTIAL"
+        }
+      ],
+      "states": [
+        {
+          "stateId": "s1",
+          "atom": {
             "definitionId": "unqueried",
             "value": "unqueried"
           },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "unqueried"
+            }
+          ]
+        },
+        {
+          "stateId": "s2",
+          "atom": {
+            "definitionId": "queried",
+            "value": "queried"
+          },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "queried"
+            }
+          ]
+        }
+      ],
+      "results": [
+        {
+          "resultId": "r1",
           "action": {
             "definitionId": "getSystemInfo",
             "value": "getSystemInfo"
           },
-          "state": {
-            "definitionId": "queried",
-            "value": "queried"
-          },
+          "stateId": "s2",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
@@ -264,143 +503,7 @@
               "definitionId": "systemInfoReturned",
               "value": "systemInfoReturned"
             }
-          ],
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "unqueried"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "queried"
-            }
           ]
-        }
-      ],
-      "projectionRules": [
-        {
-          "kind": "instructionCompleted",
-          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
-          "outputs": [
-            {
-              "action": {
-                "definitionId": "getSystemInfo",
-                "value": "getSystemInfo"
-              },
-              "state": {
-                "definitionId": "queried",
-                "value": "queried"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "facts": [
-                {
-                  "definitionId": "systemInfoReturned",
-                  "value": "systemInfoReturned"
-                }
-              ],
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "queried"
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "ruleId": "fact-systemInfoReturned",
-          "trigger": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_ACTION",
-                    "definitionId": "getSystemInfo"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "getSystemInfo"
-                }
-              }
-            }
-          },
-          "response": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_FACT",
-                    "definitionId": "systemInfoReturned"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "systemInfoReturned"
-                }
-              }
-            }
-          },
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "ending": "TRACE_ENDING_PARTIAL"
-        },
-        {
-          "ruleId": "state-queried",
-          "trigger": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_ACTION",
-                    "definitionId": "getSystemInfo"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "getSystemInfo"
-                }
-              }
-            }
-          },
-          "response": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_STATE",
-                    "definitionId": "queried"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "queried"
-                }
-              }
-            }
-          },
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "ending": "TRACE_ENDING_PARTIAL"
-        }
-      ],
-      "initialStateFields": [
-        {
-          "definitionId": "phase",
-          "value": "unqueried"
         }
       ]
     }

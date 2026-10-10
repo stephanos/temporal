@@ -224,7 +224,7 @@ func carrierProfile(t testing.TB) testpilot.ProfileSpec {
 	evidence := ".temporal.server.api.testpilot.v1.CorrelatedEvidence"
 	descriptors.File = append(descriptors.File, &descriptorpb.FileDescriptorProto{
 		Name: proto.String("test/conformance/source.proto"), Package: proto.String("test.conformance"), Syntax: proto.String("proto3"),
-		Dependency: []string{testpilotspb.File_temporal_server_api_testpilot_v1_correlated_proto.Path()},
+		Dependency: []string{testpilotspb.File_temporal_server_api_testpilot_v1_evidence_proto.Path()},
 		Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Source"), Method: []*descriptorpb.MethodDescriptorProto{{
 			Name: proto.String("Read"), InputType: proto.String(evidence), OutputType: proto.String(evidence)}}}},
 	})

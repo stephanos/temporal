@@ -1,7 +1,7 @@
 {
   "caseId": "temporal.case.conformance.static-rejection.instance-value",
   "version": {
-    "major": 1
+    "major": 4
   },
   "provenance": {
     "producerId": "temporal.case.compiler",
@@ -49,7 +49,7 @@
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -64,7 +64,6 @@
     "rules": [
       {
         "ruleId": "result",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "initialStateId": "pending",
         "states": [
           {
@@ -81,28 +80,63 @@
             "transitionId": "complete",
             "sourceStateId": "pending",
             "targetStateId": "terminal",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
               ]
             },
             "predicate": {
-              "compare": {
-                "operator": "COMPARISON_OPERATOR_EQUAL",
-                "left": {
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "callExpr": {
+                    "function": "_==_",
+                    "args": [
+                      {
+                        "id": "2",
+                        "callExpr": {
+                          "target": {
+                            "id": "3",
+                            "identExpr": {
+                              "name": "v0"
+                            }
+                          },
+                          "function": "value"
+                        }
+                      },
+                      {
+                        "id": "4",
+                        "callExpr": {
+                          "target": {
+                            "id": "5",
+                            "identExpr": {
+                              "name": "v1"
+                            }
+                          },
+                          "function": "value"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "bindings": [
+                {
+                  "variable": "v0",
                   "reference": {
                     "runEvent": {
                       "field": "RUN_EVENT_FIELD_INSTRUCTION_ID"
                     }
                   }
                 },
-                "right": {
+                {
+                  "variable": "v1",
                   "reference": {
                     "instanceValueId": "instruction"
                   }
                 }
-              }
+              ]
             }
           }
         ],
@@ -123,7 +157,7 @@
               {
                 "instanceValueId": "instruction",
                 "value": {
-                  "textValue": "execute"
+                  "stringValue": "execute"
                 }
               }
             ]
@@ -134,7 +168,7 @@
               {
                 "instanceValueId": "instruction",
                 "value": {
-                  "signedIntegerValue": "1"
+                  "int64Value": "1"
                 }
               }
             ]

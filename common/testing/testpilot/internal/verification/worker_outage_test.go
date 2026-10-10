@@ -77,7 +77,7 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 	}}
 	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: testsupport.ProgramLimits()})
 	require.NoError(t, err)
-	ceiling := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
+	ceiling := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 200000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
 	prepared, err := Prepare(contract, catalog, program.View(), ceiling, nil)
 	require.NoError(t, err)
 	return prepared, program.View()

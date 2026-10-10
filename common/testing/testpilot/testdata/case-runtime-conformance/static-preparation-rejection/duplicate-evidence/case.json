@@ -1,7 +1,7 @@
 {
   "caseId": "temporal.case.conformance.static-rejection.duplicate-evidence",
   "version": {
-    "major": 1
+    "major": 4
   },
   "provenance": {
     "producerId": "temporal.case.compiler",
@@ -61,15 +61,12 @@
                 "responseReads": [
                   {
                     "path": "history.events[*]",
-                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
                     "targets": [
                       {
                         "correlatedEvidence": {
                           "observationId": "evidence",
-                          "rules": [
-                            {
-                              "evidenceId": "started"
-                            }
+                          "evidenceIds": [
+                            "started"
                           ]
                         }
                       }
@@ -79,7 +76,7 @@
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -99,11 +96,43 @@
           {
             "fieldId": "run",
             "value": {
-              "textValue": "conformance"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "stringValue": "conformance"
+                  }
+                }
+              }
             }
           }
         ],
-        "operation": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id"
+        "operation": {
+          "cel": {
+            "expr": {
+              "id": "1",
+              "callExpr": {
+                "target": {
+                  "id": "2",
+                  "identExpr": {
+                    "name": "v0"
+                  }
+                },
+                "function": "value"
+              }
+            }
+          },
+          "bindings": [
+            {
+              "variable": "v0",
+              "reference": {
+                "projectedValue": {}
+              },
+              "path": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id"
+            }
+          ]
+        },
+        "kind": "started"
       },
       {
         "evidenceId": "started-again",
@@ -115,11 +144,43 @@
           {
             "fieldId": "run",
             "value": {
-              "textValue": "conformance"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "stringValue": "conformance"
+                  }
+                }
+              }
             }
           }
         ],
-        "operation": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id"
+        "operation": {
+          "cel": {
+            "expr": {
+              "id": "1",
+              "callExpr": {
+                "target": {
+                  "id": "2",
+                  "identExpr": {
+                    "name": "v0"
+                  }
+                },
+                "function": "value"
+              }
+            }
+          },
+          "bindings": [
+            {
+              "variable": "v0",
+              "reference": {
+                "projectedValue": {}
+              },
+              "path": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id"
+            }
+          ]
+        },
+        "kind": "started-again"
       }
     ]
   },
@@ -128,7 +189,6 @@
     "rules": [
       {
         "ruleId": "result",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "initialStateId": "pending",
         "states": [
           {
@@ -145,15 +205,20 @@
             "transitionId": "complete",
             "sourceStateId": "pending",
             "targetStateId": "terminal",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
               ]
             },
             "predicate": {
-              "literal": {
-                "boolValue": true
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "boolValue": true
+                  }
+                }
               }
             }
           }
