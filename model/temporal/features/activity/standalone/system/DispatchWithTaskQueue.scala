@@ -64,7 +64,7 @@ abstract class OverQueueCapabilities(c: Composition[OverQueue])(using
   val pollable: Capability = Pollable(
     dispatch = c.synced(_.activity -> worker.poll)
   )
-  except(Closable.closedIsRejectedUniformly, because = RecordOverQueue.states.queueStepsOn)
+  except(Closable.closedIsRejectedUniformly, because = dispatchWaivers.queueStepsOn)
 
 abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
     Declaring[OverMatching, String, String],
@@ -80,7 +80,7 @@ abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
   val pollable: Capability = Pollable(
     dispatch = c.synced(_.activity -> worker.poll)
   )
-  except(Closable.closedIsRejectedUniformly, because = RecordOverQueue.states.queueStepsOn)
+  except(Closable.closedIsRejectedUniformly, because = dispatchWaivers.queueStepsOn)
 
 // ### The record as a member: a composition's Queries are not answered while a member names
 // monitors, so the members are the designs without them. The designs are what refine the product.
@@ -97,14 +97,6 @@ object RecordOverQueue
     extends Composition[OverQueue](_.activity -> RecordMember, _.queue -> TaskQueueProduct),
       Phased[OverQueue, AdmissionPhase](_.activity.phase):
   override def end(s: State) = ActivityRecord.end(s.activity)
-  // What the designs over a queue answer and waive.
-  object states:
-    // Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own
-    // steps after the record closes, so a composed step moves the state; the record's own
-    // declaration (Dispatch.scala) holds the record to that Property.
-    val queueStepsOn =
-      "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
-
   object syncs extends Syncs:
     sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
     sync("admit", _.activity -> worker.poll, _.queue -> queue.deliver)

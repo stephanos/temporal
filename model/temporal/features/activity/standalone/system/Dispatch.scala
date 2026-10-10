@@ -66,9 +66,20 @@ abstract class AdmissionCapabilities(using
     unpause = client.unpause
   )
   val pollable: Capability = Pollable(dispatch = worker.poll)
-  except(Closable.closedIsRejectedUniformly, because = ActivityRecord.states.deliveryAfterClose)
+  except(Closable.closedIsRejectedUniformly, because = dispatchWaivers.deliveryAfterClose)
 
 // ### Signature
+
+object dispatchWaivers:
+  // A delivery to a closed record is admission's to reject, recording `admissionRejected` and
+  // owing matching the answer, where the shared Property has it stay (activity.go HandleStarted).
+  val deliveryAfterClose =
+    "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
+
+  // The queue keeps its own steps after the record closes; the record's capabilities hold the
+  // record itself to closedIsRejectedUniformly.
+  val queueStepsOn =
+    "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
 
 val admissionCommits = choice
 val admissionCommitFails = choice
@@ -125,13 +136,6 @@ object ActivityRecord
       else if after.state.phase.in[Closed] then Finality.closed
       else if f == Finality.closed then Finality.reopened
       else Finality.open
-
-    // Why the record waives closedIsRejectedUniformly: a delivery that reaches a closed record is
-    // admission's to reject, and rejecting it records `admissionRejected` and owes matching the
-    // answer, so the record steps where the shared Property has it stay (chasm/lib/activity/activity.go
-    // HandleStarted).
-    val deliveryAfterClose =
-      "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
 
   // The record refines the product, which sees its statuses alone.
   object refinement extends Refinement(ActivityProduct):
