@@ -40,3 +40,13 @@ The worker's canonical `make lint-code-fast` stopped on an uncovered host source
 Root admitted four exact correction paths through .1's Description. Architecture `architecture.go` and its adjacent test will own one literal list of the two runner package directories; `cmd/tools/lintcode/main.go` and its adjacent test will consume that same list. The packages must remain ordinary Gomad host sources with explicit discovery and golangci/vet dispatch. Source exclusions, overlay allowlists, owner/edge policy and lint configuration stay unchanged. Unknown siblings, nested packages/modules, symlinks, malformed literals and tool/import errors must remain rejected or reported by behavioral regressions.
 
 Root verified byte-identical Acceptance, Done summary, Evidence and frontmatter, JSON's sole `updated_at` delta and unchanged runtime claim/status/dependencies before admitting those edits. `flowctl validate --spec fn-155 --json` and document/diff checks pass. The worker retains its failing canonical result, sole commit ownership and serialized Go lane; passing correction evidence and independent source assessment remain pending.
+
+## Pointer source review and cancellation correction
+
+Root read the complete [pointer source audit](pointer-source-audit.md), SHA-256 `b146687ea5b509837b459bd6732b41d4f3d05c94cb307554834f66206f5ac39d`, and verified its finding against the unchanged `runCommand` implementation and pinned Go 1.27.1 `CommandContext` and `Process.Kill` blocks. The source audit supplies no formal implementation-review verdict or native proof.
+
+| File | Issue | Source | Severity | Verdict |
+| --- | --- | --- | --- | --- |
+| `vfdpointer/main.go`, `runCommand` | The timeout kills only the Go driver; compiler descendants can keep writing after the runner returns. The new runner introduces this issue. | Pointer source audit and pinned `os/exec` / `os` implementation | Medium (reviewer Important) | Apply |
+
+The unchanged default cancellation and explicit process-only Kill contract establish the finding with high confidence. Root released the pointer source freeze for a bounded correction in both fixture runners, with an observed-descendant host RED/GREEN regression, scoped command-tree cancellation, preserved argv and error identity, and checked cleanup. The worker must freeze the corrected source before the independent targeted recheck. The production patch and version descriptor remain unchanged; native qualification and task acceptance remain open.
