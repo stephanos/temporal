@@ -1,0 +1,37 @@
+{
+  "actual_go_settings_pre_gate_sha256": "05ebcdff3fd1e5e19cee9761892c385fba810772d2cf5b6c964cec5508ba32ae",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success",
+  "environment_comparison_pre_gate_sha256": "8b5126659dbbad3027a3ff0e6ca7aac5f004d2e4302fbcaf3cba3f6dda333c87",
+  "environment_sha256": "dfb9464cb9f529c6a6682e3e9eb550b4c18f3263a3bbe70bb0b96a29a5879f51",
+  "free_bytes_start": 11075903488,
+  "head": "c668243e0ecab6e4080aa7dad0810ccc2cedb08f",
+  "host": {
+    "machine": "aarch64",
+    "system": "Linux"
+  },
+  "joined_historical_owner_spec_sha256": "0866b495ef6150bd0341aa904358f5de49ab4977e88da25c67e9df1531106f8a",
+  "limits": [
+    "Existing stock Go installation; tool binaries hashed, entire Go installation not recursively hashed.",
+    "Existing build and module caches reused; complete cache contents not independently requalified.",
+    "Only selected environment variables are recorded; other inherited variables are not bound and execution is not claimed hermetic.",
+    "Ordinary and lint gates use captured default CGO settings; cross-source vet explicitly uses CGO_ENABLED=0. C compiler executables are hashed when resolvable, but C headers, libc/tool installation internals and complete C inputs are not inventoried.",
+    "No patched native toolchain installed or qualified; linux/arm64 host supplies no supported-native test-host pass.",
+    "Any observed ordinary Runner or original-base lint failures remain source-owned; transferred native owners stay deferred."
+  ],
+  "original_inventory_plus_new_source_count": 1078,
+  "primary_owner_spec_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+  "primary_owner_spec_sha256": "851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c",
+  "prior_manifest_sha256": "5b3b2d323f46cc75b1550b9926b71bc69bdc878661185deb897afc890dce2bfe",
+  "relevant_source_count": 1132,
+  "source_count": 1265,
+  "source_manifest_sha256": "406b032fddbc2289319419c13a4c9f7be33cd15491039e747ed12260412dee84",
+  "tools_manifest_sha256": "ffee63e3a581ac37ffa97b7af4eec395132d29dfacd519bcc2d24a60f5383a97",
+  "wrapper_argv": [
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-69/run-gates.py",
+    "--lane-granted",
+    "root-explicit-combined69",
+    "--frozen-head",
+    "c668243e0ecab6e4080aa7dad0810ccc2cedb08f"
+  ],
+  "wrapper_sha256": "66dba5204bcb9bdfd4dd9b73d4efa43243fd9f833361156e6b1b105fa20130ff"
+}

@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./runner"
+  ],
+  "elapsed_seconds": 102.1600084239908,
+  "environment_overrides": {},
+  "exit": 1,
+  "handle_terminal": true,
+  "log_sha256": "73ceada3c52c462a03f655c0be752b2c191d7a3925d0f30f624ef48aa0c438d9",
+  "name": "ordinary-runner",
+  "outer_timeout_seconds": 900,
+  "run_binding_sha256": "a9e9e28681a1db072ec390a1ee1ad2388d5e1c3118c937c9ed99e5d64b78da97",
+  "source_after_manifest_sha256": "406b032fddbc2289319419c13a4c9f7be33cd15491039e747ed12260412dee84",
+  "source_before_after_equal": true,
+  "source_before_manifest_sha256": "406b032fddbc2289319419c13a4c9f7be33cd15491039e747ed12260412dee84",
+  "tools_after_manifest_sha256": "ffee63e3a581ac37ffa97b7af4eec395132d29dfacd519bcc2d24a60f5383a97",
+  "tools_before_after_equal": true,
+  "tools_before_manifest_sha256": "ffee63e3a581ac37ffa97b7af4eec395132d29dfacd519bcc2d24a60f5383a97",
+  "utc_end": "2026-10-10T03:14:09.581859+00:00",
+  "utc_start": "2026-10-10T03:12:27.421891+00:00"
+}

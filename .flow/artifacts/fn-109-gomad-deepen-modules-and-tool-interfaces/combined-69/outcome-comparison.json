@@ -1,0 +1,39 @@
+{
+  "admitted_original_names": [
+    "TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit",
+    "TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts"
+  ],
+  "baseline_counts": {
+    "fail": 269,
+    "pass": 392,
+    "skip": 12
+  },
+  "baseline_log_sha256": "3b75cacdac2bcc7016dc5f7a99f924f6b958f0cbc7d58e59afe77980b7b34b1e",
+  "baseline_non_json_lines": [],
+  "comparison_requirement": "Exactly the two admitted original top tests change fail to pass; all 673 original names remain present; no new names or other outcome changes are admitted.",
+  "comparison_valid": true,
+  "current_counts": {
+    "fail": 267,
+    "pass": 394,
+    "skip": 12
+  },
+  "current_log_sha256": "73ceada3c52c462a03f655c0be752b2c191d7a3925d0f30f624ef48aa0c438d9",
+  "current_non_json_lines": [],
+  "missing_original_outcomes": [],
+  "new_control_outcomes": {},
+  "newly_reached_original_subtests": {},
+  "original_changes": [
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts"
+    }
+  ],
+  "unadmitted_newly_reached_original_subtests": {},
+  "unadmitted_original_changes": []
+}

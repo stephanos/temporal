@@ -1,0 +1,204 @@
+find: ‘./proto/internal’: No such file or directory
+find: ‘./proto/internal’: No such file or directory
+find: ‘./chasm/lib’: No such file or directory
+Lint module tools/gomad3: 55 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success'
+find: ‘./proto/internal’: No such file or directory
+find: ‘./proto/internal’: No such file or directory
+find: ‘./chasm/lib’: No such file or directory
+[1;36mLinting code...[0m
+level=info msg="golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\") on (unknown)"
+level=info msg="[config_reader] Used config file ../../.github/.golangci.yml"
+level=info msg="[config_reader] Module name \"go.temporal.io/server/tools/gomad3\""
+level=info msg="[goenv] Read go env for 11.818583ms: map[string]string{\"GOCACHE\":\"/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache\", \"GOROOT\":\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64\"}"
+level=info msg="[lintersdb] Active 13 linters: [depguard errcheck exhaustive forbidigo gci godox goimports govet importas iotamixing revive staticcheck testifylint]"
+level=info msg="[loader] Using build tags: [test_dep]"
+level=info msg="[loader] Go packages loading at mode 8767 (types_sizes|compiled_files|exports_file|imports|deps|files|name) took 2.774445543s"
+level=info msg="[runner/filename_unadjuster] Pre-built 0 adjustments in 334.091501ms"
+level=info msg="[linters_context/goanalysis] analyzers took 0s with no stages"
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^api\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^proto\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^.git\""
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"assert\\\\.CollectT\", Path: \"tests/(nexus_standalone|nexus_workflow)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"use of `softassert\\\\.\\\\w+`\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 3 issues by rules: [Text: \"(dot-imports|unchecked-type-assertion)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated\", Linters: \"staticcheck\"]"
+level=info msg="[runner/exclusion_rules] Skipped 2 issues by rules: [Text: \"^use of `panic` forbidden because \\\"Please avoid using panic in application code\\\"$\", Source: \"^\\\\t\\\\tpanic\\\\(\\\"gomad3: completed (an inactive campaign attempt|a campaign attempt without a classification)\\\"\\\\)$\", Path: \"^tools/gomad3/runner/internal/campaign/controller\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 75 issues by rules: [Text: \"time.Now\", Path Except: \"chasm/lib/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 7 issues by rules: [Text: \"panic\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"ActiveInCluster\", Path: \"common/namespace/(namespace|replication_resolver)(_test)?\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Eventually\", Path: \"tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 1335 issues by rules: [Path: \"^tools\\\\/.+\\\\.go\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 3 issues by rules: [Text: \"time.Sleep\", Path Except: \"_test\\\\.go|tests/.+\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path: \"chasm/lib/.*_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 1 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path Except: \"common/persistence/cassandra/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"chasm/lib/activity/model/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"FunctionalTestBase\", Path: \"tests/testcore/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 251 issues by rules: [Text: \"(cyclomatic|cognitive)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path: \"_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"context.Background\", Path Except: \"tests/.+_test\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner] Issues before processing: 1728, after processing: 50"
+level=info msg="[runner] Processors filtering stat (in/out): path_absoluter: 1728/1728, invalid_issue: 1728/1728, nolint_filter: 51/50, fixer: 50/50, max_per_file_from_linter: 50/50, path_prettifier: 50/50, sort_results: 50/50, cgo: 1728/1728, filename_unadjuster: 1728/1728, path_relativity: 1728/1728, generated_file_filter: 1728/1728, exclusion_rules: 1728/51, uniq_by_line: 50/50, max_from_linter: 50/50, source_code: 50/50, path_shortener: 50/50, severity-rules: 50/50, exclusion_paths: 1728/1728, diff: 50/50, max_same_issues: 50/50"
+level=info msg="[runner] processing took 3.192216999s with stages: diff: 2.929863836s, generated_file_filter: 180.471167ms, nolint_filter: 47.916874ms, source_code: 21.400333ms, exclusion_rules: 9.712875ms, path_relativity: 1.628708ms, exclusion_paths: 1.067583ms, cgo: 45.374µs, invalid_issue: 43.125µs, path_absoluter: 18.292µs, path_shortener: 14.583µs, uniq_by_line: 12.25µs, filename_unadjuster: 9.959µs, sort_results: 7.709µs, max_per_file_from_linter: 1.374µs, path_prettifier: 1.166µs, max_same_issues: 1.083µs, fixer: 459ns, severity-rules: 125ns, max_from_linter: 124ns"
+level=info msg="[runner] linters took 4.111279585s with stages: goanalysis_metalinter: 918.581417ms"
+tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("artifact manifest cannot copy a %s field", source.Kind()))
+		^
+tools/gomad3/artifact/publication.go:39:22: ST1005: error strings should not be capitalized (staticcheck)
+		return Artifact{}, errors.New("World payload paths must use the canonical artifact layout")
+		                   ^
+tools/gomad3/cmd/gomad/internal/cli/application.go:187:14: ST1005: error strings should not be capitalized (staticcheck)
+		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
+		           ^
+tools/gomad3/deterministicio/profile.go:211:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Errorf("encode deterministic I/O inventory: %w", err))
+		^
+tools/gomad3/internal/compatibilitypack/schema.go:275:10: ST1005: error strings should not be capitalized (staticcheck)
+		return errors.New("Go source inventory is not sorted and unique")
+		       ^
+tools/gomad3/internal/compatibilitypack/schema.go:316:10: ST1005: error strings should not be capitalized (staticcheck)
+		return errors.New("Go source name is invalid")
+		       ^
+tools/gomad3/internal/compatibilitypack/schema.go:319:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("Go source identity is invalid: %w", err)
+		       ^
+tools/gomad3/runner/campaign.go:11:4: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+			panic("gomad3: duplicate execution completion")
+			^
+tools/gomad3/runner/campaign.go:25:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: execution completion order has an unresolved gap")
+		^
+tools/gomad3/runner/completion.go:39:10: ST1005: error strings should not be capitalized (staticcheck)
+			err = fmt.Errorf("World record seed or schema does not match seed %d", seed)
+			      ^
+tools/gomad3/runner/inspect.go:647:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("unknown validated choice kind %d", kind))
+		^
+tools/gomad3/runner/internal/execution/launch_plan_unix.go:321:2: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+	panic(fmt.Sprintf("unknown descriptor resource %q", resource))
+	^
+tools/gomad3/runner/internal/execution/process.go:152:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World record and transition limits must be positive")
+		       ^
+tools/gomad3/runner/internal/execution/process_unix.go:722:18: ST1005: error strings should not be capitalized (staticcheck)
+		return result, fmt.Errorf("World child record exceeded its configured bound")
+		               ^
+tools/gomad3/runner/internal/execution/worldrecord.go:45:46: ST1005: error strings should not be capitalized (staticcheck)
+		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("World transition count mismatch")
+		                                           ^
+tools/gomad3/runner/internal/execution/worldrecord.go:56:46: ST1005: error strings should not be capitalized (staticcheck)
+		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("World semantic or transition identity mismatch")
+		                                           ^
+tools/gomad3/runner/internal/execution/worldrecord.go:84:20: ST1005: error strings should not be capitalized (staticcheck)
+		return Bundle{}, fmt.Errorf("World transition limit must be positive")
+		                 ^
+tools/gomad3/runner/internal/execution/worldrecord.go:147:20: ST1005: error strings should not be capitalized (staticcheck)
+		return Bundle{}, fmt.Errorf("World transition payload requires %d bytes, limit is %d", len(transitionBytes), transitionLimit)
+		                 ^
+tools/gomad3/runner/internal/execution/worldrecord.go:188:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World quiescence terminal has detail")
+			       ^
+tools/gomad3/runner/internal/execution/worldrecord.go:192:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World error terminal omitted detail")
+			       ^
+tools/gomad3/runner/replay_operation.go:483:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World seed does not match target seed")
+		            ^
+tools/gomad3/runner/runner.go:401:33: ST1005: error strings should not be capitalized (staticcheck)
+			return SeedSelection{}, nil, fmt.Errorf("Runner build identity is required for campaign resume")
+			                             ^
+tools/gomad3/target/internal/build/context.go:40:21: ST1005: error strings should not be capitalized (staticcheck)
+		return Context{}, fmt.Errorf("Go target package %s is not a directory", source)
+		                  ^
+tools/gomad3/target/internal/build/context.go:59:20: ST1005: error strings should not be capitalized (staticcheck)
+	return Context{}, fmt.Errorf("Go target package %s has no owning go.mod", source)
+	                  ^
+tools/gomad3/world/mailbox/mailbox.go:115:31: ST1005: error strings should not be capitalized (staticcheck)
+			return world.Quiescence{}, fmt.Errorf("World delivered unknown mailbox event %d", delivery.EventID)
+			                           ^
+tools/gomad3/world/mailbox/mailbox.go:132:23: ST1005: error strings should not be capitalized (staticcheck)
+			return Snapshot{}, fmt.Errorf("World contains an incompatible mailbox-owned request %d", request.ID)
+			                   ^
+tools/gomad3/world/process/config.go:28:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World transition limit must be positive")
+		            ^
+tools/gomad3/world/process/session.go:28:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World child session requires a World")
+		            ^
+tools/gomad3/world/process/session.go:40:27: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, errors.Join(fmt.Errorf("World child file descriptors are unavailable"), cleanupErr)
+		                        ^
+tools/gomad3/world/process/session.go:58:27: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, errors.Join(fmt.Errorf("World seed does not match the execution configuration"), output.Close())
+		                        ^
+tools/gomad3/world/process/session.go:108:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World terminal error is required")
+		       ^
+tools/gomad3/world/process/session.go:115:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World child session is invalid")
+		       ^
+tools/gomad3/world/process/session.go:146:22: ST1005: error strings should not be capitalized (staticcheck)
+		return errors.Join(fmt.Errorf("World recording omitted its header"), session.output.Close())
+		                   ^
+tools/gomad3/world/recording.go:64:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World recording is already active")
+		            ^
+tools/gomad3/world/recording.go:80:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World terminal error is required")
+		                    ^
+tools/gomad3/world/recording.go:95:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World error terminal kind is required")
+		                    ^
+tools/gomad3/world/recording.go:102:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World recorder is invalid")
+		                    ^
+tools/gomad3/world/recording.go:107:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World recorder is not active")
+		                    ^
+tools/gomad3/world/recording.go:121:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World recording byte accounting changed")
+		                    ^
+tools/gomad3/world/recording.go:148:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World quiescence terminal has error detail")
+			       ^
+tools/gomad3/world/recording.go:152:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World error terminal omitted detail")
+			       ^
+tools/gomad3/world/recording.go:175:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World terminal has no matching quiescence transition")
+		       ^
+tools/gomad3/world/recording.go:179:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World terminal does not match the final quiescence transition")
+		       ^
+tools/gomad3/world/recording.go:228:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World recording exceeds its size bound")
+		            ^
+tools/gomad3/world/replay.go:62:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World replay plan exceeds its bound")
+		            ^
+tools/gomad3/world/replay.go:69:24: ST1005: error strings should not be capitalized (staticcheck)
+		return ReplayPlan{}, fmt.Errorf("World replay plan exceeds its bound")
+		                     ^
+tools/gomad3/world/replay.go:72:24: ST1005: error strings should not be capitalized (staticcheck)
+		return ReplayPlan{}, fmt.Errorf("World replay plan is not valid UTF-8")
+		                     ^
+tools/gomad3/world/replay.go:94:24: ST1005: error strings should not be capitalized (staticcheck)
+		return ReplayPlan{}, fmt.Errorf("World replay plan is not canonical")
+		                     ^
+tools/gomad3/world/world.go:202:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("invalid request state")
+		^
+tools/gomad3/world/world.go:216:5: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+				panic("queued request has no queued event")
+				^
+50 issues:
+* forbidigo: 8
+* staticcheck: 42
+level=info msg="File cache stats: 22 entries of total size 292.9KiB"
+level=info msg="Memory: 74 samples, avg is 71.5MB, max is 113.8MB"
+level=info msg="Execution took 7.276630129s"
+make[1]: *** [Makefile:505: lint-code] Error 1
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success'
+lint module tools/gomad3: exit status 2
+exit status 1
+make: *** [Makefile:498: lint-code-gomad3] Error 1
