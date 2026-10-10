@@ -18,3 +18,11 @@ Required native toolchain/full Quick execution, zero-host-socket TCP, virtual de
 The worker returned clean with all owned commands ended at 07:26:05 UTC on 2026-10-10 and released the shared Go/build/lint/generator lane. Scratch logs and harnesses remain in its worktree. The internal switch stays off; recorded selection/early activation, contained capability admission, transcripts and simulation remain their later owners' work. The selected .2/.8 design is retained in [the decision report](../selection-admission-design.md), but no dependency is bypassed.
 
 The cleanup request found no registered worktree or nested `.git` entry inside primary `.flow`. Retained artifacts, fixture file symlinks, external worktrees and caches were preserved; nothing was deleted.
+
+## Pointer evidence and source follow-up
+
+The [compiler pointer report](pointer-source-evidence.md), SHA-256 `bf2a545e6dcb53894668375bfccfa1f73deb71bc14df6eb3175dc3bdf98d9eb6`, retains Linux AMD64 and Darwin ARM64 diagnostic compiles with explicit nested-iovec and paired-output maps. Root read the complete report and rehashed its 16 named report/tool/artifact inputs, then verified both helper/test sources across materialized GOROOT, candidate and primary. Both compiles used the stock Go 1.27.1 compiler over materialized patched sources. No native binary ran, no rebuilt Gomad compiler was used, and their maps do not witness relocation.
+
+Root accepted the [moving-stack fixture design](pointer-fixture-design.md) and dispatched a fresh .1 follow-up worker in the existing candidate worktree. Temporary overlays will insert bounded typed recursion before the actual helpers' first caller-memory access, with byte-identical reversibility and numeric relocation witnesses. The shipped helper bodies, patch, descriptor algorithm and callbacks stay unchanged. The admitted runtime testdata paths and adjacent host-runner test are already inside .1's scope; native stress execution and all original acceptance remain open.
+
+Primary `7c75a8ab8514cd534eaa6ed150d182aae8b2ab68` carries description-only .2/.8 scope corrections from the selected design. Their acceptance/evidence/frontmatter and dependencies remain unchanged; neither task is claimed early. Task .1 remains in progress and retains its first-platform gate.
