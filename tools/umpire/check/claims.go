@@ -962,10 +962,13 @@ func (b *binding) declaredScenario(ref *umpirespb.ClaimRef) *umpirespb.Scenario 
 	return nil
 }
 
-// progress declares a progress claim of a machine over its table's state keys.
+// progress declares a progress claim of a machine or composition over its table's state keys.
 func (b *binding) progress(p *umpirespb.Progress) (*umpire.Progress, *subject, error) {
 	s := b.subject(p.GetMachine())
-	if s.err != nil {
+	switch {
+	case s.unsupported != "":
+		return nil, s, &unsupportedError{s.unsupported}
+	case s.err != nil:
 		return nil, s, s.err
 	}
 	owner, at := p.GetMachine()+"."+p.GetName(), p.GetPosition()
@@ -982,6 +985,9 @@ func (b *binding) progress(p *umpirespb.Progress) (*umpire.Progress, *subject, e
 	for _, id := range p.GetAssumptions() {
 		for _, a := range b.model.GetAssumptions() {
 			if a.GetId() == id {
+				if s.machine == nil && len(a.GetFair()) > 0 {
+					return nil, s, &unsupportedError{"claim fairness on composition " + s.name + " requires scoped action references"}
+				}
 				assumptions = append(assumptions, b.assumption(a))
 			}
 		}
