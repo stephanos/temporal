@@ -79,6 +79,16 @@ The admission harness derives both production content identities and default pre
 - [ ] Fresh original/current unchanged-producer default Check and Find reproduce the single manifest refusal at independently bound source/lifted-Script coordinates. Its standing, Construct, ID, Owner, Why and path remain identical; every manifest mutation above rejects.
 - [ ] Production-derived identity/binding/timeout-detail effects are disclosed, changed-detail semantic consumers are absent from the affected current IR/Cases, and crossed old bindings reject. Constructed controls grant no live/replay/conformance credit.
 
+
+### Integrated review evidence pointers
+
+The isolated worker evidence is retained at `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task5/.flow/tmp/fn-155/task5/`: `handover-summary.md`, `handover-evidence.json`, and `combined-twelve-leaf-handover-addendum.md`. The current `proof-manifest-v4-twelve-detail.json` has SHA256 `9686edd7956cc935b6c9d96dbda2b44db217e470164225b024144e800c1fa11c`; the conductor independently verified all 280 sealed files.
+
+`combined-twelve-leaf-v2.json` and `combined-twelve-leaf-proof-v2/report.json` retain the exact 31-file restoration under eleven Case line leaves and one manifest refusal Position, 79 rejected Case mutations, 19 rejected manifest mutations and four metadata-independence controls. The manifest is a constructed single-token projection of the immutable original tied to three fresh refusal outputs, not whole fresh generation. The original strict Case and manifest comparisons remain RED. Fresh joined generation, managed-tree agreement and full gates remain task .6 obligations.
+
+`timeout-detail-proof/report.json`, `timeout-detail-production.json`, `timeout-detail-proof/input-pins.json` and `timeout-detail-proof/raw-output-comparison.json` retain eight exact original/current pairs rendered by production `expiryDetail`, using actual default ceilings, a 1024-byte Detail cap and unscaled 100% bounds. All eight strings are below the cap and restore their original bytes after only the eleven enumerated coordinates. These rendering observations and constructed INCONCLUSIVE identity controls establish no live Run, successful matching replay or semantic-equivalence credit.
+
+The conductor evidence root is `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-155-name-the-standalone-activitys-repeated/.flow/tmp/`: `fn155-integration/task5-integrated.json` pins normalized source base `b528cd346f7614cce5e83dbde910ecc9cf423db0` and source head `4d5982d2be198469e258028c7b48f0a36e6ea96c`; `fn155-integration/task5-pre-review-focused.json` and `fn155-integration/task5-pre-review-lint.json` record terminal exit 0 on that source head with their input hashes subsequently rechecked by the conductor. `notes_dir.20261009T235609Z-root` locates the conductor notes. This appendix adds evidence pointers only; requirements, acceptance, scope and dependencies remain unchanged.
 ## Acceptance
 - [ ] TBD
 
