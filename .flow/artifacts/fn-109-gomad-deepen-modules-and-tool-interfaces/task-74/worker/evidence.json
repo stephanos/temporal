@@ -1,0 +1,1311 @@
+{
+  "artifact_commit_note": "Self-containing packet checkpoint B is reported at worker return; conductor resolves/normalizes its commit ID. No Flow lifecycle mutation.",
+  "authoritative_owner": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+    "sha256": "851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c"
+  },
+  "base_commit": "305182879f727f0e925483c41b8b8f0679770621",
+  "commits": [
+    "1232f78a47f8c6438d62212f659b42f9e48aaf42"
+  ],
+  "controls": {
+    "admitted_collateral_names": [
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/choice-exploration",
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/choice-exploration",
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/choice-exploration",
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/simulation-exploration",
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/simulation-exploration",
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/simulation-exploration",
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/choice-exploration",
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/simulation-exploration",
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/choice-exploration",
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/simulation-exploration",
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/choice-exploration",
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/simulation-exploration",
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/choice-exploration",
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/simulation-exploration"
+    ],
+    "collateral_diagnostics": "Calibration advances from unsupported developmental host to unchanged outer validation stage; no outer attachment. Guidance/bounds/target-copy are excluded and unchanged.",
+    "mandatory_preparation_and_isolation_and_public_profile_terminals": 24,
+    "unchanged_shared_terminals": 31
+  },
+  "delegated_children": 0,
+  "diagnostic_observation": {
+    "counts": {
+      "fail": 144,
+      "pass": 517,
+      "skip": 12
+    },
+    "instrumented_pass_leaf_elapsed_seconds": 3.12,
+    "limitation": "Instrumentation PASS cannot replace the original failed ordinary receipt or reconstruct its delay; cause remains unresolved.",
+    "original_failed_leaf_elapsed_seconds": 12.5,
+    "trace_output": {
+      "admission_sha256": "a6ba203a35db81e2e1d96879be57de114612c57a2b4d89a15da2ecc0bec43ccc",
+      "limitation": "Instrumented diagnostic only; does not replace failed original ordinary receipt or certify uninstrumented acceptance.",
+      "ordinary_exit_code": 1,
+      "trace_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/deadline-observation-20261010.trace",
+      "trace_sha256": "2fd9deec17484e0e1c88c3bf22f9ae1dc0ab22a4953e359987168e26994a41f7",
+      "trace_size_bytes": 35615032
+    }
+  },
+  "disposition": "Authorized RED source-progress checkpoint only. No SHIP, Done, native qualification, determinism bound or fast-lint pass.",
+  "evidence_audit": {
+    "normalization": "Lossless Go error/error-continue reassembly first. Only retention line offsets caused by the two insertions, typed-pointer addresses, TMPDIR/Test numeric temp suffixes and exact campaign UTC-nonce grammar. Raw outputs retained.",
+    "parser_repair": "First audit rc1 retained. Successor losslessly includes error-continue and joins raw fragments before the same narrow normalization. Original and executed predecessor checker/driver files are retained; no executed preimage overwritten.",
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/evidence-audit-complete.log",
+    "scope": "All673 ordinary name/terminal pairs, historical50 and raw before/after diagnostic fragments are in the immutable audit log; evidence-validation rc0 is not product acceptance.",
+    "sha256": "4e789de9afc7cd3029b7878e0070b43d12b4b9a7a3f20f926c5a0a1e93bfdc27"
+  },
+  "focused_table": "Original six rows, three strategies, both completion orders and all unchanged assertions PASS; three independent cold processes each execute six original leaves and parent PASS. No cache reset/preload or synthetic test name. Existing repetitions retain ordinary process-local Load/Store reuse; no instrumented hit-count claim.",
+  "limits": [
+    "Shared caches and inherited nonselected environment remain nonhermetic; raw selected environment/settings plus inherited value hashes retained in every binding.",
+    "Executable-file bindings include literal/readlink/resolved shell and source symlink identities and observers, but not every installation/shared library or cache contents.",
+    "Directory/gitlink/absent entries are explicitly non-file or unmaterialized, not fabricated consumed validation files.",
+    "A separate external fast-lint process was observed while owned fast lint ran; this does not establish a cause for either prior deadline or killed137.",
+    "Raw receipt/log/binding/trace files remain in the assigned worktree scratch location, immutable by unique creation and content hashes; not deleted or copied from historical claims."
+  ],
+  "native_scope": "Developmental linux/aarch64 stock Go only. No supported-native/full-host pass or determinism qualification. fn128/fn149 remain deferred; no native retry, CI, PR or push.",
+  "ordinary_outcomes": {
+    "baseline_counts": {
+      "fail": 163,
+      "pass": 498,
+      "skip": 12
+    },
+    "candidate_counts": {
+      "fail": 146,
+      "pass": 515,
+      "skip": 12
+    },
+    "changed_outcomes": {
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/simulation-exploration": [
+        "fail",
+        "pass"
+      ]
+    },
+    "historical50": {
+      "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances": [
+        "fail",
+        "fail"
+      ],
+      "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay": [
+        "fail",
+        "fail"
+      ],
+      "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay": [
+        "fail",
+        "fail"
+      ],
+      "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay": [
+        "fail",
+        "fail"
+      ],
+      "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript": [
+        "fail",
+        "fail"
+      ],
+      "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/choice-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/seed": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/simulation-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/choice-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/seed": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/simulation-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/choice-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/seed": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/simulation-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/choice-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/seed": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/simulation-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/choice-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/seed": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/simulation-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/choice-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/seed": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/simulation-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/choice-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/seed": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/simulation-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/choice-exploration": [
+        "fail",
+        "fail"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/choice-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/seed": [
+        "fail",
+        "pass"
+      ],
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/simulation-exploration": [
+        "fail",
+        "pass"
+      ],
+      "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs": [
+        "fail",
+        "fail"
+      ],
+      "TestRunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns": [
+        "fail",
+        "fail"
+      ]
+    },
+    "named_domain": 673,
+    "retained_selected_failures": [
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy",
+      "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/choice-exploration"
+    ]
+  },
+  "original_lint_base": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+  "product_acceptance_pass": false,
+  "prs": [],
+  "receipts": {
+    "after-aggregate-lint": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/make",
+        "lint-code-gomad3",
+        "SHELL=/bin/sh",
+        "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-aggregate-lint-binding.json",
+      "binding_sha256": "f2c73c40353a4a36174716d744595b51ae75d1e705f72f86b200b86d5e341e79",
+      "child_returncode": 2,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 3.4165300849999767,
+      "end_utc": "2026-10-10T10:26:14.029851+00:00",
+      "exit_code": 2,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-aggregate-lint.log",
+      "log_sha256": "3fc5217008cb512008de1facc746b0cd00aa6e1053140b8455a058e85b65a1d7",
+      "process_group": 2907864,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-aggregate-lint.json",
+      "receipt_sha256": "2aca2cb5f17dc99d64f5c58c32b0ec7d54b371617e8f0658d5fdda56289e58aa",
+      "start_utc": "2026-10-10T10:26:10.613302+00:00",
+      "timed_out": false
+    },
+    "after-cold-choice-exploration": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^choice-exploration$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-cold-choice-exploration-binding.json",
+      "binding_sha256": "ec095216940e237a47f42aa7557b0654a1229ce62e28429206e02fca6b52e514",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 19.93932709300134,
+      "end_utc": "2026-10-10T10:22:58.659625+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-cold-choice-exploration.log",
+      "log_sha256": "d95e9cf0393362efda090208e0307890e21445fa1d3431b0b73c1068d91d68f6",
+      "process_group": 2903734,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-cold-choice-exploration.json",
+      "receipt_sha256": "37407657d454cee0386dd7a5cb6070092f79db044a7057742e448710dd0276d3",
+      "start_utc": "2026-10-10T10:22:38.720273+00:00",
+      "timed_out": false
+    },
+    "after-cold-seed": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^seed$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-cold-seed-binding.json",
+      "binding_sha256": "357aa1c6b3ed644fc3404cb41ac2b2e3e54e4c96cad8d03d1ef30aebd4a736ce",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 24.189413469997817,
+      "end_utc": "2026-10-10T10:22:32.926917+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-cold-seed.log",
+      "log_sha256": "526fdf0e78b00bf5a03864f16b7674dcc9b078529655fd6cc4c032a94aee76c8",
+      "process_group": 2902949,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-cold-seed.json",
+      "receipt_sha256": "4f3370fbda03ac0722b2a2c892181ada8097faab89c5d83f2d76b2646b2d576e",
+      "start_utc": "2026-10-10T10:22:08.737411+00:00",
+      "timed_out": false
+    },
+    "after-cold-simulation-exploration": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^simulation-exploration$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-cold-simulation-exploration-binding.json",
+      "binding_sha256": "1dd6d6c482ff5d14071f3c489e4e1972c5b3fbb379bf62671edb107f08f2ba43",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 17.10755800800689,
+      "end_utc": "2026-10-10T10:23:17.641629+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-cold-simulation-exploration.log",
+      "log_sha256": "9539caf374cffdaab07927dd00696b89ca056a4ed4acc278df08c8d7ba98ea2d",
+      "process_group": 2904186,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-cold-simulation-exploration.json",
+      "receipt_sha256": "758508990195de3689085ae22c6d2611d0e0e0baba67c47afa3ac0969cb5a745",
+      "start_utc": "2026-10-10T10:23:00.534058+00:00",
+      "timed_out": false
+    },
+    "after-controls": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestPreparationDependencies(ForwardRealFixtureInputs|OperationErrorsRemainUnchanged|FailuresStopAtOriginalStages|KeepRealDefaultsAndBootstrapGuard)|TestInjectionCharacterization(IsolatedExploreRejectsEverySubstitution|IsolatedPreparationDependencies)|TestPortableProfilePublicGuardsRemainFirst)$",
+        "./runner",
+        "./deterministicio"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-controls-binding.json",
+      "binding_sha256": "05e7c5ba8e4f756dc871b6d97199722758c4c0ace1fe7d63c3fd338a51df927a",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 1.3121467929886421,
+      "end_utc": "2026-10-10T10:24:06.745229+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-controls.log",
+      "log_sha256": "f1ec06fcf40130954a4a18f0990ded6e0d9f7921775d8da63f9372fd7af45dd2",
+      "process_group": 2905364,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-controls.json",
+      "receipt_sha256": "ff1d96fd86f09b124219a4800ce2a43e3ffd649958002dd53dd00871ec840514",
+      "start_utc": "2026-10-10T10:24:05.433068+00:00",
+      "timed_out": false
+    },
+    "after-ordinary": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-ordinary-binding.json",
+      "binding_sha256": "0167e7f98d6f19f73b55dd7b813249c209e00c32fee2372d82b8e6b294572d80",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 114.1407988879946,
+      "end_utc": "2026-10-10T10:26:08.799490+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-ordinary.log",
+      "log_sha256": "4e160d741c02354081e88511d9c5204acfa3eca663d6f5fa373bccfdb325adb5",
+      "process_group": 2905628,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-ordinary.json",
+      "receipt_sha256": "31e9c217d8a24d20f6933e80a1b404368982dbec639ccfe8068cfb9443e41ced",
+      "start_utc": "2026-10-10T10:24:14.658646+00:00",
+      "timed_out": false
+    },
+    "after-shared": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^Test(RetentionCapacityExhaustionFailsVisiblyForEveryStrategy|RetentionFailureLeavesNoveltyAndCountersAtTheCommittedState|GuidedAdmissionReplaysBeforeTheCorpusAdvances|RunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs|RunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns)$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-shared-binding.json",
+      "binding_sha256": "98024dd93aa2c8f381211b900ca079ad31b955a502e289e12bf15ac1f0987ea0",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 4.614740252000047,
+      "end_utc": "2026-10-10T10:24:12.915262+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-shared.log",
+      "log_sha256": "29f3a1c734ceeb1bc4d3a490f48a397499bf673df49b531d3c3828cb5dbd205f",
+      "process_group": 2905495,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-shared.json",
+      "receipt_sha256": "676d2484b0cc57df46ae117912774a5b02263ad396445b2839a073be6767c958",
+      "start_utc": "2026-10-10T10:24:08.300508+00:00",
+      "timed_out": false
+    },
+    "after-table": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-table-binding.json",
+      "binding_sha256": "9523963b313b3e9159a6625d5b402f726290ffddee865a2b986b54f24f432be7",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 44.84551685399492,
+      "end_utc": "2026-10-10T10:24:03.989138+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-table.log",
+      "log_sha256": "5a7aeb4e5422d049312e34886ae21bc983ec907f4071803992aedd793c49c10f",
+      "process_group": 2904412,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/after-table.json",
+      "receipt_sha256": "64326dd1e823807cdef69942023355b7b855e0caf009ee06a96ef705cc2b0c6c",
+      "start_utc": "2026-10-10T10:23:19.143599+00:00",
+      "timed_out": false
+    },
+    "architecture": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^Test(PackageArchitecture|PureModulesHaveNoHostEffects|PublicPackagesDoNotExportTypeAliases|PublicPackagesDoNotExportForwardingAliases|RunnerRequestsCompileInExternalModule|RunnerExecutionInjectionIsPrivate|ArchitectureEffectFixtures|ArchitecturePublicSignatureFixtures|ExactModuleEdges)$",
+        "."
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/architecture-binding.json",
+      "binding_sha256": "6710b03fbee7eb48e88eafcab7ece21c0a54771eede101caeafee541ab9790f2",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 50.0031864830089,
+      "end_utc": "2026-10-10T10:35:21.316779+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/architecture.log",
+      "log_sha256": "e15ce77644e7bd7e5b3600cbdea724ed94fb8f4732ad1069ab778fbad1e673a2",
+      "process_group": 2981820,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/architecture.json",
+      "receipt_sha256": "062e6d4de3c40749e4c3c409e5c1209cf8e57856a200d46f3794f103b140582b",
+      "start_utc": "2026-10-10T10:34:31.313557+00:00",
+      "timed_out": false
+    },
+    "before-aggregate-lint": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/make",
+        "lint-code-gomad3",
+        "SHELL=/bin/sh",
+        "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-aggregate-lint-binding.json",
+      "binding_sha256": "d56242b7414e58156c5bd12d82e785a5d660929e08f923df358390d1aee37cbf",
+      "child_returncode": 2,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 10.414000087999739,
+      "end_utc": "2026-10-10T10:21:40.886795+00:00",
+      "exit_code": 2,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-aggregate-lint.log",
+      "log_sha256": "463fb457d598cb1a52ba53f7f83daa26b13b92692ad28b767325a1c24a12ed07",
+      "process_group": 2894523,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-aggregate-lint.json",
+      "receipt_sha256": "0953e62fa2d1d55e2f658431ef2d74941ad5ea7d331b3bf7212edafa7a7b29ee",
+      "start_utc": "2026-10-10T10:21:30.472772+00:00",
+      "timed_out": false
+    },
+    "before-cold-choice-exploration": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^choice-exploration$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-cold-choice-exploration-binding.json",
+      "binding_sha256": "90d23d66f0e0d7d706a3968acfc4df537cb72274c3c1d187b1e3f4f2bdf3472f",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 0.7831180000066524,
+      "end_utc": "2026-10-10T10:20:58.222699+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-cold-choice-exploration.log",
+      "log_sha256": "3dff612a57e440f65984212199bba8db149ba51256bcb364dcad86e77ebfe8d8",
+      "process_group": 2891774,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-cold-choice-exploration.json",
+      "receipt_sha256": "2a644800ff00ec650c72e0e670abd16a835003f9fca9ab1dd790e21195f195cf",
+      "start_utc": "2026-10-10T10:20:57.439564+00:00",
+      "timed_out": false
+    },
+    "before-cold-seed": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^seed$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-cold-seed-binding.json",
+      "binding_sha256": "1a4ab8c3347fa03caabe329cd6c5e7a51226072d8ec88ba069eefb69057ad91f",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 1.384158667002339,
+      "end_utc": "2026-10-10T10:20:54.473449+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-cold-seed.log",
+      "log_sha256": "32c28a678a743cf93bde33a23aa635163061ddf69d8f9fb63841b4fc20800730",
+      "process_group": 2891606,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-cold-seed.json",
+      "receipt_sha256": "6056790c70c87b97967875c16d38f4225ee27b7ffa1118548de86bd29c37628b",
+      "start_utc": "2026-10-10T10:20:53.089266+00:00",
+      "timed_out": false
+    },
+    "before-cold-simulation-exploration": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^simulation-exploration$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-cold-simulation-exploration-binding.json",
+      "binding_sha256": "2d87967da857b1bf5bc820705094a88a9c69e5ac8b163966e70d2c014e7eff76",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 0.6795751669997117,
+      "end_utc": "2026-10-10T10:21:03.297319+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-cold-simulation-exploration.log",
+      "log_sha256": "1fec43e45ce0e6d83088014e91aec0a11e3f6e72372ec0424b4f788e6563d61c",
+      "process_group": 2891929,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-cold-simulation-exploration.json",
+      "receipt_sha256": "350d60b51715b0712fd9eeb1cd4d021661161b1e80791a33c34204a6e0a57aa5",
+      "start_utc": "2026-10-10T10:21:02.617723+00:00",
+      "timed_out": false
+    },
+    "before-controls": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestPreparationDependencies(ForwardRealFixtureInputs|OperationErrorsRemainUnchanged|FailuresStopAtOriginalStages|KeepRealDefaultsAndBootstrapGuard)|TestInjectionCharacterization(IsolatedExploreRejectsEverySubstitution|IsolatedPreparationDependencies)|TestPortableProfilePublicGuardsRemainFirst)$",
+        "./runner",
+        "./deterministicio"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-controls-binding.json",
+      "binding_sha256": "4a377dc47ac8f3d5cc4f476b6c38e956dfa509356bd9f6774e6e50ee3587c1c0",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 4.44147246000648,
+      "end_utc": "2026-10-10T10:21:20.655729+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-controls.log",
+      "log_sha256": "aed3eecd52a870ee9e64b7a039ed92046f6d1e1eae6c0a59ec2c34ef90d53360",
+      "process_group": 2892506,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-controls.json",
+      "receipt_sha256": "f4114b648dbd088c1a5a04da569448ae62b2912106b1a5c92ff683271e4f9f56",
+      "start_utc": "2026-10-10T10:21:16.214228+00:00",
+      "timed_out": false
+    },
+    "before-ordinary": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-ordinary-binding.json",
+      "binding_sha256": "509ba275803db75d239a1c38f0ce6b38c1590efb9e15b9db4422ec42c2315ae9",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 75.18062732799444,
+      "end_utc": "2026-10-10T10:20:28.980665+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-ordinary.log",
+      "log_sha256": "143bf62334d70cc916a9af13149df8cf618326097665de2df3c64c4051a98e82",
+      "process_group": 2886981,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-ordinary.json",
+      "receipt_sha256": "a7d1f66d62fdb98c4e2464f6e88fd492de19c5af7b0b9669655a965c0201e310",
+      "start_utc": "2026-10-10T10:19:13.799970+00:00",
+      "timed_out": false
+    },
+    "before-shared": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^Test(RetentionCapacityExhaustionFailsVisiblyForEveryStrategy|RetentionFailureLeavesNoveltyAndCountersAtTheCommittedState|GuidedAdmissionReplaysBeforeTheCorpusAdvances|RunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs|RunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns)$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-shared-binding.json",
+      "binding_sha256": "1c3b5281574149bf179b608c0046403964e6debaaa5fe0d1442e467d7f2ba512",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 1.7159100839926396,
+      "end_utc": "2026-10-10T10:21:26.776626+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-shared.log",
+      "log_sha256": "413b67a506c6f21eac73d18d791bf9c438e90eb6be9b6b3b24a3e2cf1f76f8d3",
+      "process_group": 2892889,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-shared.json",
+      "receipt_sha256": "98b964d0e65e3649ad2a31f79570fe5bcc85904b133a87edf3b5ee8258b27199",
+      "start_utc": "2026-10-10T10:21:25.060700+00:00",
+      "timed_out": false
+    },
+    "before-table": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-table-binding.json",
+      "binding_sha256": "6697538c8e0e6fd398dc134d06383b6d520f660a3c69ffd285f2b984e151bfc5",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 5.105709044000832,
+      "end_utc": "2026-10-10T10:21:10.542682+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-table.log",
+      "log_sha256": "3e5c5c0cd4222a3124b78d4ddab4049d832f69c4348e103ba2f2184d11133120",
+      "process_group": 2892175,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/before-table.json",
+      "receipt_sha256": "3c0452f9ecd6a7da875651cf91f55a0d49313161016095910c7b27fca5441f59",
+      "start_utc": "2026-10-10T10:21:05.436952+00:00",
+      "timed_out": false
+    },
+    "diagnostic-ordinary-trace": {
+      "all_commands_terminal": true,
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-trace",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/deadline-observation-20261010.trace",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/diagnostic-ordinary-trace-binding.json",
+      "binding_sha256": "ccb5a2649764f15b1063f6759aeee5c47b5e5974ed13e4649533aca53a5d4131",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 101.92319554800633,
+      "end_utc": "2026-10-10T10:38:15.524477+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/diagnostic-ordinary-trace.log",
+      "log_sha256": "18b2ca1863ac53c35f5dbae2f75b26d491f4b5fb698f5727d6820fdef111166a",
+      "process_group": 2996502,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/diagnostic-ordinary-trace.json",
+      "receipt_sha256": "0c6e7120dade90f0a45d2c6707b71971e026bef3e8f0c55017d114b73643034d",
+      "start_utc": "2026-10-10T10:36:33.601222+00:00",
+      "timed_out": false
+    },
+    "diagnostic-precondition": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/inspect-lane.py"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/diagnostic-precondition-binding.json",
+      "binding_sha256": "0e1f67cfb6a048de472d6d35a9276dc6357f7cbaf6ab0113d9fed25a3c32b411",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 0.03789754099852871,
+      "end_utc": "2026-10-10T10:36:32.227699+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/diagnostic-precondition.log",
+      "log_sha256": "b61c91d67dfd77106de06758710a24b46d8b814b16422126386689825b93d9f7",
+      "process_group": 2996454,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/diagnostic-precondition.json",
+      "receipt_sha256": "5ae3c6e39eee2a3d4cc4a7ca32421c75503f00313e2ec809b2967b01f6f18304",
+      "start_utc": "2026-10-10T10:36:32.189779+00:00",
+      "timed_out": false
+    },
+    "diff-check": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/git",
+        "diff",
+        "--check"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/diff-check-binding.json",
+      "binding_sha256": "12998650d6153e921b5e9ef6c8740425be1e8049fea98fb7009cd4372501b56a",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 0.07160670800658409,
+      "end_utc": "2026-10-10T10:30:51.437913+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/diff-check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "process_group": 2938873,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/diff-check.json",
+      "receipt_sha256": "e294e8deb379d05207dfb2dc473185b7b664740c03ac2a4aea836d8ceae9f6a4",
+      "start_utc": "2026-10-10T10:30:51.366292+00:00",
+      "timed_out": false
+    },
+    "errortype": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-style-check=false",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/errortype-binding.json",
+      "binding_sha256": "47dde78db1032b41244ae3c023c71e3582badd914cb82a05e4ca50f5db99c132",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 0.5742779590073042,
+      "end_utc": "2026-10-10T10:30:55.740106+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "process_group": 2939638,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/errortype.json",
+      "receipt_sha256": "089ec9d5827c1951afd52818d6c55822df53c9dac6cd3486a4f2f3901a4de10f",
+      "start_utc": "2026-10-10T10:30:55.165813+00:00",
+      "timed_out": false
+    },
+    "evidence-audit": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/check-progress.py"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/evidence-audit-binding.json",
+      "binding_sha256": "968c69ed41ba67546d109eafd4ff4c28d4f3223360b0c77e533f3f59128ab9ba",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 0.13179775000025984,
+      "end_utc": "2026-10-10T10:41:11.646520+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/evidence-audit.log",
+      "log_sha256": "a779827dd0c1d9bb9973d85af2fb80307671e79a6f5b5c5daf2a581c85589407",
+      "process_group": 3011880,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/evidence-audit.json",
+      "receipt_sha256": "ca03e0edb07129ef2545dd5ed62742a73989a804fc9b11396cac3558bcaf0d4c",
+      "start_utc": "2026-10-10T10:41:11.514702+00:00",
+      "timed_out": false
+    },
+    "evidence-audit-complete": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/check-progress-complete.py"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/evidence-audit-complete-binding.json",
+      "binding_sha256": "6fe0ceffa5728e35d4bce88a8545bc755604158266626ea6969ea35e78c1ece6",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 0.3958583329949761,
+      "end_utc": "2026-10-10T10:42:49.768759+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/evidence-audit-complete.log",
+      "log_sha256": "4e789de9afc7cd3029b7878e0070b43d12b4b9a7a3f20f926c5a0a1e93bfdc27",
+      "process_group": 3018301,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/evidence-audit-complete.json",
+      "receipt_sha256": "47073db9626bcd8ce37c7998e160037690e09ac36e218db0a996ae7d431fc5c0",
+      "start_utc": "2026-10-10T10:42:49.372870+00:00",
+      "timed_out": false
+    },
+    "fast-lint": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/make",
+        "lint-code-fast",
+        "SHELL=/bin/sh",
+        "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/fast-lint-binding.json",
+      "binding_sha256": "2c13684e4b4a3aefe12f92c1019bd36425c5031a8d3b8add48d0a35db63150c3",
+      "child_returncode": 2,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 200.65134363700054,
+      "end_utc": "2026-10-10T10:34:19.501255+00:00",
+      "exit_code": 2,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/fast-lint.log",
+      "log_sha256": "9f58574e2105e56b424c794031d9e9c10918d20bd3b258e1be99347be6ad19a5",
+      "process_group": 2940165,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/fast-lint.json",
+      "receipt_sha256": "3a1bf19a8f12c3e10b8096a26ff60f76f46fb96367f6aa5a60fc0800886f917d",
+      "start_utc": "2026-10-10T10:30:58.849684+00:00",
+      "timed_out": false
+    },
+    "final-terminal-inspection": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/inspect-terminal.py"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/final-terminal-inspection-binding.json",
+      "binding_sha256": "010bf8239a17bb5b7c18f2bf1c28da9551a7485329e87c10586f1498af6c3083",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 0.27384924999205396,
+      "end_utc": "2026-10-10T10:45:41.867046+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/final-terminal-inspection.log",
+      "log_sha256": "e66e021d2d0fb0d1ecba713b558a8519d59888c1389f05b0149b1cc6d5f26039",
+      "process_group": 3026047,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/final-terminal-inspection.json",
+      "receipt_sha256": "7a55ce2395fada1523c012760f81087284aa87d150ebaf44e6ff9106e35d138f",
+      "start_utc": "2026-10-10T10:45:41.593158+00:00",
+      "timed_out": false
+    },
+    "final-terminal-report": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/inspect-terminal-report.py"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/final-terminal-report-binding.json",
+      "binding_sha256": "8fdb65a9d7ea2a5380deb01a74a838188c849714558e5fa01a903c433716837c",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 0.9352229579963023,
+      "end_utc": "2026-10-10T10:48:25.035234+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/final-terminal-report.log",
+      "log_sha256": "aee1f52e403ff942790725155a160a44372e517ae3cd0c37e1b16f49d61755e4",
+      "process_group": 3039501,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/final-terminal-report.json",
+      "receipt_sha256": "558627bb32f4e39c0c25c5ea85b7c5a7791c5babe9f405d16cfe0e4bd03dda30",
+      "start_utc": "2026-10-10T10:48:24.100009+00:00",
+      "timed_out": false
+    },
+    "gofmt": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+        "-d",
+        "tools/gomad3/runner/retention_characterization_test.go"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/gofmt-binding.json",
+      "binding_sha256": "8eba3a19180b40cd35791c619a0e7df5c4f495cec114f091167c5160945698fd",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 0.010634707999997772,
+      "end_utc": "2026-10-10T10:30:49.974157+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/gofmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "process_group": 2938754,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/gofmt.json",
+      "receipt_sha256": "e72ef38484a71035026723ea81cfa76ca80e37d271ed55194dee97fa05483a06",
+      "start_utc": "2026-10-10T10:30:49.963502+00:00",
+      "timed_out": false
+    },
+    "host-vet": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "./internal/gomadtool/conformance",
+        "./runner/internal/execution"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/host-vet-binding.json",
+      "binding_sha256": "1e1cb26cd66541a8bf18804828e034d0d86ce2bf119f7b042c43dd332b934515",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 0.7764540419884725,
+      "end_utc": "2026-10-10T10:30:53.727491+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/host-vet.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "process_group": 2939130,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/host-vet.json",
+      "receipt_sha256": "756bcf4171fbc93390137a5c6097423f10a472a65a1e32474a190c32439a7f2c",
+      "start_utc": "2026-10-10T10:30:52.951018+00:00",
+      "timed_out": false
+    },
+    "runner-lint": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.github/.golangci.yml",
+        "--build-tags",
+        "test_dep",
+        "--timeout",
+        "10m",
+        "--fix=false",
+        "./runner"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/runner-lint-binding.json",
+      "binding_sha256": "2caea0821651564e0a1e59a11a33cfe9ce637ad48007d477912864e6cfe3ab49",
+      "child_returncode": 1,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 0.37479741699644364,
+      "end_utc": "2026-10-10T10:30:57.467632+00:00",
+      "exit_code": 1,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/runner-lint.log",
+      "log_sha256": "238ddc63ac79397df35dea2e4e9f595e6e470e8ac45fc30b4e248b6a8af2c4fe",
+      "process_group": 2940028,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/runner-lint.json",
+      "receipt_sha256": "7eac3cac3a9c82730c7417c955620abe1543c28d09374e4b087a87e2360316c4",
+      "start_utc": "2026-10-10T10:30:57.092803+00:00",
+      "timed_out": false
+    },
+    "validate": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/make",
+        "-C",
+        "tools/gomad3",
+        "validate",
+        "SHELL=/bin/sh"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/validate-binding.json",
+      "binding_sha256": "79359bae5f774ab393c9ae86f6f3cdd3ee180084ffe4992fbbe6278258d7d237",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 15.819155506993411,
+      "end_utc": "2026-10-10T10:35:40.352440+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/validate.log",
+      "log_sha256": "2d921ba52a99980013007cbd8210e9514595077e69fb6167947b08918e79a2c4",
+      "process_group": 2989589,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/validate.json",
+      "receipt_sha256": "51215852127b1447db800a1970f48d4be1f64c06b5fd36ede0781b4ef24d91e3",
+      "start_utc": "2026-10-10T10:35:24.533267+00:00",
+      "timed_out": false
+    },
+    "validation-domain": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/usr/bin/python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/check.py",
+        "domain"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/validation-domain-binding.json",
+      "binding_sha256": "244455f384892863831836fd9a195887a5a7627ad66b72e39068631e3e6af8a3",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate",
+      "elapsed_seconds": 0.07195308299560566,
+      "end_utc": "2026-10-10T10:35:22.897698+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/validation-domain.log",
+      "log_sha256": "14b3a04349404258337975a22598323928bd3e29a354c6e1445a7bb03d006883",
+      "process_group": 2989389,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/validation-domain.json",
+      "receipt_sha256": "01a75fddf706f19271e5b97d699ec22bc2b9a4bf8d67a1ac71bbe0d44a119e67",
+      "start_utc": "2026-10-10T10:35:22.825733+00:00",
+      "timed_out": false
+    },
+    "vet-darwin-arm64": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "./internal/gomadtool/conformance",
+        "./runner/internal/execution"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/vet-darwin-arm64-binding.json",
+      "binding_sha256": "c4dca15d56a8fbe89fe9f4dae42dbca3f26c5301229adb981189c7ea2a0a5bef",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 1.4375017090060282,
+      "end_utc": "2026-10-10T10:34:29.937232+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/vet-darwin-arm64.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "process_group": 2981033,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/vet-darwin-arm64.json",
+      "receipt_sha256": "e2b41aa37cbb66a46f78cc34d79ad9a42878e3bc14c6157afad85cf0714b9a4c",
+      "start_utc": "2026-10-10T10:34:28.499706+00:00",
+      "timed_out": false
+    },
+    "vet-linux-amd64": {
+      "all_commands_terminal": true,
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./runner",
+        "./internal/gomadtool/conformance",
+        "./runner/internal/execution"
+      ],
+      "binding_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/vet-linux-amd64-binding.json",
+      "binding_sha256": "32d6108bfc89b9367e454e93a2f64e1bb8a2b5a5696b7a1b19891b4396449fd0",
+      "child_returncode": 0,
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/tools/gomad3",
+      "elapsed_seconds": 1.4935347929858835,
+      "end_utc": "2026-10-10T10:34:27.022230+00:00",
+      "exit_code": 0,
+      "log_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/vet-linux-amd64.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "process_group": 2980288,
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/vet-linux-amd64.json",
+      "receipt_sha256": "dbc45a789f8c474251e7e2e9f2cdec7eb725b5d66c4054135ecf32353bc88a94",
+      "start_utc": "2026-10-10T10:34:25.528682+00:00",
+      "timed_out": false
+    }
+  },
+  "remaining_acceptance": [
+    "Authoritative ordinary selected deadline failure unresolved; no uninstrumented acceptance replacement.",
+    "Actual original-base fast lint terminated killed137; route incomplete.",
+    "Inherited ordinary RED144 outside the selected table; original RED50 and RunnerRED6 unchanged.",
+    "Integrated errortype unreachable in attempted aggregate routes.",
+    "Conductor independent source/evidence review and integration remain pending."
+  ],
+  "script_preimages": {
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/handover-pre-terminal-report.py": "1f4a7106898754d60cc969b8ac031eef119698771a143901927764b54b4d17c6",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/audit-complete.py": "655528fbd5c8d3c3b37407bb180f0b73464dde14098a968f35f866bfc8e65819",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/audit.py": "881f8efdf0d3fd1e68ed14741d92535323978b1aa5d4fb3277f780a2a33561ee",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/check-progress-complete.py": "eef5e56f1bc01cf7dede5bc5026687e58393ffbad713a4ec03b1f6719121fb09",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/check-progress.py": "7edd746f73abfad26744b47cfc555af61fb51b3182a4a849a809ecbb9a32e226",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/check.py": "96233f4ddf513dde37aabd7f9ea69efd87dd16a075ae60680118bef7561bd943",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/finish-report.py": "c7324270ea98cfe38c93bfc9b6445dbc4606c7fff582a996f436624c0547fc6b",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/finish.py": "e4ee7c926a6400ad1a54d163a2d26ec258d22d59fe846485054da346bdfcd477",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/gates.py": "d68f531788183b55f80b3c27e136a0563a73749350c6f4e5c06d152a015de5ae",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/handover.py": "fd8defe602df7767ecca074bcd36a34a5eb2af322bda30f88593762d958cd84a",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/inspect-lane.py": "a86a6ec1321a8d2eab9a2926bdbd6104866d97d2b7e07d73f464d2bd156d5d63",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/inspect-terminal-report.py": "057f148f53a0f34b26be46f11ce24ef02911ad3af1fad75ce282ce702c1cba3f",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/inspect-terminal.py": "225a8dd593a88a677d5bf57930c706ce213fe0dd141a9abb8fc2a4b7b29022d2",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/probe.py": "27251121fee0f3097bf3209893f09591e760a5739f4c5a45bd61c7f543678e8b",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/run.py": "7f6153c815f49f70ef916612450626a3f8043c4e1ffcaac9fe57b0ef0344d3ab"
+  },
+  "source_unit": {
+    "additions": 2,
+    "base_sha256": "87253da780594e54139a2359ef5d2655ffbf4905b54eb1380c3700f3edaf8b4e",
+    "candidate_sha256": "c86e26d2c016af55427faea8927c9b224a89778b4b5d70d81dc4257a8163f168",
+    "deletions": 0,
+    "path": "tools/gomad3/runner/retention_characterization_test.go",
+    "reconstructed_base_sha256": "87253da780594e54139a2359ef5d2655ffbf4905b54eb1380c3700f3edaf8b4e",
+    "whole_file_reconstruction": true
+  },
+  "standards": {
+    "architecture_named_terminals": 55,
+    "both_supported_source_set_vet": "PASS: linux/amd64 and darwin/arm64 static checks only",
+    "discovered_top_level_tests": 113,
+    "domain_hash_equality": true,
+    "generated_validation": "PASS, current execution",
+    "gofmt": "PASS, empty diff",
+    "host_vet": "PASS",
+    "nested_aggregate_lint": "RED50 before/after, complete42 ST1005 +8 forbidigo blocks unchanged versus task23 and task73",
+    "nested_blocks_sha256": "034b5959d8f6689fefbd9215234326d66b3809e204cf628c62b244e256398eea",
+    "original_base_fast_lint": "INCONCLUSIVE: actual root linter killed137, make rc2; no retry; nested RED50 and integrated errortype unreached",
+    "standalone_errortype": "PASS",
+    "unfiltered_runner_lint": "RED6 unchanged complete blocks",
+    "validation_domain_files": 132
+  },
+  "status": "in_progress",
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.74",
+  "terminal_inspection": {
+    "all_owned_commands_terminal": true,
+    "current_gate_lane_empty": true,
+    "go_probe": "None: final report is a bound non-Go observer; prior failed inspection retained.",
+    "observed_external_gate_commands": [],
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/final-terminal-report.log",
+    "sha256": "aee1f52e403ff942790725155a160a44372e517ae3cd0c37e1b16f49d61755e4"
+  },
+  "tests": [
+    "/usr/bin/make lint-code-gomad3 SHELL=/bin/sh GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "go test -tags test_dep -count=1 -json -run '^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^choice-exploration$' ./runner",
+    "go test -tags test_dep -count=1 -json -run '^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^seed$' ./runner",
+    "go test -tags test_dep -count=1 -json -run '^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^simulation-exploration$' ./runner",
+    "go test -tags test_dep -count=1 -json -run '^(TestPreparationDependencies(ForwardRealFixtureInputs|OperationErrorsRemainUnchanged|FailuresStopAtOriginalStages|KeepRealDefaultsAndBootstrapGuard)|TestInjectionCharacterization(IsolatedExploreRejectsEverySubstitution|IsolatedPreparationDependencies)|TestPortableProfilePublicGuardsRemainFirst)$' ./runner ./deterministicio",
+    "go test -tags test_dep -count=1 -json ./runner",
+    "go test -tags test_dep -count=1 -json -run '^Test(RetentionCapacityExhaustionFailsVisiblyForEveryStrategy|RetentionFailureLeavesNoveltyAndCountersAtTheCommittedState|GuidedAdmissionReplaysBeforeTheCorpusAdvances|RunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs|RunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns)$' ./runner",
+    "go test -tags test_dep -count=1 -json -run '^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$' ./runner",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -tags test_dep -count=1 -json -run '^Test(PackageArchitecture|PureModulesHaveNoHostEffects|PublicPackagesDoNotExportTypeAliases|PublicPackagesDoNotExportForwardingAliases|RunnerRequestsCompileInExternalModule|RunnerExecutionInjectionIsPrivate|ArchitectureEffectFixtures|ArchitecturePublicSignatureFixtures|ExactModuleEdges)$' .",
+    "/usr/bin/make lint-code-gomad3 SHELL=/bin/sh GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "go test -tags test_dep -count=1 -json -run '^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^choice-exploration$' ./runner",
+    "go test -tags test_dep -count=1 -json -run '^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^seed$' ./runner",
+    "go test -tags test_dep -count=1 -json -run '^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$/.*/^simulation-exploration$' ./runner",
+    "go test -tags test_dep -count=1 -json -run '^(TestPreparationDependencies(ForwardRealFixtureInputs|OperationErrorsRemainUnchanged|FailuresStopAtOriginalStages|KeepRealDefaultsAndBootstrapGuard)|TestInjectionCharacterization(IsolatedExploreRejectsEverySubstitution|IsolatedPreparationDependencies)|TestPortableProfilePublicGuardsRemainFirst)$' ./runner ./deterministicio",
+    "go test -tags test_dep -count=1 -json ./runner",
+    "go test -tags test_dep -count=1 -json -run '^Test(RetentionCapacityExhaustionFailsVisiblyForEveryStrategy|RetentionFailureLeavesNoveltyAndCountersAtTheCommittedState|GuidedAdmissionReplaysBeforeTheCorpusAdvances|RunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs|RunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns)$' ./runner",
+    "go test -tags test_dep -count=1 -json -run '^TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy$' ./runner",
+    "go test -tags test_dep -count=1 -json -trace /Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/tmp/fn10974-evidence/deadline-observation-20261010.trace ./runner",
+    "/usr/bin/python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/inspect-lane.py",
+    "/usr/bin/git diff --check",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner",
+    "/usr/bin/python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/check-progress-complete.py",
+    "/usr/bin/python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/check-progress.py",
+    "/usr/bin/make lint-code-fast SHELL=/bin/sh GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "/usr/bin/python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/inspect-terminal.py",
+    "/usr/bin/python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/inspect-terminal-report.py",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -d tools/gomad3/runner/retention_characterization_test.go",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go vet -tags test_dep ./runner ./internal/gomadtool/conformance ./runner/internal/execution",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.github/.golangci.yml --build-tags test_dep --timeout 10m --fix=false ./runner",
+    "/usr/bin/make -C tools/gomad3 validate SHELL=/bin/sh",
+    "/usr/bin/python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.worktrees/fn-109-74-retention-candidate/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-74/worker/check.py domain",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go vet -tags test_dep ./runner ./internal/gomadtool/conformance ./runner/internal/execution",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go vet -tags test_dep ./runner ./internal/gomadtool/conformance ./runner/internal/execution"
+  ],
+  "tier": "Tier: session (jev-unavailable(no_key)); explicit project implementer route retained. Requested model is not actual model telemetry."
+}
