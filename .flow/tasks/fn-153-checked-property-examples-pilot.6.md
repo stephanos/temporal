@@ -25,7 +25,7 @@ Write the evidence-limited pilot assessment, document authoring and check workfl
 - `.flow/tmp/fn-153/` - .1's immutable baseline and task-local receipts
 - `MILESTONES.md` - canonical commands, one-hour rule and root ownership
 **Optional:**
-- `model/docs/property-illustrations.md` - all three checked explanations
+- `model/docs/property-illustrations/README.md` - all three checked explanations
 
 ### Quick commands
 ```bash
@@ -34,15 +34,12 @@ go test -tags test_dep ./tools/umpire/check -run 'Property|Illustration'
 go test -tags test_dep ./tools/umpire/cmd/umpire-illustrations
 make lint-model
 ```
-
 ## Acceptance
 - [ ] Assessment covers all three authoring examples and rendered explanations with measured setup/duplication, misleading cases, drift evidence and a grounded recommendation; missing developer feedback is explicit.
 - [ ] Author and checker docs describe actual APIs, tri-state/error behavior, hypothetical reachability limits and the deterministic document workflow.
 - [ ] Complete original-to-final input-bound comparisons prove unchanged tables, behavioral answers, Definition IDs, Behavior Fingerprints and all managed Cases; every allowed carrier/digest delta is separately accounted for.
 - [ ] Required model/Go/Case/fixture/lint/dependency gates have retained results; deferred or failing checks grant no pass or live credit and keep their follow-up obligations.
 - [ ] Concise handoff supplies the conductor the evidence for all R-IDs, independent review and closure without claiming developer comprehension or executing new live Cases.
-
-
 ## Done summary
 TBD
 

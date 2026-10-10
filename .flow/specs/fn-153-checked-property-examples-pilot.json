@@ -1,11 +1,71 @@
 {
   "branch_name": "fn-153-checked-property-examples-pilot",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-09T04:06:43.339399Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-153-checked-property-examples-pilot",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-10T06:32:27.084897Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "680630c1450eb3edb17dc730b8f1dc2e0852ece7ac5b6bf1accb43a14594a150",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2bf894e5d0b1884d8a73d9af78f7aaca",
+            "classification": "introduced",
+            "findingId": "finding-2bf894e5d0b1884d8a73d9af78f7aaca",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a44c8c3b26593b9cf12fcdedffb28851e2a73096",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 390504,
+      "output_sha256": "7b31eec3c01f56106e05518710b9ca96f6fb7e9e1680efcbd3037e4c06ac12ec",
+      "reservation_id": "82a5210ee8f64f4c883b9ca568870f86",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T06:32:27.077761Z",
+      "tool_calls": 27,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-153-checked-property-examples-pilot.md",
   "status": "open",
   "title": "Checked property examples pilot",
@@ -20,5 +80,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T06:28:26.251385Z"
+  "updated_at": "2026-10-10T06:33:46.110331Z"
 }
