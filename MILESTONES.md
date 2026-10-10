@@ -151,7 +151,7 @@ and the pending-control remodel.
 | fn-155.1 | ✅ done | Sealed complete baseline and projection; 46 native/Pins tables, semantic mutation controls, lifter fallbacks; three review lanes SHIP |
 | fn-155.2 | 🔄 in progress | System held-attempt ending: landing function, named and `armed` guards, `resetSettles`, shared reset reason, initial-state derivations |
 | fn-155.3 | ⬜ todo | Product single-fact `Recorded` conversions, shared rejection reasons, worker/By-ID must-match comment, By-ID examples |
-| fn-155.4 | 🔄 in progress | Keep handwritten HeldDispatch and both composition capabilities per proven lifter refusals; waiver reasons section |
+| fn-155.4 | ✅ done | Proven R5 fallbacks retained; shared waiver reasons; 23 complete tables/1,361,467 records equal, three-axis SHIP and integrated lint/Scala checks pass |
 | fn-155.5 | 🔄 in progress | Realization evidence builders: attempt record, Describe read, conditions, activation, run-scoped base |
 | fn-155.6 | ⬜ todo | Regenerate, projection proof, Go test and fixture updates, gates, review; mapping handed to fn-140 and fn-129.3 |
 

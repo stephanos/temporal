@@ -32,9 +32,21 @@ Implements spec section E in fn-151's Dispatch* files. HeldDispatch derives from
 - [ ] TBD
 
 ## Done summary
-TBD
+# Dispatch integration
 
+Moved the two unchanged waiver reasons into the shared `dispatchWaivers` section; no reason-only `states` object remains. Retained both permitted R5 fallbacks: derivation loses HeldDispatch refinement/Product StateFields, and the common capability bound is refused by the lifter despite compiling. The sealed refusal evidence and original machine/realization expectations remain intact.
+
+Worker base: 9a146bb59e7ee7ae2fc249d4017bdda77aca488e. Worker source: a35461306bf65d77786b408ca5ed4d62dfddb7d8. Integrated source range: f7726f57ed575ae5efe932743e2ec9353b674fb1..bcf3c09a4c0f32d42c2875b6a6907dfcf696414a. Review metadata: 0d15d24c6a583810421c5c622ea9b1918178d6d0. Only Dispatch.scala and DispatchWithTaskQueue.scala changed in the source range.
+
+The full worker proof preserves all raw IR fields except Position, all 154 Queries, both race realizations, all 21 exact waivers, and 23 complete native tables comprising 1,361,467 ordered records. The primary IR is byte-identical. The immutable foundation and worker inputs were independently hash-checked against the integrated tree.
+
+Fresh-context Codex gpt-6.1-sol/high review returned SHIP on correctness, contracts and integration, with no findings (same family disclosed); receipt `.flow/tmp/fn155-task4-review/impl-review-receipt.json`. Fresh integrated `make lint-model` exited 0; all three RoleRefinements tests passed. Receipts `.flow/tmp/fn155-integration/task4-lint.json` and `task4-scala-after-build.json` pin unchanged source inputs. The initial Scala command failed because this new worktree lacked its generated API jar; its original RED log/receipt remain retained, followed by the normal lint/build and identical successful test command. No production source fix was needed.
+
+stage: memory-capture - skipped(clean first-round SHIP; no review fixes)
+stage: plan-sync - skipped(policy: rolling route)
+
+Inherited canonical Model/Case/fixture/Go RED receipts remain RED. This task does not claim production regeneration, full gates or live evidence; task 6 and the named deferred specs/batch retain those obligations. All task-attributable commands have exited naturally.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a35461306bf65d77786b408ca5ed4d62dfddb7d8, bcf3c09a4c0f32d42c2875b6a6907dfcf696414a, 0d15d24c6a583810421c5c622ea9b1918178d6d0
+- Tests: make lint-model, mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/framework model/temporal --test-only framework.RoleRefinements, Complete worker IR projection, raw Position-only equality, 154-Query/21-waiver inventories and 23-table/1361467-record native comparison; immutable input hashes independently checked, Codex gpt-6.1-sol high implementation review: three axes SHIP, no findings; RID 17a0f604f80a4ccf89ea875e2d60d04a
 - PRs:
