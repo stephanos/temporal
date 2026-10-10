@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T19:05:32.151583Z",
+  "depends_on": [
+    "fn-162-queries-choose-their-assessed.1"
+  ],
+  "id": "fn-162-queries-choose-their-assessed.2",
+  "priority": null,
+  "spec": "fn-162-queries-choose-their-assessed",
+  "spec_path": ".flow/tasks/fn-162-queries-choose-their-assessed.2.md",
+  "status": "todo",
+  "title": "Query assessment sets in framework, lifter, IR, lowering and Go assessment",
+  "updated_at": "2026-10-10T19:05:32.151583Z"
+}

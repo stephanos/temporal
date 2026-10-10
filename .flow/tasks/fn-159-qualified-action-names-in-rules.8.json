@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T18:38:12.353544Z",
+  "depends_on": [],
+  "id": "fn-159-qualified-action-names-in-rules.8",
+  "priority": null,
+  "spec": "fn-159-qualified-action-names-in-rules",
+  "spec_path": ".flow/tasks/fn-159-qualified-action-names-in-rules.8.md",
+  "status": "todo",
+  "title": "Rename capability kinds Retries \u2192 Retryable, Deadline \u2192 Expirable",
+  "updated_at": "2026-10-10T18:38:12.353544Z"
+}

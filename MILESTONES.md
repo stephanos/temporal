@@ -146,6 +146,8 @@ equivalence proof that later work builds on, and at a format activation.
 | 3 | Testpilot format | fn-146 → fn-147 → fn-148 | breaking format | fn-146.7, fn-147.4, fn-148.7 | once |
 | 4 | Lifter | fn-141 | byte-identical | fn-141.14 | none |
 | 5 | Activity model | fn-128 → fn-138 → fn-129 | meaning | fn-128.6, fn-129.5 | once |
+| 6 | Model DSL | fn-159.1, .3, .6, .7 (construct); fn-161.1; investigations fn-160.1, fn-162.1 | byte-identical | fn-161.1 | none |
+| 7 | One regeneration | fn-162.2; fn-160.2–.4; fn-159.2, .4, .5, .7 (migration), .8; fn-161.2–.4; fn-162.3 | meaning-preserving, mapped identities | fn-160.2 | once |
 
 ## Direction
 
@@ -872,3 +874,132 @@ temporal-sequence examples and a repository-wide rollout are outside the pilot.
 Tasks run in order. Re-anchor against the actual baseline after the delivery chain; keep
 hypothetical violations, actual model failures and live coverage separate. Mechanical checks
 do not establish developer comprehension, and absent feedback must remain explicit.
+
+## Batches 6–7: Model DSL, then one regeneration (fn-159–fn-162)
+
+The four Model-readability specs are split across two batches by what they do to generated
+artifacts, not by spec. All Scala DSL and tooling changes come first, in Batch 6, which must leave
+every checked-in IR file, Case and fixture byte-identical. Every change that moves an IR id, a
+file boundary, a function name or a Case goes into Batch 7, which regenerates IR, Cases, lint
+acceptances and the pinned fixture trees **once**.
+
+**Placement:** after Batch 3 (fn-147's `Duration` migration currently breaks the lifter's build and
+the Cases check, and Batch 7 needs both), after Batch 4 (fn-141 rewrites the lifter; Batch 6 adds
+lifter constructs, so it builds on fn-141's descriptions instead of being re-described), and
+after Batch 5 (Batch 7 rewrites the activity model, so the activity's meaning changes land first
+and are migrated once). The read-only investigations (fn-160.1, fn-162.1) and Batch 6 source work
+may start earlier on a pinned baseline, under the batch-first strategy; their integration waits.
+
+**Batch 6, Model DSL (byte-identical; shared close fn-161.1):**
+
+| Order | Task | What lands |
+| --- | --- | --- |
+| any | fn-160.1, fn-162.1 | Read-only investigations; their findings settle fn-160.2 and fn-162.2's designs |
+| 1 | fn-159.1, fn-159.3 | Qualified `on` targets and phases, enforced by the lifter (and the framework for `on`); models migrated; IR unchanged. fn-159.1's `activityWorker` rename is IR-neutral (ids come from the kind) |
+| 2 | fn-159.6 | `Observation` drops `read`; IR unchanged |
+| 3 | fn-159.7 (construct only) | `enters(Phase.X)` in framework and lifter, with fixtures; no model migrated yet |
+| 4 | fn-161.1 | Facet construct, ownership and vocabulary checks, layout rules; no model migrated (allow-list) |
+
+**Batch 7, one regeneration (meaning-preserving, mapped identities; shared close fn-160.2):**
+Tooling that changes the lifter's output comes first, then every model migration in dependency
+order on the new tooling, then a single regeneration. The equivalence seal is one scratch
+regeneration compared with a recorded rename map: every row, outcome, fact, Query answer and
+total, and every Case's expected outcome must match; ids, file boundaries, function names and
+assessment sets may only move as the map states.
+
+| Order | Task | What lands |
+| --- | --- | --- |
+| 1 | fn-162.2 | Query assessment sets: framework, lifter, IR schema, lowering, Go assessment |
+| 1 | fn-160.3, fn-160.4 (lint rules) | One machine per file, flat prefix layout, realization layer and one-way layer dependencies, enforced |
+| 1 | fn-160.2 (collection tooling) | One IR file per feature package; `irFile`/`exports` removed |
+| 2 | fn-159.2, fn-159.4, fn-159.5, fn-159.8 | `completionClient`; drop the product's `disabled(process.stop)`; bounds into `Bounds`; capability kinds `Retryable`/`Expirable` |
+| 3 | fn-159.7 (migration) | Phase-only effects become `enters(Phase.X)` in every model |
+| 4 | fn-161.2 + fn-161.3, fn-161.4 | Activity facets in one pass (effects, claims, rules, capabilities); every other machine wrapped |
+| 5 | fn-162.3 | Claim-container subjects removed; Properties declared once in their facets |
+| 6 | fn-160.3, fn-160.4 (moves) | Files split and moved into the flat layout and the `realization/` layer, with prefix and `Run` renames |
+| 7 | fn-160.2 (close) | Collection by feature package; single regeneration of IR, Cases, lint acceptances and fixture trees; equivalence seal; full gate; review; live run |
+
+**Decisions to collect before Batch 7 starts**, so the regeneration happens once:
+- capability kind names (fn-159.8)
+- bound names for the `four`/`five`/`twelve` clashes and the `eight`/`control` merge (fn-159.5)
+- the facet vocabulary per feature (fn-161)
+- family prefixes for the close-policy designs and other renamed objects (fn-160.3)
+- realization `Run` names (fn-160.4)
+- whether `disabled(...)` targets must be qualified (fn-159)
+- fn-160.1's and fn-162.1's findings
+
+Flow refuses task dependencies across specs, so the cross-spec order above is held here and by
+the conductor. Within each spec, Flow records it.
+
+## fn-159: Qualified action names in rules
+
+Readability and naming cleanups across the Models. Rule targets and phases are always qualified
+(`on(activityWorker.poll)`, `when(Phase.scheduled)`), and `from(X)` only groups (fn-159.1, fn-159.3).
+Actors get clearer names (`activityWorker`, `completionClient`), as do the capability kinds `Retryable`
+and `Expirable` (fn-159.2, fn-159.8). Phase-only effects give way to `enters(Phase.X)` (fn-159.7). The
+product's never-enabled `disabled(process.stop)` binding goes, unless the lift needs it (fn-159.4), every `Limits` bound moves into
+`Bounds` (fn-159.5), and `Observation` drops its unchecked `read` text (fn-159.6). fn-159.1, fn-159.3
+and fn-159.6 leave the IR unchanged; the renames, bound moves and `enters` change ids or function names
+only. The IR-regenerating tasks wait on the tree's IR `Duration` migration. Not marked ready.
+[Spec](.flow/specs/fn-159-qualified-action-names-in-rules.md).
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-159.1 | ⬜ todo | Require qualified `on` targets in irgen and the framework; refuse `import X.*` in `from`; rename the bound `worker` to `activityWorker`; migrate models, tests and README |
+| fn-159.2 | ⬜ todo | Rename the standalone activity's By-ID actor `service` to `completionClient`; regenerate the activity IR |
+| fn-159.3 | ⬜ todo | Qualify every phase reference (`when(Phase.scheduled)`, `phase = Phase.started`); irgen refuses phase-member imports |
+| fn-159.4 | ⬜ todo | Remove `disabled(process.stop)` from the activity product; needs the tree's IR `Duration` migration to build for the lift check |
+| fn-159.5 | ⬜ todo | Move every `Limits` bound into `Bounds`; resolve the clashing names `four`/`five`/`twelve` and merge `eight`/`control` |
+| fn-159.6 | ⬜ todo | Drop `Observation`'s free-text `read`; name the response field beside each realization's typed read |
+| fn-159.7 | ⬜ todo | `enters(Phase.X)` framework step replaces the ~29 effects that only set a phase (after fn-159.1, fn-159.3) |
+| fn-159.8 | ⬜ todo | Rename capability kinds `Retries` → `Retryable`, `Deadline` → `Expirable` (names to confirm); IR capability ids change |
+
+Open: whether `disabled(...)` targets fall under the same rule.
+
+## fn-160: One IR file per feature, collected from the feature's package
+
+Replace the hand-written `irFile` root lists, three files each for the standalone activity and nexus
+workflow, with one IR file per feature folder, collected from the feature's package. Nothing is listed,
+so no section can be forgotten. The model content stays the same; file boundaries and derived names
+(Cases, lint acceptances, export slices) change. Each Model file then holds at most one machine, in flat
+level folders grouped by name prefix, and realizations get their own `realization/` layer. Not marked ready.
+[Spec](.flow/specs/fn-160-one-ir-file-per-feature-collected-from.md).
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-160.1 | ⬜ todo | Inventory every consumer of today's IR file split; flag any that needs a split |
+| fn-160.2 | ⬜ todo | Collect one IR file per feature package; remove `irFile`/`exports`; regenerate and migrate consumers (after fn-160.1) |
+| fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); the lifter enforces it (after fn-160.2) |
+| fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
+
+## fn-161: Facets: action-owning behaviour areas of a feature
+
+A feature's machine is assembled from **facets**. Each facet is a feature-local behaviour area (Pausing,
+Cancellation, Reset, …) that owns a set of actions and holds their rules, effects, claims and the
+capabilities it declares. Each action has exactly one owning facet; cross-facet step use is declared in
+the facet's type. Only facets define rules, effects and capabilities in a declared machine, and each
+feature's levels share one facet vocabulary. Facets are named as nouns, capabilities as adjectives. Starts with the standalone
+activity, in two stages, after fn-159.7 (`enters`). Not marked ready.
+[Spec](.flow/specs/fn-161-facets-action-owning-behaviour-areas-of.md).
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-161.1 | ⬜ todo | Facet construct: framework, lifter, one-owner-per-action check, layout rules, docs |
+| fn-161.2 | ⬜ todo | Stage 1: standalone activity effects and claims into facet files (rules stay by actor) |
+| fn-161.3 | ⬜ todo | Stage 2: standalone activity rules and capabilities into their owning facets |
+| fn-161.4 | ⬜ todo | Wrap the other 11 declared machines into facets; switch facets-only and facet-vocabulary rules on globally |
+
+## fn-162: Queries choose their assessed Properties; each Property declared once
+
+Claim-container subjects, copies of a machine that change nothing (e.g. the three in the activity's
+`Heartbeat.scala`), exist only to give each realized Case a focused set of Properties, so the same
+Property is declared again and again. Instead, each Property is declared once (in its facet) and each
+Query names the Properties its Case is assessed against. Query answers and Case outcomes stay the same.
+Ideally lands before fn-160.3 splits those subjects into files. Not marked ready.
+[Spec](.flow/specs/fn-162-queries-choose-their-assessed.md).
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-162.1 | ⬜ todo | Trace how a Case's assessed Properties are selected today; list claim containers and duplicated predicates |
+| fn-162.2 | ⬜ todo | Query assessment sets in framework, lifter, IR, lowering and Go assessment; duplicate-Property detection |
+| fn-162.3 | ⬜ todo | Migrate the standalone activity off claim-container subjects |

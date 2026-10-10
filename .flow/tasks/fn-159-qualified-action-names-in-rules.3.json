@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T17:43:17.376584Z",
+  "depends_on": [],
+  "id": "fn-159-qualified-action-names-in-rules.3",
+  "priority": null,
+  "spec": "fn-159-qualified-action-names-in-rules",
+  "spec_path": ".flow/tasks/fn-159-qualified-action-names-in-rules.3.md",
+  "status": "todo",
+  "title": "Qualify every phase reference; refuse phase-member imports",
+  "updated_at": "2026-10-10T17:43:17.376584Z"
+}
