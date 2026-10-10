@@ -5,11 +5,11 @@ import framework.Finite.given
 import temporal.capabilities.Deadline
 import temporal.features.activity.{deadline, Timeout, TimeoutType}
 import temporal.features.activity.standalone.{
+  activityWorker,
   client,
   heartbeat,
   product,
   system,
-  worker,
   MaxAttempts
 }
 import temporal.features.activity.standalone.system.ActivitySystem
@@ -54,11 +54,11 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
     effectOf(binding.decl, binding.function)(s, c.values)
 
   test("heartbeat is an independently declared held action with a separate armed deadline") {
-    assertEquals(worker.heartbeat.decl.name, "recordHeartbeat")
-    assertNotEquals(worker.heartbeat.decl, deadline.heartbeat.decl)
+    assertEquals(activityWorker.heartbeat.decl.name, "recordHeartbeat")
+    assertNotEquals(activityWorker.heartbeat.decl, deadline.heartbeat.decl)
     assert(
       ActivitySystem.bindings.exists(
-        _.decl == worker.heartbeat.decl
+        _.decl == activityWorker.heartbeat.decl
       ), // scalafix:ok DisableSyntax.==
       "missing held heartbeat action"
     )
@@ -74,7 +74,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
 
   test("heartbeat keeps the held attempt and rejects unheld or closed requests without receipt") {
     for before <- summon[Finite[system.State]].values do
-      val after = take(before, worker.heartbeat()).head
+      val after = take(before, activityWorker.heartbeat()).head
       assertEquals(after.state, before)
       if before.phase.in[Held] then
         assertEquals(after.outcome, Outcome.accepted)
@@ -154,7 +154,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       attempts = UpTo(1),
       heartbeat = Timeout.expires
     )
-    for action <- List(worker.heartbeat(), deadline.heartbeat()) do
+    for action <- List(activityWorker.heartbeat(), deadline.heartbeat()) do
       val after = take(held, action).head
       val binding = product.ActivityProduct.bindings
         .find(_.decl == action.decl)
@@ -370,7 +370,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       val delivery = declarations
         .items(1)
         .asInstanceOf[TypedEvidence[InstructionOutcome]] // scalafix:ok DisableSyntax.asInstanceOf
-      assertEquals(delivery.evidence.confirms, Vector(Taking(worker.poll, 1)))
+      assertEquals(delivery.evidence.confirms, Vector(Taking(activityWorker.poll, 1)))
       assertEquals(
         delivery.fields.flatMap(_.role).toSet,
         Set(FieldRole.attempt, FieldRole.delivery)
@@ -440,7 +440,10 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         evidence.evidence
     }.head
     assertEquals(selected.records, system.Fact.attemptCount)
-    assertEquals(selected.confirms, Vector(Taking(deadline.heartbeat, 1), Taking(worker.poll, 2)))
+    assertEquals(
+      selected.confirms,
+      Vector(Taking(deadline.heartbeat, 1), Taking(activityWorker.poll, 2))
+    )
     val started = ActivitySystem.init.copy(
       phase = system.Phase.started,
       attempts = UpTo(1),
@@ -448,7 +451,8 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       maxAttempts = MaxAttempts.two
     )
     val expired = take(started, deadline.heartbeat()).head
-    val second = take(expired.state.copy(dispatch = system.Dispatch.now), worker.poll()).head
+    val second =
+      take(expired.state.copy(dispatch = system.Dispatch.now), activityWorker.poll()).head
     assert(expired.facts.contains(selected.records))
     assert(second.facts.contains(selected.records))
     val unusedKind = RetryAfterHeartbeat.evidence.items.collect {

@@ -24,20 +24,20 @@ object RetryFailures extends Derived(ActivitySystem.rebind()):
 
   object properties:
     val nonRetryableFails =
-      property when worker.respondFailed(Failure.fatal) holds { s => // format: off
+      property when activityWorker.respondFailed(Failure.fatal) holds { s => // format: off
         s.state.phase == Phase.failed && s.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       } // format: on
 
     // The attempt count saturates at `ActivitySystem.states.attemptBound`, so the claim is bounded by it:
     // a completion on any later attempt than the second reads as this one.
     val retryCompletes =
-      property when worker.respondCompleted holds { s => // format: off
+      property when activityWorker.respondCompleted holds { s => // format: off
         s.state == states.completedOnRetry && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       } // format: on
     // format: off
     // The pinned exhaustion path takes this action twice, so both failures must satisfy the
     // Property: the exact first retry, then the exact exhausted settlement.
-    val retryExhausts = property when worker.respondFailed(Failure.retryable) holds { s =>
+    val retryExhausts = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
       (s.state == states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
         phase = Phase.scheduled,
         dispatch = Dispatch.backoff,
@@ -54,24 +54,24 @@ object RetryFailures extends Derived(ActivitySystem.rebind()):
   object queries:
     val nonRetryable = scenario.actions(
       client.start(),
-      worker.poll,
-      worker.respondFailed(Failure.fatal)
+      activityWorker.poll,
+      activityWorker.respondFailed(Failure.fatal)
     )
     val retriedThenCompleted = scenario.actions(
       client.start(),
-      worker.poll,
-      worker.respondFailed(Failure.retryable),
+      activityWorker.poll,
+      activityWorker.respondFailed(Failure.retryable),
       timers.backoff,
-      worker.poll,
-      worker.respondCompleted
+      activityWorker.poll,
+      activityWorker.respondCompleted
     )
     val exhausted = scenario.actions(
       client.start(maxAttempts := MaxAttempts.two),
-      worker.poll,
-      worker.respondFailed(Failure.retryable),
+      activityWorker.poll,
+      activityWorker.respondFailed(Failure.retryable),
       timers.backoff,
-      worker.poll,
-      worker.respondFailed(Failure.retryable)
+      activityWorker.poll,
+      activityWorker.respondFailed(Failure.retryable)
     )
 
     val nonRetryableFailure =

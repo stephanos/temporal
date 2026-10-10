@@ -15,16 +15,17 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 object HeartbeatCompletion extends Derived(ActivitySystem.unmonitored):
 
   object properties:
-    val heartbeatCompletes = property when worker.respondCompleted holds { s => // format: off
+    val heartbeatCompletes = property when activityWorker.respondCompleted holds {
+      s => // format: off
       s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
 
   object queries:
     val heartbeatCompleted = scenario.actions(
       client.start(heartbeat := expires),
-      worker.poll,
-      worker.heartbeat,
-      worker.respondCompleted
+      activityWorker.poll,
+      activityWorker.heartbeat,
+      activityWorker.respondCompleted
     )
     val heartbeatThenCompletes =
       (query find properties.heartbeatCompletes in heartbeatCompleted limits four)
@@ -34,19 +35,20 @@ object HeartbeatCompletion extends Derived(ActivitySystem.unmonitored):
 object HeartbeatRetry extends Derived(ActivitySystem.unmonitored):
 
   object properties:
-    val heartbeatRetryCompletes = property when worker.respondCompleted holds { s => // format: off
+    val heartbeatRetryCompletes = property when activityWorker.respondCompleted holds {
+      s => // format: off
       s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
 
   object queries:
     val heartbeatRetried = scenario.actions(
       client.start(heartbeat := expires, maxAttempts := MaxAttempts.two),
-      worker.poll,
-      worker.heartbeat,
+      activityWorker.poll,
+      activityWorker.heartbeat,
       deadline.heartbeat,
       timers.backoff,
-      worker.poll,
-      worker.respondCompleted
+      activityWorker.poll,
+      activityWorker.respondCompleted
     )
     val heartbeatTimeoutRetriesThenCompletes =
       (query find properties.heartbeatRetryCompletes in heartbeatRetried limits eight)
@@ -67,8 +69,8 @@ object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
   object queries:
     val heartbeatExhausted = scenario.actions(
       client.start(heartbeat := expires, maxAttempts := MaxAttempts.one),
-      worker.poll,
-      worker.heartbeat,
+      activityWorker.poll,
+      activityWorker.heartbeat,
       deadline.heartbeat
     )
     val heartbeatTimeoutExhausts =

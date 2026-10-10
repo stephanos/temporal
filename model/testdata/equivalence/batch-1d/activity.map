@@ -1,0 +1,7 @@
+# Batch 1d, activity lane (model/temporal/features/activity). Step tables name actions `actor.action`.
+# fn-159.2: the By-ID actor `service` is `completionClient`.
+service.respondCompletedByID completionClient.respondCompletedByID
+service.respondFailedByID completionClient.respondFailedByID
+service.respondCanceledByID completionClient.respondCanceledByID
+# fn-159.4: the product binds no worker stop; the System keeps its stutter row.
+temporal.features.activity.standalone.product.activityProduct/worker.stop -

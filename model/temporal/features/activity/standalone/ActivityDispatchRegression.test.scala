@@ -3,7 +3,7 @@ package framework
 import framework.Finite.given
 
 import temporal.features.activity.{deadline, timers, Failure, Timeout}
-import temporal.features.activity.standalone.{client, system, worker, MaxAttempts}
+import temporal.features.activity.standalone.{activityWorker, client, system, MaxAttempts}
 import temporal.features.activity.standalone.system.ActivitySystem
 import framework.outcomes.Outcome
 
@@ -22,12 +22,12 @@ class ActivityDispatchRegression extends munit.FunSuite:
       ) // scalafix:ok DisableSyntax.asInstanceOf
 
   private def backoff(s: system.State): system.State =
-    val started = take(s, worker.poll).head.state
+    val started = take(s, activityWorker.poll).head.state
     failAttempt(started)
 
   private def failAttempt(s: system.State): system.State =
     ActivitySystem.bindings
-      .find(_.decl == worker.respondFailed.decl) // scalafix:ok DisableSyntax.==
+      .find(_.decl == activityWorker.respondFailed.decl) // scalafix:ok DisableSyntax.==
       .get
       .function
       .asInstanceOf[(system.State, Failure) => List[Step[system.State, Outcome, system.Fact]]](
@@ -62,9 +62,9 @@ class ActivityDispatchRegression extends munit.FunSuite:
     val waiting = backoff(ActivitySystem.init.copy(phase = system.Phase.scheduled))
     val paused = take(waiting, client.pause).head.state
     val resumed = take(paused, client.unpause).head.state
-    assertEquals(take(resumed, worker.poll), Nil)
+    assertEquals(take(resumed, activityWorker.poll), Nil)
     val ready = take(resumed, timers.backoff).head.state
-    assertEquals(take(ready, worker.poll).head.state.phase, system.Phase.started)
+    assertEquals(take(ready, activityWorker.poll).head.state.phase, system.Phase.started)
   }
 
   test("schedule-to-start does not fire during retry backoff (model.go:312-322)") {
@@ -82,13 +82,13 @@ class ActivityDispatchRegression extends munit.FunSuite:
   test("start delay defers dispatch and both scheduling deadlines (model.go:312-335,355-365)") {
     val waiting = delayedStart
     assertEquals(waiting.dispatch, system.Dispatch.startDelay)
-    assertEquals(take(waiting, worker.poll), Nil)
+    assertEquals(take(waiting, activityWorker.poll), Nil)
     assertEquals(take(waiting, deadline.scheduleToStart), Nil)
     assertEquals(take(waiting, deadline.scheduleToClose), Nil)
     val ready = take(waiting, timers.startDelay).head.state
     assertEquals(ready.dispatch, system.Dispatch.now)
     assertEquals(take(ready, timers.startDelay), Nil)
-    assertEquals(take(ready, worker.poll).head.state.phase, system.Phase.started)
+    assertEquals(take(ready, activityWorker.poll).head.state.phase, system.Phase.started)
     for timer <- List(deadline.scheduleToStart, deadline.scheduleToClose) do
       assertEquals(take(ready, timer).head.state.phase, system.Phase.timedOut)
   }
@@ -101,20 +101,20 @@ class ActivityDispatchRegression extends munit.FunSuite:
       assertEquals(take(paused, client.unpause).head.state.dispatch, waiting.dispatch)
       val elapsed = take(paused, timer).head.state
       assertEquals(elapsed.phase, system.Phase.paused)
-      assertEquals(take(elapsed, worker.poll), Nil)
+      assertEquals(take(elapsed, activityWorker.poll), Nil)
       val resumed = take(elapsed, client.unpause).head.state
-      assertEquals(take(resumed, worker.poll).head.state.phase, system.Phase.started)
+      assertEquals(take(resumed, activityWorker.poll).head.state.phase, system.Phase.started)
       assertEquals(take(resumed, timer), Nil)
   }
 
   test("a pause requested during an attempt retains its retry's backoff (model.go:130-137)") {
     val started =
-      take(ActivitySystem.init.copy(phase = system.Phase.scheduled), worker.poll).head.state
+      take(ActivitySystem.init.copy(phase = system.Phase.scheduled), activityWorker.poll).head.state
     val requested = take(started, client.pause).head.state
     val paused = failAttempt(requested)
     assertEquals(paused.phase, system.Phase.paused)
     assertEquals(paused.dispatch, system.Dispatch.backoff)
-    assertEquals(take(take(paused, client.unpause).head.state, worker.poll), Nil)
+    assertEquals(take(take(paused, client.unpause).head.state, activityWorker.poll), Nil)
   }
 
   test("every waiting dispatch maps to the Product's scheduled state") {

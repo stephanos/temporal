@@ -3,7 +3,14 @@ package framework
 import framework.Finite.given
 
 import temporal.features.activity.{failure, Failure}
-import temporal.features.activity.standalone.{activity, client, product, service, system, worker}
+import temporal.features.activity.standalone.{
+  activity,
+  activityWorker,
+  client,
+  completionClient,
+  product,
+  system
+}
 import temporal.features.activity.standalone.system.{
   ActivitySystem,
   ByIDCancellation,
@@ -14,26 +21,29 @@ import framework.outcomes.{Outcome, Rejection}
 
 class ActivityByIDRegression extends munit.FunSuite:
   val _ = () => summon[CanEqual[system.Phase, system.Phase]]
-  test("the service declares three independent by-ID answer actions") {
+  test("the completion client declares three independent by-ID answer actions") {
     val answers =
-      ActivitySystem.bindings.filter(_.decl.actor.name == "service") // scalafix:ok DisableSyntax.==
+      ActivitySystem.bindings.filter(_.decl.actor.name == "completionClient") // scalafix:ok DisableSyntax.==
     assertEquals(
       answers.map(_.decl),
       List(
-        service.respondCompletedByID.decl,
-        service.respondFailedByID.decl,
-        service.respondCanceledByID.decl
+        completionClient.respondCompletedByID.decl,
+        completionClient.respondFailedByID.decl,
+        completionClient.respondCanceledByID.decl
       )
     )
     for answer <- answers do assertEquals(answer.decl.on, Some(activity))
-    assertEquals(service.respondFailedByID.decl.tokens, List(Some(failure)))
+    assertEquals(completionClient.respondFailedByID.decl.tokens, List(Some(failure)))
     assertEquals(
-      service.respondFailedByID.decl.domains.map(_.values.toList),
+      completionClient.respondFailedByID.decl.domains.map(_.values.toList),
       List(Failure.values.toList)
     )
-    assertNotEquals(service.respondCompletedByID.decl, worker.respondCompleted.decl)
-    assertNotEquals(service.respondFailedByID.decl, worker.respondFailed.decl)
-    assertNotEquals(service.respondCanceledByID.decl, worker.respondCanceled.decl)
+    assertNotEquals(
+      completionClient.respondCompletedByID.decl,
+      activityWorker.respondCompleted.decl
+    )
+    assertNotEquals(completionClient.respondFailedByID.decl, activityWorker.respondFailed.decl)
+    assertNotEquals(completionClient.respondCanceledByID.decl, activityWorker.respondCanceled.decl)
   }
 
   private def take(s: system.State, action: ClassRef): Step[system.State, Outcome, system.Fact] =
@@ -43,12 +53,12 @@ class ActivityByIDRegression extends munit.FunSuite:
     val binding = ActivitySystem.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
     effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(s, c.values).head
 
-  test("every service result is carried by Product without hiding a public status") {
+  test("every completion client result is carried by Product without hiding a public status") {
     val classes = List(
-      service.respondCompletedByID(),
-      service.respondFailedByID(Failure.fatal),
-      service.respondFailedByID(Failure.retryable),
-      service.respondCanceledByID()
+      completionClient.respondCompletedByID(),
+      completionClient.respondFailedByID(Failure.fatal),
+      completionClient.respondFailedByID(Failure.retryable),
+      completionClient.respondCanceledByID()
     )
     for
       before <- summon[Finite[system.State]].values
@@ -71,11 +81,11 @@ class ActivityByIDRegression extends munit.FunSuite:
           ) == visible
         ) ||
           (before.phase == system.Phase.unstarted && source == target && visible.isEmpty), // scalafix:ok DisableSyntax.==
-        s"service refinement $before -> $after"
+        s"completion client refinement $before -> $after"
       )
       // A failure answer applies a pending reset, which restarts the count; nothing else moves it.
       val restarts = ActivitySystem.states.pendingReset(before) &&
-        c.decl == service.respondFailedByID.decl // scalafix:ok DisableSyntax.==
+        c.decl == completionClient.respondFailedByID.decl // scalafix:ok DisableSyntax.==
       assertEquals(after.state.attempts: Int, if restarts then 0 else before.attempts)
       assertEquals(after.state.scheduleToClose, before.scheduleToClose)
       assertEquals(after.state.scheduleToStart, before.scheduleToStart)
@@ -103,7 +113,10 @@ class ActivityByIDRegression extends munit.FunSuite:
       assertEquals(carriers.map(_.state), List(product.State(product.Phase.canceled)))
       assertEquals(carriers.map(_.outcome), List(Outcome.accepted))
       assertEquals(carriers.map(_.facts), List(List(product.Fact.statusCanceled)))
-      for answer <- List(service.respondFailedByID(Failure.fatal), service.respondCanceledByID())
+      for answer <- List(
+          completionClient.respondFailedByID(Failure.fatal),
+          completionClient.respondCanceledByID()
+        )
       do
         val refused = take(after.state, answer)
         assertEquals(refused.state, after.state)
@@ -111,7 +124,7 @@ class ActivityByIDRegression extends munit.FunSuite:
         assertEquals(refused.outcome, Outcome.rejected(Rejection.notFound))
   }
 
-  test("the preserved cancel-request claim uses its complete held service witness") {
+  test("the preserved cancel-request claim uses its complete held completion client witness") {
     val query = ByIDCancellation.queries.cancelIsRequested
     assertEquals(query.name, "activitySystem.cancelIsRequested")
     assertEquals(query.property.name, "activitySystem.cancelIsRequested")
@@ -125,7 +138,7 @@ class ActivityByIDRegression extends munit.FunSuite:
       query.expectedRun,
       Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree))
     )
-    val held = take(take(ActivitySystem.init, client.start()).state, worker.poll).state
+    val held = take(take(ActivitySystem.init, client.start()).state, activityWorker.poll).state
     val requested = take(held, client.requestCancel)
     assertEquals(requested.state.phase, system.Phase.cancelRequested)
     val holds =
@@ -138,32 +151,36 @@ class ActivityByIDRegression extends munit.FunSuite:
     assert(!holds(requested.copy(facts = Nil)))
     assert(holds(requested.copy(state = requested.state.copy(phase = system.Phase.canceled))))
     assertEquals(
-      take(requested.state, service.respondCanceledByID).state.phase,
+      take(requested.state, completionClient.respondCanceledByID).state.phase,
       system.Phase.canceled
     )
   }
 
   test(
-    "three service witnesses pin no-poll completion, held fatal failure and requested cancellation"
+    "three completion client witnesses pin no-poll completion, held fatal failure and requested cancellation"
   ) {
     val witnesses = List(
       (
         ByIDCompletion.queries.scheduledCompletedByID,
-        Vector[ClassRef](client.start(), service.respondCompletedByID),
+        Vector[ClassRef](client.start(), completionClient.respondCompletedByID),
         system.Phase.completed
       ),
       (
         ByIDFailure.queries.heldFailedByID,
-        Vector[ClassRef](client.start(), worker.poll, service.respondFailedByID(Failure.fatal)),
+        Vector[ClassRef](
+          client.start(),
+          activityWorker.poll,
+          completionClient.respondFailedByID(Failure.fatal)
+        ),
         system.Phase.failed
       ),
       (
         ByIDCancellation.queries.heldCanceledByID,
         Vector[ClassRef](
           client.start(),
-          worker.poll,
+          activityWorker.poll,
           client.requestCancel,
-          service.respondCanceledByID
+          completionClient.respondCanceledByID
         ),
         system.Phase.canceled
       )

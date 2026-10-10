@@ -1,4 +1,4 @@
-// Standalone activity settlement through service responses by activity ID.
+// Standalone activity settlement through the completion client's responses by activity ID.
 package temporal
 package features.activity
 package standalone
@@ -17,12 +17,14 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
 
   object properties:
-    val completedByID = property when service.respondCompletedByID holds { after => // format: off
+    val completedByID = property when completionClient.respondCompletedByID holds {
+      after => // format: off
       after.state.phase == Phase.completed && after.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
 
   object queries:
-    val scheduledCompletion = scenario.actions(client.start(), service.respondCompletedByID)
+    val scheduledCompletion =
+      scenario.actions(client.start(), completionClient.respondCompletedByID)
     val scheduledCompletedByID =
       (query find properties.completedByID in scheduledCompletion limits three)
         .total(11232)
@@ -31,15 +33,15 @@ object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
 object ByIDFailure extends Derived(ActivitySystem.unmonitored):
 
   object properties: // format: off
-    val fatalFailureByID = property when service.respondFailedByID(Failure.fatal) holds { after =>
+    val fatalFailureByID = property when completionClient.respondFailedByID(Failure.fatal) holds { after =>
       after.state.phase == Phase.failed && after.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
 
   object queries:
     val heldFatalFailure = scenario.actions(
       client.start(),
-      worker.poll,
-      service.respondFailedByID(Failure.fatal)
+      activityWorker.poll,
+      completionClient.respondFailedByID(Failure.fatal)
     )
     val heldFailedByID =
       (query find properties.fatalFailureByID in heldFatalFailure limits three)
@@ -53,16 +55,17 @@ object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
       property("activitySystem.cancelIsRequested") when client.requestCancel holds (
         _.records(Fact.statusCancelRequested)
       )
-    val canceledByID = property when service.respondCanceledByID holds { after => // format: off
+    val canceledByID = property when completionClient.respondCanceledByID holds {
+      after => // format: off
       after.state.phase == Phase.canceled && after.records(Fact.statusCanceled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
 
   object queries:
     val heldCancellation = scenario.actions(
       client.start(),
-      worker.poll,
+      activityWorker.poll,
       client.requestCancel,
-      service.respondCanceledByID
+      completionClient.respondCanceledByID
     )
     val heldCanceledByID =
       (query find properties.canceledByID in heldCancellation limits four)

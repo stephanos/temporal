@@ -4,7 +4,7 @@ import framework.Finite.given
 
 import temporal.capabilities.{Deadline, Retries}
 import temporal.features.activity.{deadline as activityDeadline, Failure, TimeoutType}
-import temporal.features.activity.standalone.{worker, MaxAttempts}
+import temporal.features.activity.standalone.{activityWorker, MaxAttempts}
 import temporal.features.activity.standalone.system as activity
 import temporal.features.nexus.Reply
 import temporal.features.nexus.workflow.{deadline as nexusDeadline, handler, network}
@@ -30,14 +30,14 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         (
           activity.ActivitySystem.capabilities,
           "retryableFailure",
-          worker.respondFailed(Failure.retryable),
+          activityWorker.respondFailed(Failure.retryable),
           true,
           true
         ),
         (
           activity.ActivitySystem.capabilities,
           "fatalFailure",
-          worker.respondFailed(Failure.fatal),
+          activityWorker.respondFailed(Failure.fatal),
           false,
           true
         ),
@@ -223,7 +223,8 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     import activity.ActivitySystem.given
     val machine = activity.ActivitySystem
     val own = machine.properties
-    val failure = worker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
+    val failure =
+      activityWorker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
     Seq(
       own.resetFailureReturnsToWaiting(machine)(
         failure,
@@ -252,7 +253,8 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
   private def companionRetries(retryable: Boolean): Seq[Property[activity.State]] =
     import activity.ActivitySystem.given
     val machine = activity.ActivitySystem
-    val failure = worker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
+    val failure =
+      activityWorker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
     Seq(
       Retries.failureReturnsToWaiting(machine)(
         failure,
@@ -371,7 +373,8 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         maxAttempts = policy
       )
       val properties = activityRetries(retryable)
-      val action = worker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
+      val action =
+        activityWorker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
       assert(properties.forall(_.decl.when.contains(action)))
       val after = take(activity.ActivitySystem, before, action).head
       assert(holds(properties, before, after), s"before=$before after=$after")
@@ -390,7 +393,7 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     val pending = activity.ActivitySystem.states.pendingReset
     val failures = Seq(false, true).map(retryable =>
       (
-        worker.respondFailed(if retryable then Failure.retryable else Failure.fatal),
+        activityWorker.respondFailed(if retryable then Failure.retryable else Failure.fatal),
         activityRetries(retryable).take(3),
         companionRetries(retryable).take(3)
       )
@@ -433,7 +436,7 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     val refused =
       resets.filter((before, _, _, companion, after) => !holds(companion, before, after))
     assert(
-      refused.exists((_, action, _, _, _) => action == worker.respondFailed(Failure.fatal))
+      refused.exists((_, action, _, _, _) => action == activityWorker.respondFailed(Failure.fatal))
     ) // scalafix:ok DisableSyntax.==
     assert(
       refused.exists((before, _, _, _, _) =>

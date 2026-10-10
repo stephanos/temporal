@@ -66,7 +66,7 @@ abstract class AdmissionCapabilities(using
     pause = client.pause,
     unpause = client.unpause
   )
-  val pollable: Capability = Pollable(dispatch = worker.poll) // format: off
+  val pollable: Capability = Pollable(dispatch = activityWorker.poll) // format: off
   except(Closable.closedIsRejectedUniformly[AdmissionState, AdmissionPhase, Outcome], because = dispatchWaivers.deliveryAfterClose) // format: on
 
 // ### Signature
@@ -204,38 +204,47 @@ object ActivityRecord
       )(_ == Finality.reopened) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       // format: on
   object rules extends Rules:
-    import AdmissionPhase.*
-
     on(history.dispatch) {
-      when(scheduled) ~> effects.sendDispatch
+      when(AdmissionPhase.scheduled) ~> effects.sendDispatch
     }
 
     // A pause of a paused or closed record has no rule, and the other controls are out of scope.
     on(client.pause) {
-      when(scheduled) ~> effects.pause
-      when(started) ~> effects.pauseHeld
+      when(AdmissionPhase.scheduled) ~> effects.pause
+      when(AdmissionPhase.started) ~> effects.pauseHeld
     }
 
     // The corrected design re-reads current eligibility: only a scheduled activity admits.
-    on(worker.poll) {
-      when(scheduled) ~> effects.admit
-      when(paused, pausedWhileHeld, started, completed, timedOut) ~> effects.rejectDelivery
+    on(activityWorker.poll) {
+      when(AdmissionPhase.scheduled) ~> effects.admit
+      when(
+        AdmissionPhase.paused,
+        AdmissionPhase.pausedWhileHeld,
+        AdmissionPhase.started,
+        AdmissionPhase.completed,
+        AdmissionPhase.timedOut
+      ) ~> effects.rejectDelivery
     }
     on(history.answerMatching) { // format: off
       where(_.answer == Answer.owed) ~> effects.answerMatching // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
-    on(worker.respondCompleted) {
-      when(started) ~> effects.complete
+    on(activityWorker.respondCompleted) {
+      when(AdmissionPhase.started) ~> effects.complete
     }
 
     // Schedule-to-start covers the wait for a worker, so it fires only before an attempt is
     // admitted; schedule-to-close covers the whole activity, so it competes with the other deadline
     // while none has fired.
     on(deadline.scheduleToStart) {
-      when(scheduled) ~> (effects.timeOut(_, TimeoutType.scheduleToStart))
+      when(AdmissionPhase.scheduled) ~> (effects.timeOut(_, TimeoutType.scheduleToStart))
     }
     on(deadline.scheduleToClose) {
-      when(scheduled, paused, pausedWhileHeld, started) ~> (effects.timeOut(
+      when(
+        AdmissionPhase.scheduled,
+        AdmissionPhase.paused,
+        AdmissionPhase.pausedWhileHeld,
+        AdmissionPhase.started
+      ) ~> (effects.timeOut(
         _,
         TimeoutType.scheduleToClose
       ))
@@ -279,17 +288,17 @@ object ActivityRecord
     ) =
       val claims = properties.admissionClaims(m, declared)
       val staleDeliveryAfterPause =
-        m.scenario.actions(history.dispatch, client.pause, worker.poll)
+        m.scenario.actions(history.dispatch, client.pause, activityWorker.poll)
       val admittedBeforePause =
-        m.scenario.actions(history.dispatch, worker.poll, client.pause)
+        m.scenario.actions(history.dispatch, activityWorker.poll, client.pause)
       val duplicateDelivery =
-        m.scenario.actions(history.dispatch, worker.poll, worker.poll)
+        m.scenario.actions(history.dispatch, activityWorker.poll, activityWorker.poll)
       val startedAfterCompletion = m.scenario
         .actions(
           history.dispatch,
-          worker.poll,
-          worker.respondCompleted,
-          worker.poll
+          activityWorker.poll,
+          activityWorker.respondCompleted,
+          activityWorker.poll
         )
       val scheduleToStartFirst = m.scenario.actions(history.dispatch, deadline.scheduleToStart)
       val scheduleToCloseFirst = m.scenario.actions(history.dispatch, deadline.scheduleToClose)
@@ -328,7 +337,7 @@ object ActivityRecord
 
 object TrustingActivityRecord
     extends Derived(
-      ActivityRecord.rebind(on(worker.poll) {
+      ActivityRecord.rebind(on(activityWorker.poll) {
         always ~> ActivityRecord.effects.admit
       })
     ),

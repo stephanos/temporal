@@ -14,7 +14,7 @@ object Pausing extends Derived(ActivitySystem.rebind()):
 
   object properties:
     val completes =
-      property when worker.respondCompleted holds { s => // format: off
+      property when activityWorker.respondCompleted holds { s => // format: off
         s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       } // format: on
 
@@ -23,8 +23,8 @@ object Pausing extends Derived(ActivitySystem.rebind()):
       client.start(),
       client.pause,
       client.unpause,
-      worker.poll,
-      worker.respondCompleted
+      activityWorker.poll,
+      activityWorker.respondCompleted
     )
 
     val pauseResume =

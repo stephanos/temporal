@@ -64,8 +64,6 @@ enum Fact derives Finite:
 // begins before the activity exists, so unstarted is a phase and the start sets the deadlines.
 
 object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
-  import Phase.*
-
   // Where every path begins: before the activity exists, with every deadline at its first value.
   val init = system.State(
     phase = Phase.unstarted,
@@ -107,15 +105,16 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       case MaxAttempts.one       => Some(UpTo(1))
       case MaxAttempts.two       => Some(UpTo(MaxAttempts.bound))
     // format: off
-    def pendingPause(s: State): Boolean = s.phase == pauseRequested // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    def pendingCancel(s: State): Boolean = s.phase == cancelRequested // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    def pendingReset(s: State): Boolean = s.phase.in(resetRequested, resetKeepingPause)
+    def pendingPause(s: State): Boolean = s.phase == Phase.pauseRequested // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def pendingCancel(s: State): Boolean = s.phase == Phase.cancelRequested // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def pendingReset(s: State): Boolean = s.phase.in(Phase.resetRequested, Phase.resetKeepingPause)
     // format: on
     def landingPhase(s: State): Phase =
-      if s.phase.in(pauseRequested, resetKeepingPause) then paused else scheduled
+      if s.phase.in(Phase.pauseRequested, Phase.resetKeepingPause) then Phase.paused
+      else Phase.scheduled
     // format: off
     def landingStatus(s: State): Fact =
-      if landingPhase(s) == paused then Fact.statusPaused else Fact.statusScheduled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      if landingPhase(s) == Phase.paused then Fact.statusPaused else Fact.statusScheduled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 
     // A reset discards a retry backoff but keeps a start delay (operator_commands.go:410-416).
     def resetDispatch(d: Dispatch): Dispatch = if d == Dispatch.backoff then Dispatch.now else d // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
@@ -123,7 +122,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // A pending reset applied: a first attempt, dispatched at once, paused only where it was kept.
     def resetApplied(before: State, after: State): Boolean =
       after.attempts == 0 && after.dispatch == Dispatch.now && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        after.phase == (if before.phase == resetKeepingPause then paused else scheduled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        after.phase == (if before.phase == Phase.resetKeepingPause then Phase.paused else Phase.scheduled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
 
     def scheduleToCloseArmed(s: State): Boolean =
       s.scheduleToClose == Timeout.expires && s.dispatch != Dispatch.startDelay // scalafix:ok DisableSyntax.==, DisableSyntax.!=; strictEquality checks native comparisons
@@ -191,7 +190,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     ) =
       enter(
         system.State(
-          phase = scheduled,
+          phase = Phase.scheduled,
           dispatch = if startDelay == Timeout.expires then Dispatch.startDelay else Dispatch.now, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           attempts = UpTo(0),
           scheduleToClose = scheduleToClose,
@@ -206,12 +205,12 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // This independent counter advances on delivery; Describe counts an attempt from scheduling.
     def startAttempt(s: State) =
       enter(
-        s.copy(phase = started, attempts = states.saturatingSucc(s.attempts)),
+        s.copy(phase = Phase.started, attempts = states.saturatingSucc(s.attempts)),
         statusStarted,
         Fact.attemptCount
       )
 
-    def complete(s: State) = enter(s.copy(phase = completed), statusCompleted)
+    def complete(s: State) = enter(s.copy(phase = Phase.completed), statusCompleted)
     def heartbeat(s: State) = enter(s, heartbeatReceived)
     def heartbeatBackOff(s: State) =
       enter(
@@ -222,10 +221,14 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       )
         .because(states.nominalTimeWindow)
     def heartbeatTimeOut(s: State) =
-      enter(s.copy(phase = timedOut), statusTimedOut(TimeoutType.heartbeat), heartbeatTimedOut)
+      enter(
+        s.copy(phase = Phase.timedOut),
+        statusTimedOut(TimeoutType.heartbeat),
+        heartbeatTimedOut
+      )
         .because(states.nominalTimeWindow)
 
-    def fail(s: State) = enter(s.copy(phase = failed), statusFailed)
+    def fail(s: State) = enter(s.copy(phase = Phase.failed), statusFailed)
 
     // A retryable failure backs a started attempt off: read as scheduled again, one attempt higher.
     def backOff(s: State) =
@@ -252,46 +255,54 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       )
         .because(states.nominalTimeWindow)
 
-    def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
+    def cancel(s: State) = enter(s.copy(phase = Phase.canceled), statusCanceled)
 
-    def pause(s: State) = enter(s.copy(phase = paused), statusPaused)
+    def pause(s: State) = enter(s.copy(phase = Phase.paused), statusPaused)
 
     // A pause of a held attempt is a request the worker learns of on its next heartbeat, so it is its
     // own phase the client reads as paused.
     def requestPause(s: State) =
-      enter(s.copy(phase = pauseRequested), statusPaused)
+      enter(s.copy(phase = Phase.pauseRequested), statusPaused)
         .because("the worker learns of the pause on its next heartbeat")
 
-    def resume(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
+    def resume(s: State) = enter(s.copy(phase = Phase.scheduled), statusScheduled)
 
     // An unpause before the worker yields: it keeps the attempt it holds.
-    def withdrawPause(s: State) = enter(s.copy(phase = started), statusStarted)
+    def withdrawPause(s: State) = enter(s.copy(phase = Phase.started), statusStarted)
 
     def requestCancel(s: State) =
-      enter(s.copy(phase = cancelRequested), statusCancelRequested)
+      enter(s.copy(phase = Phase.cancelRequested), statusCancelRequested)
 
-    def terminate(s: State) = enter(s.copy(phase = terminated), statusTerminated)
+    def terminate(s: State) = enter(s.copy(phase = Phase.terminated), statusTerminated)
 
     // A reset of a waiting or paused activity applies at once: its independent count restarts at
     // zero and a retry backoff is discarded (operator_commands.go:521-563).
     def resetWaiting(s: State) =
       enter(
-        s.copy(phase = scheduled, attempts = UpTo(0), dispatch = states.resetDispatch(s.dispatch)),
+        s.copy(
+          phase = Phase.scheduled,
+          attempts = UpTo(0),
+          dispatch = states.resetDispatch(s.dispatch)
+        ),
         statusScheduled
       )
     def resetPaused(s: State) =
       enter(
-        s.copy(phase = paused, attempts = UpTo(0), dispatch = states.resetDispatch(s.dispatch)),
+        s.copy(
+          phase = Phase.paused,
+          attempts = UpTo(0),
+          dispatch = states.resetDispatch(s.dispatch)
+        ),
         statusPaused
       )
 
     // A reset of a held attempt is recorded until the attempt ends; Describe still reads the
     // attempt as started, or pause-requested when the pause is kept (responses.go:55-62).
     def requestReset(s: State) =
-      enter(s.copy(phase = resetRequested), statusStarted)
+      enter(s.copy(phase = Phase.resetRequested), statusStarted)
         .because("the worker learns of the reset on its next heartbeat")
     def requestResetKeepingPause(s: State) =
-      enter(s.copy(phase = resetKeepingPause), statusPaused)
+      enter(s.copy(phase = Phase.resetKeepingPause), statusPaused)
         .because("the worker learns of the reset on its next heartbeat")
 
     // A pending reset applies when the held attempt fails or one of its own deadlines ends it,
@@ -320,77 +331,91 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       enter(s.copy(dispatch = Dispatch.now)).because(states.nominalTimeWindow)
 
     def timeOut(s: State, t: TimeoutType) =
-      enter(s.copy(phase = timedOut), statusTimedOut(t))
+      enter(s.copy(phase = Phase.timedOut), statusTimedOut(t))
         .because(states.nominalTimeWindow)
 
   object rules extends Rules:
     from(client) {
-      import client.*
-
-      on(start) {
+      on(client.start) {
         when(Phase.unstarted) ~> effects.schedule
       }
 
       // Closed controls answer NotFound before the live-state checks (operator_commands.go:249-254).
-      on(pause, unpause, requestCancel, terminate) {
+      on(client.pause, client.unpause, client.requestCancel, client.terminate) {
         when[Closed] ~> rejects(Rejection.notFound)
       }
-      on(pause) {
-        when(scheduled) ~> effects.pause
-        when(started) ~> effects.requestPause
-        when(paused, pauseRequested, cancelRequested, resetRequested, resetKeepingPause) ~>
+      on(client.pause) {
+        when(Phase.scheduled) ~> effects.pause
+        when(Phase.started) ~> effects.requestPause
+        when(
+          Phase.paused,
+          Phase.pauseRequested,
+          Phase.cancelRequested,
+          Phase.resetRequested,
+          Phase.resetKeepingPause
+        ) ~>
           rejects(Rejection.failedPrecondition)
             .because(pausedOrControlPending)
       }
-      on(unpause) {
-        when(paused) ~> effects.resume
-        when(pauseRequested) ~> effects.withdrawPause
-        when(scheduled, started, cancelRequested, resetRequested, resetKeepingPause) ~>
+      on(client.unpause) {
+        when(Phase.paused) ~> effects.resume
+        when(Phase.pauseRequested) ~> effects.withdrawPause
+        when(
+          Phase.scheduled,
+          Phase.started,
+          Phase.cancelRequested,
+          Phase.resetRequested,
+          Phase.resetKeepingPause
+        ) ~>
           rejects(Rejection.failedPrecondition)
             .because(activityNotPaused)
       }
       // Cancel > Reset > Pause: a cancellation replaces a pending reset, a reset a requested
       // pause, and neither a pause nor a reset undoes a cancellation (model.go:156-158).
-      on(reset) {
-        when(unstarted) ~> rejects(Rejection.notFound)
+      on(client.reset) {
+        when(Phase.unstarted) ~> rejects(Rejection.notFound)
         when[Closed] ~> rejects(Rejection.notFound)
-        when(scheduled) ~> effects.resetWaiting
-        when(started) ~> effects.requestReset
-        when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
+        when(Phase.scheduled) ~> effects.resetWaiting
+        when(Phase.started) ~> effects.requestReset
+        when(Phase.cancelRequested) ~> rejects(Rejection.failedPrecondition)
           .because(resetWithPendingCancellation)
-        when(resetRequested, resetKeepingPause) ~> rejects(Rejection.failedPrecondition)
+        when(Phase.resetRequested, Phase.resetKeepingPause) ~> rejects(Rejection.failedPrecondition)
           .because(resetWithPendingReset)
       }
-      on(reset(ResetPause.resume)) {
-        when(paused) ~> effects.resetWaiting
-        when(pauseRequested) ~> effects.requestReset
+      on(client.reset(ResetPause.resume)) {
+        when(Phase.paused) ~> effects.resetWaiting
+        when(Phase.pauseRequested) ~> effects.requestReset
       }
-      on(reset(ResetPause.keepPaused)) {
-        when(paused) ~> effects.resetPaused
-        when(pauseRequested) ~> effects.requestResetKeepingPause
+      on(client.reset(ResetPause.keepPaused)) {
+        when(Phase.paused) ~> effects.resetPaused
+        when(Phase.pauseRequested) ~> effects.requestResetKeepingPause
       }
-      on(requestCancel) {
-        when(scheduled, paused) ~> effects.cancel
-        when(started, pauseRequested, resetRequested, resetKeepingPause) ~> effects.requestCancel
-        when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
+      on(client.requestCancel) {
+        when(Phase.scheduled, Phase.paused) ~> effects.cancel
+        when(
+          Phase.started,
+          Phase.pauseRequested,
+          Phase.resetRequested,
+          Phase.resetKeepingPause
+        ) ~> effects.requestCancel
+        when(Phase.cancelRequested) ~> rejects(Rejection.failedPrecondition)
           .because(cancellationAlreadyRequested)
       }
-      on(terminate) {
+      on(client.terminate) {
         when[Live] ~> effects.terminate
       }
     }
 
     // Held completion, pending-reset failure, fatal failure, retry/exhaustion and cancellation
     // settlement must match the corresponding By-ID rows.
-    from(temporal.features.activity.standalone.worker) {
-      import temporal.features.activity.standalone.worker.*
+    from(activityWorker) {
       // format: off
-      on(poll) {
-        when(scheduled).where(_.dispatch == Dispatch.now) ~> effects.startAttempt // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      on(activityWorker.poll) {
+        when(Phase.scheduled).where(_.dispatch == Dispatch.now) ~> effects.startAttempt // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       }
-      on(heartbeat) {
+      on(activityWorker.heartbeat) {
         when[Held] ~> effects.heartbeat
-        when(unstarted, scheduled, paused) ~> rejects(Rejection.notFound)
+        when(Phase.unstarted, Phase.scheduled, Phase.paused) ~> rejects(Rejection.notFound)
         when[Closed] ~> rejects(Rejection.notFound)
       }
       // format: on
@@ -398,27 +423,27 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       // off, settles a cancel-requested one as canceled and lands a pause-requested one in paused
       // (TransitionAttemptFailedWhilePauseRequested). A canceled answer needs a cancel request.
       // Where a worker holds the attempt: what start-to-close covers and a worker's answer settles.
-      on(respondCompleted) {
+      on(activityWorker.respondCompleted) {
         when[Held] ~> effects.complete
       }
       // A pending reset applies on either failure, before its retryability is read.
-      on(respondFailed) {
-        when(resetRequested) ~> effects.applyReset
-        when(resetKeepingPause) ~> effects.applyReset
+      on(activityWorker.respondFailed) {
+        when(Phase.resetRequested) ~> effects.applyReset
+        when(Phase.resetKeepingPause) ~> effects.applyReset
       }
-      on(respondFailed(Failure.fatal)) {
-        when(started, pauseRequested, cancelRequested) ~> effects.fail
+      on(activityWorker.respondFailed(Failure.fatal)) {
+        when(Phase.started, Phase.pauseRequested, Phase.cancelRequested) ~> effects.fail
       }
 
-      on(respondFailed(Failure.retryable)) {
-        when(started).where(states.retriesRemaining) ~> effects.backOff
-        when(cancelRequested) ~> effects.cancel
-        when(pauseRequested).where(states.retriesRemaining) ~> effects.backOffPaused
-        when(started, pauseRequested).where(states.exhausted) ~> effects.fail
+      on(activityWorker.respondFailed(Failure.retryable)) {
+        when(Phase.started).where(states.retriesRemaining) ~> effects.backOff
+        when(Phase.cancelRequested) ~> effects.cancel
+        when(Phase.pauseRequested).where(states.retriesRemaining) ~> effects.backOffPaused
+        when(Phase.started, Phase.pauseRequested).where(states.exhausted) ~> effects.fail
       }
-      on(respondCanceled) {
-        when(cancelRequested) ~> effects.cancel
-        when(started, pauseRequested, resetRequested, resetKeepingPause) ~>
+      on(activityWorker.respondCanceled) {
+        when(Phase.cancelRequested) ~> effects.cancel
+        when(Phase.started, Phase.pauseRequested, Phase.resetRequested, Phase.resetKeepingPause) ~>
           rejects(Rejection.invalidArgument)
             .because(cancellationNotRequested)
       }
@@ -427,102 +452,99 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // Held completion, pending-reset failure, fatal failure, retry/exhaustion and cancellation
     // settlement must match worker. By-ID keeps its notFound checks, broader Live completion,
     // cancellation reason and row order.
-    from(service) {
-      import service.*
-
-      on(respondCompletedByID, respondFailedByID, respondCanceledByID) {
-        when(unstarted) ~> rejects(Rejection.notFound)
+    from(completionClient) {
+      on(
+        completionClient.respondCompletedByID,
+        completionClient.respondFailedByID,
+        completionClient.respondCanceledByID
+      ) {
+        when(Phase.unstarted) ~> rejects(Rejection.notFound)
         when[Closed] ~> rejects(Rejection.notFound)
       }
-      on(respondCompletedByID) {
+      on(completionClient.respondCompletedByID) {
         when[Live] ~> effects.complete
       }
-      on(respondFailedByID) {
-        when(resetRequested) ~> effects.applyReset
-        when(resetKeepingPause) ~> effects.applyReset
+      on(completionClient.respondFailedByID) {
+        when(Phase.resetRequested) ~> effects.applyReset
+        when(Phase.resetKeepingPause) ~> effects.applyReset
       }
-      on(respondFailedByID(Failure.fatal)) {
-        when(started, pauseRequested, cancelRequested) ~> effects.fail
+      on(completionClient.respondFailedByID(Failure.fatal)) {
+        when(Phase.started, Phase.pauseRequested, Phase.cancelRequested) ~> effects.fail
       }
-      on(respondFailedByID(Failure.retryable)) {
-        when(started).where(states.retriesRemaining) ~> effects.backOff
-        when(pauseRequested).where(states.retriesRemaining) ~> effects.backOffPaused
-        when(started, pauseRequested).where(states.exhausted) ~> effects.fail
-        when(cancelRequested) ~> effects.cancel
+      on(completionClient.respondFailedByID(Failure.retryable)) {
+        when(Phase.started).where(states.retriesRemaining) ~> effects.backOff
+        when(Phase.pauseRequested).where(states.retriesRemaining) ~> effects.backOffPaused
+        when(Phase.started, Phase.pauseRequested).where(states.exhausted) ~> effects.fail
+        when(Phase.cancelRequested) ~> effects.cancel
       }
-      on(respondFailedByID, respondCanceledByID) {
-        when(scheduled, paused) ~> rejects(Rejection.notFound)
+      on(completionClient.respondFailedByID, completionClient.respondCanceledByID) {
+        when(Phase.scheduled, Phase.paused) ~> rejects(Rejection.notFound)
       }
-      on(respondCanceledByID) {
-        when(cancelRequested) ~> effects.cancel
-        when(started, pauseRequested, resetRequested, resetKeepingPause) ~>
+      on(completionClient.respondCanceledByID) {
+        when(Phase.cancelRequested) ~> effects.cancel
+        when(Phase.started, Phase.pauseRequested, Phase.resetRequested, Phase.resetKeepingPause) ~>
           rejects(Rejection.invalidArgument)
             .because(cancellationNotRequestedByID)
       }
     }
 
     from(process) {
-      import process.*
-
-      on(stop) {
+      on(process.stop) {
         always ~> effects.keep
       }
     }
 
     from(timers) {
-      import timers.*
       // format: off
-      on(startDelay) {
+      on(timers.startDelay) {
         when[Live].where(_.dispatch == Dispatch.startDelay) ~> effects.dispatchNow // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       }
-      on(backoff) {
+      on(timers.backoff) {
         when[Live].where(_.dispatch == Dispatch.backoff) ~> effects.dispatchNow // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       }
     }
       // format: on
     from(deadline) {
-      import deadline.*
-
       // Started and not over: the phases a deadline can fire in.
-      on(scheduleToClose) {
+      on(deadline.scheduleToClose) {
         when[Live].where(states.scheduleToCloseArmed) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToClose
         ))
       }
       // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
-      on(scheduleToStart) {
+      on(deadline.scheduleToStart) {
         when[Waiting].where(states.scheduleToStartArmed) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToStart
         ))
       }
-      on(startToClose) {
-        when(started).where(s =>
+      on(deadline.startToClose) {
+        when(Phase.started).where(s =>
           states.startToCloseArmed(s) && states.retriesRemaining(s)
         ) ~> effects.backOffAfterDeadline
-        when(pauseRequested).where(s =>
+        when(Phase.pauseRequested).where(s =>
           states.startToCloseArmed(s) && states.retriesRemaining(s)
         ) ~> effects.backOffAfterDeadline
-        when(started, pauseRequested, cancelRequested)
+        when(Phase.started, Phase.pauseRequested, Phase.cancelRequested)
           .where(s => states.startToCloseArmed(s) && states.endsTerminally(s)) ~> (effects.timeOut(
           _,
           TimeoutType.startToClose
         ))
-        when(resetRequested).where(states.startToCloseArmed) ~> effects.applyReset
-        when(resetKeepingPause).where(states.startToCloseArmed) ~> effects.applyReset
+        when(Phase.resetRequested).where(states.startToCloseArmed) ~> effects.applyReset
+        when(Phase.resetKeepingPause).where(states.startToCloseArmed) ~> effects.applyReset
       }
-      on(heartbeat) {
-        when(started).where(s => states.heartbeatArmed(s) && states.retriesRemaining(s)) ~>
+      on(deadline.heartbeat) {
+        when(Phase.started).where(s => states.heartbeatArmed(s) && states.retriesRemaining(s)) ~>
           effects.heartbeatBackOff
-        when(pauseRequested).where(s =>
+        when(Phase.pauseRequested).where(s =>
           states.heartbeatArmed(s) && states.retriesRemaining(s)
         ) ~> effects.heartbeatBackOff
-        when(started, pauseRequested, cancelRequested).where(s =>
+        when(Phase.started, Phase.pauseRequested, Phase.cancelRequested).where(s =>
           states.heartbeatArmed(s) && states.endsTerminally(s)
         ) ~> effects.heartbeatTimeOut
-        when(resetRequested).where(states.heartbeatArmed) ~> effects.applyResetOnHeartbeat
-        when(resetKeepingPause).where(states.heartbeatArmed) ~> effects.applyResetOnHeartbeat
+        when(Phase.resetRequested).where(states.heartbeatArmed) ~> effects.applyResetOnHeartbeat
+        when(Phase.resetKeepingPause).where(states.heartbeatArmed) ~> effects.applyResetOnHeartbeat
       }
     }
   // format: off
@@ -701,7 +723,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // format: on
   // A terminate settles it, and DescribeActivityExecution reports its status by `activityStatus`.
   // The terminate find starts the activity and stops the worker before the control. The held
-  // cancellation-request claim is authored on ByIDCancellation's complete service path below.
+  // cancellation-request claim is authored on ByIDCancellation's complete completion client path below.
   object capabilities extends Capabilities:
     val terminable: Capability = Terminable(
       terminate = client.terminate,
@@ -711,7 +733,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     )
     val describable: Capability = Describable(statusTable = activityStatus)
     val retryableFailure: Capability = Retries[State, Phase, MaxAttempts.Bound](
-      failure = worker.respondFailed(Failure.retryable),
+      failure = activityWorker.respondFailed(Failure.retryable),
       retryable = true,
       attemptCount = states.attemptCount,
       maximumAttempts = states.maximumAttempts,
@@ -720,7 +742,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       pendingCancel = Some(states.pendingCancel)
     )
     val fatalFailure: Capability = Retries[State, Phase, MaxAttempts.Bound](
-      failure = worker.respondFailed(Failure.fatal),
+      failure = activityWorker.respondFailed(Failure.fatal),
       retryable = false,
       attemptCount = states.attemptCount,
       maximumAttempts = states.maximumAttempts,

@@ -4,11 +4,11 @@ import framework.Finite.given
 
 import temporal.features.activity.{deadline, timers, Failure, Timeout, TimeoutType}
 import temporal.features.activity.standalone.{
+  activityWorker,
   client,
   maxAttempts,
   startToClose,
   system,
-  worker,
   MaxAttempts
 }
 import temporal.features.activity.standalone.system.{ActivitySystem, RetryFailures}
@@ -52,12 +52,12 @@ class ActivityRetryRegression extends munit.FunSuite:
       (1 to 3).foldLeft(initial) { (state, attempt) =>
         if state.phase != system.Phase.scheduled then state // scalafix:ok DisableSyntax.!=
         else
-          val polled = take(state, worker.poll()).state
+          val polled = take(state, activityWorker.poll()).state
           assertEquals(polled.attempts: Int, attempt.min(MaxAttempts.bound))
           val retryAllowed =
             policy == MaxAttempts.unlimited || (policy == MaxAttempts.two && attempt < 2) // scalafix:ok DisableSyntax.==
           assertEquals(ActivitySystem.states.retriesRemaining(polled), retryAllowed)
-          val failed = take(polled, worker.respondFailed(Failure.retryable))
+          val failed = take(polled, activityWorker.respondFailed(Failure.retryable))
           if policy == MaxAttempts.two then // scalafix:ok DisableSyntax.==
             val satisfies = RetryFailures.properties.retryExhausts.decl.holds.get
               .asInstanceOf[Step[
@@ -123,11 +123,11 @@ class ActivityRetryRegression extends munit.FunSuite:
   test("the timeout retry completes on its second attempt with its full retained state") {
     val path = List(
       client.start(startToClose := Timeout.expires, maxAttempts := MaxAttempts.two),
-      worker.poll(),
+      activityWorker.poll(),
       deadline.startToClose(),
       timers.backoff(),
-      worker.poll(),
-      worker.respondCompleted()
+      activityWorker.poll(),
+      activityWorker.respondCompleted()
     )
     val result = path.foldLeft(ActivitySystem.init)((s, c) => take(s, c).state)
     assertEquals(

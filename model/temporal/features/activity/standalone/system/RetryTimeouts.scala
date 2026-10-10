@@ -18,13 +18,14 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
 
   object properties:
-    val completesAfterTimeout = property when worker.respondCompleted holds { s => // format: off
+    val completesAfterTimeout = property when activityWorker.respondCompleted holds {
+      s => // format: off
       s.state == RetryFailures.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
         startToClose = Timeout.expires,
         maxAttempts = MaxAttempts.two
       ) && s.records(Fact.statusCompleted) // format: on
     } // format: off
-    val failsAfterTimeout = property when worker.respondFailed(Failure.retryable) holds { s =>
+    val failsAfterTimeout = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
       s.state == RetryFailures.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
         phase = Phase.failed,
         startToClose = Timeout.expires,
@@ -35,19 +36,19 @@ object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
   object queries:
     val timedOutThenCompleted = scenario.actions(
       client.start(startToClose := expires, maxAttempts := MaxAttempts.two),
-      worker.poll,
+      activityWorker.poll,
       deadline.startToClose,
       timers.backoff,
-      worker.poll,
-      worker.respondCompleted
+      activityWorker.poll,
+      activityWorker.respondCompleted
     )
     val timedOutThenFailed = scenario.actions(
       client.start(startToClose := expires, maxAttempts := MaxAttempts.two),
-      worker.poll,
+      activityWorker.poll,
       deadline.startToClose,
       timers.backoff,
-      worker.poll,
-      worker.respondFailed(Failure.retryable)
+      activityWorker.poll,
+      activityWorker.respondFailed(Failure.retryable)
     )
     // Both full-State finds predict explanationsDisagree from status/attempt-only evidence.
     // The shared live gate must check actual Property assessments and reasons.

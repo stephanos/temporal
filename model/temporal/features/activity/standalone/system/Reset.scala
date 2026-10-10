@@ -21,10 +21,11 @@ object ResetSettlement extends Derived(ActivitySystem.unmonitored):
     // A first attempt again, dispatched at once, of an activity with no deadline set.
     val restarted =
       ActivitySystem.init.copy(phase = Phase.scheduled)
-    val resetOnFatal = property when worker.respondFailed(Failure.fatal) holds { s => // format: off
+    val resetOnFatal = property when activityWorker.respondFailed(Failure.fatal) holds {
+      s => // format: off
       s.state == restarted && s.records(Fact.statusScheduled) && !s.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     }
-    val resetOnExhaustion = property when worker.respondFailed(Failure.retryable) holds { s =>
+    val resetOnExhaustion = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
       s.state == restarted.copy(maxAttempts = MaxAttempts.one) && s.records(Fact.statusScheduled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
     val resetOnTimeout = property when deadline.startToClose holds { s => // format: off
@@ -32,10 +33,10 @@ object ResetSettlement extends Derived(ActivitySystem.unmonitored):
       s.records(Fact.statusScheduled) && // format: on
       !s.records(Fact.statusTimedOut(TimeoutType.startToClose))
     } // format: off
-    val resetKeepsPause = property when worker.respondFailed(Failure.retryable) holds { s =>
+    val resetKeepsPause = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
       s.state == restarted.copy(phase = Phase.paused) && s.records(Fact.statusPaused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
-    val completionWins = property when worker.respondCompleted holds { s =>
+    val completionWins = property when activityWorker.respondCompleted holds { s =>
       s.state.phase == Phase.completed && s.state.attempts == 1 && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       s.records(Fact.statusCompleted)
     }
@@ -56,56 +57,56 @@ object ResetSettlement extends Derived(ActivitySystem.unmonitored):
   object queries:
     val resetThenFatal = scenario.actions(
       client.start(),
-      worker.poll,
+      activityWorker.poll,
       client.reset(ResetPause.resume),
-      worker.respondFailed(Failure.fatal)
+      activityWorker.respondFailed(Failure.fatal)
     )
     val resetThenExhausted = scenario.actions(
       client.start(maxAttempts := MaxAttempts.one),
-      worker.poll,
+      activityWorker.poll,
       client.reset(ResetPause.resume),
-      worker.respondFailed(Failure.retryable)
+      activityWorker.respondFailed(Failure.retryable)
     )
     val resetThenTimedOut = scenario.actions(
       client.start(startToClose := expires, maxAttempts := MaxAttempts.one),
-      worker.poll,
+      activityWorker.poll,
       client.reset(ResetPause.resume),
       deadline.startToClose
     )
     val pausedResetThenFailed = scenario.actions(
       client.start(),
-      worker.poll,
+      activityWorker.poll,
       client.pause,
       client.reset(ResetPause.keepPaused),
-      worker.respondFailed(Failure.retryable)
+      activityWorker.respondFailed(Failure.retryable)
     )
     val resetThenCompleted = scenario.actions(
       client.start(),
-      worker.poll,
+      activityWorker.poll,
       client.reset(ResetPause.resume),
-      worker.respondCompleted
+      activityWorker.respondCompleted
     )
     val resetThenScheduleToClose = scenario.actions(
       client.start(scheduleToClose := expires),
-      worker.poll,
+      activityWorker.poll,
       client.reset(ResetPause.resume),
       deadline.scheduleToClose
     )
     val resetThenCanceled = scenario.actions(
       client.start(),
-      worker.poll,
+      activityWorker.poll,
       client.reset(ResetPause.resume),
       client.requestCancel
     )
     val resetThenPaused = scenario.actions(
       client.start(),
-      worker.poll,
+      activityWorker.poll,
       client.reset(ResetPause.resume),
       client.pause
     )
     val resetTwice = scenario.actions(
       client.start(),
-      worker.poll,
+      activityWorker.poll,
       client.reset(ResetPause.resume),
       client.reset(ResetPause.resume)
     )
@@ -149,18 +150,19 @@ object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
 object DeferredReset extends Derived(ActivitySystem.unmonitored):
 
   object properties:
-    val resetAttemptCompletes = property when worker.respondCompleted holds { s => // format: off
+    val resetAttemptCompletes = property when activityWorker.respondCompleted holds {
+      s => // format: off
       s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     } // format: on
 
   object queries:
     val resetThenHeartbeatTimedOut = scenario.actions(
       client.start(heartbeat := expires, maxAttempts := MaxAttempts.one),
-      worker.poll,
+      activityWorker.poll,
       client.reset(ResetPause.resume),
       deadline.heartbeat,
-      worker.poll,
-      worker.respondCompleted
+      activityWorker.poll,
+      activityWorker.respondCompleted
     )
     val deferredResetCompletes =
       (query find properties.resetAttemptCompletes in resetThenHeartbeatTimedOut limits six)
