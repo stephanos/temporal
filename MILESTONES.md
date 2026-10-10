@@ -20,6 +20,48 @@ As of 2026-10-10.
   spec) and remove it from this page.
 - Update the "As of" date with every edit.
 
+## Execution strategy: batch first
+
+Optimize for completed, integrated batches rather than individually green tasks. The owner
+authorized aggressive batching, parallel implementation and temporary breaking changes on
+2026-10-10. This strategy supersedes the start-order and per-task gate instructions in older
+plans; it does not remove their functional requirements or final acceptance criteria.
+
+- Assign workers substantial end-to-end batches, spanning related tasks or specs. Task IDs remain
+  requirement and evidence anchors, not mandatory implementation, review or regeneration barriers.
+  Do not stop after each small task to wait for review or a predecessor's formal closure.
+- Run independent implementation lanes in parallel with sub-agents and isolated worktrees. Pin a
+  minimal shared interface, assign each shared file one owner, then develop producers and consumers
+  concurrently. Coordinate interface changes directly; do not turn every handoff into a new spec.
+- Accept temporary compiler, test, schema and generated-artifact breakage inside an implementation
+  batch. Migrate callers and remove obsolete machinery together; do not build compatibility layers
+  merely to keep intermediate commits green. Record known breaks and who owns their repair.
+- Dependencies constrain integration and closure, not all implementation starts. Work ahead of
+  unfinished predecessors on a pinned baseline when the required interface is known; root records
+  the exception in Flow and reconciles it at integration. An OOM or deferred full gate must not
+  idle unrelated source work. Existing owner deferrals remain in force.
+- Capture immutable pre-change inputs before broad edits. Keep separate equivalence comparisons
+  for meaning-preserving migrations so later semantic changes cannot hide regressions. Those
+  comparisons are integration obligations, not reasons to serialize all worker starts.
+- Use focused checks during implementation. Run regeneration, full verification and independent
+  review at coherent integration checkpoints, normally the batch boundary, rather than per task.
+  Reviewers may examine different risks in parallel against the same integrated snapshot. Reuse
+  valid evidence; after fixes, rerun only checks whose relevant inputs or results were invalidated.
+- Prefer direct implementation of decided changes over additional prototypes, inventories or
+  planning rounds. Add a proof or investigation only when required by acceptance or needed to
+  resolve a concrete uncertainty. Keep handoffs short and move implementation forward.
+- A batch is accepted only when its integrated result passes the required checks and review.
+  Link shared evidence to each covered task before closing it in Flow. Temporary red results,
+  partial proofs and deferred gates are never passing evidence or completed-spec credit.
+
+The immediate implementation lanes are fn-156's compiler/lint rollout and the coordinated
+fn-146/fn-147/fn-148 Testpilot format migration. Within the format lane, migrate Umpire runtime
+operand lowering and Testpilot CEL admission/evaluation together, plus Duration and evidence
+schemas, under one schema owner. Testpilot owns runtime CEL; the finite Scala Model evaluator
+remains separate. Activate format 4.0 once at fn-148.6 and regenerate managed artifacts and Run
+companions once at fn-148.7. These are scheduled batches, not claims that every task has started.
+Fn-157 remains owner-deferred; its memory work is not resumed by this strategy.
+
 ## Verification instructions for agents
 
 Apply these instructions when implementing the milestones:
@@ -29,12 +71,14 @@ Apply these instructions when implementing the milestones:
   work. Workers return concise handoffs linking commits, verification evidence and remaining
   blockers. Root inspects the evidence needed for acceptance without importing entire task
   histories. Resume the same worker for fixes where possible.
-- A blocked task holds its dependents, not unrelated work. Continue at the safe ready frontier,
-  using isolated worktrees and the workflow's ownership, dependency and heavy-command constraints.
+- A blocked task holds dependent acceptance, not every dependent implementation start. Continue
+  other lanes and documented work-ahead under the batch-first strategy, retaining ownership and
+  heavy-command constraints.
 - A completed predecessor satisfies its dependents once its Flow closure is committed in the
   current local branch's history. Publishing or landing on origin is not required. Uncommitted
-  closures and work on unmerged branches do not count; dependent work starts from the integrated
-  local baseline. Publishing is a separate, explicitly authorized action.
+  closures and work on unmerged branches do not count. Work-ahead may start from a pinned integrated
+  baseline without claiming that closure, and must reconcile at integration. Publishing is a
+  separate, explicitly authorized action.
 - If a validation remains stuck for more than one hour, including repeated attempts, mark it
   deferred in Flow and this page and move to work that can be verified and delivered. Continue
   beyond that limit only when the validation blocks every other available work path. Record its
@@ -44,9 +88,9 @@ Apply these instructions when implementing the milestones:
   environment still apply. Inspect its recorded evidence; a new task or agent is not a reason to
   rerun it. Changes to relevant inputs invalidate the affected results.
 - During implementation, run the smallest tests that exercise the changed behavior and its failure
-  modes. Once ready for review, run the task's required full tests, goldens, lint and dependency
-  checks once. After a fix, repeat affected checks; repeat broader gates only when the change or
-  failure invalidates their results. Preserve all required coverage and acceptance criteria.
+  modes. At the batch integration checkpoint, run its required full tests, goldens, lint and
+  dependency checks once. After a fix, repeat affected checks; repeat broader gates only when the
+  change or failure invalidates their results. Preserve all required coverage and acceptance criteria.
 - Give reviewers the source scope, commands, results and log paths from that run. Reviewers inspect
   this evidence and request an additional check only for a concrete unresolved concern. Resume the
   same review after fixes, with the changed code and relevant new results.
@@ -66,12 +110,13 @@ Apply these instructions when implementing the milestones:
   review the diff of `model/ir` and `model/cases`, and run `make umpire-check-cases`: the reader's
   tests over `model/ir` pin what a Model means, and the managed Case trees what its Cases contain.
 - Keep handovers concise and link existing evidence. Add audits, inventories or verification gates
-  only for an explicit requirement or a concrete uncovered risk. Move to the next implementation
-  task once the required checks and review pass.
+  only for an explicit requirement or a concrete uncovered risk. Continue implementation within
+  the batch without waiting for per-task full gates or independent review.
 
 ## Batches
 
-A batch is a run of specs that share one baseline: one production regeneration, one full gate run
+A batch is a coordinated implementation of related specs that share one baseline:
+one production regeneration, one full gate run
 (Go suite, model gate, goldens, lint, dependency checks), one independent review and, when the batch
 changes Cases or runtime behavior, one live run. Batching buys throughput with attribution, so a
 batch boundary falls where a failure must stay attributable: after a meaning-preserving refactor's
@@ -80,20 +125,18 @@ equivalence proof that later work builds on, and at a format activation.
 - Inside a batch, tasks run focused source, lowering and runtime checks and declare their IR change;
   production artifacts, full gates, review and live evidence are batch-deferred.
 - A meaning-preserving spec seals its comparison (a scratch regeneration whose diff is exactly the
-  stated mapping) before a later spec in the same batch changes meaning. The seal is focused evidence,
-  not a full gate.
+  stated mapping) before integrating a later semantic change onto that baseline. Workers may
+  implement both concurrently against frozen inputs. The seal is focused evidence, not a full gate.
 - Shared close: the batch's final close task runs the regeneration, gates, review and live run once;
   the other close tasks finish their own code and docs and link that evidence. No spec in a batch
   closes before the batch boundary.
-- Flow cannot express cross-spec task edges, so the conductor enforces the listed source gates
-  without spec-close dependencies inside a batch.
-- Batches run serially; Flow records that as each spec depending on every spec of the previous
-  batch. The owner prioritized the Activity subject split (fn-151) immediately after batch 1,
-  followed by naming the Activity's repeated patterns (fn-155), then compiler and lint enforcement
-  (fn-156); authoring batch 2 waits on all three.
-  The structural baseline is closed; batch 5 waits on batch 4.
-  The next batch's preparation may run in isolated worktrees alongside the
-  current one, but joins serially onto the closed baseline.
+- The conductor enforces source and acceptance dependencies at integration, documenting work-ahead
+  exceptions in Flow. Existing dependency edges are not blanket prohibitions on parallel source work.
+- Batch numbers describe integration order, not a global worker queue. Implement disjoint batches
+  concurrently and integrate continuously where ownership and interfaces permit. Reconcile shared
+  baselines before closure; serialize conflicting file edits and memory-heavy commands, not all
+  implementation. Fn-155's missing baseline proof holds final acceptance, not fn-156 or format
+  implementation. Batch 5 retains its final schema/authoring reconciliation obligations.
 
 | # | Batch | Specs | Nature | Shared close | Live run |
 | --- | --- | --- | --- | --- | --- |
@@ -116,13 +159,14 @@ The DSL framework (`model/framework`) stays Temporal-agnostic as far as is reali
 vocabulary, properties, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
 are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
 
-Next, name the split standalone Activity's repeated patterns, then complete compiler and lint
-enforcement; continue the Scala authoring and format work before completing Activity coverage.
+Next, batch the compiler/lint rollout alongside the coordinated Testpilot format migration.
+Overlap Scala authoring work where file ownership permits; complete its baseline reconciliation
+before accepting the format batch, then finish lifter and Activity coverage integration.
 
 ## Specs
 
-Listed in delivery order, grouped by batch. Flow records spec and task dependencies; the conductor
-also holds batch-close gates and serializes work that shares a regeneration baseline.
+Listed in integration order, grouped by batch. Flow records spec and task dependencies; the conductor
+also holds batch-close gates while scheduling parallel implementation under the batch-first strategy.
 
 
 ### Batch 1b, Activity abstractions: fn-155
@@ -177,13 +221,16 @@ independent review and is ready. On 2026-10-10 the owner authorized isolated imp
 ahead of fn-155's closure, in parallel with fn-146, and deferred fn-157. Task .1 pins the current
 integrated fn-155.1–.5 source and complete managed raw-byte manifests before edits; fn-155.6's
 missing fresh-generation proof remains a reconciliation hold, not inherited passing evidence.
-The source lane runs .1 through .6 in order. Report-only .8 runs independently in an isolated
-checkout of the same baseline; .7 joins both lanes for documentation and the full close.
+The source lane batches .1 through .6 into a coordinated rollout, with focused checks and no
+per-task full-gate/review barrier. Shared files have one owner; disjoint enforcement and test work
+may run in parallel. Report-only .8 runs independently in an isolated checkout of the same baseline;
+.7 joins both lanes for documentation and the full close.
 The owner-authorized work-ahead also admits .8 from an immutable copy of the integrated
 baseline. Its report pins Draft/compiler inputs; .7 reconciles those against the closed fn-155
 baseline before publication. Disposable capture experiments never merge into the source lane.
 
-It changes no IR or Case byte, including positions, and serializes with other Model source work.
+Its accepted result changes no IR or Case byte, including positions. Coordinate overlapping Model
+source edits by file ownership rather than serializing the entire rollout against other batches.
 Task .1 proves sound equality evidence and byte-preserving exhaustive-match lowering before
 rollout; an infeasible proof stops that source lane without relaxing acceptance. The
 compile-versus-lift items from the same review remain notes on fn-141.
@@ -201,7 +248,8 @@ compile-versus-lift items from the same review remain notes on fn-141.
 
 ### Batch 2, authoring: fn-140 → fn-149 → fn-123
 
-Starts from fn-156's closed baseline, with task paths re-anchored to the completed moves,
+Integrates onto fn-156's accepted baseline; implementation may work ahead under the batch-first
+strategy, with task paths re-anchored to the completed moves,
 Activity subject split, abstractions and compiler/lint enforcement. All three specs
 rewrite Model declarations, so they share one production regeneration, one full gate, one review and
 one live run at fn-123.8. fn-140 is meaning-preserving apart from its declared renames: fn-140.6
@@ -210,8 +258,9 @@ grouping, including documentation and executable-layout changes, before fn-123 c
 Each seal compares against its independently frozen predecessor; a fault change cannot hide inside
 either migration.
 
-Source gates: fn-149 starts after fn-140.6's committed witness seal; fn-123 starts after fn-149.5's
-committed final grouping seal. The source seals do not close their specs or discharge shared gates.
+Integration gates: fn-149 joins onto fn-140.6's committed witness seal; fn-123 joins onto fn-149.5's
+committed final grouping seal. Implementation may overlap against pinned interfaces and frozen
+comparison inputs. The source seals do not close their specs or discharge shared gates.
 Fn-123 consumes the grouped baseline and composed identity/provenance mapping, using fn-140's
 `when` blocks and `.live` together with the shared `Outcome`, fault instruction and typed `perform`.
 
@@ -223,8 +272,8 @@ does not eliminate the separate source migrations or their equivalence proofs.
 #### fn-140: One-sentence witness Queries with explicit live expectations
 
 It rewrites the Models' `properties` and `queries` sections and its R5 renames Definition
-IDs. Ready, with six M-sized tasks. The three foundations run in order; task 4 and the documentation
-task 5 are disjoint parallel candidates, and task 6 joins them for the equivalence seal.
+IDs. Ready, with six M-sized requirement anchors. Batch the foundations and caller migration;
+documentation and disjoint conversion work may run in parallel. Task 6 joins the equivalence seal.
 
 `witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
 
@@ -264,7 +313,8 @@ Heavy commands remain serialized. Composition progress belongs to fn-150, not th
 
 #### fn-123: Declare faults as the environment's actions
 
-Ready 2026-10-07. Tasks run in order; 6 and 7 need only 5, so they are parallel candidates. Task 3
+Ready 2026-10-07. Batch implementation around shared fault/durability interfaces; disjoint consumers
+and exports may run in parallel. Task 3
 is the proof: Go derives crash rows equal to `crashDetail`'s from a durability classification, or the
 work stops for the owner. Planning took defaults for five owner questions, listed in the spec's Open
 Questions.
@@ -287,11 +337,12 @@ of R8 were dropped, since neither tool exists.
 ### Batch 3, Testpilot format: fn-146 → fn-147 → fn-148
 
 Planned 2026-10-06 from [Umpire IR schema research](.plans/UMPIRE_IR_SCHEMA_RESEARCH.md) and
-[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Starts from batch 2's closed
-baseline; each spec's implementation starts after its predecessor's last implementation task, and
-fn-141 executes after this batch. Serialize fn-131 and any revived fn-144 or Model batch against it;
-re-anchor their tasks to the schema and vocabulary left by completed work. Deferred specs do not block
-this chain.
+[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Implement fn-146, fn-147 and
+fn-148 as one coordinated breaking migration, in parallel with fn-156. Reconcile authoring batch 2's
+schema and vocabulary at final integration rather than waiting for its closure to start source work.
+Assign shared schemas and generation to one owner; delegate runtime consumers and Umpire lowering
+against that interface. Fn-141 integrates after this batch; other overlapping work uses explicit
+file ownership. Deferred specs are not revived by this scheduling change.
 
 Owner decision: breaking IR changes are allowed. Producers, consumers, generated artifacts and
 recorded Case/Run companions migrate together. No compatibility decoders, legacy evaluators or
@@ -302,15 +353,16 @@ That decision lets the three specs share one breaking format: fn-146.1's migrati
 contract for all three, and fn-148.6 activates format 4.0 once, carrying fn-146's and fn-147's
 changes. fn-146.7 and fn-147.4 retire their machinery, categorize their identity changes and write
 their docs; Run companions are regenerated once, at fn-148.7, with one full gate and review. Each
-spec's proof task (fn-146.4, fn-147.1, fn-148.1) still runs on its own, so a failure stays
-attributable to one spec.
+spec's proof task (fn-146.4, fn-147.1, fn-148.1) retains separately attributable evidence, but does
+not require a separate implementation wave, full gate or review.
 
 #### fn-146: Adopt CEL for runtime predicates and values
 
 Testpilot owns the restricted CEL environment and descriptor-aware value adapter;
 Umpire lowers symbolic realization operands into it. Finite Model expressions, `ModelValue` and
 descriptor-exact `ValueType` remain separate. Formats and identities move together, without legacy
-runtime paths. Tasks run in order; admission and value adaptation share edit surfaces.
+runtime paths. Batch admission, value adaptation, execution and Umpire lowering against one shared
+interface; overlapping edit surfaces have one owner, not one global serial task queue.
 On 2026-10-10 the owner authorized this Testpilot implementation lane in parallel with fn-156.
 Task .1 can establish its format/identity boundary against the integrated local baseline.
 Authoring predecessors remain final integration holds, especially for .6; format 4.0 activation
@@ -328,10 +380,11 @@ still belongs exclusively to fn-148.6. CEL adoption is decided; no additional pr
 
 #### fn-147: Migrate elapsed-time fields to protobuf Duration
 
-Source gate: after fn-146.6. Seven Testpilot elapsed-time fields and corresponding Umpire hints/defaults
+Integration dependency: reconcile with fn-146.6; implement alongside CEL under the shared schema
+owner. Seven Testpilot elapsed-time fields and corresponding Umpire hints/defaults
 migrate through checked whole-millisecond conversions. Absent polling interval means one read;
 present positive interval means polling. Counts, logical bounds, percentages and timestamps stay.
-Scalar-only singleton-oneof presence cleanup belongs here. Tasks run in order.
+Scalar-only singleton-oneof presence cleanup belongs here. Batch schema, producer and consumer changes.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -342,10 +395,12 @@ Scalar-only singleton-oneof presence cleanup belongs here. Tasks run in order.
 
 #### fn-148: Consolidate Testpilot evidence and correlated state schemas
 
-Source gate: after fn-147.3. One generalized evidence declaration replaces inline extraction. Response lifts
+Integration dependency: reconcile with fn-147.3; implement alongside CEL and Duration rather than
+waiting for separate spec completion. One generalized evidence declaration replaces inline extraction. Response lifts
 keep ordered first-match behavior; Run Event overlaps still fail. Contract evidence policies remain
 independent. Complete states include both atom and fields; results are separate from authorized
-prior-state transitions, and projection result order stays explicit. Tasks run in order.
+prior-state transitions, and projection result order stays explicit. Batch the migration around
+shared schema/binder contracts, with one coordinated activation and final checkpoint.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -758,11 +813,10 @@ The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeou
   `inconclusive(explanationsDisagree)`: the Model's NotFound rows let a silent rejected repeat explain the
   same evidence, as for `terminate` and `cancelIsRequested` (fn-129.2). Sharper witnesses would need
   repeated-call rejection to be observable.
-- Batch reorganization (2026-10-08): batches 1 to 3 replace the earlier per-spec migrations, and
-  Flow's spec dependencies match: each spec depends on every spec of the previous batch, with no
-  spec dependencies inside a batch. Reverting to the earlier order means restoring per-spec
-  regenerations and those dependencies; the tasks are unchanged. The activity model batch then moved
-  last at the owner's request: until it closes, batches 2 and 3's live runs include activity Cases with
+- Batch integration order retains Flow's predecessor dependencies; the batch-first strategy above
+  permits documented parallel implementation ahead of those closures. Do not restore per-spec
+  regenerations or task-by-task review barriers. The activity model batch remains last for final
+  integration at the owner's request: until it closes, batches 2 and 3's live runs include activity Cases with
   its three inherited failures (ordinary completion ambiguity, non-retryable failure visibility,
   pause/resume work ceiling), which those runs report but do not own.
 
