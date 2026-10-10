@@ -238,11 +238,11 @@ compile-versus-lift items from the same review remain notes on fn-141.
 | Task | Status | What |
 | --- | --- | --- |
 | fn-156.1 | 🔄 in progress | Isolated compiler lane: warning checks, finite equality evidence, and exhaustive-match/raw-byte compatibility proof; final fn-155 baseline reconciliation held |
-| fn-156.2 | ⬜ todo | Strict equality and precise equality-lint policy across authoring, lifter, fixtures and gate tooling |
-| fn-156.3 | ⬜ todo | Section order, dotted membership, permitted imports and exhaustive enum/state matches |
-| fn-156.4 | ⬜ todo | Discover every exported machine for totality, closedness, relation and binding-order laws |
-| fn-156.5 | ⬜ todo | Complete finite-domain tests and independent interpreter table pins for every Activity/Nexus machine |
-| fn-156.6 | ⬜ todo | Explicit-nulls trial across compiler roots; adopt with boundary fixes or report findings and drop |
+| fn-156.2 | 🔄 in progress | Strict equality and precise equality-lint policy across authoring, lifter, fixtures and gate tooling |
+| fn-156.3 | 🔄 in progress | Section order, dotted membership, permitted imports and exhaustive enum/state matches |
+| fn-156.4 | 🔄 in progress | Discover every exported machine for totality, closedness, relation and binding-order laws |
+| fn-156.5 | 🔄 in progress | Complete finite-domain tests and independent interpreter table pins for every Activity/Nexus machine |
+| fn-156.6 | 🔄 in progress | Explicit-nulls trial across compiler roots; adopt with boundary fixes or report findings and drop |
 | fn-156.8 | ✅ done | Report-only Draft capture investigation: 30 verified compiler observations and three-axis SHIP review; no capture adoption; .7 retains publication/baseline reconciliation |
 | fn-156.7 | ⬜ todo | Join reports, document enforcement, exact artifact comparison, full gates and reviews; close |
 
@@ -370,13 +370,13 @@ still belongs exclusively to fn-148.6. CEL adoption is decided; no additional pr
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-146.1 | 🔄 in progress | Format/identity contract integrated and focused tests green; independent review requires null-version classification fix; no early 4.0 activation |
-| fn-146.2 | ⬜ todo | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
-| fn-146.3 | ⬜ todo | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
-| fn-146.4 | ⬜ todo | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
-| fn-146.5 | ⬜ todo | Contract and correlated verification, rule expansion and reference walkers |
-| fn-146.6 | ⬜ todo | Umpire operand lowering, Run Event guards and conformance agreement |
-| fn-146.7 | ⬜ todo | Retire custom machinery, categorize identities, docs; close (companions and full gates at fn-148.7) |
+| fn-146.1 | 🔄 in progress | Format/identity contract and null-version correction integrated; focused tests green; resumed review pending; no early 4.0 activation |
+| fn-146.2 | 🔄 in progress | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
+| fn-146.3 | 🔄 in progress | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
+| fn-146.4 | 🔄 in progress | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
+| fn-146.5 | 🔄 in progress | Contract and correlated verification, rule expansion and reference walkers |
+| fn-146.6 | 🔄 in progress | Umpire operand lowering, Run Event guards and conformance agreement |
+| fn-146.7 | 🔄 in progress | Retire custom machinery, categorize identities, docs; close (companions and full gates at fn-148.7) |
 
 #### fn-147: Migrate elapsed-time fields to protobuf Duration
 
@@ -388,10 +388,10 @@ Scalar-only singleton-oneof presence cleanup belongs here. Batch schema, produce
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-147.1 | ⬜ todo | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
-| fn-147.2 | ⬜ todo | Replace schemas and migrate Scala authoring, lifting, realization admission and producers |
-| fn-147.3 | ⬜ todo | Runtime consumers, polling policy and scalar presence |
-| fn-147.4 | ⬜ todo | Categorize identities, docs; close (artifacts, Run companions and full gates at fn-148.7) |
+| fn-147.1 | 🔄 in progress | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
+| fn-147.2 | 🔄 in progress | Replace schemas and migrate Scala authoring, lifting, realization admission and producers |
+| fn-147.3 | 🔄 in progress | Runtime consumers, polling policy and scalar presence |
+| fn-147.4 | 🔄 in progress | Categorize identities, docs; close (artifacts, Run companions and full gates at fn-148.7) |
 
 #### fn-148: Consolidate Testpilot evidence and correlated state schemas
 
@@ -404,12 +404,12 @@ shared schema/binder contracts, with one coordinated activation and final checkp
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-148.1 | ⬜ todo | Generalized evidence declarations in a leaf schema; full lift-shape proof |
-| fn-148.2 | ⬜ todo | One binder and lowering path; source selection and independent Contract policies |
-| fn-148.3 | ⬜ todo | Complete-state and result tables in schema/lowering; compact-size measurement |
-| fn-148.4 | ⬜ todo | Normalized admission/verification, causal authorization and expanded-work ceilings |
-| fn-148.5 | ⬜ todo | Derived Contract kind, fixed correlated clock and explicit support Boolean |
-| fn-148.6 | ⬜ todo | Local references, cardinality, Empty markers and coordinated format 4.0 activation (the batch's single activation) |
+| fn-148.1 | 🔄 in progress | Generalized evidence declarations in a leaf schema; full lift-shape proof |
+| fn-148.2 | 🔄 in progress | One binder and lowering path; source selection and independent Contract policies |
+| fn-148.3 | 🔄 in progress | Complete-state and result tables in schema/lowering; compact-size measurement |
+| fn-148.4 | 🔄 in progress | Normalized admission/verification, causal authorization and expanded-work ceilings |
+| fn-148.5 | 🔄 in progress | Derived Contract kind, fixed correlated clock and explicit support Boolean |
+| fn-148.6 | 🔄 in progress | Local references, cardinality, Empty markers and coordinated format 4.0 activation (the batch's single activation) |
 | fn-148.7 | ⬜ todo | Artifact/companion migration, measurements, full gates and ownership docs; close (the batch's regeneration, gates and live run) |
 
 ### Batch 4, lifter: fn-141
