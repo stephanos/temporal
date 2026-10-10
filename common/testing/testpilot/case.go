@@ -1,6 +1,7 @@
 package testpilot
 
 import (
+	"bytes"
 	"errors"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -18,8 +19,10 @@ func DecodeCaseProtoJSON(encoded []byte) (*testpilotspb.Case, error) {
 	}
 	if len(versionJSON) != 0 {
 		version := new(testpilotspb.FormatVersion)
-		if err := (protojson.UnmarshalOptions{DiscardUnknown: false}).Unmarshal(versionJSON, version); err != nil {
-			return nil, err
+		if !bytes.Equal(bytes.TrimSpace(versionJSON), []byte("null")) {
+			if err := (protojson.UnmarshalOptions{DiscardUnknown: false}).Unmarshal(versionJSON, version); err != nil {
+				return nil, err
+			}
 		}
 		if err := casefile.CheckVersion(version.GetMajor(), version.GetMinor()); err != nil {
 			return nil, err

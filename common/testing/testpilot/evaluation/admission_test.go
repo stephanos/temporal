@@ -128,6 +128,25 @@ func TestAdmitFormatRejectsBeforePayloadInterpretation(t *testing.T) {
 	}
 }
 
+func TestAdmitNullFormatRejectsBeforePayloadInterpretation(t *testing.T) {
+	for name, encoded := range map[string]string{
+		"null version":              `{"version":null}`,
+		"retired payload":           `{"version":null,"program":{"retiredExpression":true}}`,
+		"persisted whitespace null": "{\n  \"version\": null,\n  \"program\": {\n    \"retiredExpression\": true\n  }\n}\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			subject, err := Admit([]byte(encoded), []byte(`{"run":{"retiredPayload":true}}`), "catalog")
+			require.Nil(t, subject)
+			rejection, ok := IsRejection(err)
+			require.True(t, ok)
+			require.Equal(t, ReasonIncompatible, rejection.Reason)
+			require.Contains(t, rejection.Detail, "unsupported Case version 0.0")
+			require.NotContains(t, rejection.Detail, "retiredExpression")
+			require.NotContains(t, rejection.Detail, "retiredPayload")
+		})
+	}
+}
+
 func TestAdmitCompanionIdentityRejectsBeforeRunPayload(t *testing.T) {
 	c := loadControl(t)
 	regenerated := proto.CloneOf(c.source)

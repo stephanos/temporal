@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -42,6 +43,37 @@ func TestCaseFormatUsesProtoJSONVersionNumbers(t *testing.T) {
 	}
 	_, err := testpilot.DecodeCaseProtoJSON([]byte(`{"version":{"major":4e0},"program":{"retiredExpression":true}}`))
 	require.ErrorContains(t, err, "unsupported Case version 4.0")
+}
+
+func TestCaseNullFormatRejectsBeforePayloadInterpretation(t *testing.T) {
+	for name, encoded := range map[string]string{
+		"null version":    `{"version":null}`,
+		"retired payload": `{"version":null,"program":{"retiredExpression":true}}`,
+		"whitespace null": "{\"version\": \n null\t,\"program\":{\"retiredExpression\":true}}",
+	} {
+		t.Run(name, func(t *testing.T) {
+			decoded, err := testpilot.DecodeCaseProtoJSON([]byte(encoded))
+			require.Nil(t, decoded)
+			var format *casefile.FormatError
+			require.ErrorAs(t, err, &format)
+			require.Zero(t, format.Major)
+			require.Zero(t, format.Minor)
+			require.NotContains(t, err.Error(), "retiredExpression")
+		})
+	}
+	parsed := new(testpilotspb.Case)
+	require.NoError(t, protojson.Unmarshal([]byte(`{"version":null}`), parsed))
+	require.Nil(t, parsed.GetVersion(), "nested ProtoJSON null is an absent version")
+
+	for _, encoded := range []string{`null`, `[]`, `{"version":null,"program":}`} {
+		t.Run("malformed "+encoded, func(t *testing.T) {
+			decoded, err := testpilot.DecodeCaseProtoJSON([]byte(encoded))
+			require.Nil(t, decoded)
+			require.Error(t, err)
+			var format *casefile.FormatError
+			require.NotErrorAs(t, err, &format)
+		})
+	}
 }
 
 func TestCaseProtoJSONIsStrict(t *testing.T) {
