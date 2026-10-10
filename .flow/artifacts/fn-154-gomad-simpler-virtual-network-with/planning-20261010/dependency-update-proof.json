@@ -1,0 +1,36 @@
+{
+  "operation": "flowctl checkpoint restore of current-state snapshot",
+  "changed_dependency_lists": [
+    {
+      "task": 2,
+      "from": [
+        "fn-154-gomad-simpler-virtual-network-with.1"
+      ],
+      "to": [
+        "fn-154-gomad-simpler-virtual-network-with.1",
+        "fn-154-gomad-simpler-virtual-network-with.3"
+      ]
+    },
+    {
+      "task": 3,
+      "from": [
+        "fn-154-gomad-simpler-virtual-network-with.2"
+      ],
+      "to": []
+    },
+    {
+      "task": 4,
+      "from": [
+        "fn-154-gomad-simpler-virtual-network-with.3"
+      ],
+      "to": [
+        "fn-154-gomad-simpler-virtual-network-with.2"
+      ]
+    }
+  ],
+  "other_markdown": "all 13 unchanged",
+  "other_json": "all fields except updated_at unchanged; three depends_on lists only",
+  "runtime": "12 todo tasks, no runtime entries restored or removed",
+  "review_rounds": "preserved by current-state snapshot and handler",
+  "canonical_file_count": 26
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T14:18:00.265615Z",
+  "depends_on": [
+    "fn-154-gomad-simpler-virtual-network-with.9"
+  ],
+  "id": "fn-154-gomad-simpler-virtual-network-with.10",
+  "priority": null,
+  "spec": "fn-154-gomad-simpler-virtual-network-with",
+  "spec_path": ".flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md",
+  "status": "todo",
+  "title": "Execute process network cases through registered isolated Runner gates",
+  "updated_at": "2026-10-10T14:31:21.076419Z"
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T14:18:00.265456Z",
+  "depends_on": [
+    "fn-154-gomad-simpler-virtual-network-with.5"
+  ],
+  "id": "fn-154-gomad-simpler-virtual-network-with.6",
+  "priority": null,
+  "spec": "fn-154-gomad-simpler-virtual-network-with",
+  "spec_path": ".flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md",
+  "status": "todo",
+  "title": "Expire stalled connections through autonomous virtual-time work",
+  "updated_at": "2026-10-10T14:32:08.314723Z"
+}

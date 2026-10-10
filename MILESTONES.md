@@ -372,6 +372,25 @@ CI, PR, or push authority.
 | [fn-153.17](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.17.md) | ⬜ Todo | Regenerate final-input approvals, packs, goldens and identity outputs |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | ⬜ Todo | Reconcile contracts and verify the integrated cleanup |
 
+<a id="virtual-network-stalling-fn-154"></a>
+
+## Virtual network stalling and simplification - [fn-154](.flow/specs/fn-154-gomad-simpler-virtual-network-with.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-154.1](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.1.md) | ⬜ Todo | Add explicit per-direction byte and virtual stall limits |
+| [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | ⬜ Todo | Propagate limits and admit held/timeout vocabulary in the generated network codec |
+| [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | ⬜ Todo | Preserve persistent stall timeout identity through local and process adapters |
+| [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | ⬜ Todo | Unify local connection mechanics behind a byte-bounded queue owner |
+| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | ⬜ Todo | Hold partitioned bytes and release FIFO through effective topology changes |
+| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | ⬜ Todo | Expire stalled connections through autonomous virtual-time work |
+| [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | ⬜ Todo | Bound pending partitioned dials with independent virtual stall intervals |
+| [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | ⬜ Todo | Remove delivery history and hashes with coherent record and codec migration |
+| [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | ⬜ Todo | Pin shared-connection and in-process fault conformance |
+| [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | ⬜ Todo | Execute process network cases through registered isolated Runner gates |
+| [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | ⬜ Todo | Verify framed streams and the divided payload replay guarantees |
+| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | ⬜ Todo | Reconcile network contracts and verify the frozen integrated candidate |
+
 <a id="quality-assessment-2026-10-01"></a>
 
 ## Determinism assurance and test strategy — [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md)

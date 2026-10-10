@@ -1,0 +1,71 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "headSha": "73c507fbf09318f36ae6ddf30ad8a917d801e868",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "73c507fbf09318f36ae6ddf30ad8a917d801e868",
+          "path": ".flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md",
+          "side": "head",
+          "startLine": 17
+        },
+        "body": "The plan requires timeout reset to commit a history transition while preserving the transition ceiling. Existing `commitTransitionLocked` rejects when history is full (`simulation_network.go:958\u2013962`). A successful held write can consume the last slot before expiry. With no active application I/O, rejecting the reset leaves endpoints and retained bytes stalled indefinitely; resetting without recording violates R7. The plan specifies neither admission protection nor an observable terminal disposition for this case.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-5e738e5788496da82fcff5a9ae4f4ef0d881fc5eaf52d2b2407d9f1198efd203",
+        "id": "finding-b57e3b9681ba84ce501c16a854f1cc4f",
+        "lastSeenReceiptId": "review-5e738e5788496da82fcff5a9ae4f4ef0d881fc5eaf52d2b2407d9f1198efd203",
+        "ordinal": 1,
+        "rIds": [
+          "R4",
+          "R7"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Define how timeout work remains commit-capable within the history bound, including competing operations consuming remaining slots. Add both-backend coverage where a returned held write reaches history capacity before expiry.",
+        "title": "The plan requires timeout reset to commit a history transition while preserving the transition ceiling"
+      },
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "73c507fbf09318f36ae6ddf30ad8a917d801e868",
+          "path": ".flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md",
+          "side": "head",
+          "startLine": 39
+        },
+        "body": "Task 7 requires new dial-stall cases to pass in both backends, but its command launches tests directly through the toolchain wrapper. Process cases skip without Runner transport; unguarded process execution returns `ErrBackendUnavailable` (`cluster.go:111\u2013112`). Runner uses an explicit test-name list, and task 10 alone owns registering the new cases. Task 10 transitively depends on task 7. Consequently, task 7\u2019s stated scope and commands cannot establish its process acceptance before the dependent registration work.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-5e738e5788496da82fcff5a9ae4f4ef0d881fc5eaf52d2b2407d9f1198efd203",
+        "id": "finding-64e156bdfe25de793b318ede24a88e3f",
+        "lastSeenReceiptId": "review-5e738e5788496da82fcff5a9ae4f4ef0d881fc5eaf52d2b2407d9f1198efd203",
+        "ordinal": 2,
+        "rIds": [
+          "R5"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Make Runner registration and execution available before the corresponding both-backend acceptance, or explicitly place that acceptance at the later integration gate. Preserve evidence that process cases execute without skipping.",
+        "title": "Task 7 requires new dial-stall cases to pass in both backends, but its command launches tests directly through the toolchain wrapper"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-5e738e5788496da82fcff5a9ae4f4ef0d881fc5eaf52d2b2407d9f1198efd203"
+  },
+  "id": "fn-154-gomad-simpler-virtual-network-with",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "I\u2019ll read the epic and task specs, then trace the relevant code paths to check feasibility and consistency against your rubric.\nThe plan explicitly covers the main semantic choices: local backpressure versus global exhaustion, persistent timeout identity, and reduced network-only payload checking. I\u2019m now tracing the connection, replay, and virtual-time paths to check that the task order supports those contracts.\nI found a resource-boundary case the plan needs to settle: autonomous timeout reset must also enter the bounded history. I\u2019m checking what happens when a write fills the last history slot, and whether new held/timeout outcomes are validated before the later record migration.\nThe process test path has a sequencing gap: task 7 requires new cases to pass in both backends, but task 10 owns their Runner registration. Direct toolchain tests skip process cases without Runner transport. I\u2019m finishing the boundary checks and will report only issues with a concrete downstream effect.\nSeverity: P1\nConfidence: 75\nClassification: introduced\nFile:Line: .flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md:17\nR-IDs: [R4, R7]\nLocation: Autonomous expiry at history capacity\nProblem: The plan requires timeout reset to commit a history transition while preserving the transition ceiling. Existing `commitTransitionLocked` rejects when history is full (`simulation_network.go:958\u2013962`). A successful held write can consume the last slot before expiry. With no active application I/O, rejecting the reset leaves endpoints and retained bytes stalled indefinitely; resetting without recording violates R7. The plan specifies neither admission protection nor an observable terminal disposition for this case.\nSuggestion: Define how timeout work remains commit-capable within the history bound, including competing operations consuming remaining slots. Add both-backend coverage where a returned held write reaches history capacity before expiry.\n\nSeverity: P1\nConfidence: 75\nClassification: introduced\nFile:Line: .flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md:39\nR-IDs: [R5]\nLocation: Process acceptance precedes its executor registration\nProblem: Task 7 requires new dial-stall cases to pass in both backends, but its command launches tests directly through the toolchain wrapper. Process cases skip without Runner transport; unguarded process execution returns `ErrBackendUnavailable` (`cluster.go:111\u2013112`). Runner uses an explicit test-name list, and task 10 alone owns registering the new cases. Task 10 transitively depends on task 7. Consequently, task 7\u2019s stated scope and commands cannot establish its process acceptance before the dependent registration work.\nSuggestion: Make Runner registration and execution available before the corresponding both-backend acceptance, or explicitly place that acceptance at the later integration gate. Preserve evidence that process cases execute without skipping.\n\nVerification: A test strategy, async observability through semantic history, and non-functional bounds for bytes, metadata, IPC and expiry work are stated. Strict decoding, identity checks and payload privacy are covered. Task scopes have bounded purposes; every task declares `Touches`, and the serial dependency chain has no dep-independent overlaps. The acceptance-order gap above remains. This was a read-only review; tests were not run.\n\n```text\nmaintainability:\n  duplication: none identified\n  structure: none identified\n```\n\n```json\n{\"classification_counts\":{\"introduced\":2},\"unaddressed\":[\"R4\",\"R5\",\"R7\"]}\n```\n\n<verdict>NEEDS_WORK</verdict>",
+  "review_reservation_id": "527b5abd142e4570a3986ad4bfc99b3b",
+  "session_id": "01a1262e-bc4c-78b0-acb0-22d15a4d2b4a",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-10T14:23:45.170916Z",
+  "type": "plan_review",
+  "verdict": "NEEDS_WORK"
+}

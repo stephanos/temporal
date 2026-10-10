@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T14:18:00.265416Z",
+  "depends_on": [
+    "fn-154-gomad-simpler-virtual-network-with.4"
+  ],
+  "id": "fn-154-gomad-simpler-virtual-network-with.5",
+  "priority": null,
+  "spec": "fn-154-gomad-simpler-virtual-network-with",
+  "spec_path": ".flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md",
+  "status": "todo",
+  "title": "Hold partitioned bytes and release FIFO through effective topology changes",
+  "updated_at": "2026-10-10T14:31:21.080911Z"
+}

@@ -1,0 +1,147 @@
+{
+  "branch_name": "fn-154-gomad-simpler-virtual-network-with",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T23:47:08.455249Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-154-gomad-simpler-virtual-network-with",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-10T14:33:16.950495Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "d7754aaacd5511e01ce4458959687d823f4fe83a753b369667a38307b75309fb",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b57e3b9681ba84ce501c16a854f1cc4f",
+            "classification": "introduced",
+            "findingId": "finding-b57e3b9681ba84ce501c16a854f1cc4f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-64e156bdfe25de793b318ede24a88e3f",
+            "classification": "introduced",
+            "findingId": "finding-64e156bdfe25de793b318ede24a88e3f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "73c507fbf09318f36ae6ddf30ad8a917d801e868",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 697639,
+      "output_sha256": "66b694afa14640b62f2e6935a0b888bd4c049f9edf02c1cf401f56b9d9a54604",
+      "reservation_id": "527b5abd142e4570a3986ad4bfc99b3b",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T14:23:45.178341Z",
+      "tool_calls": 53,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "bfd08462c64280584583bdd96ad2c60086b456cd2df5c4c7a5441184726e831a",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b57e3b9681ba84ce501c16a854f1cc4f",
+            "classification": "introduced",
+            "findingId": "finding-b57e3b9681ba84ce501c16a854f1cc4f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-64e156bdfe25de793b318ede24a88e3f",
+            "classification": "introduced",
+            "findingId": "finding-64e156bdfe25de793b318ede24a88e3f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "73c507fbf09318f36ae6ddf30ad8a917d801e868",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 996,
+      "output_sha256": "0d0bc13987fcd7f84c72a35a998fccc73b807a3964748917ce79b7c9eb0029c9",
+      "reservation_id": "a8f2045caabc41d1bf93aefa27b01c91",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T14:33:16.946345Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-154-gomad-simpler-virtual-network-with.md",
+  "status": "open",
+  "title": "Gomad: simpler virtual network with stalling partitions",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-10T14:33:16.951160Z"
+}
