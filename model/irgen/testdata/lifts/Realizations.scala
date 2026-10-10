@@ -29,7 +29,7 @@ import temporal.server.api.testpilot.v1.{
   InstructionOutcome,
   InstructionOutcomeStatus
 }
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[outcomes.Outcome, outcomes.Outcome]]
 private val workflowService = "temporal.workflow-service"
 private val workerRole = "temporal.worker"
 private val taskQueue = "temporal.task-queue"

@@ -115,8 +115,10 @@ final private[irgen] class Conventions(index: Index):
   private def form(pkg: String): Option[String] =
     pkg.split('.').lift(3).filter(Structure.formFolders)
 
+  // A package always reads itself, as the code `derives` writes into it does.
   private def permitted(from: String, to: String, test: Boolean): Boolean =
-    if within(to, "temporal.server.api") then !within(from, "framework")
+    if to == from then true // scalafix:ok DisableSyntax.==; typed equality
+    else if within(to, "temporal.server.api") then !within(from, "framework")
     else if within(from, "framework") && within(to, "io.temporal") then false
     else if within(from, "temporal") && within(to, "io.temporal.server.api.umpire") then false
     else if !(within(to, "framework") || within(to, "temporal") || within(to, "umpire")) then true

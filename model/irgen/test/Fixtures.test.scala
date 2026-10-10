@@ -1709,10 +1709,14 @@ class Fixtures extends munit.FunSuite:
       .asScala
       .find(_.path("name").asText().endsWith(".resumeSugar"))
       .get
+    // R4 refuses a whole-case wildcard on a Model enum, and the earlier guarded arm leaves no typed
+    // remainder, so the fallback arm names every case as written.
+    val cases = Seq("idle", "running", "paused", "done")
+      .map(c => s"""{"literal":{"enum":{"type":"fixture.sugar.Phase","case":"$c"}}}""")
     assertEquals(
       resume.at("/body/match/cases/1/pattern").toString,
-      """{"wildcard":{}}""",
-      "a wildcard arm lifts as a wildcard"
+      s"""{"alternatives":{"patterns":[${cases.mkString(",")}]}}""",
+      "a fallback arm that names every case lifts as their alternatives"
     )
 
   // fn-135.2: each `is { }` val of `Blocked` beside the def of `Defined` it stands for, read by a
@@ -3291,6 +3295,12 @@ class Fixtures extends munit.FunSuite:
       Some(
         Files
           .readString(testdata.resolve("layout/kinds/nexus/standalone/Standalone.scala"))
+          // Strict equality: the refinement compares phases with the evidence Finite supplies.
+          .replace(
+            "import framework.*\n",
+            "import framework.*\nimport framework.Finite.given\n" +
+              "val _ = () => summon[CanEqual[Phase, Phase]]\n"
+          )
           .replace(
             "  object effects:",
             "  object refinement extends Refinement(fixture.features.relay.product.RelayProduct):\n" +
