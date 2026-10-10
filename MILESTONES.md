@@ -234,6 +234,10 @@ source edits by file ownership rather than serializing the entire rollout agains
 Task .1 proves sound equality evidence and byte-preserving exhaustive-match lowering before
 rollout; an infeasible proof stops that source lane without relaxing acceptance. The
 compile-versus-lift items from the same review remain notes on fn-141.
+The current compiler-only comparison preserves all eleven fresh raw outputs against the immutable
+pre-edit lift, including positions; root independently verified the bytes and jar hashes. This
+is not the complete managed IR/Case regeneration or R9 closure. Fixture pattern compatibility,
+precise module ownership checks and the counted explicit-nulls disposition remain source follow-ups.
 
 | Task | Status | What |
 | --- | --- | --- |
