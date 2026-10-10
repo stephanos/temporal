@@ -12,6 +12,12 @@ Execution-order amendment authorized by the owner on 2026-10-10: fn-156 implemen
 **Files:** private scratch copies of `model/framework/Syntax.scala` and compiler directives; `.flow/tmp/fn156/capture/report.md` and linked diagnostic examples.
 **Touches:** [.flow/tmp/fn156/capture/**]
 
+### Report handover for independent review
+
+The report-only worker has finished all owned commands. Review the actual report, examples and receipts, not an empty source diff: `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn156-capture/.flow/tmp/fn156/capture/report.md`, its linked `index.md`, and `task8/handover-summary.md` plus `handover-evidence.json`. This frozen worktree remains at `557ecca8d0a5e5588fb847dc49c8a7384fae54e8` with no tracked implementation changes. The conductor independently reran the artifact verifier: all 30 original probe receipts and input/diagnostic hashes pass, with 14 accepted, 16 rejected and no inconclusive observations. Original worker verification/handover evidence is preserved separately under the conductor's `.flow/tmp/fn156/capture-review/`.
+
+Report acceptance does not adopt capture checking, publish the report, close .7 or waive fn-155 baseline reconciliation. Assess whether the restricted extracted API experiments support the report's bounded conclusions, its required escape/valid-effect coverage, and its explicit full-framework, unchecked-library and lifter limitations. Production compiler/source lane changes are not part of this report.
+
 ### Approach
 
 - Record the immutable integrated baseline SHA and compiler version, and create a private disposable worktree/project with isolated compiler caches and outputs. Read copies of shared source; never switch, edit or compile against the concurrently changing integration checkout. Lock any genuine production-sized command via actual flock/fcntl ownership of `/tmp/umpire-heavy-gates.lock`; small isolated probes need not monopolize it.
