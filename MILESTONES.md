@@ -290,6 +290,7 @@ CI, PR, or push authority.
 | [fn-109.64](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.64.md) | 🚧 In progress | Check watchdog fixture readiness writes without masking setup failure |
 | [fn-109.65](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.65.md) | 🚧 In progress | Restore explicit scripted Runner preparation and bootstrap coverage |
 | [fn-109.66](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.66.md) | 🚧 In progress | Restore explicit scripted progress and retention assertions |
+| [fn-109.67](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.67.md) | 🚧 In progress | Preserve busy host workloads while correcting spin lint |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 
