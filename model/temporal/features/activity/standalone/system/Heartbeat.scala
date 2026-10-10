@@ -8,7 +8,9 @@ import framework.*; import framework.Finite.given
 import temporal.realize.satisfied
 import Bounds.four
 import Timeout.expires
+
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
 object HeartbeatCompletion extends Derived(ActivitySystem.unmonitored):
   object properties:
     val heartbeatCompletes = property when worker.respondCompleted holds { s => // format: off
