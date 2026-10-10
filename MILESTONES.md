@@ -293,6 +293,9 @@ criteria. Its refreshed plan passed independent review on 2026-10-10. The indepe
 lane (.3) is admitted as work-ahead on a pinned integrated baseline; it changes no Scala,
 schema or managed artifact. Grouping integration follows fn-140's witness seal, before fault
 work, and closure remains shared at fn-123.8.
+The report checkpoint is integrated as `da8f78204a`: classification is derived, and progress
+receipts expose their declared `within` separately from exploration limits. Focused integrated
+checks preserve witness verdicts and independent safety failures; the full checker gate remains open.
 
 Split authored claims into `properties.safety` and `properties.liveness`, enforce declaration kinds,
 and carry the distinction into existing diagnostics and reports. Liveness retains explicit bounds
@@ -306,7 +309,7 @@ linked at fn-123.8, even after its committed source seal releases fault implemen
 | --- | --- | --- |
 | fn-149.1 | ⬜ todo | Group discovery and independent runtime/lifter registration proof |
 | fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
-| fn-149.3 | 🔄 in progress | Derived safety/liveness classification and distinct claim/search bounds; independent Go reporting work-ahead |
+| fn-149.3 | 🔄 in progress | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
 | fn-149.4 | ⬜ todo | Model/capability migration with complete independent behavior and identity seal |
 | fn-149.5 | ⬜ todo | Author docs and final grouping seal before fn-123; shared gate/review/live close at fn-123.8 |
 
