@@ -651,7 +651,9 @@ cause is inferred from historical RSS or later free-space snapshots.
 
 ## fn-153: Checked property examples pilot
 
-Captured 2026-10-09; no tasks yet and not marked ready for execution.
+Six M-sized tasks cover all seven requirements. The plan passed independent review on 2026-10-10;
+execution is scheduled after Batch 5 and is not marked ready. This placement avoids shared
+compiler/lifter/schema baselines without inventing a feature dependency.
 [Spec](.flow/specs/fn-153-checked-property-examples-pilot.md).
 
 Pilot checked examples and counterexamples attached to three existing Properties: a same-step
@@ -665,3 +667,16 @@ deliberately weakened predicates are detected, and assess authoring burden and e
 before expanding. Preserve model behavior and behavioral identities. Coordinate with fn-140,
 fn-149 and fn-130; fn-152's named Situations are not a prerequisite. Live test generation,
 temporal-sequence examples and a repository-wide rollout are outside the pilot.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-153.1 | ⬜ todo | Optional illustration carriers, exact domain admission and frozen behavior/identity pins |
+| fn-153.2 | ⬜ todo | Typed authoring attachment, lifting and nested source locations |
+| fn-153.3 | ⬜ todo | Existing Property selector/predicate classifier, errors and local mutation controls |
+| fn-153.4 | ⬜ todo | Compact deterministic document and gate freshness; handwritten assessment outside its managed subtree |
+| fn-153.5 | ⬜ todo | Three existing Nexus Properties' contrast pairs and classification drift evidence |
+| fn-153.6 | ⬜ todo | Evidence-limited assessment, docs, complete compatibility comparison and full gates |
+
+Tasks run in order. Re-anchor against the actual baseline after the delivery chain; keep
+hypothetical violations, actual model failures and live coverage separate. Mechanical checks
+do not establish developer comprehension, and absent feedback must remain explicit.
