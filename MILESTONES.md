@@ -575,7 +575,16 @@ control failed naturally: repeated interpreter builds retain shared nested `Row.
 distinct outer rows; a fresh interpreter remains independent in that control. The RED assertion
 is retained under the task worktree's `controls-resume/` evidence. This is an additional ownership
 obligation for the held repair, not a complete oracle, accepted strategy or passing full gate.
-Its earlier terminal handover preserves
+The resumed captures now include all 61 claimed-table owners across seven Models, plus native-
+supplied dump serialization/admission controls for the six non-primary Models. These dump
+controls did not run an external Quint evaluator, regardless of stock receipt wording. Separate
+generated-manifest joins cover all 275 non-primary Queries and their twelve executable Cases.
+Conformance captures retain twelve full private plans and fourteen nonempty Nexus streams across
+seven workflow Cases after caller Model/Case mutation. These remain partial preservation evidence:
+the primary Producer's 65 Lower results, primary dump and full all-owner conformance/replay oracle
+are still missing. Final independent artifact hashes and completeness accounting are pending;
+no repair, review, gate-fit or closure credit follows from these successful capture commands.
+The earlier terminal handover preserves
 52 probes/412.923 measured wall seconds and 34 missing surfaces/controls; the one-hour limit was
 not reached. Root verified all 574 sealed evidence files. Revisit on capacity sufficient for the
 unchanged whole primary Producer and ordinary compiler overlap, retaining effective JVM scratch
