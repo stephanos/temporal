@@ -35,9 +35,10 @@ make umpire-check-lint
 
 
 ## Done summary
-TBD
+Batch 1d (Scala only): the product's `disabled(process.stop)` and its `import actors.worker.worker as process` are gone; a comment in the product's rules says the stop is not the product's and the System keeps it as a step that changes nothing. The pin test and model/testdata/binding-order.tsv expect the product's bindings without `worker.stop` and the System's with it. Nothing in Scala needs the binding: the models compile and every activity test passes; Go's refinement check accepts a System row that the product does not bind as a stutter when the states map equal and the step records nothing visible (tools/umpire/internal/engine/refine.go), which `effects.keep` is. The lift, lint and refinement gate run at Batch 5b's regeneration. Declared IR change: the product loses its `worker.stop` binding and its disabled rows (map entry `temporal.features.activity.standalone.product.activityProduct/worker.stop -`).
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ebc9a2a698, ea62e94b16 (branch w-1d-activity)
+- Tests: activity test classes (framework.Activity*, StandaloneActivityPins, RoleRefinements, CapabilityRetryDeadlineFeatures) 66 passed, 0 failed (.flow/tmp/1d-activity/test-step1.log); full model suite: only MachineTablePins' stale-IR subject count fails (IR regenerates in 5b); ExportedMachineLawsTest passes after the binding-order pin update.
+- Equivalence: `make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51 MAP=model/testdata/equivalence/batch-1d/activity.map STEPS_ONLY=1` equivalent (.flow/tmp/1d-activity/equiv-step1.log, equiv-step2.log).
 - PRs:
