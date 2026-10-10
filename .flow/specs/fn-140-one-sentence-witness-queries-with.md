@@ -79,7 +79,7 @@ This spec gives the path-and-outcome claim one sentence of its own, makes the li
 ## Boundaries
 <!-- scope: business -->
 
-- [paraphrase] The IR keeps its shape. No new declaration kind, Query form or "last step only" Property semantics is added, and the Go reader, checker and lowering are not changed for witnesses.
+- [paraphrase] The IR keeps its shape. No new declaration kind, Query form or "last step only" Property semantics is added. Go changes are limited to common exact-composed-class selector reading in the existing schema and the expectation-presence switch for generated live Cases; existing selectors, step semantics and all other admission/checking/lowering behavior remain unchanged.
 - [paraphrase] The Property, Scenario and Query triple stays the form for invariants. This spec does not change `query verify`, the functions that build one list of Queries for several designs, or the claims types those functions return.
 - [inferred] Queries whose stated Property only gives a path's monitors something to watch keep their present form. A direct way to ask a monitor over a path is a separate change.
 - [inferred] A capability's path and expectation bindings keep their shape. Only R4's reason rule reaches them.
@@ -112,6 +112,8 @@ The completed DSL supplies the witness's core declarations and capability expans
 The migration inventories inbound readers before converting each pinned find. Shared triples, invariant Queries and monitor-only claims keep their existing form. The current custom-start Scenarios feed verify Queries, and the current eligible Models need no additional witness starts or total surface. The existing assessment tests establish the retry explanation, including its full terminal-state condition; implementation checks that evidence again against fn-156's committed closure baseline, consuming fn-151's split-owner and fn-155's actual abstraction identity maps rather than carrying an obsolete explanation forward.
 
 Broad generated API drift verification and new CI coverage remain outside this plan, per the declined decision. The existing focused fixture and gate checks supply the required verification.
+
+Decision history (2026-10-09, explicit conductor authorization): the original boundary said, "The IR keeps its shape. No new declaration kind, Query form or \"last step only\" Property semantics is added, and the Go reader, checker and lowering are not changed for witnesses." Actual independent plan review found that ordinary when_class derives a member action's name plus inputs (`interp/machine.go:736`) while composition admission needs the member/sync-prefixed class key (`ir/validate_keys.go:75`); when_action selects all inputs (`check/claims.go:695`) and rejects an exact input-bearing key (`ir/admission_test.go:743-747`). There is no general existing exact composed-tail encoding. Case generation also attempts a lowerable no-expectation find and errors (`lower/generated.go:88-119`). The conductor explicitly replaced only the impossible no-Go-change clause, preserving R1-R7, schema shape, ordinary core-triple equivalence and same-step semantics. Task .2 must prove a collision-free shared existing-schema selector interpretation before migration; no guessed tag, synthetic Action, widened claim or waived admission is authorized.
 
 Maintainability (plan review): duplication - none identified; structure - witness folding uses one cohesive helper behind existing claim registration, keeping new construction logic out of the dispatch.
 
