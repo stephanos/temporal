@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"slices"
 
+	celpb "cel.dev/expr"
+
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Selector uint8
@@ -23,7 +26,7 @@ const (
 type PathStep struct {
 	Field    protoreflect.FieldDescriptor
 	Selector Selector
-	Key      *testpilotspb.Value
+	Key      *celpb.Value
 }
 
 type Path struct {
@@ -195,7 +198,7 @@ func (c *Catalog) fieldType(field protoreflect.FieldDescriptor) Type {
 	if field.Message() != nil {
 		if field.Message().FullName() == "google.protobuf.Any" {
 			result.any = true
-			result.schema.GetSingular().Type = &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}
+			result.schema.GetSingular().Type = &testpilotspb.SingularType_Any{Any: &emptypb.Empty{}}
 		} else {
 			result.message = field.Message()
 			result.schema.GetSingular().Type = &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: string(field.Message().FullName())}}

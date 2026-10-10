@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	activitypb "go.temporal.io/api/activity/v1"
 	commonpb "go.temporal.io/api/common/v1"
@@ -134,7 +135,7 @@ func (*frontend) ShutdownWorker(context.Context, *workflowservice.ShutdownWorker
 type sent struct {
 	Response string
 	Token    string
-	Result   *testpilotspb.Value
+	Result   *celpb.Value
 	Failure  *failurepb.Failure
 }
 
@@ -147,7 +148,7 @@ func (f *frontend) answer(t *testing.T) sent {
 		require.FailNow(t, "the worker answered no activity task")
 		return sent{}
 	case request := <-f.completed:
-		result := &testpilotspb.Value{}
+		result := &celpb.Value{}
 		require.NoError(t, converter.GetDefaultDataConverter().FromPayloads(request.GetResult(), result))
 		return sent{Response: "completed", Token: string(request.GetTaskToken()), Result: result}
 	case request := <-f.failed:

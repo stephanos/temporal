@@ -5,6 +5,8 @@ import (
 	"slices"
 
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // Invalid is the admission rejection every Testpilot core package returns, its path truncated to
@@ -61,9 +63,28 @@ func CheckCeilings[M proto.Message](limits, ceiling M, reject func(field string)
 		if slices.Contains(skip, name) {
 			continue
 		}
-		value := message.Get(field).Int()
-		if value <= 0 || !IsNil(ceiling) && value > ceiling.ProtoReflect().Get(field).Int() {
+		read := func(source protoreflect.Message) (int64, error) {
+			if field.Kind() == protoreflect.MessageKind {
+				if !SameMessage(field.Message(), (&durationpb.Duration{}).ProtoReflect().Descriptor()) || !source.Has(field) {
+					return 0, reject(name)
+				}
+				duration := source.Get(field).Message()
+				return DurationMilliseconds(name, &durationpb.Duration{Seconds: duration.Get(field.Message().Fields().ByName("seconds")).Int(), Nanos: int32(duration.Get(field.Message().Fields().ByName("nanos")).Int())})
+			}
+			if field.Kind() != protoreflect.Int64Kind {
+				return 0, reject(name)
+			}
+			return source.Get(field).Int(), nil
+		}
+		value, err := read(message)
+		if err != nil || value <= 0 {
 			return reject(name)
+		}
+		if !IsNil(ceiling) {
+			maximum, err := read(ceiling.ProtoReflect())
+			if err != nil || value > maximum {
+				return reject(name)
+			}
 		}
 	}
 	return nil

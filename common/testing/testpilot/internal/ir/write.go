@@ -2,9 +2,9 @@ package ir
 
 import (
 	"context"
-	"strconv"
 
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	celpb "cel.dev/expr"
+
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -12,7 +12,7 @@ import (
 
 type Write struct {
 	Path  *Path
-	Value *testpilotspb.Value
+	Value *celpb.Value
 }
 
 // BuildRequest never publishes the partially constructed request on failure.
@@ -47,7 +47,7 @@ func BuildRequest(ctx context.Context, descriptor protoreflect.MessageDescriptor
 	}
 	return message, b.work, nil
 }
-func writePath(message *dynamicpb.Message, path *Path, value *testpilotspb.Value, b *budget) error {
+func writePath(message *dynamicpb.Message, path *Path, value *celpb.Value, b *budget) error {
 	if len(path.steps) == 0 {
 		replacement, err := decodeMessage(value, message.Descriptor())
 		if err != nil {
@@ -83,7 +83,7 @@ func writePath(message *dynamicpb.Message, path *Path, value *testpilotspb.Value
 	}
 	return nil
 }
-func writeField(message protoreflect.Message, step PathStep, value *testpilotspb.Value) error {
+func writeField(message protoreflect.Message, step PathStep, value *celpb.Value) error {
 	field := step.Field
 	if step.Selector == MapKey {
 		key, err := mapKey(step.Key, field.MapKey())
@@ -130,38 +130,34 @@ func writeField(message protoreflect.Message, step PathStep, value *testpilotspb
 	message.Set(field, item)
 	return nil
 }
-func writeScalar(value *testpilotspb.Value, field protoreflect.FieldDescriptor) (protoreflect.Value, error) {
+func writeScalar(value *celpb.Value, field protoreflect.FieldDescriptor) (protoreflect.Value, error) {
 	switch field.Kind() {
 	case protoreflect.BoolKind:
 		return protoreflect.ValueOfBool(value.GetBoolValue()), nil
 	case protoreflect.StringKind:
-		return protoreflect.ValueOfString(value.GetTextValue()), nil
+		return protoreflect.ValueOfString(value.GetStringValue()), nil
 	case protoreflect.BytesKind:
 		return protoreflect.ValueOfBytes(append([]byte(nil), value.GetBytesValue()...)), nil
 	case protoreflect.EnumKind:
 		number, err := EnumNumber(field.Enum(), value.GetEnumValue())
 		return protoreflect.ValueOfEnum(number), err
 	case protoreflect.FloatKind:
-		return protoreflect.ValueOfFloat32(float32(value.GetFloatingPointValue())), nil
+		return protoreflect.ValueOfFloat32(float32(value.GetDoubleValue())), nil
 	case protoreflect.DoubleKind:
-		return protoreflect.ValueOfFloat64(value.GetFloatingPointValue()), nil
+		return protoreflect.ValueOfFloat64(value.GetDoubleValue()), nil
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
-		n, err := strconv.ParseInt(value.GetSignedIntegerValue(), 10, 32)
-		return protoreflect.ValueOfInt32(int32(n)), err
+		return protoreflect.ValueOfInt32(int32(value.GetInt64Value())), nil
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
-		n, err := strconv.ParseInt(value.GetSignedIntegerValue(), 10, 64)
-		return protoreflect.ValueOfInt64(n), err
+		return protoreflect.ValueOfInt64(value.GetInt64Value()), nil
 	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
-		n, err := strconv.ParseUint(value.GetUnsignedIntegerValue(), 10, 32)
-		return protoreflect.ValueOfUint32(uint32(n)), err
+		return protoreflect.ValueOfUint32(uint32(value.GetUint64Value())), nil
 	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-		n, err := strconv.ParseUint(value.GetUnsignedIntegerValue(), 10, 64)
-		return protoreflect.ValueOfUint64(n), err
+		return protoreflect.ValueOfUint64(value.GetUint64Value()), nil
 	case protoreflect.MessageKind, protoreflect.GroupKind:
 		if field.Message().FullName() == "google.protobuf.Any" {
 			m := dynamicpb.NewMessage(field.Message())
 			fields := field.Message().Fields()
-			v := value.GetMessageValue()
+			v := value.GetObjectValue()
 			m.Set(fields.ByName("type_url"), protoreflect.ValueOfString(v.TypeUrl))
 			m.Set(fields.ByName("value"), protoreflect.ValueOfBytes(append([]byte(nil), v.Value...)))
 			return protoreflect.ValueOfMessage(m), nil

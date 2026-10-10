@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/nexus-rpc/sdk-go/nexus"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -24,9 +25,11 @@ import (
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func jsonPayload(t *testing.T, value any) *commonpb.Payload {
@@ -92,10 +95,10 @@ func TestSDKWorkflowIssuesTheCarriedScheduleCommand(t *testing.T) {
 	environment.ExecuteWorkflow("workflow-type", "untouched")
 	require.NoError(t, environment.GetWorkflowError())
 
-	var result testpilotspb.Value
+	var result celpb.Value
 	require.NoError(t, environment.GetWorkflowResult(&result))
 	var awaited commonpb.Payload
-	require.NoError(t, result.GetMessageValue().UnmarshalTo(&awaited))
+	require.NoError(t, result.GetObjectValue().UnmarshalTo(&awaited))
 	require.True(t, proto.Equal(done, &awaited))
 	require.True(t, proto.Equal(request, input.Payload()))
 	require.Equal(t, 7*time.Second, options.ScheduleToCloseTimeout)
@@ -130,8 +133,8 @@ func TestSDKScheduleCommandCarriesItsOwnTimeouts(t *testing.T) {
 	prepared := preparedRuntimeFixtureWithProfile(t, replySynchronous, typedProfile, scheduleCommandProgram(t, &commandpb.ScheduleNexusOperationCommandAttributes{
 		Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", ScheduleToCloseTimeout: durationpb.New(time.Second),
 	}), func(program *testpilotspb.Program) {
-		program.Entrypoints[1].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 10000}
-		program.Entrypoints[1].Instructions[1].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 10000}
+		program.Entrypoints[1].Instructions[0].Limits.Timeout = pbduration.FromMilliseconds(10000)
+		program.Entrypoints[1].Instructions[1].Limits.Timeout = pbduration.FromMilliseconds(10000)
 	})
 	host, definition := runtimeTestDriver(t, prepared)
 	host.options.client = &recordingClient{}
@@ -278,7 +281,7 @@ func TestSessionAnswersTypedReplies(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			prepared := preparedRuntimeFixtureWithProfile(t, replySynchronous, typedProfile, func(program *testpilotspb.Program) {
-				program.Slots = []*testpilotspb.Slot{{SlotId: "handle", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
+				program.Slots = []*testpilotspb.Slot{{SlotId: "handle", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &emptypb.Empty{}}}}
 				program.Entrypoints[2].Instructions[0].Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: tc.reply}}
 			})
 			host, definition := runtimeTestDriver(t, prepared)
@@ -433,7 +436,7 @@ func TestCompletionEffectAcceptsTypedCompletions(t *testing.T) {
 	require.False(t, effect.Accepts(t.Context(), payload, &failurepb.Failure{}))
 	require.False(t, effect.Accepts(t.Context(), failure, &commonpb.Payload{}))
 	require.False(t, effect.Accepts(t.Context(), other, &commonpb.Payload{}))
-	require.False(t, effect.Accepts(t.Context(), payload, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "result"}}))
+	require.False(t, effect.Accepts(t.Context(), payload, &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "result"}}))
 	require.Equal(t, "invalid_argument", effect.Invoke(t.Context(), &testpilotspb.InstructionOutcome{}, 4096).Outcome.ProtocolCode)
 }
 

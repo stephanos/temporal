@@ -10,6 +10,10 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
+	"go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/duration"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -150,34 +154,34 @@ func carrierWith(machine string, carried []string, reads int, fields map[string]
 			Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}}
 	}
 	step := func(field testpilotspb.CorrelatedStepField, definition string) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{
-			Operand: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{
-				Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: field, DefinitionId: definition}}}}}}}}
+		return cel.Compare("_>_", cel.Size(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: field, DefinitionId: definition}}})), cel.Literal(&celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: 0}}))
 	}
 	idle := &testpilotspb.ModelValue{DefinitionId: "state", Value: "idle"}
 	never := &testpilotspb.ModelValue{DefinitionId: "action", Value: "never"}
 	quiet := &testpilotspb.ModelValue{DefinitionId: "outcome", Value: "quiet"}
 	correlated := &testpilotspb.CorrelatedContract{ProjectionId: "projection", ProjectionFingerprint: "sha256:carrier",
-		EvidenceObservationId: evidenceObservation, ScopeFields: []string{"run"}, OperationField: "operation", InitialState: idle,
-		Transitions: []*testpilotspb.CorrelatedTransition{{PriorState: idle, Action: never, State: idle, Outcome: quiet}},
+		EvidenceObservationId: evidenceObservation, ScopeFields: []string{"run"}, OperationField: "operation", InitialStateId: "s1",
+		States:      []*testpilotspb.CorrelatedState{{StateId: "s1", Atom: idle}},
+		Results:     []*testpilotspb.CorrelatedResult{{ResultId: "r1", Action: never, StateId: "s1", Outcome: quiet}},
+		Transitions: []*testpilotspb.CorrelatedTransition{{PriorStateId: "s1", ResultId: "r1"}},
 		Rules: []*testpilotspb.CorrelatedRule{{RuleId: "carried", Trigger: step(testpilotspb.CORRELATED_STEP_FIELD_ACTION, "action"),
-			Response: step(testpilotspb.CORRELATED_STEP_FIELD_OUTCOME, "outcome"), Clock: testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS,
-			Bound: 1, Ending: testpilotspb.TRACE_ENDING_PARTIAL}}}
+			Response: step(testpilotspb.CORRELATED_STEP_FIELD_OUTCOME, "outcome"),
+			Bound:    1, Ending: testpilotspb.TRACE_ENDING_PARTIAL}}}
 	for _, records := range carried {
 		correlated.Sources = append(correlated.Sources, sourceID(machine, records))
 		correlated.ProjectionRules = append(correlated.ProjectionRules, &testpilotspb.CorrelatedProjectionRule{Kind: kindID(machine, records),
 			Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT, Fields: fields[records]})
 	}
-	controller := &testpilotspb.Entrypoint{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}
+	controller := &testpilotspb.Entrypoint{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}}
 	for i := range reads {
 		node := &testpilotspb.InstructionNode{InstructionId: "read." + strconv.Itoa(i), Instruction: &testpilotspb.Instruction{
 			Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: sourceRole, Method: sourceMethod,
-				ResponseReads: []*testpilotspb.ResponseRead{{Cardinality: testpilotspb.READ_CARDINALITY_ONE,
+				ResponseReads: []*testpilotspb.ResponseRead{{
 					Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: evidenceObservation}}}}}}}}}
 		if i > 0 {
 			// A read runs whatever became of the one before it: a transport failure loses one piece of
 			// evidence and not the rest of the Run.
-			node.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
+			node.Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})
 		}
 		controller.Instructions = append(controller.Instructions, node)
 	}
@@ -187,9 +191,9 @@ func carrierWith(machine string, carried []string, reads int, fields map[string]
 		controller.Instructions = append(controller.Instructions, &testpilotspb.InstructionNode{InstructionId: closingInstruction,
 			Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{
 				EndpointRoleId: sourceRole, Method: sourceMethod}}},
-			Guard: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}})
+			Guard: cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})})
 	}
-	return &testpilotspb.Case{CaseId: name, Version: &testpilotspb.FormatVersion{Major: 1},
+	return &testpilotspb.Case{CaseId: name, Version: &testpilotspb.FormatVersion{Major: 4},
 		Provenance: &testpilotspb.CaseProvenance{ProducerId: "test.conformance"},
 		Program: &testpilotspb.Program{ProgramId: name + ".program", Roles: []*testpilotspb.Role{{RoleId: sourceRole, Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
 			Observations: []*testpilotspb.Observation{{ObservationId: evidenceObservation, Type: message("temporal.server.api.testpilot.v1.CorrelatedEvidence")}},
@@ -234,7 +238,7 @@ func carrierProfile(t testing.TB) testpilot.ProfileSpec {
 		ProgramLimits: &testpilotspb.ProgramLimits{
 			MaxEntrypoints: 4, MaxNodes: 256, MaxEdges: 256, MaxActivations: 256, MaxAttempts: 256, MaxRunEvents: 2048,
 			MaxExpressionDepth: 8, MaxPathFanout: 256, MaxRequestBytes: 4096, MaxResponseBytes: 4096,
-			MaxTotalDurationMilliseconds: 10000, MaxCleanupDurationMilliseconds: 1000,
+			MaxDuration: duration.FromMilliseconds(10000), CleanupDuration: duration.FromMilliseconds(1000),
 			MaxInstructionEmittedEvents: 1, MaxInstructionResponseBytes: 4096,
 		},
 		ContractLimits: &testpilotspb.ContractLimits{
@@ -269,12 +273,12 @@ type fact struct {
 }
 
 func textField(id, value string) *testpilotspb.NamedValue {
-	return &testpilotspb.NamedValue{FieldId: id, Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}
+	return &testpilotspb.NamedValue{FieldId: id, Value: &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: value}}}
 }
 
 func numberField(id string, value uint64) *testpilotspb.NamedValue {
-	return &testpilotspb.NamedValue{FieldId: id, Value: &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{
-		UnsignedIntegerValue: strconv.FormatUint(value, 10)}}}
+	return &testpilotspb.NamedValue{FieldId: id, Value: &celpb.Value{Kind: &celpb.Value_Uint64Value{
+		Uint64Value: value}}}
 }
 
 // script turns facts and failures into what each read returns, resolving each `after` to the identity
@@ -293,7 +297,7 @@ func script(machine string, items ...any) []read {
 				operation = "activity-1"
 			}
 			identity := &testpilotspb.CorrelatedIdentity{EvidenceSource: sourceID(machine, item.records), Ordinal: item.ordinal,
-				Scope: []*testpilotspb.NamedValue{{FieldId: "run", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: run}}}}}
+				Scope: []*testpilotspb.NamedValue{{FieldId: "run", Value: &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: run}}}}}
 			evidence := &testpilotspb.CorrelatedEvidence{Identity: identity, Operation: operation, Kind: kindID(machine, item.records), Fields: item.fields}
 			for _, parent := range item.after {
 				evidence.Parents = append(evidence.Parents, proto.CloneOf(identities[parent]))
@@ -416,7 +420,7 @@ func carrying(t testing.TB, run *testpilotspb.Run, reads []read, names ...string
 	for _, event := range run.GetEvents() {
 		for _, observation := range event.GetObservations() {
 			evidence := &testpilotspb.CorrelatedEvidence{}
-			require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(evidence))
+			require.NoError(t, observation.GetValue().GetObjectValue().UnmarshalTo(evidence))
 			for _, item := range reads {
 				if item.evidence != nil && proto.Equal(item.evidence, evidence) {
 					for _, name := range names {
@@ -432,9 +436,9 @@ func carrying(t testing.TB, run *testpilotspb.Run, reads []read, names ...string
 	return out
 }
 
-func evidenceValue(t testing.TB, evidence *testpilotspb.CorrelatedEvidence) *testpilotspb.Value {
+func evidenceValue(t testing.TB, evidence *testpilotspb.CorrelatedEvidence) *celpb.Value {
 	t.Helper()
 	packed, err := anypb.New(evidence)
 	require.NoError(t, err)
-	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: packed}}
+	return &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: packed}}
 }

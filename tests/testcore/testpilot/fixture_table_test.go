@@ -53,7 +53,7 @@ func TestEveryCheckedInFixtureDecodesPreparesAndCarriesItsIdentity(t *testing.T)
 			require.NotEmpty(t, source.GetCaseId())
 			require.NotEmpty(t, source.GetProgram().GetProgramId())
 			require.NotEmpty(t, source.GetContract().GetContractId())
-			require.Equal(t, int32(1), source.GetVersion().GetMajor())
+			require.Equal(t, int32(4), source.GetVersion().GetMajor())
 			previous, duplicate := seenCaseIDs[source.GetCaseId()]
 			require.False(t, duplicate,
 				"Case ID %q is carried by both %s and %s", source.GetCaseId(), previous, fixture)

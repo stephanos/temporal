@@ -11,7 +11,10 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/common/testing/testpilot/duration"
+
 	"github.com/stretchr/testify/require"
+	workflowservicepb "go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -45,12 +48,17 @@ func preparable(m *umpirespb.Model) *umpirespb.Model {
 			r.Behavior = &umpirespb.ApiBehavior{}
 		}
 		r.Behavior.AttemptNumbering = &umpirespb.AttemptNumbering{First: 1, OneRun: true}
-		r.Behavior.InstructionDefaults = &umpirespb.InstructionLimit{TimeoutMs: 10000, Attempts: 1}
+		r.Behavior.InstructionDefaults = &umpirespb.InstructionLimit{Timeout: duration.FromMilliseconds(10000), Attempts: 1}
 	}
 	return m
 }
 
-func slotOf(e *testpilotspb.Expression) string { return e.GetReference().GetSlotId() }
+func slotOf(e *testpilotspb.Expression) string {
+	if len(e.GetBindings()) != 1 {
+		return ""
+	}
+	return e.GetBindings()[0].GetReference().GetSlotId()
+}
 
 func assigned(t *testing.T, assignments []*testpilotspb.RequestAssignment, target string) *testpilotspb.Expression {
 	t.Helper()
@@ -63,13 +71,13 @@ func assigned(t *testing.T, assignments []*testpilotspb.RequestAssignment, targe
 	return nil
 }
 
-func after(n *testpilotspb.InstructionNode) []string {
+func after(entrypoint string, n *testpilotspb.InstructionNode) []string {
 	if n.GetAfter() == nil {
 		return nil
 	}
 	out := []string{}
 	for _, ref := range n.GetAfter().GetInstructions() {
-		out = append(out, ref.GetEntrypointId()+"/"+ref.GetInstructionId())
+		out = append(out, entrypoint+"/"+ref.GetInstructionId())
 	}
 	return out
 }
@@ -95,20 +103,23 @@ func TestALearnedTextIsBoundOnceAndReadByIndependentBranches(t *testing.T) {
 	reads := start.GetInstruction().GetInvokeRpc().GetResponseReads()
 	require.Len(t, reads, 1)
 	require.Equal(t, "run_id", reads[0].GetPath())
-	require.Equal(t, testpilotspb.READ_CARDINALITY_ONE, reads[0].GetCardinality())
+	field := (&workflowservicepb.StartWorkflowExecutionResponse{}).ProtoReflect().Descriptor().Fields().ByName("run_id")
+	require.NotNil(t, field)
+	require.False(t, field.IsList(), "the response path derives scalar cardinality")
+	require.False(t, field.IsMap())
 	require.Len(t, reads[0].GetTargets(), 1)
 	require.Equal(t, "workflow-run", reads[0].GetTargets()[0].GetSlotId())
 
 	started := instruction(t, c, "controller", "await-started")
 	closed := instruction(t, c, "controller", "await-close")
-	require.Equal(t, []string{"controller/start-workflow"}, after(started))
-	require.Equal(t, []string{"controller/start-workflow"}, after(closed))
+	require.Equal(t, []string{"controller/start-workflow"}, after("controller", started))
+	require.Equal(t, []string{"controller/start-workflow"}, after("controller", closed))
 	require.Equal(t, "workflow-run", slotOf(assigned(t, started.GetInstruction().GetReadEvidence().GetRequestAssignments(), "execution.run_id")))
 	require.Equal(t, "workflow-run", slotOf(assigned(t, closed.GetInstruction().GetInvokeRpc().GetRequestAssignments(), "execution.run_id")))
 	bound := cp.Present(slot("workflow-run"))
 	require.True(t, proto.Equal(bound, started.GetGuard()), "a command reads the learned text only where it is bound")
 	require.True(t, proto.Equal(bound, closed.GetGuard()))
-	require.Equal(t, []string{"controller/await-started", "controller/await-close"}, after(instruction(t, c, "controller", "history")))
+	require.Equal(t, []string{"controller/await-started", "controller/await-close"}, after("controller", instruction(t, c, "controller", "history")))
 
 	encoded, err := protojson.Marshal(c)
 	require.NoError(t, err)

@@ -9,6 +9,7 @@ option java_multiple_files = true;
 option java_package = "io.temporal.server.api.umpire.v1";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/duration.proto";
 import "temporal/server/api/umpire/v1/common.proto";
 import "temporal/server/api/umpire/v1/machine.proto";
 import "temporal/server/api/umpire/v1/operand.proto";
@@ -74,7 +75,7 @@ message Command {
   // The commands of its script it runs after. Unset, it runs after the command before it.
   After after = 3;
   // Its deadline in milliseconds, or 0 for the run's default.
-  int64 timeout_ms = 4;
+  google.protobuf.Duration timeout = 4;
   // Whether it runs whatever became of the commands it runs after.
   bool regardless = 5;
   oneof instruction {
@@ -171,7 +172,7 @@ message Poll {
   string role = 2;
   repeated Assignment assign = 3;
   Operand until = 4;
-  int64 interval_ms = 5;
+  google.protobuf.Duration interval = 5;
 }
 
 // Completes with a result: the workflow a workflow script runs in, or the attempt a command of an

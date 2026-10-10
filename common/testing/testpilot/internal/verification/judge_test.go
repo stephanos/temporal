@@ -2,10 +2,13 @@ package verification
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -16,7 +19,11 @@ import (
 // TestRunDispositionPrecedence there.
 
 func integer(value string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: value}}}}
+	number, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return cel.Literal(&celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: number}})
 }
 
 // A rule nothing in the Run resolved is inconclusive on a completed Run, never satisfied: a plain

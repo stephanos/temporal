@@ -5,12 +5,14 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	"google.golang.org/protobuf/proto"
 )
 
 func externalSucceeded(ref *testpilotspb.InstructionReference) *testpilotspb.Expression {
-	return cp.Equal(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: ref, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}}, cp.Literal(cp.Enum("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED")))
+	status := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: ref, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}})
+	return cel.All(cel.Present(status), cp.Equal(status, cp.Literal(cp.Enum("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))))
 }
 
 func (a *adapter) controllerID() string {

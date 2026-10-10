@@ -17,6 +17,7 @@ import (
 
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -1235,7 +1236,7 @@ func (x *AttemptNumbering) GetOneRun() bool {
 type InstructionLimit struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Position      *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
-	TimeoutMs     int64                  `protobuf:"varint,2,opt,name=timeout_ms,json=timeoutMs,proto3" json:"timeout_ms,omitempty"`
+	Timeout       *durationpb.Duration   `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	Attempts      int64                  `protobuf:"varint,3,opt,name=attempts,proto3" json:"attempts,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1278,11 +1279,11 @@ func (x *InstructionLimit) GetPosition() *Position {
 	return nil
 }
 
-func (x *InstructionLimit) GetTimeoutMs() int64 {
+func (x *InstructionLimit) GetTimeout() *durationpb.Duration {
 	if x != nil {
-		return x.TimeoutMs
+		return x.Timeout
 	}
-	return 0
+	return nil
 }
 
 func (x *InstructionLimit) GetAttempts() int64 {
@@ -1416,12 +1417,12 @@ func (*Visibility_Cause) isVisibility_Write() {}
 // How long a condition may take to hold, and how often a wait looks, in milliseconds; both positive,
 // and the interval no greater than the bound.
 type WaitBound struct {
-	state      protoimpl.MessageState `protogen:"open.v1"`
-	Position   *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
-	IntervalMs int64                  `protobuf:"varint,2,opt,name=interval_ms,json=intervalMs,proto3" json:"interval_ms,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Position *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
+	Interval *durationpb.Duration   `protobuf:"bytes,2,opt,name=interval,proto3" json:"interval,omitempty"`
 	// (-- api-linter: core::0140::prepositions=disabled
 	//     aip.dev/not-precedent: The name is the bound's own "at most"; the IR is internal to Umpire. --)
-	AtMostMs      int64 `protobuf:"varint,3,opt,name=at_most_ms,json=atMostMs,proto3" json:"at_most_ms,omitempty"`
+	AtMost        *durationpb.Duration `protobuf:"bytes,3,opt,name=at_most,json=atMost,proto3" json:"at_most,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1463,18 +1464,18 @@ func (x *WaitBound) GetPosition() *Position {
 	return nil
 }
 
-func (x *WaitBound) GetIntervalMs() int64 {
+func (x *WaitBound) GetInterval() *durationpb.Duration {
 	if x != nil {
-		return x.IntervalMs
+		return x.Interval
 	}
-	return 0
+	return nil
 }
 
-func (x *WaitBound) GetAtMostMs() int64 {
+func (x *WaitBound) GetAtMost() *durationpb.Duration {
 	if x != nil {
-		return x.AtMostMs
+		return x.AtMost
 	}
-	return 0
+	return nil
 }
 
 // How long one kind of asynchronous cause may take, once, from the step before it.
@@ -1555,7 +1556,7 @@ type ServerStep struct {
 	Kind     CauseKind              `protobuf:"varint,3,opt,name=kind,proto3,enum=temporal.server.api.umpire.v1.CauseKind" json:"kind,omitempty"`
 	// For a timer: the deadline the realization set for this class, written from the same kit value
 	// its request carries. A wait for it is this deadline plus the timer's CauseBound, the slack.
-	DeadlineMs int64 `protobuf:"varint,4,opt,name=deadline_ms,json=deadlineMs,proto3" json:"deadline_ms,omitempty"`
+	Deadline *durationpb.Duration `protobuf:"bytes,4,opt,name=deadline,proto3" json:"deadline,omitempty"`
 	// The typed request field whose timeout supplies this timer, retained by lifting deadlines.
 	TimeoutBasis  TimeoutBasis `protobuf:"varint,5,opt,name=timeout_basis,json=timeoutBasis,proto3,enum=temporal.server.api.umpire.v1.TimeoutBasis" json:"timeout_basis,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1613,11 +1614,11 @@ func (x *ServerStep) GetKind() CauseKind {
 	return CAUSE_KIND_UNSPECIFIED
 }
 
-func (x *ServerStep) GetDeadlineMs() int64 {
+func (x *ServerStep) GetDeadline() *durationpb.Duration {
 	if x != nil {
-		return x.DeadlineMs
+		return x.Deadline
 	}
-	return 0
+	return nil
 }
 
 func (x *ServerStep) GetTimeoutBasis() TimeoutBasis {
@@ -2727,7 +2728,7 @@ var File_temporal_server_api_umpire_v1_realization_proto protoreflect.FileDescri
 
 const file_temporal_server_api_umpire_v1_realization_proto_rawDesc = "" +
 	"\n" +
-	"/temporal/server/api/umpire/v1/realization.proto\x12\x1dtemporal.server.api.umpire.v1\x1a*temporal/server/api/umpire/v1/common.proto\x1a+temporal/server/api/umpire/v1/machine.proto\x1a+temporal/server/api/umpire/v1/operand.proto\x1a*temporal/server/api/umpire/v1/script.proto\"\xf0\t\n" +
+	"/temporal/server/api/umpire/v1/realization.proto\x12\x1dtemporal.server.api.umpire.v1\x1a\x1egoogle/protobuf/duration.proto\x1a*temporal/server/api/umpire/v1/common.proto\x1a+temporal/server/api/umpire/v1/machine.proto\x1a+temporal/server/api/umpire/v1/operand.proto\x1a*temporal/server/api/umpire/v1/script.proto\"\xf0\t\n" +
 	"\vRealization\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12C\n" +
@@ -2793,11 +2794,10 @@ const file_temporal_server_api_umpire_v1_realization_proto_rawDesc = "" +
 	"\x10AttemptNumbering\x12C\n" +
 	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12\x14\n" +
 	"\x05first\x18\x02 \x01(\x03R\x05first\x12\x17\n" +
-	"\aone_run\x18\x03 \x01(\bR\x06oneRun\"\x92\x01\n" +
+	"\aone_run\x18\x03 \x01(\bR\x06oneRun\"\xa8\x01\n" +
 	"\x10InstructionLimit\x12C\n" +
-	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12\x1d\n" +
-	"\n" +
-	"timeout_ms\x18\x02 \x01(\x03R\ttimeoutMs\x12\x1a\n" +
+	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x123\n" +
+	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\atimeout\x12\x1a\n" +
 	"\battempts\x18\x03 \x01(\x03R\battempts\"\xb1\x02\n" +
 	"\n" +
 	"Visibility\x12\x0e\n" +
@@ -2807,26 +2807,23 @@ const file_temporal_server_api_umpire_v1_realization_proto_rawDesc = "" +
 	"\x05cause\x18\x04 \x01(\x0e2(.temporal.server.api.umpire.v1.CauseKindH\x00R\x05cause\x12\x12\n" +
 	"\x04read\x18\x05 \x01(\tR\x04read\x12U\n" +
 	"\x11eventually_within\x18\x06 \x01(\v2(.temporal.server.api.umpire.v1.WaitBoundR\x10eventuallyWithinB\a\n" +
-	"\x05write\"\x8f\x01\n" +
+	"\x05write\"\xbb\x01\n" +
 	"\tWaitBound\x12C\n" +
-	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12\x1f\n" +
-	"\vinterval_ms\x18\x02 \x01(\x03R\n" +
-	"intervalMs\x12\x1c\n" +
-	"\n" +
-	"at_most_ms\x18\x03 \x01(\x03R\batMostMs\"\xdf\x01\n" +
+	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x125\n" +
+	"\binterval\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\binterval\x122\n" +
+	"\aat_most\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\x06atMost\"\xdf\x01\n" +
 	"\n" +
 	"CauseBound\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12C\n" +
 	"\bposition\x18\x02 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12<\n" +
 	"\x04kind\x18\x03 \x01(\x0e2(.temporal.server.api.umpire.v1.CauseKindR\x04kind\x12>\n" +
-	"\x05bound\x18\x04 \x01(\v2(.temporal.server.api.umpire.v1.WaitBoundR\x05bound\"\xc2\x02\n" +
+	"\x05bound\x18\x04 \x01(\v2(.temporal.server.api.umpire.v1.WaitBoundR\x05bound\"\xd8\x02\n" +
 	"\n" +
 	"ServerStep\x12C\n" +
 	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12>\n" +
 	"\x04step\x18\x02 \x01(\v2*.temporal.server.api.umpire.v1.ActionClassR\x04step\x12<\n" +
-	"\x04kind\x18\x03 \x01(\x0e2(.temporal.server.api.umpire.v1.CauseKindR\x04kind\x12\x1f\n" +
-	"\vdeadline_ms\x18\x04 \x01(\x03R\n" +
-	"deadlineMs\x12P\n" +
+	"\x04kind\x18\x03 \x01(\x0e2(.temporal.server.api.umpire.v1.CauseKindR\x04kind\x125\n" +
+	"\bdeadline\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\bdeadline\x12P\n" +
 	"\rtimeout_basis\x18\x05 \x01(\x0e2+.temporal.server.api.umpire.v1.TimeoutBasisR\ftimeoutBasis\"\xc0\x02\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12C\n" +
@@ -3014,7 +3011,8 @@ var file_temporal_server_api_umpire_v1_realization_proto_goTypes = []any{
 	(*Script)(nil),                     // 33: temporal.server.api.umpire.v1.Script
 	(*Command)(nil),                    // 34: temporal.server.api.umpire.v1.Command
 	(*ActionClass)(nil),                // 35: temporal.server.api.umpire.v1.ActionClass
-	(*Operand)(nil),                    // 36: temporal.server.api.umpire.v1.Operand
+	(*durationpb.Duration)(nil),        // 36: google.protobuf.Duration
+	(*Operand)(nil),                    // 37: temporal.server.api.umpire.v1.Operand
 }
 var file_temporal_server_api_umpire_v1_realization_proto_depIdxs = []int32{
 	32, // 0: temporal.server.api.umpire.v1.Realization.position:type_name -> temporal.server.api.umpire.v1.Position
@@ -3042,48 +3040,52 @@ var file_temporal_server_api_umpire_v1_realization_proto_depIdxs = []int32{
 	14, // 22: temporal.server.api.umpire.v1.ApiBehavior.instruction_defaults:type_name -> temporal.server.api.umpire.v1.InstructionLimit
 	32, // 23: temporal.server.api.umpire.v1.AttemptNumbering.position:type_name -> temporal.server.api.umpire.v1.Position
 	32, // 24: temporal.server.api.umpire.v1.InstructionLimit.position:type_name -> temporal.server.api.umpire.v1.Position
-	32, // 25: temporal.server.api.umpire.v1.Visibility.position:type_name -> temporal.server.api.umpire.v1.Position
-	0,  // 26: temporal.server.api.umpire.v1.Visibility.cause:type_name -> temporal.server.api.umpire.v1.CauseKind
-	16, // 27: temporal.server.api.umpire.v1.Visibility.eventually_within:type_name -> temporal.server.api.umpire.v1.WaitBound
-	32, // 28: temporal.server.api.umpire.v1.WaitBound.position:type_name -> temporal.server.api.umpire.v1.Position
-	32, // 29: temporal.server.api.umpire.v1.CauseBound.position:type_name -> temporal.server.api.umpire.v1.Position
-	0,  // 30: temporal.server.api.umpire.v1.CauseBound.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
-	16, // 31: temporal.server.api.umpire.v1.CauseBound.bound:type_name -> temporal.server.api.umpire.v1.WaitBound
-	32, // 32: temporal.server.api.umpire.v1.ServerStep.position:type_name -> temporal.server.api.umpire.v1.Position
-	35, // 33: temporal.server.api.umpire.v1.ServerStep.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	0,  // 34: temporal.server.api.umpire.v1.ServerStep.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
-	1,  // 35: temporal.server.api.umpire.v1.ServerStep.timeout_basis:type_name -> temporal.server.api.umpire.v1.TimeoutBasis
-	32, // 36: temporal.server.api.umpire.v1.Role.position:type_name -> temporal.server.api.umpire.v1.Position
-	2,  // 37: temporal.server.api.umpire.v1.Role.kind:type_name -> temporal.server.api.umpire.v1.Role.Kind
-	32, // 38: temporal.server.api.umpire.v1.Learned.position:type_name -> temporal.server.api.umpire.v1.Position
-	3,  // 39: temporal.server.api.umpire.v1.Learned.kind:type_name -> temporal.server.api.umpire.v1.Learned.Kind
-	32, // 40: temporal.server.api.umpire.v1.Observed.position:type_name -> temporal.server.api.umpire.v1.Position
-	32, // 41: temporal.server.api.umpire.v1.Evidence.position:type_name -> temporal.server.api.umpire.v1.Position
-	27, // 42: temporal.server.api.umpire.v1.Evidence.read:type_name -> temporal.server.api.umpire.v1.ReadSource
-	27, // 43: temporal.server.api.umpire.v1.Evidence.single:type_name -> temporal.server.api.umpire.v1.ReadSource
-	25, // 44: temporal.server.api.umpire.v1.Evidence.run_event:type_name -> temporal.server.api.umpire.v1.RunEventSource
-	4,  // 45: temporal.server.api.umpire.v1.Evidence.commitment:type_name -> temporal.server.api.umpire.v1.Evidence.Commitment
-	24, // 46: temporal.server.api.umpire.v1.Evidence.fields:type_name -> temporal.server.api.umpire.v1.EvidenceField
-	23, // 47: temporal.server.api.umpire.v1.Evidence.confirms:type_name -> temporal.server.api.umpire.v1.Taking
-	32, // 48: temporal.server.api.umpire.v1.Taking.position:type_name -> temporal.server.api.umpire.v1.Position
-	35, // 49: temporal.server.api.umpire.v1.Taking.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	32, // 50: temporal.server.api.umpire.v1.EvidenceField.position:type_name -> temporal.server.api.umpire.v1.Position
-	5,  // 51: temporal.server.api.umpire.v1.EvidenceField.role:type_name -> temporal.server.api.umpire.v1.EvidenceField.Role
-	6,  // 52: temporal.server.api.umpire.v1.RunEventSource.kind:type_name -> temporal.server.api.umpire.v1.RunEventSource.Kind
-	36, // 53: temporal.server.api.umpire.v1.RunEventSource.key:type_name -> temporal.server.api.umpire.v1.Operand
-	36, // 54: temporal.server.api.umpire.v1.RunEventSource.guard:type_name -> temporal.server.api.umpire.v1.Operand
-	26, // 55: temporal.server.api.umpire.v1.RunEventSource.attempt:type_name -> temporal.server.api.umpire.v1.AttemptOf
-	32, // 56: temporal.server.api.umpire.v1.AttemptOf.position:type_name -> temporal.server.api.umpire.v1.Position
-	32, // 57: temporal.server.api.umpire.v1.Correlation.position:type_name -> temporal.server.api.umpire.v1.Position
-	32, // 58: temporal.server.api.umpire.v1.Control.position:type_name -> temporal.server.api.umpire.v1.Position
-	30, // 59: temporal.server.api.umpire.v1.Control.hold_dispatched:type_name -> temporal.server.api.umpire.v1.HoldDispatched
-	35, // 60: temporal.server.api.umpire.v1.HoldDispatched.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	7,  // 61: temporal.server.api.umpire.v1.RejectionCode.rejection:type_name -> temporal.server.api.umpire.v1.RejectionCode.Rejection
-	62, // [62:62] is the sub-list for method output_type
-	62, // [62:62] is the sub-list for method input_type
-	62, // [62:62] is the sub-list for extension type_name
-	62, // [62:62] is the sub-list for extension extendee
-	0,  // [0:62] is the sub-list for field type_name
+	36, // 25: temporal.server.api.umpire.v1.InstructionLimit.timeout:type_name -> google.protobuf.Duration
+	32, // 26: temporal.server.api.umpire.v1.Visibility.position:type_name -> temporal.server.api.umpire.v1.Position
+	0,  // 27: temporal.server.api.umpire.v1.Visibility.cause:type_name -> temporal.server.api.umpire.v1.CauseKind
+	16, // 28: temporal.server.api.umpire.v1.Visibility.eventually_within:type_name -> temporal.server.api.umpire.v1.WaitBound
+	32, // 29: temporal.server.api.umpire.v1.WaitBound.position:type_name -> temporal.server.api.umpire.v1.Position
+	36, // 30: temporal.server.api.umpire.v1.WaitBound.interval:type_name -> google.protobuf.Duration
+	36, // 31: temporal.server.api.umpire.v1.WaitBound.at_most:type_name -> google.protobuf.Duration
+	32, // 32: temporal.server.api.umpire.v1.CauseBound.position:type_name -> temporal.server.api.umpire.v1.Position
+	0,  // 33: temporal.server.api.umpire.v1.CauseBound.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
+	16, // 34: temporal.server.api.umpire.v1.CauseBound.bound:type_name -> temporal.server.api.umpire.v1.WaitBound
+	32, // 35: temporal.server.api.umpire.v1.ServerStep.position:type_name -> temporal.server.api.umpire.v1.Position
+	35, // 36: temporal.server.api.umpire.v1.ServerStep.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	0,  // 37: temporal.server.api.umpire.v1.ServerStep.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
+	36, // 38: temporal.server.api.umpire.v1.ServerStep.deadline:type_name -> google.protobuf.Duration
+	1,  // 39: temporal.server.api.umpire.v1.ServerStep.timeout_basis:type_name -> temporal.server.api.umpire.v1.TimeoutBasis
+	32, // 40: temporal.server.api.umpire.v1.Role.position:type_name -> temporal.server.api.umpire.v1.Position
+	2,  // 41: temporal.server.api.umpire.v1.Role.kind:type_name -> temporal.server.api.umpire.v1.Role.Kind
+	32, // 42: temporal.server.api.umpire.v1.Learned.position:type_name -> temporal.server.api.umpire.v1.Position
+	3,  // 43: temporal.server.api.umpire.v1.Learned.kind:type_name -> temporal.server.api.umpire.v1.Learned.Kind
+	32, // 44: temporal.server.api.umpire.v1.Observed.position:type_name -> temporal.server.api.umpire.v1.Position
+	32, // 45: temporal.server.api.umpire.v1.Evidence.position:type_name -> temporal.server.api.umpire.v1.Position
+	27, // 46: temporal.server.api.umpire.v1.Evidence.read:type_name -> temporal.server.api.umpire.v1.ReadSource
+	27, // 47: temporal.server.api.umpire.v1.Evidence.single:type_name -> temporal.server.api.umpire.v1.ReadSource
+	25, // 48: temporal.server.api.umpire.v1.Evidence.run_event:type_name -> temporal.server.api.umpire.v1.RunEventSource
+	4,  // 49: temporal.server.api.umpire.v1.Evidence.commitment:type_name -> temporal.server.api.umpire.v1.Evidence.Commitment
+	24, // 50: temporal.server.api.umpire.v1.Evidence.fields:type_name -> temporal.server.api.umpire.v1.EvidenceField
+	23, // 51: temporal.server.api.umpire.v1.Evidence.confirms:type_name -> temporal.server.api.umpire.v1.Taking
+	32, // 52: temporal.server.api.umpire.v1.Taking.position:type_name -> temporal.server.api.umpire.v1.Position
+	35, // 53: temporal.server.api.umpire.v1.Taking.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	32, // 54: temporal.server.api.umpire.v1.EvidenceField.position:type_name -> temporal.server.api.umpire.v1.Position
+	5,  // 55: temporal.server.api.umpire.v1.EvidenceField.role:type_name -> temporal.server.api.umpire.v1.EvidenceField.Role
+	6,  // 56: temporal.server.api.umpire.v1.RunEventSource.kind:type_name -> temporal.server.api.umpire.v1.RunEventSource.Kind
+	37, // 57: temporal.server.api.umpire.v1.RunEventSource.key:type_name -> temporal.server.api.umpire.v1.Operand
+	37, // 58: temporal.server.api.umpire.v1.RunEventSource.guard:type_name -> temporal.server.api.umpire.v1.Operand
+	26, // 59: temporal.server.api.umpire.v1.RunEventSource.attempt:type_name -> temporal.server.api.umpire.v1.AttemptOf
+	32, // 60: temporal.server.api.umpire.v1.AttemptOf.position:type_name -> temporal.server.api.umpire.v1.Position
+	32, // 61: temporal.server.api.umpire.v1.Correlation.position:type_name -> temporal.server.api.umpire.v1.Position
+	32, // 62: temporal.server.api.umpire.v1.Control.position:type_name -> temporal.server.api.umpire.v1.Position
+	30, // 63: temporal.server.api.umpire.v1.Control.hold_dispatched:type_name -> temporal.server.api.umpire.v1.HoldDispatched
+	35, // 64: temporal.server.api.umpire.v1.HoldDispatched.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	7,  // 65: temporal.server.api.umpire.v1.RejectionCode.rejection:type_name -> temporal.server.api.umpire.v1.RejectionCode.Rejection
+	66, // [66:66] is the sub-list for method output_type
+	66, // [66:66] is the sub-list for method input_type
+	66, // [66:66] is the sub-list for extension type_name
+	66, // [66:66] is the sub-list for extension extendee
+	0,  // [0:66] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_realization_proto_init() }

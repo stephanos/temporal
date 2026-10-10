@@ -451,43 +451,6 @@ func (this *ActivityAttemptFailure) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ActivityAttemptCancellation to the protobuf v3 wire format
-func (val *ActivityAttemptCancellation) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ActivityAttemptCancellation from the protobuf v3 wire format
-func (val *ActivityAttemptCancellation) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ActivityAttemptCancellation) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ActivityAttemptCancellation values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ActivityAttemptCancellation) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ActivityAttemptCancellation
-	switch t := that.(type) {
-	case *ActivityAttemptCancellation:
-		that1 = t
-	case ActivityAttemptCancellation:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
 // Marshal an object of type ActivityAttemptWithholding to the protobuf v3 wire format
 func (val *ActivityAttemptWithholding) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -782,25 +745,6 @@ func (this *InstructionLimits) Equal(that interface{}) bool {
 	}
 
 	return proto.Equal(this, that1)
-}
-
-var (
-	ReadCardinality_shorthandValue = map[string]int32{
-		"Unspecified": 0,
-		"One":         1,
-		"EmitEach":    2,
-	}
-)
-
-// ReadCardinalityFromString parses a ReadCardinality value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ReadCardinality
-func ReadCardinalityFromString(s string) (ReadCardinality, error) {
-	if v, ok := ReadCardinality_value[s]; ok {
-		return ReadCardinality(v), nil
-	} else if v, ok := ReadCardinality_shorthandValue[s]; ok {
-		return ReadCardinality(v), nil
-	}
-	return ReadCardinality(0), fmt.Errorf("%s is not a valid ReadCardinality", s)
 }
 
 var (

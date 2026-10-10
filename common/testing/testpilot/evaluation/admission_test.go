@@ -115,7 +115,7 @@ func TestAdmitTheControlRecord(t *testing.T) {
 }
 
 func TestAdmitFormatRejectsBeforePayloadInterpretation(t *testing.T) {
-	for _, version := range []string{`{"major":2}`, `{"major":3}`, `{"major":4}`, `{"major":99}`, `{"major":1,"minor":1}`} {
+	for _, version := range []string{`{"major":1}`, `{"major":2}`, `{"major":3}`, `{"major":99}`, `{"major":4,"minor":1}`} {
 		t.Run(version, func(t *testing.T) {
 			caseBytes := []byte(`{"version":` + version + `,"program":{"retiredExpression":true}}`)
 			subject, err := Admit(caseBytes, []byte(`{"run":{"retiredPayload":true}}`), "catalog")

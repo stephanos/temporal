@@ -63,7 +63,7 @@ func newCompletionTransport(client *http.Client, rawBaseURL string, limits *test
 		return nil, ErrInvalid
 	}
 	transport.httpClient.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	transport.httpClient.Timeout = time.Duration(limits.GetMaxTotalDurationMilliseconds()) * time.Millisecond
+	transport.httpClient.Timeout = time.Duration(limits.GetMaxDuration().AsDuration().Milliseconds()) * time.Millisecond
 	return transport, nil
 }
 

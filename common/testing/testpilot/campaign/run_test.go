@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -228,7 +229,7 @@ func (f *fakeBridge) requireNoRequest(t testing.TB) {
 // A Case the fake hands out; the Go side decodes it and hands it to the binder.
 func sampleCase(caseID string) json.RawMessage {
 	source := &testpilotspb.Case{
-		Version: &testpilotspb.FormatVersion{Major: 1},
+		Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor},
 		CaseId:  caseID,
 		Program: &testpilotspb.Program{ProgramId: caseID + ".program"},
 		Contract: &testpilotspb.Contract{

@@ -11,6 +11,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -125,8 +126,10 @@ func TestRuleInstancesBoundTheAuthoredSurface(t *testing.T) {
 	for _, instance := range c.Rules[0].Instances {
 		instance.Assignments = append(instance.Assignments, assignment("unread", text(strings.Repeat("x", 6<<20))))
 	}
-	_, err := Prepare(expand(c), catalog, view, limits, nil)
+	limits.MaxWorkPerEvent = hardLimits().MaxWorkPerEvent
+	prepared, err := Prepare(expand(c), catalog, view, limits, nil)
 	require.NoError(t, err, "the expansion drops the unread values")
+	limits.MaxWorkPerEvent = prepared.workPerEvent
 	_, err = Prepare(c, catalog, view, limits, nil)
 	var diagnostic *ir.Error
 	require.ErrorAs(t, err, &diagnostic)
@@ -237,7 +240,7 @@ func firstDifferingRule(t *testing.T, want, got []byte) string {
 func nexusWorld(t *testing.T) instanceWorld {
 	t.Helper()
 	prepared, view := nexusCorrelationFixture(t)
-	return instanceWorld{catalog: prepared.catalog, view: view, limits: &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 64, MaxTransitions: 64, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 16, MaxCaptureBytes: 65536}}
+	return instanceWorld{catalog: prepared.catalog, view: view, limits: &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 64, MaxTransitions: 64, MaxExpressionDepth: 12, MaxWorkPerEvent: 16 * prepared.workPerEvent, MaxTotalWork: 1000000000, MaxCaptures: 16, MaxCaptureBytes: 65536}}
 }
 
 func scheduledOperation() *testpilotspb.Expression {
@@ -246,15 +249,15 @@ func scheduledOperation() *testpilotspb.Expression {
 
 // selectsOperation matches a scheduled event of operation, the pair Case's capture selector.
 func selectsOperation(operation *testpilotspb.Expression) *testpilotspb.Expression {
-	return all(present(nexusObservation()), equal(scheduledOperation(), operation))
+	return all(present(nexusObservation()), present(scheduledOperation()), equal(scheduledOperation(), operation))
 }
 
 // pairRule is the pair Case's capture shape: capture the scheduled event of operation, then match
 // the completion that names it. A crossed completion leaves it pending.
 func pairRule(id string, operation *testpilotspb.Expression) *testpilotspb.ContractRule {
-	captured := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_CaptureId{CaptureId: "nexusOperationScheduled-relation"}}}}
+	captured := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_CaptureId{CaptureId: "nexusOperationScheduled-relation"}})
 	rule := &testpilotspb.ContractRule{
-		RuleId: id, Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "pending",
+		RuleId: id, InitialStateId: "pending",
 		States: []*testpilotspb.ContractState{
 			{StateId: "pending", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
 			{StateId: "nexusOperationScheduled", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
@@ -263,7 +266,7 @@ func pairRule(id string, operation *testpilotspb.Expression) *testpilotspb.Contr
 		Captures: []*testpilotspb.ContractCapture{{CaptureId: "nexusOperationScheduled-relation", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.api.history.v1.HistoryEvent"}}}}},
 		Transitions: []*testpilotspb.ContractTransition{
 			nexusTransition("capture-nexusOperationScheduled-relation", "pending", "nexusOperationScheduled", selectsOperation(operation)),
-			nexusTransition("match-nexusOperationCompleted-relation", "nexusOperationScheduled", "satisfied", all(present(captured), equal(nexusPath(captured, "event_id"), nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), "scheduled_event_id")))),
+			nexusTransition("match-nexusOperationCompleted-relation", "nexusOperationScheduled", "satisfied", all(present(captured), present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), "scheduled_event_id")), equal(nexusPath(captured, "event_id"), nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), "scheduled_event_id")))),
 		},
 	}
 	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "nexusOperationScheduled-relation", ObservationId: "history-event"}}
@@ -319,7 +322,7 @@ func pairInstances(t *testing.T) (tc instanceCase) {
 // that instance alone and stops the Run.
 func safetyInstances(t *testing.T) (tc instanceCase) {
 	forbid := &testpilotspb.ContractRule{
-		RuleId: "forbid", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "pending",
+		RuleId: "forbid", InitialStateId: "pending",
 		States: []*testpilotspb.ContractState{
 			{StateId: "pending", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
 			{StateId: "satisfied", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
@@ -344,7 +347,7 @@ func safetyInstances(t *testing.T) (tc instanceCase) {
 // is scheduled is satisfied and stops counting, the other expires.
 func deadlineInstances(t *testing.T) (tc instanceCase) {
 	seen := &testpilotspb.ContractRule{
-		RuleId: "seen", Kind: testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS, InitialStateId: "pending",
+		RuleId: "seen", InitialStateId: "pending",
 		States: []*testpilotspb.ContractState{
 			{StateId: "pending", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
 			{StateId: "satisfied", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
@@ -366,10 +369,10 @@ func deadlineInstances(t *testing.T) (tc instanceCase) {
 // correlatedInstances places the correlated rule's verdict after the Rule instances'.
 func correlatedInstances(t *testing.T) (tc instanceCase) {
 	contract, catalog, view, limits, correlated := correlatedFixture(t, 1)
-	evidence := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "evidence"}}}}
-	operation := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: evidence, Path: "operation"}}}
+	evidence := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "evidence"}})
+	operation := cel.Path(evidence, "operation")
 	rule := &testpilotspb.ContractRule{
-		RuleId: "operation", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "pending",
+		RuleId: "operation", InitialStateId: "pending",
 		States: []*testpilotspb.ContractState{
 			{StateId: "pending", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
 			{StateId: "satisfied", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},

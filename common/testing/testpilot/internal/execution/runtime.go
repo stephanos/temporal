@@ -25,7 +25,7 @@ func Run(
 		return nil, nil, err
 	}
 	limits := program.limits
-	runCtx, cancelRun := context.WithTimeout(ctx, time.Duration(limits.GetMaxTotalDurationMilliseconds())*time.Millisecond)
+	runCtx, cancelRun := context.WithTimeout(ctx, time.Duration(limits.GetMaxDuration().AsDuration().Milliseconds())*time.Millisecond)
 	session, err := driver.Open(runCtx, runID, program)
 	if err != nil {
 		cancelRun()
@@ -44,7 +44,7 @@ func Run(
 	}
 	ordinaryErr := scheduler.execute(runCtx)
 	abort := ordinaryErr != nil || scheduler.recorder.shouldAbort()
-	terminationCtx, cancelTermination := freshContext(limits.GetMaxCleanupDurationMilliseconds())
+	terminationCtx, cancelTermination := freshContext(limits.GetCleanupDuration().AsDuration().Milliseconds())
 	terminationErr := scheduler.settle(terminationCtx, scheduler.outstanding(), false, abort)
 	cancelTermination()
 	if terminationErr != nil {
@@ -54,7 +54,7 @@ func Run(
 
 	cleanup := &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}
 	cleanupStart := scheduler.ownedCount()
-	cleanupCtx, cancelCleanup := freshContext(limits.GetMaxCleanupDurationMilliseconds())
+	cleanupCtx, cancelCleanup := freshContext(limits.GetCleanupDuration().AsDuration().Milliseconds())
 	cleanupErr := scheduler.executeCleanup(cleanupCtx)
 	cleanupSettleErr := scheduler.settle(cleanupCtx, scheduler.outstandingSince(cleanupStart), true, cleanupErr != nil)
 	cancelCleanup()
@@ -65,7 +65,7 @@ func Run(
 		}
 	}
 
-	closeCtx, cancelClose := freshContext(limits.GetMaxCleanupDurationMilliseconds())
+	closeCtx, cancelClose := freshContext(limits.GetCleanupDuration().AsDuration().Milliseconds())
 	closeErr := session.Close(closeCtx)
 	if closeErr == nil {
 		closeErr = closeCtx.Err()
@@ -79,7 +79,7 @@ func Run(
 	}
 	cancelRun()
 	scheduler.beginClose()
-	verdictCtx, cancelVerdict := freshContext(limits.GetMaxTotalDurationMilliseconds())
+	verdictCtx, cancelVerdict := freshContext(limits.GetMaxDuration().AsDuration().Milliseconds())
 	run, verdict, recorderErr := scheduler.recorder.close(verdictCtx, disposition, cleanup)
 	cancelVerdict()
 	scheduler.finishClose()
@@ -92,7 +92,7 @@ func Run(
 // Session under a fresh cleanup bound, joining the close error to err.
 func abandon(err error, cancelRun context.CancelFunc, session contract.Session, limits *testpilotspb.ProgramLimits) error {
 	cancelRun()
-	closeCtx, cancelClose := freshContext(limits.GetMaxCleanupDurationMilliseconds())
+	closeCtx, cancelClose := freshContext(limits.GetCleanupDuration().AsDuration().Milliseconds())
 	defer cancelClose()
 	return errors.Join(err, session.Close(closeCtx))
 }

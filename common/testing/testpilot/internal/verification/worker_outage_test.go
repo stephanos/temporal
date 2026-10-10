@@ -3,16 +3,21 @@ package verification
 import (
 	"os"
 	"testing"
+	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	historypb "go.temporal.io/api/history/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // The shipped worker-outage Case. The agreement below has to hold for the Contract the live Run is
@@ -64,10 +69,10 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 
 	catalog, err := ir.NewCatalog(testsupport.DescriptorClosure(historypb.File_temporal_api_history_v1_message_proto))
 	require.NoError(t, err)
-	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor, Minor: casefile.CurrentMinor}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
 		ProgramId:    "program",
 		Observations: []*testpilotspb.Observation{{ObservationId: "history-event", Type: nexusMessageType("temporal.api.history.v1.HistoryEvent")}},
-		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
+		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}}},
 		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}}
 	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: testsupport.ProgramLimits()})
@@ -83,12 +88,7 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 func workerOutageRun(t testing.TB, resumed bool) *testpilotspb.Run {
 	t.Helper()
 	fault := func(sequence int64, kind testpilotspb.FaultKind, instruction string) *testpilotspb.RunEvent {
-		return &testpilotspb.RunEvent{
-			Sequence: sequence, ElapsedMilliseconds: sequence * 10,
-			Kind:        testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED,
-			Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: instruction, ActivationId: "controller-1", Attempt: 1},
-			Payload:     &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: "temporal.task-queue", Kind: kind}},
-		}
+		return &testpilotspb.RunEvent{Sequence: sequence, Elapsed: durationpb.New(time.Duration(sequence*10) * time.Millisecond), Kind: testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED, Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: instruction, ActivationId: "controller-1", Attempt: 1}, Payload: &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: "temporal.task-queue", Kind: kind}}}
 	}
 	completed := &historypb.HistoryEvent{
 		EventId:    9,
@@ -100,24 +100,20 @@ func workerOutageRun(t testing.TB, resumed bool) *testpilotspb.Run {
 	events := []*testpilotspb.RunEvent{
 		{Sequence: 1, Kind: testpilotspb.RUN_EVENT_KIND_RUN_OPENED},
 		fault(2, testpilotspb.FAULT_KIND_WORKER_STOP, "stop-worker"),
-		{Sequence: 3, ElapsedMilliseconds: 30, Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: "start-workflow", ActivationId: "controller-1", Attempt: 1}},
+		{Sequence: 3, Elapsed: ir.MillisecondsDuration(30), Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: "start-workflow", ActivationId: "controller-1", Attempt: 1}},
 	}
 	if resumed {
 		events = append(events, fault(4, testpilotspb.FAULT_KIND_WORKER_RESUME, "resume-worker"))
 	} else {
 		// The outage never ends, so the rule keeps counting past its declared bound.
 		for sequence := int64(4); sequence <= 24; sequence++ {
-			events = append(events, &testpilotspb.RunEvent{Sequence: sequence, ElapsedMilliseconds: sequence * 10, Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC})
+			events = append(events, &testpilotspb.RunEvent{Sequence: sequence, Elapsed: durationpb.New(time.Duration(sequence*10) * time.Millisecond), Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC})
 		}
 	}
 	next := events[len(events)-1].GetSequence() + 1
-	events = append(events, &testpilotspb.RunEvent{
-		Sequence: next, ElapsedMilliseconds: next * 10, Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED,
-		Coordinates:  &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: "history", ActivationId: "controller-1", Attempt: 1},
-		Observations: []*testpilotspb.ObservationResult{{ObservationId: "history-event", Value: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: value}}}},
-	})
+	events = append(events, &testpilotspb.RunEvent{Sequence: next, Elapsed: durationpb.New(time.Duration(next*10) * time.Millisecond), Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: "history", ActivationId: "controller-1", Attempt: 1}, Observations: []*testpilotspb.ObservationResult{{ObservationId: "history-event", Value: &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: value}}}}})
 	closure := next + 1
-	events = append(events, &testpilotspb.RunEvent{Sequence: closure, ElapsedMilliseconds: closure * 10, Kind: testpilotspb.RUN_EVENT_KIND_RUN_CLOSED})
+	events = append(events, &testpilotspb.RunEvent{Sequence: closure, Elapsed: durationpb.New(time.Duration(closure*10) * time.Millisecond), Kind: testpilotspb.RUN_EVENT_KIND_RUN_CLOSED})
 
 	status := testpilotspb.RUN_DISPOSITION_COMPLETED
 	if !resumed {

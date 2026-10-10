@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	commandpb "go.temporal.io/api/command/v1"
 	commonpb "go.temporal.io/api/common/v1"
@@ -24,6 +25,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -43,7 +46,7 @@ func scheduleActivityProgram(attributes *commandpb.ScheduleActivityTaskCommandAt
 			Attributes:  &commandpb.Command_ScheduleActivityTaskCommandAttributes{ScheduleActivityTaskCommandAttributes: attributes},
 		}}}}
 		// The await outlasts the retry backoff an attempt that fails retryably waits out.
-		program.Entrypoints[1].Instructions[1].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 10000}
+		program.Entrypoints[1].Instructions[1].Limits.Timeout = pbduration.FromMilliseconds(10000)
 		program.Entrypoints = program.Entrypoints[:2]
 	}
 }
@@ -51,8 +54,8 @@ func scheduleActivityProgram(attributes *commandpb.ScheduleActivityTaskCommandAt
 // finishWithAwaitStatus makes the workflow finish, whatever the Await's outcome, with its status.
 func finishWithAwaitStatus(program *testpilotspb.Program) {
 	finish := program.Entrypoints[1].Instructions[2]
-	finish.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
-	finish.Instruction.GetFinish().Result.GetReference().GetOutcome().Field = testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS
+	finish.Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})
+	finish.Instruction.GetFinish().Result.GetBindings()[0].GetReference().GetOutcome().Field = testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS
 }
 
 func authorizeActivityQueue(profile *testpilot.ProfileSpec) {
@@ -137,7 +140,7 @@ func TestSDKWorkflowSchedulesAnActivityAwaitsItAndFinishesWithItsResult(t *testi
 		return call.first + " " + call.second + " done", nil
 	})
 	require.NoError(t, environment.GetWorkflowError())
-	var result testpilotspb.Value
+	var result celpb.Value
 	require.NoError(t, environment.GetWorkflowResult(&result))
 	require.Equal(t, "request second done", facadetest.CarriedText(t, &result))
 	require.Len(t, calls, 2)
@@ -162,9 +165,9 @@ func TestSDKWorkflowAwaitRecordsTheActivityFailure(t *testing.T) {
 		return "", temporal.NewApplicationError("fatal failure", "fatal")
 	}, finishWithAwaitStatus)
 	require.NoError(t, environment.GetWorkflowError())
-	var result testpilotspb.Value
+	var result celpb.Value
 	require.NoError(t, environment.GetWorkflowResult(&result))
-	require.Equal(t, "INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE", result.GetEnumValue().GetName())
+	require.Equal(t, int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE), result.GetEnumValue().GetValue())
 	require.Len(t, calls, 1, "a non-retryable error type of the carried retry policy ends the activity")
 	workflowResult, err := reservationForEntrypoint(t, session, "workflow").Wait(t.Context())
 	require.NoError(t, err)
@@ -267,13 +270,13 @@ func TestSDKWorkflowRoutesItsActivityAttemptsToTheActivityScript(t *testing.T) {
 	t.Run("complete", func(t *testing.T) {
 		environment, session := runRoutedActivity(t, retried(), []*testpilotspb.Instruction{completeAttempt, failAttempt})
 		require.NoError(t, environment.GetWorkflowError())
-		var result testpilotspb.Value
+		var result celpb.Value
 		require.NoError(t, environment.GetWorkflowResult(&result))
 		var payload commonpb.Payload
-		require.NoError(t, result.GetMessageValue().UnmarshalTo(&payload))
-		var answered testpilotspb.Value
+		require.NoError(t, result.GetObjectValue().UnmarshalTo(&payload))
+		var answered celpb.Value
 		require.NoError(t, converter.GetDefaultDataConverter().FromPayload(&payload, &answered))
-		require.Equal(t, "done", answered.GetTextValue())
+		require.Equal(t, "done", answered.GetStringValue())
 		requireAttempt(t, attemptOutcome(t, session, 0), testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED, 1)
 		requireAttempt(t, attemptOutcome(t, session, 1), testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED, testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED, 0)
 	})
@@ -289,9 +292,9 @@ func TestSDKWorkflowRoutesItsActivityAttemptsToTheActivityScript(t *testing.T) {
 		attributes.RetryPolicy.MaximumAttempts = 1
 		environment, session := runRoutedActivity(t, attributes, []*testpilotspb.Instruction{withholdAttempt}, finishWithAwaitStatus)
 		require.NoError(t, environment.GetWorkflowError())
-		var result testpilotspb.Value
+		var result celpb.Value
 		require.NoError(t, environment.GetWorkflowResult(&result))
-		require.Equal(t, "INSTRUCTION_OUTCOME_STATUS_TIMED_OUT", result.GetEnumValue().GetName())
+		require.Equal(t, int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT), result.GetEnumValue().GetValue())
 		requireAttempt(t, attemptOutcome(t, session, 0), testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_WITHHELD, 1)
 	})
 }
@@ -321,7 +324,7 @@ func TestActivityScriptCompletesAfterAWithheldAttemptDeadline(t *testing.T) {
 
 	result, err = worker.activateActivity(t.Context(), activityAttempt(request, "activity-run", 2, "delivery-2"), runScript(host))
 	require.NoError(t, err)
-	require.Equal(t, "done", result.(*testpilotspb.Value).GetTextValue())
+	require.Equal(t, "done", result.(*celpb.Value).GetStringValue())
 	second := attemptOutcome(t, session, 1)
 	protorequire.ProtoEqual(t, answered("activity-run", 2, "delivery-2", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED), second)
 }
@@ -344,11 +347,11 @@ func TestSDKWorkflowReplayerCompletesAWorkflowAwaitingItsActivity(t *testing.T) 
 	dataConverter := converter.GetDefaultDataConverter()
 	arguments, err := dataConverter.ToPayloads("untouched")
 	require.NoError(t, err)
-	answered, err := dataConverter.ToPayloads(&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}})
+	answered, err := dataConverter.ToPayloads(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "done"}})
 	require.NoError(t, err)
 	carried, err := anypb.New(answered.GetPayloads()[0])
 	require.NoError(t, err)
-	workflowResult, err := dataConverter.ToPayloads(&testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: carried}})
+	workflowResult, err := dataConverter.ToPayloads(&celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: carried}})
 	require.NoError(t, err)
 	task := func(id int64) []*historypb.HistoryEvent {
 		return []*historypb.HistoryEvent{

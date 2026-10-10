@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/evaluation"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/canary/authority"
@@ -297,7 +298,10 @@ func (r *invocation) refuse(found recovery.Lease, state string) (*Result, error)
 // notFoundPause is one RPC's timeout, the instruction default the prepared Case declares, plus a
 // margin. A Case that declares none gives no timeout to wait out, which is an error, as reconcile's.
 func (r *invocation) notFoundPause() (time.Duration, error) {
-	ms := r.Scope.Prepared.Snapshot().GetProgram().GetInstructionDefaults().GetTimeoutMilliseconds()
+	ms, err := duration.Milliseconds("instruction_defaults.timeout", r.Scope.Prepared.Snapshot().GetProgram().GetInstructionDefaults().GetTimeout())
+	if err != nil {
+		return 0, err
+	}
 	if ms <= 0 {
 		return 0, errors.New("the prepared canary Case declares no instruction timeout")
 	}
@@ -311,8 +315,8 @@ func (r *invocation) notFoundPause() (time.Duration, error) {
 // invocation never outlives the limit plus the cleanup reserve that reconcile's age guard assumes.
 func (r *invocation) iterationBound() time.Duration {
 	limits := r.Scope.Profile.ProgramLimits
-	total := time.Duration(limits.GetMaxTotalDurationMilliseconds()) * time.Millisecond
-	cleanup := time.Duration(limits.GetMaxCleanupDurationMilliseconds()) * time.Millisecond
+	total := limits.GetMaxDuration().AsDuration()
+	cleanup := limits.GetCleanupDuration().AsDuration()
 	return 2*total + 3*cleanup + releaseTimeout
 }
 

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
@@ -12,8 +14,8 @@ import (
 
 func TestRuntimeSnapshotDeterministicFailureOrder(t *testing.T) {
 	for _, source := range []proto.Message{
-		&testpilotspb.InstructionOutcome{Status: 999, Detail: "detail", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "value"}}},
-		&structpb.Struct{Fields: map[string]*structpb.Value{"z": {Kind: &structpb.Value_NullValue{NullValue: 999}}, "a": {Kind: &structpb.Value_StringValue{StringValue: "value"}}}},
+		&testpilotspb.InstructionOutcome{Status: 999, Detail: string([]byte{0xff}), Value: &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "value"}}},
+		&structpb.Struct{Fields: map[string]*structpb.Value{"z": {Kind: &structpb.Value_NullValue{NullValue: 999}}, "a": {Kind: &structpb.Value_StringValue{StringValue: string([]byte{0xff})}}}},
 	} {
 		for _, limit := range []int64{1, 5, 20, 40, 100, 1000} {
 			limits := DefaultLimits()

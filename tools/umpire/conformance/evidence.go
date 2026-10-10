@@ -1,10 +1,13 @@
 package conformance
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"strconv"
 	"strings"
+
+	celpb "cel.dev/expr"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -241,7 +244,7 @@ func identityOf(id *testpilotspb.CorrelatedIdentity) string {
 func scopeOf(id *testpilotspb.CorrelatedIdentity) string {
 	var b strings.Builder
 	for _, scope := range id.GetScope() {
-		fmt.Fprintf(&b, "%s=%q;", scope.GetFieldId(), scope.GetValue().GetTextValue())
+		fmt.Fprintf(&b, "%s=%q;", scope.GetFieldId(), scope.GetValue().GetStringValue())
 	}
 	return b.String()
 }
@@ -249,7 +252,7 @@ func scopeOf(id *testpilotspb.CorrelatedIdentity) string {
 // read is the evidence one Run Event carries, or nothing for an event that carries none. Evidence
 // that is not what the Case and the realization declare is an error at that event: it is never
 // dropped, and never read as something else.
-func (r *reader) read(event *testpilotspb.RunEvent) (*observation, error) {
+func (r *reader) read(ctx context.Context, event *testpilotspb.RunEvent) (*observation, error) {
 	sequence := event.GetSequence()
 	var found *observation
 	for _, result := range event.GetObservations() {
@@ -259,7 +262,7 @@ func (r *reader) read(event *testpilotspb.RunEvent) (*observation, error) {
 		if found != nil {
 			return nil, &EvidenceError{Event: sequence, Message: "the evidence observation is recorded twice"}
 		}
-		packed := result.GetValue().GetMessageValue()
+		packed := result.GetValue().GetObjectValue()
 		if packed == nil {
 			return nil, &EvidenceError{Event: sequence, Message: "the evidence observation carries no message"}
 		}
@@ -271,7 +274,7 @@ func (r *reader) read(event *testpilotspb.RunEvent) (*observation, error) {
 		if found, err = r.observed(sequence, evidence, event.GetOutcome().GetActivityAttempt()); err != nil {
 			return nil, err
 		}
-		if err := occurrence(found.kind, event); err != nil {
+		if err := occurrence(ctx, found.kind, event); err != nil {
 			return nil, err
 		}
 	}
@@ -281,11 +284,11 @@ func (r *reader) read(event *testpilotspb.RunEvent) (*observation, error) {
 // occurrence checks that evidence of a kind that is the Run's own record is carried by a Run Event the
 // kind's source takes: the declaration says which events are occurrences of the evidence, and evidence
 // on any other event is none of them. A guard that cannot be evaluated on the event is its error.
-func occurrence(declared *kind, event *testpilotspb.RunEvent) error {
+func occurrence(ctx context.Context, declared *kind, event *testpilotspb.RunEvent) error {
 	if declared.record == nil {
 		return nil
 	}
-	admitted, err := admits(declared.record, event)
+	admitted, err := admitsContext(ctx, declared.record, event)
 	if err != nil {
 		return err
 	}
@@ -306,7 +309,7 @@ func (r *reader) scoped(id *testpilotspb.CorrelatedIdentity) string {
 		return fmt.Sprintf("source %q, which is not a source of the Case", id.GetEvidenceSource())
 	}
 	if !slices.EqualFunc(id.GetScope(), r.scope, func(field *testpilotspb.NamedValue, declared string) bool {
-		return field.GetFieldId() == declared && field.GetValue().GetTextValue() != ""
+		return field.GetFieldId() == declared && field.GetValue().GetStringValue() != ""
 	}) {
 		return fmt.Sprintf("scope %s, which is not the Case's scope %v with a value for each field", scopeOf(id), r.scope)
 	}
@@ -352,13 +355,13 @@ func carried(declared *kind, evidence *testpilotspb.CorrelatedEvidence) string {
 
 // scalar spells a value of the portable evidence domain, a text, an unsigned integer or a flag, and
 // is whether the value is one.
-func scalar(v *testpilotspb.Value) (string, bool) {
-	switch value := v.GetValue().(type) {
-	case *testpilotspb.Value_TextValue:
-		return value.TextValue, true
-	case *testpilotspb.Value_UnsignedIntegerValue:
-		return value.UnsignedIntegerValue, true
-	case *testpilotspb.Value_BoolValue:
+func scalar(v *celpb.Value) (string, bool) {
+	switch value := v.GetKind().(type) {
+	case *celpb.Value_StringValue:
+		return value.StringValue, true
+	case *celpb.Value_Uint64Value:
+		return strconv.FormatUint(value.Uint64Value, 10), true
+	case *celpb.Value_BoolValue:
 		return strconv.FormatBool(value.BoolValue), true
 	default:
 		return "", false

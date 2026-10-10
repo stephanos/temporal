@@ -8,10 +8,14 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var (
@@ -19,32 +23,32 @@ var (
 	contractSite = Site{Context: ContractContext, Path: "contract.predicate"}
 )
 
-func literal(value *testpilotspb.Value) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: value}}
+func literal(value *celpb.Value) *testpilotspb.Expression {
+	return cel.Literal(value)
 }
 func slot(id string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}}}}
+	return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}})
 }
 func present(value *testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: value}}}
+	return cel.Present(value)
 }
 func equal(left, right *testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: left, Right: right}}}
+	return cel.Compare("_==_", left, right)
 }
 func negate(value *testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: value}}}
+	return cel.Not(value)
 }
 func reference(value *testpilotspb.Reference) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: value}}
+	return cel.Ref(value)
 }
-func compare(operator testpilotspb.ComparisonOperator, left, right *testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: operator, Left: left, Right: right}}}
+func compare(operator string, left, right *testpilotspb.Expression) *testpilotspb.Expression {
+	return cel.Compare(operator, left, right)
 }
 func all(values ...*testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: values}}}
+	return cel.All(values...)
 }
 func anyOf(values ...*testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Any{Any: &testpilotspb.AnyExpression{Operands: values}}}
+	return cel.Any(values...)
 }
 
 func TestExpressionsBindClosedVocabularyAndExplicitPresence(t *testing.T) {
@@ -64,11 +68,11 @@ func TestExpressionsBindClosedVocabularyAndExplicitPresence(t *testing.T) {
 	for name, expression := range map[string]*testpilotspb.Expression{
 		"literal":  literal(text("x")),
 		"slot":     all(present(slot("s")), equal(slot("s"), literal(text("x")))),
-		"outcome":  {Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "main", InstructionId: "call"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE}}}}},
-		"path":     {Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("message"), Path: fieldPath("text")}}},
+		"outcome":  cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "main", InstructionId: "call"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE}}}),
+		"path":     cel.Path(slot("message"), fieldPath("text")),
 		"present":  present(slot("s")),
 		"equality": equal(literal(text("x")), literal(text("y"))),
-		"compare":  {Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_LESS_THAN, Left: slot("i"), Right: literal(signed("2"))}}},
+		"compare":  cel.Compare("_<_", slot("i"), literal(signed("2"))),
 		"not":      negate(literal(boolean(true))),
 		"all":      all(literal(boolean(true)), literal(boolean(false))),
 		"any":      anyOf(negate(present(slot("s"))), equal(slot("s"), literal(text("x")))),
@@ -96,12 +100,12 @@ func TestExpressionsRejectMalformedTypesAndResourceOverflow(t *testing.T) {
 	c := fixtureCatalog(t)
 	boolType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_BOOLEAN))
 	for name, expression := range map[string]*testpilotspb.Expression{
-		"nil": nil, "empty": {}, "typed nil": {Expression: (*testpilotspb.Expression_All)(nil)},
+		"nil": nil, "empty": {}, "typed nil": {Cel: &celpb.ParsedExpr{Expr: &celpb.Expr{Id: 1, ExprKind: (*celpb.Expr_CallExpr)(nil)}}},
 		"nil operand": negate(nil), "unknown ref": slot("missing"), "undeclared presence": present(slot("missing")),
 		"crossed equality": equal(literal(text("x")), literal(boolean(true))),
 		"non bool":         all(literal(text("x"))),
-		"bad comparison":   {Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_UNSPECIFIED, Left: literal(signed("1")), Right: literal(signed("2"))}}},
-		"unordered":        {Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_LESS_THAN, Left: literal(boolean(true)), Right: literal(boolean(false))}}},
+		"bad comparison":   cel.Compare("unknown", literal(signed("1")), literal(signed("2"))),
+		"unordered":        cel.Compare("_<_", literal(&celpb.Value{Kind: &celpb.Value_ListValue{ListValue: &celpb.ListValue{Values: []*celpb.Value{boolean(true)}}}}), literal(&celpb.Value{Kind: &celpb.Value_ListValue{ListValue: &celpb.ListValue{Values: []*celpb.Value{boolean(false)}}}})),
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.NotPanics(t, func() {
@@ -131,14 +135,14 @@ func TestExpressionsRejectMalformedTypesAndResourceOverflow(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestExpressionsRequireNumericSourceTypes(t *testing.T) {
+func TestCELNumericLiteralsInferNativeTypes(t *testing.T) {
 	c := fixtureCatalog(t)
-	for _, value := range []*testpilotspb.Value{signed("1"), unsigned("1"), {Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 1}}} {
+	for _, value := range []*celpb.Value{signed("1"), unsigned("1"), {Kind: &celpb.Value_DoubleValue{DoubleValue: 1}}} {
 		_, err := c.BindExpression(programSite, literal(value), nil, nil, DefaultLimits())
-		require.Error(t, err)
-		expression := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_LESS_THAN, Left: literal(value), Right: literal(value)}}}
+		require.NoError(t, err)
+		expression := cel.Compare("_<_", literal(value), literal(value))
 		_, err = c.BindExpression(programSite, expression, nil, nil, DefaultLimits())
-		require.Error(t, err)
+		require.NoError(t, err)
 	}
 	typ := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_SINT32))
 	_, err := c.BindExpression(programSite, literal(signed("1")), &typ, nil, DefaultLimits())
@@ -150,7 +154,7 @@ func TestExpressionPresenceFactsStayOnTheirSource(t *testing.T) {
 	typ := boundType(t, c, named("fixture.Payload", false))
 	scope := map[Reference]Binding{{Kind: SlotReference, ID: "m"}: {Type: typ, Available: true}}
 	projected := func(source *testpilotspb.Expression) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: fieldPath("child", "text")}}}
+		return cel.Path(source, fieldPath("child", "text"))
 	}
 	// A comparison needs no fact, so the facts are observed through an input the guard conditions.
 	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
@@ -161,7 +165,7 @@ func TestExpressionPresenceFactsStayOnTheirSource(t *testing.T) {
 	require.NoError(t, guarded(all(present(projected(slot("m"))), literal(boolean(true))), projected(slot("m")), scope))
 	require.Error(t, guarded(anyOf(present(projected(slot("m"))), literal(boolean(false))), projected(slot("m")), scope))
 	payload := func(wire []byte) *testpilotspb.Expression {
-		return literal(&testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: wire}}})
+		return literal(&celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: wire}}})
 	}
 	require.Error(t, guarded(present(projected(payload([]byte{0x12, 3, 0x0a, 1, 'x'}))), projected(payload(nil)), nil))
 	limits := DefaultLimits()
@@ -175,11 +179,11 @@ func TestCompiledExpressionsRemainImmutableDuringConcurrentReuse(t *testing.T) {
 	source := all(literal(boolean(true)), literal(boolean(false)))
 	expression, err := c.BindExpression(programSite, source, nil, nil, DefaultLimits())
 	require.NoError(t, err)
-	source.GetAll().Operands[0] = nil
+	source.Cel.Expr.GetCallExpr().Args[0] = nil
 	children := expression.Children()
 	children[0] = nil
 	copied := expression.Children()[0].Literal()
-	copied.Value = &testpilotspb.Value_BoolValue{BoolValue: false}
+	copied.Kind = &celpb.Value_BoolValue{BoolValue: false}
 	for i := 0; i < 8; i++ {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			t.Parallel()
@@ -201,10 +205,10 @@ func TestGuardedExpressionUsesOnlyImpliedPresence(t *testing.T) {
 	textType, err := catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}}}}})
 	require.NoError(t, err)
 	slot := func(id string) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}}}}
+		return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}})
 	}
 	present := func(id string) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: slot(id)}}}
+		return cel.Present(slot(id))
 	}
 	scope := map[Reference]Binding{{Kind: SlotReference, ID: "a"}: {Type: textType}, {Kind: SlotReference, ID: "b"}: {Type: textType}}
 	for _, test := range []struct {
@@ -214,9 +218,9 @@ func TestGuardedExpressionUsesOnlyImpliedPresence(t *testing.T) {
 	}{
 		{"present", present("a"), true},
 		{"wrong source", present("b"), false},
-		{"false branch", &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: present("a")}}}, false},
-		{"non implying any", &testpilotspb.Expression{Expression: &testpilotspb.Expression_Any{Any: &testpilotspb.AnyExpression{Operands: []*testpilotspb.Expression{present("a"), present("b")}}}}, false},
-		{"unavailable guard", &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: slot("a"), Right: slot("b")}}}, false},
+		{"false branch", cel.Not(present("a")), false},
+		{"non implying any", cel.Any([]*testpilotspb.Expression{present("a"), present("b")}...), false},
+		{"unavailable guard", cel.Compare("_==_", slot("a"), slot("b")), false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			_, _, err := catalog.BindGuardedExpression(Condition{Expression: test.guard}, programSite, slot("a"), &textType, scope, DefaultLimits())
@@ -235,7 +239,7 @@ func TestGuardedExpressionExactPathAndSharedBudget(t *testing.T) {
 	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
 	scope := map[Reference]Binding{{Kind: SlotReference, ID: "a"}: {Type: message, Available: true}, {Kind: SlotReference, ID: "b"}: {Type: message, Available: true}}
 	project := func(id string) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot(id), Path: fieldPath("optional_text")}}}
+		return cel.Path(slot(id), fieldPath("optional_text"))
 	}
 	_, value, err := c.BindGuardedExpression(Condition{Expression: present(project("a"))}, programSite, project("a"), &textType, scope, DefaultLimits())
 	require.NoError(t, err)
@@ -251,7 +255,11 @@ func TestGuardedExpressionExactPathAndSharedBudget(t *testing.T) {
 	require.Error(t, err)
 	scope = map[Reference]Binding{{Kind: SlotReference, ID: "a"}: {Type: textType, Available: true}}
 	limits := DefaultLimits()
-	limits.Work = 10
+	guard, err := c.BindExpression(programSite, present(slot("a")), nil, scope, limits)
+	require.NoError(t, err)
+	input, err := c.BindExpression(programSite, slot("a"), nil, scope, limits)
+	require.NoError(t, err)
+	limits.Work = max(guard.BindingWork(), input.BindingWork())
 	_, err = c.BindExpression(programSite, present(slot("a")), nil, scope, limits)
 	require.NoError(t, err)
 	_, err = c.BindExpression(programSite, slot("a"), nil, scope, limits)
@@ -292,8 +300,8 @@ func runEventReference(event *testpilotspb.RunEventReference) *testpilotspb.Expr
 
 func payloadPath(segments ...string) *testpilotspb.Expression {
 	path := strings.Join(segments, ".")
-	payload := runEventReference(&testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &testpilotspb.RunEventPayloadReference{}}})
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: payload, Path: path}}}
+	payload := runEventReference(&testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &emptypb.Empty{}}})
+	return cel.Path(payload, path)
 }
 
 // A path from the Run Event payload binds through the arm its first segment names: the arm must be
@@ -306,7 +314,7 @@ func TestRunEventPayloadPathsBindThroughTheArmTheyName(t *testing.T) {
 	declared := map[Reference]Binding{{Kind: EventPayloadReference, ID: "fault_injected"}: {Type: faultType, Available: true}}
 	unavailable := map[Reference]Binding{{Kind: EventPayloadReference, ID: "fault_injected"}: {Type: faultType}}
 	queue := literal(text("queue"))
-	located := "contract.predicate.compare.left.path.path"
+	located := "contract.predicate.bindings[0].path"
 	for _, tc := range []struct {
 		name       string
 		site       Site
@@ -315,14 +323,14 @@ func TestRunEventPayloadPathsBindThroughTheArmTheyName(t *testing.T) {
 		want       *Error
 	}{
 		{name: "declared arm", site: contractSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: declared},
-		{name: "guarded arm", site: contractSite, expression: &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{present(payloadPath("fault_injected", "role_id")), equal(payloadPath("fault_injected", "role_id"), queue)}}}}, scope: unavailable},
+		{name: "guarded arm", site: contractSite, expression: cel.All([]*testpilotspb.Expression{present(payloadPath("fault_injected", "role_id")), equal(payloadPath("fault_injected", "role_id"), queue)}...), scope: unavailable},
 		{name: "unguarded arm compared", site: contractSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: unavailable},
-		{name: "unguarded arm read", site: contractSite, expression: payloadPath("fault_injected", "role_id"), scope: unavailable, want: &Error{Category: Unavailable, Path: "expression", Detail: "reference or path read requires an explicit presence guard"}},
-		{name: "undeclared arm", site: contractSite, expression: equal(payloadPath("outcome", "detail"), queue), scope: declared, want: &Error{Category: Unknown, Path: located, Detail: `path "outcome.detail": no Run Event kind this expression evaluates can carry the payload arm outcome`}},
-		{name: "unknown arm", site: contractSite, expression: equal(payloadPath("source_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: located, Detail: `path "source_id": unknown Run Event payload arm source_id`}},
-		{name: "empty path", site: contractSite, expression: equal(payloadPath(), queue), scope: declared, want: &Error{Category: Malformed, Path: located, Detail: `path "": a Run Event payload path starts with the plain name of a payload arm`}},
-		{name: "bare payload", site: contractSite, expression: equal(runEventReference(&testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &testpilotspb.RunEventPayloadReference{}}}), queue), scope: declared, want: &Error{Category: Malformed, Path: "contract.predicate.compare.left.reference.run_event.payload", Detail: "a Run Event payload is read only through a path that names its arm"}},
-		{name: "outside the Contract context", site: programSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: "program.guard.compare.left.path.operand.reference.run_event", Detail: "reference is not admitted in this expression context"}},
+		{name: "unguarded arm read", site: contractSite, expression: payloadPath("fault_injected", "role_id"), scope: unavailable, want: &Error{Category: Unavailable, Path: contractSite.Path, Detail: "reference or path read requires an explicit presence guard"}},
+		{name: "undeclared arm", site: contractSite, expression: equal(payloadPath("outcome", "detail"), queue), scope: declared, want: &Error{Category: Unknown, Path: "contract.predicate.bindings[0]", Detail: "reference is not declared in this environment"}},
+		{name: "unknown arm", site: contractSite, expression: equal(payloadPath("source_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: located, Detail: "unknown Run Event payload arm"}},
+		{name: "empty path", site: contractSite, expression: equal(payloadPath(), queue), scope: declared, want: &Error{Category: Malformed, Path: located, Detail: "payload path must name its arm"}},
+		{name: "bare payload", site: contractSite, expression: equal(runEventReference(&testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &emptypb.Empty{}}}), queue), scope: declared, want: &Error{Category: Malformed, Path: located, Detail: "payload path must name its arm"}},
+		{name: "outside the Contract context", site: programSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: "program.guard.bindings[0].reference.run_event", Detail: "reference is not admitted in this expression context"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := c.BindExpression(tc.site, tc.expression, nil, tc.scope, DefaultLimits())
@@ -334,10 +342,10 @@ func TestRunEventPayloadPathsBindThroughTheArmTheyName(t *testing.T) {
 		})
 	}
 
-	bound, err := c.BindExpression(contractSite, equal(payloadPath("fault_injected", "kind"), literal(&testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: EnumName(testpilotspb.FAULT_KIND_WORKER_STOP)}}})), nil, declared, DefaultLimits())
+	bound, err := c.BindExpression(contractSite, equal(payloadPath("fault_injected", "kind"), literal(cel.Enum(testpilotspb.FAULT_KIND_WORKER_STOP))), nil, declared, DefaultLimits())
 	require.NoError(t, err)
 	event := &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED, Payload: &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}}
-	matched, _, err := bound.Evaluate(t.Context(), func(reference Reference) *testpilotspb.Value {
+	matched, _, err := bound.Evaluate(t.Context(), func(reference Reference) *celpb.Value {
 		return RunEventPayloadValue(event, protoreflect.Name(reference.ID))
 	}, DefaultLimits().Work)
 	require.NoError(t, err)
@@ -354,7 +362,7 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		"outcome": {Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{
 			Instruction: &testpilotspb.InstructionReference{EntrypointId: "main", InstructionId: "call"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS,
 		}}},
-		"run":                    {Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}},
+		"run":                    {Reference: &testpilotspb.Reference_Run{Run: &emptypb.Empty{}}},
 		"environment_binding_id": {Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: "namespace"}},
 		"observation_id":         {Reference: &testpilotspb.Reference_ObservationId{ObservationId: "o"}},
 		"run_event":              {Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Field{Field: testpilotspb.RUN_EVENT_FIELD_KIND}}}},
@@ -362,7 +370,7 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		"evidence_field_id":      {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "f"}},
 		"correlated_capture":     {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "c"}}},
 		"correlated_step":        {Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: testpilotspb.CORRELATED_STEP_FIELD_ACTION, DefinitionId: "d"}}},
-		"projected_value":        {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}},
+		"projected_value":        {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}},
 		"instance_value_id":      {Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: "v"}},
 	}
 	require.Len(t, references, (&testpilotspb.Reference{}).ProtoReflect().Descriptor().Fields().Len(), "every Reference arm is probed")
@@ -383,13 +391,17 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 				require.ErrorAs(t, err, &diagnostic)
 				admitted := AdmitReferences(tc.site, expression)
 				if slices.Contains(tc.admitted, name) {
-					require.Equal(t, "expression", diagnostic.Path)
+					if name == "environment_binding_id" {
+						require.Equal(t, &Error{Category: Unsupported, Path: tc.site.Path + ".bindings[0].reference", Detail: "reference requires domain substitution before CEL binding"}, diagnostic)
+					} else {
+						require.Equal(t, &Error{Category: Unknown, Path: tc.site.Path + ".bindings[0]", Detail: "reference is not declared in this environment"}, diagnostic)
+					}
 					require.NoError(t, admitted)
 					return
 				}
 				want := &Error{
 					Category: Unknown,
-					Path:     tc.site.Path + ".all[1].present.reference." + string(name),
+					Path:     tc.site.Path + ".bindings[0].reference." + string(name),
 					Detail:   "reference is not admitted in this expression context",
 				}
 				require.Equal(t, want, diagnostic)
@@ -398,16 +410,15 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		}
 	}
 	_, err := c.BindExpression(Site{Path: "unset"}, literal(boolean(true)), nil, nil, DefaultLimits())
-	require.Equal(t, &Error{Category: Malformed, Path: "expression", Detail: "expression context is required"}, err)
+	require.Equal(t, &Error{Category: Malformed, Path: "unset", Detail: "expression context is required"}, err)
 }
 
 func instanceValue(id string) *testpilotspb.Expression {
 	return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: id}})
 }
 
-// An instance value stands for the literal each Rule instance inlines: it binds where its declared
-// type is the type the literal would take there (its context's, or text without one), costs what
-// that literal costs over its reference, in binding and at runtime, and is reported once per read.
+// An instance value retains its declared type independently of surrounding CEL operands and is
+// reported once per read. References and inlined literals each use their native CEL resource cost.
 func TestInstanceValuesBindAsTheLiteralEachInstanceInlines(t *testing.T) {
 	c := fixtureCatalog(t)
 	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
@@ -424,8 +435,8 @@ func TestInstanceValuesBindAsTheLiteralEachInstanceInlines(t *testing.T) {
 	observation := func(id string) *testpilotspb.Expression {
 		return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: id}})
 	}
-	mismatch := func(path string) *Error {
-		return &Error{Category: TypeMismatch, Path: contractSite.Path + path + ".reference.instance_value_id", Detail: "instance value is used where its declared type is not the expected type"}
+	mismatch := func(operator, operands string) *Error {
+		return &Error{Category: TypeMismatch, Path: contractSite.Path, Detail: fmt.Sprintf("ERROR: :-1:0: found no matching overload for '%s' applied to '(%s)'", operator, operands)}
 	}
 	for _, tc := range []struct {
 		name       string
@@ -436,10 +447,10 @@ func TestInstanceValuesBindAsTheLiteralEachInstanceInlines(t *testing.T) {
 		{"context right", equal(observation("int"), instanceValue("n")), []string{"n"}, nil},
 		{"context left", equal(instanceValue("e"), observation("state")), []string{"e"}, nil},
 		{"text without context", all(present(instanceValue("t")), equal(instanceValue("t"), literal(text("x")))), []string{"t", "t"}, nil},
-		{"integer without context", present(instanceValue("n")), nil, mismatch(".present")},
-		{"enum beside a literal", equal(instanceValue("e"), literal(enumLiteral("READY"))), nil, mismatch(".compare.left")},
-		{"declared type not expected", equal(observation("int"), instanceValue("t")), nil, mismatch(".compare.right")},
-		{"boolean context", negate(instanceValue("t")), nil, mismatch(".not")},
+		{"integer without context", present(instanceValue("n")), []string{"n"}, nil},
+		{"enum beside a literal", equal(instanceValue("e"), literal(enumLiteral("READY"))), []string{"e"}, nil},
+		{"declared type not expected", equal(observation("int"), instanceValue("t")), nil, mismatch("_==_", "int, string")},
+		{"boolean context", negate(instanceValue("t")), nil, mismatch("!_", "string")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			bound, err := c.BindExpression(contractSite, tc.expression, nil, scope, DefaultLimits())
@@ -453,7 +464,7 @@ func TestInstanceValuesBindAsTheLiteralEachInstanceInlines(t *testing.T) {
 	}
 	for _, tc := range []struct {
 		id, observation string
-		value           *testpilotspb.Value
+		value           *celpb.Value
 		typ             Type
 	}{
 		{"t", "text", text("a longer text value"), textType},
@@ -468,13 +479,26 @@ func TestInstanceValuesBindAsTheLiteralEachInstanceInlines(t *testing.T) {
 			work, err := c.InstanceValueWork(tc.id, tc.value, tc.typ)
 			require.NoError(t, err)
 			require.Equal(t, inlined.BindingWork(), referenced.BindingWork()+work)
-			resolve := func(Reference) *testpilotspb.Value { return tc.value }
+			resolve := func(Reference) *celpb.Value { return tc.value }
 			matched, referencedWork, err := referenced.Evaluate(context.Background(), resolve, 10000)
 			require.NoError(t, err)
 			require.True(t, matched.GetBoolValue())
-			_, inlinedWork, err := inlined.Evaluate(context.Background(), resolve, 10000)
+			inlinedMatched, inlinedWork, err := inlined.Evaluate(context.Background(), resolve, 10000)
 			require.NoError(t, err)
-			require.Equal(t, inlinedWork, referencedWork)
+			require.True(t, inlinedMatched.GetBoolValue())
+			for _, budgeted := range []struct {
+				expression *Expression
+				work       int64
+			}{{referenced, referencedWork}, {inlined, inlinedWork}} {
+				matched, work, err := budgeted.expression.Evaluate(t.Context(), resolve, budgeted.work)
+				require.NoError(t, err)
+				require.True(t, matched.GetBoolValue())
+				require.Equal(t, budgeted.work, work)
+				_, _, err = budgeted.expression.Evaluate(t.Context(), resolve, budgeted.work-1)
+				var diagnostic *Error
+				require.ErrorAs(t, err, &diagnostic)
+				require.Equal(t, LimitExceeded, diagnostic.Category)
+			}
 		})
 	}
 }
@@ -483,7 +507,7 @@ func TestInstanceValuesBindAsTheLiteralEachInstanceInlines(t *testing.T) {
 // operator that nests an operand.
 func TestAdmitReferencesLocatesLikeBinding(t *testing.T) {
 	c := fixtureCatalog(t)
-	path := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("s")}}}
+	path := cel.Path(slot("s"), "")
 	for name, expression := range map[string]*testpilotspb.Expression{
 		".present.path.operand": present(path),
 		".not":                  negate(slot("s")),
@@ -493,7 +517,7 @@ func TestAdmitReferencesLocatesLikeBinding(t *testing.T) {
 		".all[0].present":       all(present(slot("s"))),
 	} {
 		t.Run(name, func(t *testing.T) {
-			want := &Error{Category: Unknown, Path: contractSite.Path + name + ".reference.slot_id", Detail: "reference is not admitted in this expression context"}
+			want := &Error{Category: Unknown, Path: contractSite.Path + ".bindings[0].reference.slot_id", Detail: "reference is not admitted in this expression context"}
 			require.Equal(t, want, AdmitReferences(contractSite, expression))
 			_, err := c.BindExpression(contractSite, expression, nil, nil, DefaultLimits())
 			require.Equal(t, want, err)
@@ -501,8 +525,7 @@ func TestAdmitReferencesLocatesLikeBinding(t *testing.T) {
 	}
 }
 
-// Equality admits any operand type, while an ordering operator on a type with no numeric order is
-// rejected at the comparison it names.
+// Equality admits any operand type. CEL orders bytes, but rejects ordering messages and collections.
 func TestComparisonOperatorsAdmitTheirOperandTypes(t *testing.T) {
 	c := fixtureCatalog(t)
 	element := &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}
@@ -514,14 +537,15 @@ func TestComparisonOperatorsAdmitTheirOperandTypes(t *testing.T) {
 	}
 	for name, typ := range types {
 		scope := map[Reference]Binding{{Kind: SlotReference, ID: "a"}: {Type: boundType(t, c, typ), Available: true}, {Kind: SlotReference, ID: "b"}: {Type: boundType(t, c, typ), Available: true}}
-		for operator := testpilotspb.COMPARISON_OPERATOR_EQUAL; operator <= testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL; operator++ {
-			t.Run(name+"/"+operator.String(), func(t *testing.T) {
+		for _, operator := range []string{"_==_", "_!=_", "_<_", "_<=_", "_>_", "_>=_"} {
+			t.Run(name+"/"+operator, func(t *testing.T) {
 				_, err := c.BindExpression(programSite, negate(compare(operator, slot("a"), slot("b"))), nil, scope, DefaultLimits())
-				if operator == testpilotspb.COMPARISON_OPERATOR_EQUAL || operator == testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL {
+				if operator == "_==_" || operator == "_!=_" || name == "bytes" {
 					require.NoError(t, err)
 					return
 				}
-				require.Equal(t, &Error{Category: TypeMismatch, Path: programSite.Path + ".not.compare", Detail: "comparison requires ordered numeric scalars"}, err)
+				celType := map[string]string{"message": "fixture.Payload", "list": "list(int)", "map": "map(string, int)"}[name]
+				require.Equal(t, &Error{Category: TypeMismatch, Path: programSite.Path, Detail: fmt.Sprintf("ERROR: :-1:0: found no matching overload for '%s' applied to '(%s, %s)'", operator, celType, celType)}, err)
 			})
 		}
 	}

@@ -6,8 +6,11 @@ import (
 	"math"
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -17,20 +20,20 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 	for _, tc := range []struct {
 		name        string
 		kind        testpilotspb.ScalarKind
-		a, b        *testpilotspb.Value
+		a, b        *celpb.Value
 		equal, less bool
 	}{
 		{"int64 precision", testpilotspb.SCALAR_KIND_INT64, signed("9007199254740992"), signed("9007199254740993"), false, true},
 		{"uint64", testpilotspb.SCALAR_KIND_UINT64, unsigned("18446744073709551614"), unsigned("18446744073709551615"), false, true},
 		{"negative", testpilotspb.SCALAR_KIND_INT32, signed("-2"), signed("-1"), false, true},
-		{"float32 precision", testpilotspb.SCALAR_KIND_FLOAT, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 0.1}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: float64(float32(0.1))}}, true, false},
-		{"zero", testpilotspb.SCALAR_KIND_DOUBLE, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.Copysign(0, -1)}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 0}}, true, false},
-		{"NaN", testpilotspb.SCALAR_KIND_DOUBLE, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.NaN()}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.NaN()}}, true, false},
+		{"float32 precision", testpilotspb.SCALAR_KIND_FLOAT, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: 0.1}}, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: float64(float32(0.1))}}, true, false},
+		{"zero", testpilotspb.SCALAR_KIND_DOUBLE, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: math.Copysign(0, -1)}}, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: 0}}, true, false},
+		{"NaN", testpilotspb.SCALAR_KIND_DOUBLE, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: math.NaN()}}, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: math.NaN()}}, false, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			typ := boundType(t, c, scalar(tc.kind))
 			scope := map[Reference]Binding{{Kind: SlotReference, ID: "a"}: {Type: typ, Available: true}, {Kind: SlotReference, ID: "b"}: {Type: typ, Available: true}}
-			resolver := func(ref Reference) *testpilotspb.Value {
+			resolver := func(ref Reference) *celpb.Value {
 				if ref.ID == "a" {
 					return tc.a
 				}
@@ -38,10 +41,10 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 			}
 			// NOT_EQUAL is the negation of EQUAL and costs exactly what EQUAL costs.
 			var equalityWork []int64
-			for operator, want := range map[testpilotspb.ComparisonOperator]bool{
-				testpilotspb.COMPARISON_OPERATOR_EQUAL:     tc.equal,
-				testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL: !tc.equal,
-				testpilotspb.COMPARISON_OPERATOR_LESS_THAN: tc.less,
+			for operator, want := range map[string]bool{
+				"_==_": tc.equal,
+				"_!=_": !tc.equal,
+				"_<_":  tc.less,
 			} {
 				e, err := c.BindExpression(programSite, compare(operator, slot("a"), slot("b")), nil, scope, DefaultLimits())
 				require.NoError(t, err)
@@ -53,7 +56,7 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 				require.Equal(t, work, exact)
 				_, _, err = e.Evaluate(context.Background(), resolver, work-1)
 				require.Error(t, err)
-				if operator != testpilotspb.COMPARISON_OPERATOR_LESS_THAN {
+				if operator != "_<_" {
 					equalityWork = append(equalityWork, work)
 				}
 			}
@@ -66,7 +69,7 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 	for _, source := range []*testpilotspb.Expression{all(present(slot("missing")), equal(slot("missing"), literal(text("x")))), negate(anyOf(present(slot("missing")), literal(boolean(true))))} {
 		e, err := c.BindExpression(programSite, source, nil, scope, DefaultLimits())
 		require.NoError(t, err)
-		value, _, err := e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return nil }, 100)
+		value, _, err := e.Evaluate(context.Background(), func(Reference) *celpb.Value { return nil }, 100)
 		require.NoError(t, err)
 		require.False(t, value.GetBoolValue())
 	}
@@ -76,7 +79,7 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 // contexts: every operator binds an absent operand without a presence guard and is false when either
 // operand is absent, so the negation of EQUAL is true there while NOT_EQUAL is false. A bare absent
 // predicate and an absent instruction input still require a guard.
-func TestComparisonsWithAnAbsentOperandAreFalse(t *testing.T) {
+func TestComparisonsWithAnAbsentOperandReportCELErrors(t *testing.T) {
 	c := fixtureCatalog(t)
 	intType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_INT64))
 	boolType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_BOOLEAN))
@@ -97,82 +100,81 @@ func TestComparisonsWithAnAbsentOperandAreFalse(t *testing.T) {
 			{Kind: tc.kind, ID: "flag"}:      {Type: boolType},
 			{Kind: tc.kind, ID: "available"}: {Type: intType, Available: true},
 		}
-		resolve := func(ref Reference) *testpilotspb.Value {
+		resolve := func(ref Reference) *celpb.Value {
 			if ref == absent || ref.ID == "flag" {
 				return nil
 			}
 			return signed("1")
 		}
-		evaluate := func(t *testing.T, source *testpilotspb.Expression) bool {
+		evaluate := func(t *testing.T, source *testpilotspb.Expression) {
 			t.Helper()
 			e, err := c.BindExpression(tc.site, source, &boolType, scope, DefaultLimits())
 			require.NoError(t, err)
-			value, _, err := e.Evaluate(t.Context(), resolve, 10000)
-			require.NoError(t, err)
-			return value.GetBoolValue()
+			_, _, err = e.Evaluate(t.Context(), resolve, 10000)
+			require.Equal(t, &Error{Category: Unavailable, Path: tc.site.Path, Detail: "optional.none() dereference"}, err)
 		}
-		for _, operator := range []testpilotspb.ComparisonOperator{
-			testpilotspb.COMPARISON_OPERATOR_EQUAL,
-			testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL,
-			testpilotspb.COMPARISON_OPERATOR_LESS_THAN,
-			testpilotspb.COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL,
-			testpilotspb.COMPARISON_OPERATOR_GREATER_THAN,
-			testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL,
+		for _, operator := range []string{
+			"_==_",
+			"_!=_",
+			"_<_",
+			"_<=_",
+			"_>_",
+			"_>=_",
 		} {
 			t.Run(fmt.Sprintf("%s/%s", tc.site.Path, operator), func(t *testing.T) {
-				require.False(t, evaluate(t, compare(operator, tc.reference("absent"), literal(signed("1")))))
-				require.False(t, evaluate(t, compare(operator, literal(signed("1")), tc.reference("absent"))))
-				require.False(t, evaluate(t, compare(operator, tc.reference("absent"), tc.reference("available"))))
+				evaluate(t, compare(operator, tc.reference("absent"), literal(signed("1"))))
+				evaluate(t, compare(operator, literal(signed("1")), tc.reference("absent")))
+				evaluate(t, compare(operator, tc.reference("absent"), tc.reference("available")))
 			})
 		}
 		t.Run(tc.site.Path+"/negation", func(t *testing.T) {
-			require.True(t, evaluate(t, negate(equal(tc.reference("absent"), literal(signed("1"))))))
+			evaluate(t, negate(equal(tc.reference("absent"), literal(signed("1")))))
 		})
 		t.Run(tc.site.Path+"/bare predicate", func(t *testing.T) {
 			_, err := c.BindExpression(tc.site, tc.reference("flag"), &boolType, scope, DefaultLimits())
-			require.Equal(t, &Error{Category: Unavailable, Path: "expression", Detail: "reference or path read requires an explicit presence guard"}, err)
+			require.Equal(t, &Error{Category: Unavailable, Path: tc.site.Path, Detail: "reference or path read requires an explicit presence guard"}, err)
 		})
 	}
 	t.Run("input", func(t *testing.T) {
 		scope := map[Reference]Binding{{Kind: SlotReference, ID: "absent"}: {Type: intType}}
-		_, _, err := c.BindGuardedExpression(Condition{Expression: compare(testpilotspb.COMPARISON_OPERATOR_EQUAL, slot("absent"), literal(signed("1")))}, programSite, slot("absent"), &intType, scope, DefaultLimits())
-		require.Equal(t, &Error{Category: Unavailable, Path: "expression", Detail: "reference or path read requires an explicit presence guard"}, err)
+		_, _, err := c.BindGuardedExpression(Condition{Expression: compare("_==_", slot("absent"), literal(signed("1")))}, programSite, slot("absent"), &intType, scope, DefaultLimits())
+		require.Equal(t, &Error{Category: Unavailable, Path: programSite.Path, Detail: "reference or path read requires an explicit presence guard"}, err)
 	})
 }
 
 func TestRuntimePathsAndPresence(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
-	source := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x12, 3, 0x0a, 1, 'x', 0x1a, 3, 0x0a, 1, 'a', 0x1a, 3, 0x0a, 1, 'b', 0x22, 7, 0x0a, 3, 'k', 'e', 'y', 0x10, 7}}}}
+	source := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x12, 3, 0x0a, 1, 'x', 0x1a, 3, 0x0a, 1, 'a', 0x1a, 3, 0x0a, 1, 'b', 0x22, 7, 0x0a, 3, 'k', 'e', 'y', 0x10, 7}}}}
 	require.NoError(t, c.CheckLiteral(source, typ, DefaultLimits()))
 	absence := "child.optional_text?"
 	for _, tc := range []struct {
 		name string
 		path string
-		want *testpilotspb.Value
+		want *celpb.Value
 	}{
 		{"nested", "child.text", text("x")},
-		{"wildcard", "items[*].text", &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: []*testpilotspb.Value{text("a"), text("b")}}}}},
+		{"wildcard", "items[*].text", &celpb.Value{Kind: &celpb.Value_ListValue{ListValue: &celpb.ListValue{Values: []*celpb.Value{text("a"), text("b")}}}}},
 		{"map", `labels["key"]`, signed("7")},
 		{"presence", absence, boolean(false)},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			expr := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("source"), Path: tc.path}}}
+			expr := cel.Path(slot("source"), tc.path)
 			// The guard supplies the admission fact while the value itself exercises the path.
 			e, err := c.BindConditionedExpression([]Condition{{Expression: present(expr), Matches: true}}, programSite, expr, nil, map[Reference]Binding{{Kind: SlotReference, ID: "source"}: {Type: typ, Available: true}}, DefaultLimits())
 			require.NoError(t, err)
-			value, work, err := e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return source }, 10000)
+			value, work, err := e.Evaluate(context.Background(), func(Reference) *celpb.Value { return source }, 10000)
 			require.NoError(t, err)
 			require.True(t, proto.Equal(tc.want, value), "%v", value)
-			_, _, err = e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return source }, work)
+			_, _, err = e.Evaluate(context.Background(), func(Reference) *celpb.Value { return source }, work)
 			require.NoError(t, err)
 		})
 	}
-	empty := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload"}}}
-	expr := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("source"), Path: absence}}}
+	empty := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload"}}}
+	expr := cel.Path(slot("source"), absence)
 	e, err := c.BindExpression(programSite, expr, nil, map[Reference]Binding{{Kind: SlotReference, ID: "source"}: {Type: typ, Available: true}}, DefaultLimits())
 	require.NoError(t, err)
-	value, _, err := e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return empty }, 1000)
+	value, _, err := e.Evaluate(context.Background(), func(Reference) *celpb.Value { return empty }, 1000)
 	require.NoError(t, err)
 	require.True(t, proto.Equal(boolean(false), value))
 }
@@ -192,25 +194,25 @@ func TestRuntimeWildcardDoesNotFilterAbsentFields(t *testing.T) {
 		{"all missing", []byte{0x1a, 0, 0x1a, 0}, false, []bool{false, false}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			source := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: tc.wire}}}
+			source := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: tc.wire}}}
 			require.NoError(t, c.CheckLiteral(source, typ, DefaultLimits()))
-			project := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("source"), Path: "items[*].optional_text"}}}
+			project := cel.Path(slot("source"), "items[*].optional_text")
 			scope := map[Reference]Binding{{Kind: SlotReference, ID: "source"}: {Type: typ, Available: true}}
 			e, err := c.BindExpression(programSite, present(project), nil, scope, DefaultLimits())
 			require.NoError(t, err)
-			value, _, err := e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return source }, 1000)
+			value, _, err := e.Evaluate(context.Background(), func(Reference) *celpb.Value { return source }, 1000)
 			require.NoError(t, err)
 			require.Equal(t, tc.present, value.GetBoolValue())
-			project.GetPath().Path = "items[*].optional_text?"
+			project.Bindings[0].Path = "items[*].optional_text?"
 			e, err = c.BindExpression(programSite, project, nil, scope, DefaultLimits())
 			require.NoError(t, err)
-			value, _, err = e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return source }, 1000)
+			value, _, err = e.Evaluate(context.Background(), func(Reference) *celpb.Value { return source }, 1000)
 			require.NoError(t, err)
-			var expected []*testpilotspb.Value
+			var expected []*celpb.Value
 			for _, v := range tc.presence {
 				expected = append(expected, boolean(v))
 			}
-			require.True(t, proto.Equal(&testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: expected}}}, value))
+			require.True(t, proto.Equal(&celpb.Value{Kind: &celpb.Value_ListValue{ListValue: &celpb.ListValue{Values: expected}}}, value))
 		})
 	}
 }

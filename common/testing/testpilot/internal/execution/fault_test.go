@@ -13,13 +13,14 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func faultNode(id, role string, kind testpilotspb.FaultKind) *testpilotspb.InstructionNode {
 	return &testpilotspb.InstructionNode{
 		InstructionId: id,
 		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: role, Kind: kind}}},
-		Limits:        &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}},
+		Limits:        &testpilotspb.InstructionLimits{Timeout: durationpb.New(time.Duration(1000) * time.Millisecond), MaxAttempts: proto.Int64(1)},
 	}
 }
 

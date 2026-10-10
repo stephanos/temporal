@@ -16,6 +16,7 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/interp"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
@@ -729,8 +730,8 @@ func recorders(c *testpilotspb.Case) map[string]*testpilotspb.InstructionReferen
 			}
 			for _, read := range node.GetInstruction().GetInvokeRpc().GetResponseReads() {
 				for _, target := range read.GetTargets() {
-					for _, rule := range target.GetCorrelatedEvidence().GetRules() {
-						out[rule.GetEvidenceId()] = at
+					for _, evidenceID := range target.GetCorrelatedEvidence().GetEvidenceIds() {
+						out[evidenceID] = at
 					}
 				}
 			}
@@ -1176,12 +1177,12 @@ func (a *accounting) behavior() error {
 	}
 	if d := b.GetInstructionDefaults(); d != nil {
 		carried := program.GetInstructionDefaults()
-		declared, got := fmt.Sprintf("%d ms, %d attempts", d.GetTimeoutMs(), d.GetAttempts()),
-			fmt.Sprintf("%d ms, %d attempts", carried.GetTimeoutMilliseconds(), carried.GetMaxAttempts())
-		if carried.GetTimeout() == nil || carried.GetAttempts() == nil || got != declared {
+		declared, got := fmt.Sprintf("%d ms, %d attempts", durationMilliseconds(d.GetTimeout()), d.GetAttempts()),
+			fmt.Sprintf("%d ms, %d attempts", carried.GetTimeout().AsDuration().Milliseconds(), carried.GetMaxAttempts())
+		if carried.GetTimeout() == nil || carried.MaxAttempts == nil || got != declared {
 			return a.differs("behavior", "instructionDefaults", declared, got, "program.instruction_defaults")
 		}
-		a.own("behavior", "instructionDefaults", d.GetPosition(), "program.instruction_defaults.timeout_milliseconds", "program.instruction_defaults.max_attempts")
+		a.own("behavior", "instructionDefaults", d.GetPosition(), "program.instruction_defaults.timeout", "program.instruction_defaults.max_attempts")
 	}
 	if b.GetRunOrderIsCausal() {
 		if !program.GetRunOrderIsCausal() {
@@ -1285,8 +1286,12 @@ func declaredIn(d *testpilotspb.EvidenceDeclaration) string {
 	case *testpilotspb.EvidenceDeclaration_HistoryEvent:
 		return "history event " + from.HistoryEvent.GetAttributesField()
 	case *testpilotspb.EvidenceDeclaration_Read:
-		if from.Read.GetSingle() {
-			return "single read " + from.Read.GetMethod() + " " + from.Read.GetPath()
+		method, err := methodNamed(nil, from.Read.GetMethod())
+		if err == nil {
+			end, err := walk(nil, method.Output(), from.Read.GetPath())
+			if err == nil && !end.fanned && !end.field.IsList() {
+				return "single read " + from.Read.GetMethod() + " " + from.Read.GetPath()
+			}
 		}
 		return "read " + from.Read.GetMethod() + " " + from.Read.GetPath()
 	case *testpilotspb.EvidenceDeclaration_RunEvent:
@@ -1298,7 +1303,9 @@ func declaredIn(d *testpilotspb.EvidenceDeclaration) string {
 		}
 		keyed := "the run"
 		if !from.RunEvent.GetRunKeyed() {
-			keyed = d.GetOperation()
+			if len(d.GetOperation().GetBindings()) == 1 {
+				keyed = d.GetOperation().GetBindings()[0].GetPath()
+			}
 		}
 		return fmt.Sprintf("run event %s of %s/%s keyed by %s", umpirespb.RunEventSource_Kind_name[int32(kind)],
 			from.RunEvent.GetInstruction().GetEntrypointId(), from.RunEvent.GetInstruction().GetInstructionId(), keyed)
@@ -1328,7 +1335,7 @@ func (a *accounting) recorded(e *umpirespb.Evidence, d *testpilotspb.EvidenceDec
 	if err != nil {
 		return nil, err
 	}
-	if !proto.Equal(guard, d.GetRunEvent().GetGuard()) {
+	if !proto.Equal(guard, d.GetGuard()) {
 		return nil, errorAt(e.GetPosition(), "evidence %s is the Run's record under a guard, and the Case's %s declares it under another", e.GetId(), part)
 	}
 	for _, entrypoint := range a.c.GetProgram().GetEntrypoints() {
@@ -1363,7 +1370,7 @@ func (a *accounting) kept(e *umpirespb.Evidence, d *testpilotspb.EvidenceDeclara
 				e.GetId(), a.l.a.r.GetName())
 		}
 		name := a.named(f.GetId())
-		if i >= len(d.GetFields()) || i >= len(rule.GetFields()) || d.GetFields()[i].GetFieldId() != name || d.GetFields()[i].GetPath() != f.GetPath() ||
+		if i >= len(d.GetFields()) || i >= len(rule.GetFields()) || d.GetFields()[i].GetFieldId() != name || !proto.Equal(d.GetFields()[i].GetValue(), cel.Path(cp.ProjectedValue(), f.GetPath())) ||
 			rule.GetFields()[i].GetFieldId() != name || rule.GetFields()[i].GetDisposition() != testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN {
 			return nil, errorAt(at, "evidence %s keeps field %s at %s, and the Case's %s does not", e.GetId(), f.GetId(), f.GetPath(), part)
 		}
@@ -1383,7 +1390,7 @@ func (a *accounting) confirmed(e *umpirespb.Evidence, d *testpilotspb.EvidenceDe
 		}
 		// A rule confirms the steps its kind names and the steps between them that record nothing.
 		named := 0
-		for _, output := range rule.GetOutputs() {
+		for _, output := range correlatedResults(a.c.GetContract().GetCorrelated(), rule) {
 			if slices.ContainsFunc(e.GetConfirms(), func(taking *umpirespb.Taking) bool {
 				return a.l.adapter.classKey(taking.GetStep()) == output.GetAction().GetValue()
 			}) {
@@ -1396,6 +1403,18 @@ func (a *accounting) confirmed(e *umpirespb.Evidence, d *testpilotspb.EvidenceDe
 		return nil, nil
 	}
 	return nil, errorAt(e.GetPosition(), "evidence %s confirms %d steps, and the Case has no rule for it", e.GetId(), len(e.GetConfirms()))
+}
+
+func correlatedResults(contract *testpilotspb.CorrelatedContract, rule *testpilotspb.CorrelatedProjectionRule) []*testpilotspb.CorrelatedResult {
+	byID := make(map[string]*testpilotspb.CorrelatedResult, len(contract.GetResults()))
+	for _, result := range contract.GetResults() {
+		byID[result.GetResultId()] = result
+	}
+	results := make([]*testpilotspb.CorrelatedResult, 0, len(rule.GetResultIds()))
+	for _, id := range rule.GetResultIds() {
+		results = append(results, byID[id])
+	}
+	return results
 }
 
 // closing is the instruction whose read closes an exhaustive kind of evidence the Case carries: the

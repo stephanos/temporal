@@ -8,8 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -21,7 +23,7 @@ func dataFixture(t *testing.T) (*PreparedProgram, *activationValues, contract.Co
 	c, catalog, policy := fixture(t)
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -45,9 +47,9 @@ func TestValuesStageAtomicallyAndOwnSnapshots(t *testing.T) {
 	raw.Response.ProtoReflect().Set(raw.Response.ProtoReflect().Descriptor().Fields().ByName("text"), protoreflect.ValueOfString("changed"))
 	raw.Outcome.Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE
 	require.NoError(t, values.commit(ctx, batch))
-	require.Equal(t, "first", values.slots["text"].GetTextValue())
+	require.Equal(t, "first", values.slots["text"].GetStringValue())
 	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, batch.outcome.Status)
-	require.Equal(t, "first", batch.facts[0].observations[0].Value.GetTextValue())
+	require.Equal(t, "first", batch.facts[0].observations[0].Value.GetStringValue())
 	require.Error(t, values.commit(ctx, batch))
 	_, other, _ := dataFixture(t)
 	require.Error(t, other.commit(ctx, batch))
@@ -63,7 +65,7 @@ func TestValuesRejectWrongOwnershipAndUnprojectedPayload(t *testing.T) {
 	for _, mutate := range []func(*contract.Coordinate, *contract.EffectResult){
 		func(c *contract.Coordinate, _ *contract.EffectResult) { c.RunID = "other" }, func(c *contract.Coordinate, _ *contract.EffectResult) { c.ActivationID = "other" }, func(c *contract.Coordinate, _ *contract.EffectResult) { c.Attempt = 2 },
 		func(_ *contract.Coordinate, r *contract.EffectResult) {
-			r.Outcome.Value = &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "secret"}}
+			r.Outcome.Value = &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "secret"}}
 		}, func(_ *contract.Coordinate, r *contract.EffectResult) {
 			r.Response = &testpilotspb.InstructionOutcome{}
 		},
@@ -80,7 +82,7 @@ func TestValuesRejectWrongOwnershipAndUnprojectedPayload(t *testing.T) {
 func TestRequestReadsGuardedSlotsWithoutRebinding(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	node := c.Program.Entrypoints[0].Instructions[0]
-	node.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}}}}}}
+	node.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: cel.Literal(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "request"}})}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -115,7 +117,7 @@ func TestValuesSealRejectsFreshBatchAndReads(t *testing.T) {
 func TestValuesGuardedMissingSlotsAndActivationIsolation(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}}
 	consumer := rpcNode("consumer")
 	consumer.Guard = present(slot("text"))
 	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: slot("text")}}
@@ -185,7 +187,7 @@ func TestValuesConcurrentRunIsolationAndSeal(t *testing.T) {
 			close(ready)
 			err = values.commit(context.Background(), batch)
 			<-done
-			if err == nil && values.slots["text"].GetTextValue() != store.runID {
+			if err == nil && values.slots["text"].GetStringValue() != store.runID {
 				results <- errors.New("crossed Run value")
 				return
 			}
@@ -214,7 +216,7 @@ func TestOutcomeValidationAndIndependentAttemptSnapshots(t *testing.T) {
 		raw := effectResponse(p, "ready")
 		mutate(raw.Outcome)
 		batch, _, err := values.stage(ctx, coord, raw, values.workLimit())
-		require.Error(t, err)
+		require.Error(t, err, raw.Outcome.String())
 		require.Nil(t, batch)
 	}
 	p.graphs[0].nodes[0].maxAttempts = 2
@@ -249,10 +251,10 @@ func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
 	batch, _, err := a.stage(context.Background(), coord, raw, a.workLimit())
 	require.NoError(t, err)
 	require.NoError(t, a.commit(context.Background(), batch))
-	raw.Outcome.Value.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
+	raw.Outcome.Value.Kind = &celpb.Value_StringValue{StringValue: "changed"}
 	require.True(t, proto.Equal(carriedValue("owned"), a.latest["await"].fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE]))
 	require.Empty(t, b.latest)
-	for _, value := range []*testpilotspb.Value{nil, {Value: &testpilotspb.Value_BoolValue{BoolValue: true}}} {
+	for _, value := range []*celpb.Value{nil, {Kind: &celpb.Value_BoolValue{BoolValue: true}}} {
 		coord.ActivationID = "b"
 		raw.Outcome.Value = value
 		_, _, err = b.stage(context.Background(), coord, raw, b.workLimit())
@@ -265,9 +267,9 @@ func TestWideExpressionBudgetAndCeilingOverflow(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	operands := make([]*testpilotspb.Expression, 128)
 	for i := range operands {
-		operands[i] = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
+		operands[i] = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})
 	}
-	c.Program.Entrypoints[0].Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: operands}}}
+	c.Program.Entrypoints[0].Instructions[0].Guard = cel.All(operands...)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")

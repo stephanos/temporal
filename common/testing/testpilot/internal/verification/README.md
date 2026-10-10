@@ -35,7 +35,8 @@ the immutable runtime copy; both are Profile ceilings. A capture is typed by a `
 message; preparation rejects any other at the capture.
 
 A bounded-liveness rule's `Deadline` sets one positive bound in its `bound` oneof; preparation rejects
-a deadline with no bound or a non-positive one at the rule's deadline. `elapsed_milliseconds` expires
+a deadline with no bound or a non-positive one at the rule's deadline. `elapsed` is an exact
+whole-millisecond protobuf Duration and expires
 at the first recorded elapsed coordinate greater than or equal to its Run-relative
 deadline; it depends on the clock of the host that produced the Run. `rule_events` expires after
 exactly that many Run Events the Rule instance evaluated since its last transition, which is a count of what
@@ -69,7 +70,7 @@ as written before it is walked: instance values no predicate reads count toward 
 expansion drops them. The rule-count ceiling is checked against the total instance count
 before any per-instance state is allocated. The work is done once; only the accounting multiplies. Run input validation has separate bounded IR
 surface/type/fanout checks under the Profile's Program response ceiling.
-The shared `internal/ir` interpreter only resolves values from its supplied typed environment;
+The shared `internal/ir` native CEL program only resolves values from its supplied typed environment;
 verification supplies declared Observations, captures, and the closed Run metadata fields.
 
 Kind-specific Run Event data is the event's `payload` oneof, read through a path from the payload
@@ -77,16 +78,24 @@ reference whose first segment names the arm (`fault_injected.kind`). One table i
 says which arm each event kind may carry and which kind requires its arm. A transition declares the
 arms its filtered kinds may carry, so a path into an arm none of them carries rejects at
 preparation, located at that segment. For each evaluated kind, only the arm the kind requires is
-available; a path into an arm the event may lack is absent, so a comparison over it is false on an
-event without the arm, and any other use needs a presence guard.
+available; a path into an arm the event may lack is absent, so an unguarded comparison over it is a
+native CEL error on an event without the arm. An explicit availability guard can make that read
+irrelevant under CEL Boolean semantics.
 
 A correlated capability's trigger, response and correlation are `Expression`s in the correlated
-context, but the capability admits and evaluates them itself rather than binding them through the
-IR: a FACT step reference is an existential over the step's facts, which no single-valued reference
-expresses, and the capability's depth and work ceilings count conditions rather than expression
-nodes. Preparation checks their references with `ir.AdmitReferences`, which locates a rejection at
-the path binding would report, and checks their shapes against the rule: a trigger reads only the
-step's action, and a response only its outcome, state or facts.
+context and bind through the same restricted native CEL environment as ordinary Contract predicates.
+Step references expose bounded collections, so presence is a size test and equality with one atom
+is native list membership: FACT matching remains existential over every matching fact. Preparation
+checks domain reference authority and the trigger/response subset before native CEL admission.
+The correlation depth ceiling counts canonical CEL AST nodes, including the size/membership forms;
+work includes adapter traversal and native engine cost. Missing captures or fields, cancellation
+and cost exhaustion fail the atomic event evaluation without committing state or support.
+
+The correlated schema interns complete local states as atom plus ordered fields. Results retain
+action, destination state, outcome and ordered facts; transitions authorize prior-state/result pairs
+and projection rules retain ordered result IDs. Duplicate and dangling IDs reject. Same atoms with
+different fields remain different states. Expanded work is charged before allocation and enumeration
+with checked arithmetic, so table compression cannot bypass state, transition or projection ceilings.
 
 Verdict rule results and support references are maintained incrementally at the same atomic event
 commit, without recopying prior support history. `Close` polls cancellation while validating the

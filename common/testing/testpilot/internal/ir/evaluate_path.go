@@ -3,31 +3,31 @@ package ir
 import (
 	"math/bits"
 	"slices"
-	"strconv"
 	"strings"
 
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	celpb "cel.dev/expr"
+
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func decodeMessage(value *testpilotspb.Value, descriptor protoreflect.MessageDescriptor) (protoreflect.Message, error) {
+func decodeMessage(value *celpb.Value, descriptor protoreflect.MessageDescriptor) (protoreflect.Message, error) {
 	message := dynamicpb.NewMessage(descriptor)
-	if err := proto.Unmarshal(value.GetMessageValue().GetValue(), message); err != nil {
+	if err := proto.Unmarshal(value.GetObjectValue().GetValue(), message); err != nil {
 		return nil, err
 	}
 	return message.ProtoReflect(), nil
 }
-func (r *runtimeExpression) readPath(path *Path, source *testpilotspb.Value, typ Type) (*testpilotspb.Value, error) {
+func (r *runtimeExpression) readPath(path *Path, source *celpb.Value, typ Type) (*celpb.Value, error) {
 	if err := r.charge(int64(proto.Size(source))); err != nil {
 		return nil, err
 	}
-	current := []*testpilotspb.Value{source}
+	current := []*celpb.Value{source}
 	descriptor := typ.message
 	for _, step := range path.steps {
-		var next []*testpilotspb.Value
+		var next []*celpb.Value
 		for _, value := range current {
 			if err := r.charge(1); err != nil {
 				return nil, err
@@ -54,7 +54,7 @@ func (r *runtimeExpression) readPath(path *Path, source *testpilotspb.Value, typ
 		}
 	}
 	if path.fanout {
-		return &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: current}}}, nil
+		return &celpb.Value{Kind: &celpb.Value_ListValue{ListValue: &celpb.ListValue{Values: current}}}, nil
 	}
 	if len(current) == 0 {
 		if len(path.steps) > 0 && path.steps[len(path.steps)-1].Selector == Presence {
@@ -64,12 +64,12 @@ func (r *runtimeExpression) readPath(path *Path, source *testpilotspb.Value, typ
 	}
 	return current[0], nil
 }
-func (r *runtimeExpression) selectBranch(value *testpilotspb.Value, descriptor protoreflect.MessageDescriptor, step PathStep, remaining int64) ([]*testpilotspb.Value, error) {
+func (r *runtimeExpression) selectBranch(value *celpb.Value, descriptor protoreflect.MessageDescriptor, step PathStep, remaining int64) ([]*celpb.Value, error) {
 	if value == nil {
 		if step.Selector == Presence {
-			return []*testpilotspb.Value{boolValue(false)}, nil
+			return []*celpb.Value{boolValue(false)}, nil
 		}
-		return []*testpilotspb.Value{nil}, nil
+		return []*celpb.Value{nil}, nil
 	}
 	if r.copyWork {
 		if err := r.charge(int64(proto.Size(value))); err != nil {
@@ -85,14 +85,14 @@ func (r *runtimeExpression) selectBranch(value *testpilotspb.Value, descriptor p
 		return nil, err
 	}
 	if values == nil {
-		return []*testpilotspb.Value{nil}, nil
+		return []*celpb.Value{nil}, nil
 	}
 	return values, nil
 }
-func (r *runtimeExpression) selectField(message protoreflect.Message, step PathStep, remaining int64) ([]*testpilotspb.Value, error) {
+func (r *runtimeExpression) selectField(message protoreflect.Message, step PathStep, remaining int64) ([]*celpb.Value, error) {
 	field := step.Field
 	if step.Selector == Presence {
-		return []*testpilotspb.Value{boolValue(message.Has(field))}, nil
+		return []*celpb.Value{boolValue(message.Has(field))}, nil
 	}
 	if field.HasPresence() && !message.Has(field) {
 		return nil, nil
@@ -107,7 +107,7 @@ func (r *runtimeExpression) selectField(message protoreflect.Message, step PathS
 			return nil, nil
 		}
 		result, err := r.fieldValue(value.Map().Get(key), field.MapValue())
-		return []*testpilotspb.Value{result}, err
+		return []*celpb.Value{result}, err
 	}
 	if step.Selector == Wildcard {
 		list := value.List()
@@ -117,7 +117,7 @@ func (r *runtimeExpression) selectField(message protoreflect.Message, step PathS
 		if err := r.charge(int64(list.Len())); err != nil {
 			return nil, err
 		}
-		result := make([]*testpilotspb.Value, 0, list.Len())
+		result := make([]*celpb.Value, 0, list.Len())
 		for i := 0; i < list.Len(); i++ {
 			v, err := r.scalarValue(list.Get(i), field)
 			if err != nil {
@@ -128,35 +128,35 @@ func (r *runtimeExpression) selectField(message protoreflect.Message, step PathS
 		return result, nil
 	}
 	result, err := r.fieldValue(value, field)
-	return []*testpilotspb.Value{result}, err
+	return []*celpb.Value{result}, err
 }
-func mapKey(v *testpilotspb.Value, field protoreflect.FieldDescriptor) (protoreflect.MapKey, error) {
+func mapKey(v *celpb.Value, field protoreflect.FieldDescriptor) (protoreflect.MapKey, error) {
 	switch field.Kind() {
 	case protoreflect.StringKind:
-		return protoreflect.ValueOfString(v.GetTextValue()).MapKey(), nil
+		return protoreflect.ValueOfString(v.GetStringValue()).MapKey(), nil
 	case protoreflect.BoolKind:
 		return protoreflect.ValueOfBool(v.GetBoolValue()).MapKey(), nil
 	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
-		n, err := strconv.ParseInt(v.GetSignedIntegerValue(), 10, 64)
+		n := v.GetInt64Value()
 		if field.Kind() == protoreflect.Int32Kind || field.Kind() == protoreflect.Sint32Kind || field.Kind() == protoreflect.Sfixed32Kind {
-			return protoreflect.ValueOfInt32(int32(n)).MapKey(), err
+			return protoreflect.ValueOfInt32(int32(n)).MapKey(), nil
 		}
-		return protoreflect.ValueOfInt64(n).MapKey(), err
+		return protoreflect.ValueOfInt64(n).MapKey(), nil
 	default:
-		n, err := strconv.ParseUint(v.GetUnsignedIntegerValue(), 10, 64)
+		n := v.GetUint64Value()
 		if field.Kind() == protoreflect.Uint32Kind || field.Kind() == protoreflect.Fixed32Kind {
-			return protoreflect.ValueOfUint32(uint32(n)).MapKey(), err
+			return protoreflect.ValueOfUint32(uint32(n)).MapKey(), nil
 		}
-		return protoreflect.ValueOfUint64(n).MapKey(), err
+		return protoreflect.ValueOfUint64(n).MapKey(), nil
 	}
 }
-func (r *runtimeExpression) fieldValue(v protoreflect.Value, field protoreflect.FieldDescriptor) (*testpilotspb.Value, error) {
+func (r *runtimeExpression) fieldValue(v protoreflect.Value, field protoreflect.FieldDescriptor) (*celpb.Value, error) {
 	if field.IsList() {
 		list := v.List()
 		if err := r.charge(int64(list.Len())); err != nil {
 			return nil, err
 		}
-		values := make([]*testpilotspb.Value, 0, list.Len())
+		values := make([]*celpb.Value, 0, list.Len())
 		for i := 0; i < list.Len(); i++ {
 			item, err := r.scalarValue(list.Get(i), field)
 			if err != nil {
@@ -164,14 +164,14 @@ func (r *runtimeExpression) fieldValue(v protoreflect.Value, field protoreflect.
 			}
 			values = append(values, item)
 		}
-		return &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: values}}}, nil
+		return &celpb.Value{Kind: &celpb.Value_ListValue{ListValue: &celpb.ListValue{Values: values}}}, nil
 	}
 	if field.IsMap() {
 		return r.mapValue(v, field)
 	}
 	return r.scalarValue(v, field)
 }
-func (r *runtimeExpression) scalarValue(v protoreflect.Value, field protoreflect.FieldDescriptor) (*testpilotspb.Value, error) {
+func (r *runtimeExpression) scalarValue(v protoreflect.Value, field protoreflect.FieldDescriptor) (*celpb.Value, error) {
 	if r.copyWork {
 		work := int64(1)
 		switch field.Kind() {
@@ -192,37 +192,37 @@ func (r *runtimeExpression) scalarValue(v protoreflect.Value, field protoreflect
 	case protoreflect.BoolKind:
 		return boolValue(v.Bool()), nil
 	case protoreflect.StringKind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: v.String()}}, nil
+		return &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: v.String()}}, nil
 	case protoreflect.BytesKind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: v.Bytes()}}, nil
+		return &celpb.Value{Kind: &celpb.Value_BytesValue{BytesValue: v.Bytes()}}, nil
 	case protoreflect.EnumKind:
 		return EnumValue(field.Enum(), v.Enum()), nil
 	case protoreflect.FloatKind, protoreflect.DoubleKind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: v.Float()}}, nil
+		return &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: v.Float()}}, nil
 	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: strconv.FormatInt(v.Int(), 10)}}, nil
+		return &celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: v.Int()}}, nil
 	case protoreflect.Uint32Kind, protoreflect.Uint64Kind, protoreflect.Fixed32Kind, protoreflect.Fixed64Kind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: strconv.FormatUint(v.Uint(), 10)}}, nil
+		return &celpb.Value{Kind: &celpb.Value_Uint64Value{Uint64Value: v.Uint()}}, nil
 	case protoreflect.MessageKind, protoreflect.GroupKind:
 		if field.Message().FullName() == "google.protobuf.Any" {
 			m := v.Message()
 			fields := m.Descriptor().Fields()
-			return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: m.Get(fields.ByName("type_url")).String(), Value: m.Get(fields.ByName("value")).Bytes()}}}, nil
+			return &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: m.Get(fields.ByName("type_url")).String(), Value: m.Get(fields.ByName("value")).Bytes()}}}, nil
 		}
 		bytes, err := proto.MarshalOptions{Deterministic: true}.Marshal(v.Message().Interface())
 		if err != nil {
 			return nil, err
 		}
-		return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(field.Message().FullName()), Value: bytes}}}, nil
+		return &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(field.Message().FullName()), Value: bytes}}}, nil
 	default:
 		return nil, Invalid(Unsupported, "path", "unsupported field kind")
 	}
 }
 
-func sortMapEntries(entries []*testpilotspb.ValueMapEntry) {
+func sortMapEntries(entries []*celpb.MapValue_Entry) {
 	type keyedEntry struct {
 		key   string
-		value *testpilotspb.ValueMapEntry
+		value *celpb.MapValue_Entry
 	}
 	keyed := make([]keyedEntry, len(entries))
 	for i, entry := range entries {
@@ -234,12 +234,12 @@ func sortMapEntries(entries []*testpilotspb.ValueMapEntry) {
 	}
 }
 
-func (r *runtimeExpression) mapValue(v protoreflect.Value, field protoreflect.FieldDescriptor) (*testpilotspb.Value, error) {
+func (r *runtimeExpression) mapValue(v protoreflect.Value, field protoreflect.FieldDescriptor) (*celpb.Value, error) {
 	items := v.Map()
 	if err := r.charge(int64(items.Len())); err != nil {
 		return nil, err
 	}
-	entries := make([]*testpilotspb.ValueMapEntry, 0, items.Len())
+	entries := make([]*celpb.MapValue_Entry, 0, items.Len())
 	var resultErr error
 	items.Range(func(k protoreflect.MapKey, v protoreflect.Value) bool {
 		key, err := r.scalarValue(k.Value(), field.MapKey())
@@ -252,7 +252,7 @@ func (r *runtimeExpression) mapValue(v protoreflect.Value, field protoreflect.Fi
 			resultErr = err
 			return false
 		}
-		entries = append(entries, &testpilotspb.ValueMapEntry{Key: key, Value: value})
+		entries = append(entries, &celpb.MapValue_Entry{Key: key, Value: value})
 		return true
 	})
 	if resultErr != nil {
@@ -268,5 +268,5 @@ func (r *runtimeExpression) mapValue(v protoreflect.Value, field protoreflect.Fi
 		}
 	}
 	sortMapEntries(entries)
-	return &testpilotspb.Value{Value: &testpilotspb.Value_MapValue{MapValue: &testpilotspb.ValueMap{Entries: entries}}}, nil
+	return &celpb.Value{Kind: &celpb.Value_MapValue{MapValue: &celpb.MapValue{Entries: entries}}}, nil
 }

@@ -224,7 +224,7 @@ func TestATenfoldRequestIsCappedByEveryLimit(t *testing.T) {
 		limits := bound.Profile.ProgramLimits
 		require.Equal(t, [6]int64{16, 8, 512, 32768, 30000, 20000}, [6]int64{
 			int64(limits.GetMaxAttempts()), int64(limits.GetMaxActivations()), int64(limits.GetMaxRunEvents()),
-			int64(limits.GetMaxRequestBytes()), limits.GetMaxTotalDurationMilliseconds(), limits.GetMaxCleanupDurationMilliseconds(),
+			int64(limits.GetMaxRequestBytes()), limits.GetMaxDuration().AsDuration().Milliseconds(), limits.GetCleanupDuration().AsDuration().Milliseconds(),
 		}, "attempts, activations, events, request bytes, total and cleanup duration")
 
 		s := &script{server: newFakeServer()}

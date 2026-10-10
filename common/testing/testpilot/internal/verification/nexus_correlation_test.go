@@ -5,15 +5,19 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func TestNexusHistoryCorrelationLiveAndOffline(t *testing.T) {
@@ -57,7 +61,7 @@ func TestNexusHistoryCorrelationLiveAndOffline(t *testing.T) {
 		event.GetNexusOperationStartedEventAttributes().ScheduledEventId = 999
 	})
 	deadline.Disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
-	deadline.Events[len(deadline.Events)-1].ElapsedMilliseconds = 30000
+	deadline.Events[len(deadline.Events)-1].Elapsed = ir.MillisecondsDuration(30000)
 	live, offline = nexusEvaluateLiveAndOffline(t, contract, view, deadline)
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, live.GetStatus())
 	require.True(t, proto.Equal(live, offline))
@@ -67,18 +71,17 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 	t.Helper()
 	catalog, err := ir.NewCatalog(testsupport.DescriptorClosure(historypb.File_temporal_api_history_v1_message_proto))
 	require.NoError(t, err)
-	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor, Minor: casefile.CurrentMinor}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
 		ProgramId:    "program",
 		Observations: []*testpilotspb.Observation{{ObservationId: "history-event", Type: nexusMessageType("temporal.api.history.v1.HistoryEvent")}},
-		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
+		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}}},
 		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}}
 	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: testsupport.ProgramLimits()})
 	require.NoError(t, err)
 	limits := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
 	rule := &testpilotspb.ContractRule{
-		RuleId: "correlated-nexus-completion", Kind: testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS,
-		InitialStateId: "pending",
+		RuleId: "correlated-nexus-completion", InitialStateId: "pending",
 		States: []*testpilotspb.ContractState{
 			{StateId: "pending", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
 			{StateId: "scheduled-correlated", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
@@ -87,7 +90,7 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 			{StateId: "violated", Status: testpilotspb.CONTRACT_STATE_STATUS_VIOLATED},
 		},
 		Captures: []*testpilotspb.ContractCapture{{CaptureId: "scheduled-event", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.api.history.v1.HistoryEvent"}}}}},
-		Deadline: &testpilotspb.Deadline{ViolationStateId: "violated", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 30000}},
+		Deadline: &testpilotspb.Deadline{ViolationStateId: "violated", Bound: &testpilotspb.Deadline_Elapsed{Elapsed: ir.MillisecondsDuration(30000)}},
 	}
 	rule.Transitions = []*testpilotspb.ContractTransition{
 		nexusTransition("capture-scheduled-event", "pending", "scheduled-correlated", all(
@@ -109,25 +112,29 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 		)),
 	}
 	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "scheduled-event", ObservationId: "history-event"}}
+	limits.MaxWorkPerEvent = hardLimits().MaxWorkPerEvent
 	contract, err := Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{rule}}, catalog, program.View(), limits, nil)
+	require.NoError(t, err)
+	limits.MaxWorkPerEvent = contract.workPerEvent
+	contract, err = Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{rule}}, catalog, program.View(), limits, nil)
 	require.NoError(t, err)
 	return contract, program.View()
 }
 
 func nexusTransition(id, source, target string, predicate *testpilotspb.Expression) *testpilotspb.ContractTransition {
-	return &testpilotspb.ContractTransition{TransitionId: id, SourceStateId: source, TargetStateId: target, Predicate: predicate, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}
+	return &testpilotspb.ContractTransition{TransitionId: id, SourceStateId: source, TargetStateId: target, Predicate: predicate, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportsEvent: proto.Bool(true)}
 }
 
 func nexusObservation() *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "history-event"}}}}
+	return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "history-event"}})
 }
 
 func nexusCapture() *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_CaptureId{CaptureId: "scheduled-event"}}}}
+	return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_CaptureId{CaptureId: "scheduled-event"}})
 }
 
 func nexusPath(source *testpilotspb.Expression, segments ...string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: strings.Join(segments, ".")}}}
+	return cel.Path(source, strings.Join(segments, "."))
 }
 
 func nexusOneof(field, selected string) string {
@@ -154,7 +161,7 @@ func nexusHistoryRunEvent(t testing.TB, sequence int64, historyEvent *historypb.
 	frozen, err := anypb.New(historyEvent)
 	require.NoError(t, err)
 	result := event(sequence, sequence, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
-	result.Observations = []*testpilotspb.ObservationResult{{ObservationId: "history-event", Value: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: frozen}}}}
+	result.Observations = []*testpilotspb.ObservationResult{{ObservationId: "history-event", Value: &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: frozen}}}}
 	return result
 }
 
@@ -217,7 +224,7 @@ func nexusHistoryEventType(t testing.TB, runEvent *testpilotspb.RunEvent) enumsp
 			continue
 		}
 		var event historypb.HistoryEvent
-		require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(&event))
+		require.NoError(t, observation.GetValue().GetObjectValue().UnmarshalTo(&event))
 		return event.GetEventType()
 	}
 	return enumspb.EVENT_TYPE_UNSPECIFIED
@@ -230,11 +237,11 @@ func nexusMutateHistoryRunEvent(t testing.TB, runEvent *testpilotspb.RunEvent, m
 			continue
 		}
 		var event historypb.HistoryEvent
-		require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(&event))
+		require.NoError(t, observation.GetValue().GetObjectValue().UnmarshalTo(&event))
 		mutate(&event)
 		frozen, err := anypb.New(&event)
 		require.NoError(t, err)
-		observation.Value = &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: frozen}}
+		observation.Value = &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: frozen}}
 		return
 	}
 	require.Fail(t, "history observation not found")

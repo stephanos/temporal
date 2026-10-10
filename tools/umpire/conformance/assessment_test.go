@@ -4,6 +4,8 @@ import (
 	"slices"
 	"testing"
 
+	"go.temporal.io/server/common/testing/testpilot/duration"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -375,7 +377,7 @@ func TestClockSkewChangesNoAssessment(t *testing.T) {
 			skewed := proto.CloneOf(run)
 			for i, event := range skewed.GetEvents() {
 				if i > 0 {
-					event.ElapsedMilliseconds = event.GetElapsedMilliseconds()*1000 + int64(i)*86400000
+					event.Elapsed = duration.FromMilliseconds(event.GetElapsed().AsDuration().Milliseconds()*1000 + int64(i)*86400000)
 				}
 			}
 			require.False(t, proto.Equal(run, skewed))

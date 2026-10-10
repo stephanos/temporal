@@ -3,6 +3,8 @@ package conformance
 import (
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -150,7 +152,7 @@ func TestEvidenceCarriesItsKindsFieldsAsDeclared(t *testing.T) {
 	}
 	factory, err := Prepare(declared(t), check.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"}, source, generous)
 	require.NoError(t, err)
-	text := &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "x"}}
+	text := &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "x"}}
 	for name, test := range map[string]struct {
 		fields []*testpilotspb.NamedValue
 		says   string

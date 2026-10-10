@@ -5,15 +5,18 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/activity"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func externallyHeldActivity(program *testpilotspb.Program) {
@@ -22,20 +25,21 @@ func externallyHeldActivity(program *testpilotspb.Program) {
 		return &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: id}
 	}
 	slot := func(id string) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}}}}
+		return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}})
 	}
 	success := func(id string) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: ref(id), Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}}, Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}}}}}}
+		status := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: ref(id), Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}})
+		return cel.All(cel.Present(status), cel.Compare("_==_", status, cel.Literal(cel.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED))))
 	}
 	guard := func(previous string) *testpilotspb.Expression {
-		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{success("start-activity"), success(previous)}}}}
+		return cel.All([]*testpilotspb.Expression{success("start-activity"), success(previous)}...)
 	}
 	messageType := func(name string) *testpilotspb.ValueType {
 		return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}}
 	}
 	program.Slots = []*testpilotspb.Slot{{SlotId: "activity-run", Content: &testpilotspb.Slot_Value{Value: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}}}}}}}, {SlotId: "pending", Content: &testpilotspb.Slot_Value{Value: messageType("temporal.server.api.testpilot.v1.ActivityAttempt")}}}
 	start := program.Entrypoints[0].Instructions[0]
-	start.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "run_id", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "activity-run"}}}}}
+	start.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "run_id", Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "activity-run"}}}}}
 	assignments := func() []*testpilotspb.RequestAssignment {
 		var result []*testpilotspb.RequestAssignment
 		for _, a := range start.Instruction.GetInvokeRpc().RequestAssignments {
@@ -45,22 +49,22 @@ func externallyHeldActivity(program *testpilotspb.Program) {
 		}
 		return append(result, &testpilotspb.RequestAssignment{Target: "run_id", Value: slot("activity-run")})
 	}
-	truth := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
+	truth := cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})
 	await := &testpilotspb.InstructionNode{InstructionId: "published", Guard: success("start-activity"), Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "pending"}}}}
 	read := func(id, previous string) *testpilotspb.InstructionNode {
-		return &testpilotspb.InstructionNode{InstructionId: id, Guard: guard(previous), Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{EvidenceId: id, EndpointRoleId: "endpoint", RequestAssignments: assignments(), Once: true, Until: proto.CloneOf(truth)}}}}
+		return &testpilotspb.InstructionNode{InstructionId: id, Guard: guard(previous), Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{EvidenceId: id, EndpointRoleId: "endpoint", RequestAssignments: assignments(), Until: proto.CloneOf(truth)}}}}
 	}
 	held, settled := read("held", "published"), read("settled", "answer")
 	answer := &testpilotspb.InstructionNode{InstructionId: "answer", Guard: guard("held"), Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailedById", RequestAssignments: assignments()}}}}
 	program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{start, await, held, answer, settled}
 	program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{{InstructionId: "pending", Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{Mode: testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING, ExternalSettlement: ref("answer")}}}}}
 	program.ActivityExternalSettlements = []*testpilotspb.ActivityExternalSettlement{{Carrier: ref("start-activity"), ActivityEntrypointId: "activity", PendingSlotId: "pending", Held: ref("held"), Answer: ref("answer"), Settlement: ref("settled"), Cleanup: &testpilotspb.InstructionReference{EntrypointId: "cleanup", InstructionId: "terminate"}}}
-	program.Cleanup = &testpilotspb.Cleanup{EntrypointId: "cleanup", Instructions: []*testpilotspb.InstructionNode{{InstructionId: "terminate", Guard: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: slot("activity-run")}}}, Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution", RequestAssignments: assignments()}}}}}}
+	program.Cleanup = &testpilotspb.Cleanup{EntrypointId: "cleanup", Instructions: []*testpilotspb.InstructionNode{{InstructionId: "terminate", Guard: cel.Present(slot("activity-run")), Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution", RequestAssignments: assignments()}}}}}}
 	program.Observations = []*testpilotspb.Observation{{ObservationId: "external-evidence", Type: messageType("temporal.server.api.testpilot.v1.CorrelatedEvidence")}}
-	program.Cleanup.Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{success("start-activity"), {Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: success("settled")}}}}}}}
+	program.Cleanup.Instructions[0].Guard = cel.All([]*testpilotspb.Expression{success("start-activity"), cel.Not(success("settled"))}...)
 	program.Evidence = nil
 	for _, id := range []string{"held", "settled"} {
-		program.Evidence = append(program.Evidence, &testpilotspb.EvidenceDeclaration{EvidenceId: id, EvidenceSource: id, Operation: "activity_id", Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution", Path: "info", Single: true}}, Scope: []*testpilotspb.NamedValue{{FieldId: "run", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "external"}}}}})
+		program.Evidence = append(program.Evidence, &testpilotspb.EvidenceDeclaration{EvidenceId: id, EvidenceSource: id, Operation: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "activity_id"), Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution", Path: "info"}}, Scope: testsupport.LiteralExpressions([]*testpilotspb.NamedValue{{FieldId: "run", Value: &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "external"}}}}), Kind: id})
 	}
 }
 

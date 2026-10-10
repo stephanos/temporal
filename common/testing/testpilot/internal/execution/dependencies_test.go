@@ -144,17 +144,18 @@ func TestPrepareRejectsAfterWithLocatedPaths(t *testing.T) {
 			mutate: func(c *testpilotspb.Case) {
 				other := proto.CloneOf(c.Program.Entrypoints[0])
 				other.EntrypointId = "other"
+				other.Instructions[0].InstructionId = "other-call"
 				c.Program.Entrypoints = append(c.Program.Entrypoints, other)
 				other.Instructions[1].After = runsAfter("controller", "call")
 			},
-			category: ir.Unsupported, path: "program.entrypoints[other].instructions[second].after.instructions[0]",
+			category: ir.Unknown, path: "program.entrypoints[other].instructions[second].after.instructions[0]",
 		},
 		"into cleanup": {
 			mutate: func(c *testpilotspb.Case) {
 				c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{rpcNode("release")}
 				c.Program.Entrypoints[0].Instructions[1].After = runsAfter("cleanup", "release")
 			},
-			category: ir.Unsupported, path: "program.entrypoints[controller].instructions[second].after.instructions[0]",
+			category: ir.Unknown, path: "program.entrypoints[controller].instructions[second].after.instructions[0]",
 		},
 		"out of cleanup": {
 			mutate: func(c *testpilotspb.Case) {
@@ -162,10 +163,12 @@ func TestPrepareRejectsAfterWithLocatedPaths(t *testing.T) {
 				release.After = runsAfter("controller", "call")
 				c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{release}
 			},
-			category: ir.Unsupported, path: "program.cleanup.instructions[release].after.instructions[0]",
+			category: ir.Unknown, path: "program.cleanup.instructions[release].after.instructions[0]",
 		},
-		"no entrypoint": {
-			mutate:   func(c *testpilotspb.Case) { c.Program.Entrypoints[0].Instructions[1].After = runsAfter("", "call") },
+		"no instruction": {
+			mutate: func(c *testpilotspb.Case) {
+				c.Program.Entrypoints[0].Instructions[1].After = runsAfter("controller", "")
+			},
 			category: ir.Malformed, path: "program.entrypoints[controller].instructions[second].after.instructions[0]",
 		},
 	} {

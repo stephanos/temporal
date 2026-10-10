@@ -12,7 +12,7 @@ import (
 )
 
 func TestCaseFormatRejectsBeforePayloadInterpretation(t *testing.T) {
-	for _, version := range []string{`{"major":2}`, `{"major":3}`, `{"major":4}`, `{"major":99}`, `{"major":1,"minor":1}`} {
+	for _, version := range []string{`{"major":1}`, `{"major":2}`, `{"major":3}`, `{"major":99}`, `{"major":4,"minor":1}`} {
 		t.Run(version, func(t *testing.T) {
 			decoded, err := testpilot.DecodeCaseProtoJSON([]byte(fmt.Sprintf(`{"version":%s,"program":{"retiredExpression":true}}`, version)))
 			require.Nil(t, decoded)
@@ -24,7 +24,7 @@ func TestCaseFormatRejectsBeforePayloadInterpretation(t *testing.T) {
 
 func TestCaseFormatUsesProtoJSONVersionNumbers(t *testing.T) {
 	for _, version := range []string{
-		`{"major":1e0}`, `{"major":1.0}`, `{"major":"1e0"}`, `{"major":1,"minor":0e0}`,
+		`{"major":4e0}`, `{"major":4.0}`, `{"major":"4e0"}`, `{"major":4,"minor":0e0}`,
 	} {
 		t.Run(version, func(t *testing.T) {
 			parsed := new(testpilotspb.FormatVersion)
@@ -35,14 +35,14 @@ func TestCaseFormatUsesProtoJSONVersionNumbers(t *testing.T) {
 			require.Equal(t, parsed.GetMinor(), decoded.GetVersion().GetMinor())
 		})
 	}
-	for _, version := range []string{`{"major":1.1}`, `{"major":2147483648}`, `{"major":"2147483648"}`} {
+	for _, version := range []string{`{"major":4.1}`, `{"major":2147483648}`, `{"major":"2147483648"}`} {
 		parsed := new(testpilotspb.FormatVersion)
 		require.Error(t, protojson.Unmarshal([]byte(version), parsed))
 		_, err := testpilot.DecodeCaseProtoJSON([]byte(`{"version":` + version + `}`))
 		require.Error(t, err)
 	}
-	_, err := testpilot.DecodeCaseProtoJSON([]byte(`{"version":{"major":4e0},"program":{"retiredExpression":true}}`))
-	require.ErrorContains(t, err, "unsupported Case version 4.0")
+	_, err := testpilot.DecodeCaseProtoJSON([]byte(`{"version":{"major":1e0},"program":{"retiredExpression":true}}`))
+	require.ErrorContains(t, err, "unsupported Case version 1.0")
 }
 
 func TestCaseNullFormatRejectsBeforePayloadInterpretation(t *testing.T) {
@@ -77,7 +77,7 @@ func TestCaseNullFormatRejectsBeforePayloadInterpretation(t *testing.T) {
 }
 
 func TestCaseProtoJSONIsStrict(t *testing.T) {
-	decoded, err := testpilot.DecodeCaseProtoJSON([]byte(`{"version":{"major":1},"caseId":"case"}`))
+	decoded, err := testpilot.DecodeCaseProtoJSON([]byte(`{"version":{"major":4},"caseId":"case"}`))
 	require.NoError(t, err)
 	require.Equal(t, "case", decoded.GetCaseId())
 

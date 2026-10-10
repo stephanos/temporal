@@ -5,7 +5,9 @@ import (
 	"maps"
 	"strconv"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -73,7 +75,7 @@ func (a *admission) checkAssignments(m *machine, tr *testpilotspb.ContractTransi
 		if !m.captureTypes[index].Equal(observation.Type) {
 			return invalid(ir.TypeMismatch, "capture and Observation types differ")
 		}
-		if tr.SupportKind != testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT {
+		if !tr.GetSupportsEvent() {
 			return invalid(ir.Malformed, "capture assignment must retain its supporting event")
 		}
 	}
@@ -186,7 +188,7 @@ func (a *admission) assignCaptures(m *machine, current configuration, tr *testpi
 		if next.assigned[index] != 0 {
 			return configuration{}, invalid(ir.Malformed, "capture may be assigned more than once on a reachable path")
 		}
-		value := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: assignment.ObservationId}}}}
+		value := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: assignment.ObservationId}})
 		path := fmt.Sprintf("contract.rules[%s].transitions[%s].capture_assignments[%d]", m.source.RuleId, tr.TransitionId, position)
 		if _, err := a.bind(matching, value, path, &m.captureTypes[index], scope); err != nil {
 			return configuration{}, err
@@ -273,7 +275,7 @@ func (a *admission) boundWork() error {
 }
 
 // inlined is the literal e is, or the value the Rule instance assigning values inlines for it.
-func inlined(e *ir.Expression, values map[string]*testpilotspb.Value) (*testpilotspb.Value, bool) {
+func inlined(e *ir.Expression, values map[string]*celpb.Value) (*celpb.Value, bool) {
 	if e.Operator() == ir.Literal {
 		return e.Literal(), true
 	}
@@ -283,14 +285,24 @@ func inlined(e *ir.Expression, values map[string]*testpilotspb.Value) (*testpilo
 	return nil, false
 }
 
-func (a *admission) expressionWork(e *ir.Expression, values map[string]*testpilotspb.Value) (int64, error) {
+func (a *admission) expressionWork(e *ir.Expression, values map[string]*celpb.Value) (int64, error) {
 	if err := a.charge(1); err != nil {
 		return 0, err
 	}
-	work := int64(1)
+	// Native CEL charges evaluation, activation reads and the returned value independently.
+	work := int64(4)
 	if literal, ok := inlined(e, values); ok {
-		if err := add(&work, int64(proto.Size(literal)), a.prepared.limits.MaxWorkPerEvent); err != nil {
-			return 0, err
+		for range 4 {
+			if err := add(&work, int64(proto.Size(literal)), a.prepared.limits.MaxWorkPerEvent); err != nil {
+				return 0, err
+			}
+		}
+	} else if e.Operator() == ir.ReferenceValue || e.Operator() == ir.ReadPath {
+		// Validation, payload traversal, snapshot ownership and CEL adaptation each visit input.
+		for range 4 {
+			if err := add(&work, a.valueBytes(e.Type()), a.prepared.limits.MaxWorkPerEvent); err != nil {
+				return 0, err
+			}
 		}
 	}
 	for _, child := range e.Children() {
@@ -358,7 +370,7 @@ func (a *admission) refineLogical(e *ir.Expression, desired bool, facts map[ir.R
 	return result, nil
 }
 
-func (a *admission) transitionWork(m *machine, indexes []int, values map[string]*testpilotspb.Value) (int64, error) {
+func (a *admission) transitionWork(m *machine, indexes []int, values map[string]*celpb.Value) (int64, error) {
 	limits := a.prepared.limits
 	work := int64(1)
 	for _, index := range indexes {

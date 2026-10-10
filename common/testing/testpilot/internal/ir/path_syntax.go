@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
+
+	celpb "cel.dev/expr"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 )
@@ -222,24 +225,32 @@ func (k pathKey) String() string {
 }
 
 // value types the key by the map's key kind.
-func (k pathKey) value(kind testpilotspb.ScalarKind) (*testpilotspb.Value, error) {
+func (k pathKey) value(kind testpilotspb.ScalarKind) (*celpb.Value, error) {
 	mismatch := Invalid(TypeMismatch, "path", "map key "+k.String()+" does not match the map's "+EnumName(kind)+" keys")
 	switch kind {
 	case testpilotspb.SCALAR_KIND_TEXT:
 		if k.kind == textKey {
-			return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: k.text}}, nil
+			return &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: k.text}}, nil
 		}
 	case testpilotspb.SCALAR_KIND_BOOLEAN:
 		if k.kind == booleanKey {
-			return &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: k.text == "true"}}, nil
+			return &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: k.text == "true"}}, nil
 		}
 	case testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64, testpilotspb.SCALAR_KIND_SFIXED32, testpilotspb.SCALAR_KIND_SFIXED64:
 		if k.kind == integerKey {
-			return &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: k.text}}, nil
+			number, err := strconv.ParseInt(k.text, 10, 64)
+			if err != nil || strconv.FormatInt(number, 10) != k.text {
+				return nil, mismatch
+			}
+			return &celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: number}}, nil
 		}
 	case testpilotspb.SCALAR_KIND_UINT32, testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64:
 		if k.kind == integerKey {
-			return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: k.text}}, nil
+			number, err := strconv.ParseUint(k.text, 10, 64)
+			if err != nil || strconv.FormatUint(number, 10) != k.text {
+				return nil, mismatch
+			}
+			return &celpb.Value{Kind: &celpb.Value_Uint64Value{Uint64Value: number}}, nil
 		}
 	default:
 	}

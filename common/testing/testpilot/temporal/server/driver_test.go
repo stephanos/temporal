@@ -8,9 +8,13 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/grpc"
@@ -26,6 +30,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -41,7 +47,7 @@ func fixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, []proto
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
 	nodes := []*testpilotspb.InstructionNode{rpcNode("check", "/grpc.health.v1.Health/Check"), rpcNode("length", "/example.Echo/Length")}
-	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: nodes}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}, Contract: &testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{{RuleId: "safety", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "complete", SourceStateId: "start", TargetStateId: "good", Predicate: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}}}}}}
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}, Instructions: nodes}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}, Contract: &testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{{RuleId: "safety", InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "complete", SourceStateId: "start", TargetStateId: "good", Predicate: cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}}), EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportsEvent: proto.Bool(true)}}}}}}
 	_, err = testpilot.Prepare(source, host)
 	require.NoError(t, err)
 	return host, source, []protoreflect.MethodDescriptor{healthpb.File_grpc_health_v1_health_proto.Services().ByName("Health").Methods().ByName("Check"), file.Services().Get(0).Methods().Get(0)}
@@ -56,7 +62,7 @@ func prepared(t *testing.T, h *Driver, source *testpilotspb.Case) testpilot.Prep
 }
 
 func rpcNode(id, method string) *testpilotspb.InstructionNode {
-	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: method}}}, Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 2000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}}
+	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: method}}}, Limits: &testpilotspb.InstructionLimits{Timeout: durationpb.New(time.Duration(2000) * time.Millisecond), MaxAttempts: proto.Int64(1)}}
 }
 func coordinate(run, node string) testpilot.Coordinate {
 	return testpilot.Coordinate{RunID: run, EntrypointID: "controller", ActivationID: "controller", InstructionID: node, Attempt: 1}
@@ -202,7 +208,7 @@ func TestProtocolFailureTimeoutCancellationAndResponseLimit(t *testing.T) {
 			})
 			h, source, methods := fixture(t, address)
 			if kind == "timeout" {
-				source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 20}
+				source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = pbduration.FromMilliseconds(20)
 			}
 			s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
 			require.NoError(t, err)
@@ -357,7 +363,7 @@ func TestNewChecksTheProfilesBoundScale(t *testing.T) {
 		require.ErrorIs(t, err, errInvalid, "scale %d", scale)
 	}
 	beyond := h.Snapshot()
-	beyond.ProgramLimits.MaxTotalDurationMilliseconds = 86400000
+	beyond.ProgramLimits.MaxDuration = pbduration.FromMilliseconds(86400000)
 	beyond.BoundScale = 101
 	_, err := open(beyond)
 	require.ErrorIs(t, err, errInvalid)
@@ -374,5 +380,5 @@ func TestNewChecksTheProfilesBoundScale(t *testing.T) {
 	preparedCase, err := testpilot.Prepare(source, driver)
 	require.NoError(t, err)
 	require.Equal(t, scaledIdentity, preparedCase.Identity())
-	require.Equal(t, int64(60000), facadetest.Capture(t, preparedCase).Limits().GetMaxTotalDurationMilliseconds())
+	require.Equal(t, int64(60000), facadetest.Capture(t, preparedCase).Limits().GetMaxDuration().AsDuration().Milliseconds())
 }

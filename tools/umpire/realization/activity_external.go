@@ -80,7 +80,7 @@ func (a *realizing) externalSettlements() {
 			fail("held and settlement must be bounded Describe polls")
 		}
 		for _, c := range refs {
-			if c.GetTimeoutMs() <= 0 && a.r.GetBehavior().GetInstructionDefaults().GetTimeoutMs() <= 0 {
+			if durationMilliseconds(c.GetTimeout()) <= 0 && durationMilliseconds(a.r.GetBehavior().GetInstructionDefaults().GetTimeout()) <= 0 {
 				fail("command %s has no positive bound", c.GetId())
 			}
 			if c.GetRegardless() {
@@ -116,7 +116,7 @@ func (a *realizing) externalSettlements() {
 			fail("carrier, answer and settlement order is incomplete")
 		}
 		cleanup := e.GetCleanup()
-		if cleanup == nil || cleanup.GetId() == "" || !cleanup.GetRegardless() || cleanup.GetRpc().GetMethod() != activityService+"TerminateActivityExecution" || (cleanup.GetTimeoutMs() <= 0 && a.r.GetBehavior().GetInstructionDefaults().GetTimeoutMs() <= 0) {
+		if cleanup == nil || cleanup.GetId() == "" || !cleanup.GetRegardless() || cleanup.GetRpc().GetMethod() != activityService+"TerminateActivityExecution" || (durationMilliseconds(cleanup.GetTimeout()) <= 0 && durationMilliseconds(a.r.GetBehavior().GetInstructionDefaults().GetTimeout()) <= 0) {
 			fail("cleanup requires a bounded always-run TerminateActivityExecution command")
 		} else {
 			guarded := proto.CloneOf(cleanup)

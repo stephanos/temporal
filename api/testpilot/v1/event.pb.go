@@ -139,16 +139,16 @@ func (RunEventKind) EnumDescriptor() ([]byte, []int) {
 type RunEventField int32
 
 const (
-	RUN_EVENT_FIELD_UNSPECIFIED          RunEventField = 0
-	RUN_EVENT_FIELD_SEQUENCE             RunEventField = 1
-	RUN_EVENT_FIELD_ELAPSED_MILLISECONDS RunEventField = 2
-	RUN_EVENT_FIELD_KIND                 RunEventField = 3
-	RUN_EVENT_FIELD_ENTRYPOINT_ID        RunEventField = 4
-	RUN_EVENT_FIELD_ACTIVATION_ID        RunEventField = 5
-	RUN_EVENT_FIELD_INSTRUCTION_ID       RunEventField = 6
-	RUN_EVENT_FIELD_ATTEMPT              RunEventField = 7
-	RUN_EVENT_FIELD_SOURCE_ID            RunEventField = 8
-	RUN_EVENT_FIELD_RUN_ID               RunEventField = 9
+	RUN_EVENT_FIELD_UNSPECIFIED    RunEventField = 0
+	RUN_EVENT_FIELD_SEQUENCE       RunEventField = 1
+	RUN_EVENT_FIELD_ELAPSED        RunEventField = 2
+	RUN_EVENT_FIELD_KIND           RunEventField = 3
+	RUN_EVENT_FIELD_ENTRYPOINT_ID  RunEventField = 4
+	RUN_EVENT_FIELD_ACTIVATION_ID  RunEventField = 5
+	RUN_EVENT_FIELD_INSTRUCTION_ID RunEventField = 6
+	RUN_EVENT_FIELD_ATTEMPT        RunEventField = 7
+	RUN_EVENT_FIELD_SOURCE_ID      RunEventField = 8
+	RUN_EVENT_FIELD_RUN_ID         RunEventField = 9
 )
 
 // Enum value maps for RunEventField.
@@ -156,7 +156,7 @@ var (
 	RunEventField_name = map[int32]string{
 		0: "RUN_EVENT_FIELD_UNSPECIFIED",
 		1: "RUN_EVENT_FIELD_SEQUENCE",
-		2: "RUN_EVENT_FIELD_ELAPSED_MILLISECONDS",
+		2: "RUN_EVENT_FIELD_ELAPSED",
 		3: "RUN_EVENT_FIELD_KIND",
 		4: "RUN_EVENT_FIELD_ENTRYPOINT_ID",
 		5: "RUN_EVENT_FIELD_ACTIVATION_ID",
@@ -166,16 +166,16 @@ var (
 		9: "RUN_EVENT_FIELD_RUN_ID",
 	}
 	RunEventField_value = map[string]int32{
-		"RUN_EVENT_FIELD_UNSPECIFIED":          0,
-		"RUN_EVENT_FIELD_SEQUENCE":             1,
-		"RUN_EVENT_FIELD_ELAPSED_MILLISECONDS": 2,
-		"RUN_EVENT_FIELD_KIND":                 3,
-		"RUN_EVENT_FIELD_ENTRYPOINT_ID":        4,
-		"RUN_EVENT_FIELD_ACTIVATION_ID":        5,
-		"RUN_EVENT_FIELD_INSTRUCTION_ID":       6,
-		"RUN_EVENT_FIELD_ATTEMPT":              7,
-		"RUN_EVENT_FIELD_SOURCE_ID":            8,
-		"RUN_EVENT_FIELD_RUN_ID":               9,
+		"RUN_EVENT_FIELD_UNSPECIFIED":    0,
+		"RUN_EVENT_FIELD_SEQUENCE":       1,
+		"RUN_EVENT_FIELD_ELAPSED":        2,
+		"RUN_EVENT_FIELD_KIND":           3,
+		"RUN_EVENT_FIELD_ENTRYPOINT_ID":  4,
+		"RUN_EVENT_FIELD_ACTIVATION_ID":  5,
+		"RUN_EVENT_FIELD_INSTRUCTION_ID": 6,
+		"RUN_EVENT_FIELD_ATTEMPT":        7,
+		"RUN_EVENT_FIELD_SOURCE_ID":      8,
+		"RUN_EVENT_FIELD_RUN_ID":         9,
 	}
 )
 
@@ -191,8 +191,8 @@ func (x RunEventField) String() string {
 		return "Unspecified"
 	case RUN_EVENT_FIELD_SEQUENCE:
 		return "Sequence"
-	case RUN_EVENT_FIELD_ELAPSED_MILLISECONDS:
-		return "ElapsedMilliseconds"
+	case RUN_EVENT_FIELD_ELAPSED:
+		return "Elapsed"
 	case RUN_EVENT_FIELD_KIND:
 		return "Kind"
 	case RUN_EVENT_FIELD_ENTRYPOINT_ID:
@@ -205,9 +205,9 @@ func (x RunEventField) String() string {
 		return "Attempt"
 	case RUN_EVENT_FIELD_SOURCE_ID:
 		return "SourceId"
+	case RUN_EVENT_FIELD_RUN_ID:
 
 		// Deprecated: Use RunEventField.Descriptor instead.
-	case RUN_EVENT_FIELD_RUN_ID:
 		return "RunId"
 	default:
 		return strconv.Itoa(int(x))
@@ -296,11 +296,11 @@ const file_temporal_server_api_testpilot_v1_event_proto_rawDesc = "" +
 	"\x19RUN_EVENT_KIND_RUN_CLOSED\x10\t\x12\x1d\n" +
 	"\x19RUN_EVENT_KIND_DIAGNOSTIC\x10\n" +
 	"\x12!\n" +
-	"\x1dRUN_EVENT_KIND_FAULT_INJECTED\x10\v*\xd4\x02\n" +
+	"\x1dRUN_EVENT_KIND_FAULT_INJECTED\x10\v*\xc7\x02\n" +
 	"\rRunEventField\x12\x1f\n" +
 	"\x1bRUN_EVENT_FIELD_UNSPECIFIED\x10\x00\x12\x1c\n" +
-	"\x18RUN_EVENT_FIELD_SEQUENCE\x10\x01\x12(\n" +
-	"$RUN_EVENT_FIELD_ELAPSED_MILLISECONDS\x10\x02\x12\x18\n" +
+	"\x18RUN_EVENT_FIELD_SEQUENCE\x10\x01\x12\x1b\n" +
+	"\x17RUN_EVENT_FIELD_ELAPSED\x10\x02\x12\x18\n" +
 	"\x14RUN_EVENT_FIELD_KIND\x10\x03\x12!\n" +
 	"\x1dRUN_EVENT_FIELD_ENTRYPOINT_ID\x10\x04\x12!\n" +
 	"\x1dRUN_EVENT_FIELD_ACTIVATION_ID\x10\x05\x12\"\n" +

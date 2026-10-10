@@ -5,13 +5,10 @@ import (
 	"fmt"
 )
 
-// CurrentMajor and CurrentMinor are the single admission boundary. The coordinated
-// CEL, Duration and evidence migration activates 4.0 only after its consumers land.
+// CurrentMajor and CurrentMinor are the single emission and admission boundary.
 const (
-	CurrentMajor int32 = 1
+	CurrentMajor int32 = 4
 	CurrentMinor int32 = 0
-	CELMajor     int32 = 4
-	CELMinor     int32 = 0
 )
 
 // FormatError identifies an unsupported format before its payload is interpreted.
@@ -23,12 +20,8 @@ func (e *FormatError) Error() string {
 
 // CheckVersion admits exactly the current format, never a compatibility range.
 func CheckVersion(major, minor int32) error {
-	return checkVersion(major, minor, CurrentMajor, CurrentMinor)
-}
-
-func checkVersion(major, minor, expectedMajor, expectedMinor int32) error {
-	if major != expectedMajor || minor != expectedMinor {
-		return &FormatError{Major: major, Minor: minor, ExpectedMajor: expectedMajor, ExpectedMinor: expectedMinor}
+	if major != CurrentMajor || minor != CurrentMinor {
+		return &FormatError{Major: major, Minor: minor, ExpectedMajor: CurrentMajor, ExpectedMinor: CurrentMinor}
 	}
 	return nil
 }

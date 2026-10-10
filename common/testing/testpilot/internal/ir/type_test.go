@@ -2,13 +2,19 @@ package ir
 
 import (
 	"math"
+	"strconv"
+	"strings"
 	"testing"
+
+	celpb "cel.dev/expr"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -24,20 +30,42 @@ func named(name string, enum bool) *testpilotspb.ValueType {
 	}
 	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: s}}
 }
-func text(value string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}
+func text(value string) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: value}}
 }
-func signed(value string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: value}}
+func signed(value string) *celpb.Value {
+	n, err := strconv.ParseInt(value, 10, 64)
+	if err != nil || strconv.FormatInt(n, 10) != value {
+		return text(value)
+	}
+	return &celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: n}}
 }
-func unsigned(value string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: value}}
+func unsigned(value string) *celpb.Value {
+	n, err := strconv.ParseUint(value, 10, 64)
+	if err != nil || strconv.FormatUint(n, 10) != value {
+		return text(value)
+	}
+	return &celpb.Value{Kind: &celpb.Value_Uint64Value{Uint64Value: n}}
 }
-func enumLiteral(name string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: name}}}
+func enumLiteral(name string) *celpb.Value {
+	if strings.HasPrefix(name, "INSTRUCTION_") {
+		return cel.Enum(testpilotspb.InstructionOutcomeStatus(testpilotspb.InstructionOutcomeStatus_value[name]))
+	}
+	number := int32(-1)
+	switch name {
+	case "UNKNOWN":
+		number = 0
+	case "READY":
+		number = 1
+	default:
+		if n, err := strconv.ParseInt(name, 10, 32); err == nil {
+			number = int32(n)
+		}
+	}
+	return &celpb.Value{Kind: &celpb.Value_EnumValue{EnumValue: &celpb.EnumValue{Type: "fixture.State", Value: number}}}
 }
-func boolean(value bool) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}
+func boolean(value bool) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: value}}
 }
 func fixtureCatalog(t *testing.T) *Catalog {
 	t.Helper()
@@ -56,11 +84,11 @@ func TestLiteralsPreserveEveryScalarKindAndRange(t *testing.T) {
 	c := fixtureCatalog(t)
 	tests := []struct {
 		kind      testpilotspb.ScalarKind
-		good, bad *testpilotspb.Value
+		good, bad *celpb.Value
 	}{
 		{testpilotspb.SCALAR_KIND_TEXT, text("hello"), boolean(true)},
 		{testpilotspb.SCALAR_KIND_BOOLEAN, boolean(false), text("false")},
-		{testpilotspb.SCALAR_KIND_BYTES, &testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: []byte{1}}}, text("bytes")},
+		{testpilotspb.SCALAR_KIND_BYTES, &celpb.Value{Kind: &celpb.Value_BytesValue{BytesValue: []byte{1}}}, text("bytes")},
 		{testpilotspb.SCALAR_KIND_INT32, signed("-2147483648"), signed("2147483648")},
 		{testpilotspb.SCALAR_KIND_INT64, signed("-9223372036854775808"), signed("9223372036854775808")},
 		{testpilotspb.SCALAR_KIND_UINT32, unsigned("4294967295"), unsigned("4294967296")},
@@ -71,8 +99,8 @@ func TestLiteralsPreserveEveryScalarKindAndRange(t *testing.T) {
 		{testpilotspb.SCALAR_KIND_FIXED64, unsigned("0"), unsigned("+1")},
 		{testpilotspb.SCALAR_KIND_SFIXED32, signed("0"), signed("-0")},
 		{testpilotspb.SCALAR_KIND_SFIXED64, signed("0"), signed("01")},
-		{testpilotspb.SCALAR_KIND_FLOAT, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 1.25}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.MaxFloat64}}},
-		{testpilotspb.SCALAR_KIND_DOUBLE, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.MaxFloat64}}, signed("1")},
+		{testpilotspb.SCALAR_KIND_FLOAT, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: 1.25}}, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: math.MaxFloat64}}},
+		{testpilotspb.SCALAR_KIND_DOUBLE, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: math.MaxFloat64}}, signed("1")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.kind.String(), func(t *testing.T) {
@@ -89,20 +117,20 @@ func TestNamedCollectionAndAnyLiterals(t *testing.T) {
 	stamp, err := anypb.New(&timestamppb.Timestamp{Seconds: 10})
 	require.NoError(t, err)
 	enum := named("fixture.State", true)
-	anyType := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}}}}
+	anyType := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &emptypb.Empty{}}}}}
 	listType := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Repeated{Repeated: &testpilotspb.RepeatedType{Element: scalar(testpilotspb.SCALAR_KIND_TEXT).GetSingular()}}}
 	mapType := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Map{Map: &testpilotspb.MapType{Key: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Value: enum.GetSingular()}}}
 	enumValue := enumLiteral("READY")
 	for _, tt := range []struct {
 		name   string
 		schema *testpilotspb.ValueType
-		value  *testpilotspb.Value
+		value  *celpb.Value
 	}{
 		{"enum", enum, enumValue},
-		{"message", named("google.protobuf.Timestamp", false), &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: stamp}}},
-		{"any", anyType, &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "example.invalid/unknown.Payload", Value: []byte{0xff}}}}},
-		{"list", listType, &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: []*testpilotspb.Value{text("x")}}}}},
-		{"map", mapType, &testpilotspb.Value{Value: &testpilotspb.Value_MapValue{MapValue: &testpilotspb.ValueMap{Entries: []*testpilotspb.ValueMapEntry{{Key: text("x"), Value: enumValue}}}}}},
+		{"message", named("google.protobuf.Timestamp", false), &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: stamp}}},
+		{"any", anyType, &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "example.invalid/unknown.Payload", Value: []byte{0xff}}}}},
+		{"list", listType, &celpb.Value{Kind: &celpb.Value_ListValue{ListValue: &celpb.ListValue{Values: []*celpb.Value{text("x")}}}}},
+		{"map", mapType, &celpb.Value{Kind: &celpb.Value_MapValue{MapValue: &celpb.MapValue{Entries: []*celpb.MapValue_Entry{{Key: text("x"), Value: enumValue}}}}}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			typ := boundType(t, c, tt.schema)
@@ -111,14 +139,14 @@ func TestNamedCollectionAndAnyLiterals(t *testing.T) {
 		})
 	}
 
-	unknown := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/google.protobuf.Timestamp", Value: []byte{0x18, 1}}}}
-	require.Error(t, c.CheckLiteral(unknown, boundType(t, c, named("google.protobuf.Timestamp", false)), DefaultLimits()))
-	duplicate := &testpilotspb.Value{Value: &testpilotspb.Value_MapValue{MapValue: &testpilotspb.ValueMap{Entries: []*testpilotspb.ValueMapEntry{{Key: text("x"), Value: enumValue}, {Key: text("x"), Value: enumValue}}}}}
+	unknown := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/google.protobuf.Timestamp", Value: []byte{0x18, 1}}}}
+	require.NoError(t, c.CheckLiteral(unknown, boundType(t, c, named("google.protobuf.Timestamp", false)), DefaultLimits()))
+	duplicate := &celpb.Value{Kind: &celpb.Value_MapValue{MapValue: &celpb.MapValue{Entries: []*celpb.MapValue_Entry{{Key: text("x"), Value: enumValue}, {Key: text("x"), Value: enumValue}}}}}
 	require.Error(t, c.CheckLiteral(duplicate, boundType(t, c, mapType), DefaultLimits()))
 }
 
-// An enum literal names a value its expected enum declares; an undeclared name, a name where the
-// expected type is no enum, and a literal with no expected type reject quoting the name.
+// Native enum literals carry their descriptor name and number. Unknown authored numbers and
+// incompatible expected types reject, while a known enum needs no surrounding source type.
 func TestEnumLiteralsNameADeclaredValue(t *testing.T) {
 	c := fixtureCatalog(t)
 	enum := boundType(t, c, named("fixture.State", true))
@@ -128,14 +156,10 @@ func TestEnumLiteralsNameADeclaredValue(t *testing.T) {
 		category ErrorCategory
 		detail   string
 	}{
-		{"undeclared name", func() error { return c.CheckLiteral(enumLiteral("RUNNING"), enum, DefaultLimits()) }, Unknown, `enum fixture.State declares no value "RUNNING"`},
+		{"undeclared number", func() error { return c.CheckLiteral(enumLiteral("RUNNING"), enum, DefaultLimits()) }, Unknown, `enum fixture.State declares no value -1`},
 		{"not an enum", func() error {
 			return c.CheckLiteral(enumLiteral("READY"), boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT)), DefaultLimits())
-		}, TypeMismatch, `enum literal "READY" where the expected type is not an enumeration`},
-		{"no expected type", func() error {
-			_, err := c.BindExpression(programSite, equal(literal(enumLiteral("READY")), literal(enumLiteral("READY"))), nil, nil, DefaultLimits())
-			return err
-		}, TypeMismatch, `enum literal "READY" requires a contextual source type`},
+		}, TypeMismatch, `enum literal "fixture.State" where the expected type is not an enumeration`},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			var rejected *Error
@@ -144,6 +168,11 @@ func TestEnumLiteralsNameADeclaredValue(t *testing.T) {
 			require.Equal(t, tt.detail, rejected.Detail)
 		})
 	}
+	bound, err := c.BindExpression(programSite, equal(literal(enumLiteral("READY")), literal(enumLiteral("READY"))), nil, nil, DefaultLimits())
+	require.NoError(t, err)
+	matched, _, err := bound.Evaluate(t.Context(), func(Reference) *celpb.Value { return nil }, DefaultLimits().Work)
+	require.NoError(t, err)
+	require.True(t, matched.GetBoolValue())
 	require.NoError(t, c.CheckLiteral(enumLiteral("READY"), enum, DefaultLimits()))
 	require.True(t, proto.Equal(enumLiteral("READY"), EnumValue(enum.Enum(), 1)))
 	require.True(t, proto.Equal(enumLiteral("22"), EnumValue(enum.Enum(), 22)))
@@ -161,7 +190,7 @@ func TestTypeAndLiteralRejectMalformedAndBoundedInputs(t *testing.T) {
 	typ := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
 	unknown := text("x")
 	unknown.ProtoReflect().SetUnknown([]byte{0x78, 1})
-	for _, value := range []*testpilotspb.Value{nil, {}, unknown} {
+	for _, value := range []*celpb.Value{nil, {}, unknown} {
 		require.Error(t, c.CheckLiteral(value, typ, DefaultLimits()))
 	}
 	limits := DefaultLimits()
@@ -194,7 +223,7 @@ func TestBinderRejectsCrossedCatalogsAndTypedNilUnions(t *testing.T) {
 		require.Error(t, err)
 	})
 	require.NotPanics(t, func() {
-		err := c.CheckLiteral(&testpilotspb.Value{Value: (*testpilotspb.Value_TextValue)(nil)}, boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT)), DefaultLimits())
+		err := c.CheckLiteral(&celpb.Value{Kind: (*celpb.Value_StringValue)(nil)}, boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT)), DefaultLimits())
 		require.Error(t, err)
 	})
 }
@@ -202,7 +231,7 @@ func TestBinderRejectsCrossedCatalogsAndTypedNilUnions(t *testing.T) {
 func TestNamedPayloadsRespectCollectionCeilings(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
-	value := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x1a, 0, 0x1a, 0, 0x1a, 0}}}}
+	value := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x1a, 0, 0x1a, 0, 0x1a, 0}}}}
 	limits := DefaultLimits()
 	limits.Fanout = 2
 	require.Error(t, c.CheckLiteral(value, typ, limits))
@@ -211,7 +240,7 @@ func TestNamedPayloadsRespectCollectionCeilings(t *testing.T) {
 func TestMessageWorkIsChargedBeforeDecodingAllFields(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
-	value := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x1a, 0, 0x1a, 0, 0x1a, 0, 0xff}}}}
+	value := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x1a, 0, 0x1a, 0, 0x1a, 0, 0xff}}}}
 	limits := DefaultLimits()
 	limits.Work = 6
 	var admission *Error
@@ -225,8 +254,8 @@ func TestGroupPayloadsAreScannedUnderTheSameWorkBudget(t *testing.T) {
 	c, err := NewCatalog(source)
 	require.NoError(t, err)
 	typ := boundType(t, c, named("groups.Payload", false))
-	value := func(wire []byte) *testpilotspb.Value {
-		return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/groups.Payload", Value: wire}}}
+	value := func(wire []byte) *celpb.Value {
+		return &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/groups.Payload", Value: wire}}}
 	}
 	require.NoError(t, c.CheckLiteral(value([]byte{0x0b, 8, 1, 0x0c}), typ, DefaultLimits()))
 	require.NoError(t, c.CheckLiteral(value([]byte{0x0b, 0x0a, 2, 1, 2, 0x0c}), typ, DefaultLimits()))

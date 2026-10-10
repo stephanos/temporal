@@ -8,6 +8,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"google.golang.org/protobuf/proto"
 )
 
 // Each Case carries two defects that admission checks at different points, so the first rejection
@@ -17,10 +18,12 @@ import (
 // dataflow.
 func TestPrepareRejectsTheFirstOfTwoDefects(t *testing.T) {
 	overAttempts := func(n *testpilotspb.InstructionNode) {
-		n.Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 33}
+		n.Limits.MaxAttempts = proto.Int64(33)
 	}
 	missingSlot := present(slot("missing"))
-	undeclared := ir.Error{Category: ir.Unknown, Path: "expression", Detail: "reference is not declared in this environment"}
+	undeclared := func(id string) ir.Error {
+		return ir.Error{Category: ir.Unknown, Path: "program.entrypoints[controller].instructions[" + id + "].guard.bindings[0]", Detail: "reference is not declared in this environment"}
+	}
 	const (
 		unsupported = "unsupported instruction context or Driver capability"
 		overBounds  = "instruction bounds exceed Profile ceilings"
@@ -84,14 +87,14 @@ func TestPrepareRejectsTheFirstOfTwoDefects(t *testing.T) {
 			call := c.Program.Entrypoints[0].Instructions[0]
 			call.Guard = missingSlot
 			call.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "missing", Value: textLiteral("value")}}
-		}, undeclared},
+		}, undeclared("call")},
 		{"guard before AwaitSlot writer", handleFixture, func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints = c.Program.Entrypoints[:2]
 			c.Program.Entrypoints[0].Instructions[1].Guard = missingSlot
-		}, undeclared},
+		}, undeclared("ready")},
 		{"guard before completion readiness", handleFixture, func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints[0].Instructions[2].Guard = missingSlot
-		}, undeclared},
+		}, undeclared("complete")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, catalog, p := tc.fixture(t)

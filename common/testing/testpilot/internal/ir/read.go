@@ -3,7 +3,8 @@ package ir
 import (
 	"context"
 
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	celpb "cel.dev/expr"
+
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -12,7 +13,7 @@ import (
 
 // Read retains absent wildcard branches: any absent element makes the value absent, while
 // an explicit presence selector returns one aligned boolean for every element.
-func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*testpilotspb.Value, int64, error) {
+func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*celpb.Value, int64, error) {
 	b, err := runtimeBudget(ctx, limits)
 	if err != nil {
 		return nil, 0, err
@@ -25,12 +26,12 @@ func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*
 		return nil, b.work, err
 	}
 	r := runtimeExpression{ctx: ctx, limit: limits.Work - b.work, copyWork: true}
-	var values []*testpilotspb.Value
+	var values []*celpb.Value
 	if len(p.steps) == 0 {
 		if err = r.charge(2*int64(proto.Size(snapshot)) + 1); err == nil {
 			var wire []byte
 			wire, err = proto.MarshalOptions{Deterministic: true}.Marshal(snapshot)
-			values = []*testpilotspb.Value{{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(p.source.message.FullName()), Value: wire}}}}
+			values = []*celpb.Value{{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(p.source.message.FullName()), Value: wire}}}}
 		}
 	} else {
 		values, err = r.readBranches(snapshot.ProtoReflect(), p, 0, make([]int64, len(p.steps)), min(p.limit, limits.Fanout))
@@ -44,9 +45,9 @@ func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*
 			return nil, work, nil
 		}
 	}
-	var result *testpilotspb.Value
+	var result *celpb.Value
 	if p.fanout {
-		result = &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: values}}}
+		result = &celpb.Value{Kind: &celpb.Value_ListValue{ListValue: &celpb.ListValue{Values: values}}}
 	} else if len(values) > 0 {
 		result = values[0]
 	}
@@ -55,7 +56,7 @@ func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*
 	}
 	return result, b.work + r.work, nil
 }
-func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, index int, counts []int64, fanout int64) ([]*testpilotspb.Value, error) {
+func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, index int, counts []int64, fanout int64) ([]*celpb.Value, error) {
 	if err := r.charge(1); err != nil {
 		return nil, err
 	}
@@ -63,14 +64,14 @@ func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, 
 	if index == len(p.steps)-1 {
 		if message == nil {
 			if step.Selector == Presence {
-				return []*testpilotspb.Value{boolValue(false)}, nil
+				return []*celpb.Value{boolValue(false)}, nil
 			}
-			return []*testpilotspb.Value{nil}, nil
+			return []*celpb.Value{nil}, nil
 		}
 		remaining := fanout - counts[index]
 		values, err := r.selectField(message, step, remaining)
 		if values == nil && err == nil {
-			values = []*testpilotspb.Value{nil}
+			values = []*celpb.Value{nil}
 		}
 		if int64(len(values)) > remaining {
 			return nil, Invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
@@ -86,7 +87,7 @@ func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, 
 		return nil, Invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
 	}
 	counts[index] += int64(len(children))
-	var result []*testpilotspb.Value
+	var result []*celpb.Value
 	for _, child := range children {
 		values, err := r.readBranches(child, p, index+1, counts, fanout)
 		if err != nil {
@@ -138,7 +139,7 @@ func (r *runtimeExpression) messageChildren(message protoreflect.Message, step P
 
 // ReadValue reads one bound Path out of an already-projected message Value, with the same runtime
 // path semantics a Contract expression reads an Observation with. A nil result denotes absence.
-func ReadValue(ctx context.Context, value *testpilotspb.Value, typ Type, path *Path, limits Limits) (*testpilotspb.Value, int64, error) {
+func ReadValue(ctx context.Context, value *celpb.Value, typ Type, path *Path, limits Limits) (*celpb.Value, int64, error) {
 	// `limits.Work` is the caller's remaining runtime budget, which legitimately exceeds the hard
 	// admission ceiling, so only the structural bounds are validated against it.
 	if err := limits.validateStructure(); err != nil {

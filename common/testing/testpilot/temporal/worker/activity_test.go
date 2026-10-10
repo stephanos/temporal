@@ -6,12 +6,14 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	failurepb "go.temporal.io/api/failure/v1"
 	"go.temporal.io/sdk/temporal"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
@@ -20,8 +22,8 @@ import (
 
 const pinnedActivityHeader = "temporal-testpilot-reserved-activity-v1"
 
-func textResult(value string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}
+func textResult(value string) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: value}}
 }
 
 func requireOutcome(t *testing.T, want *testpilotspb.InstructionOutcome, got testpilot.EffectResult) {
@@ -62,7 +64,7 @@ func TestActivityActivationRunsItsScriptUnderItsReservation(t *testing.T) {
 		return host.dynamicActivity(ctx, nil)
 	})
 	require.NoError(t, err)
-	require.True(t, proto.Equal(textResult("done"), result.(*testpilotspb.Value)), result)
+	require.True(t, proto.Equal(textResult("done"), result.(*celpb.Value)), result)
 	require.Equal(t, testpilot.Coordinate{RunID: "run", EntrypointID: "activity", ActivationID: "reservation-1", Attempt: 1}, activated)
 
 	settled, err := settledActivity(t, session)
@@ -79,16 +81,16 @@ func TestActivityActivationRunsItsScriptUnderItsReservation(t *testing.T) {
 func TestActivityFinishCompletesEvenWithAFailureMessageAsItsResult(t *testing.T) {
 	carried, err := anypb.New(&failurepb.Failure{Message: "a value, not an outcome", FailureInfo: &failurepb.Failure_TimeoutFailureInfo{TimeoutFailureInfo: &failurepb.TimeoutFailureInfo{}}})
 	require.NoError(t, err)
-	value := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: carried}}
+	value := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: carried}}
 	prepared := preparedActivityFixture(t, standaloneActivity, func(program *testpilotspb.Program) {
-		program.Entrypoints[1].Instructions[0].GetInstruction().GetFinish().Result = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: value}}
+		program.Entrypoints[1].Instructions[0].GetInstruction().GetFinish().Result = cel.Literal(value)
 	})
 	host, definition := runtimeTestDriver(t, prepared)
 	session, _, request := activityTestSession(t, host, definition, prepared, "run", activityBinding("activity-id"), "activity-run", delivery.TriggerSucceeded)
 
 	result, err := activityWorker(host, definition).activateActivity(t.Context(), activityDelivery(request, "activity-run"), runScript(host))
 	require.NoError(t, err)
-	require.True(t, proto.Equal(value, result.(*testpilotspb.Value)), result)
+	require.True(t, proto.Equal(value, result.(*celpb.Value)), result)
 	settled, err := settledActivity(t, session)
 	require.NoError(t, err)
 	requireOutcome(t, answered("activity-run", 1, "delivery-1", completed), settled)
@@ -137,7 +139,7 @@ func TestActivityAttemptFailsAsItsInstructionSays(t *testing.T) {
 		defer cancel()
 		result, err = worker.activateActivity(bounded, activityAttempt(request, "activity-run", 2, "delivery-2"), run)
 		require.NoError(t, err)
-		require.True(t, proto.Equal(textResult("done"), result.(*testpilotspb.Value)), result)
+		require.True(t, proto.Equal(textResult("done"), result.(*celpb.Value)), result)
 		second, err := settledAttempt(t, session, "reservation-2")
 		require.NoError(t, err)
 		requireOutcome(t, answered("activity-run", 2, "delivery-2", completed), second)
@@ -209,7 +211,7 @@ func TestActivityAttemptsThatArriveInvertedRunTheirOwnInstructions(t *testing.T)
 
 	got := <-second
 	require.NoError(t, got.err)
-	require.True(t, proto.Equal(textResult("done"), got.result.(*testpilotspb.Value)), got.result)
+	require.True(t, proto.Equal(textResult("done"), got.result.(*celpb.Value)), got.result)
 	first, err := settledAttempt(t, session, "reservation-1")
 	require.NoError(t, err)
 	requireOutcome(t, answered("activity-run", 1, "delivery-1", failedRetryable), first)
@@ -248,7 +250,7 @@ func TestDuplicateDeliveryOfAnAttemptIsAnsweredOnceRun(t *testing.T) {
 	for range 2 {
 		result, err := worker.activateActivity(t.Context(), activityAttempt(request, "activity-run", 2, "delivery-2"), counted)
 		require.NoError(t, err)
-		require.True(t, proto.Equal(textResult("done"), result.(*testpilotspb.Value)), result)
+		require.True(t, proto.Equal(textResult("done"), result.(*celpb.Value)), result)
 	}
 	require.Equal(t, 2, runs)
 	second, err := settledAttempt(t, session, "reservation-2")
@@ -331,7 +333,7 @@ func TestConcurrentDeliveriesOfOneAttemptRunItsScriptOnce(t *testing.T) {
 	for range racers {
 		got := <-answers
 		require.NoError(t, got.err)
-		require.True(t, proto.Equal(textResult("done"), got.result.(*testpilotspb.Value)), got.result)
+		require.True(t, proto.Equal(textResult("done"), got.result.(*celpb.Value)), got.result)
 	}
 	require.Empty(t, entered)
 	settled, err := settledActivity(t, session)
@@ -385,7 +387,7 @@ func TestActivityAttemptTheDriverFailsIsRecordedAsRefused(t *testing.T) {
 		"an attempt whose instruction is disabled": {
 			shape: func(program *testpilotspb.Program) {
 				standaloneActivity(program)
-				program.Entrypoints[1].Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
+				program.Entrypoints[1].Instructions[0].Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: false}})
 			},
 			run:   func(host *Driver, _ *Session) func(context.Context) (any, error) { return runScript(host) },
 			cause: "the activity attempt's instruction is disabled",

@@ -2,7 +2,8 @@ syntax = "proto3";
 package temporal.server.api.testpilot.v1;
 import "temporal/server/api/testpilot/v1/event.proto";
 import "temporal/server/api/testpilot/v1/instruction.proto";
-import "temporal/server/api/testpilot/v1/value.proto";
+import "cel/expr/value.proto";
+import "google/protobuf/duration.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
 // Run is the authoritative append-only record of one attempted Program execution.
@@ -17,9 +18,7 @@ message Run {
   repeated RunDiagnostic diagnostics = 8;
   // First event whose Monitor callback failed; its staged evaluation did not commit.
   // Recorded after the callback, without changing the appended event.
-  oneof evaluation_failure {
-    int64 evaluation_failure_sequence = 9;
-  }
+  optional int64 evaluation_failure_sequence = 9;
   // The Profile's bound scale, in percent, when it is not 100: the Run applied every wait hint's
   // bound and the Profile's duration ceilings scaled by it. Zero when it applied them as declared.
   int64 bound_scale_percent = 10;
@@ -27,10 +26,11 @@ message Run {
 
 // RunEvent is an immutable fact at one Executor-recorded monotonic coordinate.
 message RunEvent {
+  reserved "elapsed_milliseconds";
   // Position in the Run, counting from 1.
   int64 sequence = 1;
-  // Host-clock milliseconds since the Run opened; never decreases.
-  int64 elapsed_milliseconds = 2;
+  // Whole-millisecond elapsed duration since the Run opened; never decreases.
+  google.protobuf.Duration elapsed = 2;
   RunEventKind kind = 3;
   RunEventCoordinates coordinates = 4;
   // The producer's unique deterministic id for the event; an identical republish is deduplicated.
@@ -64,7 +64,7 @@ message RunEventCoordinates {
 }
 
 // ObservationResult is the value of one declared Observation on a Run Event.
-message ObservationResult { string observation_id = 1; Value value = 2; }
+message ObservationResult { string observation_id = 1; cel.expr.Value value = 2; }
 
 // InstructionOutcome is the generic result of one instruction attempt.
 message InstructionOutcome {
@@ -76,7 +76,7 @@ message InstructionOutcome {
   // Bounded error text.
   string detail = 4;
   // The result on success, when the outcome declares VALUE.
-  Value value = 5;
+  cel.expr.Value value = 5;
   // Set on the outcome of an activity activation: which attempt it was and what the worker offered
   // Temporal for it.
   ActivityAttempt activity_attempt = 6;
@@ -208,10 +208,8 @@ message RunDiagnostic {
   string code = 3;
   // Human-readable text.
   string detail = 4;
-  oneof support {
-    // The last Run Event recorded before the failure, when there is one.
-    int64 supporting_event_sequence = 5;
-  }
+  // The last Run Event recorded before the failure, when there is one.
+  optional int64 supporting_event_sequence = 5;
 }
 
 // RunDiagnosticKind names the component or contract a diagnostic reports on.

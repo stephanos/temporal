@@ -7,6 +7,7 @@ import (
 	"slices"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commandpb "go.temporal.io/api/command/v1"
 	commonpb "go.temporal.io/api/common/v1"
@@ -165,7 +166,7 @@ func (i *workflowInterpreter) scheduleActivity(index int, instruction testpilot.
 // awaitedPayload reads a scheduled command's result as the payload the handler or the activity
 // answered, whole, as the Await's VALUE: an Any of the payload, or of an empty payload when it
 // answered none.
-func awaitedPayload(ctx workflow.Context, future workflow.Future) (*testpilotspb.Value, error) {
+func awaitedPayload(ctx workflow.Context, future workflow.Future) (*celpb.Value, error) {
 	var raw converter.RawValue
 	if err := future.Get(ctx, &raw); err != nil {
 		return nil, err
@@ -178,7 +179,7 @@ func awaitedPayload(ctx workflow.Context, future workflow.Future) (*testpilotspb
 	if err != nil {
 		return nil, err
 	}
-	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: packed}}, nil
+	return &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: packed}}, nil
 }
 
 // replyTyped answers the activation with a typed handler reply: a start response or a handler error.

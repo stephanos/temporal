@@ -13,6 +13,8 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/common/testing/testpilot/duration"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -30,7 +32,7 @@ func derivedModel(t *testing.T, name string, edits ...func(*umpirespb.Model)) *u
 	t.Helper()
 	m := loaded(t, name)
 	for _, c := range commandsOfModel(m) {
-		require.Zero(t, c.GetPoll().GetIntervalMs(), "command %s writes no interval", c.GetId())
+		require.Zero(t, durationMilliseconds(c.GetPoll().GetInterval()), "command %s writes no interval", c.GetId())
 	}
 	for _, edit := range edits {
 		edit(m)
@@ -135,9 +137,9 @@ func waitsOf(c *testpilotspb.Case) map[string]wait {
 			if read == nil {
 				continue
 			}
-			w := wait{once: read.GetOnce(), interval: read.GetPollIntervalMilliseconds()}
+			w := wait{once: read.GetInterval() == nil, interval: read.GetInterval().AsDuration().Milliseconds()}
 			for _, h := range n.GetWaitHints() {
-				w.hints = append(w.hints, fmt.Sprintf("%s=%d", h.GetHintId(), h.GetAtMostMilliseconds()))
+				w.hints = append(w.hints, fmt.Sprintf("%s=%d", h.GetHintId(), h.GetAtMost().AsDuration().Milliseconds()))
 			}
 			out[e.GetEntrypointId()+"/"+n.GetInstructionId()] = w
 		}
@@ -223,11 +225,11 @@ func TestReadsWaitAsTheApiBehaviorDerives(t *testing.T) {
 							require.NotNil(t, declared, h.GetHintId())
 							require.Equal(t, declared.GetFile(), h.GetSource().GetPath(), h.GetHintId())
 							require.Equal(t, declared.GetLine(), h.GetSource().GetLine(), h.GetHintId())
-							sum += h.GetAtMostMilliseconds()
+							sum += h.GetAtMost().AsDuration().Milliseconds()
 						}
 						if len(n.GetWaitHints()) > 0 {
-							require.Equal(t, sum, n.GetLimits().GetTimeoutMilliseconds())
-						} else if n.GetInstruction().GetReadEvidence().GetOnce() {
+							require.Equal(t, sum, n.GetLimits().GetTimeout().AsDuration().Milliseconds())
+						} else if n.GetInstruction().GetReadEvidence().GetInterval() == nil {
 							require.Nil(t, n.GetLimits(), "a read once keeps the Profile's limit for its one call")
 						}
 					}
@@ -285,13 +287,13 @@ func TestAReadAfterAnEventuallyVisibleWritePollsWithinItsBound(t *testing.T) {
 	require.Equal(t, map[string]wait{"controller/await-terminated": readOnce}, waitsOf(l.Case))
 
 	eventually := derivedModel(t, "activity-standalone", visibilityOf(terminated, func(v *umpirespb.Visibility) {
-		v.EventuallyWithin = &umpirespb.WaitBound{Position: v.GetPosition(), IntervalMs: 100, AtMostMs: 1500}
+		v.EventuallyWithin = &umpirespb.WaitBound{Position: v.GetPosition(), Interval: duration.FromMilliseconds(100), AtMost: duration.FromMilliseconds(1500)}
 	}))
 	l, err = lowerDerived(t, eventually, "terminate")
 	require.NoError(t, err)
 	require.Equal(t, map[string]wait{"controller/await-terminated": {interval: 100, hints: []string{terminated + "=1500"}}}, waitsOf(l.Case))
 	node := instruction(t, l.Case, "controller", "await-terminated")
-	require.Equal(t, int64(1500), node.GetLimits().GetTimeoutMilliseconds())
+	require.Equal(t, int64(1500), node.GetLimits().GetTimeout().AsDuration().Milliseconds())
 	require.Equal(t, declaredAt(t, eventually)[terminated].GetLine(), node.GetWaitHints()[0].GetSource().GetLine())
 	preparedAsIs(t, l.Case)
 }
@@ -417,7 +419,7 @@ func TestARefusalIsLocatedAtTheRead(t *testing.T) {
 func explicitly(m *umpirespb.Model) {
 	for _, c := range commandsOfModel(m) {
 		if poll := c.GetPoll(); poll != nil {
-			poll.IntervalMs = 250
+			poll.Interval = duration.FromMilliseconds(250)
 		}
 	}
 }
@@ -538,7 +540,7 @@ func TestAnExplicitPollKeepsItsInterval(t *testing.T) {
 	_, err = NewProducer(derivedModel(t, "activity-standalone", func(m *umpirespb.Model) {
 		for _, c := range commandsOfModel(m) {
 			if c.GetId() == "await-completed" {
-				c.TimeoutMs = 1000
+				c.Timeout = duration.FromMilliseconds(1000)
 			}
 		}
 	}))

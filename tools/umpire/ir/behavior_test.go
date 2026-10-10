@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/common/testing/testpilot/duration"
+
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/proto"
@@ -36,23 +38,23 @@ func admBehave(r *umpirespb.Realization) {
 				Write: &umpirespb.Visibility_Cause{Cause: umpirespb.CAUSE_KIND_WORKFLOW_TASK}, Read: workflowService + "GetWorkflowExecutionHistory"},
 			{Id: "visibility.handlerReply.describeWorkflowExecution", Position: behaviorAt(20),
 				Write: &umpirespb.Visibility_Cause{Cause: umpirespb.CAUSE_KIND_HANDLER_REPLY}, Read: workflowService + "DescribeWorkflowExecution",
-				EventuallyWithin: &umpirespb.WaitBound{Position: behaviorAt(21), IntervalMs: 250, AtMostMs: 2000}},
+				EventuallyWithin: &umpirespb.WaitBound{Position: behaviorAt(21), Interval: duration.FromMilliseconds(250), AtMost: duration.FromMilliseconds(2000)}},
 			{Id: "visibility.startWorkflowExecution.getWorkflowExecutionHistory", Position: behaviorAt(25),
 				Write: &umpirespb.Visibility_Method{Method: workflowService + "StartWorkflowExecution"}, Read: workflowService + "GetWorkflowExecutionHistory"},
 		},
 		Causes: []*umpirespb.CauseBound{
 			{Id: "cause.workflowTask", Position: behaviorAt(30), Kind: umpirespb.CAUSE_KIND_WORKFLOW_TASK,
-				Bound: &umpirespb.WaitBound{Position: behaviorAt(31), IntervalMs: 250, AtMostMs: 5000}},
+				Bound: &umpirespb.WaitBound{Position: behaviorAt(31), Interval: duration.FromMilliseconds(250), AtMost: duration.FromMilliseconds(5000)}},
 			{Id: "cause.handlerReply", Position: behaviorAt(40), Kind: umpirespb.CAUSE_KIND_HANDLER_REPLY,
-				Bound: &umpirespb.WaitBound{Position: behaviorAt(41), IntervalMs: 250, AtMostMs: 5000}},
+				Bound: &umpirespb.WaitBound{Position: behaviorAt(41), Interval: duration.FromMilliseconds(250), AtMost: duration.FromMilliseconds(5000)}},
 			{Id: "cause.timer", Position: behaviorAt(50), Kind: umpirespb.CAUSE_KIND_TIMER,
-				Bound: &umpirespb.WaitBound{Position: behaviorAt(51), IntervalMs: 250, AtMostMs: 3000}},
+				Bound: &umpirespb.WaitBound{Position: behaviorAt(51), Interval: duration.FromMilliseconds(250), AtMost: duration.FromMilliseconds(3000)}},
 		},
 	}
 	r.ServerSteps = []*umpirespb.ServerStep{
-		{Position: behaviorAt(60), Step: admTimeout("scheduleToClose"), Kind: umpirespb.CAUSE_KIND_TIMER, DeadlineMs: 2000},
-		{Position: behaviorAt(61), Step: admTimeout("scheduleToStart"), Kind: umpirespb.CAUSE_KIND_TIMER, DeadlineMs: 2000},
-		{Position: behaviorAt(62), Step: admTimeout("startToClose"), Kind: umpirespb.CAUSE_KIND_TIMER, DeadlineMs: 2000},
+		{Position: behaviorAt(60), Step: admTimeout("scheduleToClose"), Kind: umpirespb.CAUSE_KIND_TIMER, Deadline: duration.FromMilliseconds(2000)},
+		{Position: behaviorAt(61), Step: admTimeout("scheduleToStart"), Kind: umpirespb.CAUSE_KIND_TIMER, Deadline: duration.FromMilliseconds(2000)},
+		{Position: behaviorAt(62), Step: admTimeout("startToClose"), Kind: umpirespb.CAUSE_KIND_TIMER, Deadline: duration.FromMilliseconds(2000)},
 	}
 }
 
@@ -61,7 +63,7 @@ func TestARealizationsBehaviorIsAdmitted(t *testing.T) {
 	admBehave(m.GetRealizations()[0])
 	require.NoError(t, Validate(m))
 	m.GetRealizations()[0].Behavior.AttemptNumbering = &umpirespb.AttemptNumbering{Position: behaviorAt(70), First: 1, OneRun: true}
-	m.GetRealizations()[0].Behavior.InstructionDefaults = &umpirespb.InstructionLimit{Position: behaviorAt(71), TimeoutMs: 10000, Attempts: 1}
+	m.GetRealizations()[0].Behavior.InstructionDefaults = &umpirespb.InstructionLimit{Position: behaviorAt(71), Timeout: duration.FromMilliseconds(10000), Attempts: 1}
 	m.GetRealizations()[0].Behavior.RunOrderIsCausal = true
 	require.NoError(t, Validate(m))
 }
@@ -121,34 +123,38 @@ func TestARealizationsBehaviorIsAdmittedBeforeItIsLowered(t *testing.T) {
 			r.Behavior.AttemptNumbering = &umpirespb.AttemptNumbering{Position: behaviorAt(70), OneRun: true}
 		}, admBehaviorAt + ":70: realization asyncNexus: attempts are numbered from 0; the first attempt's number is positive"},
 		{"an instruction default of no attempts", func(_ *testing.T, r *umpirespb.Realization) {
-			r.Behavior.InstructionDefaults = &umpirespb.InstructionLimit{Position: behaviorAt(71), TimeoutMs: 10000}
-		}, admBehaviorAt + ":71: realization asyncNexus: an instruction that writes no limits takes 10000 ms and 0 attempts; both are positive"},
+			r.Behavior.InstructionDefaults = &umpirespb.InstructionLimit{Position: behaviorAt(71), Timeout: duration.FromMilliseconds(10000)}
+		}, admBehaviorAt + ":71: realization asyncNexus: instruction_defaults.attempts must be positive"},
 		{"an instruction default of no time", func(_ *testing.T, r *umpirespb.Realization) {
 			r.Behavior.InstructionDefaults = &umpirespb.InstructionLimit{Position: behaviorAt(72), Attempts: 1}
-		}, admBehaviorAt + ":72: realization asyncNexus: an instruction that writes no limits takes 0 ms and 1 attempts; both are positive"},
+		}, admBehaviorAt + ":72: realization asyncNexus: instruction_defaults.timeout is required"},
 		// A bound and its interval are positive, and the interval is no greater than the bound.
-		{"an interval of zero", func(_ *testing.T, r *umpirespb.Realization) { r.Behavior.Causes[0].Bound.IntervalMs = 0 },
-			admBehaviorAt + ":31: realization asyncNexus: cause bound cause.workflowTask looks every 0 milliseconds; an interval is positive"},
-		{"a negative bound", func(_ *testing.T, r *umpirespb.Realization) { r.Behavior.Causes[0].Bound.AtMostMs = -1 },
-			admBehaviorAt + ":31: realization asyncNexus: cause bound cause.workflowTask waits at most -1 milliseconds; a bound is positive"},
+		{"an interval of zero", func(_ *testing.T, r *umpirespb.Realization) {
+			r.Behavior.Causes[0].Bound.Interval = duration.FromMilliseconds(0)
+		},
+			admBehaviorAt + ":31: realization asyncNexus: cause bound cause.workflowTask.interval must be positive"},
+		{"a negative bound", func(_ *testing.T, r *umpirespb.Realization) {
+			r.Behavior.Causes[0].Bound.AtMost = duration.FromMilliseconds(-1)
+		},
+			admBehaviorAt + ":31: realization asyncNexus: cause bound cause.workflowTask.at_most: Duration must be nonnegative"},
 		{"an interval greater than its bound", func(_ *testing.T, r *umpirespb.Realization) {
-			r.Behavior.Visibility[1].EventuallyWithin.IntervalMs = 3000
+			r.Behavior.Visibility[1].EventuallyWithin.Interval = duration.FromMilliseconds(3000)
 		},
 			admBehaviorAt + ":21: realization asyncNexus: visibility visibility.handlerReply.describeWorkflowExecution looks every 3000 milliseconds and waits at most 2000; " +
 				"an interval is no greater than its bound"},
 		{"a bound written nowhere of its own", func(_ *testing.T, r *umpirespb.Realization) {
-			r.Behavior.Visibility[1].EventuallyWithin.Position, r.Behavior.Visibility[1].EventuallyWithin.AtMostMs = nil, 0
-		}, admBehaviorAt + ":20: realization asyncNexus: visibility visibility.handlerReply.describeWorkflowExecution waits at most 0 milliseconds; a bound is positive"},
+			r.Behavior.Visibility[1].EventuallyWithin.Position, r.Behavior.Visibility[1].EventuallyWithin.AtMost = nil, duration.FromMilliseconds(0)
+		}, admBehaviorAt + ":20: realization asyncNexus: visibility visibility.handlerReply.describeWorkflowExecution.at_most must be positive"},
 
 		// A server step is of a known kind the realization bounds, and only a timer's names a deadline.
 		{"a server step of no kind", func(_ *testing.T, r *umpirespb.Realization) { r.ServerSteps[0].Kind = umpirespb.CAUSE_KIND_UNSPECIFIED },
 			admBehaviorAt + ":60: realization asyncNexus: server step scheduleToClose is of no known kind"},
 		{"a server step of a kind no hint bounds", func(_ *testing.T, r *umpirespb.Realization) {
-			r.ServerSteps[0].Kind, r.ServerSteps[0].DeadlineMs = umpirespb.CAUSE_KIND_DELIVERY, 0
+			r.ServerSteps[0].Kind, r.ServerSteps[0].Deadline = umpirespb.CAUSE_KIND_DELIVERY, nil
 		}, admBehaviorAt + ":60: realization asyncNexus: server step scheduleToClose is a delivery, and the realization bounds no delivery"},
 		{"server steps and no behavior", func(_ *testing.T, r *umpirespb.Realization) { r.Behavior = nil },
 			admBehaviorAt + ":60: realization asyncNexus: server step scheduleToClose is a timer, and the realization bounds no timer"},
-		{"a timer with no deadline", func(_ *testing.T, r *umpirespb.Realization) { r.ServerSteps[1].DeadlineMs = 0 },
+		{"a timer with no deadline", func(_ *testing.T, r *umpirespb.Realization) { r.ServerSteps[1].Deadline = duration.FromMilliseconds(0) },
 			admBehaviorAt + ":61: realization asyncNexus: server step scheduleToStart is a timer and names no positive deadline"},
 		{"a step that is no timer with a deadline", func(_ *testing.T, r *umpirespb.Realization) {
 			r.ServerSteps[1].Kind = umpirespb.CAUSE_KIND_HANDLER_REPLY
@@ -163,7 +169,7 @@ func TestARealizationsBehaviorIsAdmittedBeforeItIsLowered(t *testing.T) {
 		{"a server step declared twice", func(_ *testing.T, r *umpirespb.Realization) { r.ServerSteps[2].Step = admTimeout("scheduleToClose") },
 			admBehaviorAt + ":62: realization asyncNexus: server step scheduleToClose is declared twice"},
 		{"a server step some command performs", func(t *testing.T, r *umpirespb.Realization) {
-			r.ServerSteps[0].Step, r.ServerSteps[0].Kind, r.ServerSteps[0].DeadlineMs = admClass(t, r), umpirespb.CAUSE_KIND_HANDLER_REPLY, 0
+			r.ServerSteps[0].Step, r.ServerSteps[0].Kind, r.ServerSteps[0].Deadline = admClass(t, r), umpirespb.CAUSE_KIND_HANDLER_REPLY, nil
 		}, admBehaviorAt + ":60: realization asyncNexus: server step reply-async is performed by respond-async of script handler; a server step is one no command performs"},
 	}
 	for _, c := range cases {

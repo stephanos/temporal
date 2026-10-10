@@ -5,17 +5,20 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	activitypb "go.temporal.io/api/activity/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -33,7 +36,7 @@ func resetFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	reset.InstructionId = "reset"
 	reset.Instruction.GetInvokeRpc().Method = activityService + "ResetActivityExecution"
 	settled.Guard = externalSuccess("reset")
-	settled.Instruction.GetReadEvidence().Until = projectedEnum("status", ir.EnumName(enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED))
+	settled.Instruction.GetReadEvidence().Until = projectedEnum("status", enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED)
 	controller.Instructions = []*testpilotspb.InstructionNode{controller.Instructions[0], controller.Instructions[1], held, reset, settled}
 	source.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{
 		activityNode("pending", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{Mode: testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING}}}),
@@ -92,13 +95,13 @@ func TestActivityResetSettlementRefusesInvalidDeclarations(t *testing.T) {
 			c.Program.Slots[1].Content = &testpilotspb.Slot_Value{Value: scalarSchema(testpilotspb.SCALAR_KIND_TEXT)}
 		}},
 		{"cleanup always false", func(c *testpilotspb.Case) {
-			c.Program.Cleanup.Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
+			c.Program.Cleanup.Instructions[0].Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: false}})
 		}},
 		{"crossed namespace", func(c *testpilotspb.Case) {
 			c.Program.Entrypoints[0].Instructions[3].Instruction.GetInvokeRpc().RequestAssignments[0].Value = textLiteral("namespace-id-not-name")
 		}},
 		{"Testpilot run is not the activity run", func(c *testpilotspb.Case) {
-			c.Program.Entrypoints[0].Instructions[3].Instruction.GetInvokeRpc().RequestAssignments[2].Value = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}}}}
+			c.Program.Entrypoints[0].Instructions[3].Instruction.GetInvokeRpc().RequestAssignments[2].Value = cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Run{Run: &emptypb.Empty{}}})
 		}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -151,11 +154,11 @@ func resetRuntime(t *testing.T) (*scheduler, *activityResetSettlement, *activati
 	values, err := s.values.activate("controller", "controller.0")
 	require.NoError(t, err)
 	b := p.resets[0]
-	s.values.slots[b.runSlot] = &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "actual-activity-run"}}
+	s.values.slots[b.runSlot] = &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "actual-activity-run"}}
 	s.values.externalRequests = map[*node]proto.Message{b.carrier: &workflowservice.StartActivityExecutionRequest{Namespace: "namespace", ActivityId: "activity-id"}}
 	pending, err := anypb.New(&testpilotspb.ActivityAttempt{ActivityRunId: "actual-activity-run", NamespaceName: "namespace", ActivityId: "activity-id", DeliveryId: "held-delivery", SdkAttempt: 1, Response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING})
 	require.NoError(t, err)
-	s.values.slots[b.source.PendingSlotId] = &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: pending}}
+	s.values.slots[b.source.PendingSlotId] = &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: pending}}
 	s.values.externalSucceeded = map[*node]bool{b.held: true}
 	return s, b, values, session
 }
@@ -192,7 +195,7 @@ func TestActivityResetRequestRefusesBeforeEffect(t *testing.T) {
 		}},
 		{"published pending of another run", func(v *valueStore, b *activityResetSettlement, r *workflowservice.ResetActivityExecutionRequest) proto.Message {
 			foreign, _ := anypb.New(&testpilotspb.ActivityAttempt{ActivityRunId: "foreign-run", NamespaceName: "namespace", ActivityId: "activity-id", DeliveryId: "held-delivery", SdkAttempt: 1, Response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING})
-			v.slots[b.source.PendingSlotId] = &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: foreign}}
+			v.slots[b.source.PendingSlotId] = &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: foreign}}
 			return r
 		}},
 	} {
@@ -231,7 +234,7 @@ func TestActivityResetPublicationIsTheHeldReservationsRecordOnly(t *testing.T) {
 	_, err = s.publishCompletion(t.Context(), completion)
 	require.NoError(t, err)
 	published := &testpilotspb.ActivityAttempt{}
-	require.NoError(t, anypb.UnmarshalTo(s.values.slots[b.source.PendingSlotId].GetMessageValue(), published, proto.UnmarshalOptions{}))
+	require.NoError(t, anypb.UnmarshalTo(s.values.slots[b.source.PendingSlotId].GetObjectValue(), published, proto.UnmarshalOptions{}))
 	require.True(t, proto.Equal(attempt, published))
 	_, commit, err := s.values.resetPublication(identity(0), attempt)
 	require.NoError(t, err)

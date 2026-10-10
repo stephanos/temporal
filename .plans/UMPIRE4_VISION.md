@@ -549,6 +549,12 @@ cannot itself prove that acceptance occurred.
 
 ## Delivery and acceptance
 
+Case format 4.0 uses one canonical CEL predicate contract for online execution, offline Contract
+evaluation and Umpire conformance. Descriptor authority, capture occurrence identity and causal
+evidence policy remain domain boundaries. Exact whole-millisecond Duration values and local
+complete-state/result tables make the artifact representation explicit without changing finite
+Model evaluation. Evidence extraction declarations and Contract retention policy stay independent.
+
 ### What
 
 Demonstrate one small Temporal promise end to end, reusing the prototype and reporting what is still

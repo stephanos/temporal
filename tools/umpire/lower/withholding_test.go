@@ -9,6 +9,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	"google.golang.org/protobuf/proto"
 )
@@ -95,7 +96,7 @@ func TestAWithheldTimeoutRetryLowersToTwoAttempts(t *testing.T) {
 	confirmed := map[string][]string{}
 	for _, rule := range c.GetContract().GetCorrelated().GetProjectionRules() {
 		kind := strings.TrimPrefix(defined(names, rule.GetKind()), activityEvidence)
-		for _, output := range rule.GetOutputs() {
+		for _, output := range correlatedResults(c.GetContract().GetCorrelated(), rule) {
 			confirmed[kind] = append(confirmed[kind], output.GetAction().GetValue())
 		}
 	}
@@ -110,8 +111,9 @@ func TestAWithheldTimeoutRetryLowersToTwoAttempts(t *testing.T) {
 	}
 	require.NotNil(t, second)
 	require.NotNil(t, second.GetRunEvent())
-	require.Len(t, second.GetRunEvent().GetGuard().GetAll().GetOperands(), 2)
-	protorequire.ProtoEqual(t, cp.Equal(cp.Path(cp.ProjectedValue(), "activity_attempt.sdk_attempt"), cp.Literal(cp.SignedInteger(2))), second.GetRunEvent().GetGuard().GetAll().GetOperands()[1])
+	protorequire.ProtoEqual(t, cel.All(
+		cel.All(cp.Present(cp.Path(cp.ProjectedValue(), "activity_attempt")), cel.Not(cp.Equal(cp.Path(cp.ProjectedValue(), "activity_attempt.delivery_id"), cp.Literal(cp.Text(""))))),
+		cp.Equal(cp.Path(cp.ProjectedValue(), "activity_attempt.sdk_attempt"), cp.Literal(cp.SignedInteger(2)))), second.GetGuard())
 	preparedAsIs(t, c)
 }
 

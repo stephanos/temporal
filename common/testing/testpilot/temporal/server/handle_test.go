@@ -5,10 +5,12 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func handleSession(t *testing.T, h *Driver, source *testpilotspb.Case, run string) (*Session, testpilot.Coordinate) {
@@ -16,7 +18,7 @@ func handleSession(t *testing.T, h *Driver, source *testpilotspb.Case, run strin
 	source = proto.CloneOf(source)
 	source.Program.Roles = append(source.Program.Roles, &testpilotspb.Role{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}, &testpilotspb.Role{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "task-queue"})
 	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "worker", Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "handles", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}})
-	source.Program.Slots = append(source.Program.Slots, &testpilotspb.Slot{SlotId: "handle", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}})
+	source.Program.Slots = append(source.Program.Slots, &testpilotspb.Slot{SlotId: "handle", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &emptypb.Empty{}}})
 	s, err := h.OpenSession(t.Context(), run, prepared(t, h, source))
 	require.NoError(t, err)
 	return s, testpilot.Coordinate{RunID: run, EntrypointID: "worker", ActivationID: "activation", InstructionID: "publish", Attempt: 1}
@@ -37,8 +39,8 @@ func successfulHandleEffect() testpilot.HandleEffect {
 	})
 }
 
-func handleValue() *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "result"}}
+func handleValue() *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "result"}}
 }
 
 func TestOpaqueHandleOwnershipAndInvocation(t *testing.T) {
@@ -63,11 +65,11 @@ func TestOpaqueHandleOwnershipAndInvocation(t *testing.T) {
 	input := handleValue()
 	handle, err := s.InvokeHandle(t.Context(), coordinate("run", "check"), claim, input)
 	require.NoError(t, err)
-	input.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
+	input.Kind = &celpb.Value_StringValue{StringValue: "changed"}
 	result, err := handle.Wait(t.Context())
 	require.NoError(t, err)
 	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, result.Outcome.Status)
-	require.Equal(t, "result", captured.(*testpilotspb.Value).GetTextValue())
+	require.Equal(t, "result", captured.(*celpb.Value).GetStringValue())
 
 	denied, err = s.InvokeHandle(t.Context(), coordinate("run", "check"), claim, handleValue())
 	require.Error(t, err)

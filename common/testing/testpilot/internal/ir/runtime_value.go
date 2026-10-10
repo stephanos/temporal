@@ -4,7 +4,8 @@ import (
 	"context"
 	"math"
 
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	celpb "cel.dev/expr"
+
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -25,7 +26,7 @@ func runtimeBudget(ctx context.Context, limits Limits) (*budget, error) {
 }
 
 // SnapshotValue validates before copying; work includes traversal, payload decoding and ownership.
-func SnapshotValue(ctx context.Context, value *testpilotspb.Value, typ Type, limits Limits) (*testpilotspb.Value, int64, error) {
+func SnapshotValue(ctx context.Context, value *celpb.Value, typ Type, limits Limits) (*celpb.Value, int64, error) {
 	b, err := runtimeBudget(ctx, limits)
 	if err != nil {
 		return nil, 0, err
@@ -42,7 +43,7 @@ func SnapshotValue(ctx context.Context, value *testpilotspb.Value, typ Type, lim
 	}
 	return proto.CloneOf(value), b.work, nil
 }
-func validateValue(value *testpilotspb.Value, typ Type, b *budget) error {
+func validateValue(value *celpb.Value, typ Type, b *budget) error {
 	if value == nil || typ.catalog == nil || typ.opaque {
 		return Invalid(TypeMismatch, "value", "ordinary typed value required")
 	}
@@ -62,6 +63,7 @@ func SnapshotMessage(ctx context.Context, source proto.Message, descriptor proto
 	return result, b.work, err
 }
 func snapshotMessage(source proto.Message, descriptor protoreflect.MessageDescriptor, bytes int64, b *budget) (proto.Message, error) {
+	b.payload = true
 	if IsNil(source) || descriptor == nil || source.ProtoReflect().Descriptor().FullName() != descriptor.FullName() {
 		return nil, Invalid(TypeMismatch, "message", "wrong protobuf response type")
 	}

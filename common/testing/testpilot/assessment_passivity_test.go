@@ -10,6 +10,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"google.golang.org/protobuf/proto"
 )
@@ -32,7 +33,7 @@ func comparable(run *testpilotspb.Run) *testpilotspb.Run {
 	result := proto.CloneOf(run)
 	result.RunId = ""
 	for _, event := range result.GetEvents() {
-		event.ElapsedMilliseconds = 0
+		event.Elapsed = pbduration.FromMilliseconds(0)
 	}
 	return result
 }

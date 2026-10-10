@@ -12,8 +12,10 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
+	expr "cel.dev/expr"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -567,11 +569,7 @@ type Run struct {
 	Diagnostics []*RunDiagnostic       `protobuf:"bytes,8,rep,name=diagnostics,proto3" json:"diagnostics,omitempty"`
 	// First event whose Monitor callback failed; its staged evaluation did not commit.
 	// Recorded after the callback, without changing the appended event.
-	//
-	// Types that are valid to be assigned to EvaluationFailure:
-	//
-	//	*Run_EvaluationFailureSequence
-	EvaluationFailure isRun_EvaluationFailure `protobuf_oneof:"evaluation_failure"`
+	EvaluationFailureSequence *int64 `protobuf:"varint,9,opt,name=evaluation_failure_sequence,json=evaluationFailureSequence,proto3,oneof" json:"evaluation_failure_sequence,omitempty"`
 	// The Profile's bound scale, in percent, when it is not 100: the Run applied every wait hint's
 	// bound and the Profile's duration ceilings scaled by it. Zero when it applied them as declared.
 	BoundScalePercent int64 `protobuf:"varint,10,opt,name=bound_scale_percent,json=boundScalePercent,proto3" json:"bound_scale_percent,omitempty"`
@@ -665,18 +663,9 @@ func (x *Run) GetDiagnostics() []*RunDiagnostic {
 	return nil
 }
 
-func (x *Run) GetEvaluationFailure() isRun_EvaluationFailure {
-	if x != nil {
-		return x.EvaluationFailure
-	}
-	return nil
-}
-
 func (x *Run) GetEvaluationFailureSequence() int64 {
-	if x != nil {
-		if x, ok := x.EvaluationFailure.(*Run_EvaluationFailureSequence); ok {
-			return x.EvaluationFailureSequence
-		}
+	if x != nil && x.EvaluationFailureSequence != nil {
+		return *x.EvaluationFailureSequence
 	}
 	return 0
 }
@@ -688,25 +677,15 @@ func (x *Run) GetBoundScalePercent() int64 {
 	return 0
 }
 
-type isRun_EvaluationFailure interface {
-	isRun_EvaluationFailure()
-}
-
-type Run_EvaluationFailureSequence struct {
-	EvaluationFailureSequence int64 `protobuf:"varint,9,opt,name=evaluation_failure_sequence,json=evaluationFailureSequence,proto3,oneof"`
-}
-
-func (*Run_EvaluationFailureSequence) isRun_EvaluationFailure() {}
-
 // RunEvent is an immutable fact at one Executor-recorded monotonic coordinate.
 type RunEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Position in the Run, counting from 1.
 	Sequence int64 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	// Host-clock milliseconds since the Run opened; never decreases.
-	ElapsedMilliseconds int64                `protobuf:"varint,2,opt,name=elapsed_milliseconds,json=elapsedMilliseconds,proto3" json:"elapsed_milliseconds,omitempty"`
-	Kind                RunEventKind         `protobuf:"varint,3,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RunEventKind" json:"kind,omitempty"`
-	Coordinates         *RunEventCoordinates `protobuf:"bytes,4,opt,name=coordinates,proto3" json:"coordinates,omitempty"`
+	// Whole-millisecond elapsed duration since the Run opened; never decreases.
+	Elapsed     *durationpb.Duration `protobuf:"bytes,2,opt,name=elapsed,proto3" json:"elapsed,omitempty"`
+	Kind        RunEventKind         `protobuf:"varint,3,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RunEventKind" json:"kind,omitempty"`
+	Coordinates *RunEventCoordinates `protobuf:"bytes,4,opt,name=coordinates,proto3" json:"coordinates,omitempty"`
 	// The producer's unique deterministic id for the event; an identical republish is deduplicated.
 	SourceId string `protobuf:"bytes,5,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	// The source ids of the events that caused this one.
@@ -765,11 +744,11 @@ func (x *RunEvent) GetSequence() int64 {
 	return 0
 }
 
-func (x *RunEvent) GetElapsedMilliseconds() int64 {
+func (x *RunEvent) GetElapsed() *durationpb.Duration {
 	if x != nil {
-		return x.ElapsedMilliseconds
+		return x.Elapsed
 	}
-	return 0
+	return nil
 }
 
 func (x *RunEvent) GetKind() RunEventKind {
@@ -940,7 +919,7 @@ func (x *RunEventCoordinates) GetEmittedIndex() int64 {
 type ObservationResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ObservationId string                 `protobuf:"bytes,1,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
-	Value         *Value                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Value         *expr.Value            `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -982,7 +961,7 @@ func (x *ObservationResult) GetObservationId() string {
 	return ""
 }
 
-func (x *ObservationResult) GetValue() *Value {
+func (x *ObservationResult) GetValue() *expr.Value {
 	if x != nil {
 		return x.Value
 	}
@@ -1000,7 +979,7 @@ type InstructionOutcome struct {
 	// Bounded error text.
 	Detail string `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
 	// The result on success, when the outcome declares VALUE.
-	Value *Value `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
+	Value *expr.Value `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
 	// Set on the outcome of an activity activation: which attempt it was and what the worker offered
 	// Temporal for it.
 	ActivityAttempt *ActivityAttempt `protobuf:"bytes,6,opt,name=activity_attempt,json=activityAttempt,proto3" json:"activity_attempt,omitempty"`
@@ -1069,7 +1048,7 @@ func (x *InstructionOutcome) GetDetail() string {
 	return ""
 }
 
-func (x *InstructionOutcome) GetValue() *Value {
+func (x *InstructionOutcome) GetValue() *expr.Value {
 	if x != nil {
 		return x.Value
 	}
@@ -1397,12 +1376,10 @@ type RunDiagnostic struct {
 	Code string `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
 	// Human-readable text.
 	Detail string `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
-	// Types that are valid to be assigned to Support:
-	//
-	//	*RunDiagnostic_SupportingEventSequence
-	Support       isRunDiagnostic_Support `protobuf_oneof:"support"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// The last Run Event recorded before the failure, when there is one.
+	SupportingEventSequence *int64 `protobuf:"varint,5,opt,name=supporting_event_sequence,json=supportingEventSequence,proto3,oneof" json:"supporting_event_sequence,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *RunDiagnostic) Reset() {
@@ -1463,32 +1440,12 @@ func (x *RunDiagnostic) GetDetail() string {
 	return ""
 }
 
-func (x *RunDiagnostic) GetSupport() isRunDiagnostic_Support {
-	if x != nil {
-		return x.Support
-	}
-	return nil
-}
-
 func (x *RunDiagnostic) GetSupportingEventSequence() int64 {
-	if x != nil {
-		if x, ok := x.Support.(*RunDiagnostic_SupportingEventSequence); ok {
-			return x.SupportingEventSequence
-		}
+	if x != nil && x.SupportingEventSequence != nil {
+		return *x.SupportingEventSequence
 	}
 	return 0
 }
-
-type isRunDiagnostic_Support interface {
-	isRunDiagnostic_Support()
-}
-
-type RunDiagnostic_SupportingEventSequence struct {
-	// The last Run Event recorded before the failure, when there is one.
-	SupportingEventSequence int64 `protobuf:"varint,5,opt,name=supporting_event_sequence,json=supportingEventSequence,proto3,oneof"`
-}
-
-func (*RunDiagnostic_SupportingEventSequence) isRunDiagnostic_Support() {}
 
 // Verdict is the Contract's conclusion about a Run.
 type Verdict struct {
@@ -1627,7 +1584,7 @@ var File_temporal_server_api_testpilot_v1_run_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\n" +
-	"*temporal/server/api/testpilot/v1/run.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/event.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xd8\x04\n" +
+	"*temporal/server/api/testpilot/v1/run.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/event.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a\x14cel/expr/value.proto\x1a\x1egoogle/protobuf/duration.proto\"\xe5\x04\n" +
 	"\x03Run\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\tR\x05runId\x12\x17\n" +
 	"\acase_id\x18\x02 \x01(\tR\x06caseId\x12\x1d\n" +
@@ -1637,14 +1594,14 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\vdisposition\x18\x05 \x01(\x0e20.temporal.server.api.testpilot.v1.RunDispositionR\vdisposition\x12J\n" +
 	"\acleanup\x18\x06 \x01(\v20.temporal.server.api.testpilot.v1.CleanupOutcomeR\acleanup\x12C\n" +
 	"\averdict\x18\a \x01(\v2).temporal.server.api.testpilot.v1.VerdictR\averdict\x12Q\n" +
-	"\vdiagnostics\x18\b \x03(\v2/.temporal.server.api.testpilot.v1.RunDiagnosticR\vdiagnostics\x12@\n" +
-	"\x1bevaluation_failure_sequence\x18\t \x01(\x03H\x00R\x19evaluationFailureSequence\x12.\n" +
+	"\vdiagnostics\x18\b \x03(\v2/.temporal.server.api.testpilot.v1.RunDiagnosticR\vdiagnostics\x12C\n" +
+	"\x1bevaluation_failure_sequence\x18\t \x01(\x03H\x00R\x19evaluationFailureSequence\x88\x01\x01\x12.\n" +
 	"\x13bound_scale_percent\x18\n" +
-	" \x01(\x03R\x11boundScalePercentB\x14\n" +
-	"\x12evaluation_failure\"\x82\x05\n" +
+	" \x01(\x03R\x11boundScalePercentB\x1e\n" +
+	"\x1c_evaluation_failure_sequence\"\x9a\x05\n" +
 	"\bRunEvent\x12\x1a\n" +
-	"\bsequence\x18\x01 \x01(\x03R\bsequence\x121\n" +
-	"\x14elapsed_milliseconds\x18\x02 \x01(\x03R\x13elapsedMilliseconds\x12B\n" +
+	"\bsequence\x18\x01 \x01(\x03R\bsequence\x123\n" +
+	"\aelapsed\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\aelapsed\x12B\n" +
 	"\x04kind\x18\x03 \x01(\x0e2..temporal.server.api.testpilot.v1.RunEventKindR\x04kind\x12W\n" +
 	"\vcoordinates\x18\x04 \x01(\v25.temporal.server.api.testpilot.v1.RunEventCoordinatesR\vcoordinates\x12\x1b\n" +
 	"\tsource_id\x18\x05 \x01(\tR\bsourceId\x12*\n" +
@@ -1654,22 +1611,22 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\aoutcome\x18\t \x01(\v24.temporal.server.api.testpilot.v1.InstructionOutcomeH\x00R\aoutcome\x12X\n" +
 	"\x0efault_injected\x18\n" +
 	" \x01(\v2/.temporal.server.api.testpilot.v1.FaultInjectedH\x00R\rfaultInjectedB\t\n" +
-	"\apayload\"\xc5\x01\n" +
+	"\apayloadR\x14elapsed_milliseconds\"\xc5\x01\n" +
 	"\x13RunEventCoordinates\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12#\n" +
 	"\ractivation_id\x18\x02 \x01(\tR\factivationId\x12%\n" +
 	"\x0einstruction_id\x18\x03 \x01(\tR\rinstructionId\x12\x18\n" +
 	"\aattempt\x18\x04 \x01(\x03R\aattempt\x12#\n" +
-	"\remitted_index\x18\x05 \x01(\x03R\femittedIndex\"y\n" +
+	"\remitted_index\x18\x05 \x01(\x03R\femittedIndex\"a\n" +
 	"\x11ObservationResult\x12%\n" +
-	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12=\n" +
-	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\xd0\x03\n" +
+	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12%\n" +
+	"\x05value\x18\x02 \x01(\v2\x0f.cel.expr.ValueR\x05value\"\xb8\x03\n" +
 	"\x12InstructionOutcome\x12R\n" +
 	"\x06status\x18\x01 \x01(\x0e2:.temporal.server.api.testpilot.v1.InstructionOutcomeStatusR\x06status\x12#\n" +
 	"\rprotocol_code\x18\x02 \x01(\tR\fprotocolCode\x12(\n" +
 	"\x10sdk_failure_code\x18\x03 \x01(\tR\x0esdkFailureCode\x12\x16\n" +
-	"\x06detail\x18\x04 \x01(\tR\x06detail\x12=\n" +
-	"\x05value\x18\x05 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\x12\\\n" +
+	"\x06detail\x18\x04 \x01(\tR\x06detail\x12%\n" +
+	"\x05value\x18\x05 \x01(\v2\x0f.cel.expr.ValueR\x05value\x12\\\n" +
 	"\x10activity_attempt\x18\x06 \x01(\v21.temporal.server.api.testpilot.v1.ActivityAttemptR\x0factivityAttempt\x12b\n" +
 	"\x12delivery_admission\x18\a \x01(\v23.temporal.server.api.testpilot.v1.DeliveryAdmissionR\x11deliveryAdmission\"\xf0\x01\n" +
 	"\x11DeliveryAdmission\x12\x1f\n" +
@@ -1696,14 +1653,14 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\x80\x01\n" +
 	"\x0eCleanupOutcome\x12G\n" +
 	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.CleanupStatusR\x06status\x12%\n" +
-	"\x0ediagnostic_ids\x18\x02 \x03(\tR\rdiagnosticIds\"\xf2\x01\n" +
+	"\x0ediagnostic_ids\x18\x02 \x03(\tR\rdiagnosticIds\"\x88\x02\n" +
 	"\rRunDiagnostic\x12#\n" +
 	"\rdiagnostic_id\x18\x01 \x01(\tR\fdiagnosticId\x12G\n" +
 	"\x04kind\x18\x02 \x01(\x0e23.temporal.server.api.testpilot.v1.RunDiagnosticKindR\x04kind\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\tR\x04code\x12\x16\n" +
-	"\x06detail\x18\x04 \x01(\tR\x06detail\x12<\n" +
-	"\x19supporting_event_sequence\x18\x05 \x01(\x03H\x00R\x17supportingEventSequenceB\t\n" +
-	"\asupport\"\xd5\x01\n" +
+	"\x06detail\x18\x04 \x01(\tR\x06detail\x12?\n" +
+	"\x19supporting_event_sequence\x18\x05 \x01(\x03H\x00R\x17supportingEventSequence\x88\x01\x01B\x1c\n" +
+	"\x1a_supporting_event_sequence\"\xd5\x01\n" +
 	"\aVerdict\x12G\n" +
 	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.VerdictStatusR\x06status\x12C\n" +
 	"\x05rules\x18\x02 \x03(\v2-.temporal.server.api.testpilot.v1.RuleVerdictR\x05rules\x12<\n" +
@@ -1792,10 +1749,11 @@ var file_temporal_server_api_testpilot_v1_run_proto_goTypes = []any{
 	(*RunDiagnostic)(nil),          // 16: temporal.server.api.testpilot.v1.RunDiagnostic
 	(*Verdict)(nil),                // 17: temporal.server.api.testpilot.v1.Verdict
 	(*RuleVerdict)(nil),            // 18: temporal.server.api.testpilot.v1.RuleVerdict
-	(RunEventKind)(0),              // 19: temporal.server.api.testpilot.v1.RunEventKind
-	(*Value)(nil),                  // 20: temporal.server.api.testpilot.v1.Value
-	(InstructionOutcomeStatus)(0),  // 21: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
-	(FaultKind)(0),                 // 22: temporal.server.api.testpilot.v1.FaultKind
+	(*durationpb.Duration)(nil),    // 19: google.protobuf.Duration
+	(RunEventKind)(0),              // 20: temporal.server.api.testpilot.v1.RunEventKind
+	(*expr.Value)(nil),             // 21: cel.expr.Value
+	(InstructionOutcomeStatus)(0),  // 22: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	(FaultKind)(0),                 // 23: temporal.server.api.testpilot.v1.FaultKind
 }
 var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
 	8,  // 0: temporal.server.api.testpilot.v1.Run.events:type_name -> temporal.server.api.testpilot.v1.RunEvent
@@ -1803,29 +1761,30 @@ var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
 	15, // 2: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
 	17, // 3: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
 	16, // 4: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
-	19, // 5: temporal.server.api.testpilot.v1.RunEvent.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
-	9,  // 6: temporal.server.api.testpilot.v1.RunEvent.coordinates:type_name -> temporal.server.api.testpilot.v1.RunEventCoordinates
-	10, // 7: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
-	11, // 8: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
-	14, // 9: temporal.server.api.testpilot.v1.RunEvent.fault_injected:type_name -> temporal.server.api.testpilot.v1.FaultInjected
-	20, // 10: temporal.server.api.testpilot.v1.ObservationResult.value:type_name -> temporal.server.api.testpilot.v1.Value
-	21, // 11: temporal.server.api.testpilot.v1.InstructionOutcome.status:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeStatus
-	20, // 12: temporal.server.api.testpilot.v1.InstructionOutcome.value:type_name -> temporal.server.api.testpilot.v1.Value
-	13, // 13: temporal.server.api.testpilot.v1.InstructionOutcome.activity_attempt:type_name -> temporal.server.api.testpilot.v1.ActivityAttempt
-	12, // 14: temporal.server.api.testpilot.v1.InstructionOutcome.delivery_admission:type_name -> temporal.server.api.testpilot.v1.DeliveryAdmission
-	0,  // 15: temporal.server.api.testpilot.v1.DeliveryAdmission.decision:type_name -> temporal.server.api.testpilot.v1.DeliveryAdmissionDecision
-	1,  // 16: temporal.server.api.testpilot.v1.ActivityAttempt.response:type_name -> temporal.server.api.testpilot.v1.ActivityAttemptResponse
-	22, // 17: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	3,  // 18: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
-	4,  // 19: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
-	5,  // 20: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
-	18, // 21: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
-	6,  // 22: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	19, // 5: temporal.server.api.testpilot.v1.RunEvent.elapsed:type_name -> google.protobuf.Duration
+	20, // 6: temporal.server.api.testpilot.v1.RunEvent.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
+	9,  // 7: temporal.server.api.testpilot.v1.RunEvent.coordinates:type_name -> temporal.server.api.testpilot.v1.RunEventCoordinates
+	10, // 8: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
+	11, // 9: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
+	14, // 10: temporal.server.api.testpilot.v1.RunEvent.fault_injected:type_name -> temporal.server.api.testpilot.v1.FaultInjected
+	21, // 11: temporal.server.api.testpilot.v1.ObservationResult.value:type_name -> cel.expr.Value
+	22, // 12: temporal.server.api.testpilot.v1.InstructionOutcome.status:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	21, // 13: temporal.server.api.testpilot.v1.InstructionOutcome.value:type_name -> cel.expr.Value
+	13, // 14: temporal.server.api.testpilot.v1.InstructionOutcome.activity_attempt:type_name -> temporal.server.api.testpilot.v1.ActivityAttempt
+	12, // 15: temporal.server.api.testpilot.v1.InstructionOutcome.delivery_admission:type_name -> temporal.server.api.testpilot.v1.DeliveryAdmission
+	0,  // 16: temporal.server.api.testpilot.v1.DeliveryAdmission.decision:type_name -> temporal.server.api.testpilot.v1.DeliveryAdmissionDecision
+	1,  // 17: temporal.server.api.testpilot.v1.ActivityAttempt.response:type_name -> temporal.server.api.testpilot.v1.ActivityAttemptResponse
+	23, // 18: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	3,  // 19: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
+	4,  // 20: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
+	5,  // 21: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
+	18, // 22: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
+	6,  // 23: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
+	24, // [24:24] is the sub-list for method output_type
+	24, // [24:24] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_run_proto_init() }
@@ -1835,17 +1794,12 @@ func file_temporal_server_api_testpilot_v1_run_proto_init() {
 	}
 	file_temporal_server_api_testpilot_v1_event_proto_init()
 	file_temporal_server_api_testpilot_v1_instruction_proto_init()
-	file_temporal_server_api_testpilot_v1_value_proto_init()
-	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[0].OneofWrappers = []any{
-		(*Run_EvaluationFailureSequence)(nil),
-	}
+	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[0].OneofWrappers = []any{}
 	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[1].OneofWrappers = []any{
 		(*RunEvent_Outcome)(nil),
 		(*RunEvent_FaultInjected)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9].OneofWrappers = []any{
-		(*RunDiagnostic_SupportingEventSequence)(nil),
-	}
+	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

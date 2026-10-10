@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -204,7 +206,7 @@ func mustCompile(t testing.TB, source *testpilotspb.Case, limits Limits) *plan {
 // Run Event, never a panic and never evidence read as something else.
 func TestEvidenceThatCannotBeReadIsALocatedError(t *testing.T) {
 	source := carrier(stale, localKinds, 1)
-	evidence := func(change func(*testpilotspb.CorrelatedEvidence)) *testpilotspb.Value {
+	evidence := func(change func(*testpilotspb.CorrelatedEvidence)) *celpb.Value {
 		piece := script(stale, dispatched)[0].evidence
 		change(piece)
 		return evidenceValue(t, piece)
@@ -212,7 +214,7 @@ func TestEvidenceThatCannotBeReadIsALocatedError(t *testing.T) {
 	other, err := anypb.New(&emptypb.Empty{})
 	require.NoError(t, err)
 	good := evidence(func(*testpilotspb.CorrelatedEvidence) {})
-	observed := func(sequence int64, values ...*testpilotspb.Value) *testpilotspb.RunEvent {
+	observed := func(sequence int64, values ...*celpb.Value) *testpilotspb.RunEvent {
 		event := &testpilotspb.RunEvent{Sequence: sequence}
 		for _, value := range values {
 			event.Observations = append(event.Observations, &testpilotspb.ObservationResult{ObservationId: evidenceObservation, Value: value})
@@ -225,8 +227,8 @@ func TestEvidenceThatCannotBeReadIsALocatedError(t *testing.T) {
 		at     int64
 		says   string
 	}{
-		"no message":      {[]*testpilotspb.RunEvent{observed(3, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "evidence"}})}, 3, "carries no message"},
-		"another message": {[]*testpilotspb.RunEvent{observed(3, &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: other}})}, 3, "no correlated evidence"},
+		"no message":      {[]*testpilotspb.RunEvent{observed(3, &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "evidence"}})}, 3, "carries no message"},
+		"another message": {[]*testpilotspb.RunEvent{observed(3, &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: other}})}, 3, "no correlated evidence"},
 		"recorded twice":  {[]*testpilotspb.RunEvent{observed(3, good, good)}, 3, "recorded twice"},
 		"an unknown kind": {[]*testpilotspb.RunEvent{observed(3, evidence(func(e *testpilotspb.CorrelatedEvidence) { e.Kind = "another" }))}, 3, "does not carry"},
 		"no identity":     {[]*testpilotspb.RunEvent{observed(3, evidence(func(e *testpilotspb.CorrelatedEvidence) { e.Identity = nil }))}, 3, "no source identity"},
@@ -267,11 +269,11 @@ func TestEvidenceThatCannotBeReadIsALocatedError(t *testing.T) {
 		}))}, 3, "not the Case's scope"},
 		"a scope that changes within the Run": {[]*testpilotspb.RunEvent{observed(3, good), observed(4, evidence(func(e *testpilotspb.CorrelatedEvidence) {
 			e.Identity.Ordinal = 1
-			e.Identity.Scope[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "run-2"}}
+			e.Identity.Scope[0].Value = &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "run-2"}}
 		}))}, 4, "the Run's evidence is under"},
 		"a parent under another scope": {[]*testpilotspb.RunEvent{observed(3, evidence(func(e *testpilotspb.CorrelatedEvidence) {
 			parent := proto.CloneOf(e.Identity)
-			parent.Ordinal, parent.Scope[0].Value = 7, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "run-2"}}
+			parent.Ordinal, parent.Scope[0].Value = 7, &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "run-2"}}
 			e.Parents = []*testpilotspb.CorrelatedIdentity{parent}
 		}))}, 3, "causal parent under another scope"},
 		"a parent from a source the Case does not name": {[]*testpilotspb.RunEvent{observed(3, evidence(func(e *testpilotspb.CorrelatedEvidence) {
@@ -280,7 +282,7 @@ func TestEvidenceThatCannotBeReadIsALocatedError(t *testing.T) {
 			e.Parents = []*testpilotspb.CorrelatedIdentity{parent}
 		}))}, 3, "is not a source of the Case"},
 		"a field the kind does not declare": {[]*testpilotspb.RunEvent{observed(3, evidence(func(e *testpilotspb.CorrelatedEvidence) {
-			e.Fields = []*testpilotspb.NamedValue{{FieldId: "attempt", Value: &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "2"}}}}
+			e.Fields = []*testpilotspb.NamedValue{{FieldId: "attempt", Value: &celpb.Value{Kind: &celpb.Value_Uint64Value{Uint64Value: 2}}}}
 		}))}, 3, "carries field attempt, which its kind does not declare"},
 	} {
 		t.Run(name, func(t *testing.T) {

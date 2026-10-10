@@ -1,0 +1,74 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "cel/expr/value.proto";
+import "temporal/server/api/testpilot/v1/event.proto";
+import "temporal/server/api/testpilot/v1/expression.proto";
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// EvidenceDeclaration owns extraction; independent Contract policies own retention and admission.
+message EvidenceDeclaration {
+  string evidence_id = 1;
+  string evidence_source = 2;
+  oneof source {
+    HistoryEventSource history_event = 3;
+    RunEventSource run_event = 4;
+    ReadSource read = 5;
+    ProjectedSource projected = 6;
+  }
+  repeated NamedExpression scope = 7;
+  Expression operation = 8;
+  repeated NamedExpression fields = 9;
+  Expression guard = 10;
+  string kind = 11;
+}
+
+// HistoryEventSource selects one descriptor-checked history attributes member.
+message HistoryEventSource { string attributes_field = 1; }
+
+// RunEventSource restricts extraction to one event kind and optional controller instruction.
+message RunEventSource {
+  RunEventKind kind = 1;
+  reserved "guard";
+  InstructionReference instruction = 2;
+  bool run_keyed = 3;
+}
+
+// The descriptor-checked path determines singular versus repeated source values.
+message ReadSource {
+  string method = 1;
+  string path = 2;
+  reserved 3;
+  reserved "single";
+}
+
+// ProjectedSource declares the exact type accepted from a response lift.
+message ProjectedSource { ValueType type = 1; }
+
+// Response declarations are selected in this order, stopping at the first matching guard.
+message CorrelatedEvidenceProjection {
+  string observation_id = 1;
+  repeated string evidence_ids = 2;
+}
+
+// NamedExpression computes one scope or evidence field using its admitted CEL environment.
+message NamedExpression { string field_id = 1; Expression value = 2; }
+
+// Source ordinals and causal parents carry semantic order independently of Run elapsed time.
+message CorrelatedEvidence {
+  CorrelatedIdentity identity = 1;
+  string operation = 2;
+  string kind = 3;
+  repeated CorrelatedIdentity parents = 4;
+  repeated NamedValue fields = 5;
+}
+
+// CorrelatedIdentity names one occurrence in a dense source stream within an explicit scope.
+message CorrelatedIdentity {
+  repeated NamedValue scope = 1;
+  string evidence_source = 2;
+  int64 ordinal = 3;
+}
+
+// NamedValue carries one scope or evidence field; an absent value records redaction.
+message NamedValue { string field_id = 1; cel.expr.Value value = 2; }

@@ -7,11 +7,14 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	celpb "cel.dev/expr"
+
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type Cardinality uint8
@@ -132,6 +135,10 @@ func (c *Catalog) bindSingular(singular *testpilotspb.SingularType, result *Type
 			return Invalid(TypeMismatch, "type", "expected enumeration descriptor")
 		}
 	case *testpilotspb.SingularType_Message:
+		if value.Message.GetProtobufType() == "google.protobuf.Duration" {
+			result.message = (&durationpb.Duration{}).ProtoReflect().Descriptor()
+			return nil
+		}
 		descriptor, err := c.files.FindDescriptorByName(protoreflect.FullName(value.Message.GetProtobufType()))
 		if err != nil {
 			return Invalid(Unknown, "type", "unknown message")
@@ -174,11 +181,11 @@ func (c *Catalog) scalarType(kind testpilotspb.ScalarKind) Type {
 	return Type{catalog: c, cardinality: Singular, scalar: kind, schema: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}}
 }
 
-func (c *Catalog) CheckLiteral(value *testpilotspb.Value, typ Type, limits Limits) error {
+func (c *Catalog) CheckLiteral(value *celpb.Value, typ Type, limits Limits) error {
 	if err := limits.validate(); err != nil {
 		return err
 	}
-	if value == nil || IsNil(value.Value) {
+	if value == nil || IsNil(value.Kind) {
 		return Invalid(Malformed, "literal", "literal is required")
 	}
 	if !c.owns(typ) {
@@ -191,8 +198,8 @@ func (c *Catalog) CheckLiteral(value *testpilotspb.Value, typ Type, limits Limit
 	return c.checkLiteral(value, typ, &b, 1)
 }
 
-func (c *Catalog) checkLiteral(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
-	if value == nil || IsNil(value.Value) || typ.schema == nil && !typ.opaque {
+func (c *Catalog) checkLiteral(value *celpb.Value, typ Type, b *budget, depth int64) error {
+	if value == nil || IsNil(value.Kind) || typ.schema == nil && !typ.opaque {
 		return Invalid(Malformed, "literal", "missing literal or type")
 	}
 	if err := b.charge(depth, 1, 0, "literal"); err != nil {
@@ -201,8 +208,8 @@ func (c *Catalog) checkLiteral(value *testpilotspb.Value, typ Type, b *budget, d
 	if typ.opaque {
 		return Invalid(Unsupported, "literal", "opaque handle literals are not representable")
 	}
-	if item, ok := value.Value.(*testpilotspb.Value_EnumValue); ok && (typ.enumeration == nil || typ.cardinality != Singular) {
-		return Invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q where the expected type is not an enumeration", item.EnumValue.GetName()))
+	if item, ok := value.Kind.(*celpb.Value_EnumValue); ok && (typ.enumeration == nil || typ.cardinality != Singular) {
+		return Invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q where the expected type is not an enumeration", item.EnumValue.GetType()))
 	}
 	if typ.cardinality == Repeated {
 		return c.checkList(value, typ, b, depth)
@@ -211,7 +218,7 @@ func (c *Catalog) checkLiteral(value *testpilotspb.Value, typ Type, b *budget, d
 		return c.checkMap(value, typ, b, depth)
 	}
 	if typ.enumeration != nil {
-		return checkEnum(value, typ)
+		return checkEnum(value, typ, b.ctx != nil)
 	}
 	if typ.message != nil || typ.any {
 		return c.checkMessage(value, typ, b, depth)
@@ -223,8 +230,8 @@ func literalMismatch() error {
 	return Invalid(TypeMismatch, "literal", "literal does not match its declared type")
 }
 
-func (c *Catalog) checkList(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
-	list, ok := value.Value.(*testpilotspb.Value_ListValue)
+func (c *Catalog) checkList(value *celpb.Value, typ Type, b *budget, depth int64) error {
+	list, ok := value.Kind.(*celpb.Value_ListValue)
 	if !ok || list.ListValue == nil {
 		return literalMismatch()
 	}
@@ -239,8 +246,8 @@ func (c *Catalog) checkList(value *testpilotspb.Value, typ Type, b *budget, dept
 	return nil
 }
 
-func (c *Catalog) checkMap(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
-	entries, ok := value.Value.(*testpilotspb.Value_MapValue)
+func (c *Catalog) checkMap(value *celpb.Value, typ Type, b *budget, depth int64) error {
+	entries, ok := value.Kind.(*celpb.Value_MapValue)
 	if !ok || entries.MapValue == nil {
 		return literalMismatch()
 	}
@@ -267,23 +274,26 @@ func (c *Catalog) checkMap(value *testpilotspb.Value, typ Type, b *budget, depth
 	return nil
 }
 
-func checkEnum(value *testpilotspb.Value, typ Type) error {
-	item, ok := value.Value.(*testpilotspb.Value_EnumValue)
+func checkEnum(value *celpb.Value, typ Type, admitted bool) error {
+	item, ok := value.Kind.(*celpb.Value_EnumValue)
 	if !ok || item.EnumValue == nil {
 		return literalMismatch()
 	}
-	if typ.enumeration.Values().ByName(protoreflect.Name(item.EnumValue.GetName())) == nil {
-		return Invalid(Unknown, "literal", fmt.Sprintf("enum %s declares no value %q", typ.enumeration.FullName(), item.EnumValue.GetName()))
+	if item.EnumValue.Type != string(typ.enumeration.FullName()) {
+		return literalMismatch()
+	}
+	if !admitted && typ.enumeration.Values().ByNumber(protoreflect.EnumNumber(item.EnumValue.Value)) == nil {
+		return Invalid(Unknown, "literal", fmt.Sprintf("enum %s declares no value %d", typ.enumeration.FullName(), item.EnumValue.Value))
 	}
 	return nil
 }
 
-func (c *Catalog) checkMessage(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
-	item, ok := value.Value.(*testpilotspb.Value_MessageValue)
-	if !ok || item.MessageValue == nil {
+func (c *Catalog) checkMessage(value *celpb.Value, typ Type, b *budget, depth int64) error {
+	item, ok := value.Kind.(*celpb.Value_ObjectValue)
+	if !ok || item.ObjectValue == nil {
 		return literalMismatch()
 	}
-	envelope := item.MessageValue
+	envelope := item.ObjectValue
 	slash := strings.LastIndexByte(envelope.TypeUrl, '/')
 	if slash < 0 || !protoreflect.FullName(envelope.TypeUrl[slash+1:]).IsValid() {
 		return Invalid(Malformed, "literal", "invalid message type URL")
@@ -301,32 +311,41 @@ func (c *Catalog) checkMessage(value *testpilotspb.Value, typ Type, b *budget, d
 	if err := (proto.UnmarshalOptions{RecursionLimit: int(b.limits.Depth)}).Unmarshal(envelope.Value, message); err != nil {
 		return Invalid(Malformed, "literal", "invalid message wire payload")
 	}
-	return inspect(message.ProtoReflect(), depth+1, b, "literal.message")
+	if typ.message.FullName() == "google.protobuf.Duration" {
+		if err := (&durationpb.Duration{Seconds: message.Get(typ.message.Fields().ByName("seconds")).Int(), Nanos: int32(message.Get(typ.message.Fields().ByName("nanos")).Int())}).CheckValid(); err != nil {
+			return Invalid(Malformed, "literal", "invalid duration")
+		}
+	}
+	payload := *b
+	payload.payload = true
+	err := inspect(message.ProtoReflect(), depth+1, &payload, "literal.message")
+	b.work, b.bytes = payload.work, payload.bytes
+	return err
 }
 
-func checkScalar(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error {
+func checkScalar(value *celpb.Value, kind testpilotspb.ScalarKind) error {
 	switch kind {
 	case testpilotspb.SCALAR_KIND_TEXT:
-		item, ok := value.Value.(*testpilotspb.Value_TextValue)
-		if !ok || !utf8.ValidString(item.TextValue) {
+		item, ok := value.Kind.(*celpb.Value_StringValue)
+		if !ok || !utf8.ValidString(item.StringValue) {
 			return literalMismatch()
 		}
 	case testpilotspb.SCALAR_KIND_BYTES:
-		if _, ok := value.Value.(*testpilotspb.Value_BytesValue); !ok {
+		if _, ok := value.Kind.(*celpb.Value_BytesValue); !ok {
 			return literalMismatch()
 		}
 	case testpilotspb.SCALAR_KIND_BOOLEAN:
-		if _, ok := value.Value.(*testpilotspb.Value_BoolValue); !ok {
+		if _, ok := value.Kind.(*celpb.Value_BoolValue); !ok {
 			return literalMismatch()
 		}
 	case testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64, testpilotspb.SCALAR_KIND_SFIXED32, testpilotspb.SCALAR_KIND_SFIXED64, testpilotspb.SCALAR_KIND_UINT32, testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64:
 		return checkInteger(value, kind)
 	case testpilotspb.SCALAR_KIND_FLOAT, testpilotspb.SCALAR_KIND_DOUBLE:
-		item, ok := value.Value.(*testpilotspb.Value_FloatingPointValue)
+		item, ok := value.Kind.(*celpb.Value_DoubleValue)
 		if !ok {
 			return literalMismatch()
 		}
-		if kind == testpilotspb.SCALAR_KIND_FLOAT && !math.IsInf(item.FloatingPointValue, 0) && math.Abs(item.FloatingPointValue) > math.MaxFloat32 {
+		if kind == testpilotspb.SCALAR_KIND_FLOAT && !math.IsInf(item.DoubleValue, 0) && math.Abs(item.DoubleValue) > math.MaxFloat32 {
 			return literalMismatch()
 		}
 	default:
@@ -335,33 +354,27 @@ func checkScalar(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error 
 	return nil
 }
 
-func checkInteger(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error {
+func checkInteger(value *celpb.Value, kind testpilotspb.ScalarKind) error {
 	switch kind {
 	case testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64, testpilotspb.SCALAR_KIND_SFIXED32, testpilotspb.SCALAR_KIND_SFIXED64:
-		item, ok := value.Value.(*testpilotspb.Value_SignedIntegerValue)
+		item, ok := value.Kind.(*celpb.Value_Int64Value)
 		if !ok {
 			return literalMismatch()
 		}
-		bits := 64
 		if kind == testpilotspb.SCALAR_KIND_INT32 || kind == testpilotspb.SCALAR_KIND_SINT32 || kind == testpilotspb.SCALAR_KIND_SFIXED32 {
-			bits = 32
-		}
-		parsed, err := strconv.ParseInt(item.SignedIntegerValue, 10, bits)
-		if err != nil || strconv.FormatInt(parsed, 10) != item.SignedIntegerValue {
-			return literalMismatch()
+			if item.Int64Value < math.MinInt32 || item.Int64Value > math.MaxInt32 {
+				return literalMismatch()
+			}
 		}
 	case testpilotspb.SCALAR_KIND_UINT32, testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64:
-		item, ok := value.Value.(*testpilotspb.Value_UnsignedIntegerValue)
+		item, ok := value.Kind.(*celpb.Value_Uint64Value)
 		if !ok {
 			return literalMismatch()
 		}
-		bits := 64
 		if kind == testpilotspb.SCALAR_KIND_UINT32 || kind == testpilotspb.SCALAR_KIND_FIXED32 {
-			bits = 32
-		}
-		parsed, err := strconv.ParseUint(item.UnsignedIntegerValue, 10, bits)
-		if err != nil || strconv.FormatUint(parsed, 10) != item.UnsignedIntegerValue {
-			return literalMismatch()
+			if item.Uint64Value > math.MaxUint32 {
+				return literalMismatch()
+			}
 		}
 	default:
 		return literalMismatch()
@@ -397,7 +410,15 @@ func scanFields(data []byte, descriptor protoreflect.MessageDescriptor, b *budge
 		}
 		field := descriptor.Fields().ByNumber(number)
 		if field == nil {
-			return nil, Invalid(Unknown, "literal.message", "unknown message field")
+			consumed := protowire.ConsumeFieldValue(number, wireType, data)
+			if consumed < 0 {
+				return nil, Invalid(Malformed, "literal.message", "invalid unknown wire field")
+			}
+			if err := b.charge(depth, int64(consumed), 0, "literal.message"); err != nil {
+				return nil, err
+			}
+			data = data[consumed:]
+			continue
 		}
 		consumed, count, err := scanField(data, field, wireType, b, depth)
 		if err != nil {
@@ -475,29 +496,24 @@ func scanPacked(data []byte, kind protoreflect.Kind, b *budget, depth int64) (in
 
 // EnumName is the name EnumValue spells value by.
 func EnumName(value protoreflect.Enum) string {
-	return EnumValue(value.Descriptor(), value.Number()).GetEnumValue().GetName()
+	if declared := value.Descriptor().Values().ByNumber(value.Number()); declared != nil {
+		return string(declared.Name())
+	}
+	return strconv.FormatInt(int64(value.Number()), 10)
 }
 
 // EnumValue is the runtime value of number in enumeration: the value's name, or the number in
 // decimal when enumeration does not declare it, the spelling ProtoJSON gives an unknown enum number.
 // No literal names an undeclared number, since preparation admits only declared names.
-func EnumValue(enumeration protoreflect.EnumDescriptor, number protoreflect.EnumNumber) *testpilotspb.Value {
-	name := strconv.FormatInt(int64(number), 10)
-	if declared := enumeration.Values().ByNumber(number); declared != nil {
-		name = string(declared.Name())
-	}
-	return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: name}}}
+func EnumValue(enumeration protoreflect.EnumDescriptor, number protoreflect.EnumNumber) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_EnumValue{EnumValue: &celpb.EnumValue{Type: string(enumeration.FullName()), Value: int32(number)}}}
 }
 
 // EnumNumber is the number value names in enumeration: a declared name, or a decimal number an
 // EnumValue spelled because enumeration does not declare it.
-func EnumNumber(enumeration protoreflect.EnumDescriptor, value *testpilotspb.EnumValue) (protoreflect.EnumNumber, error) {
-	if declared := enumeration.Values().ByName(protoreflect.Name(value.GetName())); declared != nil {
-		return declared.Number(), nil
+func EnumNumber(enumeration protoreflect.EnumDescriptor, value *celpb.EnumValue) (protoreflect.EnumNumber, error) {
+	if value == nil || value.Type != string(enumeration.FullName()) {
+		return 0, literalMismatch()
 	}
-	number, err := strconv.ParseInt(value.GetName(), 10, 32)
-	if err != nil {
-		return 0, Invalid(Unknown, "request", fmt.Sprintf("enum %s declares no value %q", enumeration.FullName(), value.GetName()))
-	}
-	return protoreflect.EnumNumber(number), nil
+	return protoreflect.EnumNumber(value.Value), nil
 }

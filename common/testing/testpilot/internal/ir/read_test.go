@@ -5,8 +5,11 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -74,7 +77,8 @@ func TestRawResponseWorkIsIndependentOfBindingCap(t *testing.T) {
 	limits.Work = 1 << 24
 	value, work, err := path.Read(context.Background(), source, limits)
 	require.NoError(t, err)
-	require.Equal(t, "UNKNOWN", value.GetEnumValue().GetName())
+	require.Equal(t, "fixture.State", value.GetEnumValue().GetType())
+	require.Zero(t, value.GetEnumValue().GetValue())
 	require.Greater(t, work, DefaultLimits().Work)
 	limits.Work = work
 	_, _, err = path.Read(context.Background(), source, limits)
@@ -131,7 +135,7 @@ func TestValueRuntimeCancellationAndMalformedInputs(t *testing.T) {
 		require.Nil(t, result)
 	}
 	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
-	for _, value := range []*testpilotspb.Value{nil, {}, {Value: (*testpilotspb.Value_TextValue)(nil)}, {Value: &testpilotspb.Value_TextValue{TextValue: string([]byte{0xff})}}} {
+	for _, value := range []*celpb.Value{nil, {}, {Kind: (*celpb.Value_StringValue)(nil)}, {Kind: &celpb.Value_StringValue{StringValue: string([]byte{0xff})}}} {
 		result, _, err := SnapshotValue(context.Background(), value, textType, DefaultLimits())
 		require.Error(t, err)
 		require.Nil(t, result)
@@ -143,25 +147,25 @@ func TestValueRuntimeCancellationAndMalformedInputs(t *testing.T) {
 func TestExecutionExpressionAccountsNestedCopies(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
-	source := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x12, 5, 0x12, 3, 0x0a, 1, 'x'}}}}
-	path := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("input"), Path: fieldPath("child", "child", "text")}}}
+	source := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x12, 5, 0x12, 3, 0x0a, 1, 'x'}}}}
+	path := cel.Path(slot("input"), fieldPath("child", "child", "text"))
 	e, err := c.BindConditionedExpression([]Condition{{Expression: present(path), Matches: true}}, programSite, path, nil, map[Reference]Binding{{Kind: SlotReference, ID: "input"}: {Type: typ, Available: true}}, DefaultLimits())
 	require.NoError(t, err)
-	resolve := func(Reference) *testpilotspb.Value { return source }
-	legacy, oldWork, err := e.Evaluate(context.Background(), resolve, 100000)
+	resolve := func(Reference) *celpb.Value { return source }
+	ordinary, ordinaryWork, err := e.Evaluate(context.Background(), resolve, 100000)
 	require.NoError(t, err)
 	value, work, err := e.EvaluateExecution(context.Background(), resolve, 100000)
 	require.NoError(t, err)
-	require.True(t, proto.Equal(legacy, value))
-	require.Greater(t, work, oldWork)
+	require.True(t, proto.Equal(ordinary, value))
+	require.Greater(t, work, ordinaryWork)
 	_, _, err = e.EvaluateExecution(context.Background(), resolve, work)
 	require.NoError(t, err)
 	_, _, err = e.EvaluateExecution(context.Background(), resolve, work-1)
 	require.Error(t, err)
-	source.GetMessageValue().Value = nil
-	_, _, legacyErr := e.Evaluate(context.Background(), resolve, 100000)
+	source.GetObjectValue().Value = nil
+	_, _, ordinaryErr := e.Evaluate(context.Background(), resolve, 100000)
 	_, _, err = e.EvaluateExecution(context.Background(), resolve, 100000)
-	require.Error(t, legacyErr)
+	require.Error(t, ordinaryErr)
 	require.Error(t, err)
 }
 

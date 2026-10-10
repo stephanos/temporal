@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	celpb "cel.dev/expr"
 
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
@@ -361,20 +362,21 @@ func positiveRequestDuration(assignments []*testpilotspb.RequestAssignment, fiel
 		if path != field && !strings.HasPrefix(path, field+".") {
 			continue
 		}
-		literal := assignment.GetValue().GetLiteral()
+		literal := authoredLiteral(assignment.GetValue())
 		if literal == nil {
 			return false
 		}
 		if path == field {
-			if literal.GetMessageValue().UnmarshalTo(duration) != nil {
+			if literal.GetObjectValue().UnmarshalTo(duration) != nil {
 				return false
 			}
 			continue
 		}
-		value, err := strconv.ParseInt(literal.GetSignedIntegerValue(), 10, 64)
-		if err != nil {
+		integer, ok := literal.GetKind().(*celpb.Value_Int64Value)
+		if !ok {
 			return false
 		}
+		value := integer.Int64Value
 		switch path {
 		case field + ".seconds":
 			duration.Seconds = value
@@ -624,7 +626,7 @@ func assignmentUsesBinding(assignments []*testpilotspb.RequestAssignment, fields
 	}
 	for _, assignment := range assignments {
 		// A path of plain field names has exactly one spelling.
-		if assignment.GetTarget() == strings.Join(fields, ".") && assignment.GetValue().GetReference().GetEnvironmentBindingId() == bindingID {
+		if assignment.GetTarget() == strings.Join(fields, ".") && authoredReference(assignment.GetValue()).GetEnvironmentBindingId() == bindingID {
 			return true
 		}
 	}

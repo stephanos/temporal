@@ -152,22 +152,26 @@ func (p *production) evidenceDeclarations(rules []EvidenceRule) []*testpilotspb.
 		d := &testpilotspb.EvidenceDeclaration{
 			EvidenceId:     s.KindID,
 			EvidenceSource: s.SourceID,
-			Scope:          []*testpilotspb.NamedValue{{FieldId: p.r.ScopeField, Value: Text(p.identity.RunScope)}},
-			Operation:      s.OperationKeyPath,
+			Kind:           s.KindID,
+			Scope:          []*testpilotspb.NamedExpression{{FieldId: p.r.ScopeField, Value: Literal(Text(p.identity.RunScope))}},
+			Operation:      Path(ProjectedValue(), s.OperationKeyPath),
 		}
 		switch event := s.Recorded.RunEvent; {
 		case s.readsHistory():
 			d.Source = &testpilotspb.EvidenceDeclaration_HistoryEvent{HistoryEvent: &testpilotspb.HistoryEventSource{AttributesField: s.Recorded.HistoryAttributes}}
 		case event != nil:
-			d.Source = &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: event.Kind, Guard: event.Guard,
+			d.Guard = event.Guard
+			if event.RunKeyed {
+				d.Operation = Literal(Text(p.identity.RunScope))
+			}
+			d.Source = &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: event.Kind,
 				Instruction: &testpilotspb.InstructionReference{EntrypointId: event.EntrypointID, InstructionId: event.InstructionID},
 				RunKeyed:    event.RunKeyed}}
 		default:
-			d.Source = &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: s.Recorded.Method, Path: s.Recorded.Path,
-				Single: s.Recorded.Single}}
+			d.Source = &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: s.Recorded.Method, Path: s.Recorded.Path}}
 		}
 		for _, f := range s.Fields {
-			d.Fields = append(d.Fields, &testpilotspb.EvidenceFieldDeclaration{FieldId: f.ID, Path: f.Path})
+			d.Fields = append(d.Fields, &testpilotspb.NamedExpression{FieldId: f.ID, Value: Path(ProjectedValue(), f.Path)})
 		}
 		out = append(out, d)
 	}

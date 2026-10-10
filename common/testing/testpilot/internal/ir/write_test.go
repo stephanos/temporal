@@ -6,8 +6,9 @@ import (
 	"math"
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -20,7 +21,7 @@ func TestRequestWritesPreservePresenceAndOwnership(t *testing.T) {
 	var writes []Write
 	for _, tc := range []struct {
 		path  string
-		value *testpilotspb.Value
+		value *celpb.Value
 	}{
 		{fieldPath("child", "optional_text"), text("")}, {fieldPath("success"), text("")}, {lookup, signed("0")},
 	} {
@@ -45,7 +46,7 @@ func TestRequestWritesPreservePresenceAndOwnership(t *testing.T) {
 	exact.Bytes--
 	_, _, err = BuildRequest(context.Background(), typ.Message(), writes, exact)
 	require.Error(t, err)
-	writes[0].Value.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
+	writes[0].Value.Kind = &celpb.Value_StringValue{StringValue: "changed"}
 	again, err := proto.MarshalOptions{Deterministic: true}.Marshal(request)
 	require.NoError(t, err)
 	require.Equal(t, wire, again)
@@ -56,7 +57,7 @@ func TestRequestRejectsCrossedValuesAndConflictingWrites(t *testing.T) {
 	typ := boundType(t, c, named("fixture.Payload", false))
 	p, err := c.BindPath(typ, "path", fieldPath("failure"), DefaultLimits())
 	require.NoError(t, err)
-	for _, v := range []*testpilotspb.Value{nil, text("0"), signed("9223372036854775808"), signed("01")} {
+	for _, v := range []*celpb.Value{nil, text("0"), signed("9223372036854775808"), signed("01")} {
 		got, _, err := BuildRequest(context.Background(), typ.Message(), []Write{{Path: p, Value: v}}, DefaultLimits())
 		require.Error(t, err)
 		require.Nil(t, got)
@@ -82,16 +83,16 @@ func TestRequestNumericWidthsAndCollections(t *testing.T) {
 	require.NoError(t, err)
 	typ := boundType(t, c, named("fixture.Numbers", false))
 	for i, tc := range []struct {
-		value, bad *testpilotspb.Value
+		value, bad *celpb.Value
 		want       any
 	}{
 		{signed("-2147483648"), signed("2147483648"), int32(-2147483648)}, {signed("-2147483648"), signed("2147483648"), int32(-2147483648)}, {signed("-2147483648"), signed("2147483648"), int32(-2147483648)},
 		{signed("-9223372036854775808"), signed("9223372036854775808"), int64(-9223372036854775808)}, {signed("-9223372036854775808"), signed("9223372036854775808"), int64(-9223372036854775808)}, {signed("-9223372036854775808"), signed("9223372036854775808"), int64(-9223372036854775808)},
 		{unsigned("4294967295"), unsigned("4294967296"), uint32(4294967295)}, {unsigned("4294967295"), unsigned("4294967296"), uint32(4294967295)},
 		{unsigned("18446744073709551615"), unsigned("18446744073709551616"), uint64(18446744073709551615)}, {unsigned("18446744073709551615"), unsigned("18446744073709551616"), uint64(18446744073709551615)},
-		{&testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 0.1}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.MaxFloat64}}, float32(0.1)},
-		{&testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 0.1}}, text("0.1"), float64(0.1)},
-		{&testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: []byte{1, 2}}}, text("bytes"), []byte{1, 2}}, {boolean(true), signed("1"), true},
+		{&celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: 0.1}}, &celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: math.MaxFloat64}}, float32(0.1)},
+		{&celpb.Value{Kind: &celpb.Value_DoubleValue{DoubleValue: 0.1}}, text("0.1"), float64(0.1)},
+		{&celpb.Value{Kind: &celpb.Value_BytesValue{BytesValue: []byte{1, 2}}}, text("bytes"), []byte{1, 2}}, {boolean(true), signed("1"), true},
 	} {
 		t.Run(fmt.Sprint(kinds[i]), func(t *testing.T) {
 			path, err := c.BindPath(typ, "path", fieldPath(fmt.Sprintf("field%d", i)), DefaultLimits())
@@ -114,11 +115,11 @@ func TestRequestNumericWidthsAndCollections(t *testing.T) {
 	payload := boundType(t, c, named("fixture.Payload", false))
 	for _, tc := range []struct {
 		path  string
-		value *testpilotspb.Value
+		value *celpb.Value
 	}{
-		{fieldPath("items"), &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: []*testpilotspb.Value{{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'b'}}}}, {Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'a'}}}}}}}}},
-		{fieldPath("labels"), &testpilotspb.Value{Value: &testpilotspb.Value_MapValue{MapValue: &testpilotspb.ValueMap{Entries: []*testpilotspb.ValueMapEntry{{Key: text("z"), Value: signed("0")}, {Key: text("a"), Value: signed("1")}}}}}},
-		{fieldPath("payload"), &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/custom.Bytes", Value: []byte{1, 2, 3}}}}},
+		{fieldPath("items"), &celpb.Value{Kind: &celpb.Value_ListValue{ListValue: &celpb.ListValue{Values: []*celpb.Value{{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'b'}}}}, {Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'a'}}}}}}}}},
+		{fieldPath("labels"), &celpb.Value{Kind: &celpb.Value_MapValue{MapValue: &celpb.MapValue{Entries: []*celpb.MapValue_Entry{{Key: text("z"), Value: signed("0")}, {Key: text("a"), Value: signed("1")}}}}}},
+		{fieldPath("payload"), &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/custom.Bytes", Value: []byte{1, 2, 3}}}}},
 	} {
 		path, err := c.BindPath(payload, "path", tc.path, DefaultLimits())
 		require.NoError(t, err)
@@ -127,8 +128,8 @@ func TestRequestNumericWidthsAndCollections(t *testing.T) {
 		projected, _, err := path.Read(context.Background(), request, DefaultLimits())
 		require.NoError(t, err)
 		if tc.path == "labels" {
-			require.Equal(t, "a", projected.GetMapValue().Entries[0].Key.GetTextValue())
-			require.Equal(t, "z", projected.GetMapValue().Entries[1].Key.GetTextValue())
+			require.Equal(t, "a", projected.GetMapValue().Entries[0].Key.GetStringValue())
+			require.Equal(t, "z", projected.GetMapValue().Entries[1].Key.GetStringValue())
 		} else {
 			require.True(t, proto.Equal(tc.value, projected))
 		}

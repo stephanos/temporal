@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -71,9 +73,9 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 		"the presence of the payload":         {guardPresent(projected), byNone, "", true},
 		"the presence of a message":           {guardPresent(attempt), byNone, "", true},
 		"the presence of a written value":     {guardPresent(guardLiteral("x")), byNone, "", true},
-		"the presence of a oneof member":      {guardPresent(guardPath("value.value<bool_value>")), byNone, "", true},
-		"the presence of another member":      {guardPresent(guardPath("value.value<text_value>")), byNone, "", false},
-		"the presence of a member by name":    {guardPresent(guardPath("value.text_value")), byNone, "", false},
+		"the presence of a oneof member":      {guardPresent(guardPath("value.kind<bool_value>")), byNone, "", true},
+		"the presence of another member":      {guardPresent(guardPath("value.kind<string_value>")), byNone, "", false},
+		"the presence of a member by name":    {guardPresent(guardPath("value.string_value")), byNone, "", false},
 		"a text compared":                     {guardEqual(guardPath("protocol_code"), guardLiteral("ok")), byNone, "", true},
 		"a number compared":                   {guardEqual(number, guardLiteral(2)), byNone, "", true},
 		"a flag compared":                     {guardEqual(guardPath("value.bool_value"), guardLiteral(true)), byNone, "", true},
@@ -90,8 +92,8 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 		"a conjunction":                       {guardAll(guardPresent(attempt), guardGreater(number, guardLiteral(0))), byNone, "", true},
 		"a conjunction in a conjunction":      {guardAll(guardAll(guardLiteral(true)), guardNot(guardLiteral(false))), byNone, "", true},
 		"a path of a path":                    {guardGreater(guardIn(attempt, "sdk_attempt"), guardLiteral(0)), byNone, "", true},
-		"a path of a path of a path":          {guardPresent(guardIn(guardIn(guardPath("value"), "enum_value"), "name")), byNone, "", false},
-		"a member of a oneof of a path":       {guardEqual(guardIn(guardPath("value"), "value<bool_value>"), guardLiteral(true)), byNone, "", true},
+		"a path of a path of a path":          {guardPresent(guardIn(guardIn(guardPath("value"), "enum_value"), "type")), byNone, "", false},
+		"a member of a oneof of a path":       {guardEqual(guardIn(guardPath("value"), "kind<bool_value>"), guardLiteral(true)), byNone, "", true},
 		"a path of the payload, of a message": {guardPresent(guardIn(projected, "activity_attempt")), byNone, "", true},
 
 		// What admission can know: the kinds of operand a guard has, the values it writes out, and the
@@ -132,15 +134,15 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 		"a field the payload does not have":          {guardPresent(guardPath("activity_attempt.attempt")), byLowering, "reads activity_attempt.attempt, and " + v1 + "ActivityAttempt has no field attempt", false},
 		"a path of a path, the inner misspelled":     {guardPresent(guardIn(guardPath("activity_attemtp"), "sdk_attempt")), byLowering, "reads activity_attemtp, and " + v1 + "InstructionOutcome has no field activity_attemtp", false},
 		"a path of a path, the outer misspelled":     {guardPresent(guardIn(attempt, "sdk_attemtp")), byLowering, "reads sdk_attemtp, and " + v1 + "ActivityAttempt has no field sdk_attemtp", false},
-		"three paths deep, the outermost misspelled": {guardPresent(guardIn(guardIn(guardPath("value"), "enum_value"), "nmae")), byLowering, "reads nmae, and " + v1 + "EnumValue has no field nmae", false},
-		"three paths deep, the middle misspelled":    {guardPresent(guardIn(guardIn(guardPath("value"), "enum_vlaue"), "name")), byLowering, "reads enum_vlaue, and " + v1 + "Value has no field enum_vlaue", false},
+		"three paths deep, the outermost misspelled": {guardPresent(guardIn(guardIn(guardPath("value"), "enum_value"), "tyep")), byLowering, "reads tyep, and cel.expr.EnumValue has no field tyep", false},
+		"three paths deep, the middle misspelled":    {guardPresent(guardIn(guardIn(guardPath("value"), "enum_vlaue"), "type")), byLowering, "reads enum_vlaue, and cel.expr.Value has no field enum_vlaue", false},
 		"a field of a scalar":                        {guardPresent(guardPath("detail.length")), byLowering, "reads detail.length, and " + v1 + "InstructionOutcome.detail is no message", false},
 		"a path of a path that is a text":            {guardPresent(guardIn(guardPath("detail"), "length")), byLowering, "reads length of a text, which is no message", false},
-		"a member the oneof does not have":           {guardPresent(guardPath("value.value<nope>")), byLowering, "reads value<nope>, and " + v1 + "Value has no such member", false},
-		"a oneof the message does not have":          {guardPresent(guardPath("value.kind<bool_value>")), byLowering, "reads kind<bool_value>, and " + v1 + "Value has no such member", false},
-		"several values":                             {guardPresent(guardPath("value.list_value.values")), byLowering, "reads value.list_value.values, and " + v1 + "ValueList.values holds several values", false},
-		"bytes":                                      {guardPresent(guardPath("value.bytes_value")), byLowering, "reads " + v1 + "Value.bytes_value, which is of kind bytes", false},
-		"a floating point number":                    {guardGreater(guardPath("value.floating_point_value"), guardLiteral(0)), byLowering, "reads " + v1 + "Value.floating_point_value, which is of kind double", false},
+		"a member the oneof does not have":           {guardPresent(guardPath("value.kind<nope>")), byLowering, "reads kind<nope>, and cel.expr.Value has no such member", false},
+		"a oneof the message does not have":          {guardPresent(guardPath("value.value<bool_value>")), byLowering, "reads value<bool_value>, and cel.expr.Value has no such member", false},
+		"several values":                             {guardPresent(guardPath("value.list_value.values")), byLowering, "reads value.list_value.values, and cel.expr.ListValue.values holds several values", false},
+		"bytes":                                      {guardPresent(guardPath("value.bytes_value")), byLowering, "reads cel.expr.Value.bytes_value, which is of kind bytes", false},
+		"a floating point number":                    {guardGreater(guardPath("value.double_value"), guardLiteral(0)), byLowering, "reads cel.expr.Value.double_value, which is of kind double", false},
 		"a guard that is a number read":              {number, byLowering, "is a number, and a guard is a condition", false},
 		"a guard that is a message read":             {attempt, byLowering, "is a message, and a guard is a condition", false},
 		"an order of a text read":                    {guardGreater(delivery, guardLiteral(0)), byLowering, "orders a text, and only numbers are ordered", false},
@@ -175,7 +177,7 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 					Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: source.GetScript(), InstructionId: source.GetCommand()}}
 			}
 			full := attemptOf(2, "token-2", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED)
-			full.ProtocolCode, full.Value = "ok", &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}
+			full.ProtocolCode, full.Value = "ok", &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}}
 			bare := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
 
 			validated := ir.Validate(m)

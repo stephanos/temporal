@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"unicode/utf8"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -31,27 +32,17 @@ type correlatedObligation struct {
 type retainedCapture struct {
 	capture string
 	ordinal int64
-	value   *testpilotspb.Value
-}
-
-// correlatedState is one operation's machine state as Lean's StateValue carries it: the atom and
-// the fields it holds, both read when matching a transition's prior state.
-type correlatedState struct {
-	atom   *testpilotspb.ModelValue
-	fields []*testpilotspb.ModelValue
-}
-
-func (s correlatedState) isPriorOf(tr *testpilotspb.CorrelatedTransition) bool {
-	return proto.Equal(tr.PriorState, s.atom) && sameModelValues(tr.PriorFields, s.fields)
+	value   *celpb.Value
 }
 
 type correlatedOperation struct {
-	state       correlatedState
+	state       string
 	last        *testpilotspb.CorrelatedIdentity
 	obligations [][]correlatedObligation
 	captures    []retainedCapture
 }
 type correlatedMonitor struct {
+	prepared *PreparedContract
 	// limits is the Profile's correlated ceiling snapshot, shared read-only by every clone.
 	limits                                                                        *testpilotspb.CorrelatedLimits
 	scope                                                                         []*testpilotspb.NamedValue
@@ -64,11 +55,12 @@ type correlatedMonitor struct {
 	capturedValues                                                                int64
 }
 
-func newCorrelated(s *testpilotspb.CorrelatedContract, limits *testpilotspb.CorrelatedLimits) *correlatedMonitor {
+func newCorrelated(p *PreparedContract) *correlatedMonitor {
+	s := p.source.Correlated
 	if s == nil {
 		return nil
 	}
-	return &correlatedMonitor{limits: limits, operations: map[string]*correlatedOperation{}, ruleSupport: make([][]int64, len(s.Rules))}
+	return &correlatedMonitor{prepared: p, limits: p.correlatedLimits, operations: map[string]*correlatedOperation{}, ruleSupport: make([][]int64, len(s.Rules))}
 }
 func (r *correlatedMonitor) clone() *correlatedMonitor {
 	n := *r
@@ -166,7 +158,7 @@ func (r *correlatedMonitor) ready(e *admittedCorrelatedEvidence) bool {
 func identitySize(id *testpilotspb.CorrelatedIdentity) int64 {
 	n := int64(utf8.RuneCountInString(id.EvidenceSource) + 1)
 	for _, b := range id.Scope {
-		n += int64(utf8.RuneCountInString(b.FieldId) + utf8.RuneCountInString(b.GetValue().GetTextValue()))
+		n += int64(utf8.RuneCountInString(b.FieldId) + utf8.RuneCountInString(b.GetValue().GetStringValue()))
 	}
 	return n
 }
@@ -183,12 +175,12 @@ func evidenceSize(e *admittedCorrelatedEvidence) int64 {
 		if f.Value == nil {
 			n++
 		} else {
-			switch v := f.Value.Value.(type) {
-			case *testpilotspb.Value_TextValue:
-				n += int64(utf8.RuneCountInString(v.TextValue))
-			case *testpilotspb.Value_UnsignedIntegerValue:
-				n += int64(len(v.UnsignedIntegerValue))
-			case *testpilotspb.Value_BoolValue:
+			switch v := f.Value.Kind.(type) {
+			case *celpb.Value_StringValue:
+				n += int64(utf8.RuneCountInString(v.StringValue))
+			case *celpb.Value_Uint64Value:
+				n += int64(len(strconv.FormatUint(v.Uint64Value, 10)))
+			case *celpb.Value_BoolValue:
 				if v.BoolValue {
 					n += 4
 				} else {
@@ -210,6 +202,9 @@ func projectionRule(s *testpilotspb.CorrelatedContract, kind string) *testpilots
 	return nil
 }
 func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, sequence int64) error {
+	if err := ir.CheckSurface(e.CorrelatedEvidence, ir.DefaultLimits()); err != nil {
+		return err
+	}
 	if e.Identity == nil || e.Operation == "" || evidenceSize(e) > r.limits.MaxEventBytes {
 		return invalid(ir.Malformed, "invalid correlated evidence size or identity")
 	}
@@ -217,7 +212,7 @@ func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admi
 		return invalid(ir.Malformed, "wrong correlated bindings")
 	}
 	for i, b := range e.Identity.Scope {
-		if b.FieldId != s.ScopeFields[i] || b.GetValue().GetTextValue() == "" {
+		if b.FieldId != s.ScopeFields[i] || b.GetValue().GetStringValue() == "" {
 			return invalid(ir.Malformed, "wrong correlated bindings")
 		}
 	}
@@ -259,13 +254,13 @@ func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admi
 		}
 		if f.Value != nil {
 			ok := false
-			switch v := f.Value.Value.(type) {
-			case *testpilotspb.Value_TextValue:
+			switch f.Value.Kind.(type) {
+			case *celpb.Value_StringValue:
 				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_TEXT
-			case *testpilotspb.Value_BoolValue:
+			case *celpb.Value_BoolValue:
 				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_BOOLEAN
-			case *testpilotspb.Value_UnsignedIntegerValue:
-				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_UINT64 && canonicalUint64(v.UnsignedIntegerValue)
+			case *celpb.Value_Uint64Value:
+				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_UINT64
 			default:
 				return invalid(ir.TypeMismatch, "unsupported correlated scalar")
 			}
@@ -306,30 +301,30 @@ func (r *correlatedMonitor) sequences(ids []*testpilotspb.CorrelatedIdentity) []
 	return out
 }
 
-// predicate reports whether an admitted step condition holds on tr. A FACT condition holds when any
-// of the step's facts satisfies it. A STATE condition reads the state and every field the machine
-// keeps, so a reference names `phase` without the rest of the state and the state without its
-// fields; a Model whose states are atoms carries no fields and reads exactly as it did.
-func predicate(e *testpilotspb.Expression, tr *testpilotspb.CorrelatedTransition) bool {
-	condition, _ := readStepCondition(e)
+// stepValues supplies all values of a definition to native CEL membership and size operations.
+func stepValues(ref ir.Reference, tr *testpilotspb.CorrelatedResult, state *testpilotspb.CorrelatedState) *celpb.Value {
 	var values []*testpilotspb.ModelValue
-	switch condition.field {
+	switch testpilotspb.CorrelatedStepField(ref.Field) {
 	case testpilotspb.CORRELATED_STEP_FIELD_ACTION:
 		values = []*testpilotspb.ModelValue{tr.Action}
 	case testpilotspb.CORRELATED_STEP_FIELD_OUTCOME:
 		values = []*testpilotspb.ModelValue{tr.Outcome}
 	case testpilotspb.CORRELATED_STEP_FIELD_STATE:
-		values = append([]*testpilotspb.ModelValue{tr.State}, tr.StateFields...)
+		values = append([]*testpilotspb.ModelValue{state.Atom}, state.Fields...)
 	case testpilotspb.CORRELATED_STEP_FIELD_FACT:
 		values = tr.Facts
 	default:
-		return false
+		return nil
 	}
-	return slices.ContainsFunc(values, func(v *testpilotspb.ModelValue) bool {
-		return v.DefinitionId == condition.definitionID && (!condition.equals || v.Value == condition.text)
-	})
+	list := &celpb.ListValue{}
+	for _, value := range values {
+		if value.DefinitionId == ref.ID {
+			list.Values = append(list.Values, &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: value.Value}})
+		}
+	}
+	return &celpb.Value{Kind: &celpb.Value_ListValue{ListValue: list}}
 }
-func evidenceField(e *admittedCorrelatedEvidence, id string) *testpilotspb.Value {
+func evidenceField(e *admittedCorrelatedEvidence, id string) *celpb.Value {
 	i := slices.IndexFunc(e.Fields, func(f *testpilotspb.NamedValue) bool { return f.FieldId == id })
 	if i < 0 {
 		return nil
@@ -337,70 +332,30 @@ func evidenceField(e *admittedCorrelatedEvidence, id string) *testpilotspb.Value
 	return e.Fields[i].Value
 }
 
-// operandValue reads only declared evidence; nil is an absent operand. An occurrence the operation
-// never retained -- a future ordinal, or one belonging to a different operation -- has no value here,
-// so the comparison reading it is false rather than binding the nearest match.
-func operandValue(o *testpilotspb.Expression, e *admittedCorrelatedEvidence, op *correlatedOperation) (*testpilotspb.Value, error) {
-	if literal, ok := o.GetExpression().(*testpilotspb.Expression_Literal); ok {
-		return literal.Literal, nil
-	}
-	switch v := o.GetReference().GetReference().(type) {
-	case *testpilotspb.Reference_EvidenceFieldId:
-		return evidenceField(e, v.EvidenceFieldId), nil
-	case *testpilotspb.Reference_CorrelatedCapture:
-		for _, entry := range op.captures {
-			if entry.capture == v.CorrelatedCapture.GetCaptureId() && entry.ordinal == v.CorrelatedCapture.GetOrdinal() {
-				return entry.value, nil
+func (r *correlatedMonitor) evaluate(ctx context.Context, expression *ir.Expression, out *testpilotspb.CorrelatedResult, e *admittedCorrelatedEvidence, op *correlatedOperation) (bool, error) {
+	resolve := func(ref ir.Reference) *celpb.Value {
+		switch ref.Kind {
+		case ir.CorrelatedStepReference:
+			return stepValues(ref, out, r.prepared.correlatedStates[out.StateId])
+		case ir.EvidenceFieldReference:
+			return evidenceField(e, ref.ID)
+		case ir.CorrelatedCaptureReference:
+			for _, entry := range op.captures {
+				if entry.capture == ref.ID && entry.ordinal == ref.Ordinal {
+					return entry.value
+				}
 			}
 		}
-		return nil, nil
-	default:
-		return nil, invalid(ir.Unknown, "unsupported correlation operand")
+		return nil
 	}
-}
-
-// correlationHolds evaluates groups left to right and stops at the first decisive operand, so an
-// operand an earlier one made irrelevant is never read and cannot fail admission.
-func correlationHolds(c *testpilotspb.Expression, out *testpilotspb.CorrelatedTransition, e *admittedCorrelatedEvidence, op *correlatedOperation) (bool, error) {
-	if _, ok := readStepCondition(c); ok {
-		return predicate(c, out), nil
+	value, work, err := expression.Evaluate(ctx, resolve, r.limits.MaxObligationWork-r.obligationWork)
+	if err != nil {
+		return false, err
 	}
-	switch v := c.GetExpression().(type) {
-	case *testpilotspb.Expression_Compare:
-		left, err := operandValue(v.Compare.GetLeft(), e, op)
-		if err != nil {
-			return false, err
-		}
-		right, err := operandValue(v.Compare.GetRight(), e, op)
-		if err != nil {
-			return false, err
-		}
-		if left == nil || right == nil {
-			return false, nil
-		}
-		return proto.Equal(left, right) == (v.Compare.GetOperator() == testpilotspb.COMPARISON_OPERATOR_EQUAL), nil
-	case *testpilotspb.Expression_All:
-		for _, operand := range v.All.GetOperands() {
-			holds, err := correlationHolds(operand, out, e, op)
-			if err != nil || !holds {
-				return false, err
-			}
-		}
-		return true, nil
-	case *testpilotspb.Expression_Any:
-		for _, operand := range v.Any.GetOperands() {
-			holds, err := correlationHolds(operand, out, e, op)
-			if err != nil {
-				return false, err
-			}
-			if holds {
-				return true, nil
-			}
-		}
-		return false, nil
-	default:
-		return false, invalid(ir.Unknown, "unsupported correlation condition")
+	if err := add(&r.obligationWork, work, r.limits.MaxObligationWork); err != nil {
+		return false, err
 	}
+	return value.GetBoolValue(), nil
 }
 
 // retain keeps this step's occurrence of every declared capture. A step supplying no value at the
@@ -430,7 +385,7 @@ func (r *correlatedMonitor) retain(s *testpilotspb.CorrelatedContract, e *admitt
 	return nil
 }
 
-func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence) error {
+func (r *correlatedMonitor) release(ctx context.Context, s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence) error {
 	rule := projectionRule(s, e.Kind)
 	var support []*testpilotspb.CorrelatedIdentity
 	for _, p := range e.Parents {
@@ -448,7 +403,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 	operationCount := int64(len(r.operations))
 	op := r.operations[e.Operation]
 	if op == nil {
-		op = &correlatedOperation{state: correlatedState{atom: s.InitialState, fields: s.InitialStateFields}, obligations: make([][]correlatedObligation, len(s.Rules))}
+		op = &correlatedOperation{state: s.InitialStateId, obligations: make([][]correlatedObligation, len(s.Rules))}
 		r.operations[e.Operation] = op
 	}
 	if op.last != nil && !r.reaches(op.last, e.Identity) {
@@ -460,22 +415,23 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 	}) {
 		return invalid(ir.Malformed, "missing causal submission")
 	}
-	for _, out := range rule.Outputs {
+	for _, resultID := range rule.ResultIds {
+		out := r.prepared.correlatedResults[resultID]
 		direct := appendIdentity(slices.Clone(e.Parents), e.Identity)
 		r.retainedStepSupport += int64(len(direct) + len(support) + len(r.sequences(direct)) + len(r.sequences(support)))
 		if !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool {
-			return op.state.isPriorOf(tr) && sameResult(tr, out)
+			return op.state == tr.PriorStateId && tr.ResultId == resultID
 		}) {
 			return invalid(ir.Malformed, "unauthorized operation transition")
 		}
 		// A declared correlation decides which authorized steps are this operation's semantic steps
 		// at all. It reads this step's own evidence together with what the operation already
 		// retained, so an occurrence binds only after an earlier step admitted it.
-		for _, c := range s.Rules {
+		for i, c := range s.Rules {
 			if c.Correlation == nil {
 				continue
 			}
-			holds, err := correlationHolds(c.Correlation, out, e, op)
+			holds, err := r.evaluate(ctx, r.prepared.correlatedRules[i].correlation, out, e, op)
 			if err != nil {
 				return err
 			}
@@ -488,8 +444,9 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 		}
 		maximumFacts, candidates := int64(0), int64(0)
 		for _, row := range s.Transitions {
-			maximumFacts = max(maximumFacts, int64(len(row.Facts)))
-			if op.state.isPriorOf(row) && proto.Equal(row.Action, out.Action) {
+			result := r.prepared.correlatedResults[row.ResultId]
+			maximumFacts = max(maximumFacts, int64(len(result.Facts)))
+			if op.state == row.PriorStateId && proto.Equal(result.Action, out.Action) {
 				candidates++
 			}
 		}
@@ -509,7 +466,14 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 			return err
 		}
 		for i, c := range s.Rules {
-			triggered, responded := predicate(c.Trigger, out), predicate(c.Response, out)
+			triggered, err := r.evaluate(ctx, r.prepared.correlatedRules[i].trigger, out, e, op)
+			if err != nil {
+				return err
+			}
+			responded, err := r.evaluate(ctx, r.prepared.correlatedRules[i].response, out, e, op)
+			if err != nil {
+				return err
+			}
 			if triggered {
 				if err := add(&r.obligations, 1, r.limits.MaxObligations); err != nil {
 					return err
@@ -537,7 +501,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 		if err := r.retain(s, e, op); err != nil {
 			return err
 		}
-		op.state = correlatedState{atom: out.State, fields: out.StateFields}
+		op.state = out.StateId
 		operationCount = int64(len(r.operations))
 		r.transitions++
 	}
@@ -577,7 +541,13 @@ func (r *correlatedMonitor) stage(ctx context.Context, s *testpilotspb.Correlate
 	}
 	outputs := int64(len(s.Transitions) + 1)
 	for _, rule := range s.ProjectionRules {
-		outputs += int64(len(rule.Fields) + max(1, len(rule.Outputs)))
+		outputs += int64(len(rule.Fields) + max(1, len(rule.ResultIds)))
+		for _, id := range rule.ResultIds {
+			result := r.prepared.correlatedResults[id]
+			if err := add(&outputs, int64(proto.Size(result))+int64(proto.Size(r.prepared.correlatedStates[result.StateId])), l.MaxProjectionWork); err != nil {
+				return nil, 0, err
+			}
+		}
 	}
 	work := size
 	for _, factor := range []int64{int64(len(n.accepted) + 1), int64(len(n.accepted) + 1), int64(len(n.accepted) + 1), outputs} {
@@ -615,7 +585,7 @@ func (r *correlatedMonitor) stage(ctx context.Context, s *testpilotspb.Correlate
 				return nil, 0, err
 			}
 			if identityIndex(n.processed, event.Identity) < 0 && n.ready(event) {
-				if err := n.release(s, event); err != nil {
+				if err := n.release(ctx, s, event); err != nil {
 					return nil, 0, err
 				}
 			}

@@ -1,17 +1,18 @@
 package worker
 
 import (
-	"strconv"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 )
 
 func durationAssignment(field string, seconds int64) *testpilotspb.RequestAssignment {
-	return &testpilotspb.RequestAssignment{Target: field + ".seconds", Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: strconv.FormatInt(seconds, 10)}}}}}
+	return &testpilotspb.RequestAssignment{Target: field + ".seconds", Value: cel.Literal(&celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: seconds}})}
 }
 
 func TestActivityWithholdingRequiresItsRequestTimeoutBasis(t *testing.T) {

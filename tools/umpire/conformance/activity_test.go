@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"testing"
 
+	"go.temporal.io/server/common/testing/testpilot/duration"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -135,7 +137,7 @@ func activityRun(t testing.TB, source *testpilotspb.Case, events ...recorded) *t
 		Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}}
 	record := func(event *testpilotspb.RunEvent, id string) {
 		event.Sequence = int64(len(run.GetEvents())) + 1
-		event.ElapsedMilliseconds = event.GetSequence() - 1
+		event.Elapsed = duration.FromMilliseconds(event.GetSequence() - 1)
 		event.SourceId = id
 		run.Events = append(run.Events, event)
 	}
@@ -157,7 +159,10 @@ func activityRun(t testing.TB, source *testpilotspb.Case, events ...recorded) *t
 			}
 			require.NotNil(t, declared, "the Case carries %s", item.kind)
 			evidence := &testpilotspb.CorrelatedEvidence{Kind: name, Operation: activityRunID, Identity: &testpilotspb.CorrelatedIdentity{
-				EvidenceSource: declared.GetEvidenceSource(), Ordinal: ordinals[declared.GetEvidenceSource()], Scope: declared.GetScope()}}
+				EvidenceSource: declared.GetEvidenceSource(), Ordinal: ordinals[declared.GetEvidenceSource()]}}
+			for _, scope := range declared.GetScope() {
+				evidence.Identity.Scope = append(evidence.Identity.Scope, textField(scope.GetFieldId(), scope.GetValue().GetCel().GetExpr().GetConstExpr().GetStringValue()))
+			}
 			ordinals[declared.GetEvidenceSource()]++
 			if last != nil && last.GetEvidenceSource() != declared.GetEvidenceSource() {
 				evidence.Parents = append(evidence.Parents, proto.CloneOf(last))
@@ -165,7 +170,7 @@ func activityRun(t testing.TB, source *testpilotspb.Case, events ...recorded) *t
 			last = evidence.GetIdentity()
 			attempt := event.GetOutcome().GetActivityAttempt()
 			for _, field := range declared.GetFields() {
-				switch field.GetPath() {
+				switch field.GetValue().GetBindings()[0].GetPath() {
 				case "activity_attempt.sdk_attempt":
 					evidence.Fields = append(evidence.Fields, numberField(field.GetFieldId(), uint64(attempt.GetSdkAttempt())))
 				case "activity_attempt.delivery_id":
@@ -173,7 +178,7 @@ func activityRun(t testing.TB, source *testpilotspb.Case, events ...recorded) *t
 				case "activity_attempt.activity_run_id":
 					evidence.Fields = append(evidence.Fields, textField(field.GetFieldId(), attempt.GetActivityRunId()))
 				default:
-					require.FailNow(t, "a field this builder does not read: "+field.GetPath())
+					require.FailNow(t, "a field this builder does not read: "+field.GetValue().GetBindings()[0].GetPath())
 				}
 			}
 			event.Observations = []*testpilotspb.ObservationResult{{ObservationId: evidenceObservation, Value: evidenceValue(t, evidence)}}

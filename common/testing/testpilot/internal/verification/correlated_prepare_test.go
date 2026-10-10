@@ -1,79 +1,109 @@
 package verification
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"google.golang.org/protobuf/proto"
 )
 
-// Lean decodes every correlated state as its atom plus its fields and checks each field the way any
-// model value is checked, so admission rejects an invalid entry in any of the three field lists.
 func TestCorrelatedPrepareRejectsInvalidStateFields(t *testing.T) {
-	invalidField := &testpilotspb.ModelValue{Value: "missing-definition"}
-	for name, tc := range map[string]struct {
-		mutate func(*testpilotspb.CorrelatedContract)
-		detail string
-	}{
-		"initial-state-fields": {
-			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.InitialStateFields = []*testpilotspb.ModelValue{invalidField}
-			},
-			detail: "invalid correlated projection binding",
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+	c.Correlated.States[0].Fields = []*testpilotspb.ModelValue{{Value: "missing-definition"}}
+	_, err := Prepare(c, catalog, view, ceiling, correlated)
+	require.Equal(t, &ir.Error{Category: ir.Malformed, Path: "contract", Detail: "invalid or duplicate correlated state"}, err)
+}
+
+func TestCorrelatedPrepareNormalizedTables(t *testing.T) {
+	for name, mutate := range map[string]func(*testpilotspb.CorrelatedContract){
+		"duplicate-state-id": func(s *testpilotspb.CorrelatedContract) { s.States = append(s.States, proto.CloneOf(s.States[0])) },
+		"conflicting-state-id": func(s *testpilotspb.CorrelatedContract) {
+			state := proto.CloneOf(s.States[0])
+			state.Fields = []*testpilotspb.ModelValue{{DefinitionId: "phase", Value: "other"}}
+			s.States = append(s.States, state)
 		},
-		"prior-fields": {
-			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Transitions[0].PriorFields = []*testpilotspb.ModelValue{invalidField}
-			},
-			detail: "invalid correlated transition value",
+		"duplicate-complete-state": func(s *testpilotspb.CorrelatedContract) {
+			state := proto.CloneOf(s.States[0])
+			state.StateId = "alias"
+			s.States = append(s.States, state)
 		},
-		"state-fields": {
-			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Transitions[0].StateFields = []*testpilotspb.ModelValue{invalidField}
-			},
-			detail: "invalid correlated transition value",
+		"duplicate-result-id": func(s *testpilotspb.CorrelatedContract) { s.Results = append(s.Results, proto.CloneOf(s.Results[0])) },
+		"duplicate-complete-result": func(s *testpilotspb.CorrelatedContract) {
+			result := proto.CloneOf(s.Results[0])
+			result.ResultId = "alias"
+			s.Results = append(s.Results, result)
+		},
+		"conflicting-result-id": func(s *testpilotspb.CorrelatedContract) {
+			result := proto.CloneOf(s.Results[0])
+			result.Outcome.Value = "other"
+			s.Results = append(s.Results, result)
+		},
+		"dangling-initial":           func(s *testpilotspb.CorrelatedContract) { s.InitialStateId = "missing" },
+		"dangling-result-state":      func(s *testpilotspb.CorrelatedContract) { s.Results[0].StateId = "missing" },
+		"dangling-prior":             func(s *testpilotspb.CorrelatedContract) { s.Transitions[0].PriorStateId = "missing" },
+		"dangling-transition-result": func(s *testpilotspb.CorrelatedContract) { s.Transitions[0].ResultId = "missing" },
+		"dangling-projection-result": func(s *testpilotspb.CorrelatedContract) { s.ProjectionRules[0].ResultIds = []string{"missing"} },
+		"unauthorized-projection-result": func(s *testpilotspb.CorrelatedContract) {
+			result := proto.CloneOf(s.Results[0])
+			result.ResultId = "unreferenced"
+			result.Outcome.Value = "unreferenced"
+			s.Results = append(s.Results, result)
+			s.ProjectionRules[0].ResultIds = []string{result.ResultId}
+		},
+		"duplicate-transition": func(s *testpilotspb.CorrelatedContract) {
+			s.Transitions = append(s.Transitions, proto.CloneOf(s.Transitions[0]))
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
-			tc.mutate(c.Correlated)
+			mutate(c.Correlated)
 			_, err := Prepare(c, catalog, view, ceiling, correlated)
-			require.Equal(t, &ir.Error{Category: ir.Malformed, Path: "contract", Detail: tc.detail}, err)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, ir.Malformed, diagnostic.Category)
 		})
 	}
 }
 
-// An output row is authorized only by a transition whose result equals it as Lean's Result does,
-// the resulting state's fields included and in order.
-func TestCorrelatedPrepareComparesOutputStateFields(t *testing.T) {
-	fields := []*testpilotspb.ModelValue{{DefinitionId: "phase", Value: "ready"}, {DefinitionId: "attempts", Value: "0"}}
-	for name, tc := range map[string]struct {
-		output   []*testpilotspb.ModelValue
-		admitted bool
-	}{
-		"equal":     {output: fields, admitted: true},
-		"absent":    {output: nil},
-		"reordered": {output: []*testpilotspb.ModelValue{fields[1], fields[0]}},
-		"different": {output: []*testpilotspb.ModelValue{fields[0], {DefinitionId: "attempts", Value: "1"}}},
+func TestCorrelatedNormalizedExpansionLimits(t *testing.T) {
+	for name, mutate := range map[string]func(*testpilotspb.Contract, *testpilotspb.ContractLimits){
+		"result-count": func(c *testpilotspb.Contract, limits *testpilotspb.ContractLimits) {
+			limits.MaxTransitions = int64(len(c.Correlated.Transitions))
+			result := proto.CloneOf(c.Correlated.Results[0])
+			result.ResultId, result.Outcome.Value = "extra", "extra"
+			c.Correlated.Results = append(c.Correlated.Results, result)
+		},
+		"expanded-state-bytes": func(c *testpilotspb.Contract, _ *testpilotspb.ContractLimits) {
+			c.Correlated.States[0].Fields = []*testpilotspb.ModelValue{{DefinitionId: "large", Value: strings.Repeat("x", 20000)}}
+		},
+		"expanded-projection-bytes": func(c *testpilotspb.Contract, _ *testpilotspb.ContractLimits) {
+			c.Correlated.Results[0].Facts = []*testpilotspb.ModelValue{{DefinitionId: "large", Value: strings.Repeat("x", 20000)}}
+			c.Correlated.ProjectionRules[0].ResultIds = []string{"request", "request", "request", "request", "request"}
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
-			for _, tr := range c.Correlated.Transitions {
-				tr.StateFields = fields
-			}
-			for _, r := range c.Correlated.ProjectionRules {
-				for _, out := range r.Outputs {
-					out.StateFields = fields
-				}
-			}
-			c.Correlated.ProjectionRules[0].Outputs[0].StateFields = tc.output
+			mutate(c, ceiling)
+			correlated.MaxSemanticTransitions = min(correlated.MaxSemanticTransitions, ceiling.MaxTransitions)
 			_, err := Prepare(c, catalog, view, ceiling, correlated)
-			if tc.admitted {
-				require.NoError(t, err)
-				return
-			}
-			require.Equal(t, &ir.Error{Category: ir.Malformed, Path: "contract", Detail: "projection output absent from transition table"}, err)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, ir.LimitExceeded, diagnostic.Category)
 		})
 	}
+}
+
+func TestCorrelatedPrepareCompleteStateCeiling(t *testing.T) {
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+	state := proto.CloneOf(c.Correlated.States[0])
+	state.StateId, state.Fields = "other", []*testpilotspb.ModelValue{{DefinitionId: "phase", Value: "other"}}
+	c.Correlated.States = append(c.Correlated.States, state)
+	ceiling.MaxStates = 1
+	_, err := Prepare(c, catalog, view, ceiling, correlated)
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, ir.LimitExceeded, diagnostic.Category)
 }

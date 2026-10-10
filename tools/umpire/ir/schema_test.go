@@ -25,6 +25,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -43,11 +44,12 @@ const (
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
 	schemaAddedSupplement = `{"properties":[{"name":"p","origin":{"name":"o","position":{"file":"f"}}}],"queries":[{"name":"q","total":"48","expectedRun":{"reason":"REASON_HOLE","conformanceReason":"REASON_INCOMPLETE","disposition":"DISPOSITION_COMPLETED","cleanup":"CLEANUP_SUCCEEDED","monitors":[{"reason":"REASON_HOLE"}]}}],"functions":[{"name":"g","body":{"construct":{"type":"framework.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
-		`"behavior":{"visibility":[{"id":"v","position":{"file":"f"},"method":"/s/W","read":"/s/R","eventuallyWithin":{"position":{"file":"f"},"intervalMs":"1","atMostMs":"2"}},{"cause":"CAUSE_KIND_TIMER"}],` +
-		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"intervalMs":"1"}}],` +
+		`"scripts":[{"items":[{"command":{"timeout":"0.001s","poll":{"interval":"0.001s"}}}]}],` +
+		`"behavior":{"visibility":[{"id":"v","position":{"file":"f"},"method":"/s/W","read":"/s/R","eventuallyWithin":{"position":{"file":"f"},"interval":"0.001s","atMost":"0.002s"}},{"cause":"CAUSE_KIND_TIMER"}],` +
+		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"interval":"0.001s"}}],` +
 		`"attemptNumbering":{"position":{"file":"f"},"first":"1","oneRun":true},` +
-		`"instructionDefaults":{"position":{"file":"f"},"timeoutMs":"1","attempts":"1"},"runOrderIsCausal":true},` +
-		`"serverSteps":[{"position":{"file":"f"},"step":{"action":"a"},"kind":"CAUSE_KIND_TIMER","deadlineMs":"2","timeoutBasis":"TIMEOUT_BASIS_HEARTBEAT"}],` +
+		`"instructionDefaults":{"position":{"file":"f"},"timeout":"0.001s","attempts":"1"},"runOrderIsCausal":true},` +
+		`"serverSteps":[{"position":{"file":"f"},"step":{"action":"a"},"kind":"CAUSE_KIND_TIMER","deadline":"0.002s","timeoutBasis":"TIMEOUT_BASIS_HEARTBEAT"}],` +
 		`"rejectionCodes":[{"rejection":"REJECTION_NOT_FOUND","grpcCode":"NOT_FOUND"}],` +
 		`"externalSettlements":[{"position":{"file":"f"},"carrier":"c","activity":"a","attempt":"1","pending":"p","held":"h","answer":"a","requestCancel":"r",` +
 		`"settlement":"s","cleanup":{"attemptWithheld":{"mode":"WITHHOLDING_MODE_SDK_PENDING","externalSettlement":"s"}}},` +
@@ -87,12 +89,13 @@ type schemaAddedNestedEnum struct {
 	enum    *descriptorpb.EnumDescriptorProto
 }
 
-// schemaReplacedField is a captured field the schema replaced after the capture by a field of another
-// type: the captured field's number is reserved, and the replacement takes its place in the message.
+// schemaReplacedField is a captured field replaced by another type. The native Duration migration
+// deliberately reuses its tag; other replacements reserve the captured tag.
 type schemaReplacedField struct {
 	message     string
 	replaced    string
 	replacement *descriptorpb.FieldDescriptorProto
+	sameNumber  bool
 }
 
 // schemaRenamedField is a captured field the schema renamed after the capture, keeping its number
@@ -127,7 +130,11 @@ func schemaFieldOf(name string, number int32, label descriptorpb.FieldDescriptor
 	field := &descriptorpb.FieldDescriptorProto{Name: proto.String(name), Number: proto.Int32(number), Label: label.Enum(), Type: typ.Enum(),
 		JsonName: proto.String(jsonName)}
 	if typeName != "" {
-		field.TypeName = proto.String("." + schemaPackage + "." + typeName)
+		if strings.HasPrefix(typeName, ".") {
+			field.TypeName = proto.String(typeName)
+		} else {
+			field.TypeName = proto.String("." + schemaPackage + "." + typeName)
+		}
 	}
 	for _, index := range oneof {
 		field.OneofIndex = proto.Int32(index)
@@ -154,6 +161,7 @@ var (
 		"google/protobuf/wrappers.proto",
 		// The empty message of schemaRetiredMessages (fn-145.3).
 		"google/protobuf/empty.proto",
+		"google/protobuf/duration.proto",
 	}
 	schemaRetiredMessages = []schemaRetiredMessage{
 		// The local empty marker, for the standard one (fn-145.3). Choosing a oneof's arm is still all
@@ -205,6 +213,8 @@ var (
 	// An expected Run's reasons, prose at the capture, are the judge's ids since fn-124.5, so the
 	// captured wire bytes no longer encode their expected Runs as the schema now reads them.
 	schemaReplacedFields = []schemaReplacedField{
+		{message: "Command", replaced: "timeout_ms", replacement: schemaFieldOf("timeout", 4, schemaOptional, schemaMessage, ".google.protobuf.Duration", "timeout"), sameNumber: true},
+		{message: "Poll", replaced: "interval_ms", replacement: schemaFieldOf("interval", 5, schemaOptional, schemaMessage, ".google.protobuf.Duration", "interval"), sameNumber: true},
 		{message: "RunExpectation", replaced: "reason", replacement: schemaFieldOf("reason", 8, schemaOptional, schemaEnum, "RunExpectation.Reason", "reason")},
 		{message: "MonitorExpectation", replaced: "reason", replacement: schemaFieldOf("reason", 4, schemaOptional, schemaEnum, "RunExpectation.Reason", "reason")},
 	}
@@ -243,7 +253,7 @@ var (
 		}}},
 		{after: "AttemptNumbering", message: &descriptorpb.DescriptorProto{Name: proto.String("InstructionLimit"), Field: []*descriptorpb.FieldDescriptorProto{
 			schemaFieldOf("position", 1, schemaOptional, schemaMessage, "Position", "position"),
-			schemaFieldOf("timeout_ms", 2, schemaOptional, schemaInt64, "", "timeoutMs"),
+			schemaFieldOf("timeout", 2, schemaOptional, schemaMessage, ".google.protobuf.Duration", "timeout"),
 			schemaFieldOf("attempts", 3, schemaOptional, schemaInt64, "", "attempts"),
 		}}},
 		{after: "InstructionLimit", message: &descriptorpb.DescriptorProto{Name: proto.String("Visibility"), Field: []*descriptorpb.FieldDescriptorProto{
@@ -256,8 +266,8 @@ var (
 		}, OneofDecl: []*descriptorpb.OneofDescriptorProto{{Name: proto.String("write")}}}},
 		{after: "Visibility", message: &descriptorpb.DescriptorProto{Name: proto.String("WaitBound"), Field: []*descriptorpb.FieldDescriptorProto{
 			schemaFieldOf("position", 1, schemaOptional, schemaMessage, "Position", "position"),
-			schemaFieldOf("interval_ms", 2, schemaOptional, schemaInt64, "", "intervalMs"),
-			schemaFieldOf("at_most_ms", 3, schemaOptional, schemaInt64, "", "atMostMs"),
+			schemaFieldOf("interval", 2, schemaOptional, schemaMessage, ".google.protobuf.Duration", "interval"),
+			schemaFieldOf("at_most", 3, schemaOptional, schemaMessage, ".google.protobuf.Duration", "atMost"),
 		}}},
 		{after: "WaitBound", message: &descriptorpb.DescriptorProto{Name: proto.String("CauseBound"), Field: []*descriptorpb.FieldDescriptorProto{
 			schemaFieldOf("id", 1, schemaOptional, schemaString, "", "id"),
@@ -269,7 +279,7 @@ var (
 			schemaFieldOf("position", 1, schemaOptional, schemaMessage, "Position", "position"),
 			schemaFieldOf("step", 2, schemaOptional, schemaMessage, "ActionClass", "step"),
 			schemaFieldOf("kind", 3, schemaOptional, schemaEnum, "CauseKind", "kind"),
-			schemaFieldOf("deadline_ms", 4, schemaOptional, schemaInt64, "", "deadlineMs"),
+			schemaFieldOf("deadline", 4, schemaOptional, schemaMessage, ".google.protobuf.Duration", "deadline"),
 		}}},
 		// Property.origin's message (fn-134.1).
 		{after: "Property", message: &descriptorpb.DescriptorProto{Name: proto.String("PropertyOrigin"), Field: []*descriptorpb.FieldDescriptorProto{
@@ -543,6 +553,7 @@ func TestSchemaDeclarationsOfASplitSchema(t *testing.T) {
 	registry := new(protoregistry.Files)
 	require.NoError(t, registry.RegisterFile(wrapperspb.File_google_protobuf_wrappers_proto))
 	require.NoError(t, registry.RegisterFile(emptypb.File_google_protobuf_empty_proto))
+	require.NoError(t, registry.RegisterFile(durationpb.File_google_protobuf_duration_proto))
 	for _, file := range files {
 		descriptor, err := protodesc.NewFile(file, registry)
 		require.NoError(t, err)
@@ -660,7 +671,11 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 		require.NotEqual(t, -1, i, "%s.%s was not captured", replaced.message, replaced.replaced)
 		require.NotEqual(t, m.GetField()[i].GetType(), replaced.replacement.GetType(), "a replacement changes the type")
 		number := m.GetField()[i].GetNumber()
-		m.ReservedRange = append(m.ReservedRange, &descriptorpb.DescriptorProto_ReservedRange{Start: proto.Int32(number), End: proto.Int32(number + 1)})
+		if replaced.sameNumber {
+			require.Equal(t, number, replaced.replacement.GetNumber())
+		} else {
+			m.ReservedRange = append(m.ReservedRange, &descriptorpb.DescriptorProto_ReservedRange{Start: proto.Int32(number), End: proto.Int32(number + 1)})
+		}
 		m.Field[i] = proto.CloneOf(replaced.replacement)
 	}
 	for _, renamed := range schemaRenamedFields {
@@ -757,7 +772,7 @@ func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 // schema reads, but those named allowed.
 func schemaUnknownOutside(m protoreflect.Message, allowed ...protoreflect.Name) []protoreflect.FullName {
 	var out []protoreflect.FullName
-	if len(m.GetUnknown()) > 0 && !slices.Contains(allowed, m.Descriptor().Name()) {
+	if len(m.GetUnknown()) > 0 && !slices.Contains(allowed, m.Descriptor().Name()) && !schemaCapturedDurationVarint(m) {
 		out = append(out, m.Descriptor().FullName())
 	}
 	m.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
@@ -773,6 +788,76 @@ func schemaUnknownOutside(m protoreflect.Message, allowed ...protoreflect.Name) 
 		return true
 	})
 	return out
+}
+
+func schemaCapturedDurationVarint(m protoreflect.Message) bool {
+	var expected protowire.Number
+	switch m.Descriptor().FullName() {
+	case schemaPackage + ".Command":
+		expected = 4
+	case schemaPackage + ".Poll":
+		expected = 5
+	default:
+		return false
+	}
+	unknown := m.GetUnknown()
+	if len(unknown) == 0 {
+		return false
+	}
+	for len(unknown) > 0 {
+		number, typ, n := protowire.ConsumeTag(unknown)
+		if n < 0 || number != expected || typ != protowire.VarintType {
+			return false
+		}
+		_, valueBytes := protowire.ConsumeVarint(unknown[n:])
+		if valueBytes < 0 {
+			return false
+		}
+		unknown = unknown[n+valueBytes:]
+	}
+	return true
+}
+
+func TestCapturedDurationVarintsAreLimitedToTheirRetiredField(t *testing.T) {
+	for _, test := range []struct {
+		message proto.Message
+		number  protowire.Number
+		typ     protowire.Type
+		allowed bool
+	}{
+		{&umpirespb.Poll{}, 5, protowire.VarintType, true},
+		{&umpirespb.Command{}, 4, protowire.VarintType, true},
+		{&umpirespb.Poll{}, 6, protowire.VarintType, false},
+		{&umpirespb.Command{}, 4, protowire.BytesType, false},
+		{&umpirespb.WaitBound{}, 2, protowire.VarintType, false},
+	} {
+		wire := protowire.AppendTag(nil, test.number, test.typ)
+		if test.typ == protowire.VarintType {
+			wire = protowire.AppendVarint(wire, 250)
+		} else {
+			wire = protowire.AppendBytes(wire, nil)
+		}
+		test.message.ProtoReflect().SetUnknown(wire)
+		require.Equal(t, test.allowed, schemaCapturedDurationVarint(test.message.ProtoReflect()))
+	}
+}
+
+func TestNativeElapsedFieldsRefuseRetiredJSONSpellings(t *testing.T) {
+	for _, test := range []struct {
+		message proto.Message
+		retired string
+	}{
+		{&umpirespb.Command{}, "timeoutMs"},
+		{&umpirespb.Poll{}, "intervalMs"},
+		{&umpirespb.InstructionLimit{}, "timeoutMs"},
+		{&umpirespb.WaitBound{}, "intervalMs"},
+		{&umpirespb.WaitBound{}, "atMostMs"},
+		{&umpirespb.ServerStep{}, "deadlineMs"},
+	} {
+		err := protojson.Unmarshal([]byte(fmt.Sprintf(`{"%s":"1"}`, test.retired)), test.message)
+		require.ErrorContains(t, err, "unknown field")
+		require.ErrorContains(t, err, test.retired)
+	}
 }
 
 // schemaFieldsUnset is every field of the schema not in set.

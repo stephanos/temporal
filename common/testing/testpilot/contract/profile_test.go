@@ -3,10 +3,13 @@ package contract
 import (
 	"math"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func TestEntrypointKindOfClassifiesEachActivation(t *testing.T) {
@@ -16,7 +19,7 @@ func TestEntrypointKindOfClassifiesEachActivation(t *testing.T) {
 		entrypoint *testpilotspb.Entrypoint
 		want       EntrypointKind
 	}{
-		{name: "controller", entrypoint: &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}, want: ControllerEntrypoint},
+		{name: "controller", entrypoint: &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}}, want: ControllerEntrypoint},
 		{name: "workflow", entrypoint: &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{}}}, want: WorkflowEntrypoint},
 		{name: "activity", entrypoint: &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{}}}, want: ActivityEntrypoint},
 		{name: "nexus handler", entrypoint: &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{}}}, want: NexusHandlerEntrypoint},
@@ -53,14 +56,14 @@ func TestBoundScaleAppliesRoundingUpAndSaturating(t *testing.T) {
 // limits themselves when the scale changes nothing.
 func TestBoundScaleCeilingsScaleOnlyTheDurations(t *testing.T) {
 	t.Parallel()
-	limits := &testpilotspb.ProgramLimits{MaxAttempts: 32, MaxRunEvents: 256, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
+	limits := &testpilotspb.ProgramLimits{MaxAttempts: 32, MaxRunEvents: 256, MaxDuration: durationpb.New(time.Duration(30000) * time.Millisecond), CleanupDuration: durationpb.New(time.Duration(5000) * time.Millisecond)}
 	require.Same(t, limits, BoundScale(0).Ceilings(limits))
 	require.Same(t, limits, BoundScale(100).Ceilings(limits))
 	require.Nil(t, BoundScale(200).Ceilings(nil))
 
 	scaled := BoundScale(150).Ceilings(limits)
 	require.NotSame(t, limits, scaled)
-	require.True(t, proto.Equal(&testpilotspb.ProgramLimits{MaxAttempts: 32, MaxRunEvents: 256, MaxTotalDurationMilliseconds: 45000, MaxCleanupDurationMilliseconds: 7500}, scaled))
-	require.Equal(t, int64(30000), limits.MaxTotalDurationMilliseconds)
-	require.Equal(t, int64(5000), limits.MaxCleanupDurationMilliseconds)
+	require.True(t, proto.Equal(&testpilotspb.ProgramLimits{MaxAttempts: 32, MaxRunEvents: 256, MaxDuration: durationpb.New(time.Duration(45000) * time.Millisecond), CleanupDuration: durationpb.New(time.Duration(7500) * time.Millisecond)}, scaled))
+	require.Equal(t, int64(30000), limits.MaxDuration.AsDuration().Milliseconds())
+	require.Equal(t, int64(5000), limits.CleanupDuration.AsDuration().Milliseconds())
 }

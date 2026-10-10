@@ -4,18 +4,17 @@ import (
 	"context"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func textLiteral(text string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}}}
-}
-
-func enumLiteral(name string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: name}}}}}
+	return cel.Literal(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: text}})
 }
 
 func faultEvent(sequence, elapsed int64, role string, kind testpilotspb.FaultKind) *testpilotspb.RunEvent {
@@ -26,15 +25,15 @@ func faultEvent(sequence, elapsed int64, role string, kind testpilotspb.FaultKin
 
 // payloadField reads one field of a Run Event payload arm through a path from the payload reference.
 func payloadField(arm, field string) *testpilotspb.Expression {
-	payload := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &testpilotspb.RunEventPayloadReference{}}}}}}}
+	payload := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &emptypb.Empty{}}}}})
 	path := arm + "." + field
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: payload, Path: path}}}
+	return cel.Path(payload, path)
 }
 
 // The whole evidence path in one pass: a Contract transition filtered on the fault event kind and
 // predicated on both fields of its payload is admitted, matches the recorded fault online, and the
-// offline replay produces the identical Verdict. A rule that only compiled would prove nothing. An
-// event of a kind that may lack the arm reads its fields as absent, which no comparison matches.
+// offline replay produces the identical Verdict. An absent arm fails the explicit native presence
+// guard before any comparison reads its value.
 func TestEvaluatorMatchesRecordedFaultPayload(t *testing.T) {
 	faulted := []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED}
 	for _, tc := range []struct {
@@ -53,10 +52,16 @@ func TestEvaluatorMatchesRecordedFaultPayload(t *testing.T) {
 			r := c.Rules[0]
 			r.Transitions[0].EventFilter.Kinds = tc.kinds
 			r.Transitions[0].Predicate = all(
+				present(payloadField("fault_injected", "role_id")),
+				present(payloadField("fault_injected", "kind")),
 				equal(payloadField("fault_injected", "role_id"), textLiteral("queue")),
-				equal(payloadField("fault_injected", "kind"), enumLiteral("FAULT_KIND_WORKER_STOP")),
+				equal(payloadField("fault_injected", "kind"), cel.Literal(cel.Enum(testpilotspb.FAULT_KIND_WORKER_STOP))),
 			)
+			limits.MaxWorkPerEvent = hardLimits().MaxWorkPerEvent
 			p, err := Prepare(c, cat, view, limits, nil)
+			require.NoError(t, err)
+			limits.MaxWorkPerEvent = p.workPerEvent
+			p, err = Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
 
 			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{
@@ -91,10 +96,10 @@ func TestEvaluatorMatchesRecordedFaultPayload(t *testing.T) {
 // lack the arm, which a comparison reads without a presence guard; and it is present when every
 // considered kind requires the arm.
 func TestPrepareLocatesPayloadPathsTheFilterCannotCarry(t *testing.T) {
-	located := "contract.rules[rule].transitions[first].predicate.compare.left.path.path"
+	located := "contract.rules[rule].transitions[first].predicate.bindings[0]"
 	completed := testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED
 	faulted := testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED
-	faultKind := equal(payloadField("fault_injected", "kind"), enumLiteral("FAULT_KIND_WORKER_STOP"))
+	faultKind := equal(payloadField("fault_injected", "kind"), cel.Literal(cel.Enum(testpilotspb.FAULT_KIND_WORKER_STOP)))
 	for _, tc := range []struct {
 		name      string
 		kinds     []testpilotspb.RunEventKind
@@ -107,7 +112,7 @@ func TestPrepareLocatesPayloadPathsTheFilterCannotCarry(t *testing.T) {
 		{name: "an arm some kind may lack", kinds: []testpilotspb.RunEventKind{completed, faulted}, predicate: faultKind},
 		{name: "a guarded arm some kind may lack", kinds: []testpilotspb.RunEventKind{completed, faulted}, predicate: all(present(payloadField("fault_injected", "kind")), faultKind)},
 		{name: "an optional arm", kinds: []testpilotspb.RunEventKind{completed}, predicate: equal(payloadField("outcome", "detail"), textLiteral(""))},
-		{name: "an unknown arm", kinds: []testpilotspb.RunEventKind{faulted}, predicate: equal(payloadField("observations", "observation_id"), textLiteral("")), category: ir.Unknown, path: located},
+		{name: "an unknown arm", kinds: []testpilotspb.RunEventKind{faulted}, predicate: equal(payloadField("observations", "observation_id"), textLiteral("")), category: ir.Unknown, path: located + ".path"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, cat, view, limits := fixture(t)

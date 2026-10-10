@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strings"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -17,13 +19,16 @@ import (
 type PreparedContract struct {
 	source *testpilotspb.Contract
 	// limits and correlatedLimits are the Profile's ceiling snapshots; a Contract declares none.
-	limits           *testpilotspb.ContractLimits
-	correlatedLimits *testpilotspb.CorrelatedLimits
-	catalog          *ir.Catalog
-	observations     map[string]ir.Type
-	program          execution.ProgramView
-	rules            []*machine
-	workPerEvent     int64
+	limits            *testpilotspb.ContractLimits
+	correlatedLimits  *testpilotspb.CorrelatedLimits
+	catalog           *ir.Catalog
+	observations      map[string]ir.Type
+	program           execution.ProgramView
+	rules             []*machine
+	workPerEvent      int64
+	correlatedStates  map[string]*testpilotspb.CorrelatedState
+	correlatedResults map[string]*testpilotspb.CorrelatedResult
+	correlatedRules   []correlatedPredicates
 }
 type machine struct {
 	source       *testpilotspb.ContractRule
@@ -43,7 +48,7 @@ type machine struct {
 // ruleInstance is one evaluation of a Rule, concluding under its own rule ID.
 type ruleInstance struct {
 	ruleID string
-	values map[string]*testpilotspb.Value
+	values map[string]*celpb.Value
 	// work is, per instance value, the binding work its inlined literal costs over its reference.
 	work map[string]int64
 }
@@ -261,6 +266,12 @@ func (a *admission) bindRule(rule *testpilotspb.ContractRule, seen map[string]bo
 	a.recorded = nil
 	defer func() { a.instance = nil }()
 	if err != nil {
+		var diagnostic *ir.Error
+		if len(instances) > 0 && errors.As(err, &diagnostic) && diagnostic.Category == ir.LimitExceeded {
+			located := *diagnostic
+			located.Path = strings.Replace(located.Path, fmt.Sprintf("contract.rules[%s]", rule.RuleId), fmt.Sprintf("contract.rules[%s]", instances[0].ruleID), 1)
+			return nil, &located
+		}
 		return nil, err
 	}
 	m.instances = instances
@@ -305,7 +316,7 @@ func (a *admission) bindInstances(rule *testpilotspb.ContractRule, seen map[stri
 			return nil, nil, ir.Invalid(ir.Malformed, located, "invalid or duplicate rule identity")
 		}
 		seen[instance.RuleId] = true
-		bound := ruleInstance{ruleID: instance.RuleId, values: map[string]*testpilotspb.Value{}, work: map[string]int64{}}
+		bound := ruleInstance{ruleID: instance.RuleId, values: map[string]*celpb.Value{}, work: map[string]int64{}}
 		for position, assignment := range instance.Assignments {
 			id := assignment.InstanceValueId
 			at := fmt.Sprintf("%s.assignments[%s]", located, id)
@@ -410,9 +421,6 @@ func (a *admission) bindMachine(rule *testpilotspb.ContractRule, instanceValues 
 	if len(rule.States) == 0 || len(rule.Transitions) == 0 {
 		return nil, invalid(ir.Malformed, "states and transitions are required")
 	}
-	if rule.Kind != testpilotspb.CONTRACT_RULE_KIND_SAFETY && rule.Kind != testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
-		return nil, invalid(ir.Unknown, "unsupported rule kind")
-	}
 	m := &machine{source: rule, states: map[string]int{}, captures: map[string]int{}, outgoing: make([]map[testpilotspb.RunEventKind][]int, len(rule.States)), instanceValues: instanceValues}
 	if err := a.bindStates(m); err != nil {
 		return nil, err
@@ -455,12 +463,18 @@ func (a *admission) bindScope() error {
 	// transition declares the payload arms its event kinds may carry.
 	for field := testpilotspb.RUN_EVENT_FIELD_SEQUENCE; field <= testpilotspb.RUN_EVENT_FIELD_SOURCE_ID; field++ {
 		kind := testpilotspb.SCALAR_KIND_TEXT
-		if field == testpilotspb.RUN_EVENT_FIELD_SEQUENCE || field == testpilotspb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS || field == testpilotspb.RUN_EVENT_FIELD_ATTEMPT {
+		if field == testpilotspb.RUN_EVENT_FIELD_SEQUENCE || field == testpilotspb.RUN_EVENT_FIELD_ATTEMPT {
 			kind = testpilotspb.SCALAR_KIND_INT64
 		}
 		typ, bindErr := a.catalog.BindType(scalarType(kind))
 		if bindErr != nil {
 			return bindErr
+		}
+		if field == testpilotspb.RUN_EVENT_FIELD_ELAPSED {
+			typ, bindErr = a.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "google.protobuf.Duration"}}}}})
+			if bindErr != nil {
+				return bindErr
+			}
 		}
 		if enumeration, ok := eventFieldEnumerations[field]; ok {
 			typ, bindErr = a.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: string(enumeration)}}}}})
@@ -553,7 +567,7 @@ func (a *admission) bindStates(m *machine) error {
 	if rule.States[initial].Status != testpilotspb.CONTRACT_STATE_STATUS_PENDING {
 		return invalid(ir.Malformed, "initial state must be nonterminal")
 	}
-	if rule.Kind == testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
+	if rule.Deadline != nil {
 		target, exists := m.states[rule.Deadline.GetViolationStateId()]
 		path := fmt.Sprintf("contract.rules[%s].deadline", rule.RuleId)
 		// The bound oneof carries one bound, so a rule never expires on two clocks at once.
@@ -562,9 +576,13 @@ func (a *admission) bindStates(m *machine) error {
 			if bound.RuleEvents <= 0 {
 				return ir.Invalid(ir.Malformed, path+".rule_events", "liveness deadline bound must be positive")
 			}
-		case *testpilotspb.Deadline_ElapsedMilliseconds:
-			if bound.ElapsedMilliseconds <= 0 {
-				return ir.Invalid(ir.Malformed, path+".elapsed_milliseconds", "liveness deadline bound must be positive")
+		case *testpilotspb.Deadline_Elapsed:
+			milliseconds, err := ir.DurationMilliseconds(path+".elapsed", bound.Elapsed)
+			if err != nil {
+				return err
+			}
+			if milliseconds <= 0 {
+				return ir.Invalid(ir.Malformed, path+".elapsed", "liveness deadline bound must be positive")
 			}
 		default:
 			return ir.Invalid(ir.Malformed, path, "liveness deadline requires a bound")
@@ -572,8 +590,6 @@ func (a *admission) bindStates(m *machine) error {
 		if !exists || rule.States[target].Status != testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
 			return invalid(ir.Malformed, "liveness requires a violated deadline target")
 		}
-	} else if rule.Deadline != nil {
-		return invalid(ir.Malformed, "safety rule cannot declare a liveness deadline")
 	}
 	return nil
 }
@@ -594,8 +610,8 @@ func (a *admission) bindTransitions(m *machine, scope map[ir.Reference]ir.Bindin
 		if rule.States[from].Status != testpilotspb.CONTRACT_STATE_STATUS_PENDING {
 			return invalid(ir.Malformed, "terminal states cannot have outgoing transitions")
 		}
-		if tr.SupportKind != testpilotspb.CONTRACT_SUPPORT_KIND_NONE && tr.SupportKind != testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT {
-			return invalid(ir.Unknown, "invalid supporting event policy")
+		if tr.SupportsEvent == nil {
+			return invalid(ir.Malformed, "supporting event policy requires explicit presence")
 		}
 		if len(tr.EventFilter.GetKinds()) == 0 {
 			return invalid(ir.Malformed, "transition event kinds required")

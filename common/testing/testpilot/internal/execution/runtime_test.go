@@ -11,6 +11,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/testpilot/contract"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -125,8 +126,8 @@ func (m *runtimeMonitor) Close(context.Context, *testpilotspb.Run) (*testpilotsp
 
 func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	policy.Limits.MaxTotalDurationMilliseconds = 1000
-	policy.Limits.MaxCleanupDurationMilliseconds = 1000
+	policy.Limits.MaxDuration = duration.FromMilliseconds(1000)
+	policy.Limits.CleanupDuration = duration.FromMilliseconds(1000)
 	late := rpcNode("late")
 	late.After = runsAfter("controller")
 	quarantine := rpcNode("quarantine")
@@ -136,7 +137,7 @@ func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	after.Guard = alwaysRuns()
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, late, quarantine, after)
 	cleanupNode := rpcNode("cleanup")
-	cleanupNode.Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 10}
+	cleanupNode.Limits.Timeout = duration.FromMilliseconds(10)
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{cleanupNode}
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -208,7 +209,7 @@ func (m *deadlineMonitor) Close(ctx context.Context, _ *testpilotspb.Run) (*test
 func TestRunWaitsForLateMonitorAndThenReportsDeadlineViolation(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Entrypoints[0].Instructions = nil
-	policy.Limits.MaxTotalDurationMilliseconds = 10
+	policy.Limits.MaxDuration = duration.FromMilliseconds(10)
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	monitor := &deadlineMonitor{expired: make(chan struct{}), release: make(chan struct{})}
@@ -255,7 +256,7 @@ func (*canceledMonitor) Close(ctx context.Context, _ *testpilotspb.Run) (*testpi
 func TestRunConformingMonitorCancellationIsInconclusive(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Entrypoints[0].Instructions = nil
-	policy.Limits.MaxTotalDurationMilliseconds = 10
+	policy.Limits.MaxDuration = duration.FromMilliseconds(10)
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: &runtimeSession{}}, &canceledMonitor{}, "run", c.CaseId)
@@ -290,9 +291,9 @@ func TestRunTerminalPrecedence(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
-			policy.Limits.MaxCleanupDurationMilliseconds = 100
+			policy.Limits.CleanupDuration = duration.FromMilliseconds(100)
 			c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{rpcNode("cleanup")}
-			c.Program.Cleanup.Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 100}
+			c.Program.Cleanup.Instructions[0].Limits.Timeout = duration.FromMilliseconds(100)
 			prepared, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			ordinary := newRuntimeEffect(effectResponse(prepared, "ordinary"), true)
@@ -328,9 +329,9 @@ func TestRunTerminalPrecedence(t *testing.T) {
 
 func TestRunCleanupDeadlineDoesNotReplaceOrdinarySuccess(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	policy.Limits.MaxCleanupDurationMilliseconds = 10
+	policy.Limits.CleanupDuration = duration.FromMilliseconds(10)
 	cleanupNode := rpcNode("cleanup")
-	cleanupNode.Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 10}
+	cleanupNode.Limits.Timeout = duration.FromMilliseconds(10)
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{cleanupNode}
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -350,7 +351,7 @@ func TestRunCleanupDeadlineDoesNotReplaceOrdinarySuccess(t *testing.T) {
 
 func TestRunBoundsHostContextViolationAndQuarantineCapacityFailure(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	policy.Limits.MaxCleanupDurationMilliseconds = 10
+	policy.Limits.CleanupDuration = duration.FromMilliseconds(10)
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	effect := newRuntimeEffect(effectResponse(prepared, "complete"), true)

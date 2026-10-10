@@ -1,40 +1,50 @@
 package producer
 
 import (
-	"strconv"
+	"math"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/duration"
+	"go.temporal.io/server/tools/umpire/internal/runtimecel"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Builders for the Program and Contract messages a realization is written with.
 
 // Text is a text value.
-func Text(value string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}
+func Text(value string) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: value}}
 }
 
 // Bool is a boolean value.
-func Bool(value bool) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}
+func Bool(value bool) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: value}}
 }
 
-// SignedInteger is a signed integer value in the protocol's decimal spelling.
-func SignedInteger(value int64) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: strconv.FormatInt(value, 10)}}
+// SignedInteger is a native CEL signed integer.
+func SignedInteger(value int64) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: value}}
 }
 
 // Enum is an enum value by its name.
-func Enum(name string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: name}}}
+func Enum(name string) *celpb.Value {
+	value, err := runtimecel.Enum(name)
+	if err != nil {
+		panic(err)
+	}
+	return value
 }
 
 // Literal is a literal expression.
-func Literal(v *testpilotspb.Value) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: v}}
+func Literal(v *celpb.Value) *testpilotspb.Expression {
+	return cel.Literal(v)
 }
 
 func reference(r *testpilotspb.Reference) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: r}}
+	return cel.Ref(r)
 }
 
 // Environment refers to one symbolic environment resource.
@@ -44,12 +54,12 @@ func Environment(bindingID string) *testpilotspb.Expression {
 
 // Run refers to the current Run.
 func Run() *testpilotspb.Expression {
-	return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}})
+	return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_Run{Run: &emptypb.Empty{}}})
 }
 
 // ProjectedValue refers to the value an evidence lift or poll is projecting.
 func ProjectedValue() *testpilotspb.Expression {
-	return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}})
+	return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}})
 }
 
 func correlatedStep(field testpilotspb.CorrelatedStepField, definitionID string) *testpilotspb.Expression {
@@ -59,18 +69,17 @@ func correlatedStep(field testpilotspb.CorrelatedStepField, definitionID string)
 
 // Path reads the value at a path out of an operand.
 func Path(operand *testpilotspb.Expression, path string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: operand, Path: path}}}
+	return cel.Path(operand, path)
 }
 
 // Present tests an operand for presence.
 func Present(operand *testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: operand}}}
+	return cel.Present(operand)
 }
 
 // Equal compares two operands for equality.
 func Equal(left, right *testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
-		Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: left, Right: right}}}
+	return cel.Compare("_==_", left, right)
 }
 
 // Assign is one request assignment.
@@ -87,9 +96,13 @@ func InvokeRPC(endpointRoleID, method string, assignments []*testpilotspb.Reques
 // ReadEvidence polls the read an evidence declaration names until the condition holds.
 func ReadEvidence(evidenceID, endpointRoleID string, assignments []*testpilotspb.RequestAssignment, until *testpilotspb.Expression,
 	pollIntervalMilliseconds int64) *testpilotspb.Instruction {
+	var interval *durationpb.Duration
+	if pollIntervalMilliseconds != 0 {
+		interval = duration.FromMilliseconds(pollIntervalMilliseconds)
+	}
 	return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{
 		EvidenceId: evidenceID, EndpointRoleId: endpointRoleID, RequestAssignments: assignments, Until: until,
-		PollIntervalMilliseconds: pollIntervalMilliseconds}}}
+		Interval: interval}}}
 }
 
 // NodeOption sets one optional part of an instruction node.
@@ -98,7 +111,7 @@ type NodeOption func(*testpilotspb.InstructionNode)
 // TimeoutMilliseconds writes the node's dispatch timeout.
 func TimeoutMilliseconds(ms int64) NodeOption {
 	return func(n *testpilotspb.InstructionNode) {
-		n.Limits = &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: ms}}
+		n.Limits = &testpilotspb.InstructionLimits{Timeout: duration.FromMilliseconds(ms)}
 	}
 }
 
@@ -106,7 +119,7 @@ func TimeoutMilliseconds(ms int64) NodeOption {
 func ReadOnce() NodeOption {
 	return func(n *testpilotspb.InstructionNode) {
 		read := n.GetInstruction().GetReadEvidence()
-		read.Once, read.PollIntervalMilliseconds = true, 0
+		read.Interval = nil
 	}
 }
 
@@ -116,9 +129,16 @@ func WaitWithin(intervalMilliseconds int64, hints ...*testpilotspb.WaitHint) Nod
 	return func(n *testpilotspb.InstructionNode) {
 		var sum int64
 		for _, h := range hints {
-			sum += h.GetAtMostMilliseconds()
+			ms, err := duration.Milliseconds("wait hint at_most", h.GetAtMost())
+			if err != nil {
+				panic(err)
+			}
+			if ms > math.MaxInt64-sum {
+				panic("wait hint duration sum overflows milliseconds")
+			}
+			sum += ms
 		}
-		n.GetInstruction().GetReadEvidence().PollIntervalMilliseconds = intervalMilliseconds
+		n.GetInstruction().GetReadEvidence().Interval = duration.FromMilliseconds(intervalMilliseconds)
 		n.WaitHints = hints
 		TimeoutMilliseconds(sum)(n)
 	}
@@ -139,8 +159,8 @@ func Node(id string, instruction *testpilotspb.Instruction, opts ...NodeOption) 
 }
 
 // ResponseRead reads a response path into targets.
-func ResponseRead(path string, cardinality testpilotspb.ReadCardinality, targets ...*testpilotspb.ReadTarget) *testpilotspb.ResponseRead {
-	return &testpilotspb.ResponseRead{Path: path, Cardinality: cardinality, Targets: targets}
+func ResponseRead(path string, targets ...*testpilotspb.ReadTarget) *testpilotspb.ResponseRead {
+	return &testpilotspb.ResponseRead{Path: path, Targets: targets}
 }
 
 // ObservationTarget writes into a declared Observation.
@@ -151,14 +171,14 @@ func ObservationTarget(id string) *testpilotspb.ReadTarget {
 // EvidenceTarget is a history read's lift target: the history kinds among the resolved rules, each
 // a rule naming its declaration, in the order the rules name them (`Temporal.Case.Evidence.target`).
 func EvidenceTarget(observationID string, rules []EvidenceRule) *testpilotspb.ReadTarget {
-	var lifted []*testpilotspb.CorrelatedEvidenceRule
+	var lifted []string
 	for _, r := range rules {
 		if r.ReadsHistory() {
-			lifted = append(lifted, &testpilotspb.CorrelatedEvidenceRule{EvidenceId: r.Source.KindID})
+			lifted = append(lifted, r.Source.KindID)
 		}
 	}
 	return &testpilotspb.ReadTarget{Target: &testpilotspb.ReadTarget_CorrelatedEvidence{CorrelatedEvidence: &testpilotspb.CorrelatedEvidenceProjection{
-		ObservationId: observationID, Rules: lifted}}}
+		ObservationId: observationID, EvidenceIds: lifted}}}
 }
 
 // Role declares one logical role.
@@ -168,7 +188,7 @@ func Role(id string, kind testpilotspb.RoleKind, namespaceBinding, resourceBindi
 
 // HandleSlot declares an opaque handle slot.
 func HandleSlot(id string) *testpilotspb.Slot {
-	return &testpilotspb.Slot{SlotId: id, Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}
+	return &testpilotspb.Slot{SlotId: id, Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &emptypb.Empty{}}}
 }
 
 // MessageObservation declares an Observation of one protobuf message type.

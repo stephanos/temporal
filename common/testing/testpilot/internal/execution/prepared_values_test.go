@@ -5,13 +5,16 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // An instruction's outcome fields follow from its instruction: every one has a status and a detail, a
@@ -58,16 +61,16 @@ func outcomeType(plan InstructionPlan, field testpilotspb.InstructionOutcomeFiel
 // carriedType is the Await's VALUE type: the payload a schedule command's operation answers with,
 // carried whole.
 func carriedType() *testpilotspb.ValueType {
-	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}}}}
+	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &emptypb.Empty{}}}}}
 }
 
 // carriedValue is a value of that type: an Any wrapping the handler's payload.
-func carriedValue(text string) *testpilotspb.Value {
+func carriedValue(text string) *celpb.Value {
 	carried, err := anypb.New(&commonpb.Payload{Data: []byte(text)})
 	if err != nil {
 		panic(err)
 	}
-	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: carried}}
+	return &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: carried}}
 }
 
 func TestPreparedOutcomeParity(t *testing.T) {
@@ -86,8 +89,8 @@ func TestPreparedOutcomeParity(t *testing.T) {
 		for name, raw := range map[string]*testpilotspb.InstructionOutcome{
 			"success":    {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Detail: "detail"},
 			"value":      {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: carriedValue("owned")},
-			"wrong type": {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}},
-			"malformed":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{}},
+			"wrong type": {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}}},
+			"malformed":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &celpb.Value{}},
 			"oversized":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: carriedValue(strings.Repeat("x", 5000))},
 			"protocol":   {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "denied"},
 			"sdk":        {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, SdkFailureCode: "failed"},
@@ -137,8 +140,8 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 	for _, text := range []string{"first", "second", "third", "fourth"} {
 		t.Run(text, func(t *testing.T) {
 			t.Parallel()
-			fields := map[int32]*testpilotspb.Value{int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS): {Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE"}}}}
-			lookup := func(ref ir.Reference) *testpilotspb.Value {
+			fields := map[int32]*celpb.Value{int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS): cel.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE)}
+			lookup := func(ref ir.Reference) *celpb.Value {
 				require.Equal(t, "workflow", ref.Entrypoint)
 				require.Equal(t, "await", ref.ID)
 				return fields[ref.Field]
@@ -147,7 +150,7 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 			require.NoError(t, err)
 			require.False(t, enabled)
 			require.Nil(t, value)
-			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS)].GetEnumValue().Name = "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS)] = cel.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, entry.RuntimeWorkLimit())
 			require.Error(t, err)
 			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)] = carriedValue(text)
@@ -155,7 +158,7 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, enabled)
 			require.True(t, proto.Equal(carriedValue(text), value))
-			value.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
+			value.Kind = &celpb.Value_StringValue{StringValue: "changed"}
 			require.True(t, proto.Equal(carriedValue(text), fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)]))
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, work)
 			require.NoError(t, err)
@@ -183,21 +186,21 @@ func TestPreparedTerminalResultsAndOutcomeTypes(t *testing.T) {
 	// none. Neither declares an outcome value, so neither may report one.
 	for _, pair := range []struct {
 		entry, node int
-		want        string
-	}{{1, 2, "done"}, {2, 0, ""}} {
+		want        *celpb.Value
+	}{{1, 2, carriedValue("done")}, {2, 0, nil}} {
 		entry := p.Entrypoints()[pair.entry]
 		n := entry.Instructions()[pair.node]
 		_, ok := outcomeType(n, testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
 		require.False(t, ok)
-		value, enabled, _, err := n.EvaluateInput(context.Background(), func(ref ir.Reference) *testpilotspb.Value {
+		value, enabled, _, err := n.EvaluateInput(context.Background(), func(ref ir.Reference) *celpb.Value {
 			if ref.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) {
-				return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}
+				return cel.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)
 			}
-			return textValue("done")
+			return carriedValue("done")
 		}, entry.RuntimeWorkLimit())
 		require.NoError(t, err)
 		require.True(t, enabled)
-		require.Equal(t, pair.want, value.GetTextValue())
+		require.True(t, proto.Equal(pair.want, value))
 		_, _, err = n.ValidateOutcome(context.Background(), &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("done")}, entry.RuntimeWorkLimit())
 		require.ErrorContains(t, err, "undeclared payload")
 		snapshot, _, err := n.ValidateOutcome(context.Background(), &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, entry.RuntimeWorkLimit())

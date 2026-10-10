@@ -3,9 +3,11 @@ package execution
 import (
 	"fmt"
 
+	celpb "cel.dev/expr"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -58,7 +60,7 @@ func (a *admission) bindActivityResetSettlements() error {
 		}
 		basis := &activityResetSettlement{source: declaration, controller: g, carrier: carrier}
 		for _, read := range carrier.source.Instruction.GetInvokeRpc().GetResponseReads() {
-			if read.GetPath() == "run_id" && read.GetCardinality() == testpilotspb.READ_CARDINALITY_ONE && len(read.GetTargets()) == 1 {
+			if read.GetPath() == "run_id" && len(read.GetTargets()) == 1 {
 				basis.runSlot = read.GetTargets()[0].GetSlotId()
 			}
 		}
@@ -119,7 +121,7 @@ func (a *admission) bindActivityResetSettlements() error {
 					return invalid("namespace name and activity ID must be those of the carrier")
 				}
 			}
-			if externalAssignment(n, "run_id").GetReference().GetSlotId() != basis.runSlot || externalAssignment(n, "workflow_id") != nil {
+			if expressionReference(externalAssignment(n, "run_id")).GetSlotId() != basis.runSlot || externalAssignment(n, "workflow_id") != nil {
 				return invalid("standalone request needs learned actual run_id and no workflow_id")
 			}
 		}
@@ -157,7 +159,7 @@ func (a *admission) restartOf(entrypointID string) int64 {
 func (a *admission) checkActivityResetSettlements() error {
 	for _, b := range a.prepared.resets {
 		invalid := func(detail string) error { return ir.Invalid(ir.Malformed, "activity_reset_settlement", detail) }
-		guard := &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{externalSuccessExpression(b.source.Carrier), {Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: externalSuccessExpression(b.source.Settlement)}}}}}}}
+		guard := cel.All(externalSuccessExpression(b.source.Carrier), cel.Not(externalSuccessExpression(b.source.Settlement)))
 		if !proto.Equal(b.cleanup.source.Guard, guard) {
 			return invalid("Cleanup must follow successful carrier unless terminal Describe already succeeded")
 		}
@@ -198,7 +200,7 @@ func (s *valueStore) resetPublication(id contract.ReservationIdentity, attempt *
 		if err != nil {
 			return "", nil, err
 		}
-		value := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: encoded}}
+		value := &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: encoded}}
 		slot := b.source.PendingSlotId
 		return slot, func() error {
 			s.mu.Lock()
@@ -206,7 +208,7 @@ func (s *valueStore) resetPublication(id contract.ReservationIdentity, attempt *
 			if s.sealed || s.slots[slot] != nil || s.pendingWrites[slot] != nil {
 				return ir.Invalid(ir.Malformed, "activity_publication", "closed or duplicate pending publication")
 			}
-			if learned := s.slots[b.runSlot]; learned != nil && learned.GetTextValue() != attempt.ActivityRunId {
+			if learned := s.slots[b.runSlot]; learned != nil && learned.GetStringValue() != attempt.ActivityRunId {
 				return ir.Invalid(ir.Malformed, "activity_publication", "pending activity run differs from learned carrier run")
 			}
 			carrier := s.externalRequests[b.carrier]
@@ -214,7 +216,7 @@ func (s *valueStore) resetPublication(id contract.ReservationIdentity, attempt *
 				return ir.Invalid(ir.Malformed, "activity_publication", "pending namespace name or activity ID differs from carrier")
 			}
 			if s.pendingWrites == nil {
-				s.pendingWrites = map[string]*testpilotspb.Value{}
+				s.pendingWrites = map[string]*celpb.Value{}
 			}
 			s.pendingWrites[slot] = value
 			return nil
@@ -245,14 +247,14 @@ func (s *valueStore) admitResetRequest(n *node, request proto.Message) error {
 			return invalid("exact typed reset settlement request required")
 		}
 		carrier := s.externalRequests[b.carrier]
-		run := s.slots[b.runSlot].GetTextValue()
+		run := s.slots[b.runSlot].GetStringValue()
 		if run == "" || externalText(request, "namespace") != externalText(carrier, "namespace") || externalText(request, "activity_id") != externalText(carrier, "activity_id") || externalText(request, "run_id") != run || externalText(request, "workflow_id") != "" {
 			return invalid("reset settlement request differs from actual standalone activity identity")
 		}
 		if n == b.held || n == b.reset {
 			pending := &testpilotspb.ActivityAttempt{}
 			value := s.slots[b.source.PendingSlotId]
-			if value == nil || anypb.UnmarshalTo(value.GetMessageValue(), pending, proto.UnmarshalOptions{}) != nil || pending.ActivityRunId != run || pending.NamespaceName != externalText(request, "namespace") || pending.ActivityId != externalText(request, "activity_id") {
+			if value == nil || anypb.UnmarshalTo(value.GetObjectValue(), pending, proto.UnmarshalOptions{}) != nil || pending.ActivityRunId != run || pending.NamespaceName != externalText(request, "namespace") || pending.ActivityId != externalText(request, "activity_id") {
 				return invalid("reset requires a successfully published actual pending identity")
 			}
 		}
@@ -341,13 +343,13 @@ func (s *valueStore) checkResetCarrierBatch(n *node, batch *valueBatch) error {
 		if n != b.carrier {
 			continue
 		}
-		run := batch.writes[b.runSlot].GetTextValue()
+		run := batch.writes[b.runSlot].GetStringValue()
 		if run == "" {
 			return ir.Invalid(ir.Malformed, "activity_reset_carrier", "carrier must return its actual nonempty activity run")
 		}
 		if value := s.slots[b.source.PendingSlotId]; value != nil {
 			pending := &testpilotspb.ActivityAttempt{}
-			if anypb.UnmarshalTo(value.GetMessageValue(), pending, proto.UnmarshalOptions{}) != nil || pending.ActivityRunId != run {
+			if anypb.UnmarshalTo(value.GetObjectValue(), pending, proto.UnmarshalOptions{}) != nil || pending.ActivityRunId != run {
 				return ir.Invalid(ir.Malformed, "activity_reset_carrier", "learned carrier run differs from published pending delivery")
 			}
 		}

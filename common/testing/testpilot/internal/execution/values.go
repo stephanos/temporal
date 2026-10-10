@@ -6,6 +6,7 @@ import (
 	"math/bits"
 	"sync"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -26,8 +27,8 @@ type valueStore struct {
 	// operation's evidence across sources, a lift names the previous one as its parent when it came
 	// from another.
 	lastEvidence      map[string]*testpilotspb.CorrelatedIdentity
-	slots             map[string]*testpilotspb.Value
-	pendingWrites     map[string]*testpilotspb.Value
+	slots             map[string]*celpb.Value
+	pendingWrites     map[string]*celpb.Value
 	externalRequests  map[*node]proto.Message
 	externalSucceeded map[*node]bool
 }
@@ -35,7 +36,7 @@ type activationValues struct {
 	store    *valueStore
 	graph    *graph
 	id       string
-	slots    map[string]*testpilotspb.Value
+	slots    map[string]*celpb.Value
 	outcomes map[contract.Coordinate]*valueBatch
 	latest   map[string]*valueBatch
 }
@@ -43,8 +44,8 @@ type valueBatch struct {
 	owner      *activationValues
 	coordinate contract.Coordinate
 	outcome    *testpilotspb.InstructionOutcome
-	fields     map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value
-	writes     map[string]*testpilotspb.Value
+	fields     map[testpilotspb.InstructionOutcomeField]*celpb.Value
+	writes     map[string]*celpb.Value
 	facts      []readFact
 }
 type readFact struct {
@@ -56,7 +57,7 @@ func newValueStore(program *PreparedProgram, runID string) (*valueStore, error) 
 	if program == nil || !ir.ValidID(runID) {
 		return nil, ir.Invalid(ir.Malformed, "values", "prepared Program and Run identity required")
 	}
-	return &valueStore{program: program, runID: runID, changed: make(chan struct{}), activations: map[string]*activationValues{}, controllers: map[string]bool{}, slots: map[string]*testpilotspb.Value{}}, nil
+	return &valueStore{program: program, runID: runID, changed: make(chan struct{}), activations: map[string]*activationValues{}, controllers: map[string]bool{}, slots: map[string]*celpb.Value{}}, nil
 }
 
 // chainEvidence gives lifted evidence its causal parent, where the Program declares the Run's order
@@ -103,7 +104,7 @@ func (s *valueStore) activate(entrypoint, id string) (*activationValues, error) 
 	if selected.context == contract.ControllerEntrypoint && s.controllers[entrypoint] {
 		return nil, ir.Invalid(ir.Malformed, "values", "controller already activated")
 	}
-	a := &activationValues{store: s, graph: selected, id: id, slots: map[string]*testpilotspb.Value{}, outcomes: map[contract.Coordinate]*valueBatch{}, latest: map[string]*valueBatch{}}
+	a := &activationValues{store: s, graph: selected, id: id, slots: map[string]*celpb.Value{}, outcomes: map[contract.Coordinate]*valueBatch{}, latest: map[string]*valueBatch{}}
 	if selected.context == contract.ControllerEntrypoint {
 		a.slots = s.slots
 		s.controllers[entrypoint] = true
@@ -253,19 +254,19 @@ func (w *valueWork) charge(count int64) error {
 	w.work += count
 	return nil
 }
-func (w *valueWork) copy(value *testpilotspb.Value, typ ir.Type) (*testpilotspb.Value, error) {
+func (w *valueWork) copy(value *celpb.Value, typ ir.Type) (*celpb.Value, error) {
 	snapshot, work, err := ir.SnapshotValue(w.ctx, value, typ, w.remaining(w.limits.Bytes))
 	w.work += work
 	return snapshot, err
 }
-func (a *activationValues) evaluate(w *valueWork, e *ir.Expression) (*testpilotspb.Value, error) {
+func (a *activationValues) evaluate(w *valueWork, e *ir.Expression) (*celpb.Value, error) {
 	s := a.store
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.sealed {
 		return nil, ir.Invalid(ir.Unavailable, "values", "store sealed")
 	}
-	value, work, err := e.EvaluateExecution(w.ctx, func(ref ir.Reference) *testpilotspb.Value {
+	value, work, err := e.EvaluateExecution(w.ctx, func(ref ir.Reference) *celpb.Value {
 		switch ref.Kind {
 		case ir.EventReference:
 			if ref.Field == int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID) {

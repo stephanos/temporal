@@ -228,6 +228,10 @@ func (g *generator) copyChasmLibProtos() error {
 }
 
 func (g *generator) runProtogen(ctx context.Context) error {
+	helpersBridge, err := os.Executable()
+	if err != nil {
+		return err
+	}
 	// Run protogen
 	protoArgs := []string{
 		"--descriptor_set_in=" + g.apiBinpb,
@@ -236,13 +240,16 @@ func (g *generator) runProtogen(ctx context.Context) error {
 		"--output=" + g.tempOut,
 		"-p", "plugin=protoc-gen-go=" + g.protocGenGoBin,
 		"-p", "plugin=protoc-gen-go-grpc=" + g.protocGenGoGrpcBin,
-		"-p", "plugin=protoc-gen-go-helpers=" + g.protocGenGoHelpersBin,
+		"-p", "plugin=protoc-gen-go-helpers=" + helpersBridge,
 		"-p", "plugin=protoc-gen-go-chasm=" + g.protocGenGoChasmBin,
 		"-p", "go-grpc_out=paths=source_relative:" + g.tempOut,
 		"-p", "go-helpers_out=paths=source_relative:" + g.tempOut,
 		"-p", "go-chasm_out=paths=source_relative:" + g.tempOut,
 	}
-	if err := runCommand(ctx, g.protogenBin, protoArgs...); err != nil {
+	command := exec.CommandContext(ctx, g.protogenBin, protoArgs...)
+	command.Env = append(os.Environ(), helpersBackendEnvironment+"="+g.protocGenGoHelpersBin)
+	command.Stdout, command.Stderr = os.Stdout, os.Stderr
+	if err := command.Run(); err != nil {
 		return fmt.Errorf("error running protogen: %w", err)
 	}
 	return nil
@@ -409,6 +416,12 @@ func (g *generator) cleanup(restoreOld bool) error {
 }
 
 func main() {
+	if backend := os.Getenv(helpersBackendEnvironment); len(os.Args) == 1 && backend != "" {
+		if err := runHelpersBackend(backend); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	ctx := context.Background()
 	gen, err := newGenerator()
 	if err != nil {

@@ -7,11 +7,14 @@ import (
 	"math"
 	"slices"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // opcodeRow is everything the runtime knows about one Opcode: the Instruction oneof arm that
@@ -175,7 +178,7 @@ func (a *admission) bindInstructions() error {
 	if a.outcomeTypes.text, err = a.prepared.catalog.BindType(scalarSchema(testpilotspb.SCALAR_KIND_TEXT)); err != nil {
 		return err
 	}
-	if a.outcomeTypes.any, err = a.prepared.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}}}}); err != nil {
+	if a.outcomeTypes.any, err = a.prepared.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &emptypb.Empty{}}}}}); err != nil {
 		return err
 	}
 	for _, g := range a.prepared.graphs {
@@ -249,7 +252,7 @@ func bindAttemptFailure(g *graph, n *node) error {
 func (a *admission) bindAwait(g *graph, n *node) error {
 	reference := n.source.Instruction.GetAwaitInstruction().GetInstruction()
 	dependency, exists := g.index[reference.GetInstructionId()]
-	if !exists || reference.GetEntrypointId() != g.id || !n.ancestors[dependency] {
+	if !exists || !n.ancestors[dependency] {
 		return ir.Invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
 	}
 	started := g.nodes[dependency].source.Instruction
@@ -265,13 +268,17 @@ func (a *admission) bindAwait(g *graph, n *node) error {
 // scaled by the Profile's bound scale.
 func (a *admission) bindNodeBounds(g *graph, n *node) error {
 	bounds := n.source.GetLimits()
-	n.timeoutMilliseconds, n.maxAttempts = a.prepared.instructionDefaults.Resolve(bounds)
+	var err error
+	n.timeoutMilliseconds, n.maxAttempts, err = a.prepared.instructionDefaults.Resolve(bounds)
+	if err != nil {
+		return ir.Invalid(ir.Malformed, expressionPath(g, n, "limits.timeout"), err.Error())
+	}
 	if len(n.source.GetWaitHints()) > 0 {
 		if err := a.bindWaitHints(g, n); err != nil {
 			return err
 		}
 	}
-	if (bounds.GetTimeout() == nil && n.timeoutMilliseconds == 0) || (bounds.GetAttempts() == nil && n.maxAttempts == 0) {
+	if (bounds.GetTimeout() == nil && n.timeoutMilliseconds == 0) || (bounds.GetMaxAttempts() == 0 && n.maxAttempts == 0) {
 		return ir.Invalid(ir.Malformed, nodePath(g, n), "instruction writes no limit that neither the Program nor the Profile has a default for")
 	}
 	// A hinted timeout is scaled, so it is checked against the scaled ceiling; every other one is
@@ -289,9 +296,9 @@ func (a *admission) bindNodeBounds(g *graph, n *node) error {
 // durationCeiling is the duration ceiling of limits for an instruction of g.
 func (a *admission) durationCeiling(g *graph, limits *testpilotspb.ProgramLimits) int64 {
 	if g.cleanup {
-		return limits.MaxCleanupDurationMilliseconds
+		return limits.CleanupDuration.AsDuration().Milliseconds()
 	}
-	return limits.MaxTotalDurationMilliseconds
+	return limits.MaxDuration.AsDuration().Milliseconds()
 }
 
 // bindWaitHints admits the hints a polling ReadEvidence waits within. The node writes its own
@@ -302,10 +309,10 @@ func (a *admission) bindWaitHints(g *graph, n *node) error {
 	if n.opcode != contract.ReadEvidence {
 		return ir.Invalid(ir.Unsupported, expressionPath(g, n, "wait_hints"), "only a polling ReadEvidence waits within wait hints")
 	}
-	if n.source.Instruction.GetReadEvidence().GetOnce() {
+	if n.source.Instruction.GetReadEvidence().GetInterval() == nil {
 		return ir.Invalid(ir.Malformed, expressionPath(g, n, "wait_hints"), "a read once does not wait, so no wait hint bounds it")
 	}
-	timeoutPath := expressionPath(g, n, "limits.timeout_milliseconds")
+	timeoutPath := expressionPath(g, n, "limits.timeout")
 	if n.source.GetLimits().GetTimeout() == nil {
 		return ir.Invalid(ir.Malformed, timeoutPath, "a hinted wait writes its own timeout; no Profile default applies to it")
 	}
@@ -321,16 +328,22 @@ func (a *admission) bindWaitHints(g *graph, n *node) error {
 		if hint.GetSource().GetPath() == "" || hint.GetSource().GetLine() < 1 {
 			return ir.Invalid(ir.Malformed, path+".source", "wait hint requires the source path and line it is declared at")
 		}
-		bound := hint.GetAtMostMilliseconds()
+		bound, err := ir.DurationMilliseconds(path+".at_most", hint.GetAtMost())
+		if err != nil {
+			return err
+		}
 		if bound <= 0 {
-			return ir.Invalid(ir.Malformed, path+".at_most_milliseconds", "wait hint requires a positive bound")
+			return ir.Invalid(ir.Malformed, path+".at_most", "wait hint requires a positive bound")
 		}
 		if bound > math.MaxInt64-sum {
-			return ir.Invalid(ir.LimitExceeded, path+".at_most_milliseconds", "wait hint bounds overflow their sum")
+			return ir.Invalid(ir.LimitExceeded, path+".at_most", "wait hint bounds overflow their sum")
 		}
 		sum += bound
 	}
-	declared := n.source.GetLimits().GetTimeoutMilliseconds()
+	declared, err := ir.DurationMilliseconds(timeoutPath, n.source.GetLimits().GetTimeout())
+	if err != nil {
+		return err
+	}
 	if declared != sum {
 		return ir.Invalid(ir.Malformed, timeoutPath, fmt.Sprintf("hinted wait timeout %d ms is not %d ms, the sum of its wait hints' bounds", declared, sum))
 	}
@@ -428,9 +441,9 @@ func (a *admission) bindResponseReads(g *graph, index int, n *node) error {
 		}
 		typ := path.Type()
 		count := int64(1)
-		switch source.Cardinality {
-		case testpilotspb.READ_CARDINALITY_ONE:
-		case testpilotspb.READ_CARDINALITY_EMIT_EACH:
+		switch path.Fanout() {
+		case false:
+		case true:
 			if typ.Cardinality() != ir.Repeated {
 				return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "EmitEach requires repeated values")
 			}
@@ -449,7 +462,7 @@ func (a *admission) bindResponseReads(g *graph, index int, n *node) error {
 			}
 			events += count
 		}
-		n.responseReads = append(n.responseReads, responseRead{path: path, cardinality: source.Cardinality, targets: source.Targets, lifts: lifts})
+		n.responseReads = append(n.responseReads, responseRead{path: path, emitEach: path.Fanout(), targets: source.Targets, lifts: lifts})
 	}
 	return nil
 }
@@ -467,7 +480,7 @@ func (a *admission) bindReadTargets(g *graph, index int, n *node, read int, sour
 		case *testpilotspb.ReadTarget_SlotId:
 			key = "slot:" + destination.SlotId
 			target, exists = a.prepared.slots[destination.SlotId]
-			if source.Cardinality == testpilotspb.READ_CARDINALITY_EMIT_EACH {
+			if path.Fanout() {
 				return nil, false, ir.Invalid(ir.Unsupported, nodePath(g, n), "EmitEach cannot repeatedly assign an immutable Slot")
 			}
 			if err := a.addWriter(destination.SlotId, slotWriter{graph: g, node: index, optional: path.MayBeAbsent()}); err != nil {
@@ -517,7 +530,7 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source 
 	if typ.Cardinality() != ir.Singular || typ.Message() == nil || typ.Opaque() || typ.Any() {
 		return nil, ir.Invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires a singular message read")
 	}
-	if len(source.GetRules()) == 0 {
+	if len(source.GetEvidenceIds()) == 0 {
 		return nil, ir.Invalid(ir.Malformed, nodePath(g, n), "evidence lift requires at least one rule")
 	}
 	// A source ordinal is dense per Run and only the emitting instruction counts it, so one source
@@ -529,8 +542,8 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source 
 	}
 	lift := &evidenceLift{observationID: source.GetObservationId(), element: typ}
 	owner := contract.Coordinate{EntrypointID: g.id, InstructionID: n.source.InstructionId}
-	for index, rule := range source.GetRules() {
-		bound, err := a.bindEvidenceRule(g, n, fmt.Sprintf("%s.rules[%d]", location, index), rule, typ)
+	for index, id := range source.GetEvidenceIds() {
+		bound, err := a.bindDeclaredRule(g, n, fmt.Sprintf("%s.evidence_ids[%d]", location, index), id, typ)
 		if err != nil {
 			return nil, err
 		}
@@ -541,41 +554,6 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source 
 		lift.rules = append(lift.rules, *bound)
 	}
 	return lift, nil
-}
-func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source *testpilotspb.CorrelatedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
-	if source.GetEvidenceId() != "" {
-		return a.bindDeclaredRule(g, n, location, source, typ)
-	}
-	if !ir.ValidID(source.GetEvidenceSource()) || !ir.ValidID(source.GetKind()) {
-		return nil, ir.Invalid(ir.Malformed, nodePath(g, n), "evidence rule requires a source and a kind")
-	}
-	// The guard reads only the projected value, which every rule of the lift is offered whole.
-	boolean, err := a.prepared.catalog.BindType(scalarSchema(testpilotspb.SCALAR_KIND_BOOLEAN))
-	if err != nil {
-		return nil, err
-	}
-	projected := map[ir.Reference]ir.Binding{{Kind: ir.ProjectedValueReference}: {Type: typ, Available: true}}
-	guard, err := a.prepared.catalog.BindExpression(ir.Site{Context: ir.EvidenceLiftContext, Path: location + ".guard"}, source.GetGuard(), &boolean, projected, a.expressionLimits())
-	if err != nil {
-		return nil, err
-	}
-	operation, err := a.bindEvidencePath(nodePath(g, n), typ, location+".operation", source.GetOperation(), evidenceKeyKinds...)
-	if err != nil {
-		return nil, err
-	}
-	bound := &evidenceRule{guard: guard, source: source.GetEvidenceSource(), kind: source.GetKind(), operation: operation}
-	// A scope binding is a Run coordinate and carries plain text on the wire; an evidence field is
-	// a typed scalar the portable decoder reads as text, unsigned integer or boolean.
-	scope, err := a.bindEvidenceBindings(nodePath(g, n), location+".scope", typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)
-	if err != nil {
-		return nil, err
-	}
-	fields, err := a.bindEvidenceBindings(nodePath(g, n), location+".fields", typ, source.GetFields(), evidenceFieldKinds...)
-	if err != nil {
-		return nil, err
-	}
-	bound.scope, bound.fields = scope, fields
-	return bound, nil
 }
 
 // evidenceKeyKinds are the scalars an operation key may read: text, or an integer in its canonical
@@ -599,55 +577,42 @@ var evidenceIntegerKinds = []testpilotspb.ScalarKind{
 // bindEvidenceBindings binds the named expressions at location, rejecting at errorPath. Each is a
 // text literal or a path read directly from the projected value; the lift reads its paths itself,
 // so no other expression is admitted.
-func (a *admission) bindEvidenceBindings(errorPath, location string, typ ir.Type, sources []*testpilotspb.NamedExpression, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
+
+func (a *admission) bindEvidenceExpression(errorPath string, typ ir.Type, guard *testpilotspb.Expression, location string, source *testpilotspb.Expression, kinds ...testpilotspb.ScalarKind) (*ir.Expression, error) {
+	projected := map[ir.Reference]ir.Binding{{Kind: ir.ProjectedValueReference}: {Type: typ, Available: true}}
+	bound, err := a.prepared.catalog.BindConditionedExpression([]ir.Condition{{Expression: guard, Path: errorPath + ".guard", Matches: true}}, ir.Site{Context: ir.EvidenceLiftContext, Path: location}, source, nil, projected, a.expressionLimits())
+	if err != nil {
+		return nil, err
+	}
+	read := bound.Type()
+	if read.Cardinality() != ir.Singular || read.Message() != nil || read.Enum() != nil || !slices.Contains(kinds, read.Scalar()) {
+		return nil, ir.Invalid(ir.TypeMismatch, errorPath, "evidence binding reads an unsupported scalar")
+	}
+	if literal := bound.Literal(); literal != nil {
+		if text, ok := literal.Kind.(*celpb.Value_StringValue); ok && text.StringValue == "" {
+			return nil, ir.Invalid(ir.Malformed, errorPath, "evidence literal binding requires a value")
+		}
+	}
+	return bound, nil
+}
+
+func (a *admission) bindEvidenceBindings(errorPath, location string, typ ir.Type, guard *testpilotspb.Expression, sources []*testpilotspb.NamedExpression, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
 	bound := make([]evidenceBinding, 0, len(sources))
 	seen := map[string]bool{}
 	for index, source := range sources {
 		if source == nil || !ir.ValidID(source.GetFieldId()) || seen[source.GetFieldId()] {
 			return nil, ir.Invalid(ir.Malformed, errorPath, "evidence binding requires one unique declared field")
 		}
-		seen[source.GetFieldId()] = true
-		site := ir.Site{Context: ir.EvidenceLiftContext, Path: fmt.Sprintf("%s[%d].value", location, index)}
-		if err := ir.AdmitReferences(site, source.GetValue()); err != nil {
+		seen[source.FieldId] = true
+		value, err := a.bindEvidenceExpression(errorPath, typ, guard, fmt.Sprintf("%s[%d].value", location, index), source.Value, kinds...)
+		if err != nil {
 			return nil, err
 		}
-		switch supply := source.GetValue().GetExpression().(type) {
-		case *testpilotspb.Expression_Literal:
-			literal, isText := supply.Literal.GetValue().(*testpilotspb.Value_TextValue)
-			if !isText {
-				return nil, ir.Invalid(ir.Malformed, errorPath, "evidence literal binding requires a text")
-			}
-			text := literal.TextValue
-			if text == "" {
-				return nil, ir.Invalid(ir.Malformed, errorPath, "evidence literal binding requires a value")
-			}
-			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), literal: text})
-		case *testpilotspb.Expression_Path:
-			if supply.Path.GetOperand().GetReference().GetProjectedValue() == nil {
-				return nil, ir.Invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
-			}
-			path, err := a.bindEvidencePath(errorPath, typ, site.Path+".path.path", supply.Path.GetPath(), kinds...)
-			if err != nil {
-				return nil, err
-			}
-			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), path: path})
-		default:
-			return nil, ir.Invalid(ir.Malformed, errorPath, "evidence binding requires a path or a literal")
-		}
+		bound = append(bound, evidenceBinding{fieldID: source.FieldId, value: value})
 	}
 	return bound, nil
 }
-func (a *admission) bindEvidencePath(errorPath string, typ ir.Type, location, source string, kinds ...testpilotspb.ScalarKind) (*ir.Path, error) {
-	path, err := a.prepared.catalog.BindPath(typ, location, source, a.expressionLimits())
-	if err != nil {
-		return nil, err
-	}
-	read := path.Type()
-	if read.Cardinality() != ir.Singular || read.Message() != nil || read.Enum() != nil || !slices.Contains(kinds, read.Scalar()) {
-		return nil, ir.Invalid(ir.TypeMismatch, errorPath, "evidence binding reads an unsupported scalar")
-	}
-	return path, nil
-}
+
 func (a *admission) scope(g *graph, n *node) map[ir.Reference]ir.Binding {
 	scope := map[ir.Reference]ir.Binding{}
 	for id, typ := range a.prepared.slots {
@@ -727,13 +692,13 @@ func successFacts(expression *ir.Expression) map[string]bool {
 	children := expression.Children()
 	switch expression.Operator() {
 	case ir.Compare:
-		if expression.Comparison() != testpilotspb.COMPARISON_OPERATOR_EQUAL {
+		if expression.Comparison() != "_==_" {
 			break
 		}
 		for i := range 2 {
 			reference := children[i].Reference()
 			literal := children[1-i].Literal()
-			if reference.Kind == ir.OutcomeReference && reference.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) && literal.GetEnumValue().GetName() == ir.EnumName(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED) {
+			if reference.Kind == ir.OutcomeReference && reference.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) && proto.Equal(literal, cel.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)) {
 				result[reference.ID] = true
 			}
 		}
@@ -861,7 +826,7 @@ func (a *admission) bindAssignments(g *graph, n *node, sources []*testpilotspb.R
 		}
 		typ := target.Type()
 		valueSource := source.Value
-		if reference, ok := source.Value.GetReference().GetReference().(*testpilotspb.Reference_EnvironmentBindingId); ok {
+		if reference, ok := expressionReference(source.Value).GetReference().(*testpilotspb.Reference_EnvironmentBindingId); ok {
 			if reference == nil || typ.Cardinality() != ir.Singular || typ.Scalar() != testpilotspb.SCALAR_KIND_TEXT {
 				return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "environment reference requires a singular text destination")
 			}
@@ -869,7 +834,7 @@ func (a *admission) bindAssignments(g *graph, n *node, sources []*testpilotspb.R
 			if err != nil {
 				return err
 			}
-			valueSource = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: resolved}}}}
+			valueSource = cel.Literal(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: resolved}})
 		}
 		value, err := bind(valueSource, fmt.Sprintf("%s.request_assignments[%d].value", field, index), &typ)
 		if err != nil {

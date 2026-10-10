@@ -4,6 +4,8 @@ import (
 	"slices"
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -478,7 +480,7 @@ func TestEvidenceCarriesItsRetainedFieldsWithTheirValues(t *testing.T) {
 		"a retained field with no value": {append([]*testpilotspb.NamedValue{{FieldId: "attempt"}}, whole[1:]...),
 			"carries no value for field attempt, which the Case retains"},
 		"an attempt that is no number or text": {append([]*testpilotspb.NamedValue{{FieldId: "attempt",
-			Value: &testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: []byte("1")}}}}, whole[1:]...),
+			Value: &celpb.Value{Kind: &celpb.Value_BytesValue{BytesValue: []byte("1")}}}}, whole[1:]...),
 			"carries a value for field attempt that is no text, number or flag"},
 	} {
 		t.Run(name, func(t *testing.T) {

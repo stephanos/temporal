@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
@@ -19,6 +20,7 @@ var protocolFiles = []string{
 	"temporal/server/api/testpilot/v1/case.proto",
 	"temporal/server/api/testpilot/v1/value.proto",
 	"temporal/server/api/testpilot/v1/expression.proto",
+	"temporal/server/api/testpilot/v1/evidence.proto",
 	"temporal/server/api/testpilot/v1/program.proto",
 	"temporal/server/api/testpilot/v1/instruction.proto",
 	"temporal/server/api/testpilot/v1/contract.proto",
@@ -34,12 +36,12 @@ var runOnlyMessages = []protoreflect.Name{"Run", "Verdict", "RunDiagnostic", "Ru
 
 func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	t.Parallel()
-	// Program, Contract, correlated conditions and evidence-lift guards share one expression language;
-	// its references are one oneof, and which of them an expression may use is checked at preparation
-	// rather than encoded in the type.
 	expression := messageDescriptor(t, "Expression")
-	require.NotNil(t, expression.Oneofs().ByName("expression"))
-	require.Equal(t, []protoreflect.Name{"literal", "reference", "path", "present", "compare", "not", "all", "any"}, fieldNames(expression))
+	require.Equal(t, []protoreflect.Name{"cel", "bindings"}, fieldNames(expression))
+	require.Equal(t, (&celpb.ParsedExpr{}).ProtoReflect().Descriptor().FullName(), expression.Fields().ByName("cel").Message().FullName())
+	binding := messageDescriptor(t, "ExpressionBinding")
+	require.Equal(t, []protoreflect.Name{"variable", "reference", "literal", "path"}, fieldNames(binding))
+	require.Equal(t, []protoreflect.Name{"reference", "literal"}, oneofNames(binding.Oneofs().ByName("input")))
 	reference := messageDescriptor(t, "Reference")
 	require.NotNil(t, reference.Oneofs().ByName("reference"))
 	require.Equal(t, []protoreflect.Name{
@@ -48,24 +50,20 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 		"instance_value_id",
 	}, fieldNames(reference))
 	rule := messageDescriptor(t, "CorrelatedRule")
-	evidenceRule := messageDescriptor(t, "CorrelatedEvidenceRule")
+	evidenceRule := messageDescriptor(t, "EvidenceDeclaration")
 	for _, field := range []protoreflect.FieldDescriptor{
 		rule.Fields().ByName("trigger"), rule.Fields().ByName("response"), rule.Fields().ByName("correlation"), evidenceRule.Fields().ByName("guard"),
 	} {
 		require.Equal(t, expression.FullName(), field.Message().FullName(), field.FullName())
 	}
-	operator := testpilotspb.ComparisonOperator(0).Descriptor().Values()
-	require.EqualValues(t, 1, operator.ByName("COMPARISON_OPERATOR_EQUAL").Number())
-	require.EqualValues(t, 2, operator.ByName("COMPARISON_OPERATOR_NOT_EQUAL").Number())
 	slot := messageDescriptor(t, "Slot")
 	require.NotNil(t, slot.Oneofs().ByName("content"))
 	require.Nil(t, slot.Fields().ByName("kind"))
-	// A Slot is the one encoding of an opaque handle, and an unsigned integer has one Value arm.
 	require.Equal(t, []protoreflect.Name{"scalar", "enumeration", "message", "any"}, oneofNames(messageDescriptor(t, "SingularType").Oneofs().ByName("type")))
 	require.Equal(t, []protoreflect.Name{
-		"text_value", "bool_value", "bytes_value", "signed_integer_value", "unsigned_integer_value", "floating_point_value",
-		"enum_value", "message_value", "list_value", "map_value",
-	}, oneofNames(messageDescriptor(t, "Value").Oneofs().ByName("value")))
+		"null_value", "bool_value", "int64_value", "uint64_value", "double_value", "string_value", "bytes_value",
+		"enum_value", "object_value", "map_value", "list_value", "type_value",
+	}, oneofNames((&celpb.Value{}).ProtoReflect().Descriptor().Oneofs().ByName("kind")))
 	require.Nil(t, testpilotspb.ScalarKind(0).Descriptor().Values().ByName("SCALAR_KIND_"+"NATURAL"))
 	entrypoint := messageDescriptor(t, "Entrypoint")
 	require.NotNil(t, entrypoint.Oneofs().ByName("activation"))
@@ -76,15 +74,44 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	require.True(t, run.Fields().ByName("evaluation_failure_sequence").HasPresence())
 	// Zero is an unscaled Run, so the scale needs no presence.
 	require.False(t, run.Fields().ByName("bound_scale_percent").HasPresence())
-	// A hinted wait carries each bound with the source position it is declared at, in the one
-	// SourceLocation a Case's provenance uses; a read once is a flag of the read, not an instruction.
 	sourceLocation := messageDescriptor(t, "SourceLocation")
 	require.Equal(t, "temporal/server/api/testpilot/v1/source.proto", sourceLocation.ParentFile().Path())
 	waitHint := messageDescriptor(t, "WaitHint")
-	require.Equal(t, []protoreflect.Name{"hint_id", "source", "at_most_milliseconds"}, fieldNames(waitHint))
+	require.Equal(t, []protoreflect.Name{"hint_id", "source", "at_most"}, fieldNames(waitHint))
+	require.Equal(t, protoreflect.FullName("google.protobuf.Duration"), waitHint.Fields().ByName("at_most").Message().FullName())
 	require.Equal(t, sourceLocation.FullName(), waitHint.Fields().ByName("source").Message().FullName())
 	require.True(t, messageDescriptor(t, "InstructionNode").Fields().ByName("wait_hints").IsList())
-	require.Equal(t, protoreflect.BoolKind, messageDescriptor(t, "ReadEvidence").Fields().ByName("once").Kind())
+	require.Nil(t, messageDescriptor(t, "ReadEvidence").Fields().ByName("once"))
+	require.Equal(t, protoreflect.FullName("google.protobuf.Duration"), messageDescriptor(t, "ReadEvidence").Fields().ByName("interval").Message().FullName())
+	require.Nil(t, messageDescriptor(t, "ContractRule").Fields().ByName("kind"))
+	require.True(t, messageDescriptor(t, "ContractTransition").Fields().ByName("supports_event").HasPresence())
+	require.Equal(t, messageDescriptor(t, "LocalInstructionReference").FullName(), messageDescriptor(t, "After").Fields().ByName("instructions").Message().FullName())
+	require.Equal(t, []protoreflect.Name{"observation_id", "evidence_ids"}, fieldNames(messageDescriptor(t, "CorrelatedEvidenceProjection")))
+	require.Equal(t, "temporal/server/api/testpilot/v1/evidence.proto", evidenceRule.ParentFile().Path())
+	require.Equal(t, []protoreflect.Name{"state_id", "atom", "fields"}, fieldNames(messageDescriptor(t, "CorrelatedState")))
+	require.Equal(t, []protoreflect.Name{"result_id", "action", "state_id", "outcome", "facts"}, fieldNames(messageDescriptor(t, "CorrelatedResult")))
+	require.Equal(t, []protoreflect.Name{"prior_state_id", "result_id"}, fieldNames(messageDescriptor(t, "CorrelatedTransition")))
+	require.Nil(t, rule.Fields().ByName("clock"))
+	require.Nil(t, messageDescriptor(t, "ReadSource").Fields().ByName("single"))
+	require.Nil(t, messageDescriptor(t, "ResponseRead").Fields().ByName("cardinality"))
+	for _, field := range []protoreflect.FieldDescriptor{
+		reference.Fields().ByName("run"), reference.Fields().ByName("projected_value"),
+		messageDescriptor(t, "RunEventReference").Fields().ByName("payload"),
+	} {
+		require.Equal(t, protoreflect.FullName("google.protobuf.Empty"), field.Message().FullName(), field.FullName())
+	}
+	for _, field := range []protoreflect.FieldDescriptor{
+		messageDescriptor(t, "InstructionLimits").Fields().ByName("timeout"),
+		messageDescriptor(t, "ProgramLimits").Fields().ByName("max_duration"),
+		messageDescriptor(t, "ProgramLimits").Fields().ByName("cleanup_duration"),
+		messageDescriptor(t, "Deadline").Fields().ByName("elapsed"),
+		messageDescriptor(t, "RunEvent").Fields().ByName("elapsed"),
+	} {
+		require.Equal(t, protoreflect.FullName("google.protobuf.Duration"), field.Message().FullName(), field.FullName())
+	}
+	require.True(t, messageDescriptor(t, "InstructionLimits").Fields().ByName("max_attempts").HasPresence())
+	require.True(t, messageDescriptor(t, "KnownGap").Fields().ByName("subject").HasPresence())
+	require.True(t, messageDescriptor(t, "KnownGap").Fields().ByName("detail").HasPresence())
 	// Kind-specific Run Event data is one payload oneof, read through a path from the payload
 	// reference, so the coordinate enum names only what every event has.
 	event := messageDescriptor(t, "RunEvent")
@@ -101,7 +128,7 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 }
 
 func TestPrepareFormatRejectsBeforePayloadAdmission(t *testing.T) {
-	for _, major := range []int32{2, 3, 4, 99} {
+	for _, major := range []int32{1, 2, 3, 99} {
 		t.Run(fmt.Sprint(major), func(t *testing.T) {
 			source, profile := facadeFixture(t)
 			source.Version.Major = major
@@ -164,6 +191,12 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"Scoped" + "Value",
 		"StartNexus" + "Operation", "CompleteNexus" + "Operation", "Respond" + "Nexus", "NexusResponse" + "Kind",
 		"Reference.model" + "_value",
+		"Compare" + "Expression", "Present" + "Expression", "Path" + "Expression",
+		"All" + "Expression", "Any" + "Expression", "Not" + "Expression", "Comparison" + "Operator",
+		"Value", "Enum" + "Value", "List" + "Value", "Map" + "Value", "CorrelatedEvidence" + "Rule",
+		"EvidenceField" + "Declaration", "EvidenceOperation" + "Key", "Correlated" + "Clock",
+		"ContractRule" + "Kind", "ContractSupport" + "Kind", "Read" + "Cardinality",
+		"Run" + "Reference", "ProjectedValue" + "Reference", "RunEventPayload" + "Reference",
 	} {
 		_, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName("temporal.server.api.testpilot.v1." + retired))
 		require.Error(t, err, retired)

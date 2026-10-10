@@ -3,7 +3,9 @@ package temporal_test
 import (
 	"slices"
 	"testing"
+	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	commandpb "go.temporal.io/api/command/v1"
 	commonpb "go.temporal.io/api/common/v1"
@@ -11,16 +13,20 @@ import (
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/common/testing/testpilot/temporal/worker"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func commandCase(command *commandpb.Command) *testpilotspb.Case {
-	limits := &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}
+	limits := &testpilotspb.InstructionLimits{Timeout: durationpb.New(time.Duration(1000) * time.Millisecond), MaxAttempts: proto.Int64(1)}
 	return &testpilotspb.Case{
-		Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "temporal.case.command",
+		Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor}, CaseId: "temporal.case.command",
 		Program: &testpilotspb.Program{
 			ProgramId: "program",
 			Roles: []*testpilotspb.Role{
@@ -33,7 +39,7 @@ func commandCase(command *commandpb.Command) *testpilotspb.Case {
 				Activation:   &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "workflow-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
 				Instructions: []*testpilotspb.InstructionNode{
 					{InstructionId: "command", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_WorkflowCommand{WorkflowCommand: &testpilotspb.WorkflowCommand{Command: command}}}, Limits: limits},
-					{InstructionId: "finish", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}}}}}}, Limits: limits},
+					{InstructionId: "finish", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: cel.Literal(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "done"}})}}}, Limits: limits},
 				},
 			}},
 			Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
@@ -43,19 +49,7 @@ func commandCase(command *commandpb.Command) *testpilotspb.Case {
 		},
 		Contract: &testpilotspb.Contract{
 			ContractId: "contract",
-			Rules: []*testpilotspb.ContractRule{{
-				RuleId: "complete", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "open",
-				States: []*testpilotspb.ContractState{
-					{StateId: "open", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
-					{StateId: "closed", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
-				},
-				Transitions: []*testpilotspb.ContractTransition{{
-					TransitionId: "close", SourceStateId: "open", TargetStateId: "closed",
-					EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_RUN_CLOSED}},
-					Predicate:   &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}},
-					SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
-				}},
-			}},
+			Rules:      []*testpilotspb.ContractRule{{RuleId: "complete", InitialStateId: "open", States: []*testpilotspb.ContractState{{StateId: "open", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "closed", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "close", SourceStateId: "open", TargetStateId: "closed", EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_RUN_CLOSED}}, Predicate: cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}}), SupportsEvent: proto.Bool(true)}}}},
 		},
 	}
 }
@@ -134,7 +128,7 @@ func TestDeriveProfileCarriesTheEnvironmentsBoundScale(t *testing.T) {
 	scaled, err := temporal.DeriveProfile(source, catalog, environment)
 	require.NoError(t, err)
 	require.Equal(t, testpilot.BoundScale(300), scaled.BoundScale)
-	require.Equal(t, plain.ProgramLimits.GetMaxTotalDurationMilliseconds(), scaled.ProgramLimits.GetMaxTotalDurationMilliseconds(), "preparation scales the ceilings, not derivation")
+	require.Equal(t, plain.ProgramLimits.GetMaxDuration().AsDuration().Milliseconds(), scaled.ProgramLimits.GetMaxDuration().AsDuration().Milliseconds(), "preparation scales the ceilings, not derivation")
 	prepared, err := testpilot.Prepare(source, scaled)
 	require.NoError(t, err)
 	plainPrepared, err := testpilot.Prepare(source, plain)
@@ -157,17 +151,10 @@ func TestDeriveProfileAuthorizesTheMethodAReadDeclarationPolls(t *testing.T) {
 	})
 	source.Program.Roles = append(source.Program.Roles, &testpilotspb.Role{RoleId: "workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT})
 	source.Program.Observations = []*testpilotspb.Observation{{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}}}}}}}
-	source.Program.Evidence = []*testpilotspb.EvidenceDeclaration{{
-		EvidenceId: "pendingAttempts", EvidenceSource: "describe", Operation: "scheduled_event_id",
-		Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describe, Path: "pending_nexus_operations"}},
-		Fields: []*testpilotspb.EvidenceFieldDeclaration{{FieldId: "attempts", Path: "attempt"}},
-	}}
+	source.Program.Evidence = []*testpilotspb.EvidenceDeclaration{{EvidenceId: "pendingAttempts", EvidenceSource: "describe", Operation: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "scheduled_event_id"), Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describe, Path: "pending_nexus_operations"}}, Fields: []*testpilotspb.NamedExpression{{FieldId: "attempts", Value: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "attempt")}}, Kind: "pendingAttempts"}}
 	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.Entrypoint{
-		EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}},
-		Instructions: []*testpilotspb.InstructionNode{{InstructionId: "pending-attempts", Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{
-			EvidenceId: "pendingAttempts", EndpointRoleId: "workflow-service", PollIntervalMilliseconds: 100,
-			Until: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}}}}, Path: "attempt"}}}}}},
-		}}}}},
+		EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}},
+		Instructions: []*testpilotspb.InstructionNode{{InstructionId: "pending-attempts", Limits: &testpilotspb.InstructionLimits{Timeout: durationpb.New(time.Duration(1000) * time.Millisecond), MaxAttempts: proto.Int64(1)}, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{EvidenceId: "pendingAttempts", EndpointRoleId: "workflow-service", Interval: durationpb.New(time.Duration(100) * time.Millisecond), Until: cel.Present(cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "attempt"))}}}}},
 	})
 	profile, err := temporal.DeriveProfile(source, catalog, environment)
 	require.NoError(t, err)
@@ -194,11 +181,11 @@ const (
 )
 
 func environmentReference(id string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: id}}}}
+	return cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: id}})
 }
 
 func textLiteral(value string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}}
+	return cel.Literal(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: value}})
 }
 
 // startCall is a controller call of method on the workflow service that names the bound namespace
@@ -233,7 +220,7 @@ func activityCase() *testpilotspb.Case {
 		Instructions: []*testpilotspb.InstructionNode{{InstructionId: "run-attempt", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}}},
 	}
 	controller := &testpilotspb.Entrypoint{
-		EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}},
+		EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}},
 		Instructions: []*testpilotspb.InstructionNode{
 			startCall("start-workflow", startWorkflowExecution, &testpilotspb.RequestAssignment{Target: "workflow_type.name", Value: textLiteral("workflow-type")}, &testpilotspb.RequestAssignment{Target: "workflow_id", Value: textLiteral("workflow-id")}),
 			startCall("start-activity", startActivityExecution, &testpilotspb.RequestAssignment{Target: "activity_type.name", Value: textLiteral("activity-type")}, &testpilotspb.RequestAssignment{Target: "activity_id", Value: textLiteral("activity-id")}),

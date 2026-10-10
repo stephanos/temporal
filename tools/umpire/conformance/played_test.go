@@ -239,7 +239,7 @@ func playedKinds(t testing.TB, source *testpilotspb.Case, run *testpilotspb.Run,
 				continue
 			}
 			evidence := &testpilotspb.CorrelatedEvidence{}
-			require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(evidence))
+			require.NoError(t, observation.GetValue().GetObjectValue().UnmarshalTo(evidence))
 			id, renamed := defined[evidence.GetKind()]
 			if !renamed {
 				id = evidence.GetKind()
@@ -367,7 +367,7 @@ func TestALoweredActivityCaseRunsLiveAndReplaysAlike(t *testing.T) {
 						}
 						raw = append(raw, event)
 						info := &activitypb.ActivityExecutionInfo{}
-						require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(info))
+						require.NoError(t, observation.GetValue().GetObjectValue().UnmarshalTo(info))
 						protorequire.ProtoEqual(t, &activitypb.ActivityExecutionInfo{ActivityId: run.GetRunId(), Status: test.statuses[test.final],
 							Attempt: test.publicAttempt}, info)
 					}

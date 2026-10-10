@@ -6,6 +6,10 @@ import (
 	"slices"
 	"strings"
 
+	engine "cel.dev/cel-go/cel"
+	"cel.dev/cel-go/common/env"
+	"cel.dev/cel-go/common/types"
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -19,44 +23,33 @@ const (
 	ObservationReference
 	EventReference
 	CaptureReference
-	// ProjectedValueReference is the value an evidence lift is projecting; it carries no identity.
 	ProjectedValueReference
-	// EventPayloadReference is one payload arm of the evaluated Run Event, named by ID. A caller
-	// declares the arms a context's event kinds may carry; an authored expression reaches one only
-	// through a path whose first segment names it.
 	EventPayloadReference
-	// InstanceValueReference is a value each Rule instance assigns, named by ID. It stands for the
-	// literal the instance inlines, so it is always available and never adapts to its context.
 	InstanceValueReference
+	EvidenceFieldReference
+	CorrelatedCaptureReference
+	CorrelatedStepReference
 )
 
 type Reference struct {
 	Kind           ReferenceKind
 	Entrypoint, ID string
 	Field          int32
+	Ordinal        int64
 }
 type Binding struct {
 	Type      Type
 	Available bool
 }
-
-// Context is where an expression appears in a Case. Program and Contract share one expression
-// language, so which references an expression may use is decided by its context at binding.
 type Context uint8
 
 const (
-	// ProgramContext is an instruction input or guard.
 	ProgramContext Context = iota + 1
-	// ContractContext is a Contract transition predicate.
 	ContractContext
-	// CorrelatedContext is a correlated rule's trigger, response or correlation. The correlated
-	// capability admits and evaluates these itself rather than through BindExpression.
 	CorrelatedContext
-	// EvidenceLiftContext is an evidence-lift rule's guard over the value being projected.
 	EvidenceLiftContext
 )
 
-// admittedReferences names the Reference arms each context admits.
 var admittedReferences = map[Context]map[protoreflect.Name]bool{
 	ProgramContext:      {"slot_id": true, "outcome": true, "run": true, "environment_binding_id": true},
 	ContractContext:     {"observation_id": true, "run_event": true, "capture_id": true, "instance_value_id": true},
@@ -64,71 +57,40 @@ var admittedReferences = map[Context]map[protoreflect.Name]bool{
 	EvidenceLiftContext: {"projected_value": true},
 }
 
-// admitReference rejects a Reference arm its context does not admit, located at path, the path of
-// the Reference within the Case.
 func admitReference(context Context, path string, arm protoreflect.Name) error {
 	if !admittedReferences[context][arm] {
 		return Invalid(Unknown, path+"."+string(arm), "reference is not admitted in this expression context")
 	}
 	return nil
 }
-
-// AdmitReferences rejects the first reference in source, in evaluation order, that the site's
-// context does not admit, at the path BindExpression would report. It is the context check for
-// expressions a caller evaluates without binding them.
 func AdmitReferences(site Site, source *testpilotspb.Expression) error {
 	return WalkReferences(site.Path, source, func(path string, reference *testpilotspb.Reference) error {
-		message := reference.ProtoReflect()
-		if arm := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference")); arm != nil {
-			return admitReference(site.Context, path+".reference", arm.Name())
+		if reference == nil {
+			return Invalid(Malformed, path, "reference is required")
 		}
-		return nil
+		message := reference.ProtoReflect()
+		arm := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference"))
+		if arm == nil {
+			return Invalid(Malformed, path, "reference is required")
+		}
+		return admitReference(site.Context, path+".reference", arm.Name())
 	})
 }
-
-// WalkReferences calls visit, in evaluation order, with each Reference in source and the path of the
-// expression holding it, in the path grammar BindExpression reports; it stops at visit's first error.
-func WalkReferences(path string, source *testpilotspb.Expression, visit func(path string, reference *testpilotspb.Reference) error) error {
-	switch v := source.GetExpression().(type) {
-	case *testpilotspb.Expression_Reference:
-		return visit(path, v.Reference)
-	case *testpilotspb.Expression_Path:
-		return WalkReferences(path+".path.operand", v.Path.GetOperand(), visit)
-	case *testpilotspb.Expression_Present:
-		return WalkReferences(path+".present", v.Present.GetOperand(), visit)
-	case *testpilotspb.Expression_Not:
-		return WalkReferences(path+".not", v.Not.GetOperand(), visit)
-	case *testpilotspb.Expression_Compare:
-		if err := WalkReferences(path+".compare.left", v.Compare.GetLeft(), visit); err != nil {
-			return err
-		}
-		return WalkReferences(path+".compare.right", v.Compare.GetRight(), visit)
-	case *testpilotspb.Expression_All:
-		return walkOperands(path+".all", v.All.GetOperands(), visit)
-	case *testpilotspb.Expression_Any:
-		return walkOperands(path+".any", v.Any.GetOperands(), visit)
-	default:
-		// A literal reads no reference.
-	}
-	return nil
-}
-
-func walkOperands(path string, operands []*testpilotspb.Expression, visit func(path string, reference *testpilotspb.Reference) error) error {
-	for index, operand := range operands {
-		if err := WalkReferences(fmt.Sprintf("%s[%d]", path, index), operand, visit); err != nil {
-			return err
+func WalkReferences(path string, source *testpilotspb.Expression, visit func(string, *testpilotspb.Reference) error) error {
+	for i, binding := range source.GetBindings() {
+		if reference := binding.GetReference(); reference != nil {
+			if err := visit(fmt.Sprintf("%s.bindings[%d]", path, i), reference); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-// Site locates one authored expression: the context it is bound in and its path in the Case, which
-// a rejected reference extends to name itself.
 type Site struct {
 	Context Context
 	Path    string
 }
-
 type Operator uint8
 
 const (
@@ -140,586 +102,695 @@ const (
 	Not
 	All
 	Any
+	Size
+	Conditional
+	ListExpression
+	MapExpression
+	OptionalExpression
+	IndexExpression
 )
 
 type Expression struct {
-	bindingWork int64
-	operator    Operator
-	typ         Type
-	literal     *testpilotspb.Value
-	reference   Reference
-	children    []*Expression
-	path        *Path
-	comparison  testpilotspb.ComparisonOperator
-	absent      bool
-	key         string
-	// instanceValueReads names each instance value reference its binding call bound, once per read.
+	bindingWork        int64
+	operator           Operator
+	typ                Type
+	literal            *celpb.Value
+	reference          Reference
+	children           []*Expression
+	path               *Path
+	comparison         string
+	absent             bool
+	key                string
+	location           string
+	optional           bool
 	instanceValueReads []string
+	variables          map[string]*Expression
+	environment        *engine.Env
+	checked            *engine.Ast
+	registry           *types.Registry
+	site               Site
+	limits             Limits
 }
 
-func (e *Expression) BindingWork() int64                          { return e.bindingWork }
-func (e *Expression) Operator() Operator                          { return e.operator }
-func (e *Expression) Type() Type                                  { return e.typ }
-func (e *Expression) Literal() *testpilotspb.Value                { return proto.CloneOf(e.literal) }
-func (e *Expression) Reference() Reference                        { return e.reference }
-func (e *Expression) Children() []*Expression                     { return slices.Clone(e.children) }
-func (e *Expression) Path() *Path                                 { return e.path }
-func (e *Expression) Comparison() testpilotspb.ComparisonOperator { return e.comparison }
-func (e *Expression) MayBeAbsent() bool                           { return e.absent }
-
-// InstanceValueReads names, once per read, each instance value reference the binding call that
-// produced e bound, its conditions included, so a caller can charge each read what the literal a
-// Rule instance inlines for it costs.
+func (e *Expression) BindingWork() int64           { return e.bindingWork }
+func (e *Expression) Operator() Operator           { return e.operator }
+func (e *Expression) Type() Type                   { return e.typ }
+func (e *Expression) Literal() *celpb.Value        { return proto.CloneOf(e.literal) }
+func (e *Expression) Reference() Reference         { return e.reference }
+func (e *Expression) Children() []*Expression      { return slices.Clone(e.children) }
+func (e *Expression) Path() *Path                  { return e.path }
+func (e *Expression) Comparison() string           { return e.comparison }
+func (e *Expression) MayBeAbsent() bool            { return e.absent }
 func (e *Expression) InstanceValueReads() []string { return slices.Clone(e.instanceValueReads) }
 
-type compiler struct {
-	catalog            *Catalog
-	context            Context
-	scope              map[Reference]Binding
-	budget             budget
-	instanceValueReads []string
-}
-
-func (c *Catalog) BindExpression(site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
-	_, bound, err := c.bindConditionedExpression(nil, site, source, expected, scope, limits)
-	return bound, err
-}
-
-// BindGuardedExpression compiles an instruction input under the facts implied by its guard.
-// Both expressions share the same budget; the guard must be valid before its facts are used.
-func (c *Catalog) BindGuardedExpression(guard Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
-	var conditions []Condition
-	if !IsNil(guard.Expression) {
-		conditions = []Condition{{Expression: guard.Expression, Path: guard.Path, Matches: true}}
-	}
-	return c.bindConditionedExpression(conditions, site, source, expected, scope, limits)
-}
-
-// Condition is an expression bound in the same context as the value it constrains, and whether it
-// held; Path locates it in the Case.
 type Condition struct {
 	Expression *testpilotspb.Expression
 	Path       string
 	Matches    bool
 }
 
-// BindConditionedExpression preserves each authored expression's depth while sharing guard facts and work.
+func (c *Catalog) BindExpression(site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
+	return c.BindConditionedExpression(nil, site, source, expected, scope, limits)
+}
+func (c *Catalog) BindGuardedExpression(guard Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, *Expression, error) {
+	var conditions []Condition
+	if guard.Expression != nil {
+		guard.Matches = true
+		conditions = []Condition{guard}
+	}
+	return c.bindConditioned(conditions, site, source, expected, scope, limits)
+}
 func (c *Catalog) BindConditionedExpression(conditions []Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
-	_, value, err := c.bindConditionedExpression(conditions, site, source, expected, scope, limits)
+	_, value, err := c.bindConditioned(conditions, site, source, expected, scope, limits)
 	return value, err
 }
-
-func (c *Catalog) checkBinding(site Site, source *testpilotspb.Expression, expected *Type, limits Limits) error {
+func (c *Catalog) bindConditioned(conditions []Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, *Expression, error) {
 	if err := limits.validate(); err != nil {
-		return err
+		return nil, nil, err
 	}
+	b := &budget{limits: limits}
+	facts := map[string]bool{}
+	var guard *Expression
+	boolean := c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
+	var reads []string
+	for _, condition := range conditions {
+		var err error
+		guard, err = c.compile(Site{Context: site.Context, Path: condition.Path}, condition.Expression, &boolean, scope, b, facts)
+		if err != nil {
+			return nil, nil, err
+		}
+		maps.Copy(facts, presenceFacts(guard, condition.Matches))
+		reads = append(reads, guard.instanceValueReads...)
+	}
+	bound, err := c.compile(site, source, expected, scope, b, facts)
+	if err != nil {
+		return nil, nil, err
+	}
+	bound.bindingWork = b.work
+	bound.instanceValueReads = append(reads, bound.instanceValueReads...)
+	return guard, bound, nil
+}
+func referenceKey(reference Reference) string {
+	return fmt.Sprintf("%d:%q:%q:%d:%d", reference.Kind, reference.Entrypoint, reference.ID, reference.Field, reference.Ordinal)
+}
+func (c *Catalog) compile(site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, b *budget, facts map[string]bool) (*Expression, error) {
 	if admittedReferences[site.Context] == nil {
-		return Invalid(Malformed, "expression", "expression context is required")
+		return nil, Invalid(Malformed, site.Path, "expression context is required")
 	}
-	if !hasExpression(source) {
-		return Invalid(Malformed, "expression", "expression is required")
+	if source == nil || source.GetCel().GetExpr() == nil {
+		return nil, Invalid(Malformed, site.Path, "CEL expression is required")
 	}
 	if expected != nil && !c.owns(*expected) {
-		return Invalid(TypeMismatch, "expression", "expected type belongs to another catalog")
+		return nil, Invalid(TypeMismatch, site.Path, "expected type belongs to another catalog")
 	}
-	return nil
-}
-
-func (c *Catalog) bindConditionedExpression(conditions []Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
-	if err := c.checkBinding(site, source, expected, limits); err != nil {
-		return nil, nil, err
-	}
-	binder := compiler{catalog: c, context: site.Context, scope: scope, budget: budget{limits: limits}}
-	var compiledGuard *Expression
-	facts := map[string]bool{}
-	for _, condition := range conditions {
-		guard := condition.Expression
-		if err := inspectSurface(guard.ProtoReflect(), &binder.budget, "guard"); err != nil {
-			return nil, nil, err
-		}
-		boolean := c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
-		var err error
-		compiledGuard, err = binder.bind(guard, condition.Path, &boolean, facts, false, 1)
-		if err != nil {
-			return nil, nil, err
-		}
-		learned, err := binder.presenceFacts(compiledGuard, condition.Matches)
-		if err != nil {
-			return nil, nil, err
-		}
-		if err := binder.budget.charge(1, int64(len(learned)), 0, "expression.presence"); err != nil {
-			return nil, nil, err
-		}
-		maps.Copy(facts, learned)
-	}
-	if err := inspectSurface(source.ProtoReflect(), &binder.budget, "expression"); err != nil {
-		return nil, nil, err
-	}
-	compiled, err := binder.bind(source, site.Path, expected, facts, false, 1)
-	if err == nil {
-		compiled.bindingWork = binder.budget.work
-		compiled.instanceValueReads = binder.instanceValueReads
-	}
-	return compiledGuard, compiled, err
-}
-
-func referenceKey(reference Reference) string {
-	return fmt.Sprintf("%d:%q:%q:%d", reference.Kind, reference.Entrypoint, reference.ID, reference.Field)
-}
-
-func hasExpression(source proto.Message) bool {
-	if IsNil(source) {
-		return false
-	}
-	message := source.ProtoReflect()
-	oneof := message.Descriptor().Oneofs().ByName("expression")
-	return oneof != nil && message.WhichOneof(oneof) != nil
-}
-
-func expressionVariant(source proto.Message) (protoreflect.Name, protoreflect.Value) {
-	message := source.ProtoReflect()
-	field := message.WhichOneof(message.Descriptor().Oneofs().ByName("expression"))
-	if field == nil {
-		return "", protoreflect.Value{}
-	}
-	return field.Name(), message.Get(field)
-}
-
-func messageField(message protoreflect.Message, name protoreflect.Name) protoreflect.Message {
-	return message.Get(message.Descriptor().Fields().ByName(name)).Message()
-}
-
-func (b *compiler) bind(source proto.Message, path string, expected *Type, facts map[string]bool, allowAbsent bool, depth int64) (*Expression, error) {
-	if !hasExpression(source) {
-		return nil, Invalid(Malformed, "expression", "missing expression node")
-	}
-	if err := b.budget.charge(depth, 1, 0, "expression"); err != nil {
+	surface := *b
+	surface.work = b.surfaceWork
+	surface.limits.Work = DefaultLimits().Work
+	surface.limits.Depth = DefaultLimits().Depth
+	if err := inspectSurface(source.ProtoReflect(), &surface, site.Path); err != nil {
 		return nil, err
 	}
-	result, err := b.node(source, path, expected, facts, depth)
+	b.bytes = surface.bytes
+	b.surfaceWork = surface.work
+	canonical, err := CanonicalCEL(source.Cel)
 	if err != nil {
 		return nil, err
 	}
-	c := b.catalog
-	if result.reference.Kind != 0 {
-		reference := result.reference
-		if reference.Kind != EventReference && reference.Kind != ProjectedValueReference && reference.ID == "" {
-			return nil, Invalid(Malformed, "expression", "reference identity is required")
-		}
-		binding, ok := b.scope[reference]
-		if !ok {
-			return nil, Invalid(Unknown, "expression", "reference is not declared in this environment")
-		}
-		if !c.owns(binding.Type) {
-			return nil, Invalid(TypeMismatch, "expression", "reference type belongs to another catalog")
-		}
-		result.operator = ReferenceValue
-		result.typ = binding.Type
-		if reference.Kind == InstanceValueReference {
-			if err := b.instanceValue(binding.Type, expected, path); err != nil {
-				return nil, err
+	registry, err := c.celRegistry()
+	if err != nil {
+		return nil, err
+	}
+	subset := env.NewLibrarySubset().SetDisableMacros(true)
+	for _, name := range []string{"_==_", "_!=_", "_<_", "_<=_", "_>_", "_>=_", "_&&_", "_||_", "!_", "_?_:_", "@in", "size", "_[_]"} {
+		subset.AddIncludedFunctions(env.NewFunction(name))
+	}
+	options := []engine.EnvOption{engine.StdLib(engine.StdLibSubset(subset)), engine.OptionalTypes(), engine.ClearMacros(), engine.CustomTypeProvider(registry), engine.CustomTypeAdapter(registry)}
+	variables := map[string]*Expression{}
+	for pass := 0; pass < 2; pass++ {
+		for i, input := range source.Bindings {
+			if input != nil && (input.GetLiteral() != nil) != (pass == 1) {
+				continue
 			}
-			b.instanceValueReads = append(b.instanceValueReads, reference.ID)
-		} else {
-			result.key = referenceKey(reference)
-		}
-		result.absent = !binding.Available && !facts[result.key]
-	}
-	if result.typ.opaque {
-		return nil, Invalid(Unsupported, "expression", "opaque handles cannot be inspected")
-	}
-	if expected != nil && !result.typ.Equal(*expected) {
-		return nil, Invalid(TypeMismatch, "expression", "expression type does not match expected type")
-	}
-	if result.absent && !allowAbsent {
-		return nil, Invalid(Unavailable, "expression", "reference or path read requires an explicit presence guard")
-	}
-	return result, nil
-}
-
-// instanceValue admits an instance value of the declared type where expected is required. The
-// literal a Rule instance inlines for it takes its type from its context, or is text without one, so
-// the declared type must be exactly that type for the Rule to bind as each of its expansions does.
-func (b *compiler) instanceValue(declared Type, expected *Type, path string) error {
-	want := b.catalog.scalarType(testpilotspb.SCALAR_KIND_TEXT)
-	if expected != nil {
-		want = *expected
-	}
-	if !declared.Equal(want) {
-		return Invalid(TypeMismatch, path+".reference.instance_value_id", "instance value is used where its declared type is not the expected type")
-	}
-	return nil
-}
-
-// InstanceValueWork is the binding work a Rule instance's literal value, inlined as typ, costs over
-// a reference to the instance value id, so a Rule bound once is charged as each expansion binds.
-func (c *Catalog) InstanceValueWork(id string, value *testpilotspb.Value, typ Type) (int64, error) {
-	inlined := budget{limits: DefaultLimits()}
-	if err := inspectSurface((&testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: value}}).ProtoReflect(), &inlined, "expression"); err != nil {
-		return 0, err
-	}
-	if err := c.checkLiteral(value, typ, &inlined, 1); err != nil {
-		return 0, err
-	}
-	reference := budget{limits: DefaultLimits()}
-	source := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_InstanceValueId{InstanceValueId: id}}}}
-	if err := inspectSurface(source.ProtoReflect(), &reference, "expression"); err != nil {
-		return 0, err
-	}
-	return inlined.work - reference.work, nil
-}
-
-// node binds one Expression located at path. Child paths name the child by its operator, with the
-// operand index of all and any, so a rejection stays short enough to locate within 256 bytes.
-func (b *compiler) node(source proto.Message, path string, expected *Type, facts map[string]bool, depth int64) (*Expression, error) {
-	kind, value := expressionVariant(source)
-	switch kind {
-	case "literal":
-		return b.literal(value.Message().Interface().(*testpilotspb.Value), expected, depth)
-	case "reference":
-		reference, err := b.reference(value.Message(), path+".reference")
-		return &Expression{reference: reference}, err
-	case "path":
-		if payloadReference(messageField(value.Message(), "operand").Interface()) {
-			return b.readPayloadPath(value.Message(), path+".path", facts, depth)
-		}
-		return b.readPath(value.Message(), path+".path", facts, depth)
-	case "present":
-		return b.unary(IsPresent, messageField(value.Message(), "operand").Interface(), path+".present", facts, depth)
-	case "not":
-		return b.unary(Not, messageField(value.Message(), "operand").Interface(), path+".not", facts, depth)
-	case "compare":
-		comparison := testpilotspb.ComparisonOperator(value.Message().Get(value.Message().Descriptor().Fields().ByName("operator")).Enum())
-		if comparison < testpilotspb.COMPARISON_OPERATOR_EQUAL || comparison > testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL {
-			return nil, Invalid(Unknown, "expression", "unknown comparison operator")
-		}
-		return b.binary(messageField(value.Message(), "left").Interface(), messageField(value.Message(), "right").Interface(), comparison, path+".compare", facts, depth)
-	case "all":
-		return b.logicalNode(All, expressionOperands(value.Message()), path+".all", facts, depth)
-	case "any":
-		return b.logicalNode(Any, expressionOperands(value.Message()), path+".any", facts, depth)
-	default:
-		return nil, Invalid(Unsupported, "expression", "unknown expression variant")
-	}
-}
-
-// reference resolves a Reference its context admits. A reference outside the context is a static
-// rejection located at the reference arm.
-func (b *compiler) reference(message protoreflect.Message, path string) (Reference, error) {
-	var result Reference
-	selected := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference"))
-	if selected == nil {
-		return Reference{}, Invalid(Malformed, "expression", "reference is required")
-	}
-	if err := admitReference(b.context, path, selected.Name()); err != nil {
-		return Reference{}, err
-	}
-	value := message.Get(selected)
-	switch selected.Name() {
-	case "slot_id":
-		result = Reference{Kind: SlotReference, ID: value.String()}
-	case "observation_id":
-		result = Reference{Kind: ObservationReference, ID: value.String()}
-	case "capture_id":
-		result = Reference{Kind: CaptureReference, ID: value.String()}
-	case "instance_value_id":
-		result = Reference{Kind: InstanceValueReference, ID: value.String()}
-	case "outcome":
-		message := value.Message()
-		instruction := messageField(message, "instruction")
-		result = Reference{Kind: OutcomeReference, Entrypoint: instruction.Get(instruction.Descriptor().Fields().ByName("entrypoint_id")).String(), ID: instruction.Get(instruction.Descriptor().Fields().ByName("instruction_id")).String(), Field: int32(message.Get(message.Descriptor().Fields().ByName("field")).Enum())}
-		if result.Entrypoint == "" || result.Field <= 0 || result.Field > int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE) {
-			return Reference{}, Invalid(Malformed, "expression", "invalid outcome reference")
-		}
-	case "run_event":
-		event := value.Message().Interface().(*testpilotspb.RunEventReference)
-		if event.GetPayload() != nil {
-			return Reference{}, Invalid(Malformed, path+".run_event.payload", "a Run Event payload is read only through a path that names its arm")
-		}
-		result = Reference{Kind: EventReference, Field: int32(event.GetField())}
-		if result.Field <= 0 || result.Field > int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID) {
-			return Reference{}, Invalid(Malformed, "expression", "invalid Run Event reference")
-		}
-	case "run":
-		result = Reference{Kind: EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}
-	case "projected_value":
-		result = Reference{Kind: ProjectedValueReference}
-	default:
-		// An environment binding is admitted only as a whole request assignment value, which
-		// Program admission resolves to a literal before binding.
-		return Reference{}, Invalid(Unsupported, "expression", "unknown expression variant")
-	}
-	return result, nil
-}
-
-func (b *compiler) literal(value *testpilotspb.Value, expected *Type, depth int64) (*Expression, error) {
-	result := &Expression{operator: Literal}
-	var err error
-	if expected != nil {
-		result.typ = *expected
-	} else {
-		result.typ, err = b.catalog.literalType(value)
-	}
-	if err != nil {
-		return nil, err
-	}
-	if err := b.catalog.checkLiteral(value, result.typ, &b.budget, depth); err != nil {
-		return nil, err
-	}
-	result.literal = proto.CloneOf(value)
-	return result, nil
-}
-
-func (b *compiler) readPath(value protoreflect.Message, location string, facts map[string]bool, depth int64) (*Expression, error) {
-	operand, err := b.bind(messageField(value, "operand").Interface(), location+".operand", nil, facts, true, depth+1)
-	if err != nil {
-		return nil, err
-	}
-	path, err := b.catalog.BindPath(operand.typ, location+".path", value.Get(value.Descriptor().Fields().ByName("path")).String(), b.budget.limits)
-	if err != nil {
-		return nil, err
-	}
-	return b.readOperandPath(operand, path, facts, depth)
-}
-
-// payloadReference reports whether source is a reference to the evaluated Run Event's payload.
-func payloadReference(source proto.Message) bool {
-	expression, ok := source.(*testpilotspb.Expression)
-	return ok && expression.GetReference().GetRunEvent().GetPayload() != nil
-}
-
-// readPayloadPath binds a path from the Run Event payload. Its first segment names the payload arm,
-// which must be declared in scope, and the rest of the path reads inside that arm, so the read is
-// typed by the arm's descriptor and absent unless the arm is known to be carried.
-func (b *compiler) readPayloadPath(value protoreflect.Message, location string, facts map[string]bool, depth int64) (*Expression, error) {
-	if err := b.budget.charge(depth+1, 1, 0, "expression"); err != nil {
-		return nil, err
-	}
-	operandLocation := location + ".operand.reference"
-	if err := admitReference(b.context, operandLocation, "run_event"); err != nil {
-		return nil, err
-	}
-	pathLocation := location + ".path"
-	text := value.Get(value.Descriptor().Fields().ByName("path")).String()
-	segments, err := parsePath(text)
-	if err != nil {
-		return nil, pathError(Malformed, pathLocation, text, err.Error())
-	}
-	if len(segments) == 0 || segments[0].selector != Field {
-		return nil, pathError(Malformed, pathLocation, text, "a Run Event payload path starts with the plain name of a payload arm")
-	}
-	arm := segments[0].field
-	reference := Reference{Kind: EventPayloadReference, ID: arm}
-	if _, known := b.catalog.RunEventPayloadType(protoreflect.Name(reference.ID)); !known {
-		return nil, pathError(Unknown, pathLocation, text, "unknown Run Event payload arm "+arm)
-	}
-	binding, declared := b.scope[reference]
-	if !declared {
-		return nil, pathError(Unknown, pathLocation, text, "no Run Event kind this expression evaluates can carry the payload arm "+arm)
-	}
-	if !b.catalog.owns(binding.Type) {
-		return nil, Invalid(TypeMismatch, "expression", "reference type belongs to another catalog")
-	}
-	operand := &Expression{operator: ReferenceValue, reference: reference, typ: binding.Type, key: referenceKey(reference)}
-	operand.absent = !binding.Available && !facts[operand.key]
-	pathBudget := budget{limits: b.budget.limits}
-	path, err := b.catalog.bindSegments(binding.Type, pathLocation, text, segments[1:], &pathBudget)
-	if err != nil {
-		return nil, err
-	}
-	return b.readOperandPath(operand, path, facts, depth)
-}
-
-// readOperandPath reads a bound path out of an already bound operand.
-func (b *compiler) readOperandPath(operand *Expression, path *Path, facts map[string]bool, depth int64) (*Expression, error) {
-	if err := b.budget.charge(depth, int64(len(path.steps)), 0, "expression.path"); err != nil {
-		return nil, err
-	}
-	result := &Expression{operator: ReadPath, children: []*Expression{operand}, path: path, typ: path.typ}
-	if operand.key != "" {
-		result.key = operand.key + "/" + path.text
-	}
-	result.absent = (operand.absent || path.absent) && !facts[result.key]
-	if len(path.steps) > 0 && path.steps[len(path.steps)-1].Selector == Presence {
-		result.absent = false
-	}
-	return result, nil
-}
-
-func (b *compiler) unary(operator Operator, source proto.Message, path string, facts map[string]bool, depth int64) (*Expression, error) {
-	boolean := b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
-	var expected *Type
-	if operator == Not {
-		expected = &boolean
-	}
-	operand, err := b.bind(source, path, expected, facts, operator == IsPresent, depth+1)
-	if err != nil {
-		return nil, err
-	}
-	return &Expression{operator: operator, children: []*Expression{operand}, typ: boolean}, nil
-}
-
-// binary binds a comparison. Equality admits operands of any one type; an ordering operator admits
-// only ordered numeric scalars. An operand may be absent without a presence guard, because a
-// comparison with an absent operand is false.
-func (b *compiler) binary(left, right proto.Message, comparison testpilotspb.ComparisonOperator, path string, facts map[string]bool, depth int64) (*Expression, error) {
-	operands, err := b.pair(left, path+".left", right, path+".right", facts, depth)
-	if err != nil {
-		return nil, err
-	}
-	equality := comparison == testpilotspb.COMPARISON_OPERATOR_EQUAL || comparison == testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL
-	if !equality && !ordered(operands[0].typ) {
-		return nil, Invalid(TypeMismatch, path, "comparison requires ordered numeric scalars")
-	}
-	return &Expression{operator: Compare, children: operands, comparison: comparison, typ: b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)}, nil
-}
-
-func (b *compiler) logicalNode(operator Operator, operands []proto.Message, path string, facts map[string]bool, depth int64) (*Expression, error) {
-	children, err := b.logical(operands, path, facts, operator == All, depth)
-	if err != nil {
-		return nil, err
-	}
-	return &Expression{operator: operator, children: children, typ: b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)}, nil
-}
-
-func (b *compiler) pair(left proto.Message, leftPath string, right proto.Message, rightPath string, facts map[string]bool, depth int64) ([]*Expression, error) {
-	first, second := left, right
-	firstPath, secondPath := leftPath, rightPath
-	reversed := b.literalLike(left) && !b.literalLike(right)
-	if reversed {
-		first, second = right, left
-		firstPath, secondPath = rightPath, leftPath
-	}
-	a, err := b.bind(first, firstPath, nil, facts, true, depth+1)
-	if err != nil {
-		return nil, err
-	}
-	other, err := b.bind(second, secondPath, &a.typ, facts, true, depth+1)
-	if err != nil {
-		return nil, err
-	}
-	if reversed {
-		return []*Expression{other, a}, nil
-	}
-	return []*Expression{a, other}, nil
-}
-
-// literalLike reports whether source binds as a literal does: a literal, or an instance value its
-// context admits, which stands for the literal each Rule instance inlines.
-func (b *compiler) literalLike(source proto.Message) bool {
-	if kind, _ := expressionVariant(source); kind == "literal" {
-		return true
-	}
-	expression, ok := source.(*testpilotspb.Expression)
-	if !ok {
-		return false
-	}
-	_, instance := expression.GetReference().GetReference().(*testpilotspb.Reference_InstanceValueId)
-	return instance && admittedReferences[b.context]["instance_value_id"]
-}
-
-func (b *compiler) logical(operands []proto.Message, path string, facts map[string]bool, continuing bool, depth int64) ([]*Expression, error) {
-	if err := b.budget.charge(depth, int64(len(facts)), 0, "expression.presence"); err != nil {
-		return nil, err
-	}
-	known := make(map[string]bool, len(facts))
-	maps.Copy(known, facts)
-	result := make([]*Expression, 0, len(operands))
-	boolean := b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
-	for index, operand := range operands {
-		item, err := b.bind(operand, fmt.Sprintf("%s[%d]", path, index), &boolean, known, false, depth+1)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, item)
-		learned, err := b.presenceFacts(item, continuing)
-		if err != nil {
-			return nil, err
-		}
-		if err := b.budget.charge(depth, int64(len(learned)), 0, "expression.presence"); err != nil {
-			return nil, err
-		}
-		maps.Copy(known, learned)
-	}
-	return result, nil
-}
-
-func expressionOperands(message protoreflect.Message) []proto.Message {
-	field := message.Descriptor().Fields().ByName("operands")
-	values := message.Get(field).List()
-	result := make([]proto.Message, values.Len())
-	for i := 0; i < values.Len(); i++ {
-		result[i] = values.Get(i).Message().Interface()
-	}
-	return result
-}
-
-func (b *compiler) presenceFacts(e *Expression, truth bool) (map[string]bool, error) {
-	if err := b.budget.charge(1, 1, 0, "expression.presence"); err != nil {
-		return nil, err
-	}
-	switch e.operator {
-	case Literal, ReferenceValue, ReadPath, Compare:
-	case IsPresent:
-		if e.children[0].key != "" {
-			return map[string]bool{e.children[0].key: truth}, nil
-		}
-	case Not:
-		return b.presenceFacts(e.children[0], !truth)
-	case All, Any:
-		result := map[string]bool{}
-		merge := (e.operator == All && truth) || (e.operator == Any && !truth)
-		for i, child := range e.children {
-			facts, err := b.presenceFacts(child, truth)
+			location := fmt.Sprintf("%s.bindings[%d]", site.Path, i)
+			if input == nil || input.Variable == "" || strings.HasPrefix(input.Variable, "__") || !validVariable(input.Variable) {
+				return nil, Invalid(Malformed, location, "invalid CEL variable")
+			}
+			if variables[input.Variable] != nil {
+				return nil, Invalid(Malformed, location, "duplicate CEL variable")
+			}
+			want := contextualType(canonical.Expr, input.Variable, variables, expected)
+			bound, err := c.bindInput(site.Context, input, location, scope, b, facts, want)
 			if err != nil {
 				return nil, err
 			}
-			if err := b.budget.charge(1, int64(len(result))+int64(len(facts)), 0, "expression.presence"); err != nil {
+			variables[input.Variable] = bound
+			bound.optional = input.GetReference() != nil || input.Path != "" || optionalBindingUsed(canonical.Expr, input.Variable)
+			variableType := celType(bound.typ)
+			if bound.optional {
+				variableType = engine.OptionalType(variableType)
+			}
+			options = append(options, engine.Variable(input.Variable, variableType))
+		}
+	}
+	bound, err := c.bindNode(canonical.Expr, expected, variables, b, site.Path, 1)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkCaptureAvailability(bound, facts); err != nil {
+		return nil, err
+	}
+	if expected != nil && !bound.typ.Equal(*expected) {
+		return nil, Invalid(TypeMismatch, site.Path, "expression type does not match expected type")
+	}
+	if bound.absent && !facts[bound.key] && site.Context != EvidenceLiftContext {
+		return nil, Invalid(Unavailable, site.Path, "reference or path read requires an explicit presence guard")
+	}
+	legacy, err := bridgeCEL(canonical, b.limits)
+	if err != nil {
+		return nil, err
+	}
+	environment, err := engine.NewCustomEnv(options...)
+	if err != nil {
+		return nil, err
+	}
+	checked, issues := environment.Check(engine.ParsedExprToAst(legacy))
+	if issues.Err() != nil {
+		return nil, Invalid(TypeMismatch, site.Path, issues.String())
+	}
+	bound.variables, bound.environment, bound.checked, bound.registry, bound.site, bound.limits = variables, environment, checked, registry, site, b.limits
+	for _, input := range source.Bindings {
+		if id := input.GetReference().GetInstanceValueId(); id != "" {
+			bound.instanceValueReads = append(bound.instanceValueReads, id)
+		}
+	}
+	return bound, nil
+}
+func validVariable(name string) bool {
+	word, end := scanName(name, 0)
+	return word != "" && end == len(name)
+}
+func contextualType(node *celpb.Expr, name string, variables map[string]*Expression, expected *Type) *Type {
+	if bindingIdentifier(node) == name {
+		return expected
+	}
+	if call := node.GetCallExpr(); call != nil {
+		if len(call.Args) == 2 && (call.Function == "_==_" || call.Function == "_!=_" || call.Function == "_<_" || call.Function == "_<=_" || call.Function == "_>_" || call.Function == "_>=_") {
+			for i, arg := range call.Args {
+				if bindingIdentifier(arg) == name {
+					if other := bindingIdentifier(call.Args[1-i]); other != "" {
+						if bound := variables[other]; bound != nil {
+							return &bound.typ
+						}
+					}
+				}
+			}
+		}
+		for _, arg := range call.Args {
+			if result := contextualType(arg, name, variables, nil); result != nil {
+				return result
+			}
+		}
+		if call.Target != nil {
+			return contextualType(call.Target, name, variables, nil)
+		}
+	}
+	return nil
+}
+func bindingIdentifier(node *celpb.Expr) string {
+	if call := node.GetCallExpr(); call != nil && call.Function == "value" && len(call.Args) == 0 {
+		node = call.Target
+	}
+	return node.GetIdentExpr().GetName()
+}
+func optionalBindingUsed(node *celpb.Expr, name string) bool {
+	if call := node.GetCallExpr(); call != nil {
+		if call.Target.GetIdentExpr().GetName() == name && (call.Function == "value" || call.Function == "hasValue") {
+			return true
+		}
+		if optionalBindingUsed(call.Target, name) {
+			return true
+		}
+		for _, arg := range call.Args {
+			if optionalBindingUsed(arg, name) {
+				return true
+			}
+		}
+	}
+	if selection := node.GetSelectExpr(); selection != nil {
+		return optionalBindingUsed(selection.Operand, name)
+	}
+	if list := node.GetListExpr(); list != nil {
+		for _, element := range list.Elements {
+			if optionalBindingUsed(element, name) {
+				return true
+			}
+		}
+	}
+	if mapping := node.GetStructExpr(); mapping != nil {
+		for _, entry := range mapping.Entries {
+			if optionalBindingUsed(entry.GetMapKey(), name) || optionalBindingUsed(entry.Value, name) {
+				return true
+			}
+		}
+	}
+	return false
+}
+func (c *Catalog) bindInput(context Context, input *testpilotspb.ExpressionBinding, location string, scope map[Reference]Binding, b *budget, facts map[string]bool, expected *Type) (*Expression, error) {
+	var operand *Expression
+	if literal := input.GetLiteral(); literal != nil {
+		var typ Type
+		var err error
+		if expected != nil && input.Path == "" {
+			typ = *expected
+		} else {
+			typ, err = c.literalType(literal)
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err = c.checkLiteral(literal, typ, b, 1); err != nil {
+			return nil, err
+		}
+		operand = &Expression{operator: Literal, typ: typ, literal: proto.CloneOf(literal)}
+	} else {
+		reference, err := parseReference(context, input.GetReference(), location+".reference")
+		if err != nil {
+			return nil, err
+		}
+		text := input.Path
+		if input.GetReference().GetRunEvent().GetPayload() != nil {
+			segments, err := parsePath(text)
+			if err != nil || len(segments) == 0 || segments[0].selector != Field {
+				return nil, Invalid(Malformed, location+".path", "payload path must name its arm")
+			}
+			reference = Reference{Kind: EventPayloadReference, ID: segments[0].field}
+			text = strings.TrimPrefix(strings.TrimPrefix(text, segments[0].field), ".")
+			if _, ok := c.RunEventPayloadType(protoreflect.Name(reference.ID)); !ok {
+				return nil, Invalid(Unknown, location+".path", "unknown Run Event payload arm")
+			}
+		}
+		binding, ok := scope[reference]
+		if !ok {
+			return nil, Invalid(Unknown, location, "reference is not declared in this environment")
+		}
+		if !c.owns(binding.Type) {
+			return nil, Invalid(TypeMismatch, location, "reference type belongs to another catalog")
+		}
+		if binding.Type.opaque {
+			return nil, Invalid(Unsupported, location, "opaque handles cannot be inspected")
+		}
+		key := referenceKey(reference)
+		operand = &Expression{operator: ReferenceValue, typ: binding.Type, reference: reference, key: key, absent: !binding.Available && !facts[key]}
+		if input.Path == "" {
+			return operand, nil
+		}
+		path, err := c.BindPath(binding.Type, location+".path", text, b.limits)
+		if err != nil {
+			return nil, err
+		}
+		return bindPathMetadata(operand, path, b, facts)
+	}
+	if input.Path == "" {
+		return operand, nil
+	}
+	path, err := c.BindPath(operand.typ, location+".path", input.Path, b.limits)
+	if err != nil {
+		return nil, err
+	}
+	return bindPathMetadata(operand, path, b, facts)
+}
+func bindPathMetadata(operand *Expression, path *Path, b *budget, facts map[string]bool) (*Expression, error) {
+	if err := b.charge(1, int64(len(path.steps)), 0, "expression.path"); err != nil {
+		return nil, err
+	}
+	key := ""
+	if operand.key != "" {
+		key = operand.key + "/" + path.text
+	}
+	absent := operand.absent
+	segments, _ := parsePath(path.text)
+	for i, step := range path.steps {
+		if step.Selector == MapKey || step.Field.HasPresence() && step.Selector != Presence {
+			prefix := operand.key + "/" + formatPath(segments[:i+1])
+			absent = absent || operand.key == "" || !facts[prefix]
+		}
+	}
+	bound := &Expression{operator: ReadPath, children: []*Expression{operand}, path: path, typ: path.typ, key: key, absent: absent && !facts[key]}
+	if len(path.steps) > 0 && path.steps[len(path.steps)-1].Selector == Presence {
+		bound.absent = false
+	}
+	return bound, nil
+}
+func parseReference(context Context, source *testpilotspb.Reference, path string) (Reference, error) {
+	if source == nil {
+		return Reference{}, Invalid(Malformed, path, "reference is required")
+	}
+	message := source.ProtoReflect()
+	arm := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference"))
+	if arm == nil {
+		return Reference{}, Invalid(Malformed, path, "reference is required")
+	}
+	if err := admitReference(context, path, arm.Name()); err != nil {
+		return Reference{}, err
+	}
+	var result Reference
+	switch v := source.Reference.(type) {
+	case *testpilotspb.Reference_SlotId:
+		result = Reference{Kind: SlotReference, ID: v.SlotId}
+	case *testpilotspb.Reference_ObservationId:
+		result = Reference{Kind: ObservationReference, ID: v.ObservationId}
+	case *testpilotspb.Reference_CaptureId:
+		result = Reference{Kind: CaptureReference, ID: v.CaptureId}
+	case *testpilotspb.Reference_InstanceValueId:
+		result = Reference{Kind: InstanceValueReference, ID: v.InstanceValueId}
+	case *testpilotspb.Reference_ProjectedValue:
+		result = Reference{Kind: ProjectedValueReference}
+	case *testpilotspb.Reference_Run:
+		result = Reference{Kind: EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}
+	case *testpilotspb.Reference_Outcome:
+		result = Reference{Kind: OutcomeReference, Entrypoint: v.Outcome.GetInstruction().GetEntrypointId(), ID: v.Outcome.GetInstruction().GetInstructionId(), Field: int32(v.Outcome.GetField())}
+		if result.Entrypoint == "" || result.Field <= 0 || result.Field > int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE) {
+			return Reference{}, Invalid(Malformed, path, "invalid outcome reference")
+		}
+	case *testpilotspb.Reference_RunEvent:
+		if v.RunEvent.GetPayload() != nil {
+			return Reference{Kind: EventPayloadReference}, nil
+		}
+		result = Reference{Kind: EventReference, Field: int32(v.RunEvent.GetField())}
+		if result.Field <= 0 || result.Field > int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID) {
+			return Reference{}, Invalid(Malformed, path, "invalid Run Event reference")
+		}
+	case *testpilotspb.Reference_EvidenceFieldId:
+		result = Reference{Kind: EvidenceFieldReference, ID: v.EvidenceFieldId}
+	case *testpilotspb.Reference_CorrelatedCapture:
+		result = Reference{Kind: CorrelatedCaptureReference, ID: v.CorrelatedCapture.GetCaptureId(), Ordinal: v.CorrelatedCapture.GetOrdinal()}
+		if result.Ordinal < 0 {
+			return Reference{}, Invalid(Malformed, path, "negative capture ordinal")
+		}
+	case *testpilotspb.Reference_CorrelatedStep:
+		result = Reference{Kind: CorrelatedStepReference, ID: v.CorrelatedStep.GetDefinitionId(), Field: int32(v.CorrelatedStep.GetField())}
+		if result.Field < 1 || result.Field > 4 {
+			return Reference{}, Invalid(Malformed, path, "invalid correlated step field")
+		}
+	default:
+		return Reference{}, Invalid(Unsupported, path, "reference requires domain substitution before CEL binding")
+	}
+	if result.Kind != ProjectedValueReference && result.Kind != EventReference && result.ID == "" {
+		return Reference{}, Invalid(Malformed, path, "reference identity is required")
+	}
+	return result, nil
+}
+func (c *Catalog) bindNode(node *celpb.Expr, expected *Type, variables map[string]*Expression, b *budget, path string, depth int64) (*Expression, error) {
+	location := fmt.Sprintf("%s.cel.expr[%d]", path, node.GetId())
+	work := int64(1)
+	if call := node.GetCallExpr(); call != nil && call.Function == "optional.of" && call.Target == nil {
+		work = 0
+	}
+	if err := b.charge(depth, work, 0, location); err != nil {
+		return nil, err
+	}
+	if constant := node.GetConstExpr(); constant != nil {
+		value, err := constantValue(constant)
+		if err != nil {
+			return nil, err
+		}
+		typ, err := c.literalType(value)
+		if err != nil {
+			return nil, err
+		}
+		if expected != nil {
+			typ = *expected
+			if typ.enumeration != nil {
+				if integer, ok := value.Kind.(*celpb.Value_Int64Value); ok {
+					if integer.Int64Value < -2147483648 || integer.Int64Value > 2147483647 {
+						return nil, literalMismatch()
+					}
+					value = EnumValue(typ.enumeration, protoreflect.EnumNumber(integer.Int64Value))
+				}
+			}
+		}
+		if err := c.checkLiteral(value, typ, b, depth); err != nil {
+			return nil, err
+		}
+		return &Expression{operator: Literal, literal: value, typ: typ}, nil
+	}
+	if identifier := node.GetIdentExpr(); identifier != nil {
+		bound := variables[identifier.Name]
+		if bound == nil {
+			return nil, Invalid(Unknown, location, "unknown CEL variable "+identifier.Name)
+		}
+		if bound.optional {
+			return nil, Invalid(Unsupported, location, "optional binding requires value() or hasValue()")
+		}
+		copy := *bound
+		copy.location = location
+		return &copy, nil
+	}
+	if receiver := node.GetCallExpr(); receiver != nil && receiver.Target != nil {
+		if len(receiver.Args) != 0 || receiver.Function != "value" && receiver.Function != "hasValue" {
+			return nil, Invalid(Unsupported, location, "unsupported CEL receiver function")
+		}
+		var target *Expression
+		if name := receiver.Target.GetIdentExpr().GetName(); name != "" {
+			input := variables[name]
+			if input != nil {
+				copy := *input
+				target = &copy
+			}
+		} else {
+			var err error
+			target, err = c.bindNode(receiver.Target, expected, variables, b, path, depth+1)
+			if err != nil {
 				return nil, err
 			}
+		}
+		if target == nil || !target.optional {
+			return nil, Invalid(TypeMismatch, location, "optional receiver is required")
+		}
+		targetWork := int64(0)
+		if receiver.Function == "hasValue" && receiver.Target.GetIdentExpr() != nil {
+			targetWork = 1
+		}
+		if err := b.charge(depth+1, targetWork, 0, location); err != nil {
+			return nil, err
+		}
+		target.location = location
+		if receiver.Function == "hasValue" {
+			if target.operator == OptionalExpression {
+				target = target.children[0]
+			}
+			return &Expression{operator: IsPresent, typ: c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN), children: []*Expression{target}, location: location}, nil
+		}
+		if target.operator == OptionalExpression {
+			target = target.children[0]
+		}
+		target.optional = false
+		return target, nil
+	}
+	if selection := node.GetSelectExpr(); selection != nil {
+		return nil, Invalid(Unsupported, location, "message projections require an admitted binding path")
+	}
+	if list := node.GetListExpr(); list != nil {
+		bound := &Expression{operator: ListExpression, location: location}
+		var element *Type
+		if expected != nil && expected.cardinality == Repeated {
+			typ := expected.Element()
+			element = &typ
+		}
+		for _, item := range list.Elements {
+			child, err := c.bindNode(item, element, variables, b, path, depth+1)
+			if err != nil {
+				return nil, err
+			}
+			if child.typ.cardinality != Singular || element != nil && !element.Equal(child.typ) {
+				return nil, Invalid(TypeMismatch, location, "list elements require one descriptor-exact singular type")
+			}
+			if element == nil {
+				typ := child.typ
+				element = &typ
+			}
+			bound.children = append(bound.children, child)
+		}
+		if element == nil {
+			typ := c.scalarType(testpilotspb.SCALAR_KIND_TEXT)
+			element = &typ
+		}
+		bound.typ = *element
+		bound.typ.cardinality = Repeated
+		bound.typ.schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Repeated{Repeated: &testpilotspb.RepeatedType{Element: proto.CloneOf(element.schema.GetSingular())}}}
+		return bound, nil
+	}
+	if mapping := node.GetStructExpr(); mapping != nil {
+		bound := &Expression{operator: MapExpression, location: location}
+		keyType := c.scalarType(testpilotspb.SCALAR_KIND_TEXT)
+		var element *Type
+		if expected != nil && expected.cardinality == Map {
+			keyType = c.scalarType(expected.key)
+			typ := expected.Element()
+			element = &typ
+		}
+		for index, entry := range mapping.Entries {
+			var wantKey *Type
+			if expected != nil || index > 0 {
+				wantKey = &keyType
+			}
+			key, err := c.bindNode(entry.GetMapKey(), wantKey, variables, b, path, depth+1)
+			if err != nil {
+				return nil, err
+			}
+			if index == 0 && expected == nil {
+				keyType = key.typ
+			}
+			if !mapKeyKind(key.typ.scalar) || !key.typ.Equal(keyType) {
+				return nil, Invalid(TypeMismatch, location, "map keys require one supported scalar type")
+			}
+			value, err := c.bindNode(entry.Value, element, variables, b, path, depth+1)
+			if err != nil {
+				return nil, err
+			}
+			if value.typ.cardinality != Singular || element != nil && !element.Equal(value.typ) {
+				return nil, Invalid(TypeMismatch, location, "map values require one descriptor-exact singular type")
+			}
+			if element == nil {
+				typ := value.typ
+				element = &typ
+			}
+			bound.children = append(bound.children, key, value)
+		}
+		if element == nil {
+			typ := c.scalarType(testpilotspb.SCALAR_KIND_TEXT)
+			element = &typ
+		}
+		bound.typ = *element
+		bound.typ.cardinality, bound.typ.key = Map, keyType.scalar
+		bound.typ.schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Map{Map: &testpilotspb.MapType{Key: &testpilotspb.ScalarType{Kind: keyType.scalar}, Value: proto.CloneOf(element.schema.GetSingular())}}}
+		return bound, nil
+	}
+	call := node.GetCallExpr()
+	if call == nil || call.Target != nil {
+		return nil, Invalid(Unsupported, location, "unsupported CEL node or receiver call")
+	}
+	arity := map[string]int{"_==_": 2, "_!=_": 2, "_<_": 2, "_<=_": 2, "_>_": 2, "_>=_": 2, "_&&_": 2, "_||_": 2, "!_": 1, "_?_:_": 3, "@in": 2, "size": 1, "optional.of": 1, "_[_]": 2}
+	count, ok := arity[call.Function]
+	if !ok || len(call.Args) != count {
+		return nil, Invalid(Unsupported, location, "unsupported CEL function or arity: "+call.Function)
+	}
+	boolean := c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
+	bound := &Expression{typ: boolean, comparison: call.Function, location: location}
+	for i, arg := range call.Args {
+		var want *Type
+		if call.Function == "!_" || call.Function == "_&&_" || call.Function == "_||_" || call.Function == "_?_:_" && i == 0 {
+			want = &boolean
+		}
+		if i == 1 && call.Function != "@in" && call.Function != "_[_]" && len(bound.children) > 0 {
+			if arg.GetConstExpr() != nil {
+				want = &bound.children[0].typ
+			}
+		}
+		child, err := c.bindNode(arg, want, variables, b, path, depth+1)
+		if err != nil {
+			return nil, err
+		}
+		bound.children = append(bound.children, child)
+	}
+	switch call.Function {
+	case "optional.of":
+		bound.operator, bound.typ, bound.optional = OptionalExpression, bound.children[0].typ, true
+	case "!_":
+		bound.operator = Not
+	case "_&&_":
+		bound.operator = All
+	case "_||_":
+		bound.operator = Any
+	case "size":
+		bound.operator = Size
+		bound.typ = c.scalarType(testpilotspb.SCALAR_KIND_INT64)
+	case "_?_:_":
+		if !bound.children[1].typ.Equal(bound.children[2].typ) {
+			return nil, Invalid(TypeMismatch, location, "conditional branches require the same descriptor-exact type")
+		}
+		bound.operator = Conditional
+		bound.typ = bound.children[1].typ
+	case "_[_]":
+		bound.operator = IndexExpression
+		bound.typ = bound.children[0].typ.Element()
+	default:
+		bound.operator = Compare
+	}
+	if bound.operator == Compare && len(bound.children) == 2 {
+		left, right := bound.children[0].typ, bound.children[1].typ
+		if call.Function == "@in" {
+			if right.cardinality == Map {
+				right = c.scalarType(right.key)
+			} else if right.cardinality == Repeated {
+				right = right.Element()
+			}
+		}
+		if left.enumeration != nil || right.enumeration != nil {
+			if !left.Equal(right) {
+				return nil, Invalid(TypeMismatch, location, "enum comparison requires the same descriptor type")
+			}
+		}
+	}
+	if expected != nil && bound.operator == Conditional {
+		bound.typ = *expected
+	}
+	return bound, nil
+}
+func checkCaptureAvailability(expression *Expression, facts map[string]bool) error {
+	if expression.operator == IsPresent {
+		return nil
+	}
+	if expression.operator == ReferenceValue && expression.reference.Kind == CaptureReference && expression.absent && !facts[expression.key] {
+		return Invalid(Unavailable, expression.location, "capture read requires an explicit presence guard")
+	}
+	current := maps.Clone(facts)
+	for i, child := range expression.children {
+		branch := current
+		if expression.operator == Conditional && i > 0 {
+			branch = maps.Clone(facts)
+			maps.Copy(branch, presenceFacts(expression.children[0], i == 1))
+		}
+		if err := checkCaptureAvailability(child, branch); err != nil {
+			return err
+		}
+		if expression.operator == All || expression.operator == Any {
+			maps.Copy(current, presenceFacts(child, expression.operator == All))
+		}
+	}
+	return nil
+}
+func presenceFacts(e *Expression, truth bool) map[string]bool {
+	switch e.operator {
+	case IsPresent:
+		if e.children[0].key != "" {
+			return map[string]bool{e.children[0].key: truth}
+		}
+	case Not:
+		return presenceFacts(e.children[0], !truth)
+	case All, Any:
+		result := map[string]bool{}
+		merge := e.operator == All && truth || e.operator == Any && !truth
+		for i, child := range e.children {
+			facts := presenceFacts(child, truth)
 			if merge || i == 0 {
 				maps.Copy(result, facts)
 			} else {
-				intersectFacts(result, facts)
+				for key, value := range result {
+					if other, ok := facts[key]; !ok || other != value {
+						delete(result, key)
+					}
+				}
 			}
 		}
-		return result, nil
-	default:
-		return nil, nil
+		return result
 	}
-	return nil, nil
+	return nil
 }
-
-func intersectFacts(result, facts map[string]bool) {
-	for key, value := range result {
-		if other, ok := facts[key]; !ok || other != value {
-			delete(result, key)
-		}
+func (c *Catalog) InstanceValueWork(id string, value *celpb.Value, typ Type) (int64, error) {
+	b := &budget{limits: DefaultLimits()}
+	if err := c.checkLiteral(value, typ, b, 1); err != nil {
+		return 0, err
 	}
-}
-
-func (c *Catalog) literalType(value *testpilotspb.Value) (Type, error) {
-	if value == nil || IsNil(value.Value) {
-		return Type{}, Invalid(Malformed, "literal", "missing literal")
-	}
-	switch literal := value.Value.(type) {
-	case *testpilotspb.Value_TextValue:
-		return c.scalarType(testpilotspb.SCALAR_KIND_TEXT), nil
-	case *testpilotspb.Value_BoolValue:
-		return c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN), nil
-	case *testpilotspb.Value_BytesValue:
-		return c.scalarType(testpilotspb.SCALAR_KIND_BYTES), nil
-	case *testpilotspb.Value_MessageValue:
-		url := literal.MessageValue.GetTypeUrl()
-		name := url[strings.LastIndexByte(url, '/')+1:]
-		return c.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}})
-	case *testpilotspb.Value_EnumValue:
-		return Type{}, Invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q requires a contextual source type", literal.EnumValue.GetName()))
-	default:
-		return Type{}, Invalid(TypeMismatch, "literal", "numeric, enum, and collection literals require a contextual source type")
-	}
-}
-
-func ordered(typ Type) bool {
-	return typ.cardinality == Singular && typ.scalar >= testpilotspb.SCALAR_KIND_INT32 && typ.scalar <= testpilotspb.SCALAR_KIND_DOUBLE
+	return b.work, nil
 }

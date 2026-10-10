@@ -9,20 +9,10 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// withStateFields gives the fixture's single state the fields a Lean-produced Case carries: the
-// initial state, every transition's prior and next state, and every projection output name them.
+// withStateFields supplies the complete state that transitions and results reference.
 func withStateFields(c *testpilotspb.Contract, fields ...*testpilotspb.ModelValue) {
 	s := c.Correlated
-	s.InitialStateFields = fields
-	for _, tr := range s.Transitions {
-		tr.PriorFields = fields
-		tr.StateFields = fields
-	}
-	for _, rule := range s.ProjectionRules {
-		for _, out := range rule.Outputs {
-			out.StateFields = fields
-		}
-	}
+	s.States[0].Fields = fields
 }
 
 // correlatedRun admits kinds for operation "a" in order and returns the evaluator and the first
@@ -44,13 +34,6 @@ func correlatedRun(t *testing.T, c *testpilotspb.Contract, kinds ...string) (*Ev
 	return e, -1, nil
 }
 
-// The monitor carries a state as Lean's `StateValue` does, atom plus fields. Lean's projection
-// (`Shared.CorrelatedProjection`, the confirmed-evidence release) takes a transition only when
-// `(prior, action, result) ∈ plan.transitions`, where `prior` is the operation's current
-// `StateValue` (initially `plan.initial`, decoded from `initial_state` with `initial_state_fields`)
-// and `StateValue` equality is the derived `BEq` over the atom and the ordered field list. An
-// unmatched prior throws `invalidTransition`, so the evidence is rejected and the monitor keeps its
-// state; Go names the same outcome "unauthorized operation transition".
 func TestCorrelatedMonitorMatchesStatesOnAtomAndFields(t *testing.T) {
 	ready := &testpilotspb.ModelValue{DefinitionId: "phase", Value: "ready"}
 	other := &testpilotspb.ModelValue{DefinitionId: "phase", Value: "other"}
@@ -58,11 +41,12 @@ func TestCorrelatedMonitorMatchesStatesOnAtomAndFields(t *testing.T) {
 	t.Run("prior-fields-disagree-with-reached-fields", func(t *testing.T) {
 		c, _, _, _, _ := correlatedFixture(t, 1)
 		withStateFields(c, ready)
+		c.Correlated.States = append(c.Correlated.States, &testpilotspb.CorrelatedState{StateId: "other", Atom: proto.CloneOf(c.Correlated.States[0].Atom), Fields: []*testpilotspb.ModelValue{other}})
 		// "request" reaches the ready fields; "tick" is declared only from the other fields, so its
 		// atom matches the reached state but its prior does not.
 		for _, tr := range c.Correlated.Transitions {
-			if tr.Action.Value == "tick" {
-				tr.PriorFields = []*testpilotspb.ModelValue{other}
+			if tr.ResultId == "tick" {
+				tr.PriorStateId = "other"
 			}
 		}
 		e, at, err := correlatedRun(t, c, "request", "tick")
@@ -75,7 +59,8 @@ func TestCorrelatedMonitorMatchesStatesOnAtomAndFields(t *testing.T) {
 	t.Run("initial-fields-disagree-with-first-prior", func(t *testing.T) {
 		c, _, _, _, _ := correlatedFixture(t, 1)
 		withStateFields(c, ready)
-		c.Correlated.InitialStateFields = []*testpilotspb.ModelValue{other}
+		c.Correlated.States = append(c.Correlated.States, &testpilotspb.CorrelatedState{StateId: "other", Atom: proto.CloneOf(c.Correlated.States[0].Atom), Fields: []*testpilotspb.ModelValue{other}})
+		c.Correlated.InitialStateId = "other"
 		e, at, err := correlatedRun(t, c, "request")
 		require.ErrorContains(t, err, "unauthorized operation transition")
 		require.Equal(t, 0, at)
@@ -90,12 +75,13 @@ func TestCorrelatedMonitorMatchesStatesOnAtomAndFields(t *testing.T) {
 
 		c, _, _, _, _ := correlatedFixture(t, 1)
 		withStateFields(c, ready)
+		c.Correlated.States = append(c.Correlated.States, &testpilotspb.CorrelatedState{StateId: "other", Atom: proto.CloneOf(c.Correlated.States[0].Atom), Fields: []*testpilotspb.ModelValue{other}})
 		// A row declared from other fields shares the request action, so only the field match keeps
 		// it out of the candidate count that obligation work charges.
 		for _, tr := range c.Correlated.Transitions {
-			if tr.Action.Value == "request" {
+			if tr.ResultId == "request" {
 				unreachable := proto.CloneOf(tr)
-				unreachable.PriorFields = []*testpilotspb.ModelValue{other}
+				unreachable.PriorStateId = "other"
 				c.Correlated.Transitions = append(c.Correlated.Transitions, unreachable)
 				break
 			}

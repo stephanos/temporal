@@ -7,12 +7,17 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func TestExternalDriverCleanupFailurePreservesVerdict(t *testing.T) {
@@ -106,35 +111,19 @@ func proofFixture(t testing.TB) (*testpilotspb.Case, testpilot.ProfileSpec) {
 	require.NoError(t, err)
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	source := &testpilotspb.Case{
-		Version: &testpilotspb.FormatVersion{Major: 1},
+		Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor, Minor: casefile.CurrentMinor},
 		CaseId:  "case",
 		Program: &testpilotspb.Program{
 			ProgramId: "program",
 			Entrypoints: []*testpilotspb.Entrypoint{{
 				EntrypointId: "controller",
-				Activation:   &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}},
+				Activation:   &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}},
 			}},
 			Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 		},
 		Contract: &testpilotspb.Contract{
 			ContractId: "contract",
-			Rules: []*testpilotspb.ContractRule{{
-				RuleId:         "safety",
-				Kind:           testpilotspb.CONTRACT_RULE_KIND_SAFETY,
-				InitialStateId: "start",
-				States: []*testpilotspb.ContractState{
-					{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
-					{StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
-				},
-				Transitions: []*testpilotspb.ContractTransition{{
-					TransitionId:  "complete",
-					SourceStateId: "start",
-					TargetStateId: "good",
-					EventFilter:   &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_RUN_CLOSED}},
-					Predicate:     &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}},
-					SupportKind:   testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
-				}},
-			}},
+			Rules:      []*testpilotspb.ContractRule{{RuleId: "safety", InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "complete", SourceStateId: "start", TargetStateId: "good", EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_RUN_CLOSED}}, Predicate: cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}}), SupportsEvent: proto.Bool(true)}}}},
 		},
 	}
 	return source, testpilot.ProfileSpec{Identity: "proof", Catalog: catalog, ProgramLimits: testsupport.ProgramLimits(), ContractLimits: contractLimits}

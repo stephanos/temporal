@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"testing"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -235,7 +236,7 @@ func TestWorkflowStartCaseSequentialAndConcurrentRunIsolation(t *testing.T) {
 // observationValue is the value one Run event carries under an Observation ID. A history read
 // emits each event under the history Observation and the correlated-evidence one, so the value is
 // selected by ID rather than by position.
-func observationValue(t testing.TB, event *testpilotspb.RunEvent, observationID string) *testpilotspb.Value {
+func observationValue(t testing.TB, event *testpilotspb.RunEvent, observationID string) *celpb.Value {
 	t.Helper()
 	for _, observation := range event.GetObservations() {
 		if observation.GetObservationId() == observationID {
@@ -254,7 +255,7 @@ func requireStartedEventRecords(t testing.TB, run *testpilotspb.Run, sequence in
 	require.LessOrEqual(t, sequence, int64(len(run.GetEvents())))
 	event := run.GetEvents()[sequence-1]
 	var historyEvent historypb.HistoryEvent
-	require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
+	require.NoError(t, observationValue(t, event, "history-event").GetObjectValue().UnmarshalTo(&historyEvent))
 	require.Equal(t, enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED, historyEvent.GetEventType())
 	require.Equal(t, recorded,
 		historyEvent.GetWorkflowExecutionStartedEventAttributes().GetWorkflowType().GetName())
@@ -268,35 +269,52 @@ func requireStartedEventRecords(t testing.TB, run *testpilotspb.Run, sequence in
 func contractReads(t testing.TB, rule *testpilotspb.ContractRule) []string {
 	t.Helper()
 	var reads []string
-	var walk func(transitionID string, expression *testpilotspb.Expression)
-	walk = func(transitionID string, expression *testpilotspb.Expression) {
-		switch {
-		case expression.GetAll() != nil:
-			for _, operand := range expression.GetAll().GetOperands() {
-				walk(transitionID, operand)
-			}
-		case expression.GetNot() != nil:
-			walk(transitionID+"/not", expression.GetNot().GetOperand())
-		case expression.GetPresent() != nil:
-			operand := expression.GetPresent().GetOperand()
-			if operand.GetPath() != nil {
-				reads = append(reads, fmt.Sprintf("%s present %s %s", transitionID,
-					operand.GetPath().GetOperand().GetReference().GetObservationId(), operand.GetPath().GetPath()))
-				return
-			}
-			reads = append(reads, fmt.Sprintf("%s present %s", transitionID, operand.GetReference().GetObservationId()))
-		case expression.GetCompare() != nil:
-			compare := expression.GetCompare()
-			reads = append(reads, fmt.Sprintf("%s compare %s %s %s %q", transitionID,
-				compare.GetLeft().GetPath().GetOperand().GetReference().GetObservationId(),
-				compare.GetLeft().GetPath().GetPath(), compare.GetOperator(),
-				compare.GetRight().GetLiteral().GetTextValue()))
-		default:
-			require.FailNow(t, "unexpected contract expression", "%s: %v", transitionID, expression)
-		}
-	}
 	for _, transition := range rule.GetTransitions() {
-		walk(transition.GetTransitionId(), transition.GetPredicate())
+		expression := transition.GetPredicate()
+		bindings := map[string]*testpilotspb.ExpressionBinding{}
+		for _, binding := range expression.GetBindings() {
+			bindings[binding.GetVariable()] = binding
+		}
+		var walk func(string, *celpb.Expr)
+		walk = func(transitionID string, node *celpb.Expr) {
+			call := node.GetCallExpr()
+			require.NotNil(t, call, "%s: %v", transitionID, node)
+			switch call.GetFunction() {
+			case "_&&_":
+				for _, operand := range call.GetArgs() {
+					walk(transitionID, operand)
+				}
+			case "!_":
+				require.Len(t, call.GetArgs(), 1)
+				walk(transitionID+"/not", call.GetArgs()[0])
+			case "hasValue":
+				require.Empty(t, call.GetArgs())
+				require.NotNil(t, call.GetTarget().GetIdentExpr())
+				binding := bindings[call.GetTarget().GetIdentExpr().GetName()]
+				require.NotNil(t, binding)
+				read := fmt.Sprintf("%s present %s", transitionID, binding.GetReference().GetObservationId())
+				if binding.GetPath() != "" {
+					read += " " + binding.GetPath()
+				}
+				reads = append(reads, read)
+			case "_==_":
+				require.Len(t, call.GetArgs(), 2)
+				operand := call.GetArgs()[0].GetCallExpr()
+				require.NotNil(t, operand)
+				require.Equal(t, "value", operand.GetFunction())
+				require.Empty(t, operand.GetArgs())
+				require.NotNil(t, operand.GetTarget().GetIdentExpr())
+				binding := bindings[operand.GetTarget().GetIdentExpr().GetName()]
+				require.NotNil(t, binding)
+				require.NotNil(t, call.GetArgs()[1].GetConstExpr())
+				reads = append(reads, fmt.Sprintf("%s compare %s %s %s %q", transitionID,
+					binding.GetReference().GetObservationId(), binding.GetPath(), call.GetFunction(),
+					call.GetArgs()[1].GetConstExpr().GetStringValue()))
+			default:
+				require.FailNow(t, "unexpected contract expression", "%s: %v", transitionID, node)
+			}
+		}
+		walk(transition.GetTransitionId(), expression.GetCel().GetExpr())
 	}
 	return reads
 }
@@ -310,16 +328,16 @@ func TestWorkflowStartCaseReadsMatchTypedUnaryBaseline(t *testing.T) {
 	require.Len(t, source.GetContract().GetRules(), 1)
 	rule := source.GetContract().GetRules()[0]
 	require.Equal(t, WorkflowStartRuleID, rule.GetRuleId())
-	require.Equal(t, testpilotspb.CONTRACT_RULE_KIND_SAFETY, rule.GetKind())
+	require.Nil(t, rule.GetDeadline())
 	require.Equal(t, "pending", rule.GetInitialStateId())
 
 	recorded := "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
 	expected := []string{
 		"match-" + WorkflowStartRuleID + " present history-event",
-		fmt.Sprintf("match-%s compare history-event %s Equal %q", WorkflowStartRuleID, recorded, WorkflowStartWorkflowType),
+		fmt.Sprintf("match-%s compare history-event %s _==_ %q", WorkflowStartRuleID, recorded, WorkflowStartWorkflowType),
 		"reject-" + WorkflowStartRuleID + " present history-event",
 		"reject-" + WorkflowStartRuleID + " present history-event " + recorded,
-		fmt.Sprintf("reject-%s/not compare history-event %s Equal %q", WorkflowStartRuleID, recorded, WorkflowStartWorkflowType),
+		fmt.Sprintf("reject-%s/not compare history-event %s _==_ %q", WorkflowStartRuleID, recorded, WorkflowStartWorkflowType),
 	}
 	actual := contractReads(t, rule)
 	for index := range min(len(expected), len(actual)) {

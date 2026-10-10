@@ -85,13 +85,18 @@ func visitCase(c *testpilotspb.Case, name func(string) string) {
 	}
 	for _, d := range c.Program.Evidence {
 		d.EvidenceId = name(d.EvidenceId)
+		d.Kind = name(d.Kind)
 		d.EvidenceSource = name(d.EvidenceSource)
 		for _, s := range d.Scope {
 			s.FieldId = name(s.FieldId)
+			visitExpression(s.Value, name)
 		}
 		for _, f := range d.Fields {
 			f.FieldId = name(f.FieldId)
+			visitExpression(f.Value, name)
 		}
+		visitExpression(d.Operation, name)
+		visitExpression(d.Guard, name)
 	}
 	for _, r := range c.Contract.Rules {
 		r.RuleId = name(r.RuleId)
@@ -112,17 +117,18 @@ func visitContract(cc *testpilotspb.CorrelatedContract, name func(string) string
 	for i := range cc.Sources {
 		cc.Sources[i] = name(cc.Sources[i])
 	}
-	visitValue(cc.InitialState, name)
-	visitValues(cc.InitialStateFields, name)
-	for _, t := range cc.Transitions {
-		visitTransition(t, name)
+	for _, s := range cc.States {
+		visitValue(s.Atom, name)
+		visitValues(s.Fields, name)
+	}
+	for _, r := range cc.Results {
+		visitValue(r.Action, name)
+		visitValue(r.Outcome, name)
+		visitValues(r.Facts, name)
 	}
 	for _, r := range cc.ProjectionRules {
 		r.Kind = name(r.Kind)
 		visitValue(r.Submission, name)
-		for _, o := range r.Outputs {
-			visitTransition(o, name)
-		}
 		for _, f := range r.Fields {
 			f.FieldId = name(f.FieldId)
 		}
@@ -147,16 +153,6 @@ func visitValues(vs []*testpilotspb.ModelValue, name func(string) string) {
 	}
 }
 
-func visitTransition(t *testpilotspb.CorrelatedTransition, name func(string) string) {
-	visitValue(t.PriorState, name)
-	visitValue(t.Action, name)
-	visitValue(t.State, name)
-	visitValue(t.Outcome, name)
-	visitValues(t.Facts, name)
-	visitValues(t.PriorFields, name)
-	visitValues(t.StateFields, name)
-}
-
 func visitInstruction(n *testpilotspb.InstructionNode, name func(string) string) {
 	switch in := n.GetInstruction().GetInstruction().(type) {
 	case *testpilotspb.Instruction_InvokeRpc:
@@ -166,10 +162,8 @@ func visitInstruction(n *testpilotspb.InstructionNode, name func(string) string)
 				if lift == nil {
 					continue
 				}
-				for _, rule := range lift.Rules {
-					rule.EvidenceSource = name(rule.EvidenceSource)
-					rule.Kind = name(rule.Kind)
-					rule.EvidenceId = name(rule.EvidenceId)
+				for i, id := range lift.EvidenceIds {
+					lift.EvidenceIds[i] = name(id)
 				}
 			}
 		}
@@ -183,26 +177,9 @@ func visitExpression(e *testpilotspb.Expression, name func(string) string) {
 	if e == nil {
 		return
 	}
-	switch x := e.Expression.(type) {
-	case *testpilotspb.Expression_Reference:
-		if step := x.Reference.GetCorrelatedStep(); step != nil {
+	for _, binding := range e.Bindings {
+		if step := binding.GetReference().GetCorrelatedStep(); step != nil {
 			step.DefinitionId = name(step.DefinitionId)
 		}
-	case *testpilotspb.Expression_Compare:
-		visitExpression(x.Compare.Left, name)
-		visitExpression(x.Compare.Right, name)
-	case *testpilotspb.Expression_Present:
-		visitExpression(x.Present.Operand, name)
-	case *testpilotspb.Expression_Path:
-		visitExpression(x.Path.Operand, name)
-	case *testpilotspb.Expression_All:
-		for _, o := range x.All.Operands {
-			visitExpression(o, name)
-		}
-	case *testpilotspb.Expression_Any:
-		for _, o := range x.Any.Operands {
-			visitExpression(o, name)
-		}
-	default:
 	}
 }

@@ -12,8 +12,10 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
+	expr "cel.dev/expr"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -22,88 +24,6 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
-
-// ComparisonOperator names what a compare expression tests. NOT_EQUAL is the negation of EQUAL, and
-// every ordering comparison with NaN is false.
-// (-- api-linter: core::0191::file-layout=disabled --)
-type ComparisonOperator int32
-
-const (
-	COMPARISON_OPERATOR_UNSPECIFIED           ComparisonOperator = 0
-	COMPARISON_OPERATOR_EQUAL                 ComparisonOperator = 1
-	COMPARISON_OPERATOR_NOT_EQUAL             ComparisonOperator = 2
-	COMPARISON_OPERATOR_LESS_THAN             ComparisonOperator = 3
-	COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL    ComparisonOperator = 4
-	COMPARISON_OPERATOR_GREATER_THAN          ComparisonOperator = 5
-	COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL ComparisonOperator = 6
-)
-
-// Enum value maps for ComparisonOperator.
-var (
-	ComparisonOperator_name = map[int32]string{
-		0: "COMPARISON_OPERATOR_UNSPECIFIED",
-		1: "COMPARISON_OPERATOR_EQUAL",
-		2: "COMPARISON_OPERATOR_NOT_EQUAL",
-		3: "COMPARISON_OPERATOR_LESS_THAN",
-		4: "COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL",
-		5: "COMPARISON_OPERATOR_GREATER_THAN",
-		6: "COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL",
-	}
-	ComparisonOperator_value = map[string]int32{
-		"COMPARISON_OPERATOR_UNSPECIFIED":           0,
-		"COMPARISON_OPERATOR_EQUAL":                 1,
-		"COMPARISON_OPERATOR_NOT_EQUAL":             2,
-		"COMPARISON_OPERATOR_LESS_THAN":             3,
-		"COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL":    4,
-		"COMPARISON_OPERATOR_GREATER_THAN":          5,
-		"COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL": 6,
-	}
-)
-
-func (x ComparisonOperator) Enum() *ComparisonOperator {
-	p := new(ComparisonOperator)
-	*p = x
-	return p
-}
-
-func (x ComparisonOperator) String() string {
-	switch x {
-	case COMPARISON_OPERATOR_UNSPECIFIED:
-		return "Unspecified"
-	case COMPARISON_OPERATOR_EQUAL:
-		return "Equal"
-	case COMPARISON_OPERATOR_NOT_EQUAL:
-		return "NotEqual"
-	case COMPARISON_OPERATOR_LESS_THAN:
-		return "LessThan"
-	case COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL:
-		return "LessThanOrEqual"
-	case COMPARISON_OPERATOR_GREATER_THAN:
-		return "GreaterThan"
-	case COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL:
-		return "GreaterThanOrEqual"
-	default:
-		return strconv.Itoa(int(x))
-	}
-
-}
-
-func (ComparisonOperator) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[0].Descriptor()
-}
-
-func (ComparisonOperator) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[0]
-}
-
-func (x ComparisonOperator) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use ComparisonOperator.Descriptor instead.
-func (ComparisonOperator) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{0}
-}
 
 // InstructionOutcomeField names one field of an InstructionOutcome an expression may read.
 type InstructionOutcomeField int32
@@ -164,11 +84,11 @@ func (x InstructionOutcomeField) String() string {
 }
 
 func (InstructionOutcomeField) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[1].Descriptor()
+	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[0].Descriptor()
 }
 
 func (InstructionOutcomeField) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[1]
+	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[0]
 }
 
 func (x InstructionOutcomeField) Number() protoreflect.EnumNumber {
@@ -177,7 +97,7 @@ func (x InstructionOutcomeField) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use InstructionOutcomeField.Descriptor instead.
 func (InstructionOutcomeField) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{1}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{0}
 }
 
 // CorrelatedStepField names the part of a correlated step a step reference reads.
@@ -235,11 +155,11 @@ func (x CorrelatedStepField) String() string {
 }
 
 func (CorrelatedStepField) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[2].Descriptor()
+	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[1].Descriptor()
 }
 
 func (CorrelatedStepField) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[2]
+	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[1]
 }
 
 func (x CorrelatedStepField) Number() protoreflect.EnumNumber {
@@ -248,7 +168,7 @@ func (x CorrelatedStepField) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CorrelatedStepField.Descriptor instead.
 func (CorrelatedStepField) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{1}
 }
 
 // Expression is the one closed expression language of a Case: instruction inputs and guards,
@@ -256,18 +176,9 @@ func (CorrelatedStepField) EnumDescriptor() ([]byte, []int) {
 // references an expression may use is a property of where it appears, and preparation rejects a
 // reference outside its context.
 type Expression struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Expression:
-	//
-	//	*Expression_Literal
-	//	*Expression_Reference
-	//	*Expression_Path
-	//	*Expression_Present
-	//	*Expression_Compare
-	//	*Expression_Not
-	//	*Expression_All
-	//	*Expression_Any
-	Expression    isExpression_Expression `protobuf_oneof:"expression"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Cel           *expr.ParsedExpr       `protobuf:"bytes,1,opt,name=cel,proto3" json:"cel,omitempty"`
+	Bindings      []*ExpressionBinding   `protobuf:"bytes,2,rep,name=bindings,proto3" json:"bindings,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -302,444 +213,120 @@ func (*Expression) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Expression) GetExpression() isExpression_Expression {
+func (x *Expression) GetCel() *expr.ParsedExpr {
 	if x != nil {
-		return x.Expression
+		return x.Cel
 	}
 	return nil
 }
 
-func (x *Expression) GetLiteral() *Value {
+func (x *Expression) GetBindings() []*ExpressionBinding {
 	if x != nil {
-		if x, ok := x.Expression.(*Expression_Literal); ok {
-			return x.Literal
+		return x.Bindings
+	}
+	return nil
+}
+
+// ExpressionBinding supplies a typed domain value to one CEL variable. Paths use protobuf field
+// names, optional oneof members, map selectors, wildcard projection and explicit presence. Their
+// authority is checked against the owning Case catalog before native CEL checking.
+type ExpressionBinding struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Variable string                 `protobuf:"bytes,1,opt,name=variable,proto3" json:"variable,omitempty"`
+	// Types that are valid to be assigned to Input:
+	//
+	//	*ExpressionBinding_Reference
+	//	*ExpressionBinding_Literal
+	Input         isExpressionBinding_Input `protobuf_oneof:"input"`
+	Path          string                    `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExpressionBinding) Reset() {
+	*x = ExpressionBinding{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExpressionBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExpressionBinding) ProtoMessage() {}
+
+func (x *ExpressionBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
 		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExpressionBinding.ProtoReflect.Descriptor instead.
+func (*ExpressionBinding) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ExpressionBinding) GetVariable() string {
+	if x != nil {
+		return x.Variable
+	}
+	return ""
+}
+
+func (x *ExpressionBinding) GetInput() isExpressionBinding_Input {
+	if x != nil {
+		return x.Input
 	}
 	return nil
 }
 
-func (x *Expression) GetReference() *Reference {
+func (x *ExpressionBinding) GetReference() *Reference {
 	if x != nil {
-		if x, ok := x.Expression.(*Expression_Reference); ok {
+		if x, ok := x.Input.(*ExpressionBinding_Reference); ok {
 			return x.Reference
 		}
 	}
 	return nil
 }
 
-func (x *Expression) GetPath() *PathExpression {
+func (x *ExpressionBinding) GetLiteral() *expr.Value {
 	if x != nil {
-		if x, ok := x.Expression.(*Expression_Path); ok {
-			return x.Path
+		if x, ok := x.Input.(*ExpressionBinding_Literal); ok {
+			return x.Literal
 		}
 	}
 	return nil
 }
 
-func (x *Expression) GetPresent() *PresentExpression {
-	if x != nil {
-		if x, ok := x.Expression.(*Expression_Present); ok {
-			return x.Present
-		}
-	}
-	return nil
-}
-
-func (x *Expression) GetCompare() *CompareExpression {
-	if x != nil {
-		if x, ok := x.Expression.(*Expression_Compare); ok {
-			return x.Compare
-		}
-	}
-	return nil
-}
-
-func (x *Expression) GetNot() *NotExpression {
-	if x != nil {
-		if x, ok := x.Expression.(*Expression_Not); ok {
-			return x.Not
-		}
-	}
-	return nil
-}
-
-func (x *Expression) GetAll() *AllExpression {
-	if x != nil {
-		if x, ok := x.Expression.(*Expression_All); ok {
-			return x.All
-		}
-	}
-	return nil
-}
-
-func (x *Expression) GetAny() *AnyExpression {
-	if x != nil {
-		if x, ok := x.Expression.(*Expression_Any); ok {
-			return x.Any
-		}
-	}
-	return nil
-}
-
-type isExpression_Expression interface {
-	isExpression_Expression()
-}
-
-type Expression_Literal struct {
-	Literal *Value `protobuf:"bytes,1,opt,name=literal,proto3,oneof"`
-}
-
-type Expression_Reference struct {
-	Reference *Reference `protobuf:"bytes,2,opt,name=reference,proto3,oneof"`
-}
-
-type Expression_Path struct {
-	Path *PathExpression `protobuf:"bytes,3,opt,name=path,proto3,oneof"`
-}
-
-type Expression_Present struct {
-	Present *PresentExpression `protobuf:"bytes,4,opt,name=present,proto3,oneof"`
-}
-
-type Expression_Compare struct {
-	Compare *CompareExpression `protobuf:"bytes,5,opt,name=compare,proto3,oneof"`
-}
-
-type Expression_Not struct {
-	// (-- api-linter: core::0140::reserved-words=disabled
-	//     aip.dev/not-precedent: The negation arm is named like all and any; it is internal and generated Lean accepts it. --)
-	Not *NotExpression `protobuf:"bytes,6,opt,name=not,proto3,oneof"`
-}
-
-type Expression_All struct {
-	All *AllExpression `protobuf:"bytes,7,opt,name=all,proto3,oneof"`
-}
-
-type Expression_Any struct {
-	Any *AnyExpression `protobuf:"bytes,8,opt,name=any,proto3,oneof"`
-}
-
-func (*Expression_Literal) isExpression_Expression() {}
-
-func (*Expression_Reference) isExpression_Expression() {}
-
-func (*Expression_Path) isExpression_Expression() {}
-
-func (*Expression_Present) isExpression_Expression() {}
-
-func (*Expression_Compare) isExpression_Expression() {}
-
-func (*Expression_Not) isExpression_Expression() {}
-
-func (*Expression_All) isExpression_Expression() {}
-
-func (*Expression_Any) isExpression_Expression() {}
-
-// PathExpression reads the value at path out of its operand's value, absent when any segment is
-// absent.
-type PathExpression struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Operand *Expression            `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
-	// A field path: dot-separated protobuf field names (not JSON names), each followed by at
-	// most one selector. `[*]` fans out over every element of a repeated field, so the path's value is a
-	// list; `["text"]`, `[42]` or `[true]` reads the map entry with that key, a JSON string for a text
-	// key, a base-10 integer for an integer key and true or false for a boolean key, and is absent
-	// when no entry has it; a final `?` reads whether a presence-tracking field is set, as a boolean;
-	// `<member>` after a oneof's name reads the member of that oneof it names. The empty path is the
-	// whole value. For example `attributes<nexus_operation_completed_event_attributes>.scheduled_event_id`
-	// or `history.events[*]`. Preparation rejects a path outside this grammar with its text.
-	Path          string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PathExpression) Reset() {
-	*x = PathExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PathExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PathExpression) ProtoMessage() {}
-
-func (x *PathExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PathExpression.ProtoReflect.Descriptor instead.
-func (*PathExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *PathExpression) GetOperand() *Expression {
-	if x != nil {
-		return x.Operand
-	}
-	return nil
-}
-
-func (x *PathExpression) GetPath() string {
+func (x *ExpressionBinding) GetPath() string {
 	if x != nil {
 		return x.Path
 	}
 	return ""
 }
 
-// PresentExpression is true when its operand is not absent.
-type PresentExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operand       *Expression            `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+type isExpressionBinding_Input interface {
+	isExpressionBinding_Input()
 }
 
-func (x *PresentExpression) Reset() {
-	*x = PresentExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
+type ExpressionBinding_Reference struct {
+	Reference *Reference `protobuf:"bytes,2,opt,name=reference,proto3,oneof"`
 }
 
-func (x *PresentExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
+type ExpressionBinding_Literal struct {
+	Literal *expr.Value `protobuf:"bytes,3,opt,name=literal,proto3,oneof"`
 }
 
-func (*PresentExpression) ProtoMessage() {}
+func (*ExpressionBinding_Reference) isExpressionBinding_Input() {}
 
-func (x *PresentExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PresentExpression.ProtoReflect.Descriptor instead.
-func (*PresentExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *PresentExpression) GetOperand() *Expression {
-	if x != nil {
-		return x.Operand
-	}
-	return nil
-}
-
-// CompareExpression compares two operands of one type. EQUAL and NOT_EQUAL admit any type; the
-// ordering operators admit only numeric scalars.
-type CompareExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operator      ComparisonOperator     `protobuf:"varint,1,opt,name=operator,proto3,enum=temporal.server.api.testpilot.v1.ComparisonOperator" json:"operator,omitempty"`
-	Left          *Expression            `protobuf:"bytes,2,opt,name=left,proto3" json:"left,omitempty"`
-	Right         *Expression            `protobuf:"bytes,3,opt,name=right,proto3" json:"right,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CompareExpression) Reset() {
-	*x = CompareExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CompareExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CompareExpression) ProtoMessage() {}
-
-func (x *CompareExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CompareExpression.ProtoReflect.Descriptor instead.
-func (*CompareExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *CompareExpression) GetOperator() ComparisonOperator {
-	if x != nil {
-		return x.Operator
-	}
-	return COMPARISON_OPERATOR_UNSPECIFIED
-}
-
-func (x *CompareExpression) GetLeft() *Expression {
-	if x != nil {
-		return x.Left
-	}
-	return nil
-}
-
-func (x *CompareExpression) GetRight() *Expression {
-	if x != nil {
-		return x.Right
-	}
-	return nil
-}
-
-// NotExpression negates a boolean operand.
-type NotExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operand       *Expression            `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *NotExpression) Reset() {
-	*x = NotExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *NotExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*NotExpression) ProtoMessage() {}
-
-func (x *NotExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use NotExpression.ProtoReflect.Descriptor instead.
-func (*NotExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *NotExpression) GetOperand() *Expression {
-	if x != nil {
-		return x.Operand
-	}
-	return nil
-}
-
-// AllExpression is true when every operand is true. Operands are evaluated left to right until
-// one is false; an empty list is true.
-type AllExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operands      []*Expression          `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AllExpression) Reset() {
-	*x = AllExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AllExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AllExpression) ProtoMessage() {}
-
-func (x *AllExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AllExpression.ProtoReflect.Descriptor instead.
-func (*AllExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *AllExpression) GetOperands() []*Expression {
-	if x != nil {
-		return x.Operands
-	}
-	return nil
-}
-
-// AnyExpression is true when some operand is true. Operands are evaluated left to right until
-// one is true; an empty list is false.
-type AnyExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operands      []*Expression          `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AnyExpression) Reset() {
-	*x = AnyExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AnyExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AnyExpression) ProtoMessage() {}
-
-func (x *AnyExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AnyExpression.ProtoReflect.Descriptor instead.
-func (*AnyExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *AnyExpression) GetOperands() []*Expression {
-	if x != nil {
-		return x.Operands
-	}
-	return nil
-}
+func (*ExpressionBinding_Literal) isExpressionBinding_Input() {}
 
 // Reference reads one value an expression's context supplies. Instruction inputs and guards admit
 // Slots, instruction outcomes, the Run and environment bindings; Contract transition predicates admit
@@ -769,7 +356,7 @@ type Reference struct {
 
 func (x *Reference) Reset() {
 	*x = Reference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -781,7 +368,7 @@ func (x *Reference) String() string {
 func (*Reference) ProtoMessage() {}
 
 func (x *Reference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -794,7 +381,7 @@ func (x *Reference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Reference.ProtoReflect.Descriptor instead.
 func (*Reference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Reference) GetReference() isReference_Reference {
@@ -822,7 +409,7 @@ func (x *Reference) GetOutcome() *InstructionOutcomeReference {
 	return nil
 }
 
-func (x *Reference) GetRun() *RunReference {
+func (x *Reference) GetRun() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Reference.(*Reference_Run); ok {
 			return x.Run
@@ -894,7 +481,7 @@ func (x *Reference) GetCorrelatedStep() *CorrelatedStepReference {
 	return nil
 }
 
-func (x *Reference) GetProjectedValue() *ProjectedValueReference {
+func (x *Reference) GetProjectedValue() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Reference.(*Reference_ProjectedValue); ok {
 			return x.ProjectedValue
@@ -926,7 +513,7 @@ type Reference_Outcome struct {
 }
 
 type Reference_Run struct {
-	Run *RunReference `protobuf:"bytes,3,opt,name=run,proto3,oneof"`
+	Run *emptypb.Empty `protobuf:"bytes,3,opt,name=run,proto3,oneof"`
 }
 
 type Reference_EnvironmentBindingId struct {
@@ -964,7 +551,7 @@ type Reference_CorrelatedStep struct {
 
 type Reference_ProjectedValue struct {
 	// The value an evidence lift is projecting.
-	ProjectedValue *ProjectedValueReference `protobuf:"bytes,11,opt,name=projected_value,json=projectedValue,proto3,oneof"`
+	ProjectedValue *emptypb.Empty `protobuf:"bytes,11,opt,name=projected_value,json=projectedValue,proto3,oneof"`
 }
 
 type Reference_InstanceValueId struct {
@@ -1007,7 +594,7 @@ type InstructionReference struct {
 
 func (x *InstructionReference) Reset() {
 	*x = InstructionReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1019,7 +606,7 @@ func (x *InstructionReference) String() string {
 func (*InstructionReference) ProtoMessage() {}
 
 func (x *InstructionReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1032,7 +619,7 @@ func (x *InstructionReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionReference.ProtoReflect.Descriptor instead.
 func (*InstructionReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *InstructionReference) GetEntrypointId() string {
@@ -1043,6 +630,51 @@ func (x *InstructionReference) GetEntrypointId() string {
 }
 
 func (x *InstructionReference) GetInstructionId() string {
+	if x != nil {
+		return x.InstructionId
+	}
+	return ""
+}
+
+// LocalInstructionReference is scoped to its enclosing entrypoint.
+type LocalInstructionReference struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	InstructionId string                 `protobuf:"bytes,1,opt,name=instruction_id,json=instructionId,proto3" json:"instruction_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LocalInstructionReference) Reset() {
+	*x = LocalInstructionReference{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LocalInstructionReference) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LocalInstructionReference) ProtoMessage() {}
+
+func (x *LocalInstructionReference) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LocalInstructionReference.ProtoReflect.Descriptor instead.
+func (*LocalInstructionReference) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LocalInstructionReference) GetInstructionId() string {
 	if x != nil {
 		return x.InstructionId
 	}
@@ -1060,7 +692,7 @@ type InstructionOutcomeReference struct {
 
 func (x *InstructionOutcomeReference) Reset() {
 	*x = InstructionOutcomeReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1072,7 +704,7 @@ func (x *InstructionOutcomeReference) String() string {
 func (*InstructionOutcomeReference) ProtoMessage() {}
 
 func (x *InstructionOutcomeReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1085,7 +717,7 @@ func (x *InstructionOutcomeReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionOutcomeReference.ProtoReflect.Descriptor instead.
 func (*InstructionOutcomeReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *InstructionOutcomeReference) GetInstruction() *InstructionReference {
@@ -1102,43 +734,6 @@ func (x *InstructionOutcomeReference) GetField() InstructionOutcomeField {
 	return INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED
 }
 
-// RunReference reads the Run id as text. Only InvokeRpc request assignments may use it.
-type RunReference struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RunReference) Reset() {
-	*x = RunReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RunReference) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RunReference) ProtoMessage() {}
-
-func (x *RunReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RunReference.ProtoReflect.Descriptor instead.
-func (*RunReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{10}
-}
-
 // RunEventReference reads the evaluated Run Event: one of its coordinates, or its payload.
 type RunEventReference struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1153,7 +748,7 @@ type RunEventReference struct {
 
 func (x *RunEventReference) Reset() {
 	*x = RunEventReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1165,7 +760,7 @@ func (x *RunEventReference) String() string {
 func (*RunEventReference) ProtoMessage() {}
 
 func (x *RunEventReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1178,7 +773,7 @@ func (x *RunEventReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunEventReference.ProtoReflect.Descriptor instead.
 func (*RunEventReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{11}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *RunEventReference) GetSelection() isRunEventReference_Selection {
@@ -1197,7 +792,7 @@ func (x *RunEventReference) GetField() RunEventField {
 	return RUN_EVENT_FIELD_UNSPECIFIED
 }
 
-func (x *RunEventReference) GetPayload() *RunEventPayloadReference {
+func (x *RunEventReference) GetPayload() *emptypb.Empty {
 	if x != nil {
 		if x, ok := x.Selection.(*RunEventReference_Payload); ok {
 			return x.Payload
@@ -1215,51 +810,12 @@ type RunEventReference_Field struct {
 }
 
 type RunEventReference_Payload struct {
-	Payload *RunEventPayloadReference `protobuf:"bytes,2,opt,name=payload,proto3,oneof"`
+	Payload *emptypb.Empty `protobuf:"bytes,2,opt,name=payload,proto3,oneof"`
 }
 
 func (*RunEventReference_Field) isRunEventReference_Selection() {}
 
 func (*RunEventReference_Payload) isRunEventReference_Selection() {}
-
-// RunEventPayloadReference selects the payload of the evaluated Run Event. It is read only as the
-// operand of a path whose first segment names a payload arm, such as fault_injected.kind; that path
-// is absent on an event carrying another arm or none.
-type RunEventPayloadReference struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RunEventPayloadReference) Reset() {
-	*x = RunEventPayloadReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RunEventPayloadReference) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RunEventPayloadReference) ProtoMessage() {}
-
-func (x *RunEventPayloadReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RunEventPayloadReference.ProtoReflect.Descriptor instead.
-func (*RunEventPayloadReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{12}
-}
 
 // CorrelatedCaptureReference reads one retained occurrence of a capture by its zero-based ordinal.
 type CorrelatedCaptureReference struct {
@@ -1272,7 +828,7 @@ type CorrelatedCaptureReference struct {
 
 func (x *CorrelatedCaptureReference) Reset() {
 	*x = CorrelatedCaptureReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1284,7 +840,7 @@ func (x *CorrelatedCaptureReference) String() string {
 func (*CorrelatedCaptureReference) ProtoMessage() {}
 
 func (x *CorrelatedCaptureReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1297,7 +853,7 @@ func (x *CorrelatedCaptureReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CorrelatedCaptureReference.ProtoReflect.Descriptor instead.
 func (*CorrelatedCaptureReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{13}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CorrelatedCaptureReference) GetCaptureId() string {
@@ -1330,7 +886,7 @@ type CorrelatedStepReference struct {
 
 func (x *CorrelatedStepReference) Reset() {
 	*x = CorrelatedStepReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1342,7 +898,7 @@ func (x *CorrelatedStepReference) String() string {
 func (*CorrelatedStepReference) ProtoMessage() {}
 
 func (x *CorrelatedStepReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1355,7 +911,7 @@ func (x *CorrelatedStepReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CorrelatedStepReference.ProtoReflect.Descriptor instead.
 func (*CorrelatedStepReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{14}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CorrelatedStepReference) GetField() CorrelatedStepField {
@@ -1372,79 +928,25 @@ func (x *CorrelatedStepReference) GetDefinitionId() string {
 	return ""
 }
 
-// ProjectedValueReference reads the value an evidence lift is projecting.
-type ProjectedValueReference struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProjectedValueReference) Reset() {
-	*x = ProjectedValueReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProjectedValueReference) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProjectedValueReference) ProtoMessage() {}
-
-func (x *ProjectedValueReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProjectedValueReference.ProtoReflect.Descriptor instead.
-func (*ProjectedValueReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{15}
-}
-
 var File_temporal_server_api_testpilot_v1_expression_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\n" +
-	"1temporal/server/api/testpilot/v1/expression.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/event.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xe5\x04\n" +
+	"1temporal/server/api/testpilot/v1/expression.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/event.proto\x1a\x15cel/expr/syntax.proto\x1a\x14cel/expr/value.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x85\x01\n" +
 	"\n" +
-	"Expression\x12C\n" +
-	"\aliteral\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueH\x00R\aliteral\x12K\n" +
-	"\treference\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.ReferenceH\x00R\treference\x12F\n" +
-	"\x04path\x18\x03 \x01(\v20.temporal.server.api.testpilot.v1.PathExpressionH\x00R\x04path\x12O\n" +
-	"\apresent\x18\x04 \x01(\v23.temporal.server.api.testpilot.v1.PresentExpressionH\x00R\apresent\x12O\n" +
-	"\acompare\x18\x05 \x01(\v23.temporal.server.api.testpilot.v1.CompareExpressionH\x00R\acompare\x12C\n" +
-	"\x03not\x18\x06 \x01(\v2/.temporal.server.api.testpilot.v1.NotExpressionH\x00R\x03not\x12C\n" +
-	"\x03all\x18\a \x01(\v2/.temporal.server.api.testpilot.v1.AllExpressionH\x00R\x03all\x12C\n" +
-	"\x03any\x18\b \x01(\v2/.temporal.server.api.testpilot.v1.AnyExpressionH\x00R\x03anyB\f\n" +
-	"\n" +
-	"expression\"l\n" +
-	"\x0ePathExpression\x12F\n" +
-	"\aoperand\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\aoperand\x12\x12\n" +
-	"\x04path\x18\x02 \x01(\tR\x04path\"[\n" +
-	"\x11PresentExpression\x12F\n" +
-	"\aoperand\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\aoperand\"\xeb\x01\n" +
-	"\x11CompareExpression\x12P\n" +
-	"\boperator\x18\x01 \x01(\x0e24.temporal.server.api.testpilot.v1.ComparisonOperatorR\boperator\x12@\n" +
-	"\x04left\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x04left\x12B\n" +
-	"\x05right\x18\x03 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05right\"W\n" +
-	"\rNotExpression\x12F\n" +
-	"\aoperand\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\aoperand\"Y\n" +
-	"\rAllExpression\x12H\n" +
-	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"Y\n" +
-	"\rAnyExpression\x12H\n" +
-	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"\xbf\x06\n" +
+	"Expression\x12&\n" +
+	"\x03cel\x18\x01 \x01(\v2\x14.cel.expr.ParsedExprR\x03cel\x12O\n" +
+	"\bbindings\x18\x02 \x03(\v23.temporal.server.api.testpilot.v1.ExpressionBindingR\bbindings\"\xc6\x01\n" +
+	"\x11ExpressionBinding\x12\x1a\n" +
+	"\bvariable\x18\x01 \x01(\tR\bvariable\x12K\n" +
+	"\treference\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.ReferenceH\x00R\treference\x12+\n" +
+	"\aliteral\x18\x03 \x01(\v2\x0f.cel.expr.ValueH\x00R\aliteral\x12\x12\n" +
+	"\x04path\x18\x04 \x01(\tR\x04pathB\a\n" +
+	"\x05input\"\x84\x06\n" +
 	"\tReference\x12\x19\n" +
 	"\aslot_id\x18\x01 \x01(\tH\x00R\x06slotId\x12Y\n" +
-	"\aoutcome\x18\x02 \x01(\v2=.temporal.server.api.testpilot.v1.InstructionOutcomeReferenceH\x00R\aoutcome\x12B\n" +
-	"\x03run\x18\x03 \x01(\v2..temporal.server.api.testpilot.v1.RunReferenceH\x00R\x03run\x126\n" +
+	"\aoutcome\x18\x02 \x01(\v2=.temporal.server.api.testpilot.v1.InstructionOutcomeReferenceH\x00R\aoutcome\x12*\n" +
+	"\x03run\x18\x03 \x01(\v2\x16.google.protobuf.EmptyH\x00R\x03run\x126\n" +
 	"\x16environment_binding_id\x18\x04 \x01(\tH\x00R\x14environmentBindingId\x12'\n" +
 	"\x0eobservation_id\x18\x05 \x01(\tH\x00R\robservationId\x12R\n" +
 	"\trun_event\x18\x06 \x01(\v23.temporal.server.api.testpilot.v1.RunEventReferenceH\x00R\brunEvent\x12\x1f\n" +
@@ -1453,38 +955,29 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x11evidence_field_id\x18\b \x01(\tH\x00R\x0fevidenceFieldId\x12m\n" +
 	"\x12correlated_capture\x18\t \x01(\v2<.temporal.server.api.testpilot.v1.CorrelatedCaptureReferenceH\x00R\x11correlatedCapture\x12d\n" +
 	"\x0fcorrelated_step\x18\n" +
-	" \x01(\v29.temporal.server.api.testpilot.v1.CorrelatedStepReferenceH\x00R\x0ecorrelatedStep\x12d\n" +
-	"\x0fprojected_value\x18\v \x01(\v29.temporal.server.api.testpilot.v1.ProjectedValueReferenceH\x00R\x0eprojectedValue\x12,\n" +
+	" \x01(\v29.temporal.server.api.testpilot.v1.CorrelatedStepReferenceH\x00R\x0ecorrelatedStep\x12A\n" +
+	"\x0fprojected_value\x18\v \x01(\v2\x16.google.protobuf.EmptyH\x00R\x0eprojectedValue\x12,\n" +
 	"\x11instance_value_id\x18\f \x01(\tH\x00R\x0finstanceValueIdB\v\n" +
 	"\treference\"b\n" +
 	"\x14InstructionReference\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12%\n" +
-	"\x0einstruction_id\x18\x02 \x01(\tR\rinstructionId\"\xc8\x01\n" +
+	"\x0einstruction_id\x18\x02 \x01(\tR\rinstructionId\"B\n" +
+	"\x19LocalInstructionReference\x12%\n" +
+	"\x0einstruction_id\x18\x01 \x01(\tR\rinstructionId\"\xc8\x01\n" +
 	"\x1bInstructionOutcomeReference\x12X\n" +
 	"\vinstruction\x18\x01 \x01(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\vinstruction\x12O\n" +
-	"\x05field\x18\x02 \x01(\x0e29.temporal.server.api.testpilot.v1.InstructionOutcomeFieldR\x05field\"\x0e\n" +
-	"\fRunReference\"\xc1\x01\n" +
+	"\x05field\x18\x02 \x01(\x0e29.temporal.server.api.testpilot.v1.InstructionOutcomeFieldR\x05field\"\x9d\x01\n" +
 	"\x11RunEventReference\x12G\n" +
-	"\x05field\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.RunEventFieldH\x00R\x05field\x12V\n" +
-	"\apayload\x18\x02 \x01(\v2:.temporal.server.api.testpilot.v1.RunEventPayloadReferenceH\x00R\apayloadB\v\n" +
-	"\tselection\"\x1a\n" +
-	"\x18RunEventPayloadReference\"U\n" +
+	"\x05field\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.RunEventFieldH\x00R\x05field\x122\n" +
+	"\apayload\x18\x02 \x01(\v2\x16.google.protobuf.EmptyH\x00R\apayloadB\v\n" +
+	"\tselection\"U\n" +
 	"\x1aCorrelatedCaptureReference\x12\x1d\n" +
 	"\n" +
 	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12\x18\n" +
 	"\aordinal\x18\x02 \x01(\x03R\aordinal\"\x8b\x01\n" +
 	"\x17CorrelatedStepReference\x12K\n" +
 	"\x05field\x18\x01 \x01(\x0e25.temporal.server.api.testpilot.v1.CorrelatedStepFieldR\x05field\x12#\n" +
-	"\rdefinition_id\x18\x02 \x01(\tR\fdefinitionId\"\x19\n" +
-	"\x17ProjectedValueReference*\x9f\x02\n" +
-	"\x12ComparisonOperator\x12#\n" +
-	"\x1fCOMPARISON_OPERATOR_UNSPECIFIED\x10\x00\x12\x1d\n" +
-	"\x19COMPARISON_OPERATOR_EQUAL\x10\x01\x12!\n" +
-	"\x1dCOMPARISON_OPERATOR_NOT_EQUAL\x10\x02\x12!\n" +
-	"\x1dCOMPARISON_OPERATOR_LESS_THAN\x10\x03\x12*\n" +
-	"&COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL\x10\x04\x12$\n" +
-	" COMPARISON_OPERATOR_GREATER_THAN\x10\x05\x12-\n" +
-	")COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL\x10\x06*\x92\x02\n" +
+	"\rdefinition_id\x18\x02 \x01(\tR\fdefinitionId*\x92\x02\n" +
 	"\x17InstructionOutcomeField\x12)\n" +
 	"%INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED\x10\x00\x12$\n" +
 	" INSTRUCTION_OUTCOME_FIELD_STATUS\x10\x01\x12+\n" +
@@ -1511,64 +1004,46 @@ func file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP() []byte
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_expression_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_temporal_server_api_testpilot_v1_expression_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
-	(ComparisonOperator)(0),             // 0: temporal.server.api.testpilot.v1.ComparisonOperator
-	(InstructionOutcomeField)(0),        // 1: temporal.server.api.testpilot.v1.InstructionOutcomeField
-	(CorrelatedStepField)(0),            // 2: temporal.server.api.testpilot.v1.CorrelatedStepField
-	(*Expression)(nil),                  // 3: temporal.server.api.testpilot.v1.Expression
-	(*PathExpression)(nil),              // 4: temporal.server.api.testpilot.v1.PathExpression
-	(*PresentExpression)(nil),           // 5: temporal.server.api.testpilot.v1.PresentExpression
-	(*CompareExpression)(nil),           // 6: temporal.server.api.testpilot.v1.CompareExpression
-	(*NotExpression)(nil),               // 7: temporal.server.api.testpilot.v1.NotExpression
-	(*AllExpression)(nil),               // 8: temporal.server.api.testpilot.v1.AllExpression
-	(*AnyExpression)(nil),               // 9: temporal.server.api.testpilot.v1.AnyExpression
-	(*Reference)(nil),                   // 10: temporal.server.api.testpilot.v1.Reference
-	(*InstructionReference)(nil),        // 11: temporal.server.api.testpilot.v1.InstructionReference
-	(*InstructionOutcomeReference)(nil), // 12: temporal.server.api.testpilot.v1.InstructionOutcomeReference
-	(*RunReference)(nil),                // 13: temporal.server.api.testpilot.v1.RunReference
-	(*RunEventReference)(nil),           // 14: temporal.server.api.testpilot.v1.RunEventReference
-	(*RunEventPayloadReference)(nil),    // 15: temporal.server.api.testpilot.v1.RunEventPayloadReference
-	(*CorrelatedCaptureReference)(nil),  // 16: temporal.server.api.testpilot.v1.CorrelatedCaptureReference
-	(*CorrelatedStepReference)(nil),     // 17: temporal.server.api.testpilot.v1.CorrelatedStepReference
-	(*ProjectedValueReference)(nil),     // 18: temporal.server.api.testpilot.v1.ProjectedValueReference
-	(*Value)(nil),                       // 19: temporal.server.api.testpilot.v1.Value
-	(RunEventField)(0),                  // 20: temporal.server.api.testpilot.v1.RunEventField
+	(InstructionOutcomeField)(0),        // 0: temporal.server.api.testpilot.v1.InstructionOutcomeField
+	(CorrelatedStepField)(0),            // 1: temporal.server.api.testpilot.v1.CorrelatedStepField
+	(*Expression)(nil),                  // 2: temporal.server.api.testpilot.v1.Expression
+	(*ExpressionBinding)(nil),           // 3: temporal.server.api.testpilot.v1.ExpressionBinding
+	(*Reference)(nil),                   // 4: temporal.server.api.testpilot.v1.Reference
+	(*InstructionReference)(nil),        // 5: temporal.server.api.testpilot.v1.InstructionReference
+	(*LocalInstructionReference)(nil),   // 6: temporal.server.api.testpilot.v1.LocalInstructionReference
+	(*InstructionOutcomeReference)(nil), // 7: temporal.server.api.testpilot.v1.InstructionOutcomeReference
+	(*RunEventReference)(nil),           // 8: temporal.server.api.testpilot.v1.RunEventReference
+	(*CorrelatedCaptureReference)(nil),  // 9: temporal.server.api.testpilot.v1.CorrelatedCaptureReference
+	(*CorrelatedStepReference)(nil),     // 10: temporal.server.api.testpilot.v1.CorrelatedStepReference
+	(*expr.ParsedExpr)(nil),             // 11: cel.expr.ParsedExpr
+	(*expr.Value)(nil),                  // 12: cel.expr.Value
+	(*emptypb.Empty)(nil),               // 13: google.protobuf.Empty
+	(RunEventField)(0),                  // 14: temporal.server.api.testpilot.v1.RunEventField
 }
 var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
-	19, // 0: temporal.server.api.testpilot.v1.Expression.literal:type_name -> temporal.server.api.testpilot.v1.Value
-	10, // 1: temporal.server.api.testpilot.v1.Expression.reference:type_name -> temporal.server.api.testpilot.v1.Reference
-	4,  // 2: temporal.server.api.testpilot.v1.Expression.path:type_name -> temporal.server.api.testpilot.v1.PathExpression
-	5,  // 3: temporal.server.api.testpilot.v1.Expression.present:type_name -> temporal.server.api.testpilot.v1.PresentExpression
-	6,  // 4: temporal.server.api.testpilot.v1.Expression.compare:type_name -> temporal.server.api.testpilot.v1.CompareExpression
-	7,  // 5: temporal.server.api.testpilot.v1.Expression.not:type_name -> temporal.server.api.testpilot.v1.NotExpression
-	8,  // 6: temporal.server.api.testpilot.v1.Expression.all:type_name -> temporal.server.api.testpilot.v1.AllExpression
-	9,  // 7: temporal.server.api.testpilot.v1.Expression.any:type_name -> temporal.server.api.testpilot.v1.AnyExpression
-	3,  // 8: temporal.server.api.testpilot.v1.PathExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
-	3,  // 9: temporal.server.api.testpilot.v1.PresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
-	0,  // 10: temporal.server.api.testpilot.v1.CompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
-	3,  // 11: temporal.server.api.testpilot.v1.CompareExpression.left:type_name -> temporal.server.api.testpilot.v1.Expression
-	3,  // 12: temporal.server.api.testpilot.v1.CompareExpression.right:type_name -> temporal.server.api.testpilot.v1.Expression
-	3,  // 13: temporal.server.api.testpilot.v1.NotExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
-	3,  // 14: temporal.server.api.testpilot.v1.AllExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
-	3,  // 15: temporal.server.api.testpilot.v1.AnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
-	12, // 16: temporal.server.api.testpilot.v1.Reference.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeReference
-	13, // 17: temporal.server.api.testpilot.v1.Reference.run:type_name -> temporal.server.api.testpilot.v1.RunReference
-	14, // 18: temporal.server.api.testpilot.v1.Reference.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventReference
-	16, // 19: temporal.server.api.testpilot.v1.Reference.correlated_capture:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureReference
-	17, // 20: temporal.server.api.testpilot.v1.Reference.correlated_step:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepReference
-	18, // 21: temporal.server.api.testpilot.v1.Reference.projected_value:type_name -> temporal.server.api.testpilot.v1.ProjectedValueReference
-	11, // 22: temporal.server.api.testpilot.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	1,  // 23: temporal.server.api.testpilot.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
-	20, // 24: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
-	15, // 25: temporal.server.api.testpilot.v1.RunEventReference.payload:type_name -> temporal.server.api.testpilot.v1.RunEventPayloadReference
-	2,  // 26: temporal.server.api.testpilot.v1.CorrelatedStepReference.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepField
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	11, // 0: temporal.server.api.testpilot.v1.Expression.cel:type_name -> cel.expr.ParsedExpr
+	3,  // 1: temporal.server.api.testpilot.v1.Expression.bindings:type_name -> temporal.server.api.testpilot.v1.ExpressionBinding
+	4,  // 2: temporal.server.api.testpilot.v1.ExpressionBinding.reference:type_name -> temporal.server.api.testpilot.v1.Reference
+	12, // 3: temporal.server.api.testpilot.v1.ExpressionBinding.literal:type_name -> cel.expr.Value
+	7,  // 4: temporal.server.api.testpilot.v1.Reference.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeReference
+	13, // 5: temporal.server.api.testpilot.v1.Reference.run:type_name -> google.protobuf.Empty
+	8,  // 6: temporal.server.api.testpilot.v1.Reference.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventReference
+	9,  // 7: temporal.server.api.testpilot.v1.Reference.correlated_capture:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureReference
+	10, // 8: temporal.server.api.testpilot.v1.Reference.correlated_step:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepReference
+	13, // 9: temporal.server.api.testpilot.v1.Reference.projected_value:type_name -> google.protobuf.Empty
+	5,  // 10: temporal.server.api.testpilot.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	0,  // 11: temporal.server.api.testpilot.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
+	14, // 12: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
+	13, // 13: temporal.server.api.testpilot.v1.RunEventReference.payload:type_name -> google.protobuf.Empty
+	1,  // 14: temporal.server.api.testpilot.v1.CorrelatedStepReference.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepField
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_expression_proto_init() }
@@ -1577,18 +1052,11 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		return
 	}
 	file_temporal_server_api_testpilot_v1_event_proto_init()
-	file_temporal_server_api_testpilot_v1_value_proto_init()
-	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[0].OneofWrappers = []any{
-		(*Expression_Literal)(nil),
-		(*Expression_Reference)(nil),
-		(*Expression_Path)(nil),
-		(*Expression_Present)(nil),
-		(*Expression_Compare)(nil),
-		(*Expression_Not)(nil),
-		(*Expression_All)(nil),
-		(*Expression_Any)(nil),
+	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[1].OneofWrappers = []any{
+		(*ExpressionBinding_Reference)(nil),
+		(*ExpressionBinding_Literal)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[7].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[2].OneofWrappers = []any{
 		(*Reference_SlotId)(nil),
 		(*Reference_Outcome)(nil),
 		(*Reference_Run)(nil),
@@ -1602,7 +1070,7 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		(*Reference_ProjectedValue)(nil),
 		(*Reference_InstanceValueId)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[11].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[6].OneofWrappers = []any{
 		(*RunEventReference_Field)(nil),
 		(*RunEventReference_Payload)(nil),
 	}
@@ -1611,8 +1079,8 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   16,
+			NumEnums:      2,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

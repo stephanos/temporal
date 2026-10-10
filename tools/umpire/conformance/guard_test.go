@@ -1,15 +1,20 @@
 package conformance
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
+
+	celpb "cel.dev/expr"
 
 	"github.com/stretchr/testify/require"
 	failurepb "go.temporal.io/api/failure/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/predicate"
 	"go.temporal.io/server/tools/umpire/ir"
-	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -197,7 +202,8 @@ func TestAGuardIsEvaluatedOverTypedValues(t *testing.T) {
 	delivered := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", attemptOf(2, "token-2", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED))
 	undelivered := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", attemptOf(0, "", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED))
 	plain := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", &testpilotspb.InstructionOutcome{
-		Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}})
+		Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}}})
+	unknownEnum := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", &testpilotspb.InstructionOutcome{Status: 99})
 	for name, test := range map[string]struct {
 		guard *umpirespb.Operand
 		event *testpilotspb.RunEvent
@@ -210,6 +216,7 @@ func TestAGuardIsEvaluatedOverTypedValues(t *testing.T) {
 		"a text not equal":                  {guardEqual(guardPath("activity_attempt.delivery_id"), guardLiteral("")), delivered, false},
 		"an enum value by its name":         {guardEqual(guardPath("activity_attempt.response"), guardLiteral(protoName("ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED"))), undelivered, true},
 		"another enum value":                {guardEqual(guardLiteral(protoName("ACTIVITY_ATTEMPT_RESPONSE_REFUSED")), guardPath("activity_attempt.response")), undelivered, false},
+		"an unknown protobuf enum number":   {guardEqual(guardPath("status"), guardLiteral(protoName("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))), unknownEnum, false},
 		"two fields of one enum":            {guardEqual(guardPath("status"), guardPath("status")), delivered, true},
 		"a flag":                            {guardEqual(guardPath("value.bool_value"), guardLiteral(true)), plain, true},
 		"a negation":                        {guardNot(guardEqual(guardPath("activity_attempt.delivery_id"), guardLiteral(""))), undelivered, false},
@@ -217,9 +224,9 @@ func TestAGuardIsEvaluatedOverTypedValues(t *testing.T) {
 		"a message that is not set":         {guardPresent(guardPath("activity_attempt")), plain, false},
 		"a field of a message not set":      {guardPresent(guardPath("activity_attempt.sdk_attempt")), plain, false},
 		"a scalar at its default":           {guardPresent(guardPath("activity_attempt.sdk_attempt")), undelivered, true},
-		"a oneof member that is set":        {guardPresent(guardPath("value.value<bool_value>")), plain, true},
-		"a oneof member that is not":        {guardPresent(guardPath("value.value<text_value>")), plain, false},
-		"a member read by its field name":   {guardPresent(guardPath("value.text_value")), plain, false},
+		"a oneof member that is set":        {guardPresent(guardPath("value.kind<bool_value>")), plain, true},
+		"a oneof member that is not":        {guardPresent(guardPath("value.kind<string_value>")), plain, false},
+		"a member read by its field name":   {guardPresent(guardPath("value.string_value")), plain, false},
 		"a field of a path that is not set": {guardPresent(guardNested("activity_attempt", "delivery_id")), plain, false},
 		"a conjunction that holds":          {guardAll(guardPresent(guardPath("activity_attempt")), guardGreater(guardPath("activity_attempt.sdk_attempt"), guardLiteral(0))), delivered, true},
 		"a conjunction that stops at once":  {guardAll(guardPresent(guardPath("activity_attempt")), guardGreater(guardPath("activity_attempt.sdk_attempt"), guardLiteral(0))), plain, false},
@@ -230,6 +237,7 @@ func TestAGuardIsEvaluatedOverTypedValues(t *testing.T) {
 			require.Equal(t, test.want, admitted)
 		})
 	}
+	require.Equal(t, testpilotspb.InstructionOutcomeStatus(99), unknownEnum.GetOutcome().GetStatus(), "native protobuf open enums retain their wire number")
 
 	// A source takes the events its command records in its script that carry an outcome, and no other.
 	elsewhere := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", attemptOf(1, "token-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED))
@@ -259,11 +267,11 @@ func TestAGuardThatCannotBeEvaluatedIsAnError(t *testing.T) {
 		"a field the payload does not have":               {guardPresent(guardPath("activity_attempt.attempt")), delivered, "reads activity_attempt.attempt, and temporal.server.api.testpilot.v1.ActivityAttempt has no field attempt"},
 		"a field of a scalar":                             {guardPresent(guardPath("detail.length")), delivered, "reads detail.length, and temporal.server.api.testpilot.v1.InstructionOutcome.detail is no message"},
 		"each element of a field":                         {guardPresent(guardPath("activity_attempt[*]")), delivered, `reads "activity_attempt[*]" of the path activity_attempt[*], and a guard reads a field or oneof<member>`},
-		"a oneof the message does not have":               {guardPresent(guardPath("value.value<nope>")), delivered, "reads value<nope>, and temporal.server.api.testpilot.v1.Value has no such member"},
+		"a oneof the message does not have":               {guardPresent(guardPath("value.kind<nope>")), delivered, "reads kind<nope>, and cel.expr.Value has no such member"},
 		"an order of a text":                              {guardGreater(guardPath("activity_attempt.delivery_id"), guardLiteral(0)), delivered, "orders a text, and only numbers are ordered"},
 		"a comparison of a number with a text":            {guardEqual(guardPath("activity_attempt.sdk_attempt"), guardLiteral("1")), delivered, "compares a number with a text"},
-		"a comparison of a value that is absent":          {guardGreater(guardPath("activity_attempt.sdk_attempt"), guardLiteral(0)), plain, "orders an absent value"},
-		"a comparison with a value that is absent":        {guardEqual(guardLiteral("token-1"), guardPath("activity_attempt.delivery_id")), plain, "compares an absent value"},
+		"a comparison of a value that is absent":          {guardGreater(guardPath("activity_attempt.sdk_attempt"), guardLiteral(0)), plain, "unavailable at evidence.guard: optional.none() dereference"},
+		"a comparison with a value that is absent":        {guardEqual(guardLiteral("token-1"), guardPath("activity_attempt.delivery_id")), plain, "unavailable at evidence.guard: optional.none() dereference"},
 		"a comparison of a message":                       {guardEqual(guardPath("activity_attempt"), guardLiteral("x")), delivered, "compares a message"},
 		"an enum name the enum does not have":             {guardEqual(guardPath("status"), guardLiteral(protoName("INSTRUCTION_OUTCOME_STATUS_NOPE"))), delivered, "compares a value of temporal.server.api.testpilot.v1.InstructionOutcomeStatus with INSTRUCTION_OUTCOME_STATUS_NOPE, which it does not have"},
 		"values of two enums":                             {guardEqual(guardPath("status"), guardPath("activity_attempt.response")), delivered, "compares a value of temporal.server.api.testpilot.v1.InstructionOutcomeStatus with one of temporal.server.api.testpilot.v1.ActivityAttemptResponse"},
@@ -275,11 +283,11 @@ func TestAGuardThatCannotBeEvaluatedIsAnError(t *testing.T) {
 		"a guard that is a number":                        {guardPath("activity_attempt.sdk_attempt"), delivered, "is a number, and a guard is a condition"},
 		"a guard that is a message":                       {guardPath("activity_attempt"), delivered, "is a message, and a guard is a condition"},
 		"a guard that is an unset message":                {guardPath("activity_attempt"), plain, "is a message, and a guard is a condition"},
-		"a guard that is an absent flag":                  {guardPath("value.bool_value"), plain, "is an absent value, and a guard is a condition"},
-		"a negation of an absent flag":                    {guardNot(guardPath("value.bool_value")), plain, "negates an absent value"},
-		"a conjunction over an absent flag":               {guardAll(guardPath("value.bool_value")), plain, "joins an absent value"},
+		"a guard that is an absent flag":                  {guardPath("value.bool_value"), plain, "unavailable at evidence.guard: optional.none() dereference"},
+		"a negation of an absent flag":                    {guardNot(guardPath("value.bool_value")), plain, "unavailable at evidence.guard: optional.none() dereference"},
+		"a conjunction over an absent flag":               {guardAll(guardPath("value.bool_value")), plain, "unavailable at evidence.guard: optional.none() dereference"},
 		"an order by a text":                              {guardGreater(guardPath("activity_attempt.sdk_attempt"), guardLiteral("0")), delivered, "orders a text, and only numbers are ordered"},
-		"an order by a value that is absent":              {guardGreater(guardLiteral(0), guardPath("activity_attempt.sdk_attempt")), plain, "orders an absent value"},
+		"an order by a value that is absent":              {guardGreater(guardLiteral(0), guardPath("activity_attempt.sdk_attempt")), plain, "unavailable at evidence.guard: optional.none() dereference"},
 		"an order of a text that is absent":               {guardGreater(guardPath("activity_attempt.delivery_id"), guardLiteral(0)), plain, "orders a text, and only numbers are ordered"},
 		"an enum name on the left the enum does not have": {guardEqual(guardLiteral(protoName("INSTRUCTION_OUTCOME_STATUS_NOPE")), guardPath("status")), delivered, "compares a value of temporal.server.api.testpilot.v1.InstructionOutcomeStatus with INSTRUCTION_OUTCOME_STATUS_NOPE, which it does not have"},
 		"a field an unset message does not have":          {guardPresent(guardNested("activity_attempt", "nope")), plain, "reads nope, and temporal.server.api.testpilot.v1.ActivityAttempt has no field nope"},
@@ -287,12 +295,9 @@ func TestAGuardThatCannotBeEvaluatedIsAnError(t *testing.T) {
 		"a guard that reads the run":                      {guardEqual(run, guardLiteral("run")), delivered, "reads the run's id; a Run Event's guard reads the event's payload alone"},
 		"a guard of no kind":                              {&umpirespb.Operand{}, delivered, "has an operand of no known kind"},
 		"a literal that is no value of a guard":           {guardEqual(guardPath("detail"), &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: &umpirespb.ProtoValue{}}}), delivered, "writes out a value that is no text, flag, number or enum value"},
-		"a field of a kind no guard reads":                {guardPresent(guardPath("value.bytes_value")), delivered, "reads temporal.server.api.testpilot.v1.Value.bytes_value, which is of kind bytes"},
-		"several values":                                  {guardPresent(guardPath("value.list_value.values")), delivered, "reads value.list_value.values, and temporal.server.api.testpilot.v1.ValueList.values holds several values"},
-		"an enum value its enum does not name": {guardEqual(guardPath("status"), guardLiteral(protoName("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))),
-			reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", &testpilotspb.InstructionOutcome{Status: 99}),
-			"reads temporal.server.api.testpilot.v1.InstructionOutcome.status, whose value 99 its enum does not name"},
-		"a path of what is no message": {guardPresent(&umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "x", Of: guardLiteral("y")}}}), delivered, "reads x of a text, which is no message"},
+		"a field of a kind no guard reads":                {guardPresent(guardPath("value.bytes_value")), delivered, "reads cel.expr.Value.bytes_value, which is of kind bytes"},
+		"several values":                                  {guardPresent(guardPath("value.list_value.values")), delivered, "reads value.list_value.values, and cel.expr.ListValue.values holds several values"},
+		"a path of what is no message":                    {guardPresent(&umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "x", Of: guardLiteral("y")}}}), delivered, "reads x of a text, which is no message"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			admitted, err := admits(guarded(test.guard), test.event)
@@ -312,13 +317,27 @@ func TestAGuardThatCannotBeEvaluatedIsAnError(t *testing.T) {
 // of the path, not the one the field first reaches.
 func TestAPathThroughARecursiveMessageReadsItsEnd(t *testing.T) {
 	outer := &failurepb.Failure{Message: "outer", Cause: &failurepb.Failure{Message: "middle", Cause: &failurepb.Failure{Message: "inner"}}}
-	message, err := valueAt(outer.ProtoReflect(), "cause.cause.message")
+	packed, err := anypb.New(outer)
 	require.NoError(t, err)
-	require.Equal(t, value{text: "inner"}, message)
-	cause, err := valueAt(outer.ProtoReflect(), "cause.cause")
+	typ := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: string(outer.ProtoReflect().Descriptor().FullName())}}}}}
+	evaluate := func(expression *testpilotspb.Expression) *celpb.Value {
+		value, _, err := predicate.EvaluateProjected(context.Background(), expression, &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: packed}}, typ, guardDescriptors(outer.ProtoReflect().Descriptor().ParentFile()), 100000)
+		require.NoError(t, err)
+		return value
+	}
+	projected := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}})
+	require.True(t, evaluate(cel.Compare("==", cel.Path(projected, "cause.cause.message"), cel.Literal(&celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "inner"}}))).GetBoolValue())
+	inner, err := anypb.New(outer.GetCause().GetCause())
 	require.NoError(t, err)
-	require.True(t, proto.Equal(outer.GetCause().GetCause(), cause.message.Interface()))
-	absent, err := valueAt(outer.ProtoReflect(), "cause.cause.cause")
-	require.NoError(t, err)
-	require.Equal(t, value{absent: true}, absent)
+	require.True(t, evaluate(cel.Compare("==", cel.Path(projected, "cause.cause"), cel.Literal(&celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: inner}}))).GetBoolValue())
+	require.False(t, evaluate(cel.Present(cel.Path(projected, "cause.cause.cause"))).GetBoolValue())
+}
+
+func TestConformanceGuardHonorsCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	event := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", &testpilotspb.InstructionOutcome{})
+	admitted, err := admitsContext(ctx, guarded(guardLiteral(true)), event)
+	require.False(t, admitted)
+	require.ErrorIs(t, err, context.Canceled)
 }

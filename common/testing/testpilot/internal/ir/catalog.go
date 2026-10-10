@@ -11,6 +11,8 @@ import (
 	"slices"
 	"strings"
 
+	celpb "cel.dev/expr"
+
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -18,6 +20,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type ErrorCategory string
@@ -63,6 +66,9 @@ type budget struct {
 	limits      Limits
 	work, bytes int64
 	expand      Expansion
+	payload     bool
+	descriptors bool
+	surfaceWork int64
 }
 
 func (b *budget) charge(depth, work, bytes int64, path string) error {
@@ -90,7 +96,7 @@ func inspect(message protoreflect.Message, depth int64, b *budget, path string) 
 	if err := b.charge(depth, 1, 0, path); err != nil {
 		return err
 	}
-	if len(message.GetUnknown()) != 0 {
+	if len(message.GetUnknown()) != 0 && !b.payload {
 		return Invalid(Unknown, path, "unknown protobuf fields")
 	}
 
@@ -132,6 +138,9 @@ func inspect(message protoreflect.Message, depth int64, b *budget, path string) 
 }
 
 func inspectField(field protoreflect.FieldDescriptor, value protoreflect.Value, depth int64, b *budget, path string) error {
+	if field.IsExtension() && !b.payload && !b.descriptors {
+		return Invalid(Unsupported, path, "protobuf extensions are unsupported")
+	}
 	if field.IsMap() {
 		return inspectMap(field, value, depth, b, path)
 	}
@@ -187,7 +196,7 @@ func inspectValue(field protoreflect.FieldDescriptor, value protoreflect.Value, 
 	if field.Message() != nil {
 		return inspect(value.Message(), depth+1, b, path)
 	}
-	if field.Enum() != nil && field.Enum().Values().ByNumber(value.Enum()) == nil {
+	if field.Enum() != nil && field.Enum().Values().ByNumber(value.Enum()) == nil && !b.payload {
 		return Invalid(Unknown, path, "undefined enum value")
 	}
 	size := int64(8)
@@ -209,7 +218,7 @@ func NewCatalog(source *descriptorpb.FileDescriptorSet) (*Catalog, error) {
 	if source == nil {
 		return nil, Invalid(Malformed, "catalog", "descriptor set is required")
 	}
-	b := budget{limits: DefaultLimits()}
+	b := budget{limits: DefaultLimits(), descriptors: true}
 	if err := inspect(source.ProtoReflect(), 1, &b, "catalog"); err != nil {
 		return nil, err
 	}
@@ -231,6 +240,13 @@ func NewCatalog(source *descriptorpb.FileDescriptorSet) (*Catalog, error) {
 			if !ok || !proto.Equal(protodesc.ToEnumDescriptorProto(enumeration), protodesc.ToEnumDescriptorProto(intrinsic)) {
 				return nil, Invalid(TypeMismatch, "catalog", "conflicting intrinsic enum definition")
 			}
+		}
+	}
+	intrinsicDuration := (&durationpb.Duration{}).ProtoReflect().Descriptor()
+	if supplied, err := files.FindDescriptorByName(intrinsicDuration.FullName()); err == nil {
+		message, ok := supplied.(protoreflect.MessageDescriptor)
+		if !ok || !SameMessage(message, intrinsicDuration) {
+			return nil, Invalid(TypeMismatch, "catalog", "conflicting intrinsic duration definition")
 		}
 	}
 	slices.SortFunc(snapshot.File, func(a, b *descriptorpb.FileDescriptorProto) int { return strings.Compare(a.GetName(), b.GetName()) })
@@ -364,7 +380,7 @@ func (c *Catalog) RunEventPayloadType(arm protoreflect.Name) (Type, bool) {
 
 // RunEventPayloadValue reads the payload arm of event as an expression value, encoded like any
 // message a path reads. It is nil when the event carries another arm or none.
-func RunEventPayloadValue(event *testpilotspb.RunEvent, arm protoreflect.Name) *testpilotspb.Value {
+func RunEventPayloadValue(event *testpilotspb.RunEvent, arm protoreflect.Name) *celpb.Value {
 	message := event.ProtoReflect()
 	carried := message.WhichOneof(message.Descriptor().Oneofs().ByName("payload"))
 	if carried == nil || carried.Name() != arm {
@@ -375,7 +391,7 @@ func RunEventPayloadValue(event *testpilotspb.RunEvent, arm protoreflect.Name) *
 	if err != nil {
 		return nil
 	}
-	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(carried.Message().FullName()), Value: encoded}}}
+	return &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(carried.Message().FullName()), Value: encoded}}}
 }
 
 func inspectMap(field protoreflect.FieldDescriptor, value protoreflect.Value, depth int64, b *budget, path string) error {

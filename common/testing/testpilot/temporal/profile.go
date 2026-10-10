@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -12,6 +13,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	workerhost "go.temporal.io/server/common/testing/testpilot/temporal/worker"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // Environment names the physical resources one Case's symbolic bindings resolve to, plus the
@@ -86,13 +88,7 @@ func configurationOf(environment Environment) ([]testpilot.ConfigurationValue, e
 // them. Each ceiling is the largest value any checked-in Temporal Case declared when the bounds moved
 // out of the Case, so no such Case is refused.
 func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimits, *testpilotspb.CorrelatedLimits) {
-	return &testpilotspb.ProgramLimits{
-		MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16,
-		MaxRunEvents: 512, MaxExpressionDepth: 12, MaxPathFanout: 32,
-		MaxRequestBytes: 32768, MaxResponseBytes: 8192,
-		MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 20000,
-		MaxInstructionEmittedEvents: 128, MaxInstructionResponseBytes: 8192,
-	}, &testpilotspb.ContractLimits{
+	return &testpilotspb.ProgramLimits{MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16, MaxRunEvents: 512, MaxExpressionDepth: 12, MaxPathFanout: 32, MaxRequestBytes: 32768, MaxResponseBytes: 8192, MaxDuration: durationpb.New(time.Duration(30000) * time.Millisecond), CleanupDuration: durationpb.New(time.Duration(20000) * time.Millisecond), MaxInstructionEmittedEvents: 128, MaxInstructionResponseBytes: 8192}, &testpilotspb.ContractLimits{
 		MaxRules: 4, MaxStates: 16, MaxTransitions: 64, MaxExpressionDepth: 12,
 		MaxWorkPerEvent: 4000000, MaxTotalWork: 1000000000, MaxCaptures: 64, MaxCaptureBytes: 65536,
 	}, &testpilotspb.CorrelatedLimits{

@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/common/testing/testpilot/duration"
+
 	"github.com/stretchr/testify/require"
 	activitypb "go.temporal.io/api/activity/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -234,7 +236,7 @@ func TestTheHeldRaceIsReadByItsEvidenceAndNotItsClock(t *testing.T) {
 
 	skewed := proto.CloneOf(run)
 	for _, event := range skewed.GetEvents() {
-		event.ElapsedMilliseconds = 86400000 * (event.GetSequence() - 1)
+		event.Elapsed = duration.FromMilliseconds(86400000 * (event.GetSequence() - 1))
 	}
 	replayed, evaluation, err := b.assessed.Evaluate(t.Context(), skewed, live)
 	require.NoError(t, err)

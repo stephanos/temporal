@@ -40,8 +40,11 @@ func (a *realizing) behavior(mm *umpirespb.Machine) {
 	if n := a.r.GetBehavior().GetAttemptNumbering(); n != nil && n.GetFirst() < 1 {
 		a.report(n.GetPosition(), "attempts are numbered from %d; the first attempt's number is positive", n.GetFirst())
 	}
-	if d := a.r.GetBehavior().GetInstructionDefaults(); d != nil && (d.GetTimeoutMs() <= 0 || d.GetAttempts() <= 0) {
-		a.report(d.GetPosition(), "an instruction that writes no limits takes %d ms and %d attempts; both are positive", d.GetTimeoutMs(), d.GetAttempts())
+	if d := a.r.GetBehavior().GetInstructionDefaults(); d != nil {
+		a.duration(d.GetPosition(), "instruction_defaults.timeout", d.GetTimeout(), true, true)
+		if d.GetAttempts() <= 0 {
+			a.report(d.GetPosition(), "instruction_defaults.attempts must be positive")
+		}
 	}
 	bounded := a.causeBounds()
 	declared := map[string]bool{}
@@ -130,6 +133,7 @@ func (a *realizing) serverStepKind(mm *umpirespb.Machine, s *umpirespb.ServerSte
 		declared[step] = true
 	}
 	kind := s.GetKind()
+	deadline := a.duration(at, "server_step.deadline", s.GetDeadline(), kind == umpirespb.CAUSE_KIND_TIMER, kind == umpirespb.CAUSE_KIND_TIMER)
 	if _, known := umpirespb.TimeoutBasis_name[int32(s.GetTimeoutBasis())]; !known {
 		a.report(at, "%s has no known timeout basis", step)
 	} else if kind != umpirespb.CAUSE_KIND_TIMER && s.GetTimeoutBasis() != umpirespb.TIMEOUT_BASIS_UNSPECIFIED {
@@ -143,10 +147,10 @@ func (a *realizing) serverStepKind(mm *umpirespb.Machine, s *umpirespb.ServerSte
 	default:
 	}
 	switch {
-	case kind == umpirespb.CAUSE_KIND_TIMER && s.GetDeadlineMs() <= 0:
+	case kind == umpirespb.CAUSE_KIND_TIMER && deadline <= 0:
 		a.report(at, "%s is a timer and names no positive deadline", step)
-	case kind != umpirespb.CAUSE_KIND_TIMER && s.GetDeadlineMs() != 0:
-		a.report(at, "%s names a deadline of %d milliseconds, and only a timer's step has one", step, s.GetDeadlineMs())
+	case kind != umpirespb.CAUSE_KIND_TIMER && s.GetDeadline() != nil:
+		a.report(at, "%s names a deadline of %d milliseconds, and only a timer's step has one", step, durationMilliseconds(s.GetDeadline()))
 	default:
 	}
 }
@@ -185,13 +189,9 @@ func (a *realizing) waitBound(b *umpirespb.WaitBound, hint *umpirespb.Position, 
 	if at.GetFile() == "" {
 		at = hint
 	}
-	if b.GetIntervalMs() <= 0 {
-		a.report(at, "%s looks every %d milliseconds; an interval is positive", of, b.GetIntervalMs())
-	}
-	if b.GetAtMostMs() <= 0 {
-		a.report(at, "%s waits at most %d milliseconds; a bound is positive", of, b.GetAtMostMs())
-	}
-	if b.GetIntervalMs() > 0 && b.GetAtMostMs() > 0 && b.GetIntervalMs() > b.GetAtMostMs() {
-		a.report(at, "%s looks every %d milliseconds and waits at most %d; an interval is no greater than its bound", of, b.GetIntervalMs(), b.GetAtMostMs())
+	interval := a.duration(at, of+".interval", b.GetInterval(), true, true)
+	bound := a.duration(at, of+".at_most", b.GetAtMost(), true, true)
+	if interval > 0 && bound > 0 && interval > bound {
+		a.report(at, "%s looks every %d milliseconds and waits at most %d; an interval is no greater than its bound", of, interval, bound)
 	}
 }

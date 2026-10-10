@@ -3,22 +3,29 @@ package execution
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/protorequire"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
+	pbduration "go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const completedArm = "nexus_operation_completed_event_attributes"
@@ -60,15 +67,16 @@ func sourced(source string, ordinal int64, kind, operation string, fields ...*te
 func TestDistinctKindsShareOneDenseSourceAndKeyPath(t *testing.T) {
 	source, catalog, policy := evidenceFixture(t)
 	started := source.Program.Evidence[0]
-	started.Operation = "event_id"
+	started.Operation = projected("event_id")
 	completed := proto.CloneOf(started)
 	completed.EvidenceId = "completed"
+	completed.Kind = "completed"
 	completed.GetHistoryEvent().AttributesField = completedArm
 	source.Program.Evidence = []*testpilotspb.EvidenceDeclaration{started, completed}
 	controller := source.Program.Entrypoints[0]
 	controller.Instructions = controller.Instructions[:1]
 	lift := controller.Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Targets[0].GetCorrelatedEvidence()
-	lift.Rules = append(lift.Rules, &testpilotspb.CorrelatedEvidenceRule{EvidenceId: "completed"})
+	lift.EvidenceIds = append(lift.EvidenceIds, "completed")
 
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
@@ -110,15 +118,12 @@ func TestOneReadLiftsEveryHistoryKindOfItsSource(t *testing.T) {
 	controller.Instructions = controller.Instructions[:1]
 	lift := controller.Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Targets[0].GetCorrelatedEvidence()
 	scope := source.Program.Evidence[0].Scope
-	source.Program.Evidence, lift.Rules = nil, nil
+	source.Program.Evidence, lift.EvidenceIds = nil, nil
 	kinds := []string{"started", "completed", "failed", "canceled", "timedOut"}
 	arms := []string{startedArm, completedArm, "nexus_operation_failed_event_attributes", "nexus_operation_canceled_event_attributes", "nexus_operation_timed_out_event_attributes"}
 	for index, kind := range kinds {
-		source.Program.Evidence = append(source.Program.Evidence, &testpilotspb.EvidenceDeclaration{
-			EvidenceId: kind, EvidenceSource: "history", Scope: scope, Operation: "attributes<" + arms[index] + ">.scheduled_event_id",
-			Source: &testpilotspb.EvidenceDeclaration_HistoryEvent{HistoryEvent: &testpilotspb.HistoryEventSource{AttributesField: arms[index]}},
-		})
-		lift.Rules = append(lift.Rules, &testpilotspb.CorrelatedEvidenceRule{EvidenceId: kind})
+		source.Program.Evidence = append(source.Program.Evidence, &testpilotspb.EvidenceDeclaration{EvidenceId: kind, EvidenceSource: "history", Scope: scope, Operation: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "attributes<"+arms[index]+">.scheduled_event_id"), Source: &testpilotspb.EvidenceDeclaration_HistoryEvent{HistoryEvent: &testpilotspb.HistoryEventSource{AttributesField: arms[index]}}, Kind: kind})
+		lift.EvidenceIds = append(lift.EvidenceIds, kind)
 	}
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
@@ -167,11 +172,8 @@ func TestPrepareRefusesASourceTwoEmittersCountOrOneRecordedKindTwice(t *testing.
 		"one read twice":           {again(2), "program.evidence[3]"},
 		// One key path read from data of two sorts tells their evidence apart no better.
 		"a read and a history kind under one key path": {func(c *testpilotspb.Case) {
-			c.Program.Evidence[0].Operation = "event_id"
-			c.Program.Evidence[2] = &testpilotspb.EvidenceDeclaration{
-				EvidenceId: "recorded", EvidenceSource: "history", Scope: c.Program.Evidence[0].Scope, Operation: "event_id",
-				Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: historyMethod, Path: "history.events"}},
-			}
+			c.Program.Evidence[0].Operation = projected("event_id")
+			c.Program.Evidence[2] = &testpilotspb.EvidenceDeclaration{EvidenceId: "recorded", EvidenceSource: "history", Scope: c.Program.Evidence[0].Scope, Operation: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "event_id"), Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: historyMethod, Path: "history.events"}}, Kind: "recorded"}
 			controller := c.Program.Entrypoints[0]
 			controller.Instructions = controller.Instructions[:2]
 		}, "program.evidence[2]"},
@@ -198,7 +200,7 @@ func TestPrepareRefusesASourceTwoEmittersCountOrOneRecordedKindTwice(t *testing.
 func TestPrepareStillAdmitsOneRecordedKindUnderTwoKeyPaths(t *testing.T) {
 	source, catalog, policy := evidenceFixture(t)
 	again := proto.CloneOf(source.Program.Evidence[0])
-	again.EvidenceId, again.Operation = "started-by-event", "event_id"
+	again.EvidenceId, again.Operation = "started-by-event", projected("event_id")
 	source.Program.Evidence = append(source.Program.Evidence, again)
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
@@ -261,21 +263,16 @@ func attemptFixture(t *testing.T, failures int, declarations ...*testpilotspb.Ev
 // attemptRecord declares the kind as evidence read from the Run's record of a reservation, keyed by
 // the activity run and carrying the attempt and the delivery the record names.
 func attemptRecord(kind, source string) *testpilotspb.EvidenceDeclaration {
-	return &testpilotspb.EvidenceDeclaration{
-		EvidenceId: kind, EvidenceSource: source,
-		Source:    &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC}},
-		Scope:     []*testpilotspb.NamedValue{{FieldId: "run", Value: textValue("one")}},
-		Operation: "activity_attempt.activity_run_id",
-		Fields: []*testpilotspb.EvidenceFieldDeclaration{
-			{FieldId: "attempt", Path: "activity_attempt.sdk_attempt"},
-			{FieldId: "delivery", Path: "activity_attempt.delivery_id"},
-		},
-	}
+	return &testpilotspb.EvidenceDeclaration{EvidenceId: kind, EvidenceSource: source, Source: &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC}}, Scope: testsupport.LiteralExpressions([]*testpilotspb.NamedValue{{FieldId: "run", Value: textValue("one")}}), Operation: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "activity_attempt.activity_run_id"), Fields: []*testpilotspb.NamedExpression{{FieldId: "attempt", Value: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "activity_attempt.sdk_attempt")}, {FieldId: "delivery", Value: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "activity_attempt.delivery_id")}}, Kind: kind}
 }
 
 func attemptFields(attempt, delivery string) []*testpilotspb.NamedValue {
+	number, err := strconv.ParseUint(attempt, 10, 64)
+	if err != nil {
+		panic(err)
+	}
 	return []*testpilotspb.NamedValue{
-		{FieldId: "attempt", Value: &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: attempt}}},
+		{FieldId: "attempt", Value: &celpb.Value{Kind: &celpb.Value_Uint64Value{Uint64Value: number}}},
 		{FieldId: "delivery", Value: textValue(delivery)},
 	}
 }
@@ -373,7 +370,7 @@ func TestRunLiftsEvidenceFromTheRecordOfEachActivityAttempt(t *testing.T) {
 
 func TestRunLiftsHeartbeatInvocationFromItsGroupedPendingAttempt(t *testing.T) {
 	declaration := attemptRecord("attemptDelivered", "attempts")
-	declaration.Fields = append(declaration.Fields, &testpilotspb.EvidenceFieldDeclaration{FieldId: "heartbeatInvoked", Path: "activity_attempt.heartbeat_invoked"})
+	declaration.Fields = append(declaration.Fields, &testpilotspb.NamedExpression{FieldId: "heartbeatInvoked", Value: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "activity_attempt.heartbeat_invoked")})
 	source, catalog, policy := attemptFixture(t, 1, declaration)
 	policy.Opcodes = append(policy.Opcodes, contract.ActivityHeartbeat, contract.ActivityAttemptWithholding)
 	entry := source.Program.Entrypoints[1]
@@ -389,7 +386,7 @@ func TestRunLiftsHeartbeatInvocationFromItsGroupedPendingAttempt(t *testing.T) {
 	sources, lifted := attemptRecords(t, s.recorder.run)
 	require.Equal(t, []string{firstAttempt, secondAttempt}, sources)
 	invocation := func(value bool) *testpilotspb.NamedValue {
-		return &testpilotspb.NamedValue{FieldId: "heartbeatInvoked", Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}}
+		return &testpilotspb.NamedValue{FieldId: "heartbeatInvoked", Value: &celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: value}}}
 	}
 	protorequire.ProtoSliceEqual(t, []*testpilotspb.CorrelatedEvidence{
 		sourced("attempts", 0, "attemptDelivered", "activity-run", append(attemptFields("1", "delivery-1"), invocation(true))...),
@@ -397,22 +394,24 @@ func TestRunLiftsHeartbeatInvocationFromItsGroupedPendingAttempt(t *testing.T) {
 	}, lifted)
 }
 
-func compare(operator testpilotspb.ComparisonOperator, left *testpilotspb.Expression, right *testpilotspb.Value) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
-		Operator: operator, Left: left, Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: right}},
-	}}}
+func compare(operator string, left *testpilotspb.Expression, right *celpb.Value) *testpilotspb.Expression {
+	return cel.Compare(operator, left, cel.Literal(right))
 }
 
 func all(operands ...*testpilotspb.Expression) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: operands}}}
+	return cel.All(operands...)
 }
 
-func integer(value string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: value}}
+func integer(value string) *celpb.Value {
+	number, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return &celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: number}}
 }
 
 // attemptNumber compares the attempt a reservation's record names.
-func attemptNumber(operator testpilotspb.ComparisonOperator, attempt string) *testpilotspb.Expression {
+func attemptNumber(operator string, attempt string) *testpilotspb.Expression {
 	return compare(operator, projected("activity_attempt.sdk_attempt"), integer(attempt))
 }
 
@@ -420,12 +419,12 @@ func attemptNumber(operator testpilotspb.ComparisonOperator, attempt string) *te
 // delivery, which the record of a position that was not needed does not. A presence check would not
 // tell them apart, since a scalar a record leaves at zero still reads as a value.
 func delivered() *testpilotspb.Expression {
-	return all(attemptNumber(testpilotspb.COMPARISON_OPERATOR_GREATER_THAN, "0"), compare(testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL, projected("activity_attempt.delivery_id"), textValue("")))
+	return all(attemptNumber("_>_", "0"), compare("_!=_", projected("activity_attempt.delivery_id"), textValue("")))
 }
 
 // under is the declaration selecting only the records its guard accepts.
 func under(guard *testpilotspb.Expression, declaration *testpilotspb.EvidenceDeclaration) *testpilotspb.EvidenceDeclaration {
-	declaration.GetRunEvent().Guard = guard
+	declaration.Guard = guard
 	return declaration
 }
 
@@ -460,8 +459,8 @@ func TestRunLiftsOnlyTheAttemptRecordsItsGuardSelects(t *testing.T) {
 		// guard accepts it.
 		"two kinds of one source": {
 			declarations: []*testpilotspb.EvidenceDeclaration{
-				under(attemptNumber(testpilotspb.COMPARISON_OPERATOR_EQUAL, "1"), attemptRecord("firstAttempt", "attempts")),
-				under(attemptNumber(testpilotspb.COMPARISON_OPERATOR_GREATER_THAN, "1"), attemptRecord("laterAttempt", "attempts")),
+				under(attemptNumber("_==_", "1"), attemptRecord("firstAttempt", "attempts")),
+				under(attemptNumber("_>_", "1"), attemptRecord("laterAttempt", "attempts")),
 			},
 			outcomes: []*testpilotspb.InstructionOutcome{retryable(1), retryable(2), completed(3)},
 			lifted: []*testpilotspb.CorrelatedEvidence{
@@ -482,7 +481,7 @@ func TestRunLiftsOnlyTheAttemptRecordsItsGuardSelects(t *testing.T) {
 			},
 		},
 		"no record the guard accepts": {
-			declarations: []*testpilotspb.EvidenceDeclaration{under(attemptNumber(testpilotspb.COMPARISON_OPERATOR_GREATER_THAN, "3"), attemptRecord("attemptDelivered", "attempts"))},
+			declarations: []*testpilotspb.EvidenceDeclaration{under(attemptNumber("_>_", "3"), attemptRecord("attemptDelivered", "attempts"))},
 			outcomes:     []*testpilotspb.InstructionOutcome{retryable(1), retryable(2), completed(3)},
 			lifted:       []*testpilotspb.CorrelatedEvidence{none, none, none},
 		},
@@ -510,7 +509,7 @@ func at(instructionID string, declaration *testpilotspb.EvidenceDeclaration) *te
 // keyedByRun makes the Run's own ID the operation key of the declaration's evidence, in place of a
 // path of the payload.
 func keyedByRun(declaration *testpilotspb.EvidenceDeclaration) *testpilotspb.EvidenceDeclaration {
-	declaration.Operation = ""
+	declaration.Operation = nil
 	declaration.GetRunEvent().RunKeyed = true
 	return declaration
 }
@@ -529,11 +528,8 @@ func TestRunLiftsTheEventsOfOneInstructionKeyedByTheRun(t *testing.T) {
 
 func runLiftsTheEventsOfOneInstruction(t *testing.T, causal bool) {
 	accepted := keyedByRun(at("call", under(
-		compare(testpilotspb.COMPARISON_OPERATOR_EQUAL, projected("status"), &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}),
-		&testpilotspb.EvidenceDeclaration{
-			EvidenceId: "startAccepted", EvidenceSource: "starts", Scope: []*testpilotspb.NamedValue{{FieldId: "run", Value: textValue("one")}},
-			Source: &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}},
-		})))
+		compare("_==_", projected("status"), cel.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)),
+		&testpilotspb.EvidenceDeclaration{EvidenceId: "startAccepted", EvidenceSource: "starts", Scope: testsupport.LiteralExpressions([]*testpilotspb.NamedValue{{FieldId: "run", Value: textValue("one")}}), Source: &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, Kind: "startAccepted"})))
 	source, catalog, policy := attemptFixture(t, 1, accepted, keyedByRun(at("call", under(delivered(), attemptRecord("attemptDelivered", "attempts")))))
 	source.Program.RunOrderIsCausal = causal
 	prepared, err := Prepare(source, catalog, policy)
@@ -577,7 +573,7 @@ func TestRunLiftsOnlyTheEventsOfTheInstructionItNames(t *testing.T) {
 	resume.Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_WORKER_RESUME
 	controller.Instructions = []*testpilotspb.InstructionNode{stop, resume}
 	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.Entrypoint{
-		EntrypointId: "other", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}},
+		EntrypointId: "other", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}},
 		Instructions: []*testpilotspb.InstructionNode{proto.CloneOf(resume)},
 	})
 	source.Program.Evidence = []*testpilotspb.EvidenceDeclaration{at("resume", source.Program.Evidence[1])}
@@ -609,7 +605,7 @@ func TestRunLiftsOnlyTheEventsOfTheInstructionItNames(t *testing.T) {
 func TestARecordNoDeclarationCanLiftIsKeptAndFailsTheRun(t *testing.T) {
 	unreadable := func() *testpilotspb.EvidenceDeclaration {
 		declaration := under(delivered(), attemptRecord("attemptDelivered", "attempts"))
-		declaration.Fields = append(declaration.Fields, &testpilotspb.EvidenceFieldDeclaration{FieldId: "result", Path: "value.value<text_value>"})
+		declaration.Fields = append(declaration.Fields, &testpilotspb.NamedExpression{FieldId: "result", Value: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "value.kind<string_value>")})
 		return declaration
 	}
 	completed := attempted(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, 1, "delivery-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED)
@@ -623,7 +619,7 @@ func TestARecordNoDeclarationCanLiftIsKeptAndFailsTheRun(t *testing.T) {
 		"a field the record does not carry": {[]*testpilotspb.EvidenceDeclaration{unreadable()}, completed, "outcome_failed"},
 		"two declarations select it": {[]*testpilotspb.EvidenceDeclaration{
 			under(delivered(), attemptRecord("attemptDelivered", "attempts")),
-			under(attemptNumber(testpilotspb.COMPARISON_OPERATOR_EQUAL, "1"), attemptRecord("firstAttempt", "first-attempts")),
+			under(attemptNumber("_==_", "1"), attemptRecord("firstAttempt", "first-attempts")),
 		}, completed, "outcome_failed"},
 		"the record of an attempt the worker refused": {[]*testpilotspb.EvidenceDeclaration{unreadable()}, refused, "activation_failed"},
 	} {
@@ -653,23 +649,34 @@ func TestARecordNoDeclarationCanLiftIsKeptAndFailsTheRun(t *testing.T) {
 // the work the activation may spend runs out inside the guard. Nothing is lifted and no ordinal is
 // taken.
 func TestAGuardTheRunCannotEvaluateFailsTheLift(t *testing.T) {
-	source, catalog, policy := attemptFixture(t, 0, under(delivered(), attemptRecord("attemptDelivered", "attempts")))
-	prepared, err := Prepare(source, catalog, policy)
-	require.NoError(t, err)
-	prepared.graphs[0].runtimeWork = 2
-	s, err := newScheduler(prepared, "run", "case", &testsupport.Session{}, schedulerMonitor{}, time.Now)
-	require.NoError(t, err)
-	values, err := s.values.activate("controller", "controller.0")
-	require.NoError(t, err)
-	record := &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: firstAttempt, Payload: &testpilotspb.RunEvent_Outcome{
-		Outcome: attempted(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, 1, "delivery-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED),
-	}}
-	err = s.liftRunEvents(context.Background(), values, []*testpilotspb.RunEvent{record})
-	var diagnostic *ir.Error
-	require.ErrorAs(t, err, &diagnostic)
-	require.Equal(t, ir.LimitExceeded, diagnostic.Category)
-	require.Empty(t, record.GetObservations())
-	require.Empty(t, s.runEventOrdinals)
+	for _, exhausted := range []bool{false, true} {
+		source, catalog, policy := attemptFixture(t, 0, under(delivered(), attemptRecord("attemptDelivered", "attempts")))
+		if !exhausted {
+			source.Program.Evidence[0].Guard = projected("value.kind<bool_value>")
+		}
+		prepared, err := Prepare(source, catalog, policy)
+		require.NoError(t, err)
+		if exhausted {
+			prepared.graphs[0].runtimeWork = 2
+		}
+		s, err := newScheduler(prepared, "run", "case", &testsupport.Session{}, schedulerMonitor{}, time.Now)
+		require.NoError(t, err)
+		values, err := s.values.activate("controller", "controller.0")
+		require.NoError(t, err)
+		record := &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: firstAttempt, Payload: &testpilotspb.RunEvent_Outcome{
+			Outcome: attempted(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, 1, "delivery-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED),
+		}}
+		err = s.liftRunEvents(context.Background(), values, []*testpilotspb.RunEvent{record})
+		var diagnostic *ir.Error
+		require.ErrorAs(t, err, &diagnostic)
+		if exhausted {
+			require.Equal(t, ir.LimitExceeded, diagnostic.Category)
+		} else {
+			require.Equal(t, ir.Unavailable, diagnostic.Category)
+		}
+		require.Empty(t, record.GetObservations())
+		require.Empty(t, s.runEventOrdinals)
+	}
 }
 
 // The Monitor's stop on the record of a refused attempt stands as it did: the Run is stopped by its
@@ -714,27 +721,23 @@ func TestAMonitorStopOnARefusedAttemptIsNotReplacedByItsFailure(t *testing.T) {
 // One recorded kind under one guard is one declaration, and what a worker offered for an attempt
 // is no field of evidence.
 func TestPrepareRejectsRunEventDeclarationsItCannotLift(t *testing.T) {
-	const guardPath = "program.evidence[0].run_event.guard"
+	const guardPath = "program.evidence[0].guard"
 	for name, test := range map[string]struct {
 		mutate   func(*testpilotspb.Program)
 		category ir.ErrorCategory
 		path     string
 	}{
-		"a guard that reads the Run": {func(p *testpilotspb.Program) { p.Evidence[0].GetRunEvent().Guard = present(runIDExpression()) },
-			ir.Unknown, guardPath + ".present.reference.run"},
-		"a guard that is no expression": {func(p *testpilotspb.Program) { p.Evidence[0].GetRunEvent().Guard = &testpilotspb.Expression{} },
+		"a guard that reads the Run": {func(p *testpilotspb.Program) { p.Evidence[0].Guard = present(runIDExpression()) },
+			ir.Unknown, guardPath + ".bindings[0].reference.run"},
+		"a guard that is no expression": {func(p *testpilotspb.Program) { p.Evidence[0].Guard = &testpilotspb.Expression{} },
 			ir.Malformed, guardPath},
 		"a guard that is no boolean": {func(p *testpilotspb.Program) {
-			p.Evidence[0].GetRunEvent().Guard = projected("activity_attempt.delivery_id")
+			p.Evidence[0].Guard = projected("activity_attempt.delivery_id")
 		},
 			ir.TypeMismatch, guardPath},
-		"a guard that may have no value": {func(p *testpilotspb.Program) {
-			p.Evidence[0].GetRunEvent().Guard = projected("value.value<bool_value>")
-		},
-			ir.Unavailable, guardPath},
 		"a guard over a field the record lacks": {func(p *testpilotspb.Program) {
-			p.Evidence[0].GetRunEvent().Guard = present(projected("activity_attempt.accepted"))
-		}, ir.Unknown, guardPath + ".present.path.path"},
+			p.Evidence[0].Guard = present(projected("activity_attempt.accepted"))
+		}, ir.Unknown, guardPath + ".bindings[0].path"},
 		"an instruction the Program does not declare": {func(p *testpilotspb.Program) { at("absent", p.Evidence[0]) },
 			ir.Unknown, "program.evidence[0].run_event.instruction"},
 		"an instruction of no entrypoint": {func(p *testpilotspb.Program) {
@@ -745,12 +748,12 @@ func TestPrepareRejectsRunEventDeclarationsItCannotLift(t *testing.T) {
 		}, ir.Unknown, "program.evidence[0].run_event.instruction"},
 		"a key path beside the Run's key": {func(p *testpilotspb.Program) { p.Evidence[0].GetRunEvent().RunKeyed = true },
 			ir.Malformed, "program.evidence[0].operation"},
-		"no key": {func(p *testpilotspb.Program) { p.Evidence[0].Operation = "" }, ir.Malformed, "program.evidence[0]"},
+		"no key": {func(p *testpilotspb.Program) { p.Evidence[0].Operation = nil }, ir.Malformed, "program.evidence[0]"},
 		"one kind under one guard twice": {func(p *testpilotspb.Program) {
 			p.Evidence = append(p.Evidence, under(delivered(), attemptRecord("attemptDeliveredAgain", "attempts")))
 		}, ir.Malformed, "program.evidence[1]"},
 		"the offered response as a field": {func(p *testpilotspb.Program) {
-			p.Evidence[0].Fields = append(p.Evidence[0].Fields, &testpilotspb.EvidenceFieldDeclaration{FieldId: "response", Path: "activity_attempt.response"})
+			p.Evidence[0].Fields = append(p.Evidence[0].Fields, &testpilotspb.NamedExpression{FieldId: "response", Value: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "activity_attempt.response")})
 		}, ir.TypeMismatch, "program.evidence[0]"},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -775,7 +778,7 @@ func TestAGuardSelectsAmongTheEventsOfAnyKindThatCarriesAPayload(t *testing.T) {
 	resume.Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_WORKER_RESUME
 	controller.Instructions = []*testpilotspb.InstructionNode{stop, resume}
 	resumed := source.Program.Evidence[1]
-	resumed.GetRunEvent().Guard = compare(testpilotspb.COMPARISON_OPERATOR_EQUAL, projected("kind"), &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "FAULT_KIND_WORKER_RESUME"}}})
+	resumed.Guard = compare("_==_", projected("kind"), cel.Enum(testpilotspb.FAULT_KIND_WORKER_RESUME))
 	source.Program.Evidence = []*testpilotspb.EvidenceDeclaration{resumed}
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
@@ -844,25 +847,16 @@ func reportFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	policy.Limits.MaxPathFanout = policy.Limits.MaxInstructionEmittedEvents
 	poll := &testpilotspb.InstructionNode{
 		InstructionId: "describe",
-		Limits:        &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}},
-		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{
-			EvidenceId: "itemSettled", EndpointRoleId: "endpoint", PollIntervalMilliseconds: 10,
-			Until: compare(testpilotspb.COMPARISON_OPERATOR_GREATER_THAN, projected("state"), integer("1")),
-		}}},
+		Limits:        &testpilotspb.InstructionLimits{Timeout: durationpb.New(time.Duration(1000) * time.Millisecond), MaxAttempts: proto.Int64(1)},
+		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{EvidenceId: "itemSettled", EndpointRoleId: "endpoint", Interval: durationpb.New(time.Duration(10) * time.Millisecond), Until: compare("_>_", projected("state"), integer("1"))}}},
 	}
-	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "report", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor}, CaseId: "report", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
 		ProgramId:    "program",
 		Roles:        []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
 		Observations: []*testpilotspb.Observation{{ObservationId: "evidence", Type: messageValueType("temporal.server.api.testpilot.v1.CorrelatedEvidence")}},
-		Evidence: []*testpilotspb.EvidenceDeclaration{{
-			EvidenceId: "itemSettled", EvidenceSource: "report",
-			Source:    &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describeReport, Path: "item", Single: true}},
-			Scope:     []*testpilotspb.NamedValue{{FieldId: "run", Value: textValue("one")}},
-			Operation: "key",
-			Fields:    []*testpilotspb.EvidenceFieldDeclaration{{FieldId: "state", Path: "state"}},
-		}},
-		Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{poll}}},
-		Cleanup:     &testpilotspb.Cleanup{EntrypointId: "cleanup"},
+		Evidence:     []*testpilotspb.EvidenceDeclaration{{EvidenceId: "itemSettled", EvidenceSource: "report", Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describeReport, Path: "item"}}, Scope: testsupport.LiteralExpressions([]*testpilotspb.NamedValue{{FieldId: "run", Value: textValue("one")}}), Operation: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "key"), Fields: []*testpilotspb.NamedExpression{{FieldId: "state", Value: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "state")}}, Kind: "itemSettled"}},
+		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}, Instructions: []*testpilotspb.InstructionNode{poll}}},
+		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}}
 	return source, catalog, policy
 }
@@ -919,7 +913,11 @@ func polled(answers *[]bool, responses ...proto.Message) func(context.Context, c
 }
 
 func stateField(state string) *testpilotspb.NamedValue {
-	return &testpilotspb.NamedValue{FieldId: "state", Value: &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: state}}}
+	number, err := strconv.ParseUint(state, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return &testpilotspb.NamedValue{FieldId: "state", Value: &celpb.Value{Kind: &celpb.Value_Uint64Value{Uint64Value: number}}}
 }
 
 // A read of one message of a response is polled and lifted as a read of a repeated field is: the
@@ -966,7 +964,7 @@ func TestAReadOfOneMessagePollsAndLiftsAsARepeatedFieldDoes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			source, catalog, policy := reportFixture(t)
 			read := source.Program.Evidence[0].GetRead()
-			read.Path, read.Single = test.path, test.single
+			read.Path = test.path
 			prepared, err := Prepare(source, catalog, policy)
 			require.NoError(t, err)
 			require.Equal(t, []EvidenceDeclaration{{ID: "itemSettled", Source: "report", Kind: ReadSource, Fields: []string{"state"}}}, prepared.View().Evidence())
@@ -989,7 +987,7 @@ func TestAReadOfOneMessagePollsAndLiftsAsARepeatedFieldDoes(t *testing.T) {
 func TestAResponseWithoutTheOneMessageSatisfiesNoCondition(t *testing.T) {
 	source, catalog, policy := reportFixture(t)
 	poll := source.Program.Entrypoints[0].Instructions[0].Instruction.GetReadEvidence()
-	poll.Until = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: poll.Until}}}
+	poll.Until = cel.Not(poll.Until)
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
 	var answers []bool
@@ -1005,7 +1003,7 @@ func TestAResponseWithoutTheOneMessageSatisfiesNoCondition(t *testing.T) {
 // A poll no response satisfies ends when its instruction times out, and lifts nothing.
 func TestAReadOfOneMessageThatNeverSatisfiesTimesOutWithoutEvidence(t *testing.T) {
 	source, catalog, policy := reportFixture(t)
-	source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 50}
+	source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = pbduration.FromMilliseconds(50)
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
 	var answers []bool
@@ -1039,18 +1037,17 @@ func TestPrepareRejectsAReadOfOneMessageItCannotLift(t *testing.T) {
 		category ir.ErrorCategory
 		path     string
 	}{
-		"one message of a repeated field":      {func(c *testpilotspb.Case, _ *Profile) { read(c).Path = "items" }, ir.TypeMismatch, "program.evidence[0].read.path"},
 		"one message that is a scalar":         {func(c *testpilotspb.Case, _ *Profile) { read(c).Path = "note" }, ir.TypeMismatch, "program.evidence[0].read.path"},
 		"one message of any type":              {func(c *testpilotspb.Case, _ *Profile) { read(c).Path = "extension" }, ir.TypeMismatch, "program.evidence[0].read.path"},
-		"each element of one message":          {func(c *testpilotspb.Case, _ *Profile) { read(c).Single = false }, ir.TypeMismatch, "program.evidence[0].read.path"},
+		"wildcard on one message":              {func(c *testpilotspb.Case, _ *Profile) { read(c).Path = "item[*]" }, ir.TypeMismatch, "program.evidence[0].read.path"},
 		"a field the response lacks":           {func(c *testpilotspb.Case, _ *Profile) { read(c).Path = "absent" }, ir.Unknown, "program.evidence[0].read.path"},
-		"a key the message lacks":              {func(c *testpilotspb.Case, _ *Profile) { c.Program.Evidence[0].Operation = "absent" }, ir.Unknown, "program.evidence[0].operation"},
+		"a key the message lacks":              {func(c *testpilotspb.Case, _ *Profile) { c.Program.Evidence[0].Operation = projected("absent") }, ir.Unknown, "program.evidence[0].operation.bindings[0].path"},
 		"a method the role does not authorize": {func(_ *testpilotspb.Case, p *Profile) { p.Roles[0].Methods = nil }, ir.Unsupported, "controller.describe"},
 		"a Profile without the Opcode":         {func(_ *testpilotspb.Case, p *Profile) { p.Opcodes = nil }, ir.Unsupported, "controller.describe"},
-		"a poll slower than its timeout": {func(c *testpilotspb.Case, _ *Profile) { poll(c).PollIntervalMilliseconds = 1001 }, ir.LimitExceeded,
-			pollPath + ".poll_interval_milliseconds"},
+		"a poll slower than its timeout": {func(c *testpilotspb.Case, _ *Profile) { poll(c).Interval = pbduration.FromMilliseconds(1001) }, ir.LimitExceeded,
+			pollPath + ".interval"},
 		"a condition that reads the Run": {func(c *testpilotspb.Case, _ *Profile) { poll(c).Until = present(runIDExpression()) }, ir.Unknown,
-			pollPath + ".until.present.reference.run"},
+			pollPath + ".until.bindings[0].reference.run"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			source, catalog, policy := reportFixture(t)
@@ -1072,7 +1069,7 @@ func TestAReadOfOneMessageEmitsOneEventWhateverTheFanout(t *testing.T) {
 	require.NoError(t, err)
 
 	read := source.Program.Evidence[0].GetRead()
-	read.Path, read.Single = "items", false
+	read.Path = "items"
 	_, err = Prepare(source, catalog, policy)
 	var diagnostic *ir.Error
 	require.ErrorAs(t, err, &diagnostic)

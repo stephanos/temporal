@@ -90,7 +90,7 @@ func (a *assessor) observe(ctx context.Context, event *testpilotspb.RunEvent) (t
 	}
 	mismatch := a.performedOutcome(event)
 	a.completion(event)
-	seen, err := a.plan.reader.read(event)
+	seen, err := a.plan.reader.read(ctx, event)
 	if err != nil || seen == nil {
 		return testpilot.Established{Nonconformance: mismatch}, err
 	}

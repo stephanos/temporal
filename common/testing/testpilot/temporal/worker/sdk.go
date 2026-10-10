@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
@@ -467,7 +468,7 @@ func pollActivityClosed(sdk client.Client) func(context.Context, string, string,
 	}
 }
 
-func (h *Driver) dynamicActivity(ctx context.Context, _ converter.EncodedValues) (*testpilotspb.Value, error) {
+func (h *Driver) dynamicActivity(ctx context.Context, _ converter.EncodedValues) (*celpb.Value, error) {
 	routed, ok := ctx.Value(activityRouteKey{}).(routedActivity)
 	if !ok {
 		return nil, ErrInvalid
@@ -475,7 +476,7 @@ func (h *Driver) dynamicActivity(ctx context.Context, _ converter.EncodedValues)
 	return routed.session.executeActivity(ctx, routed.activation)
 }
 
-func (h *Driver) dynamicWorkflow(ctx workflow.Context, _ converter.EncodedValues) (*testpilotspb.Value, error) {
+func (h *Driver) dynamicWorkflow(ctx workflow.Context, _ converter.EncodedValues) (*celpb.Value, error) {
 	routed, ok := ctx.Value(workflowRouteKey{}).(routedWorkflow)
 	if !ok {
 		return nil, activationError(ErrInvalid)

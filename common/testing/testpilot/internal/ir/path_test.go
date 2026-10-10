@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	celpb "cel.dev/expr"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
@@ -47,7 +49,7 @@ func TestPathsPreserveTypePresenceAndCardinality(t *testing.T) {
 	p, err := c.BindPath(source, "path", lookup, DefaultLimits())
 	require.NoError(t, err)
 	steps := p.Steps()
-	steps[0].Key.Value = &testpilotspb.Value_TextValue{TextValue: "mutated"}
+	steps[0].Key.Kind = &celpb.Value_StringValue{StringValue: "mutated"}
 	require.Equal(t, "labels", string(p.Steps()[0].Field.Name()))
 	require.True(t, proto.Equal(text("key"), p.Steps()[0].Key))
 }
@@ -141,7 +143,7 @@ func TestPathKeysTakeTheirMapKeyKind(t *testing.T) {
 	for _, tt := range []struct {
 		key  pathKey
 		kind testpilotspb.ScalarKind
-		want *testpilotspb.Value
+		want *celpb.Value
 	}{
 		{pathKey{kind: textKey, text: "x"}, testpilotspb.SCALAR_KIND_TEXT, text("x")},
 		{pathKey{kind: booleanKey, text: "true"}, testpilotspb.SCALAR_KIND_BOOLEAN, boolean(true)},

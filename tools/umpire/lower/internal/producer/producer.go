@@ -21,6 +21,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/interp"
+	"google.golang.org/protobuf/proto"
 )
 
 // Error is a production failure: the construct that could not be realized and the definition it
@@ -449,7 +450,7 @@ func (p *production) produce() (*testpilotspb.Case, error) {
 	}
 	c := &testpilotspb.Case{
 		CaseId:     p.identity.CaseID,
-		Version:    &testpilotspb.FormatVersion{Major: 1},
+		Version:    &testpilotspb.FormatVersion{Major: 4},
 		Provenance: provenance,
 		Program:    program,
 		Contract:   &testpilotspb.Contract{ContractId: p.identity.ContractID, Correlated: contract},
@@ -641,12 +642,12 @@ func (p *production) offPath(rules []resolvedRule) []*EvidenceSource {
 // step after it.
 func silentGap(action interp.Atom) *testpilotspb.KnownGap {
 	return &testpilotspb.KnownGap{
-		Kind:            testpilotspb.KNOWN_GAP_KIND_CAPABILITY,
-		Code:            action.ID + ".unobserved",
-		SubjectPresence: &testpilotspb.KnownGap_Subject{Subject: action.ID},
-		DetailPresence: &testpilotspb.KnownGap_Detail{Detail: "the step '" + action.Value + "' records nothing an " +
+		Kind:    testpilotspb.KNOWN_GAP_KIND_CAPABILITY,
+		Code:    action.ID + ".unobserved",
+		Subject: proto.String(action.ID),
+		Detail: proto.String("the step '" + action.Value + "' records nothing an " +
 			"evidence line names, so the Contract infers it from the evidence of the step after it rather " +
-			"than observing it"},
+			"than observing it"),
 	}
 }
 

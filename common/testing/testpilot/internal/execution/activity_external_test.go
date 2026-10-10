@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	activitypb "go.temporal.io/api/activity/v1"
 	commonpb "go.temporal.io/api/common/v1"
@@ -13,12 +14,14 @@ import (
 	failurepb "go.temporal.io/api/failure/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -29,7 +32,7 @@ func externalRef(id string) *testpilotspb.InstructionReference {
 }
 
 func externalSuccess(id string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{succeeded("controller", "call"), succeeded("controller", id)}}}}
+	return cel.All([]*testpilotspb.Expression{succeeded("controller", "call"), succeeded("controller", id)}...)
 }
 
 func externalAssignments() []*testpilotspb.RequestAssignment {
@@ -40,14 +43,8 @@ func externalAssignments() []*testpilotspb.RequestAssignment {
 	}
 }
 
-func projectedEnum(field, value string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
-		Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL,
-		Left: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{
-			Operand: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}}}}, Path: field,
-		}}},
-		Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: value}}}}},
-	}}}
+func projectedEnum(field string, value protoreflect.Enum) *testpilotspb.Expression {
+	return cel.Compare("_==_", cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), field), cel.Literal(cel.Enum(value)))
 }
 
 func externalFixture(t *testing.T, canceled bool) (*testpilotspb.Case, *ir.Catalog, Profile) {
@@ -71,7 +68,7 @@ func externalFixture(t *testing.T, canceled bool) (*testpilotspb.Case, *ir.Catal
 	start := rpcNode("call")
 	start.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: activityService + "StartActivityExecution", RequestAssignments: []*testpilotspb.RequestAssignment{
 		{Target: "namespace", Value: textLiteral("namespace")}, {Target: "activity_id", Value: textLiteral("activity-id")},
-	}, ResponseReads: []*testpilotspb.ResponseRead{{Path: "run_id", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "activity-run"}}}}}}}}
+	}, ResponseReads: []*testpilotspb.ResponseRead{{Path: "run_id", Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "activity-run"}}}}}}}}
 	await := activityNode("published", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "pending-attempt"}}})
 	await.Guard = succeeded("controller", "call")
 	runState := enumspb.PENDING_ACTIVITY_STATE_STARTED
@@ -82,16 +79,13 @@ func externalFixture(t *testing.T, canceled bool) (*testpilotspb.Case, *ir.Catal
 	}
 	held := rpcNode("held")
 	held.Guard = externalSuccess("published")
-	held.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{EvidenceId: "held", EndpointRoleId: "endpoint", RequestAssignments: externalAssignments(), Once: true, Until: &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
-		projectedEnum("status", ir.EnumName(enumspb.ACTIVITY_EXECUTION_STATUS_RUNNING)),
-		projectedEnum("run_state", ir.EnumName(runState)),
-	}}}}}}}
+	held.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{EvidenceId: "held", EndpointRoleId: "endpoint", RequestAssignments: externalAssignments(), Until: cel.All([]*testpilotspb.Expression{projectedEnum("status", enumspb.ACTIVITY_EXECUTION_STATUS_RUNNING), projectedEnum("run_state", runState)}...)}}}
 	answer := rpcNode("answer")
 	answer.Guard = externalSuccess("held")
 	answer.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: activityService + answerMethod, RequestAssignments: externalAssignments()}}}
 	settlement := rpcNode("settled")
 	settlement.Guard = externalSuccess("answer")
-	settlement.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{EvidenceId: "settled", EndpointRoleId: "endpoint", RequestAssignments: externalAssignments(), Once: true, Until: projectedEnum("status", ir.EnumName(terminal))}}}
+	settlement.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{EvidenceId: "settled", EndpointRoleId: "endpoint", RequestAssignments: externalAssignments(), Until: projectedEnum("status", terminal)}}}
 	controller := []*testpilotspb.InstructionNode{start, await}
 	declaration := &testpilotspb.ActivityExternalSettlement{Carrier: externalRef("call"), ActivityEntrypointId: "activity", PendingSlotId: "pending-attempt", Held: externalRef("held"), Answer: externalRef("answer"), Settlement: externalRef("settled"), Cleanup: &testpilotspb.InstructionReference{EntrypointId: "cleanup", InstructionId: "terminate"}}
 	if canceled {
@@ -101,18 +95,18 @@ func externalFixture(t *testing.T, canceled bool) (*testpilotspb.Case, *ir.Catal
 		controller = append(controller, request)
 		held.Guard = externalSuccess("request-cancel")
 		declaration.RequestCancel = externalRef("request-cancel")
-		settlement.Instruction.GetReadEvidence().RequestAssignments = append(settlement.Instruction.GetReadEvidence().RequestAssignments, &testpilotspb.RequestAssignment{Target: "include_outcome", Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}})
+		settlement.Instruction.GetReadEvidence().RequestAssignments = append(settlement.Instruction.GetReadEvidence().RequestAssignments, &testpilotspb.RequestAssignment{Target: "include_outcome", Value: cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})})
 	}
 	source.Program.Entrypoints[0].Instructions = append(controller, held, answer, settlement)
 	source.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{activityNode("pending", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{Mode: testpilotspb.ACTIVITY_WITHHOLDING_MODE_SDK_PENDING, ExternalSettlement: externalRef("answer")}}})}
 	cleanup := rpcNode("terminate")
-	cleanup.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{succeeded("controller", "call"), {Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: succeeded("controller", "settled")}}}}}}}
+	cleanup.Guard = cel.All([]*testpilotspb.Expression{succeeded("controller", "call"), cel.Not(succeeded("controller", "settled"))}...)
 	cleanup.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: activityService + "TerminateActivityExecution", RequestAssignments: externalAssignments()}}}
 	source.Program.Cleanup = &testpilotspb.Cleanup{EntrypointId: "cleanup", Instructions: []*testpilotspb.InstructionNode{cleanup}}
 	source.Program.ActivityExternalSettlements = []*testpilotspb.ActivityExternalSettlement{declaration}
 	source.Program.Evidence = nil
 	for _, id := range []string{"held", "settled"} {
-		source.Program.Evidence = append(source.Program.Evidence, &testpilotspb.EvidenceDeclaration{EvidenceId: id, EvidenceSource: id, Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: activityService + "DescribeActivityExecution", Path: "info", Single: true}}, Operation: "activity_id", Scope: []*testpilotspb.NamedValue{{FieldId: "run", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "scope"}}}}})
+		source.Program.Evidence = append(source.Program.Evidence, &testpilotspb.EvidenceDeclaration{EvidenceId: id, EvidenceSource: id, Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: activityService + "DescribeActivityExecution", Path: "info"}}, Operation: cel.Path(cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &emptypb.Empty{}}}), "activity_id"), Scope: testsupport.LiteralExpressions([]*testpilotspb.NamedValue{{FieldId: "run", Value: &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "scope"}}}}), Kind: id})
 	}
 	source.Program.Observations = append(source.Program.Observations, &testpilotspb.Observation{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}}}}}})
 	return source, catalog, policy
@@ -135,7 +129,7 @@ func TestActivityExternalSettlementRejectsIncompleteBasis(t *testing.T) {
 		{"missing held", func(c *testpilotspb.Case) { c.Program.ActivityExternalSettlements[0].Held = nil }},
 		{"missing cleanup", func(c *testpilotspb.Case) { c.Program.ActivityExternalSettlements[0].Cleanup = nil }},
 		{"cleanup always false", func(c *testpilotspb.Case) {
-			c.Program.Cleanup.Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
+			c.Program.Cleanup.Instructions[0].Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: false}})
 		}},
 		{"wrong ordinal", func(c *testpilotspb.Case) { c.Program.ActivityExternalSettlements[0].ReservationOrdinal = 1 }},
 		{"wrong carrier", func(c *testpilotspb.Case) { c.Program.ActivityExternalSettlements[0].Carrier = externalRef("answer") }},
@@ -223,7 +217,7 @@ func TestActivityExternalPublicationFollowsRecorderAppend(t *testing.T) {
 	published := proto.CloneOf(s.values.slots["pending-attempt"])
 	s.values.mu.Unlock()
 	actual := &testpilotspb.ActivityAttempt{}
-	require.NoError(t, anypb.UnmarshalTo(published.GetMessageValue(), actual, proto.UnmarshalOptions{}))
+	require.NoError(t, anypb.UnmarshalTo(published.GetObjectValue(), actual, proto.UnmarshalOptions{}))
 	require.True(t, proto.Equal(completion.result.Outcome.ActivityAttempt, actual))
 }
 
@@ -242,11 +236,11 @@ func externalRuntime(t *testing.T, canceled bool) (*scheduler, *activityExternal
 	values, err := s.values.activate("controller", "controller.0")
 	require.NoError(t, err)
 	b := p.external[0]
-	s.values.slots[b.runSlot] = &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "actual-activity-run"}}
+	s.values.slots[b.runSlot] = &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: "actual-activity-run"}}
 	s.values.externalRequests = map[*node]proto.Message{b.carrier: &workflowservice.StartActivityExecutionRequest{Namespace: "namespace", ActivityId: "activity-id"}}
 	pending, err := anypb.New(&testpilotspb.ActivityAttempt{ActivityRunId: "actual-activity-run", NamespaceName: "namespace", ActivityId: "activity-id", DeliveryId: "actual-delivery", SdkAttempt: 1, Response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_PENDING})
 	require.NoError(t, err)
-	s.values.slots[b.source.PendingSlotId] = &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: pending}}
+	s.values.slots[b.source.PendingSlotId] = &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: pending}}
 	s.values.externalSucceeded = map[*node]bool{b.held: true}
 	if b.cancel != nil {
 		s.values.externalSucceeded[b.cancel] = true
@@ -361,7 +355,7 @@ func TestActivityExternalCarrierMustMatchAnEarlierPendingPublication(t *testing.
 			_, err = s.publishCompletion(t.Context(), schedulerCompletion{node: &task, result: contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: &workflowservice.StartActivityExecutionResponse{RunId: run}}})
 			if run == "actual-activity-run" {
 				require.NoError(t, err)
-				require.Equal(t, run, s.values.slots[b.runSlot].GetTextValue())
+				require.Equal(t, run, s.values.slots[b.runSlot].GetStringValue())
 			} else {
 				require.Error(t, err)
 				require.Nil(t, s.values.slots[b.runSlot])
@@ -431,7 +425,7 @@ func TestActivityExternalCleanupRemainsAvailableWithoutPublication(t *testing.T)
 			s, b, values, session := externalRuntime(t, false)
 			delete(s.values.slots, b.source.PendingSlotId)
 			status := func(n *node) {
-				values.latest[n.source.InstructionId] = &valueBatch{fields: map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value{testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS: ir.EnumValue(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED.Descriptor(), testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED.Number())}}
+				values.latest[n.source.InstructionId] = &valueBatch{fields: map[testpilotspb.InstructionOutcomeField]*celpb.Value{testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS: ir.EnumValue(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED.Descriptor(), testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED.Number())}}
 			}
 			status(b.carrier)
 			if settled {

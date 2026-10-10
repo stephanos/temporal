@@ -45,7 +45,15 @@ func TestTheHeldRaceLowers(t *testing.T) {
 	carried := map[string]source{}
 	for _, e := range l.Case.GetProgram().GetEvidence() {
 		record := e.GetRunEvent()
-		carried[e.GetEvidenceId()] = source{record.GetKind(), record.GetInstruction().GetInstructionId(), e.GetOperation(), record.GetRunKeyed()}
+		var operation string
+		if record.GetRunKeyed() {
+			require.Len(t, e.GetScope(), 1)
+			protorequire.ProtoEqual(t, e.GetScope()[0].GetValue(), e.GetOperation())
+		} else {
+			require.Len(t, e.GetOperation().GetBindings(), 1)
+			operation = e.GetOperation().GetBindings()[0].GetPath()
+		}
+		carried[e.GetEvidenceId()] = source{record.GetKind(), record.GetInstruction().GetInstructionId(), operation, record.GetRunKeyed()}
 	}
 	completed := testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED
 	require.Equal(t, map[string]source{

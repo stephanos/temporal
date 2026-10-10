@@ -6,9 +6,11 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
 )
 
@@ -183,7 +185,7 @@ func TestSessionInjectFaultDefersBlockingWorkToWait(t *testing.T) {
 func TestFaultSettleErrorRecordsNoFaultEvent(t *testing.T) {
 	prepared := preparedSymbolicRuntimeCase(t, func(program *testpilotspb.Program) {
 		resume := faultInstruction("resume", "queue", testpilotspb.FAULT_KIND_WORKER_RESUME)
-		resume.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
+		resume.Guard = cel.Literal(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})
 		program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{faultInstruction("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP), resume}
 	}, authorizeFaults)
 	program := facadetest.Capture(t, prepared)

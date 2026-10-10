@@ -6,10 +6,12 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	failurepb "go.temporal.io/api/failure/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	cel "go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
@@ -55,7 +57,7 @@ func finishing(t *testing.T, id string, message proto.Message) *testpilotspb.Ins
 	t.Helper()
 	carried, err := anypb.New(message)
 	require.NoError(t, err)
-	return activityNode(id, &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: carried}}}}}}})
+	return activityNode(id, &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: cel.Literal(&celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: carried}})}}})
 }
 
 func retryableFailure() *failurepb.Failure {
@@ -123,7 +125,7 @@ func TestPrepareAdmitsAnActivityScript(t *testing.T) {
 	require.Equal(t, []int{0}, activity.Order())
 	finish := activity.Instructions()[0]
 	require.Equal(t, contract.Finish, finish.Opcode())
-	result, enabled, _, err := finish.EvaluateInput(context.Background(), func(ir.Reference) *testpilotspb.Value { return nil }, activity.RuntimeWorkLimit())
+	result, enabled, _, err := finish.EvaluateInput(context.Background(), func(ir.Reference) *celpb.Value { return nil }, activity.RuntimeWorkLimit())
 	require.NoError(t, err)
 	require.True(t, enabled)
 	require.True(t, proto.Equal(textValue("done"), result))
@@ -373,7 +375,7 @@ func TestPrepareRejectsAnActivityItCannotActivate(t *testing.T) {
 		},
 		"an await of an instruction": {
 			mutate: func(source *testpilotspb.Case, _ *Profile) {
-				source.Program.Entrypoints[1].Instructions[0] = activityNode("run-attempt", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "activity", InstructionId: "run-attempt"}}}})
+				source.Program.Entrypoints[1].Instructions[0] = activityNode("run-attempt", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: testsupport.LocalReference(&testpilotspb.InstructionReference{EntrypointId: "activity", InstructionId: "run-attempt"})}}})
 			},
 			want: unsupported("run-attempt"),
 		},

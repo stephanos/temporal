@@ -8,6 +8,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/tools/umpire/realization"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -55,14 +56,9 @@ func TestActivityByIDCasesKeepServiceAnswersSeparateFromWorkerPublication(t *tes
 			require.Len(t, c.GetProgram().GetCleanup().GetInstructions(), 1)
 			cleanup := c.GetProgram().GetCleanup().GetInstructions()[0]
 			require.Equal(t, "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution", cleanup.GetInstruction().GetInvokeRpc().GetMethod())
-			guards := cleanup.GetGuard().GetAll().GetOperands()
-			require.Len(t, guards, 2, "cleanup runs after successful Start unless terminal Describe already proves closure")
-			protorequire.ProtoEqual(t, &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "start-activity"}, guards[0].GetCompare().GetLeft().GetReference().GetOutcome().GetInstruction())
-			require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS, guards[0].GetCompare().GetLeft().GetReference().GetOutcome().GetField())
-			require.Equal(t, "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED", guards[0].GetCompare().GetRight().GetLiteral().GetEnumValue().GetName())
-			protorequire.ProtoEqual(t, &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: test.settlement}, guards[1].GetNot().GetOperand().GetCompare().GetLeft().GetReference().GetOutcome().GetInstruction())
-			require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS, guards[1].GetNot().GetOperand().GetCompare().GetLeft().GetReference().GetOutcome().GetField())
-			require.Equal(t, "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED", guards[1].GetNot().GetOperand().GetCompare().GetRight().GetLiteral().GetEnumValue().GetName())
+			protorequire.ProtoEqual(t, cel.All(
+				externalSucceeded(&testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "start-activity"}),
+				cel.Not(externalSucceeded(&testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: test.settlement}))), cleanup.GetGuard())
 			if test.script == "" {
 				require.Nil(t, basis.GetHeld())
 				require.Empty(t, basis.GetPendingSlotId())

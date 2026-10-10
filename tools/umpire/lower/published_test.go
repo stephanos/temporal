@@ -360,7 +360,7 @@ func TestTheLoweredGuardOfAnAttemptsRecordStatesTheAttempt(t *testing.T) {
 	for _, d := range l.Case.GetProgram().GetEvidence() {
 		if defined(names, d.GetEvidenceId()) == activityEvidence+"statusStarted" {
 			protorequire.ProtoEqual(t, cp.Equal(cp.Path(cp.ProjectedValue(), "activity_attempt.sdk_attempt"), cp.Literal(cp.SignedInteger(1))),
-				d.GetRunEvent().GetGuard())
+				d.GetGuard())
 			return
 		}
 	}

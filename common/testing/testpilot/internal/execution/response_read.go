@@ -2,8 +2,9 @@ package execution
 
 import (
 	"context"
-	"strings"
+	"strconv"
 
+	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -20,7 +21,7 @@ func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, res
 	if err != nil {
 		return nil, 0, err
 	}
-	batch := &valueBatch{owner: a, coordinate: c, writes: map[string]*testpilotspb.Value{}, fields: map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value{}}
+	batch := &valueBatch{owner: a, coordinate: c, writes: map[string]*celpb.Value{}, fields: map[testpilotspb.InstructionOutcomeField]*celpb.Value{}}
 	snapshot, err := validateOutcome(w, a.graph.context, n, result.Outcome)
 	if err != nil {
 		return nil, w.work, err
@@ -61,8 +62,11 @@ func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, res
 	return finishBatch(w, batch)
 }
 func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node, outcome *testpilotspb.InstructionOutcome) (*contract.OutcomeSnapshot, error) {
-	if outcome == nil || outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED {
+	if outcome == nil || outcome.Status < testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED || outcome.Status > testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED {
 		return nil, ir.Invalid(ir.Malformed, "outcome", "typed outcome status required")
+	}
+	if len(outcome.ProtoReflect().GetUnknown()) != 0 {
+		return nil, ir.Invalid(ir.Malformed, "outcome", "unknown outcome fields")
 	}
 	snapshot, work, err := ir.SnapshotMessage(w.ctx, outcome, outcome.ProtoReflect().Descriptor(), w.remaining(w.limits.Bytes))
 	w.work += work
@@ -97,7 +101,7 @@ func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node
 	if err := validateDeliveryAdmission(n, frozen); err != nil {
 		return nil, err
 	}
-	result := &contract.OutcomeSnapshot{Outcome: frozen, Fields: make(map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value, len(n.outcomes))}
+	result := &contract.OutcomeSnapshot{Outcome: frozen, Fields: make(map[testpilotspb.InstructionOutcomeField]*celpb.Value, len(n.outcomes))}
 	for _, field := range outcomeFieldOrder {
 		typ, produced := n.outcomes[field]
 		if !produced {
@@ -142,13 +146,13 @@ func validateDeliveryAdmission(n *node, outcome *testpilotspb.InstructionOutcome
 	return nil
 }
 
-func textValue(text string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}
+func textValue(text string) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: text}}
 }
-func (a *activationValues) stageResponseRead(w *valueWork, n *node, batch *valueBatch, p responseRead, index int64, value *testpilotspb.Value) error {
-	values := []*testpilotspb.Value{value}
+func (a *activationValues) stageResponseRead(w *valueWork, n *node, batch *valueBatch, p responseRead, index int64, value *celpb.Value) error {
+	values := []*celpb.Value{value}
 	typ := p.path.Type()
-	if p.cardinality == testpilotspb.READ_CARDINALITY_EMIT_EACH {
+	if p.emitEach {
 		values = value.GetListValue().GetValues()
 		typ = typ.Element()
 	}
@@ -215,8 +219,8 @@ var outcomeFieldOrder = []testpilotspb.InstructionOutcomeField{
 	testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE,
 }
 
-func outcomeField(outcome *testpilotspb.InstructionOutcome, field testpilotspb.InstructionOutcomeField) (*testpilotspb.Value, error) {
-	var value *testpilotspb.Value
+func outcomeField(outcome *testpilotspb.InstructionOutcome, field testpilotspb.InstructionOutcomeField) (*celpb.Value, error) {
+	var value *celpb.Value
 	switch field {
 	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS:
 		value = ir.EnumValue(outcome.Status.Descriptor(), outcome.Status.Number())
@@ -244,7 +248,7 @@ func (p responseRead) liftAt(index int) *evidenceLift {
 // liftEvidence builds the declared CorrelatedEvidence value from one projected value. The first rule
 // whose guard is true owns the value; a value no rule claims emits nothing, and a rule that fired
 // but cannot read one of its own declared coordinates fails rather than recording partial evidence.
-func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value *testpilotspb.Value, ordinal int64) (*testpilotspb.Value, error) {
+func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value *celpb.Value, ordinal int64) (*celpb.Value, error) {
 	for _, rule := range lift.rules {
 		selected, err := selectsEvidence(w, rule.guard, value)
 		if err != nil {
@@ -260,8 +264,8 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 
 // selectsEvidence evaluates a lift guard over one projected value. A guard that has no value is an
 // error, never a rejection.
-func selectsEvidence(w *valueWork, guard *ir.Expression, value *testpilotspb.Value) (bool, error) {
-	selected, work, err := guard.EvaluateExecution(w.ctx, func(reference ir.Reference) *testpilotspb.Value {
+func selectsEvidence(w *valueWork, guard *ir.Expression, value *celpb.Value) (bool, error) {
+	selected, work, err := guard.EvaluateExecution(w.ctx, func(reference ir.Reference) *celpb.Value {
 		if reference.Kind == ir.ProjectedValueReference {
 			return value
 		}
@@ -276,15 +280,16 @@ func selectsEvidence(w *valueWork, guard *ir.Expression, value *testpilotspb.Val
 
 // buildEvidence builds the evidence the rule declares from the projected value its guard selected,
 // under the ordinal.
-func (a *activationValues) buildEvidence(w *valueWork, lift *evidenceLift, rule evidenceRule, value *testpilotspb.Value, ordinal int64) (*testpilotspb.Value, error) {
+func (a *activationValues) buildEvidence(w *valueWork, lift *evidenceLift, rule evidenceRule, value *celpb.Value, ordinal int64) (*celpb.Value, error) {
 	var err error
 	evidence := &testpilotspb.CorrelatedEvidence{Kind: rule.kind, Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: rule.source, Ordinal: ordinal}}
 	for _, binding := range rule.scope {
-		text := binding.literal
-		if binding.path != nil {
-			if text, err = a.readLiftText(w, lift, binding.path, value); err != nil {
-				return nil, err
-			}
+		text, err := a.readLiftText(w, lift, binding.value, value)
+		if err != nil {
+			return nil, err
+		}
+		if text == "" {
+			return nil, ir.Invalid(ir.Unavailable, "response_read", "evidence scope read an empty declared coordinate")
 		}
 		evidence.Identity.Scope = append(evidence.Identity.Scope, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: textValue(text)})
 	}
@@ -294,11 +299,9 @@ func (a *activationValues) buildEvidence(w *valueWork, lift *evidenceLift, rule 
 		return nil, err
 	}
 	for _, binding := range rule.fields {
-		scalar := textValue(binding.literal)
-		if binding.path != nil {
-			if scalar, err = a.readLiftScalar(w, lift, binding.path, value); err != nil {
-				return nil, err
-			}
+		scalar, err := a.readLiftScalar(w, lift, binding.value, value)
+		if err != nil {
+			return nil, err
 		}
 		evidence.Fields = append(evidence.Fields, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: scalar})
 	}
@@ -310,16 +313,20 @@ func (a *activationValues) buildEvidence(w *valueWork, lift *evidenceLift, rule 
 	if err := w.charge(int64(len(encoded)) + 1); err != nil {
 		return nil, err
 	}
-	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{
-		TypeUrl: "type.googleapis.com/" + string(evidence.ProtoReflect().Descriptor().FullName()), Value: encoded}}}, nil
+	return &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(evidence.ProtoReflect().Descriptor().FullName()), Value: encoded}}}, nil
 }
-func (a *activationValues) readLift(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (*testpilotspb.Value, error) {
-	read, work, err := ir.ReadValue(w.ctx, value, lift.element, path, w.remaining(w.limits.Bytes))
+func (a *activationValues) readLift(w *valueWork, lift *evidenceLift, expression *ir.Expression, value *celpb.Value) (*celpb.Value, error) {
+	read, work, err := expression.EvaluateExecution(w.ctx, func(reference ir.Reference) *celpb.Value {
+		if reference.Kind == ir.ProjectedValueReference {
+			return value
+		}
+		return nil
+	}, w.limits.Work-w.work)
 	w.work += work
 	return read, err
 }
-func (a *activationValues) readLiftScalar(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (*testpilotspb.Value, error) {
-	read, err := a.readLift(w, lift, path, value)
+func (a *activationValues) readLiftScalar(w *valueWork, lift *evidenceLift, expression *ir.Expression, value *celpb.Value) (*celpb.Value, error) {
+	read, err := a.readLift(w, lift, expression, value)
 	if err != nil {
 		return nil, err
 	}
@@ -328,39 +335,42 @@ func (a *activationValues) readLiftScalar(w *valueWork, lift *evidenceLift, path
 	}
 	// The portable evidence domain is text, unsigned integer and boolean; every admitted integer kind
 	// narrows into an unsigned integer and a negative one has no evidence scalar to narrow to.
-	switch item := read.Value.(type) {
-	case *testpilotspb.Value_TextValue, *testpilotspb.Value_BoolValue, *testpilotspb.Value_UnsignedIntegerValue:
+	switch item := read.Kind.(type) {
+	case *celpb.Value_StringValue, *celpb.Value_BoolValue, *celpb.Value_Uint64Value:
 		return read, nil
-	case *testpilotspb.Value_SignedIntegerValue:
-		if strings.HasPrefix(item.SignedIntegerValue, "-") {
+	case *celpb.Value_Int64Value:
+		if item.Int64Value < 0 {
 			return nil, ir.Invalid(ir.TypeMismatch, "response_read", "evidence lift read a negative integer")
 		}
-		return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: item.SignedIntegerValue}}, nil
+		return &celpb.Value{Kind: &celpb.Value_Uint64Value{Uint64Value: uint64(item.Int64Value)}}, nil
 	default:
 		return nil, ir.Invalid(ir.TypeMismatch, "response_read", "evidence lift read an unsupported scalar")
 	}
 }
-func (a *activationValues) readLiftText(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (string, error) {
-	read, err := a.readLiftScalar(w, lift, path, value)
+func (a *activationValues) readLiftText(w *valueWork, lift *evidenceLift, expression *ir.Expression, value *celpb.Value) (string, error) {
+	read, err := a.readLiftScalar(w, lift, expression, value)
 	if err != nil {
 		return "", err
 	}
-	item, ok := read.Value.(*testpilotspb.Value_TextValue)
+	item, ok := read.Kind.(*celpb.Value_StringValue)
 	if !ok {
 		return "", ir.Invalid(ir.TypeMismatch, "response_read", "evidence lift expected text")
 	}
-	return item.TextValue, nil
+	return item.StringValue, nil
 }
-func (a *activationValues) readLiftKey(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (string, error) {
-	read, err := a.readLiftScalar(w, lift, path, value)
+func (a *activationValues) readLiftKey(w *valueWork, lift *evidenceLift, expression *ir.Expression, value *celpb.Value) (string, error) {
+	read, err := a.readLiftScalar(w, lift, expression, value)
 	if err != nil {
 		return "", err
 	}
-	switch item := read.Value.(type) {
-	case *testpilotspb.Value_TextValue:
-		return item.TextValue, nil
-	case *testpilotspb.Value_UnsignedIntegerValue:
-		return item.UnsignedIntegerValue, nil
+	switch item := read.Kind.(type) {
+	case *celpb.Value_StringValue:
+		if item.StringValue == "" {
+			return "", ir.Invalid(ir.Unavailable, "response_read", "evidence lift read an empty operation key")
+		}
+		return item.StringValue, nil
+	case *celpb.Value_Uint64Value:
+		return strconv.FormatUint(item.Uint64Value, 10), nil
 	default:
 		return "", ir.Invalid(ir.TypeMismatch, "response_read", "evidence lift expected an operation key")
 	}
