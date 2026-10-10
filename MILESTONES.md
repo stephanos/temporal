@@ -153,7 +153,7 @@ and the pending-control remodel.
 | fn-155.3 | ✅ done | Product Recorded effects/shared reasons/examples; 20 fresh Cases byte-exact, complete guarded structural proof, three-axis SHIP and integrated Activity tests/lint pass |
 | fn-155.4 | ✅ done | Proven R5 fallbacks retained; shared waiver reasons; 23 complete tables/1,361,467 records equal, three-axis SHIP and integrated lint/Scala checks pass |
 | fn-155.5 | ✅ done | Realization evidence builders; reviewed twelve-leaf provenance proof, three-axis SHIP, integrated 24 realization/lowering tests and lint pass |
-| fn-155.6 | ⬜ todo | Regenerate, projection proof, Go test and fixture updates, gates, review; mapping handed to fn-140 and fn-129.3 |
+| fn-155.6 | 🔄 in progress | Joined regeneration/provenance proof, Go test and fixture updates, gates and review; mapping handed to fn-140 and fn-129.3 |
 
 ### Batch 1c, compiler and lint: fn-156
 
