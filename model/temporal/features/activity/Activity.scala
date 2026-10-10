@@ -25,6 +25,8 @@ enum TimeoutType derives Finite:
 
 // A failed attempt's retry policy.
 val failure = input[Failure]
+val fatalFailureExample = "ApplicationFailureNonRetryable"
+val retryableFailureExample = "ApplicationFailureRetryable"
 
 // The shared worker's actions on an activity: its poll receives the task for the current attempt,
 // and each answer is one RPC. The worker's stop is the worker's own action, `process.stop`:
@@ -36,8 +38,8 @@ object worker:
   val respondCompleted = action(process)
   val respondFailed = action(process)
     .input(failure)
-    .example(Failure.fatal, "ApplicationFailureNonRetryable")
-    .example(Failure.retryable, "ApplicationFailureRetryable")
+    .example(Failure.fatal, fatalFailureExample)
+    .example(Failure.retryable, retryableFailureExample)
   val respondCanceled = action(process)
 
 // One of the activity's deadlines firing, as the product machine sees it, and its dispatch delays.
