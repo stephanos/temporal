@@ -1,0 +1,113 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "headSha": "70e1cbb6293a4b8c6d230db446e105ec7eb2cba2",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "70e1cbb6293a4b8c6d230db446e105ec7eb2cba2",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md",
+          "side": "head",
+          "startLine": 21
+        },
+        "body": "The amendment requires replacing both mirrored network codecs, but Touches excludes the host implementation in `tools/gomad3sim/runtime_network_wire.go`, schema/templates, and protocol generator. The investigation list also labels that host codec optional. Following the declared scope leaves the host codec handwritten and the added requirement unimplemented.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-52bf041aa286620dfc81a5bc4e6bdfe3f2dd5c62967b5146204e775b72378eda",
+        "id": "finding-8e64412bba8ff32f3537e2fb8f1f2703",
+        "lastSeenReceiptId": "review-52bf041aa286620dfc81a5bc4e6bdfe3f2dd5c62967b5146204e775b72378eda",
+        "ordinal": 1,
+        "rIds": [
+          "R14"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Identify the codec pair explicitly, add its host and generation paths to Touches, and require cross-consumer round-trip and malformed-input tests.",
+        "title": "The amendment requires replacing both mirrored network codecs, but Touches excludes the host implementation in `tools/gomad3sim/runtime_network_wire"
+      },
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "70e1cbb6293a4b8c6d230db446e105ec7eb2cba2",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json",
+          "side": "head",
+          "startLine": 17
+        },
+        "body": "The October 9 amendment expressly removes these tasks from completion requirements, but both remain formal prerequisites of task 21. Dependency metadata still expresses the superseded completion contract.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-52bf041aa286620dfc81a5bc4e6bdfe3f2dd5c62967b5146204e775b72378eda",
+        "id": "finding-a68a101c5aadcf65d6e87087dd7abe01",
+        "lastSeenReceiptId": "review-52bf041aa286620dfc81a5bc4e6bdfe3f2dd5c62967b5146204e775b72378eda",
+        "ordinal": 2,
+        "rIds": [
+          "R19",
+          "R20"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Remove these two prerequisite edges while retaining their historical evidence.",
+        "title": "The October 9 amendment expressly removes these tasks from completion requirements, but both remain formal prerequisites of task 21"
+      },
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "70e1cbb6293a4b8c6d230db446e105ec7eb2cba2",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md",
+          "side": "head",
+          "startLine": 14
+        },
+        "body": "Neither dependency-independent task has the required standalone `Touches:` line. Task 42 uses a heading and bullets; task 73 embeds plain `Touches:` inside its description. Their scopes are stated, but the required dispatch declaration is missing.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-52bf041aa286620dfc81a5bc4e6bdfe3f2dd5c62967b5146204e775b72378eda",
+        "id": "finding-c4076ec0afd88219123bf124bb61a326",
+        "lastSeenReceiptId": "review-52bf041aa286620dfc81a5bc4e6bdfe3f2dd5c62967b5146204e775b72378eda",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Express each existing scope as a standalone `Touches:` line.",
+        "title": "Neither dependency-independent task has the required standalone `Touches:` line"
+      },
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "70e1cbb6293a4b8c6d230db446e105ec7eb2cba2",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.76.md",
+          "side": "head",
+          "startLine": 11
+        },
+        "body": "Task 76\u2019s `runner_test.go` Touches overlaps tasks 3, 7, 12, 57, 62, 65, 66 and 68 without a dependency path. These pairs require serial dispatch. The explicit shared-lane rule already mitigates this; graph independence does not establish parallel file ownership.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-52bf041aa286620dfc81a5bc4e6bdfe3f2dd5c62967b5146204e775b72378eda",
+        "id": "finding-ae93ef578827482949917758ba10fc14",
+        "lastSeenReceiptId": "review-52bf041aa286620dfc81a5bc4e6bdfe3f2dd5c62967b5146204e775b72378eda",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Retain serial dispatch for these pairs and freeze task 76\u2019s baseline after preceding writers finish.",
+        "title": "Task 76\u2019s `runner_test"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-52bf041aa286620dfc81a5bc4e6bdfe3f2dd5c62967b5146204e775b72378eda"
+  },
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "I\u2019ll read the epic, task specs, and relevant code directly, then check for implementation-blocking gaps and inconsistencies under your rubric.\nThe proposed failure-policy fix uses an existing private preparation helper, and both selected executors ignore its synthetic bootstrap bytes. I\u2019m also checking task dependencies and preservation amendments to see whether they impose conflicting requirements on this change.\nThe two proposed assignments fit the current test configuration and helper contract. I found a broader task-consistency question: the epic\u2019s codec amendment appears to require work beyond task 14\u2019s approach and acceptance criteria. I\u2019m tracing the codec owners before deciding whether to flag it.\nTask 14\u2019s amendment names the generated network codec, but its declared write scope excludes the current host codec and generator/schema paths. I\u2019m checking the remaining declarations and dependency overlaps so the final review can distinguish this implementation blocker from nonblocking consistency issues.\nSeverity: P1\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md:21\nR-IDs: [R14]\nLocation: Task 14\u2019s Touches and October 9 codec amendment.\nProblem: The amendment requires replacing both mirrored network codecs, but Touches excludes the host implementation in `tools/gomad3sim/runtime_network_wire.go`, schema/templates, and protocol generator. The investigation list also labels that host codec optional. Following the declared scope leaves the host codec handwritten and the added requirement unimplemented.\nSuggestion: Identify the codec pair explicitly, add its host and generation paths to Touches, and require cross-consumer round-trip and malformed-input tests.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json:17\nR-IDs: [R19, R20]\nLocation: Task 21\u2019s dependencies on tasks 35 and 41.\nProblem: The October 9 amendment expressly removes these tasks from completion requirements, but both remain formal prerequisites of task 21. Dependency metadata still expresses the superseded completion contract.\nSuggestion: Remove these two prerequisite edges while retaining their historical evidence.\n\nSeverity: P2\nConfidence: 100\nClassification: pre_existing\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md:14\nR-IDs: []\nLocation: Touches declarations in tasks 42 and 73.\nProblem: Neither dependency-independent task has the required standalone `**Touches:**` line. Task 42 uses a heading and bullets; task 73 embeds plain `Touches:` inside its description. Their scopes are stated, but the required dispatch declaration is missing.\nSuggestion: Express each existing scope as a standalone `**Touches:**` line.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.76.md:11\nR-IDs: []\nLocation: Dependency-independent Runner file ownership.\nProblem: Task 76\u2019s `runner_test.go` Touches overlaps tasks 3, 7, 12, 57, 62, 65, 66 and 68 without a dependency path. These pairs require serial dispatch. The explicit shared-lane rule already mitigates this; graph independence does not establish parallel file ownership.\nSuggestion: Retain serial dispatch for these pairs and freeze task 76\u2019s baseline after preceding writers finish.\n\nTask 76\u2019s two assignments are feasible against the current helper and executor implementations. Its test strategy covers original behavioral assertions, preparation/default/isolation controls, whole-file preservation and complete ordinary outcome comparisons. Async progress and failure observability are covered by existing events, bounded commands and raw terminal receipts. Performance and security constraints are stated. No additional privacy-sensitive surface is introduced.\n\nmaintainability:\n  duplication: Tasks 28\u201331, 35, 37, 39 and 40 repeat the nil-cleanup, sole-error and primary-first-join decision.\n  structure: Task 40 adds four deferred cleanup-error branches to hostexec.Run.\n\n```json\n{\"classification_counts\":{\"introduced\":3,\"pre_existing\":1},\"unaddressed\":[\"R14\",\"R19\",\"R20\"]}\n```\n\n<verdict>NEEDS_WORK</verdict>",
+  "review_reservation_id": "97009ddd17604f5ba64365e4ff3bf469",
+  "session_id": "01a1267c-383e-7841-8c6a-69322a3c328f",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-10T15:49:30.706929Z",
+  "type": "plan_review",
+  "verdict": "NEEDS_WORK"
+}

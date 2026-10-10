@@ -1,0 +1,37 @@
+# First-failure and distinct-budget source owner
+
+Root allocated `fn-109-gomad-deepen-modules-and-tool-interfaces.76` through flowctl under existing R5/R18/R19. This S-sized owner restores two existing failure-policy tests through two explicit private scripted-preparation attachments in `tools/gomad3/runner/runner_test.go`. Root preserves the user-edited parent spec, historical coverage table and all prior owners. Flow's computed coverage must validate before plan review.
+
+This admission grants the bounded scope and planning only. Task76 remains TODO. It grants no source edit, worker claim, shared execution lane, native revival, CI, PR or push authority. Root must separately admit execution after plan review and the source-start predicate below.
+
+## Accepted source and scheduling disposition
+
+Planning HEAD is `70e1cbb6293a4b8c6d230db446e105ec7eb2cba2`. Current `runner_test.go` SHA256 is `d251cc9c5f32b95821fcede257df76ad2fe147c4e915128812a2e1ef275a5e96`. The [task75 source reconciliation](../scripted-retention-diagnostics-inspection-20261010/post-task75-reconciliation-20261010.md), SHA256 `402b26056d64cb2961dbd4b13f9948ed2111e087542f93afd316fb67bdb8427f`, records independently assessed source `46699234193d33e385297905a7d2492246065ea1` and packet `87ab8ebdfb8d8545e72d1bd2fc07abdafd2cce18`. Its [independent assessment](../scripted-retention-diagnostics-inspection-20261010/integrated-source-assessment-20261010.md), SHA256 `51223056931479dba678264462e2b05bb06b852584b617dd6b4538fc50ad3321`, supplies the accepted SOURCE checkpoint, not a formal SHIP/Done. Task75's formal completion is not this owner's source-start predicate.
+
+Fn155 keeps next priority. Source correction `682dd4fa0106ff7b118ced60b6919357ea2ed43b` is committed, but `.1` retains its first supported-native compiler/execution proof and `.2/.8` remain gated. This Linux/ARM64 host cannot supply that acceptance. Root permits planning this portable correction while preserving that ordering and required evidence. Fn128/fn149 remain deferred and unverified.
+
+The planning process snapshot observed a separate `make lint-model` process group. A later attempt to inspect the same PIDs found their handles missing. That observation is not a shared-lane grant. Execution requires a fresh attributable process audit and root's explicit shared Go/compiler/build/lint/vet/generator release and grant. Root neither interrupts unrelated jobs nor treats a state file as a live handle.
+
+## Source-start predicate and unchanged contracts
+
+Require this bounded owner and reviewed plan, the accepted task75 SOURCE checkpoint, a separate root execution admission, lane release/grant, and the frozen actual immediate baseline and candidate. Task75's ordinary logs predate the changed fn155 patch/generated inputs and supply historical context only. Capture a fresh complete ordinary before/after Runner comparison for task76.
+
+Permit exactly one existing-helper attachment immediately before each selected fresh call, after final configuration, in `TestRunFirstFailureCancelsActiveTargetsWithoutPublishingThem` and `TestRunBudgetCountsDistinctSignatures`. Keep three-executor rendezvous, cancellation/partial/artifact assertions, duplicate/distinct seed ordering and budget stop. A function-aware verifier removes only the two newly added statements from the exact functions, once each, and recovers the entire immediate-baseline file byte-for-byte. Preserve all earlier attachments, assertions, comments, imports, data, errors, defaults, timeouts and caches. No other product path changes.
+
+The existing selected executors ignore synthetic bootstrap bytes. Preserve real target preparation verification, campaign orchestration, journal and artifact behavior. Retain unchanged negative/default/isolated/public-profile controls. A newly reached real decoder/process or original behavioral failure returns to root with raw diagnostics; it cannot authorize a helper, policy, fixture, assertion or timeout change.
+
+## Evidence and acceptance consumers
+
+The retained [repo](fn109-failure-policy-repo-findings-20261010.md), [spec](fn109-failure-policy-spec-findings-20261010.md), [memory](fn109-failure-policy-memory-findings-20261010.md) and [gap](fn109-failure-policy-gap-findings-20261010.md) reports preserve the scouts' original bytes. Their relative links were authored against `.flow/tmp`; this admission supplies durable report locations. Requested research uses `gpt-6-astra/high`, thinking uses `gpt-6.1-sol/high` and mechanical memory uses `gpt-6-luna/low`. Tier judging returned unavailable/no_key; host dispatch parameters match project routing, while actual model telemetry is unverified. Reviewer and writer are requested from the same model family.
+
+Apply the task's eight acceptance obligations and prior bound-capture protocol. Bind actual workspace/source BASE, argv/CWD, source/admission/owner/wrapper/checker bytes, tools, selected effective settings, inherited environment-value hashes, observer windows, timestamps, measured bounds, numeric exits and raw logs. Preserve actual terminal unions and diagnostic normalization without synthetic intermediate tests or aggregate subtraction. Shared cache and tool-installation/library limitations stay disclosed.
+
+Source BASE names the immediate frozen source start. Canonical fast lint uses the distinct original comparison base `951c5516e9e7b3066e7e069adda9565cfd68844c`, fixes disabled, `SHELL=/bin/sh` and `ALL_TEST_TAGS=test_dep`. Retain required nested before/after aggregate receipts, unfiltered Runner lint and errortype reachability. Reuse any static/generator/control receipt only after complete consumed-input and actual tool/environment equality; unchanged selected-file hashes do not establish reuse.
+
+Root added `.63 -> .76` alongside unchanged `.63 -> .75`. Existing `.21 -> .63` supplies transitive completion coverage without editing user-owned task21 metadata. Task76 has no formal dependencies and these consumers do not gate source start. Fn112.10 receives a [dated prose trace](../../fn-112-gomad-determinism-assurance-and-test/task-10/scripted-failure-policy-owner-20261010.md), with no unsupported cross-spec formal edge.
+
+Root independently reconciles returned source/evidence and obtains a fresh integrated source assessment. Historical RED130 ordinary, RED22 collateral, RED6 Runner lint and RED50 aggregate observations prescribe no new totals and remain open where unproved. Task74's original deadline/killed137 and the crash-helper finding remain unresolved. Focused progress supplies neither aggregate green, formal SHIP/Done nor native acceptance. Production/runtime/storage/identity/error wording/panic policy and other failure groups remain outside this owner.
+
+## Review terminal and owner-requested drain
+
+The [fresh plan review](plan-review-receipt-20261010.json) ended `NEEDS_WORK` at 2026-10-10T15:49:30.706929Z. Its four findings remain open. The reviewer found task76's two assignments feasible but identified parent codec-scope and superseded-dependency blockers, missing older Touches declarations and serial ownership overlap. Root preserves the actual verdict; this plan has no SHIP or execution admission. The owner requested stopping after in-flight work completes. The current review is terminal, no fix/re-review or implementation worker is started, and the goal pauses after this planning checkpoint is committed. Review remediation and any implementation require a later owner resume.

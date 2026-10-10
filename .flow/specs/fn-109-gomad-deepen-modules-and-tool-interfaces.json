@@ -25,9 +25,9 @@
     "fn-109-gomad-deepen-modules-and-tool-interfaces.8": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-10T10:50:39.410194Z",
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-10T15:49:30.732485Z",
   "review_attempts": [
     {
       "artifact_sha256": "fe4797e17f93f1d1ba68876eb5e54e440ded41038aad34cb840c26edbc0485ec",
@@ -1342,6 +1342,75 @@
       "timestamp": "2026-10-10T10:50:39.388152Z",
       "tool_calls": 38,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a9f77b4b39025d6c1fabd05d2dcb57b38247e4f368ccebb3b28e1cf6fabeca24",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8e64412bba8ff32f3537e2fb8f1f2703",
+            "classification": "introduced",
+            "findingId": "finding-8e64412bba8ff32f3537e2fb8f1f2703",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a68a101c5aadcf65d6e87087dd7abe01",
+            "classification": "introduced",
+            "findingId": "finding-a68a101c5aadcf65d6e87087dd7abe01",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c4076ec0afd88219123bf124bb61a326",
+            "classification": "pre_existing",
+            "findingId": "finding-c4076ec0afd88219123bf124bb61a326",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ae93ef578827482949917758ba10fc14",
+            "classification": "introduced",
+            "findingId": "finding-ae93ef578827482949917758ba10fc14",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 14,
+      "head_sha": "70e1cbb6293a4b8c6d230db446e105ec7eb2cba2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1228772,
+      "output_sha256": "78bfdf5964a55c0f180308c2d2183ed84c11d88035fa2ecdc18083fe9d4d87a1",
+      "reservation_id": "97009ddd17604f5ba64365e4ff3bf469",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T15:49:30.716400Z",
+      "tool_calls": 32,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -1393,5 +1462,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T10:50:39.417381Z"
+  "updated_at": "2026-10-10T15:49:30.737787Z"
 }

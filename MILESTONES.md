@@ -302,6 +302,7 @@ CI, PR, or push authority.
 | [fn-109.73](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.73.md) | 🚧 In progress | Restore explicit scripted Unix campaign-mode coverage |
 | [fn-109.74](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.74.md) | 🚧 In progress | Restore explicit scripted retention calibration and policy coverage |
 | [fn-109.75](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.75.md) | 🚧 In progress | Restore scripted diagnostics capacity bounds and simulation inspection coverage |
+| [fn-109.76](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.76.md) | ⬜ Todo | Restore scripted first-failure and distinct-budget coverage |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 
