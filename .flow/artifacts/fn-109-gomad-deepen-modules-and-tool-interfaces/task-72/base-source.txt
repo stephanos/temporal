@@ -210,7 +210,6 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			ctx, config := test.configure(t)
-			config.dependencies = scriptedPreparationDependencies(t, config.Preparer, config.dependencies.executor)
 			summary, err := exploreWith(ctx, config.CampaignSpec, config.dependencies)
 			observed := observeSeedCompletion(t, summary, err)
 			if !reflect.DeepEqual(observed, test.want) {
@@ -254,7 +253,6 @@ func TestSeedCompletionFaultsKeepCampaignStatistics(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config, _ := injectedCompletionCampaign(t, StrategySeed, test.coverage, test.fault, test.err)
-			config.dependencies = scriptedPreparationDependencies(t, config.Preparer, config.dependencies.executor)
 			summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 			if observed := observeSeedCompletion(t, summary, err).Statistics; observed != test.want {
 				t.Fatalf("statistics = %#v, want %#v", observed, test.want)

@@ -1,0 +1,11 @@
+# Task 72 capture context
+
+Worker owns only two admitted source insertions and this packet. Actual BASE is effaf6a00ab79332c9b85541955d21eed28779e2 on gomad-fn10972-seed-completion-20261010. Authoritative PRIMARY owner spec is 851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c. Local task TODO and historical spec are snapshots, not admission authority.
+
+Tier: session (jev-unavailable(no_key)). Project requested implementer is gpt-6.1-sol at high; actual execution model telemetry is unavailable. Root reused this task-71 context after fresh thread creation failed with ENOSPC. No fresh-context claim follows.
+
+The wrapper adapts the retained task-71 v3 capture contract to this task. From the first capture it hashes exact Perl/checker/raw environment inputs before and immediately after proof, then captures source/tools/routes after proof. It retains only the single numeric GOGCCFLAGS ephemeral directory mapping normalization; every other byte must match. First capture inventories all actual tests files, including modules and nested inputs. Current full clone has 204 files and 113 top-level test files at read time; actual capture inventories govern, not historical 132-file workspaces.
+
+Root holds Flow lifecycle, reviews, integration and commit authorization. Worker currently owns the sole serial Go/build/lint/vet/generator lane. Ordinary host CGO is unset and effective defaults are recorded; cross-source argv explicitly selects CGO=0. Make uses literal SHELL=/bin/sh. Root Make's absolute LOCALBIN creates the doubled ROOT//tmp prefix; descendant Make prepends it again. Tools include find, grep, rm and literal/resolved sh/dash before and after each interval.
+
+Existing caches, full Go/Perl/C installations, C headers and libc remain unqualified. Default lint cache is not overridden. Stock linux/arm64 is developmental source execution; supported source-set vet does not execute native hosts. Native fn-128/fn-149 qualification remains deferred and unverified. No aggregate GREEN, replay, soak, native, CI, PR, push or formal SHIP claim is authorized. Historical task-70 missing find and task-71 helper-window gaps remain historical and are not repaired by current task-72 binding.

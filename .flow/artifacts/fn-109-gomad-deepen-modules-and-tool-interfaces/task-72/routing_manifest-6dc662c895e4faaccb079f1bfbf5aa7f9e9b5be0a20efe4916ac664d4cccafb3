@@ -1,0 +1,40 @@
+make-kind=none
+make-parse-and-recipe-PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin
+Make selected=go path=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go resolved=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+Make selected=git path=/usr/bin/git resolved=/usr/bin/git
+Make selected=make path=/usr/bin/make resolved=/usr/bin/make
+Make selected=find path=/usr/bin/find resolved=/usr/bin/find
+Make selected=grep path=/usr/bin/grep resolved=/usr/bin/grep
+Make selected=rm path=/usr/bin/rm resolved=/usr/bin/gnurm
+Make SHELL literal=/bin/sh link=dash resolved=/usr/bin/dash
+generator-cache literal=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success/tools/gomad3/.toolchain/generator-cache resolved=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success/tools/gomad3/.toolchain/generator-cache
+literal=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go resolved=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+literal=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt resolved=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt
+literal=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 resolved=/Users/stephan/Workspace/skunkworks/.gomad-source-tools-storage-FD1TAR/golangci-lint-v2.13.0
+literal=/tmp/fn109-lint-tools.ZdNe1t50/errortype resolved=/tmp/fn109-lint-tools.ZdNe1t50/errortype
+literal=/usr/bin/perl resolved=/usr/bin/perl
+literal=/usr/bin/gcc resolved=/usr/bin/aarch64-linux-gnu-gcc-15
+literal=/usr/bin/g++ resolved=/usr/bin/aarch64-linux-gnu-g++-15
+literal=/bin/sh resolved=/usr/bin/dash
+literal=/usr/bin/dash resolved=/usr/bin/dash
+command=bash path=/usr/bin/bash resolved=/usr/bin/bash
+command=git path=/usr/bin/git resolved=/usr/bin/git
+command=make path=/usr/bin/make resolved=/usr/bin/make
+command=timeout path=/usr/bin/timeout resolved=/usr/lib/cargo/bin/coreutils/timeout
+command=jq path=/usr/bin/jq resolved=/usr/bin/jq
+command=sha256sum path=/usr/bin/sha256sum resolved=/usr/lib/cargo/bin/coreutils/sha256sum
+command=rg path=/usr/bin/rg resolved=/usr/bin/rg
+command=sort path=/usr/bin/sort resolved=/usr/lib/cargo/bin/coreutils/sort
+command=cmp path=/usr/bin/cmp resolved=/usr/bin/cmp
+command=date path=/usr/bin/date resolved=/usr/lib/cargo/bin/coreutils/date
+command=env path=/usr/bin/env resolved=/usr/lib/cargo/bin/coreutils/env
+command=mktemp path=/usr/bin/mktemp resolved=/usr/lib/cargo/bin/coreutils/mktemp
+command=mv path=/usr/bin/mv resolved=/usr/bin/gnumv
+command=cut path=/usr/bin/cut resolved=/usr/lib/cargo/bin/coreutils/cut
+command=uname path=/usr/bin/uname resolved=/usr/lib/cargo/bin/coreutils/uname
+command=sed path=/usr/bin/sed resolved=/usr/bin/sed
+command=find path=/usr/bin/find resolved=/usr/bin/find
+command=ps path=/usr/bin/ps resolved=/usr/bin/ps
+command=readlink path=/usr/bin/readlink resolved=/usr/lib/cargo/bin/coreutils/readlink
+command=rm path=/usr/bin/rm resolved=/usr/bin/gnurm
+command=grep path=/usr/bin/grep resolved=/usr/bin/grep

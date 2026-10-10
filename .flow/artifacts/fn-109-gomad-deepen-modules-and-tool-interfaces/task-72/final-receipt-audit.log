@@ -1,0 +1,133 @@
+{
+   "baseline_historical_helper_gap_count" : 0,
+   "current_verification_not_retroactive" : true,
+   "environment_normalization" : "exactly one GOGCCFLAGS go-build numeric ephemeral mapping; all other bytes identical",
+   "fast_lint_diff_filter" : "50 unchanged diagnostics filtered to zero; aggregate remains RED",
+   "final_validate_source_absent_lines" : 0,
+   "final_validate_source_present_lines" : 1367,
+   "raw_environment_observation_count" : 34,
+   "raw_environment_pair_count" : 17,
+   "receipt_count" : 17,
+   "receipts" : [
+      {
+         "elapsed_seconds" : 8,
+         "exit" : 1,
+         "name" : "baseline-originals",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 12,
+         "exit" : 0,
+         "name" : "baseline-controls",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 3,
+         "exit" : 1,
+         "name" : "baseline-runner-lint",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 14,
+         "exit" : 0,
+         "name" : "final-focused",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 0,
+         "exit" : 0,
+         "name" : "final-preservation",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 0,
+         "exit" : 0,
+         "name" : "final-format",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 0,
+         "exit" : 0,
+         "name" : "final-diff-check",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 24,
+         "exit" : 0,
+         "name" : "final-boundaries",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 1,
+         "exit" : 0,
+         "name" : "final-host-vet",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 1,
+         "exit" : 0,
+         "name" : "final-errortype",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 2,
+         "exit" : 0,
+         "name" : "final-supported-darwin-vet",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 2,
+         "exit" : 0,
+         "name" : "final-supported-linux-vet",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 3,
+         "exit" : 1,
+         "name" : "final-runner-lint",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 19,
+         "exit" : 0,
+         "name" : "final-fast-lint",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 9,
+         "exit" : 0,
+         "name" : "final-validate",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 0,
+         "exit" : 0,
+         "name" : "final-outcome-comparison",
+         "original_helper_raw_input_window_missing" : false
+      },
+      {
+         "elapsed_seconds" : 0,
+         "exit" : 0,
+         "name" : "final-lint-comparison",
+         "original_helper_raw_input_window_missing" : false
+      }
+   ],
+   "result" : "PASS",
+   "tests_materialized" : 204,
+   "tools_distinct_literal_paths" : 31,
+   "top_level_tests" : 113,
+   "warnings" : {
+      "baseline-runner-lint" : {
+         "cache_enospc_lines" : 1561,
+         "missing_sparse_find_lines" : 0
+      },
+      "final-fast-lint" : {
+         "cache_enospc_lines" : 3059,
+         "missing_sparse_find_lines" : 0
+      },
+      "final-runner-lint" : {
+         "cache_enospc_lines" : 1561,
+         "missing_sparse_find_lines" : 0
+      }
+   }
+}
