@@ -1,0 +1,70 @@
+# Completion strategy preparation slice
+
+Recommend exactly three call-local attachments of the existing `scriptedPreparationDependencies` in `completion_characterization_test.go`. Source inspection finds no additional preparation metadata, bootstrap decoder, World fixture or private seam needed by these three tables. This is a feasibility conclusion. No changed-source execution or future pass count is established.
+
+This report is the only authored file. Research used primary source and retained logs in `/Users/stephan/Workspace/skunkworks/gomad/temporal` at HEAD `7727b062b0c263046f0409e8f9d6cf5e58e7c0ef`. No Go, build, test, lint, vet, generator, Flow operation, Git mutation, native execution, CI, PR or push ran. Root retains admission and verification; task68's isolated `runner_test.go` worker lane remains separate. User changes were left intact. The report follows `post-task66-next-slice.md`'s evidence convention and the flow-next prose contract.
+
+## Bound evidence
+
+The current owner-amended fn-109 spec SHA-256 is `851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c`. Its opening amendment removes format/byte compatibility obligations while preserving behavior, classifications, error precedence, transactions, lifetimes and existing comments. This proposal changes no expected datum or serialized format.
+
+The retained observation is `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-66-67/ordinary-runner.log`, SHA-256 `f97441bc0b8f4ebc4da6673b0e3b097a9420fe6e5bd1c1871de83c6f333eb032`. Adjacent `run-binding.json`, SHA-256 `45f31ddfd586858fda9d0b9afb76e421a0f989c659957ba0727fe23f55073bb5`, binds the run to joined HEAD `f699252450b8e67f1edb50ed8e4cff4cb6e644c0` on developmental Linux/aarch64. `outcome-comparison.json`, SHA-256 `5e4c48dd7caef408a4f4c5dcffc6be045219e7ffafc6b0533a424c2fb7129a7b`, records 389 passes, 272 failures and 12 skips across all named levels for that run. Those counts do not describe an unexecuted later candidate.
+
+Parsing the raw fail events for the three selected names yields 60 failed named outcomes. The fault table accounts for 52, its parent plus 51 children from 17 faults across three strategies. Cancellation and projection each account for four, their parent plus three strategy children. There are 57 failed leaf executions and three failed parents, not 60 independent test cases. No row-container outcome was invented for slash-separated names.
+
+Raw line 977 records the fault table's simulation supervision/World-mismatch child returning `preparation.stageError{stage:"validation", ...}` instead of a HostError. Raw line 996 records the seed cancellation child returning the same preparation-stage error. Lines 1015, 1020 and 1025 give the three projection failures explicitly as `deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64`. Preparation prevents those observations from reaching the intended completion assertions. A read-only `git diff` found no differences from the joined revision in the selected test file, `runner_test.go`, preparation fixture, completion assessment, `runner.go`, `runner_local.go` or simulation campaign source.
+
+| Current source, relative to `tools/gomad3/` | SHA-256 |
+| --- | --- |
+| `runner/completion_characterization_test.go` | `b865856c22c519d3b9af29b65cbc5cf0c72b288b5380875f6809801c7a794e3f` |
+| `runner/preparation_fixture_test.go` | `c43c4fb18ad07b9b9bbb6efba9dc5a6194a99d86ae2405cd0dc4b6088943402e` |
+| `runner/preparation_dependencies.go` | `4f9e93b79fc75e984a34e6fa7591bf4ff077db5dd1e96330697483b9af434e56` |
+| `runner/runner_test.go` | `7045165b88318f57fb147882b051cb7bfd2aac8c3182039a0cca0fce6f5af8e0` |
+| `runner/runner.go` | `dcfe7f2d14c4bbddba89bf536a010eddd2b690e6b47f0aecc5bc2a800664160e` |
+| `runner/runner_local.go` | `162dbed7bf6f82da56b356ebb5c4ec17c402434ca86507a2f6b90311dd7cc692` |
+| `runner/completion.go` | `c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5` |
+| `runner/choice_exploration_campaign.go` | `5744948588413558345e30b479a906baf74d87e3c33c171d15dffd7001ee88fa` |
+| `runner/simulation_exploration_campaign.go` | `190a195c9215a5f7111a84ceb4016e94b8dcad2879a8f10286d33948199fdbfe` |
+| `runner/internal/exploration/simulationrecord/wire.go` | `8435efef6f34350a7185e5996fb6ab11d8de1035d3fba374ba7f386dde964e97` |
+| `runner/internal/exploration/simulationrecord/record.go` | `0374d7e6a7d615fe850cf4e6ce9b772d2a50b1adf10565fa644954b6052a05bd` |
+| `deterministicio/bootstrap.go` | `6f7a7904efaf956712678ee996fac80e9189b5963714125a2a778d6e530cd744` |
+
+## Exact candidate surface
+
+Insert the following assignment once immediately before each named existing `exploreWith` call, after its configuration and executor are final.
+
+`configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)`
+
+| Existing table | Call at current source line | Required placement and preserved observations |
+| --- | --- | --- |
+| `TestCompletionFaultsKeepReasonPrecedenceAndEvidence` | 343 | Attach after `completionCampaign` at 342. Keep the outer `faultExecutor`, all 17 faults, their strategy expectations, error causes, counters, artifacts, journal and partial states, and seed statistics. |
+| `TestCancellationIsAHostFailure` | 374 | Attach after the seed/exploration branches, executor replacement at 370, progress cancellation registration and grace setting. The final executor must be `blockingExecutor{}` for all strategies. Preserve context cancellation identity, zero target failures/artifacts, seed resume plan and partials, and existing exploration partial-state normalization. |
+| `TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy` | 430 | Attach after `CollectExecutionEvidence = true`. Keep the captured outer executor and its shared last-result mutex/pointer, World recording, semantic probe, choice projection, campaign open, journal assertions and canonical diagnostic logging. |
+
+The entire proposed source Touches set is `tools/gomad3/runner/completion_characterization_test.go`, with three added assignment statements only. Removing them must recover the current file byte-for-byte. No imports, helpers, comments, assertions, fixture payloads, result classifications or production code change. Neither `completionCampaign` nor `testConfig` is an attachment point. `seed_completion_characterization_test.go:25` consumes `completionCampaign` through `injectedCompletionCampaign`; changing the shared helper would silently broaden this slice into excluded consumers.
+
+## Why the existing dependencies fit
+
+`completionCampaign` at `completion_characterization_test.go:71` constructs `newFakePreparer`, a strategy-specific base executor and the outer fault executor, then calls `testConfig`. `runner_test.go:1978` supplies a real 0500 target file, matching digest/size, `KindGoRun`, source `.`, argv `[gomad3-target]`, a valid fixed build key and default target-contract platform metadata. `testConfig` at 2501 uses the same preparer and matching kind/source with no arguments. The cancellation seed branch uses that same pair directly. None of the three tables changes target metadata or adapters.
+
+The helper at `preparation_fixture_test.go:17` verifies those exact metadata/argument relationships, calls the supplied preparer's real copy operation at `runner_test.go:2009`, invokes `Prepared.Verify`, and supplies an empty adapter list. Its bootstrap is explicitly the non-toolchain `scriptedBootstrapMarker`. No additional adapter, toolchain identity or preparation operation is consumed by these fresh, unguided campaigns. `runner_local.go:250` calls the private preparation operation, and lines 98/105 forward the same request and dependencies to both exploration strategies.
+
+`runner.go:681` obtains the bootstrap bytes and line 698 copies them into `execution.Spec.IO.Config`. It also constructs actual World capability bounds/seed, Choice capability and Simulation capability. At line 712 it directly calls the selected executor. `faultExecutor.Run` at `completion_characterization_test.go:56` delegates to its base, supplies the existing semantic transcript, applies the fault and records the result. The seed base reads the seed environment; `explorationExecutor.Run` at `runner_test.go:2151` reads forced choice ranks; neither consumes bootstrap bytes. `blockingExecutor.Run` at 2414 ignores its request and waits on context cancellation. Retaining the final outer executor is essential to preserve faults and cancellation.
+
+World and coverage remain ordinary assessment inputs. `completionWorldRecord` at line 113 constructs a real pure World, quiesces it and encodes its recording. `completion.go:25` decodes, composes and validates that record and checks its seed. `completion.go:49` decodes semantic coverage before projecting choice features, then classifies against the validated World terminal. `semanticTranscript` at `runner_test.go:2538` encodes the real known boundary-probe operation. The projection table independently composes the expected World and summarizes the probe, then uses the captured trace and fixed target digest to calculate expected features. The bootstrap attachment changes none of those operations, their evidence, or their precedence.
+
+### Simulation and bootstrap limits
+
+The simulation table uses `simulationExplorationExecutor.Run` at `runner_test.go:2193`. It requires and decodes `request.Simulation.ExplorationPlan`, reads the base seed and scenario override, and returns its existing v7 cluster record plus a complete empty runtime choice trace. It never reads `request.IO.Config`. `simulation_exploration_campaign.go:243` builds each internal candidate request through `simulationrecord.ExecutionForCandidate`, passes its plan and bounds into `runSeed`, and later validates runtime decisions and the one simulation record at lines 326/330/333. `simulationCapabilityForJob` at `runner.go:742` forwards a nonempty plan and its record bounds independently of whether the executor is `processExecutor`.
+
+`simulationrecord/wire.go:212` validates runtime override prefixes when present. This fixture emits only a scenario decision and an empty runtime tape, so its expansion supplies scenario overrides, with no runtime override prefix to honor. `simulationrecord/record.go:28` still validates that empty replay tape. Positive projection also retains the actual simulation result and artifact-profile projection at `simulation_exploration_campaign.go:333/339`, followed by actual round commits and journal publication. These request and result contracts need no new fixture fields for this slice. They do not establish runtime-choice forcing, node bootstrap, process transport or native simulation execution coverage.
+
+Bootstrap decoding is a distinct requirement. The actual public decoder is `deterministicio.DecodeBootstrapFrame` at `deterministicio/bootstrap.go:53`, backed by `deterministicio/internal/wire/wire_generated.go:61`, which checks the 212-byte frame, magic/version/kind and checksum. Runtime `internal/gomadio` initialization at `toolchain/runtime/overlay/src/internal/gomadio/gomadio.go:28` decodes its inherited frame too. The synthetic marker cannot satisfy either decoder. None is reached through the selected scripted executors. Selecting `processExecutor`, decoding the marker inside an executor, executing target bytes, or demanding a new runtime bootstrap/World descriptor contract would exceed this proposal and require separate fixture research and admission. No production decoder or guard should be relaxed to accommodate the marker.
+
+## RED, controls and remaining acceptance
+
+The retained RED is preparation-stage refusal. An admitted worker should retain unchanged-source results for these exact three names at its own candidate before adding the assignments, then preserve every existing downstream assertion. The fault table's completion comparison at line 344, cancellation classifications at 380/386 and projection comparison at 486 are meaningful behavioral boundaries newly reachable after preparation. Any different failure there is new evidence to retain and investigate within the admitted boundary; it grants no authority to adjust expected values, fault payloads, partial paths, classification or bootstrap contracts. No newly reached behavioral RED was executed during this research.
+
+Existing controls should stay in the focused gate. Runner provides `TestPreparationDependenciesForwardRealFixtureInputs`, `TestPreparationDependenciesOperationErrorsRemainUnchanged`, `TestPreparationDependenciesFailuresStopAtOriginalStages`, `TestPreparationDependenciesKeepRealDefaultsAndBootstrapGuard` and `TestInjectionCharacterizationIsolatedPreparationDependencies`. Deterministic I/O provides `TestPortableProfilePublicGuardsRemainFirst`. The Runner guard explicitly verifies that public/default preparation and prepare-only bootstrap continue to refuse an unsupported host. The three tables supply their existing positive projection and negative precedence/cancellation controls; three attachments need no additive helper or test abstraction.
+
+The helper is insufficient for real bootstrap decoding, target compilation/execution, adapter validation, artifact replay/minimize, resume identity checks and guided corpus replay. Those consumers remain excluded, along with every shared fixture and `seed_completion_characterization_test.go`. No claim extends to task68's calls or later broad-suite outcomes. Current source acceptance still requires ordinary host-source coverage, lint, preservation, applicable first-baseline reconciliation, both-source-set checks, generated validation and integrated source review under fn-112.10 and fn-109.21. Source receipts need binding to the actual admitted/integrated candidate. The fn-109 format amendment changes only its stated compatibility obligations; it does not waive behavioral controls or authorize assertion changes here. Native qualification and measured soak bounds remain deferred and unverified under fn-128/fn-149.
