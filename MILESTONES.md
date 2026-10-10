@@ -179,6 +179,9 @@ integrated fn-155.1–.5 source and complete managed raw-byte manifests before e
 missing fresh-generation proof remains a reconciliation hold, not inherited passing evidence.
 The source lane runs .1 through .6 in order. Report-only .8 runs independently in an isolated
 checkout of the same baseline; .7 joins both lanes for documentation and the full close.
+The owner-authorized work-ahead also admits .8 from an immutable copy of the integrated
+baseline. Its report pins Draft/compiler inputs; .7 reconciles those against the closed fn-155
+baseline before publication. Disposable capture experiments never merge into the source lane.
 
 It changes no IR or Case byte, including positions, and serializes with other Model source work.
 Task .1 proves sound equality evidence and byte-preserving exhaustive-match lowering before
