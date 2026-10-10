@@ -318,7 +318,7 @@ still belongs exclusively to fn-148.6. CEL adoption is decided; no additional pr
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-146.1 | 🔄 in progress | Isolated Testpilot lane: breaking format, deterministic canonical identity and companion migration contract; no early 4.0 activation |
+| fn-146.1 | 🔄 in progress | Format/identity contract integrated and focused tests green; independent review requires null-version classification fix; no early 4.0 activation |
 | fn-146.2 | ⬜ todo | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
 | fn-146.3 | ⬜ todo | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
 | fn-146.4 | ⬜ todo | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
