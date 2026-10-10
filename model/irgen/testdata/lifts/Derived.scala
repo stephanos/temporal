@@ -62,7 +62,7 @@ def pressLamp(l: LampState): List[Step[LampState, Outcome, Fact]] = l.light matc
   case Light.broken => Nil
 
 def pressStiff(l: LampState): List[Step[LampState, Outcome, Fact]] = l.light match
-  case Light.off => List(Step(Outcome.refused, l))
+  case Light.off                               => List(Step(Outcome.refused, l))
   case _: Light.on.type | _: Light.broken.type => pressLamp(l)
 
 def wearLamp(l: LampState): List[Step[LampState, Outcome, Fact]] = // format: off

@@ -588,15 +588,15 @@ val deliver = action(runner) on errand
 val answer = action(runner).on(errand).input[ErrandAnswer]("answer")
 
 def requestStep(s: ErrandState): List[ErrandStep] = s match
-  case ErrandState.idle =>
+  case ErrandState.idle => // format: off
     List(Step(ErrandOutcome.accepted, ErrandState.queued, List(ErrandFact.errandListed)))
-  case _: ErrandState.queued.type | _: ErrandState.held.type | _: ErrandState.retrying.type | _: ErrandState.done.type | _: ErrandState.withdrawn.type => Nil
+  case _: ErrandState.queued.type | _: ErrandState.held.type | _: ErrandState.retrying.type | _: ErrandState.done.type | _: ErrandState.withdrawn.type => Nil // format: on
 
 // The runner is handed the attempt. Nothing a caller reads says so.
 def deliverStep(s: ErrandState): List[ErrandStep] = s match
   case ErrandState.queued | ErrandState.retrying =>
-    List(Step(ErrandOutcome.accepted, ErrandState.held))
-  case _: ErrandState.idle.type | _: ErrandState.held.type | _: ErrandState.done.type | _: ErrandState.withdrawn.type => Nil
+    List(Step(ErrandOutcome.accepted, ErrandState.held)) // format: off
+  case _: ErrandState.idle.type | _: ErrandState.held.type | _: ErrandState.done.type | _: ErrandState.withdrawn.type => Nil // format: on
 
 // A failed attempt is retried and a caller reads nothing new; a completed one closes the errand, and
 // a canceled one withdraws it.

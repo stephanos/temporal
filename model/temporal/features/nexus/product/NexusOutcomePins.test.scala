@@ -84,7 +84,7 @@ class NexusOutcomePins extends munit.FunSuite:
         nexusHandler.complete.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled || // scalafix:ok DisableSyntax.==
+          s.phase == succeeded || s.phase == failed || s.phase == canceled ||
             s.phase == timedOut || s.phase == terminated, // scalafix:ok DisableSyntax.==
         "rejected(notFound)"
       )
@@ -98,7 +98,7 @@ class NexusOutcomePins extends munit.FunSuite:
         None,
         s =>
           !s.cancelRequested &&
-            (s.phase == succeeded || s.phase == failed || s.phase == canceled || // scalafix:ok DisableSyntax.==
+            (s.phase == succeeded || s.phase == failed || s.phase == canceled ||
               s.phase == terminated), // scalafix:ok DisableSyntax.==
         "rejected(failedPrecondition)",
         "operation already completed"
@@ -120,7 +120,7 @@ class NexusOutcomePins extends munit.FunSuite:
         workflow.handler.complete.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled || // scalafix:ok DisableSyntax.==
+          s.phase == succeeded || s.phase == failed || s.phase == canceled ||
             s.phase == timedOut, // scalafix:ok DisableSyntax.==
         "rejected(notFound)"
       )

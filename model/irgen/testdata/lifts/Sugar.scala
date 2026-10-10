@@ -58,11 +58,11 @@ def pauseCore(j: Job): List[JobStep] = j.phase match
   case _: Phase.idle.type | _: Phase.paused.type | _: Phase.done.type => Nil
 
 // in: membership in a finite set of cases, with every fallback case named.
-def resumeSugar(j: Job): List[JobStep] = j.phase match
-  case p @ (Phase.idle | Phase.running | Phase.paused | Phase.done) if p.in(Phase.paused, Phase.idle) => enter(j.copy(phase = Phase.running))
+def resumeSugar(j: Job): List[JobStep] = j.phase match // format: off
+  case p @ (Phase.idle | Phase.running | Phase.paused | Phase.done) if p.in(Phase.paused, Phase.idle) => enter(j.copy(phase = Phase.running)) // format: on
   case Phase.idle | Phase.running | Phase.paused | Phase.done => disabled
-def resumeCore(j: Job): List[JobStep] = j.phase match
-  case p @ (Phase.idle | Phase.running | Phase.paused | Phase.done) if List(Phase.paused, Phase.idle).contains(p) =>
+def resumeCore(j: Job): List[JobStep] = j.phase match // format: off
+  case p @ (Phase.idle | Phase.running | Phase.paused | Phase.done) if List(Phase.paused, Phase.idle).contains(p) => // format: on
     List(Step(Outcome.accepted, j.copy(phase = Phase.running)))
   case Phase.idle | Phase.running | Phase.paused | Phase.done => Nil
 

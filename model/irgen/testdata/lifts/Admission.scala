@@ -156,15 +156,15 @@ def pauseStep(s: AdmissionState): List[AdmissionStep] =
           s.copy(phase = AdmissionPhase.pausedWhileHeld),
           List(AdmissionFact.statusPaused)
         )
-      )
-    case _: AdmissionPhase.paused.type | _: AdmissionPhase.pausedWhileHeld.type | _: AdmissionPhase.completed.type => Nil
+      ) // format: off
+    case _: AdmissionPhase.paused.type | _: AdmissionPhase.pausedWhileHeld.type | _: AdmissionPhase.completed.type => Nil // format: on
 
 def oneMore(a: Active): Active = a match
-  case Active.none => Active.one
+  case Active.none                             => Active.one
   case _: Active.one.type | _: Active.two.type => Active.two
 
 def oneLess(a: Active): Active = a match
-  case Active.two => Active.one
+  case Active.two                               => Active.one
   case _: Active.none.type | _: Active.one.type => Active.none
 
 // A committed admission. The channel is at-least-once: the message may be consumed, or retained
@@ -267,7 +267,7 @@ enum Finality derives Finite:
   case open, completed, reopened
 
 def finality(f: Finality, before: AdmissionState, after: AdmissionStep): Finality = f match
-  case Finality.reopened => Finality.reopened
+  case Finality.reopened                                  => Finality.reopened
   case _: Finality.open.type | _: Finality.completed.type => // format: off
     if after.state.phase == AdmissionPhase.completed then Finality.completed // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     else if f == Finality.completed then Finality.reopened // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons

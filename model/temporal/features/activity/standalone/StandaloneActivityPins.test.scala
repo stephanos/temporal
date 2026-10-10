@@ -726,7 +726,7 @@ class StandaloneActivityPins extends munit.FunSuite:
         s =>
           heldSystem(
             s.phase
-          ) && s.startToClose == Timeout.expires && // scalafix:ok DisableSyntax.==
+          ) && s.startToClose == Timeout.expires &&
             (s.phase == cancelRequested || !retriesRemain(s)), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
@@ -782,7 +782,7 @@ class StandaloneActivityPins extends munit.FunSuite:
         deadline.heartbeat.decl,
         None,
         s =>
-          heldSystem(s.phase) && s.heartbeat == Timeout.expires && // scalafix:ok DisableSyntax.==
+          heldSystem(s.phase) && s.heartbeat == Timeout.expires &&
             (s.phase == cancelRequested || !retriesRemain(s)), // scalafix:ok DisableSyntax.==
         s =>
           acceptedBecause(
@@ -1070,7 +1070,7 @@ class StandaloneActivityPins extends munit.FunSuite:
 
   private def liveSystem(p: system.Phase): Boolean =
     import system.Phase.*
-    p == scheduled || p == started || p == paused || // scalafix:ok DisableSyntax.==
+    p == scheduled || p == started || p == paused ||
     p == pauseRequested || p == cancelRequested || resetSystem(p) // scalafix:ok DisableSyntax.==
 
   private def resetSystem(p: system.Phase): Boolean =
@@ -1080,7 +1080,7 @@ class StandaloneActivityPins extends munit.FunSuite:
     p == system.Phase.scheduled // scalafix:ok DisableSyntax.==
 
   private def heldSystem(p: system.Phase): Boolean =
-    p == system.Phase.started || p == system.Phase.pauseRequested || // scalafix:ok DisableSyntax.==
+    p == system.Phase.started || p == system.Phase.pauseRequested ||
       p == system.Phase.cancelRequested // scalafix:ok DisableSyntax.==
 
   private def closedSystem(p: system.Phase): Boolean =
@@ -1182,8 +1182,10 @@ class StandaloneActivityPins extends munit.FunSuite:
     assertEquals(choices.map(_.state.lossAvailable), List(false, false))
     val loss = LostStartAnswer.bindings
       .find(
+        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         _.decl == temporal.foundations.taskqueue.fault.ackLoss.decl
-      ) // scalafix:ok DisableSyntax.==
+        // scalafix:on DisableSyntax.==
+      )
       .get
       .function
       .asInstanceOf[Loss] // scalafix:ok DisableSyntax.asInstanceOf

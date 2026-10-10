@@ -18,8 +18,9 @@ private[irgen] trait Types:
   def enumOf(caseSym: Symbol): Symbol = caseSym.owner.companionClass
   def fieldTypes(cls: Symbol): List[(String, TypeRepr)] =
     cls.caseFields.map(f => f.name -> cls.typeRef.memberType(f).widen)
-  def isList(sym: Symbol): Boolean = sym == defn.RepeatedParamClass || // scalafix:ok DisableSyntax.==; typed equality
-    sym.fullName == "scala.collection.immutable.List" || sym.fullName == "scala.collection.immutable.Seq" // scalafix:ok DisableSyntax.==; typed equality
+  def isList(sym: Symbol): Boolean =
+    sym == defn.RepeatedParamClass ||
+      sym.fullName == "scala.collection.immutable.List" || sym.fullName == "scala.collection.immutable.Seq" // scalafix:ok DisableSyntax.==; typed equality
   def isNamed(tpe: TypeRepr, name: String): Boolean =
     tpe.widen.dealias.typeSymbol.fullName == name // scalafix:ok DisableSyntax.==; typed equality
   def messageType(inbox: TypeRepr): String =
@@ -33,7 +34,10 @@ private[irgen] trait Types:
     val tpe = instantiated(declared)
     // An opaque type is read before its alias is resolved: its range is its own.
     val opaque = tpe.widen.typeSymbol
-    if opaque.fullName == upToType then range(0, upToBound(tpe, at)) // scalafix:ok DisableSyntax.==; typed equality
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+    if opaque.fullName == upToType then
+      // scalafix:on DisableSyntax.==
+      range(0, upToBound(tpe, at))
     else if opaque.flags.is(Flags.Opaque) then
       val (lo, hi) = opaqueRanges.getOrElse(
         opaque.fullName,
@@ -47,8 +51,14 @@ private[irgen] trait Types:
     else
       val t = tpe.dealias.widen
       val sym = t.typeSymbol
-      if sym == defn.BooleanClass then ir.TypeRef(ir.TypeRef.Ref.Bool(Empty())) // scalafix:ok DisableSyntax.==; typed equality
-      else if sym == defn.IntClass && owner.isEmpty then ir.TypeRef(ir.TypeRef.Ref.Int(Empty())) // scalafix:ok DisableSyntax.==; typed equality
+      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+      if sym == defn.BooleanClass then
+        // scalafix:on DisableSyntax.==
+        ir.TypeRef(ir.TypeRef.Ref.Bool(Empty()))
+      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+      else if sym == defn.IntClass && owner.isEmpty then
+        // scalafix:on DisableSyntax.==
+        ir.TypeRef(ir.TypeRef.Ref.Int(Empty()))
       else if sym == defn.IntClass then // scalafix:ok DisableSyntax.==; typed equality
         val (lo, hi) = intRanges.getOrElse(
           owner,
@@ -60,7 +70,10 @@ private[irgen] trait Types:
         )
         range(lo, hi)
       else if isList(sym) then ir.TypeRef(ir.TypeRef.Ref.List(typeRef(t.typeArgs.head, at, owner)))
-      else if sym.fullName == "scala.Option" then named(optionType(t.typeArgs.head, at)) // scalafix:ok DisableSyntax.==; typed equality
+      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+      else if sym.fullName == "scala.Option" then
+        // scalafix:on DisableSyntax.==
+        named(optionType(t.typeArgs.head, at))
       else if sym.fullName == "framework.Inbox" then // scalafix:ok DisableSyntax.==; typed equality
         if owner.isEmpty then
           fail(at, "an Inbox is held in a state field; a function reads it from the state")
@@ -73,7 +86,10 @@ private[irgen] trait Types:
           )
         )
         ir.TypeRef(ir.TypeRef.Ref.Channel(channelOf(channel, at)))
-      else if sym.fullName == stepType then named(stepType) // scalafix:ok DisableSyntax.==; typed equality
+      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+      else if sym.fullName == stepType then
+        // scalafix:on DisableSyntax.==
+        named(stepType)
       else
         declareType(sym, at)
         named(irTypeName(sym))
@@ -98,7 +114,10 @@ private[irgen] trait Types:
 
   def declareType(sym: Symbol, at: Tree): Unit =
     lazy val name = irTypeName(sym)
-    if sym != defn.NothingClass && !types.contains(name) then // scalafix:ok DisableSyntax.!=; typed equality
+    // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
+    if sym != defn.NothingClass && !types.contains(name)
+    // scalafix:on DisableSyntax.!=
+    then
       types(name) = ir.Type.defaultInstance // placeholder against recursion
       val position = Some(scala.util.Try(pos(sym.tree)).getOrElse(pos(at)))
       def field(n: String, ft: TypeRepr): ir.Field =
@@ -171,7 +190,8 @@ private[irgen] trait Types:
   // An Inbox field's channel is the one whose contents are in scope there, and an opaque type's own
   // given is its range.
   def finiteOf(tpt: TypeTree): Option[TypeRepr] =
-    if tpt.tpe.typeSymbol.name == "Finite" then tpt.tpe.typeArgs.headOption else None // scalafix:ok DisableSyntax.==; typed equality
+    if tpt.tpe.typeSymbol.name == "Finite" then tpt.tpe.typeArgs.headOption
+    else None // scalafix:ok DisableSyntax.==; typed equality
   def readFinites(): Unit =
     for d <- defs.values do
       d match

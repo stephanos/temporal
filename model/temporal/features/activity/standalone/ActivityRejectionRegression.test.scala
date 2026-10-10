@@ -79,14 +79,18 @@ class ActivityRejectionRegression extends munit.FunSuite:
     assertEquals(rows(1).facts, List(product.Fact.statusPaused))
     assertEquals(rows.last.state, before)
     assertEquals(rows.last.facts, Nil)
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     for s <- summon[Finite[system.State]].values if s.phase == system.Phase.pauseRequested
-    do // scalafix:ok DisableSyntax.==
+    // scalafix:on DisableSyntax.==
+    do
       val result = take(ActivitySystem, s, client.pause).head
       assertEquals(ActivitySystem.refinement.toProduct(s), before)
       assert(
         rows.exists(r =>
+          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
           r.outcome == result.outcome && r.state == ActivitySystem.refinement
-            .toProduct( // scalafix:ok DisableSyntax.==
+            // scalafix:on DisableSyntax.==
+            .toProduct(
               result.state
             )
         )
@@ -112,9 +116,10 @@ class ActivityRejectionRegression extends munit.FunSuite:
     assertEquals(requested.outcome, Outcome.accepted)
     assertEquals(requested.facts, List(system.Fact.statusCancelRequested))
     assertEquals(requested.state.phase, system.Phase.cancelRequested)
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     for s <- summon[Finite[system.State]].values if s.phase == system.Phase.cancelRequested
-    do // scalafix:ok DisableSyntax.==
-      rejectsUnchanged(ActivitySystem, s, client.requestCancel, Rejection.failedPrecondition)
+    // scalafix:on DisableSyntax.==
+    do rejectsUnchanged(ActivitySystem, s, client.requestCancel, Rejection.failedPrecondition)
     rejectsUnchanged(
       ActivitySystem,
       requested.state,

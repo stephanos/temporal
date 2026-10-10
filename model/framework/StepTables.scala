@@ -57,7 +57,9 @@ object StepTables:
   // fact names alike.
   def renames(text: String): Vector[(String, String)] =
     text.linesIterator
+      // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
       .map(_.takeWhile(_ != '#').trim)
+      // scalafix:on DisableSyntax.!=
       .filter(_.nonEmpty)
       .map: line =>
         line.split("\\s+").toList match
@@ -80,7 +82,7 @@ object StepTables:
       (from, to, s"(?<![A-Za-z0-9_])${Pattern.quote(from)}(?![A-Za-z0-9_])".r)
     def renamed(text: String): String =
       patterns.foldLeft(text):
-        case (t, (_, "-", _))       => t
+        case (t, (_, "-", _))      => t
         case (t, (_, to, pattern)) => pattern.replaceAllIn(t, Matcher.quoteReplacement(to))
     val listing = Files.list(base)
     val baseline =
@@ -93,7 +95,9 @@ object StepTables:
           .sorted
       finally listing.close()
     require(baseline.nonEmpty, s"$base holds no step tables: capture a baseline first")
-    val tables = baseline.map(name => name -> Files.readAllLines(base.resolve(name + suffix)).asScala.toVector).toMap
+    val tables = baseline
+      .map(name => name -> Files.readAllLines(base.resolve(name + suffix)).asScala.toVector)
+      .toMap
     val removed = renames.collect { case (from, "-") => from }.toSet
     val current = machines(files).map(m => m.name -> m).toMap
     val kept = baseline.filterNot(removed)
@@ -105,21 +109,34 @@ object StepTables:
           val was = tables(name).map(renamed)
           val is = rows(m)
           val sizes =
+            // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
             if was.size == is.size then Vector.empty
+            // scalafix:on DisableSyntax.==
             else Vector(s"$now has ${is.size} rows, the baseline ${was.size}")
+          // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
           val changed = was.zip(is).collect { case (w, i) if w != i => (w, i) }
-          val listed = changed.take(shown).map((w, i) => s"$now differs:\n  baseline: $w\n  now:      $i")
+          // scalafix:on DisableSyntax.!=
+          val listed =
+            changed.take(shown).map((w, i) => s"$now differs:\n  baseline: $w\n  now:      $i")
           val more =
             if changed.size > shown then Vector(s"$now: ${changed.size - shown} more rows differ")
             else Vector.empty
           sizes ++ listed ++ more
     val expected = kept.map(renamed).toSet
-    val added = current.keys.toVector.sorted.filterNot(expected).map: name =>
-      s"machine $name is new: map it from a baseline machine or account for it"
+    val added = current.keys.toVector.sorted
+      .filterNot(expected)
+      .map: name =>
+        s"machine $name is new: map it from a baseline machine or account for it"
     val words = baseline.toSet ++ tables.values.flatten
     val unused = renames.collect:
-      case (from, _) if !removed(from) && !words.exists(w => patterns.exists((f, _, p) => f == from && p.findFirstIn(w).nonEmpty)) =>
+      case (from, _)
+          if !removed(from) && !words
+            // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+            .exists(w => patterns.exists((f, _, p) => f == from && p.findFirstIn(w).nonEmpty)) =>
+        // scalafix:on DisableSyntax.==
         s"the rename $from matches no baseline machine or row"
-    val unusedRemovals = removed.toVector.sorted.filterNot(baseline.contains).map: name =>
-      s"the removal of $name matches no baseline machine"
+    val unusedRemovals = removed.toVector.sorted
+      .filterNot(baseline.contains)
+      .map: name =>
+        s"the removal of $name matches no baseline machine"
     machineDifferences ++ added ++ unused ++ unusedRemovals

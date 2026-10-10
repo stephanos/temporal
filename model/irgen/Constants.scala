@@ -50,9 +50,14 @@ private[irgen] trait Constants:
       resolve(qual) match
         case Apply(Select(companion, "apply"), args) =>
           val cls = companion.tpe.typeSymbol.companionClass
-          val i = cls.caseFields.indexWhere(_.name == field) // scalafix:ok DisableSyntax.==; typed equality
+          val i = cls.caseFields.indexWhere(
+            _.name == field
+          ) // scalafix:ok DisableSyntax.==; typed equality
           if i < 0 then fail(t, s"cannot read .$field of this value")
-          else if field == "name" && namedByVal(cls) && isDefault(args(i)) then constString(qual) // scalafix:ok DisableSyntax.==; typed equality
+          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+          else if field == "name" && namedByVal(cls) && isDefault(args(i)) then
+            // scalafix:on DisableSyntax.==
+            constString(qual)
           else constString(args(i))
         case other => fail(t, s"cannot fold ${other.show} to a string")
     // `Entity(key = …)` and `Observation(on = …, read = …)`, named after their val.

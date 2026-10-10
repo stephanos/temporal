@@ -56,7 +56,13 @@ class DefaultEndsSuite extends munit.FunSuite:
     ran.orFail(): Unit
     val model = mapper.readTree(Files.readString(out))
     def ends(kind: String, name: String): JsonNode =
-      model.path(kind).elements().asScala.find(_.path("name").asText() == name).get.path("ends") // scalafix:ok DisableSyntax.==; typed equality
+      model
+        .path(kind)
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .get
+        .path("ends") // scalafix:ok DisableSyntax.==; typed equality
     def cases(end: JsonNode) = end
       .path("lambda")
       .path("body")
@@ -77,8 +83,10 @@ class DefaultEndsSuite extends munit.FunSuite:
     def unpositioned(node: JsonNode): JsonNode =
       if node.isObject then
         val result = mapper.createObjectNode()
-        for field <- node.fields().asScala if field.getKey != "position" do // scalafix:ok DisableSyntax.!=; typed equality
-          result.set[JsonNode](field.getKey, unpositioned(field.getValue)): Unit
+        // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
+        for field <- node.fields().asScala if field.getKey != "position"
+        // scalafix:on DisableSyntax.!=
+        do result.set[JsonNode](field.getKey, unpositioned(field.getValue)): Unit
         result
       else if node.isArray then
         val result = mapper.createArrayNode()
@@ -146,7 +154,9 @@ class DefaultEndsSuite extends munit.FunSuite:
     for machine <- properties.map(_.path("machine").asText()).distinct do
       assertEquals(
         properties
-          .filter(_.path("machine").asText() == machine) // scalafix:ok DisableSyntax.==; typed equality
+          .filter(
+            _.path("machine").asText() == machine
+          ) // scalafix:ok DisableSyntax.==; typed equality
           .map(_.path("name").asText())
           .sorted,
         Seq(s"$machine.closedIsRejectedUniformly", s"$machine.terminalStatesAreFinal")
@@ -157,7 +167,12 @@ class DefaultEndsSuite extends munit.FunSuite:
         "temporal.capabilities.Closable.terminalStatesAreFinal"
       )
       val function =
-        model.path("functions").elements().asScala.find(_.path("name") == p.path("holds")).get // scalafix:ok DisableSyntax.==; typed equality
+        model
+          .path("functions")
+          .elements()
+          .asScala
+          .find(_.path("name") == p.path("holds"))
+          .get // scalafix:ok DisableSyntax.==; typed equality
       val membership = function
         .path("body")
         .path("binary")
@@ -178,8 +193,8 @@ class DefaultEndsSuite extends munit.FunSuite:
       val phase = membership.path("left").path("field")
       assertEquals(phase.path("field").asText(), "phase")
       if p.path("machine").asText().contains("Pair") || p
-          .path("machine")
-          .asText() == "closingDerivedAgain" // scalafix:ok DisableSyntax.==; typed equality
+        .path("machine")
+        .asText() == "closingDerivedAgain" // scalafix:ok DisableSyntax.==; typed equality
       then assertEquals(phase.path("base").path("field").path("field").asText(), "left")
 
   test("Closable refuses a missing Phased and a missing Closed by machine name"):

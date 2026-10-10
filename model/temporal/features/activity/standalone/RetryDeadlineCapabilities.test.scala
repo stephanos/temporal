@@ -374,8 +374,10 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       assert(properties.forall(_.decl.when.contains(action)))
       val after = take(activity.ActivitySystem, before, action).head
       assert(holds(properties, before, after), s"before=$before after=$after")
+      // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
       for landing <- summon[Finite[activity.Phase]].values if landing != after.state.phase
-      do // scalafix:ok DisableSyntax.!=
+      // scalafix:on DisableSyntax.!=
+      do
         assert(
           !holds(properties, before, after.copy(state = after.state.copy(phase = landing))),
           s"wrong landing before=$before landing=$landing"
@@ -555,14 +557,16 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
             kind == TimeoutType.startToClose || kind == TimeoutType.heartbeat // scalafix:ok DisableSyntax.==
           )
         assert(holds(properties, before, after), s"$timer before=$before after=$after")
+        // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
         for landing <- summon[Finite[activity.Phase]].values if landing != after.state.phase
-        do // scalafix:ok DisableSyntax.!=
-          assert(!holds(properties, before, after.copy(state = after.state.copy(phase = landing))))
+        // scalafix:on DisableSyntax.!=
+        do assert(!holds(properties, before, after.copy(state = after.state.copy(phase = landing))))
         if after.state.phase == activity.Phase.timedOut then // scalafix:ok DisableSyntax.==
           assert(!holds(properties, before, after.copy(facts = Nil)))
+          // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
           for other <- activity.ActivitySystem.states.timeoutFacts if other != timeout
-          do // scalafix:ok DisableSyntax.!=
-            assert(!holds(properties, before, after.copy(facts = List(other))))
+          // scalafix:on DisableSyntax.!=
+          do assert(!holds(properties, before, after.copy(facts = List(other))))
         else
           for terminalFact <- activity.ActivitySystem.states.timeoutFacts do
             assert(!holds(properties, before, after.copy(facts = after.facts :+ terminalFact)))
@@ -580,13 +584,16 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         val timeout = nexus.Fact.nexusOperationTimedOut(kind)
         val property = Deadline.deadlineTimesOut(nexus.NexusSystem)(timer, false, timeout)
         assert(holds(Seq(property), before, after))
+        // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
         for landing <- summon[Finite[nexus.Phase]].values if landing != nexus.Phase.timedOut
-        do // scalafix:ok DisableSyntax.!=
+        // scalafix:on DisableSyntax.!=
+        do
           assert(
             !holds(Seq(property), before, after.copy(state = after.state.copy(phase = landing)))
           )
         assert(!holds(Seq(property), before, after.copy(facts = Nil)))
+        // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
         for other <- nexus.NexusSystem.states.timeoutFacts if other != timeout
-        do // scalafix:ok DisableSyntax.!=
-          assert(!holds(Seq(property), before, after.copy(facts = List(other))))
+        // scalafix:on DisableSyntax.!=
+        do assert(!holds(Seq(property), before, after.copy(facts = List(other))))
   }

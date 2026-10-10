@@ -68,12 +68,18 @@ private[irgen] trait Compositions:
   // The action of `name` a machine binds, by its Definition ID.
   def boundNamed(machine: String, name: String): Option[String] =
     machineNamed(machine).flatMap(
-      _.steps.map(_.action).find(id => actions.get(id).exists(_.name == name)) // scalafix:ok DisableSyntax.==; typed equality
+      _.steps
+        .map(_.action)
+        .find(id =>
+          actions.get(id).exists(_.name == name)
+        ) // scalafix:ok DisableSyntax.==; typed equality
     )
 
   // Whether a machine binds the action of the Definition ID `id`: the declaration, not its name.
   def binds(machine: String, id: String): Boolean =
-    machineNamed(machine).exists(_.steps.exists(_.action == id)) // scalafix:ok DisableSyntax.==; typed equality
+    machineNamed(machine).exists(
+      _.steps.exists(_.action == id)
+    ) // scalafix:ok DisableSyntax.==; typed equality
 
   def compositionOf(sym: Symbol, at: Tree): ir.Composition =
     compositions.get(sym.fullName) match
@@ -198,7 +204,9 @@ private[irgen] trait Compositions:
     val c = objectBody(cls, at)
     val name = objectFormName(cls)
     val members = statements(c).collect { case d: Definition => d }
-    val end = members.collectFirst { case d: DefDef if d.name == "end" => d } // scalafix:ok DisableSyntax.==; typed equality
+    val end = members.collectFirst {
+      case d: DefDef if d.name == "end" => d
+    } // scalafix:ok DisableSyntax.==; typed equality
     val syncs = sectionOf(c, "syncs")
     parentArguments(c).headOption.getOrElse(Nil) match
       case List(derivation) if isComposition(derivation.tpe) =>
@@ -273,8 +281,10 @@ private[irgen] trait Compositions:
     val i = c.members.indexWhere(_.field == field) // scalafix:ok DisableSyntax.==; typed equality
     if i < 0 then fail(at, s"$field replaces $opaque, and no member fills $field")
     val member = c.members(i).machine
-    if !machineNamed(member).exists(_.getRefines.product == opaque) then // scalafix:ok DisableSyntax.==; typed equality
-      fail(at, s"$field replaces $opaque, and its member $member does not refine $opaque")
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+    if !machineNamed(member).exists(_.getRefines.product == opaque)
+    // scalafix:on DisableSyntax.==
+    then fail(at, s"$field replaces $opaque, and its member $member does not refine $opaque")
     c.withMembers(c.members.updated(i, c.members(i).withReplaces(opaque)))
 
   // `base` with the member its selector names replaced in place by the selector's machine. That
@@ -289,7 +299,10 @@ private[irgen] trait Compositions:
     val field = selectedField(param, key, sel, "withMember")
     val was = filled(base, field, sel, "withMember")
     val m = memberMachine(field, key, value, sel, base.name)
-    for s <- base.syncs; mv <- Seq(s.getFirst, s.getSecond) if mv.member == field do // scalafix:ok DisableSyntax.==; typed equality
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+    for s <- base.syncs; mv <- Seq(s.getFirst, s.getSecond) if mv.member == field
+    // scalafix:on DisableSyntax.==
+    do
       (boundNamed(was.machine, mv.action), boundNamed(m.name, mv.action)) match
         case (_, None) =>
           fail(
@@ -316,7 +329,9 @@ private[irgen] trait Compositions:
             )
           case product => product
     base.withMembers(
-      base.members.map(mb => if mb.field == field then ir.Member(field, m.name, replaces) else mb) // scalafix:ok DisableSyntax.==; typed equality
+      base.members.map(mb =>
+        if mb.field == field then ir.Member(field, m.name, replaces) else mb
+      ) // scalafix:ok DisableSyntax.==; typed equality
     )
 
   // ### Composed classes: what `c.synced(...)` and `c.own(...)` select
@@ -360,7 +375,11 @@ private[irgen] trait Compositions:
       .find(_.name == name) // scalafix:ok DisableSyntax.==; typed equality
       .getOrElse(fail(receiver, s"$name is no lifted composition"))
     val memberName = modelName(fold(member, env), member)
-    composition.members.filter(_.machine == memberName) match // scalafix:ok DisableSyntax.==; typed equality
+    composition.members.filter(
+      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+      _.machine == memberName
+      // scalafix:on DisableSyntax.==
+    ) match
       case Seq(found) => s"${found.field}_${valueKey(literalValue(outcome))}"
       case Seq()      =>
         fail(member, s"$memberName is no member of $name")
@@ -431,7 +450,10 @@ private[irgen] trait Compositions:
           s"$op names ${a.name} of $field, and ${m.machine} binds no action of ${cls.action}: name " +
             s"the action $field binds, not one of another declaration spelled alike"
         )
-      if classes && cls.inputs.size != a.inputs.size then // scalafix:ok DisableSyntax.!=; typed equality
+      // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
+      if classes && cls.inputs.size != a.inputs.size
+      // scalafix:on DisableSyntax.!=
+      then
         fail(
           t,
           s"$op names the action ${a.name}, which takes inputs, and a Scenario lists classes: name " +
@@ -447,7 +469,9 @@ private[irgen] trait Compositions:
     def inputs(cls: ir.ActionClass): String =
       if classes then cls.inputs.map("-" + valueKey(_)).mkString else ""
     def pairs(s: ir.Sync, field: String, action: String): Boolean =
-      Seq(s.getFirst, s.getSecond).exists(mv => mv.member == field && mv.action == action) // scalafix:ok DisableSyntax.==; typed equality
+      Seq(s.getFirst, s.getSecond).exists(mv =>
+        mv.member == field && mv.action == action
+      ) // scalafix:ok DisableSyntax.==; typed equality
     op match
       case "synced" =>
         val sel = args.head
@@ -456,7 +480,9 @@ private[irgen] trait Compositions:
         val (field, cls, a) = member(sel, key, param, value)
         c.syncs.filter(pairs(_, field, a.name)) match
           case Seq(s) =>
-            val other = if s.getFirst.member == field then s.getSecond else s.getFirst // scalafix:ok DisableSyntax.==; typed equality
+            val other =
+              if s.getFirst.member == field then s.getSecond
+              else s.getFirst // scalafix:ok DisableSyntax.==; typed equality
             val takes = boundNamed(filled(c, other.member, t, op).machine, other.action)
               .flatMap(actions.get)
               .exists(_.inputs.nonEmpty)

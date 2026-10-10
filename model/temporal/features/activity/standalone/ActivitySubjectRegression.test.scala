@@ -180,7 +180,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
         (before, after) =>
           !(before.phase == system.Phase.scheduled && after.records(
             system.Fact.statusStarted
-          )) || // scalafix:ok DisableSyntax.==
+          )) ||
             before.dispatch == system.Dispatch.now // scalafix:ok DisableSyntax.==
       ),
       Claim(

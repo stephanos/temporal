@@ -322,10 +322,10 @@ class RulesTest extends munit.FunSuite:
             else Lit.off)) // scalafix:ok DisableSyntax.==
           case Lit.on =>
             enter[Lamp, Said, Nothing](
+              // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
               if knob == Knob.up then
-                state.copy(presses =
-                  UpTo[2]((state.presses + 1).min(2))
-                ) // scalafix:ok DisableSyntax.==
+                // scalafix:on DisableSyntax.==
+                state.copy(presses = UpTo[2]((state.presses + 1).min(2)))
               else state.copy(light = Lit.off)
             )
         assertEquals(turn(Switch, state, knob), expected, (state, knob))

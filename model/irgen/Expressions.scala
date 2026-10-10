@@ -122,7 +122,8 @@ private[irgen] trait Expressions:
     case c: Apply if blockCall(c).nonEmpty           => misplacedBlock(blockCall(c).get.form, c)
     case _                                           =>
       lambda(t).flatMap { (params, body) =>
-        def forwards(args: List[Term]) = args.map(_.symbol) == params.map(_.symbol) // scalafix:ok DisableSyntax.==; typed equality
+        def forwards(args: List[Term]) =
+          args.map(_.symbol) == params.map(_.symbol) // scalafix:ok DisableSyntax.==; typed equality
         body match
           case Apply(target, args)
               if forwards(args) && isFunction(target.symbol) && !sugared(target) =>
@@ -183,9 +184,11 @@ private[irgen] trait Expressions:
   def fieldPath(param: ValDef, body: Term): Option[List[String]] = body match
     case Typed(e, _)                          => fieldPath(param, e)
     case Inlined(_, Nil, e)                   => fieldPath(param, e)
-    case r: Ident if r.symbol == param.symbol => Some(Nil) // scalafix:ok DisableSyntax.==; typed equality
+    case r: Ident if r.symbol == param.symbol =>
+      Some(Nil) // scalafix:ok DisableSyntax.==; typed equality
     case Select(recv, field)
-        if recv.tpe.widen.dealias.typeSymbol.caseFields.exists(_.name == field) => // scalafix:ok DisableSyntax.==; typed equality
+        if recv.tpe.widen.dealias.typeSymbol.caseFields
+          .exists(_.name == field) => // scalafix:ok DisableSyntax.==; typed equality
       fieldPath(param, recv).map(_ :+ field)
     case _ => None
 
@@ -356,8 +359,9 @@ private[irgen] trait Expressions:
               case (value, i) => Some(fields(i) -> value)
             }
             replaced match
-              case List((field, v: Ident)) if v.symbol == p.symbol => Some(field -> recorded) // scalafix:ok DisableSyntax.==; typed equality
-              case _                                               => None
+              case List((field, v: Ident)) if v.symbol == p.symbol =>
+                Some(field -> recorded) // scalafix:ok DisableSyntax.==; typed equality
+              case _ => None
           case _ => None
         }
       }
@@ -501,7 +505,10 @@ private[irgen] trait Expressions:
         for (CaseDef(p, guard, body), i) <- cases.zipWithIndex
         yield ir.MatchCase(
           pattern = Some(
-            if remainder && i == cases.size - 1 then ir.Pattern(P.Wildcard(Empty())) // scalafix:ok DisableSyntax.==; typed equality
+            // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+            if remainder && i == cases.size - 1 then
+              // scalafix:on DisableSyntax.==
+              ir.Pattern(P.Wildcard(Empty()))
             else pattern(p, scrutinee.tpe)
           ),
           body = Some(lift(body, expected.orElse(Some(t.tpe)))),
@@ -538,12 +545,16 @@ private[irgen] trait Expressions:
 
     // A bounded counter written from an integer, `UpTo(n)`, is the integer: Go checks its range.
     case Apply(Apply(TypeApply(fn @ Select(_, "apply"), _), List(n)), _)
-        if fn.symbol.owner.fullName.stripSuffix("$") == upToType => // scalafix:ok DisableSyntax.==; typed equality
+        if fn.symbol.owner.fullName.stripSuffix(
+          "$"
+        ) == upToType => // scalafix:ok DisableSyntax.==; typed equality
       lift(n, expected)
 
     // `a.min(b)` and `a.max(b)` of integers: the smaller or the larger, as a conditional.
     case Apply(Select(Apply(Ident("intWrapper"), List(a)), op @ ("min" | "max")), List(b)) =>
-      val keep = if op == "min" then ir.Binary.Op.OP_LE else ir.Binary.Op.OP_GE // scalafix:ok DisableSyntax.==; typed equality
+      val keep =
+        if op == "min" then ir.Binary.Op.OP_LE
+        else ir.Binary.Op.OP_GE // scalafix:ok DisableSyntax.==; typed equality
       val (l, r) = (lift(a), lift(b))
       expr(t)(E.If(ir.If(Some(binary(keep, l, r, t)), Some(l), Some(r))))
     // A varargs parameter read as the list it is.
@@ -628,7 +639,8 @@ private[irgen] trait Expressions:
     case Select(recv, _) if t.tpe.widen <:< defn.StringClass.typeRef && !local(recv.symbol) =>
       text(constString(t), t)
     case Select(recv, field)
-        if recv.tpe.widen.dealias.typeSymbol.caseFields.exists(_.name == field) => // scalafix:ok DisableSyntax.==; typed equality
+        if recv.tpe.widen.dealias.typeSymbol.caseFields
+          .exists(_.name == field) => // scalafix:ok DisableSyntax.==; typed equality
       expr(t)(E.Field(ir.FieldAccess(Some(lift(recv)), field)))
     // A value declared elsewhere: its definition, lifted in place.
     case r: Ref if r.symbol.isValDef && defs.contains(r.symbol) =>
@@ -681,8 +693,14 @@ private[irgen] trait Expressions:
     val named = alternatives.foldLeft(Vector.empty[(Symbol, ir.Expr)]): (done, a) =>
       val (written, steps) = alternative(a)
       val token = choiceToken(written)
-      for (other, _) <- done.find(_._1.name == token.name) do // scalafix:ok DisableSyntax.==; typed equality
-        val by = if other == token then "" else s", by ${other.fullName} and ${token.fullName}" // scalafix:ok DisableSyntax.==; typed equality
+      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
+      for (other, _) <- done.find(_._1.name == token.name)
+      // scalafix:on DisableSyntax.==
+      do
+        val by =
+          if other == token then ""
+          else
+            s", by ${other.fullName} and ${token.fullName}" // scalafix:ok DisableSyntax.==; typed equality
         fail(
           a,
           s"choose names ${token.name} twice$by: an alternative is named by its token's val, so " +
@@ -836,7 +854,9 @@ private[irgen] trait Expressions:
     val fields = fieldTypes(base.tpe.widen.typeSymbol)
     val updates = args.zipWithIndex.flatMap {
       case (NamedArg(name, value), _) =>
-        Some(ir.NamedExpr(name, Some(lift(value, fields.find(_._1 == name).map(_._2))))) // scalafix:ok DisableSyntax.==; typed equality
+        Some(
+          ir.NamedExpr(name, Some(lift(value, fields.find(_._1 == name).map(_._2))))
+        ) // scalafix:ok DisableSyntax.==; typed equality
       case (Select(_, getter), _) if getter.startsWith("copy$default$")               => None
       case (TypeApply(Select(_, getter), _), _) if getter.startsWith("copy$default$") => None
       case (value, i)                                                                 =>
@@ -849,41 +869,48 @@ private[irgen] trait Expressions:
     val enumType = scrutinee.widen.dealias.typeSymbol
     val universe = if enumType.flags.is(Flags.Enum) then enumType.children else Nil
     def exactType(t: TypeRepr): Option[Symbol] =
-      val sym = if t.termSymbol != Symbol.noSymbol then t.termSymbol else t.typeSymbol // scalafix:ok DisableSyntax.!=; typed equality
+      val sym =
+        if t.termSymbol != Symbol.noSymbol then t.termSymbol
+        else t.typeSymbol // scalafix:ok DisableSyntax.!=; typed equality
       universe.find(_ == sym) // scalafix:ok DisableSyntax.==; typed equality
     def sequence[A](values: List[Option[A]]): Option[List[A]] =
       values.foldRight(Option(List.empty[A]))((value, tail) =>
         for v <- value; rest <- tail yield v :: rest
       )
     def typed(p: Tree): Option[List[Symbol]] = p match
-      case TypedOrTest(Wildcard(), tpt) => exactType(tpt.tpe).map(List(_))
+      case TypedOrTest(Wildcard(), tpt)          => exactType(tpt.tpe).map(List(_))
       case TypedOrTest(Bind(_, Wildcard()), tpt) => exactType(tpt.tpe).map(List(_))
-      case Bind(_, inner)             => typed(inner)
-      case Alternatives(ps)           => sequence(ps.map(typed)).map(_.flatten)
-      case _                          => None
+      case Bind(_, inner)                        => typed(inner)
+      case Alternatives(ps)                      => sequence(ps.map(typed)).map(_.flatten)
+      case _                                     => None
     def bound(p: Tree): Boolean = p match
-      case Bind(_, _)             => true
-      case Alternatives(ps)       => ps.exists(bound)
-      case TypedOrTest(inner, _)   => bound(inner)
-      case _                      => false
+      case Bind(_, _)            => true
+      case Alternatives(ps)      => ps.exists(bound)
+      case TypedOrTest(inner, _) => bound(inner)
+      case _                     => false
     def payload(p: Tree): Boolean = p match
       case Wildcard() | Bind(_, Wildcard()) => true
-      case _                               => false
+      case _                                => false
     def covers(p: Tree): Option[List[Symbol]] = p match
       case r: Ref if universe.contains(r.symbol) => Some(List(r.symbol))
-      case Bind(_, inner) => covers(inner)
-      case Alternatives(ps) => sequence(ps.map(covers)).map(_.flatten)
+      case Bind(_, inner)                        => covers(inner)
+      case Alternatives(ps)                      => sequence(ps.map(covers)).map(_.flatten)
       case Unapply(fun, _, fields) if fields.forall(payload) =>
-        universe.find(_ == fun.symbol.owner.companionClass).map(List(_)) // scalafix:ok DisableSyntax.==; typed equality
-      case TypedOrTest(inner, tpt) => typed(p).orElse(covers(inner)).orElse {
-        val role = tpt.tpe.dealias
-        Option.when(payload(inner) && Roles.isRole(role.typeSymbol.typeRef.baseClasses.map(_.fullName))) {
-          universe.filter(c => (if c.isClassDef then c.typeRef else c.termRef.widen) <:< role)
+        universe
+          .find(_ == fun.symbol.owner.companionClass)
+          .map(List(_)) // scalafix:ok DisableSyntax.==; typed equality
+      case TypedOrTest(inner, tpt) =>
+        typed(p).orElse(covers(inner)).orElse {
+          val role = tpt.tpe.dealias
+          Option.when(
+            payload(inner) && Roles.isRole(role.typeSymbol.typeRef.baseClasses.map(_.fullName))
+          ) {
+            universe.filter(c => (if c.isClassDef then c.typeRef else c.termRef.widen) <:< role)
+          }
         }
-      }
-      case _                    => None
+      case _ => None
     cases.lastOption.flatMap(c => typed(c.pattern)) match
-      case None => false
+      case None       => false
       case Some(tail) =>
         if bound(cases.last.pattern) then fail(cases.last, "typed remainder has a binding")
         if cases.exists(_.guard.nonEmpty) then fail(cases.last, "typed remainder has a guard")
@@ -891,8 +918,16 @@ private[irgen] trait Expressions:
           .getOrElse(fail(cases.last, "typed remainder has a binding or partial earlier pattern"))
           .flatten
         val all = before ++ tail
-        if all.distinct.size != all.size then fail(cases.last, "typed remainder overlaps a case") // scalafix:ok DisableSyntax.!=; typed equality
-        if all.toSet != universe.toSet then fail(cases.last, "typed remainder is incomplete") // scalafix:ok DisableSyntax.!=; typed equality
+        if all.distinct.size != all.size then
+          fail(
+            cases.last,
+            "typed remainder overlaps a case"
+          ) // scalafix:ok DisableSyntax.!=; typed equality
+        if all.toSet != universe.toSet then
+          fail(
+            cases.last,
+            "typed remainder is incomplete"
+          ) // scalafix:ok DisableSyntax.!=; typed equality
         true
 
   def pattern(p: Tree, scrutinee: TypeRepr): ir.Pattern = ir.Pattern(p match

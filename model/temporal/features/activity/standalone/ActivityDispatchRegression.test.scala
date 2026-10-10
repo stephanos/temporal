@@ -118,8 +118,10 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   test("every waiting dispatch maps to the Product's scheduled state") {
     assertEquals(summon[Finite[system.State]].values.size, 5616)
+    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     for waiting <- Finite[system.State].values if waiting.phase == system.Phase.scheduled
-    do // scalafix:ok DisableSyntax.==
+    // scalafix:on DisableSyntax.==
+    do
       assertEquals(
         ActivitySystem.refinement.toProduct(waiting).phase,
         temporal.features.activity.standalone.product.Phase.scheduled

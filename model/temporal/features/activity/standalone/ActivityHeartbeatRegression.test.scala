@@ -91,8 +91,10 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       assertEquals(steps.nonEmpty, enabled)
       for after <- steps if ActivitySystem.states.pendingReset(before) do
         val landing =
+          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
           if before.phase == system.Phase.resetKeepingPause then
-            system.Phase.paused // scalafix:ok DisableSyntax.==
+            // scalafix:on DisableSyntax.==
+            system.Phase.paused
           else system.Phase.scheduled
         assertEquals(
           after.state,
@@ -101,21 +103,27 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         assertEquals(
           after.facts,
           List(
+            // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
             if landing == system.Phase.paused then
-              system.Fact.statusPaused // scalafix:ok DisableSyntax.==
+              // scalafix:on DisableSyntax.==
+              system.Fact.statusPaused
             else system.Fact.statusScheduled,
             system.Fact.attemptCount,
             system.Fact.heartbeatTimedOut
           )
         )
       for after <- steps if !ActivitySystem.states.pendingReset(before) do
-        val retry = before.phase != system.Phase.cancelRequested && // scalafix:ok DisableSyntax.!=
-          (before.maxAttempts == MaxAttempts.unlimited || // scalafix:ok DisableSyntax.==
-            (before.maxAttempts == MaxAttempts.two && before.attempts < 2) || // scalafix:ok DisableSyntax.==
+        // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
+        val retry = before.phase != system.Phase.cancelRequested &&
+          // scalafix:on DisableSyntax.!=
+          (before.maxAttempts == MaxAttempts.unlimited ||
+            (before.maxAttempts == MaxAttempts.two && before.attempts < 2) ||
             (before.maxAttempts == MaxAttempts.one && before.attempts < 1)) // scalafix:ok DisableSyntax.==
         val landing = if !retry then system.Phase.timedOut
+        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         else if before.phase == system.Phase.pauseRequested then
-          system.Phase.paused // scalafix:ok DisableSyntax.==
+          // scalafix:on DisableSyntax.==
+          system.Phase.paused
         else system.Phase.scheduled
         assertEquals(after.state.phase, landing)
         assertEquals(after.state.attempts, before.attempts)
@@ -124,8 +132,10 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
           List(system.Fact.statusTimedOut(TimeoutType.heartbeat), system.Fact.heartbeatTimedOut)
         else
           List(
+            // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
             if landing == system.Phase.paused then
-              system.Fact.statusPaused // scalafix:ok DisableSyntax.==
+              // scalafix:on DisableSyntax.==
+              system.Fact.statusPaused
             else system.Fact.statusScheduled,
             system.Fact.attemptCount,
             system.Fact.heartbeatTimedOut
@@ -156,7 +166,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         carriers.exists(p =>
           p.state == ActivitySystem.refinement.toProduct(
             after.state
-          ) && // scalafix:ok DisableSyntax.==
+          ) &&
             p.facts.exists(_.toString == after.facts.last.toString) // scalafix:ok DisableSyntax.==
         )
       )
@@ -393,9 +403,11 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
     do
       val count = declarations.items.collect {
         case delivery: TypedEvidence[?]
+            // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
             if delivery.evidence.id == temporal.realize.evidenceId(
+              // scalafix:on DisableSyntax.==
               system.Fact.attemptCount
-            ) => // scalafix:ok DisableSyntax.==
+            ) =>
           delivery.evidence
       }
       assertEquals(count.size, 1)
@@ -419,9 +431,11 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
     val selected = RetryAfterHeartbeat.evidence.items.collect {
       case evidence: TypedEvidence[?]
           if evidence.evidence.confirms.nonEmpty &&
+            // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
             evidence.evidence.id == temporal.realize.evidenceId(
+              // scalafix:on DisableSyntax.==
               system.Fact.heartbeatTimedOut
-            ) => // scalafix:ok DisableSyntax.==
+            ) =>
         evidence.evidence
     }.head
     assertEquals(selected.records, system.Fact.attemptCount)
@@ -475,9 +489,10 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       val outcome = InstructionOutcome(activityAttempt = Some(ActivityAttempt(response = expected)))
       assertEquals[Any, Any](disposition.field.get.select(outcome), expected)
       val wrong =
+        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         if expected.value == ACTIVITY_ATTEMPT_RESPONSE_PENDING.value
-        then // scalafix:ok DisableSyntax.==
-          ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED
+        // scalafix:on DisableSyntax.==
+        then ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED
         else ACTIVITY_ATTEMPT_RESPONSE_PENDING
       assertEquals[Any, Any](
         disposition.field.get.select(
