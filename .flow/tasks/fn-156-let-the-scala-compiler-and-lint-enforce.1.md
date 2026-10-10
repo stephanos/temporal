@@ -10,9 +10,11 @@ Execution-order amendment, explicitly authorized by the owner on 2026-10-10: imp
 
 **Size:** M
 **Files:** `model/project.scala`, `model/irgen/project.scala`, positive fixture `project.scala` files, `model/framework/Domain.scala`, `model/framework/IrFile.scala`, compiler tests and scratch proof evidence.
-**Touches:** [model/project.scala, model/irgen/project.scala, model/irgen/testdata/**/project.scala, model/framework/Domain.scala, model/framework/IrFile.scala, model/framework/Compose.scala, model/framework/*test.scala, .flow/tmp/fn156/source/**]
+**Touches:** [model/project.scala, model/irgen/project.scala, model/irgen/testdata/**/project.scala, model/framework/Domain.scala, model/framework/IrFile.scala, model/framework/Compose.scala, model/framework/*test.scala, model/irgen/Claims.scala, model/irgen/Declarations.scala, model/irgen/Expressions.scala, model/irgen/Lift.scala, model/irgen/Lifting.scala, model/irgen/Realizations.scala, model/irgen/Structure.scala, model/check/Tools.scala, .flow/tmp/fn156/source/**]
 
 Warning inventory re-anchor: actual pinned compiler probes also identify a safe-initialization warning in the derived Composition initializer. Task .1 may mechanically correct `model/framework/Compose.scala` while preserving behavior, derived-phase refusal diagnostics and complete raw-byte proofs. Do not suppress the warning broadly or treat the historical one-finding count as exhaustive.
+
+The strict irgen compiler probe records sixteen E175/E176 discarded-value findings across the seven named irgen files and shared `model/check/Tools.scala`. Correct only their Unit intent so the required warning flags can be enforced. Preserve algorithms, admission/refusal classes and diagnostic causes; do not replace enforcement with broad exclusions. The expanded source set remains disjoint from the concurrently admitted Testpilot task.
 ## Approach
 
 - Re-anchor fn-155's committed closure, input hashes and dumper. Freeze the complete filename/raw-byte manifests of both managed artifact trees. Keep the original baseline immutable throughout this spec. The fn-155 effect-name and position projection is not this task's equivalence harness.
