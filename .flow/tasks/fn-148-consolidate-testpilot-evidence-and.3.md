@@ -12,7 +12,7 @@ Add the normalized schema and producer representation for R4, then measure compa
 
 ### Approach
 - Update `tools/umpire/lower/internal/producer/localize.go` and `tools/umpire/lower/lower.go` field inventory/derived accounting for complete-state and result tables.
-- Tasks 3 and 4 are one breaking integration batch: removed embedded fields may leave the intermediate consumer tree red. Do not introduce compatibility representations. Restore normalized admission in Task 4 before switching public normalized emission and running preparation-dependent lowerer tests.
+- Tasks 3 and 4 are one breaking integration batch: removed embedded fields may leave the intermediate consumer tree red. Do not introduce compatibility representations. Restore normalized admission in Task 4 before running preparation-dependent lowerer tests; public format 4.0 emission/admission switches only in Task 6.
 - At this stage, run schema generation and generated-API checks plus pure table-builder measurements. Defer `TestLoweredCasesPrepareUnderTheirDerivedProfile` to Task 4 and managed Case/fixture checks to Task 7.
 - Intern each complete atom-plus-ordered-fields state locally with deterministic IDs.
 - Intern each action, destination, outcome and facts result locally; reference it from transitions and ordered projection outputs.

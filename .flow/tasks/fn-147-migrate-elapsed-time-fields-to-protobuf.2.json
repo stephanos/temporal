@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-147-migrate-elapsed-time-fields-to-protobuf.2.md",
   "status": "todo",
   "title": "Replace elapsed-time schemas and migrate Umpire producers",
-  "updated_at": "2026-10-07T04:19:49.833412Z"
+  "updated_at": "2026-10-10T00:00:22.557833Z"
 }

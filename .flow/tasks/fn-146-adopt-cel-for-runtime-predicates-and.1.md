@@ -12,8 +12,8 @@ Establish R1 before any predicate representation changes. Define current-format 
 
 ### Approach
 - Include the actual Case decoder in `common/testing/testpilot/case.go`, JSON canonicalization in `casefile`, and independent offline assessment admission in `evaluation/admission.go`. Define current-format rejection before interpreting retired payloads.
-- Unit-test the format/identity boundary first. Activate format 2.0 emission/admission and migrate checked-in companions only at the Tasks 2–6 integration point; do not require pre-CEL consumers to replay CEL payloads.
-- Add successful offline assessment of a current 2.0 Case/Run pair and retired-format pre-payload rejection; run the end-to-end assessment after the verification and lowering tasks compile.
+- Unit-test the shared format/identity boundary first. Only fn-148.6 activates format 4.0 emission/admission after all three specs' consumers integrate; fn-148.7 migrates checked-in companions. Do not require pre-CEL consumers to replay CEL payloads.
+- Define successful offline assessment of a current 4.0 Case/Run pair and retired-format pre-payload rejection. Run focused proofs when their consumers compile; prove public 4.0 acceptance at fn-148.6 and the complete managed companion/replay surface at fn-148.7.
 - Inventory checked-in Cases and recorded Runs that must regenerate together.
 - Require the current format and reject retired or unknown formats without translation.
 - Pin identity mismatch, missing companion and pre-Driver rejection behavior.
@@ -35,12 +35,12 @@ go test -tags test_dep -run 'Test.*(Format|Identity|Companion)' ./common/testing
 
 ### Format and identity boundary
 
-Pin format 2.0 for CEL, 3.0 for Duration and 4.0 for evidence/state normalization. Migrate `casefile` parsing, Run decoding and current canonical hashing together. Define deterministic AST IDs, diagnostic metadata treatment and canonical map ordering. Do not retain legacy decoding, evaluation or identity conversion.
+Pin one format 4.0 contract for CEL, Duration and evidence/state normalization. Formats 1.0, 2.0 and 3.0 are rejected, not emitted as migration stages. Migrate `casefile` parsing, Run decoding and current canonical hashing together. Define deterministic AST IDs, diagnostic metadata treatment and canonical map ordering. Do not retain legacy decoding, evaluation or identity conversion.
 ## Acceptance
 - [ ] R1's breaking format, canonical identity and companion migration contract is executable.
 - [ ] All checked-in companions are accounted for; retired formats reject explicitly.
 - [ ] Unknown format and mismatched companion negative tests pass.
-- [ ] Focused format/identity unit proofs pass; full protocol/recordedrun and assessment gates run after consumers integrate.
+- [ ] Focused format/identity unit proofs pass; full protocol/recordedrun and assessment gates run at the shared fn-148.7 close after fn-148.6 activates 4.0.
 ## Done summary
 TBD
 
