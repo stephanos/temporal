@@ -13,7 +13,7 @@
 //
 //   - ../Activity.scala: the kind's types, the worker's actions, its timers and deadlines;
 //   - this file: the form's types; the signature (the activity and its inputs; the client and its
-//     actions, the worker's actions bound to the activity; and the bounds); and last exports, its
+//     actions, the worker's actions bound to the activity); and last exports, its
 //     IR files;
 //   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
 //     what a client reads;
@@ -147,11 +147,6 @@ object activityWorker:
 // observe one status field; whether a catalog tells them apart is left to the realization.
 val attemptCount = Observation(on = activity, read = "attempt")
 val heartbeatDetails = Observation(on = activity, read = "heartbeatDetails")
-
-// The bounds of the levels' Queries and the history record's, beside three and four (Bounds).
-val five = Limits(steps = 5, actions = 5, search = 65536)
-val six = Limits(steps = 6, actions = 6, search = 262144)
-val eight = Limits(steps = 8, actions = 8, search = 262144)
 
 // ### The checked-in IR files of the standalone activity Models (framework.irFile).
 

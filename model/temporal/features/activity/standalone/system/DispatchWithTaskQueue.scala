@@ -21,7 +21,7 @@ import framework.*
 import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
-import Bounds.{seven, three, twelve}
+import Bounds.{eight, five, seven, three, twelve}
 import foundations.taskqueue.{fault, queue, Outstanding, QueueDetail, QueueView}
 import foundations.taskqueue.product.TaskQueueProduct
 import foundations.taskqueue.system.{

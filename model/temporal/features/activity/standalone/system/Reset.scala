@@ -7,7 +7,7 @@ package system
 import framework.*
 import framework.Finite.given
 import temporal.realize.satisfied
-import Bounds.{four, three}
+import Bounds.{five, four, six, three}
 import Timeout.expires
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]

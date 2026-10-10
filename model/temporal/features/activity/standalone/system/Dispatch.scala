@@ -10,7 +10,7 @@ import framework.*
 import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
-import Bounds.{four, three}
+import Bounds.{five, four, three}
 import product.ActivityProduct
 import product.ActivityProduct.phased
 

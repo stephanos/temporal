@@ -12,7 +12,7 @@ import framework.outcomes.{Outcome, Rejection}
 import framework.realize.Reason
 import temporal.capabilities.*
 import temporal.realize.inconclusive
-import Bounds.three
+import Bounds.{eight, three}
 import actors.worker.worker as process
 import product.ActivityProduct
 

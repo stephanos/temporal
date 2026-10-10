@@ -154,7 +154,10 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
   ) {
     import RetryFixture.Record.given
     val finitePolicy =
-      Retryable.attemptCountIsWithinPolicy(RetryFixture.Record)(RetryFixture.count, RetryFixture.one)
+      Retryable.attemptCountIsWithinPolicy(RetryFixture.Record)(
+        RetryFixture.count,
+        RetryFixture.one
+      )
     for (count, expected) <- Seq(1 -> true, 2 -> false) do
       val state = RetryFixture.Record.init.copy(attempts = UpTo[2](count))
       assertEquals(

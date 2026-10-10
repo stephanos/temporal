@@ -8,7 +8,7 @@ import framework.*
 import framework.Finite.given
 import framework.realize.Reason
 import temporal.realize.{inconclusive, satisfied}
-import Bounds.three
+import Bounds.{six, three}
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 

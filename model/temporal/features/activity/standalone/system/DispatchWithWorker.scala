@@ -8,6 +8,7 @@ import framework.*
 import framework.Finite.given
 import actors.worker.{worker as process, Phase as WorkerPhase, State as WorkerState}
 import Timeout.expires
+import Bounds.six
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // The System machine and its worker, as the standalone activity composition holds them.

@@ -23,7 +23,9 @@ class ActivityByIDRegression extends munit.FunSuite:
   val _ = () => summon[CanEqual[system.Phase, system.Phase]]
   test("the completion client declares three independent by-ID answer actions") {
     val answers =
-      ActivitySystem.bindings.filter(_.decl.actor.name == "completionClient") // scalafix:ok DisableSyntax.==
+      ActivitySystem.bindings.filter(
+        _.decl.actor.name == "completionClient"
+      ) // scalafix:ok DisableSyntax.==
     assertEquals(
       answers.map(_.decl),
       List(

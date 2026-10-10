@@ -9,6 +9,7 @@ import framework.Finite.given
 import framework.realize.Reason
 import temporal.realize.inconclusive
 import Timeout.expires
+import Bounds.six
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 

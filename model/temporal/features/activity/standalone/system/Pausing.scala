@@ -7,6 +7,7 @@ package system
 import framework.*
 import framework.Finite.given
 import temporal.realize.satisfied
+import Bounds.six
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
