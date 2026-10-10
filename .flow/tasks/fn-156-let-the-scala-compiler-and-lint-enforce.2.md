@@ -40,11 +40,13 @@ Run framework/authoring tests and `make lint-model` through the existing explici
 - [ ] Scratch regeneration remains exactly equal to task 1's baseline, including source positions and all artifact files.
 
 ## Done summary
-TBD
+strictEquality on all roots incl. model/check; noUniversalEquality enabled. Final close: suppressions the formatter had moved off their operator lines were re-anchored (rule-scoped scalafix:off/on around the operator line in the lifter, tests and StepTables; ClosePolicy's two-rule comments made comma-separated); unused suppressions removed. `make lint-model` exit 0.
+
+Lane w-fn156 (Batch 1c close), on integrated umpire ae3f36ee51; source checkpoints d0a7f66639, 8481696c62, 7d54144267 (older lane notes: .worktrees/fn-156-let-the-scala-compiler-and-lint-enforce/.flow/tmp/fn156/batch/).
 
 ## Evidence
 - Commits:
-- Tests:
+- Tests: logs under .worktrees/w-fn156/.flow/tmp/fn156/ (lint-model-full, irgen-tests2, authoring-tests2, gate-tests2, lift-baseline/lift-candidate, *.sha256)
 - PRs:
 
 ## Acceptance

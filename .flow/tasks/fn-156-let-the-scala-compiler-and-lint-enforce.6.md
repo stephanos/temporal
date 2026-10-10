@@ -37,9 +37,11 @@ Run actual-compiler null compiles with recorded inputs, version and diagnostics.
 - [ ] Any null adoption keeps exact artifact bytes, original semantics and no unsafe blanket exemption; stuck validation preserves unmet evidence rather than passing credit.
 
 ## Done summary
-TBD
+Explicit nulls dropped; 40-root counted trial and reason in .plans/SCALA.md (unchanged; evidence path clarified).
+
+Lane w-fn156 (Batch 1c close), on integrated umpire ae3f36ee51; source checkpoints d0a7f66639, 8481696c62, 7d54144267 (older lane notes: .worktrees/fn-156-let-the-scala-compiler-and-lint-enforce/.flow/tmp/fn156/batch/).
 
 ## Evidence
 - Commits:
-- Tests:
+- Tests: logs under .worktrees/w-fn156/.flow/tmp/fn156/ (lint-model-full, irgen-tests2, authoring-tests2, gate-tests2, lift-baseline/lift-candidate, *.sha256)
 - PRs:
