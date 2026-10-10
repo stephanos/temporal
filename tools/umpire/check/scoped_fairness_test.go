@@ -30,6 +30,19 @@ func parameterizedProgressModel() *umpirespb.Model {
 	return m
 }
 
+func overloadedProgressModel() *umpirespb.Model {
+	m := parameterizedProgressModel()
+	m.Machines[0].Assumes = nil
+	empty := proto.Clone(m.Actions[0]).(*umpirespb.Action)
+	empty.Id, empty.Inputs = "generic.emptyTick", nil
+	m.Actions = append(m.Actions, empty)
+	step := proto.Clone(functionNamed(m, "generic.tickStep")).(*umpirespb.Function)
+	step.Name, step.Params = "generic.emptyTickStep", step.Params[:1]
+	m.Functions = append(m.Functions, step)
+	m.Machines[0].Steps = append(m.Machines[0].Steps, &umpirespb.StepBinding{Action: empty.Id, Function: step.Name})
+	return m
+}
+
 func TestComposedFairnessRefusesMachineConsumersAndMixedForms(t *testing.T) {
 	for _, tc := range []struct {
 		name   string
@@ -137,16 +150,8 @@ func TestComposedClaimFairnessUsesTheDeclaredActionCatalog(t *testing.T) {
 }
 
 func TestComposedClaimFairnessDoesNotBroadenAnExactZeroInputClass(t *testing.T) {
-	m := parameterizedProgressModel()
-	m.Machines[0].Assumes = nil
+	m := overloadedProgressModel()
 	m.Compositions[0].Syncs = nil
-	empty := proto.Clone(m.Actions[0]).(*umpirespb.Action)
-	empty.Id, empty.Inputs = "generic.emptyTick", nil
-	m.Actions = append(m.Actions, empty)
-	step := proto.Clone(functionNamed(m, "generic.tickStep")).(*umpirespb.Function)
-	step.Name, step.Params = "generic.emptyTickStep", step.Params[:1]
-	m.Functions = append(m.Functions, step)
-	m.Machines[0].Steps = append(m.Machines[0].Steps, &umpirespb.StepBinding{Action: empty.Id, Function: step.Name})
 	for _, tc := range []struct {
 		name string
 		ref  *umpirespb.ComposedActionRef
@@ -154,13 +159,41 @@ func TestComposedClaimFairnessDoesNotBroadenAnExactZeroInputClass(t *testing.T) 
 	}{
 		{"action-wide", scopedTick("left"), []string{"left_tick-0", "left_tick-1"}},
 		{"exact zero-input", &umpirespb.ComposedActionRef{Composition: "two", Member: "left",
-			Selection: &umpirespb.ComposedActionRef_ActionClass{ActionClass: &umpirespb.ActionClass{Action: empty.Id}}}, []string{"left_tick"}},
+			Selection: &umpirespb.ComposedActionRef_ActionClass{ActionClass: &umpirespb.ActionClass{Action: "generic.emptyTick"}}}, []string{"left_tick"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			fixture := proto.Clone(m).(*umpirespb.Model)
 			scopedFairness(fixture, tc.ref)
 			require.NoError(t, ir.Validate(fixture))
 			claim, _, err := bind(fixture, DefaultScope).progress(fixture.Progress[1])
+			require.NoError(t, err)
+			require.Equal(t, []Assumption{{Name: "composedRuns", Fair: tc.want}}, claim.Assumptions)
+		})
+	}
+}
+
+func TestComposedClaimFairnessResolvesExactSyncInputAlternatives(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		ref  *umpirespb.ComposedActionRef
+		want []string
+	}{
+		{"zero-input class", &umpirespb.ComposedActionRef{Composition: "two",
+			Selection: &umpirespb.ComposedActionRef_SyncClass{SyncClass: &umpirespb.ActionClass{Action: "tickBoth"}}}, []string{"tickBoth"}},
+		{"parameterized class", &umpirespb.ComposedActionRef{Composition: "two",
+			Selection: &umpirespb.ComposedActionRef_SyncClass{SyncClass: &umpirespb.ActionClass{Action: "tickBoth", Inputs: []*umpirespb.Value{admIntValue(1)}}}}, []string{"tickBoth-1"}},
+		{"all sync classes", &umpirespb.ComposedActionRef{Composition: "two", Selection: &umpirespb.ComposedActionRef_Sync{Sync: "tickBoth"}},
+			[]string{"tickBoth", "tickBoth-0", "tickBoth-1"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := overloadedProgressModel()
+			right := proto.Clone(m.Machines[0]).(*umpirespb.Machine)
+			right.Name, right.Steps = "rightCounter", right.Steps[len(right.Steps)-1:]
+			m.Machines = append(m.Machines, right)
+			m.Compositions[0].Members[1].Machine = right.Name
+			scopedFairness(m, tc.ref)
+			require.NoError(t, ir.Validate(m))
+			claim, _, err := bind(m, DefaultScope).progress(m.Progress[1])
 			require.NoError(t, err)
 			require.Equal(t, []Assumption{{Name: "composedRuns", Fair: tc.want}}, claim.Assumptions)
 		})

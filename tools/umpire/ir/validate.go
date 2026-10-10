@@ -1235,29 +1235,71 @@ func (v *validator) fairSync(c *umpirespb.Composition, member, name string, clas
 	if class == nil {
 		return
 	}
-	var inputs []*umpirespb.Param
-	for _, move := range []*umpirespb.SyncMove{syncs[0].GetFirst(), syncs[0].GetSecond()} {
+	var moves [2][]*umpirespb.Action
+	for i, move := range []*umpirespb.SyncMove{syncs[0].GetFirst(), syncs[0].GetSecond()} {
 		for _, mb := range c.GetMembers() {
 			if mb.GetField() != move.GetMember() {
 				continue
 			}
 			for _, step := range v.machines[mb.GetMachine()].GetSteps() {
 				if action := v.actions[step.GetAction()]; action.GetName() == move.GetAction() {
-					inputs = append(inputs, action.GetInputs()...)
+					moves[i] = append(moves[i], action)
 				}
 			}
 		}
 	}
-	for _, input := range class.GetInputs() {
-		v.value(input, at)
+	v.fairSyncInputs(owner, name, at, moves, class.GetInputs())
+}
+
+func syncParameterChoices(moves [2][]*umpirespb.Action) [][]*umpirespb.Param {
+	var choices [][]*umpirespb.Param
+	for _, first := range moves[0] {
+		for _, second := range moves[1] {
+			choices = append(choices, append(slices.Clone(first.GetInputs()), second.GetInputs()...))
+		}
 	}
-	if len(inputs) != len(class.GetInputs()) {
-		v.report(at, "%s: sync %s takes %d inputs, not %d", owner, name, len(inputs), len(class.GetInputs()))
+	return choices
+}
+
+func (v *validator) fairParametersMatch(params []*umpirespb.Param, values []interp.Value) bool {
+	if len(params) != len(values) {
+		return false
+	}
+	for i, param := range params {
+		if !v.in.Conforms(values[i], param.GetType()) {
+			return false
+		}
+	}
+	return true
+}
+
+func (v *validator) fairSyncInputs(owner, name string, at *umpirespb.Position, moves [2][]*umpirespb.Action, inputs []*umpirespb.Value) {
+	values := make([]interp.Value, len(inputs))
+	for i, input := range inputs {
+		v.value(input, at)
+		values[i] = v.in.Literal(input)
+	}
+	choices := syncParameterChoices(moves)
+	matches := slices.DeleteFunc(slices.Clone(choices), func(params []*umpirespb.Param) bool { return !v.fairParametersMatch(params, values) })
+	if len(matches) == 1 {
 		return
 	}
-	for i, input := range inputs {
-		if value := v.in.Literal(class.GetInputs()[i]); !v.in.Conforms(value, input.GetType()) {
-			v.report(at, "%s: sync %s takes a %s for %s, not %s", owner, name, Spell(input.GetType()), input.GetName(), value.Key())
+	if len(matches) > 1 {
+		v.report(at, "%s: sync %s has ambiguous typed inputs", owner, name)
+		return
+	}
+	candidates := slices.DeleteFunc(slices.Clone(choices), func(params []*umpirespb.Param) bool { return len(params) != len(values) })
+	if len(candidates) == 0 {
+		if len(choices) > 0 && !slices.ContainsFunc(choices, func(params []*umpirespb.Param) bool { return len(params) != len(choices[0]) }) {
+			v.report(at, "%s: sync %s takes %d inputs, not %d", owner, name, len(choices[0]), len(values))
+		} else {
+			v.report(at, "%s: sync %s has no declared input arity for %d inputs", owner, name, len(values))
+		}
+		return
+	}
+	for i, param := range candidates[0] {
+		if !v.in.Conforms(values[i], param.GetType()) {
+			v.report(at, "%s: sync %s takes a %s for %s, not %s", owner, name, Spell(param.GetType()), param.GetName(), values[i].Key())
 		}
 	}
 }

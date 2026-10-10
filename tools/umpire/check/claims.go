@@ -1008,38 +1008,9 @@ func (b *binding) composedAssumption(s *subject, a *umpirespb.Assumption) (Assum
 		return out, &unsupportedError{"claim fairness on composition " + s.name + " requires scoped action references"}
 	}
 	for _, ref := range a.GetFairRefs() {
-		if ref.GetComposition() != s.name {
-			return out, interp.ErrorAt(a.GetPosition(), "assumption %s selects composition %s, not %s", a.GetName(), ref.GetComposition(), s.name)
-		}
-		var selections []string
-		var exact *umpirespb.ActionClass
-		member := ref.GetMember()
-		switch selected := ref.GetSelection().(type) {
-		case *umpirespb.ComposedActionRef_Action:
-			selections = b.fairActionClasses(s.name, member, selected.Action)
-			if len(selections) == 0 {
-				return out, interp.ErrorAt(a.GetPosition(), "assumption %s: %s.%s has no classes of action %s", a.GetName(), s.name, member, selected.Action)
-			}
-		case *umpirespb.ComposedActionRef_ActionClass:
-			selections = []string{b.classKey(selected.ActionClass)}
-		case *umpirespb.ComposedActionRef_Sync:
-			selections = []string{selected.Sync}
-		case *umpirespb.ComposedActionRef_SyncClass:
-			selections, exact = []string{selected.SyncClass.GetAction()}, selected.SyncClass
-		default:
-			return out, interp.ErrorAt(a.GetPosition(), "assumption %s has no known fairness selection", a.GetName())
-		}
-		fair, err := s.table.ComposedFair(member, Assumption{Name: a.GetName(), Fair: selections})
+		fair, err := b.composedFairRef(s, a, ref)
 		if err != nil {
-			return out, interp.ErrorAt(a.GetPosition(), "%v", err)
-		}
-		if exact != nil {
-			selection := selections[0]
-			key := interp.ClassKey(b.in, map[string]*umpirespb.Action{selection: {Name: selection}}, exact)
-			fair = slices.DeleteFunc(fair, func(class string) bool { return class != key })
-			if len(fair) != 1 {
-				return out, interp.ErrorAt(a.GetPosition(), "assumption %s: %s has no unique class %s", a.GetName(), s.name, key)
-			}
+			return out, err
 		}
 		slices.Sort(fair)
 		for _, class := range fair {
@@ -1051,8 +1022,56 @@ func (b *binding) composedAssumption(s *subject, a *umpirespb.Assumption) (Assum
 	return out, nil
 }
 
+func (b *binding) composedFairRef(s *subject, a *umpirespb.Assumption, ref *umpirespb.ComposedActionRef) ([]string, error) {
+	if ref.GetComposition() != s.name {
+		return nil, interp.ErrorAt(a.GetPosition(), "assumption %s selects composition %s, not %s", a.GetName(), ref.GetComposition(), s.name)
+	}
+	var selections []string
+	var exact *umpirespb.ActionClass
+	member := ref.GetMember()
+	switch selected := ref.GetSelection().(type) {
+	case *umpirespb.ComposedActionRef_Action:
+		selections = b.fairActionClasses(s.name, member, selected.Action)
+		if len(selections) == 0 {
+			return nil, interp.ErrorAt(a.GetPosition(), "assumption %s: %s.%s has no classes of action %s", a.GetName(), s.name, member, selected.Action)
+		}
+	case *umpirespb.ComposedActionRef_ActionClass:
+		selections = []string{b.classKey(selected.ActionClass)}
+	case *umpirespb.ComposedActionRef_Sync:
+		selections = []string{selected.Sync}
+	case *umpirespb.ComposedActionRef_SyncClass:
+		selections, exact = []string{selected.SyncClass.GetAction()}, selected.SyncClass
+	default:
+		return nil, interp.ErrorAt(a.GetPosition(), "assumption %s has no known fairness selection", a.GetName())
+	}
+	fair, err := s.table.ComposedFair(member, Assumption{Name: a.GetName(), Fair: selections})
+	if err != nil {
+		return nil, interp.ErrorAt(a.GetPosition(), "%v", err)
+	}
+	if exact != nil {
+		key, err := b.syncClassKey(a.GetPosition(), s.name, exact)
+		if err != nil {
+			return nil, err
+		}
+		fair = slices.DeleteFunc(fair, func(class string) bool { return class != key })
+		if len(fair) != 1 {
+			return nil, interp.ErrorAt(a.GetPosition(), "assumption %s: %s has no unique class %s", a.GetName(), s.name, key)
+		}
+	}
+	return fair, nil
+}
+
 func (b *binding) fairActionClasses(owner, member, action string) []string {
 	var out []string
+	for _, class := range b.fairMemberClasses(owner, member) {
+		if class.Action.GetId() == action {
+			out = append(out, class.Key)
+		}
+	}
+	return out
+}
+
+func (b *binding) fairMemberClasses(owner, member string) []interp.Class {
 	for _, c := range b.model.GetCompositions() {
 		if c.GetName() != owner {
 			continue
@@ -1062,15 +1081,63 @@ func (b *binding) fairActionClasses(owner, member, action string) []string {
 				continue
 			}
 			if mm := b.machines[m.GetMachine()]; mm != nil {
-				for _, class := range mm.Classes {
-					if class.Action.GetId() == action {
-						out = append(out, class.Key)
-					}
-				}
+				return mm.Classes
 			}
 		}
 	}
+	return nil
+}
+
+func (b *binding) syncNamed(owner, name string) *umpirespb.Sync {
+	for _, c := range b.model.GetCompositions() {
+		if c.GetName() != owner {
+			continue
+		}
+		for _, sync := range c.GetSyncs() {
+			if sync.GetName() == name {
+				return sync
+			}
+		}
+	}
+	return nil
+}
+
+func (b *binding) syncMoveClasses(owner string, move *umpirespb.SyncMove) []interp.Class {
+	var out []interp.Class
+	for _, class := range b.fairMemberClasses(owner, move.GetMember()) {
+		if class.Action.GetName() == move.GetAction() {
+			out = append(out, class)
+		}
+	}
 	return out
+}
+
+func syncInputsMatch(first, second, inputs []interp.Value) bool {
+	return len(first)+len(second) == len(inputs) &&
+		slices.EqualFunc(first, inputs[:len(first)], interp.Value.Equal) &&
+		slices.EqualFunc(second, inputs[len(first):], interp.Value.Equal)
+}
+
+func (b *binding) syncClassKey(at *umpirespb.Position, owner string, class *umpirespb.ActionClass) (string, error) {
+	sync := b.syncNamed(owner, class.GetAction())
+	firsts, seconds := b.syncMoveClasses(owner, sync.GetFirst()), b.syncMoveClasses(owner, sync.GetSecond())
+	var inputs []interp.Value
+	for _, input := range class.GetInputs() {
+		inputs = append(inputs, b.in.Literal(input))
+	}
+	matched := 0
+	for _, first := range firsts {
+		for _, second := range seconds {
+			if syncInputsMatch(first.Inputs, second.Inputs, inputs) {
+				matched++
+			}
+		}
+	}
+	if matched != 1 {
+		return "", interp.ErrorAt(at, "%s has no unique sync class %s with these typed inputs", owner, class.GetAction())
+	}
+	name := class.GetAction()
+	return interp.ClassKey(b.in, map[string]*umpirespb.Action{name: {Name: name}}, class), nil
 }
 
 // claim is the key of a Property or a Scenario: the machine or composition it is declared on, and its
