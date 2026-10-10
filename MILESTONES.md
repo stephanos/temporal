@@ -370,6 +370,12 @@ Task .1 can establish its format/identity boundary against the integrated local 
 Authoring predecessors remain final integration holds, especially for .6; format 4.0 activation
 still belongs exclusively to fn-148.6. CEL adoption is decided; no additional prototype is planned.
 
+The coordinated Go/schema/generated-API source checkpoint is integrated as `49f6809ae9`.
+Fifteen focused native CEL, Duration and captured-message roundtrip tests pass on the integrated
+tree, including current-format offline admission and companion rejection controls. Owned lint
+and precise module-import inventory corrections remain in the source lane. Scala proposals await
+the compiler-only seal; managed artifacts, full gates, live corpus and shared review remain open.
+
 | Task | Status | What |
 | --- | --- | --- |
 | fn-146.1 | ✅ done | Format/identity boundary and null-version correction integrated; focused tests pass and resumed review SHIP; 4.0 activation/artifact replay remain fn-148.6/.7 |
