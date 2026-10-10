@@ -148,11 +148,11 @@ and the pending-control remodel.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-155.1 | 🔄 in progress | Baseline IR and step table from fn-151's close, effect-name-erasing projection, mapping skeleton, lifter probes |
-| fn-155.2 | ⬜ todo | System held-attempt ending: landing function, named and `armed` guards, `resetSettles`, shared reset reason, initial-state derivations |
+| fn-155.1 | ✅ done | Sealed complete baseline and projection; 46 native/Pins tables, semantic mutation controls, lifter fallbacks; three review lanes SHIP |
+| fn-155.2 | 🔄 in progress | System held-attempt ending: landing function, named and `armed` guards, `resetSettles`, shared reset reason, initial-state derivations |
 | fn-155.3 | ⬜ todo | Product single-fact `Recorded` conversions, shared rejection reasons, worker/By-ID must-match comment, By-ID examples |
-| fn-155.4 | ⬜ todo | HeldDispatch derived only on proven equivalence; one generic composition capability; waiver reasons section |
-| fn-155.5 | ⬜ todo | Realization evidence builders: attempt record, Describe read, conditions, activation, run-scoped base |
+| fn-155.4 | 🔄 in progress | Keep handwritten HeldDispatch and both composition capabilities per proven lifter refusals; waiver reasons section |
+| fn-155.5 | 🔄 in progress | Realization evidence builders: attempt record, Describe read, conditions, activation, run-scoped base |
 | fn-155.6 | ⬜ todo | Regenerate, projection proof, Go test and fixture updates, gates, review; mapping handed to fn-140 and fn-129.3 |
 
 ### Batch 1c, compiler and lint: fn-156
