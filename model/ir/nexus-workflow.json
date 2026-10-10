@@ -16069,8 +16069,8 @@
             "file": "model/temporal/realize/Behavior.scala",
             "line": 77
           },
-          "intervalMs": "250",
-          "atMostMs": "2000"
+          "interval": "0.250s",
+          "atMost": "2s"
         }
       }, {
         "id": "visibility.startNexusOperationExecution.describeNexusOperationExecution",
@@ -16117,8 +16117,8 @@
             "file": "model/temporal/realize/Behavior.scala",
             "line": 110
           },
-          "intervalMs": "250",
-          "atMostMs": "2000"
+          "interval": "0.250s",
+          "atMost": "2s"
         }
       } ],
       "causes": [ {
@@ -16133,8 +16133,8 @@
             "file": "model/temporal/realize/Behavior.scala",
             "line": 116
           },
-          "intervalMs": "250",
-          "atMostMs": "3000"
+          "interval": "0.250s",
+          "atMost": "3s"
         }
       }, {
         "id": "cause.activityAnswer",
@@ -16148,8 +16148,8 @@
             "file": "model/temporal/realize/Behavior.scala",
             "line": 120
           },
-          "intervalMs": "250",
-          "atMostMs": "2000"
+          "interval": "0.250s",
+          "atMost": "2s"
         }
       }, {
         "id": "cause.activityHeartbeat",
@@ -16163,8 +16163,8 @@
             "file": "model/temporal/realize/Behavior.scala",
             "line": 121
           },
-          "intervalMs": "250",
-          "atMostMs": "2000"
+          "interval": "0.250s",
+          "atMost": "2s"
         }
       }, {
         "id": "cause.workflowTask",
@@ -16178,8 +16178,8 @@
             "file": "model/temporal/realize/Behavior.scala",
             "line": 124
           },
-          "intervalMs": "250",
-          "atMostMs": "5000"
+          "interval": "0.250s",
+          "atMost": "5s"
         }
       }, {
         "id": "cause.handlerReply",
@@ -16193,8 +16193,8 @@
             "file": "model/temporal/realize/Behavior.scala",
             "line": 129
           },
-          "intervalMs": "250",
-          "atMostMs": "5000"
+          "interval": "0.250s",
+          "atMost": "5s"
         }
       }, {
         "id": "cause.timer",
@@ -16208,8 +16208,8 @@
             "file": "model/temporal/realize/Behavior.scala",
             "line": 134
           },
-          "intervalMs": "250",
-          "atMostMs": "3000"
+          "interval": "0.250s",
+          "atMost": "3s"
         }
       } ],
       "attemptNumbering": {
@@ -16225,7 +16225,7 @@
           "file": "model/temporal/realize/Behavior.scala",
           "line": 144
         },
-        "timeoutMs": "10000",
+        "timeout": "10s",
         "attempts": "1"
       },
       "runOrderIsCausal": true
@@ -16239,7 +16239,7 @@
         "action": "temporal.features.nexus.workflow.deadline.scheduleToStart"
       },
       "kind": "CAUSE_KIND_TIMER",
-      "deadlineMs": "2000"
+      "deadline": "2s"
     }, {
       "position": {
         "file": "model/temporal/features/nexus/workflow/Realization.scala",
@@ -16249,7 +16249,7 @@
         "action": "temporal.features.nexus.workflow.deadline.startToClose"
       },
       "kind": "CAUSE_KIND_TIMER",
-      "deadlineMs": "2000",
+      "deadline": "2s",
       "timeoutBasis": "TIMEOUT_BASIS_START_TO_CLOSE"
     } ],
     "rejectionCodes": [ {
