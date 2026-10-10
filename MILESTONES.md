@@ -378,6 +378,11 @@ responses to identical recorded facts. The worker's offered response is not serv
 the correction needs truthful response-source evidence, with terminal status retained. The same
 source distinction must be resolved before fn-128.7's fatal classification can establish its
 worker-only Property. Join those source changes before fn-128.8 seals final Case/Profile bounds.
+The [SDK response observation notes](.flow/tmp/completion-trace/sdk-response-observation.md)
+identify an existing token-response observation seam, not an accepted correction. RPC success alone
+does not prove completion: an oversized completed result can become a failure while returning
+success. Any correction must prove truthful source attribution together with the terminal outcome,
+including retries and concurrent responses, without changing the strict Property to fit the server.
 The independently reviewed correction plan seals fn-138's original/adopted R3 comparison before
 fn-129 changes Source, then runs fn-128.7 and .8 as disjoint parallel candidates after fn-129.4.
 The close checks every authored expected status/reason exactly, including the retained retry
