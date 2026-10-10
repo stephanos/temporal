@@ -537,9 +537,17 @@ global-OOM excerpts and full failure/partial handover also remain recoverable. N
 broad cache or unowned scratch cleanup is authorized. Measurement .1 precedes native .2/.3 and
 the separate scratch .4 lane; .5 joins complete preservation and exact no-update gate receipts.
 
+The historical proof archive is now copied and content-validated, and the activation inventory
+pins seven Models and all 340 Queries, including the original 154 Activity occurrences. Fresh
+primary Activity Check completed in 20.510 seconds; producer construction was killed after
+17.725 seconds. Its phase log and heap profiles are retained as diagnostics, not gate credit.
+Complete primary tables were captured separately; the remaining full-oracle surfaces and
+scratch measurements still hold all production repairs. Managed artifacts and fresh lifted
+candidates have separate pins; historical source freshness is not assumed.
+
 | Task | Status | What |
 | --- | --- | --- |
-| fn-157.1 | 🔄 in progress | Pin committed activation baseline, seal complete independent oracle and measure native/scratch ownership |
+| fn-157.1 | 🔄 in progress | Historical archive/input inventory sealed; primary Check/tables captured and producer kill measured; complete oracle and causal strategy pending |
 | fn-157.2 | ⬜ todo | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
 | fn-157.3 | ⬜ todo | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
 | fn-157.4 | ⬜ todo | Repair owned gate/lift scratch lifetimes or establish provisioned capacity with ordinary overlap |
