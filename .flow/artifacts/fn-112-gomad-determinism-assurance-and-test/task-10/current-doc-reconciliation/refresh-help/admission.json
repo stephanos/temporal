@@ -1,0 +1,29 @@
+{
+  "binary": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/refresh-help.oou_x5oc/gomadtool",
+  "build_instrumentation": "Fresh private GOCACHE and GOFLAGS=-x -work expose compiler commands without an additional Go invocation.",
+  "cleared_present_variables": [],
+  "environment_overrides": {
+    "GOCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/refresh-help.oou_x5oc/cache",
+    "GOENV": "off",
+    "GOFLAGS": "-x -work",
+    "GOMODCACHE": "/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc",
+    "GOPROXY": "file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download",
+    "GOSUMDB": "off",
+    "GOTOOLCHAIN": "local",
+    "GOWORK": "off",
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/refresh-help.oou_x5oc/tmp"
+  },
+  "go_executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+  "head": "5da272a872195d91f21489567846824857cca4f4",
+  "host_uname": [
+    "Linux",
+    "my-codex-build-v3",
+    "7.0.14",
+    "#1 SMP PREEMPT Mon Sep 21 06:45:23 UTC 2026",
+    "aarch64"
+  ],
+  "private_directory": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/refresh-help.oou_x5oc",
+  "python_executable": "/usr/bin/python3",
+  "scope": "one stock-Go build and one refresh help observation; no native qualification",
+  "stock_toolchain_version_file": "go1.27.1\ntime 2026-08-28T16:20:06Z\n"
+}

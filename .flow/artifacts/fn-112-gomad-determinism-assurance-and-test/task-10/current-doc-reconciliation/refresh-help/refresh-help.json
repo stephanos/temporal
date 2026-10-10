@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/refresh-help.oou_x5oc/gomadtool",
+    "compatibility-pack",
+    "refresh",
+    "-h"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/task11210/tools/gomad3",
+  "elapsed_seconds": 0.009144041992840357,
+  "exit_code": 2,
+  "expected_exit_code": 2,
+  "finished_utc": "2026-10-10T00:19:17.369692+00:00",
+  "started_utc": "2026-10-10T00:19:17.360544+00:00",
+  "stderr_bytes": 616,
+  "stderr_sha256": "42c826d83aea0bcd282e9cab26f5026bdd076f2c551cba950280536e9a2e5443",
+  "stdout_bytes": 0,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "terminal": true,
+  "timed_out": false
+}

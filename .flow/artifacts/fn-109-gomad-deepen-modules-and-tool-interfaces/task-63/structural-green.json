@@ -1,0 +1,14 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/worktree",
+  "argv": [
+    "go",
+    "run",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/check-functions.go"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 0,
+  "head": "c58418ee1dc42f0760824f798e5714477cfab0d2",
+  "source_manifest_sha256": "91e44e7d6526439bd5f70abba293fe1e77c13a74067580f378f40c844be43229",
+  "tool_manifest_sha256": "dc5cc91120c023dca4efbf613928d51b163a663de080111b3989df05c87d5df9",
+  "orchestration_sha256": "496ca068487a06a165384bc036ecb579fe570f511bf2c59109b4443afba69c4e"
+}

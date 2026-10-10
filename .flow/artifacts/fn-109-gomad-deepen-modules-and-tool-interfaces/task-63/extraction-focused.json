@@ -1,0 +1,21 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/worktree",
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "-run",
+    "^TestLocal",
+    "./runner"
+  ],
+  "exit": 1,
+  "elapsed_seconds": 1,
+  "head": "c58418ee1dc42f0760824f798e5714477cfab0d2",
+  "source_manifest_sha256": "80e6de6af4a2d1e52c698add615eac332136c723061c0533c4da21ab5f89e440",
+  "tool_manifest_sha256": "dc5cc91120c023dca4efbf613928d51b163a663de080111b3989df05c87d5df9"
+}

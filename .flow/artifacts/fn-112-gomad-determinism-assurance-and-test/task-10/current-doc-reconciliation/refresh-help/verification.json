@@ -1,0 +1,29 @@
+{
+  "task_id": "fn-112-gomad-determinism-assurance-and-test.10",
+  "base_commit": "5da272a872195d91f21489567846824857cca4f4",
+  "commits": [],
+  "status": "in_progress",
+  "execution_lane": "explicitly released after build and help handles became terminal",
+  "observations": [
+    {
+      "command": "/usr/bin/python3 .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/current-doc-reconciliation/refresh-help/capture.py",
+      "exit_code": 1,
+      "result": "build exit0 and help exit2; reader failed to expand fourteen generated $WORK paths; originals retained"
+    },
+    {
+      "command": "/usr/bin/python3 .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/current-doc-reconciliation/refresh-help/reconcile.py",
+      "exit_code": 0,
+      "tool_reported_wall_time_seconds": 0.037100083,
+      "stdout": "{\"checks_pass\": true, \"compiled_packages\": 301, \"generated_go_postimages\": 14, \"prebound_consumed_go_sources\": 1662, \"sealed_packet_matches_review\": true, \"unresolved_go_inputs\": []}"
+    },
+    {"command": "git diff --check", "exit_code": 0}
+  ],
+  "fresh_build_exit_code": 0,
+  "fresh_help_exit_code": 2,
+  "final_evidence": "reconciled-evidence.json",
+  "final_evidence_sha256": "93c7f02124131706a7105d8a727935d33bef49031c1f97415022ff94edd491e9",
+  "capture_sha256": "124237d2827f0bb640f0dc11b1d7b2e4e0a654d5d1b49e45e32ed1673e4ab66e",
+  "reader_sha256": "1bd9b0c44cb58f39869b7829dff986dcb58c1abcc2d3ecd4d5cf1d17a51b6675",
+  "review": "host-deferred; no worker verdict",
+  "prs": []
+}

@@ -1,0 +1,106 @@
+{
+  "commits": [],
+  "base_commit": "c58418ee1dc42f0760824f798e5714477cfab0d2",
+  "tests": [
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-timeout=8m' '-json' '-run' '^(TestPackageArchitecture|TestRunnerExecutionInjectionIsPrivate|TestRunnerRequestsCompileInExternalModule|TestExactModuleEdges|TestPureModulesHaveNoHostEffects)$' '.' (exit 0; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-boundaries.json)",
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-timeout=8m' '-json' './cmd/gomad/internal/cli' (exit 1; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-cli.json)",
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-json' '-run' '^(TestLocalCampaignPreparationShortCircuits|TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestSeedCompletionKeepsCampaignStatistics|TestSeedCompletionFaultsKeepCampaignStatistics|TestRunClassifiesWatchdogTimeoutBeforeUnterminatedChoiceTrace)$' './runner' (exit 1; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-controls-corrected.json)",
+    "'make' 'lint-code-gomad3' 'GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c' 'GOLANGCI_LINT_FIX=false' 'GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0' 'ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype' 'ALL_TEST_TAGS=test_dep' (exit 2; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-integrated-lint.json)",
+    "'bash' '-c' 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags test_dep --timeout 10m --fix=false --config ../../.github/.golangci.yml ./runner' (exit 1; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-lint-valid.json)",
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-timeout=8m' '-json' './runner' (exit 1; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-runner.json)",
+    "'go' 'run' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/check-preservation.go' (exit 0; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-proof-bound.json)",
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-timeout=8m' '-json' '-run' '^(TestPackageArchitecture|TestRunnerExecutionInjectionIsPrivate|TestRunnerRequestsCompileInExternalModule|TestExactModuleEdges|TestPureModulesHaveNoHostEffects)$' '.' (exit 0; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-boundaries.json)",
+    "'make' 'lint-code-fast' 'GOLANGCI_LINT_BASE_REV=c58418ee1dc42f0760824f798e5714477cfab0d2' 'GOLANGCI_LINT_FIX=false' 'GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0' 'ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype' 'ALL_TEST_TAGS=test_dep' (exit 0; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-fast-lint.json)",
+    "'bash' '-c' 'test -z \"$(gofmt -l tools/gomad3/runner/runner.go tools/gomad3/runner/runner_local.go tools/gomad3/runner/runner_local_test.go)\" && git diff --check && sha256sum tools/gomad3/runner/runner.go tools/gomad3/runner/runner_local.go tools/gomad3/runner/runner_local_test.go' (exit 0; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-format.json)",
+    "'make' 'lint-code-gomad3' 'GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c' 'GOLANGCI_LINT_FIX=false' 'GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0' 'ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype' 'ALL_TEST_TAGS=test_dep' (exit 2; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-integrated-lint.json)",
+    "'bash' '-c' 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags test_dep --timeout 10m --fix=false --config ../../.github/.golangci.yml ./runner' (exit 1; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-lint-unfiltered.json)",
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-timeout=8m' '-json' './runner' './cmd/gomad/internal/cli' './runner/internal/campaign' (exit 1; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-ordinary.json)",
+    "'make' '-C' 'tools/gomad3' 'validate' (exit 0; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-validate.json)",
+    "'bash' '-c' 'go -C tools/gomad3 vet -tags test_dep ./runner && go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner && env GOOS=darwin GOARCH=arm64 go -C tools/gomad3 vet -tags test_dep ./runner && env GOOS=linux GOARCH=amd64 go -C tools/gomad3 vet -tags test_dep ./runner' (exit 0; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-vet.json)",
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-json' '-run' '^TestLocal' './runner' (exit 0; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/phase-controls.json)",
+    "'go' 'run' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/check-functions.go' (exit 0; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/structural-green.json)",
+    "'go' 'run' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/check-functions.go' (exit 1; receipt .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/structural-red.json)"
+  ],
+  "prs": [],
+  "status": "in_progress",
+  "verification": "bounded source progress; required ordinary Runner/CLI and original-base lint remain red",
+  "review": "host-deferred; conductor owns review; no writer verdict",
+  "workspace": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/worktree",
+  "execution_lane": "released; all worker handles terminal",
+  "source_hashes": {
+    "tools/gomad3/runner/runner.go": "1593fdbad9c3cd318e064fe4d7977ac7cfbd5044e4b72cbffc09a10dc1cfa46c",
+    "tools/gomad3/runner/runner_local.go": "1e11c499ed4b274e77aca0261f9c94d6a8ea05b5587fdf43baa8ddacc408b432",
+    "tools/gomad3/runner/runner_local_test.go": "6a8db7341cc00b1ca39e595bb0d4fe087d6e84099844f48154bb111f440ac320"
+  },
+  "limits": [
+    "Early BASE input binding is incomplete; retained outcomes are actual observations, not a green handoff.",
+    "Earlier final receipts lack continuous or post-run source-freeze observations; current hashes match their candidate input manifests.",
+    "Most existing phase fixtures fail during real preparation; direct controls cover bounded precedence/short-circuit branches.",
+    "Invalid-state cleanup/publication controls do not prove OS Close/Remove fault handling.",
+    "No supported-native test-host pass; fn-128/fn-149 qualification remains deferred."
+  ],
+  "receipt_paths": [
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-boundaries.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-cli.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-controls-corrected.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-controls.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-integrated-lint.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-lint-corrected.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-lint-valid.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-lint.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-runner.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-focused-corrected.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-focused.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-proof-bound.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-proof-corrected.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-proof.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-boundaries.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-fast-lint.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-format.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-integrated-lint.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-lint-unfiltered.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-ordinary.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-validate.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/final-vet.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/phase-controls.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/structural-green.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/structural-red.json"
+  ],
+  "diagnostics": [
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-controls.json",
+      "exit": 1,
+      "classification": "retained historical intermediate or inconclusive probe; not a required gate pass"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-lint-corrected.json",
+      "exit": 1,
+      "classification": "retained historical intermediate or inconclusive probe; not a required gate pass"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/base-lint.json",
+      "exit": 7,
+      "classification": "retained historical intermediate or inconclusive probe; not a required gate pass"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-focused-corrected.json",
+      "exit": 0,
+      "classification": "retained historical intermediate or inconclusive probe; not a required gate pass"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-focused.json",
+      "exit": 1,
+      "classification": "retained historical intermediate or inconclusive probe; not a required gate pass"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-proof-corrected.json",
+      "exit": 0,
+      "classification": "retained historical intermediate or inconclusive probe; not a required gate pass"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-63/extraction-proof.json",
+      "exit": 1,
+      "classification": "retained historical intermediate or inconclusive probe; not a required gate pass"
+    }
+  ]
+}

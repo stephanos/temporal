@@ -1,0 +1,46 @@
+{
+  "base_runner_counts": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "counts": {
+        "fail": 288,
+        "pass": 345,
+        "skip": 12
+      }
+    }
+  ],
+  "base_cli_counts": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "counts": {
+        "fail": 3,
+        "pass": 432
+      }
+    }
+  ],
+  "final_counts": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli",
+      "counts": {
+        "fail": 3,
+        "pass": 432
+      }
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "counts": {
+        "fail": 288,
+        "pass": 358,
+        "skip": 12
+      }
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner/internal/campaign",
+      "counts": {
+        "pass": 281
+      }
+    }
+  ],
+  "runner_original_outcomes_identical": true,
+  "cli_outcomes_identical": true
+}

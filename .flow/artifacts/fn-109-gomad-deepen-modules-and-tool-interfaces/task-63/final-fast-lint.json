@@ -1,0 +1,21 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/worktree",
+  "argv": [
+    "make",
+    "lint-code-fast",
+    "GOLANGCI_LINT_BASE_REV=c58418ee1dc42f0760824f798e5714477cfab0d2",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "ALL_TEST_TAGS=test_dep"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 5,
+  "head": "c58418ee1dc42f0760824f798e5714477cfab0d2",
+  "source_manifest_sha256": "04fba85b927a059adec4d21ff68a95bb9c0d161a4bad9bc3e26990894ac9cb64",
+  "tool_manifest_sha256": "dc5cc91120c023dca4efbf613928d51b163a663de080111b3989df05c87d5df9",
+  "orchestration_sha256": "82c79ce1bd5d1b469d9fe596559cccc4aede0f06b781ee65fdb0c6d75ac2355d",
+  "environment_sha256": "528f3aeaf12166f5df4ea75f8dafa2ea02e262b441dbb0dd181d30ffb95c31c2",
+  "raw_log_sha256": "a19bc81f66d2adf7a8dd18ef9ae0a056e4b4ce23987cde730764543e8d1dbc6e",
+  "post_source_match_exit": 0
+}

@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "build",
+    "-trimpath",
+    "-o",
+    "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/refresh-help.oou_x5oc/gomadtool",
+    "./cmd/gomadtool"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/task11210/tools/gomad3",
+  "elapsed_seconds": 11.333710797000094,
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "finished_utc": "2026-10-10T00:19:17.334955+00:00",
+  "started_utc": "2026-10-10T00:19:06.001440+00:00",
+  "stderr_bytes": 937073,
+  "stderr_sha256": "c3cd11033aff2db32fff6311964cb0650405140b66144fbd41c9d3fb46bf92f6",
+  "stdout_bytes": 0,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "terminal": true,
+  "timed_out": false
+}
