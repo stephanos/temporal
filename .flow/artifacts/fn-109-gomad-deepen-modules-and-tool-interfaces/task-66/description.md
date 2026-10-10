@@ -1,0 +1,7 @@
+Restore the ten explicitly named scripted progress, semantic/choice coverage, ordered completion, retention and bounded-evidence calls through the existing test-only preparation adapter. Follow [the bounded admission](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-66/admission.md) and its source-backed selection.
+
+**Touches:** [tools/gomad3/runner/runner_test.go, .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-66/**]
+
+Exactly ten per-test dependency assignments are admitted after final configuration and before execution. Attach the periodic-progress call before launching its goroutine. Preserve the entire original test file after removing only those assignments in the named functions, including the six task-65 baseline attachments. No helper, assertion, fixture-data, production, public/default, resume/replay/guidance, native, generation, runtime or lint-policy change.
+
+Quick checks use pinned stock Go/tools and test_dep/count=1. Retain unchanged ten-test preparation RED, then ten behavioral tests plus task-65 originals and dependency/default/isolated/error/local/public controls; formatting/body preservation; affected vet/errortype; configured unfiltered Runner lint; required repository fast lint. Root owns frozen ordinary named-outcome and original-base full-block comparisons, current integrated source review and lifecycle. A newly reached original behavioral failure is evidence for a separate correction, not permission to alter this scope.
