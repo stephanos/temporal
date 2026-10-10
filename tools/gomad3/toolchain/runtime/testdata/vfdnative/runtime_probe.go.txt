@@ -1,0 +1,44 @@
+//go:build (linux && amd64) || (darwin && arm64)
+
+package runtime
+
+import "unsafe"
+
+type GomadNativePollState struct {
+	Registered      bool
+	Descriptor      uintptr
+	Token           uint64
+	Sequence        uintptr
+	Reader          uintptr
+	Writer          uintptr
+	ReaderCommitted bool
+	WriterCommitted bool
+	HostWaiters     uint32
+}
+
+func GomadNativePollSnapshot(fd uintptr) GomadNativePollState {
+	state := GomadNativePollState{HostWaiters: netpollWaiters.Load()}
+	if fd < gomadVirtualFDBase || fd >= gomadVirtualFDBase+gomadVirtualFDCount {
+		return state
+	}
+	lock(&pollcache.lock)
+	slot := &gomadVirtualPoll[fd-gomadVirtualFDBase]
+	if pd := slot.pd; pd != nil {
+		state.Registered = true
+		state.Descriptor = uintptr(unsafe.Pointer(pd))
+		state.Token, state.Sequence = slot.token, pd.fdseq.Load()
+		state.Reader, state.Writer = pd.rg.Load(), pd.wg.Load()
+		if state.Reader > pdWait {
+			state.ReaderCommitted = readgstatus((*g)(unsafe.Pointer(state.Reader)))&^_Gscan == _Gwaiting
+		}
+		if state.Writer > pdWait {
+			state.WriterCommitted = readgstatus((*g)(unsafe.Pointer(state.Writer)))&^_Gscan == _Gwaiting
+		}
+	}
+	unlock(&pollcache.lock)
+	return state
+}
+
+func GomadNativePublish(fd uintptr, token uint64, mode int32) {
+	gomadVirtualReady(fd, token, mode)
+}

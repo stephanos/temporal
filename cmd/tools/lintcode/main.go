@@ -27,9 +27,10 @@ func within(path, root string) bool {
 }
 
 type ownership struct {
-	fixtures []string
-	modules  map[string]bool
-	overlays map[string]bool
+	fixtures     []string
+	modules      map[string]bool
+	overlays     map[string]bool
+	hostPackages map[string]bool
 }
 
 type source struct {
@@ -250,13 +251,13 @@ func gitPaths(ctx context.Context, root string, args ...string) ([]string, error
 }
 
 func loadOwnership(root string) (ownership, error) {
-	policy := ownership{modules: map[string]bool{}, overlays: map[string]bool{}}
+	policy := ownership{modules: map[string]bool{}, overlays: map[string]bool{}, hostPackages: map[string]bool{}}
 	path := filepath.Join(root, gomadModule, "internal/gomadtool/architecture/architecture.go")
 	file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
 	if err != nil {
 		return policy, fmt.Errorf("read Gomad source classifications: %w", err)
 	}
-	for _, name := range []string{"sourceExclusions", "expectedModules"} {
+	for _, name := range []string{"sourceExclusions", "expectedModules", "hostSourcePackages"} {
 		object := file.Scope.Lookup(name)
 		if object == nil {
 			return policy, fmt.Errorf("gomad source classification %s is absent", name)
@@ -269,16 +270,30 @@ func loadOwnership(root string) (ownership, error) {
 		if err != nil {
 			return policy, err
 		}
-		if name == "sourceExclusions" {
+		switch name {
+		case "sourceExclusions":
 			policy.fixtures = entries
-			continue
-		}
-		for _, entry := range entries {
-			policy.modules[gomadModule+"/"+entry] = true
+		case "expectedModules":
+			for _, entry := range entries {
+				policy.modules[gomadModule+"/"+entry] = true
+			}
+		case "hostSourcePackages":
+			for _, entry := range entries {
+				base := filepath.Base(entry)
+				if filepath.ToSlash(filepath.Dir(entry)) != "toolchain/runtime/testdata" || strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_") || strings.ContainsAny(base, "*?[]") || policy.hostPackages[entry] {
+					return policy, fmt.Errorf("invalid Gomad host source package %q", entry)
+				}
+				if err := regularHostDirectory(root, gomadModule+"/"+entry); err != nil {
+					return policy, err
+				}
+				policy.hostPackages[entry] = true
+			}
+		default:
+			return policy, fmt.Errorf("unknown Gomad source classification %q", name)
 		}
 	}
-	if len(policy.fixtures) == 0 || len(policy.modules) == 0 {
-		return policy, errors.New("gomad source classifications need literal sourceExclusions and expectedModules")
+	if len(policy.fixtures) == 0 || len(policy.modules) == 0 || len(policy.hostPackages) == 0 {
+		return policy, errors.New("gomad source classifications need literal sourceExclusions, expectedModules and hostSourcePackages")
 	}
 	data, err := os.ReadFile(filepath.Join(root, gomadModule, "toolchain/version/version.json"))
 	if err != nil {
@@ -389,13 +404,15 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 				return entry, nil
 			}
 		}
-		for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(relative)), "/") {
-			if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
+		if !p.hostPackages[filepath.ToSlash(filepath.Dir(relative))] {
+			for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(relative)), "/") {
+				if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
+					return entry, fmt.Errorf("uncovered Gomad host source %s", path)
+				}
+			}
+			if within(relative, "toolchain/runtime") {
 				return entry, fmt.Errorf("uncovered Gomad host source %s", path)
 			}
-		}
-		if within(relative, "toolchain/runtime") {
-			return entry, fmt.Errorf("uncovered Gomad host source %s", path)
 		}
 	default:
 	}
@@ -414,6 +431,8 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 type listedPackage struct {
 	Dir                                                          string
 	GoFiles, CgoFiles, IgnoredGoFiles, TestGoFiles, XTestGoFiles []string
+	Error                                                        *struct{ Err string }
+	DepsErrors                                                   []struct{ Err string }
 }
 
 func coveredPackages(ctx context.Context, root, module, tags string, sources []source) ([]string, error) {
@@ -455,6 +474,12 @@ func coveredPackages(ctx context.Context, root, module, tags string, sources []s
 		if err != nil {
 			return nil, err
 		}
+		if pkg.Error != nil {
+			return nil, fmt.Errorf("go package %s: %s", pkg.Dir, pkg.Error.Err)
+		}
+		if len(pkg.DepsErrors) != 0 {
+			return nil, fmt.Errorf("go package %s: %s", pkg.Dir, pkg.DepsErrors[0].Err)
+		}
 		for _, name := range slices.Concat(pkg.GoFiles, pkg.CgoFiles, pkg.IgnoredGoFiles, pkg.TestGoFiles, pkg.XTestGoFiles) {
 			covered[filepath.Join(pkg.Dir, name)] = true
 		}
@@ -475,6 +500,25 @@ func regularSource(root, path string) error {
 		}
 		if info.Mode()&os.ModeSymlink != 0 {
 			return fmt.Errorf("uncovered source symlink %s", path)
+		}
+	}
+	return nil
+}
+
+func regularHostDirectory(root, path string) error {
+	for candidate := filepath.Join(root, path); candidate != root; candidate = filepath.Dir(candidate) {
+		info, err := os.Lstat(candidate)
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("uncovered source symlink %s", path)
+		}
+		if !info.IsDir() {
+			return fmt.Errorf("gomad host package directory is not a directory: %s", path)
 		}
 	}
 	return nil

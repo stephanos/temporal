@@ -1,0 +1,314 @@
+// Copyright 2026 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package syscall_test
+
+import (
+	"internal/gomadvfd"
+	"os"
+	"runtime"
+	"strconv"
+	"strings"
+	"syscall"
+	"testing"
+	"unsafe"
+)
+
+type gomadPointerBackend struct {
+	bytes        [8]byte
+	count        int
+	limit        int
+	remoteStatus gomadvfd.Status
+}
+
+func (*gomadPointerBackend) Socket() (any, gomadvfd.Status)                { return 1, gomadvfd.OK }
+func (*gomadPointerBackend) Attach(any, uintptr, uint64)                   {}
+func (*gomadPointerBackend) Bind(any, gomadvfd.Address) gomadvfd.Status    { return gomadvfd.OK }
+func (*gomadPointerBackend) Listen(any, int) gomadvfd.Status               { return gomadvfd.OK }
+func (*gomadPointerBackend) Connect(any, gomadvfd.Address) gomadvfd.Status { return gomadvfd.OK }
+func (*gomadPointerBackend) Accept(any) (any, gomadvfd.Address, gomadvfd.Status) {
+	return 2, gomadvfd.Address{IP: [4]byte{127, 7, 8, 9}, Port: 0x2345}, gomadvfd.OK
+}
+func (*gomadPointerBackend) Shutdown(any, int) gomadvfd.Status { return gomadvfd.OK }
+func (*gomadPointerBackend) Close(any) gomadvfd.Status         { return gomadvfd.OK }
+func (*gomadPointerBackend) Local(any) (gomadvfd.Address, gomadvfd.Status) {
+	return gomadvfd.Address{IP: [4]byte{127, 1, 2, 3}, Port: 0x1234}, gomadvfd.OK
+}
+func (backend *gomadPointerBackend) Remote(any) (gomadvfd.Address, gomadvfd.Status) {
+	return gomadvfd.Address{IP: [4]byte{127, 4, 5, 6}, Port: 0x5678}, backend.remoteStatus
+}
+func (*gomadPointerBackend) Refuse(string) {}
+func (*gomadPointerBackend) Read(_ any, p []byte) (int, gomadvfd.Status) {
+	return copy(p, "abcdefgh"), gomadvfd.OK
+}
+func (backend *gomadPointerBackend) Write(_ any, p []byte) (int, gomadvfd.Status) {
+	n := len(p)
+	if backend.limit != 0 {
+		n = min(n, backend.limit)
+	}
+	backend.count = copy(backend.bytes[:], p[:n])
+	return n, gomadvfd.OK
+}
+
+func TestGomadVFDPointerFixture(t *testing.T) {
+	selection := os.Getenv("GOMAD_VFD_POINTER_CASE")
+	if selection == "" {
+		t.Fatal("GOMAD_VFD_POINTER_CASE must select one disposable-process fixture")
+	}
+	if selection == "no-growth" {
+		selection += "/0"
+	}
+	operation, variantText, ok := strings.Cut(selection, "/")
+	variant, err := strconv.Atoi(variantText)
+	if !ok || err != nil || variant < 0 || variant >= syscall.GomadPointerVariants {
+		t.Fatalf("invalid pointer fixture selection %q", selection)
+	}
+	switch operation {
+	case "writev-partial", "writev-full", "no-growth", "accept", "accept-null", "accept-mismatch", "sockname", "sockname-short", "peername", "peername-short":
+	case "option-type", "option-error", "option-short":
+		if variant%2 != 1 {
+			t.Fatal("getsockopt requires a six-argument route")
+		}
+	default:
+		t.Fatalf("unknown pointer fixture %q", operation)
+	}
+	backend := &gomadPointerBackend{}
+	if status := gomadvfd.RegisterBackend(backend); status != gomadvfd.OK {
+		t.Fatal(status)
+	}
+	if status := gomadvfd.SetEnabled(true, nil); status != gomadvfd.OK {
+		t.Fatal(status)
+	}
+	t.Cleanup(func() {
+		if status := gomadvfd.SetEnabled(false, nil); status != gomadvfd.OK {
+			t.Errorf("disable boundary: %v", status)
+		}
+		syscall.GomadPointerReset(false, false)
+	})
+	fd, status := gomadvfd.Socket()
+	if status != gomadvfd.OK {
+		t.Fatal(status)
+	}
+	gomadPointerClose(t, fd)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		switch operation {
+		case "writev-partial", "writev-full", "no-growth":
+			gomadPointerWritevFixture(t, backend, fd, operation, variant)
+		case "accept-null", "accept-mismatch":
+			gomadPointerAcceptValidation(t, fd, operation, variant)
+		case "accept", "sockname", "sockname-short", "peername", "peername-short":
+			gomadPointerPairFixture(t, fd, operation, variant)
+		case "option-type", "option-error", "option-short":
+			gomadPointerOptionFixture(t, backend, fd, operation, variant)
+		}
+	}()
+	<-done
+}
+
+func gomadPointerClose(t *testing.T, fd int) {
+	t.Helper()
+	t.Cleanup(func() {
+		if status := gomadvfd.Close(fd); status != gomadvfd.OK {
+			t.Errorf("close descriptor %d: %v", fd, status)
+		}
+	})
+}
+
+func gomadPointerMoved(observation syscall.GomadPointerObservation, before, current [3]uintptr, count int) bool {
+	if observation.Calls != 1 || observation.Entry[0] != before[0] {
+		return false
+	}
+	if count == 2 && observation.Entry[1] != before[1] {
+		return false
+	}
+	for i := range count {
+		if before[i] == 0 || before[i] == observation.After[i] || observation.After[i] != current[i] {
+			return false
+		}
+	}
+	return true
+}
+
+//go:noinline
+func gomadPointerWritevFixture(t *testing.T, backend *gomadPointerBackend, fd int, operation string, variant int) {
+	a, b := [6]byte{0x5a, 'a', 'b', 'c', 'd', 0xa5}, [6]byte{0x3c, 'e', 'f', 'g', 'h', 0xc3}
+	vectors := struct {
+		before uint64
+		data   [2]syscall.Iovec
+		after  uint64
+	}{before: 0x123456789abcdef0, data: [2]syscall.Iovec{{Base: &a[1], Len: 4}, {Base: &b[1], Len: 4}}, after: 0xfedcba9876543210}
+	backend.limit = 0
+	wantCount, wantBytes := uintptr(8), "abcdefgh"
+	if operation == "writev-partial" {
+		backend.limit = 6
+		wantCount, wantBytes = 6, "abcdef"
+	}
+	syscall.GomadPointerReset(true, operation == "no-growth")
+	before := [3]uintptr{uintptr(unsafe.Pointer(&vectors.data[0])), uintptr(unsafe.Pointer(&a[1])), uintptr(unsafe.Pointer(&b[1]))}
+	n, errno := syscall.GomadPointerWritev(fd, &vectors.data[0], variant)
+	current := [3]uintptr{uintptr(unsafe.Pointer(&vectors.data[0])), uintptr(unsafe.Pointer(&a[1])), uintptr(unsafe.Pointer(&b[1]))}
+	observation := syscall.GomadPointerSnapshot()
+	if operation == "no-growth" {
+		if observation.Calls != 1 || observation.Entry[0] != observation.After[0] || observation.After != current || gomadPointerMoved(observation, observation.After, current, 3) {
+			t.Fatal("no-growth writev control did not reject unchanged entry memory")
+		}
+	} else if !gomadPointerMoved(observation, before, current, 3) {
+		t.Fatalf("writev array/payload relocation inconclusive: before=%x entry=%x after=%x current=%x calls=%d", before, observation.Entry, observation.After, current, observation.Calls)
+	}
+	if vectors.data[0].Base != &a[1] || vectors.data[1].Base != &b[1] || vectors.data[0].Len != 4 || vectors.data[1].Len != 4 {
+		t.Fatal("relocated iovec roots or lengths corrupted")
+	}
+	if n != wantCount || errno != 0 || backend.count != int(wantCount) || string(backend.bytes[:backend.count]) != wantBytes {
+		t.Fatalf("writev result: n=%d errno=%v count=%d bytes=%q", n, errno, backend.count, backend.bytes[:backend.count])
+	}
+	if a != [6]byte{0x5a, 'a', 'b', 'c', 'd', 0xa5} || b != [6]byte{0x3c, 'e', 'f', 'g', 'h', 0xc3} || vectors.before != 0x123456789abcdef0 || vectors.after != 0xfedcba9876543210 {
+		t.Fatal("writev payload or adjacent sentinels corrupted")
+	}
+}
+
+//go:noinline
+func gomadPointerPairFixture(t *testing.T, fd int, operation string, variant int) {
+	output := struct {
+		before uint64
+		raw    syscall.RawSockaddrAny
+		after  uint64
+	}{before: 0x123456789abcdef0, after: 0xfedcba9876543210}
+	length := struct{ before, value, after uint32 }{0x12345678, uint32(unsafe.Sizeof(output.raw)), 0x87654321}
+	for i := range unsafe.Sizeof(output.raw) {
+		unsafe.Slice((*byte)(unsafe.Pointer(&output.raw)), int(unsafe.Sizeof(output.raw)))[i] = 0xcc
+	}
+	short := strings.HasSuffix(operation, "-short")
+	if short {
+		length.value = 6
+	}
+	syscall.GomadPointerReset(true, false)
+	before := [3]uintptr{uintptr(unsafe.Pointer(&output.raw)), uintptr(unsafe.Pointer(&length.value))}
+	n, errno := syscall.GomadPointerPair(fd, &output.raw, &length.value, operation, variant)
+	current := [3]uintptr{uintptr(unsafe.Pointer(&output.raw)), uintptr(unsafe.Pointer(&length.value))}
+	observation := syscall.GomadPointerSnapshot()
+	if operation == "accept" && errno == 0 {
+		gomadPointerClose(t, int(n))
+	}
+	if !gomadPointerMoved(observation, before, current, 2) {
+		t.Fatalf("sockaddr/length relocation inconclusive: before=%x entry=%x after=%x current=%x calls=%d", before, observation.Entry, observation.After, current, observation.Calls)
+	}
+	if errno != 0 || length.value != 16 || operation != "accept" && n != 0 {
+		t.Fatalf("address result: n=%d errno=%v length=%d", n, errno, length.value)
+	}
+	if operation == "accept" && (int(n) == fd || !gomadvfd.Owns(int(n))) {
+		t.Fatal("accept did not produce a distinct live descriptor")
+	}
+	want := [16]byte{2, 0, 0x12, 0x34, 127, 1, 2, 3}
+	if strings.HasPrefix(operation, "peername") {
+		want = [16]byte{2, 0, 0x56, 0x78, 127, 4, 5, 6}
+	} else if operation == "accept" {
+		want = [16]byte{2, 0, 0x23, 0x45, 127, 7, 8, 9}
+	}
+	if runtime.GOOS == "darwin" {
+		want[0], want[1] = 16, 2
+	}
+	copied := 16
+	if short {
+		copied = 6
+	}
+	bytes := unsafe.Slice((*byte)(unsafe.Pointer(&output.raw)), int(unsafe.Sizeof(output.raw)))
+	for i, value := range bytes {
+		expected := byte(0xcc)
+		if i < copied {
+			expected = want[i]
+		}
+		if value != expected {
+			t.Fatalf("address byte %d=%x want=%x", i, value, expected)
+		}
+	}
+	if output.before != 0x123456789abcdef0 || output.after != 0xfedcba9876543210 || length.before != 0x12345678 || length.after != 0x87654321 {
+		t.Fatal("sockaddr/length adjacent sentinels corrupted")
+	}
+	if !short {
+		address, err := syscall.GomadPointerSockaddr(&output.raw)
+		if err != nil {
+			t.Fatal(err)
+		}
+		inet, ok := address.(*syscall.SockaddrInet4)
+		wantPort, wantIP := 0x1234, [4]byte{127, 1, 2, 3}
+		if strings.HasPrefix(operation, "peername") {
+			wantPort, wantIP = 0x5678, [4]byte{127, 4, 5, 6}
+		} else if operation == "accept" {
+			wantPort, wantIP = 0x2345, [4]byte{127, 7, 8, 9}
+		}
+		if !ok || inet.Port != wantPort || inet.Addr != wantIP {
+			t.Fatalf("decoded address=%v want port=%d IP=%v", address, wantPort, wantIP)
+		}
+	}
+}
+
+//go:noinline
+func gomadPointerOptionFixture(t *testing.T, backend *gomadPointerBackend, fd int, operation string, variant int) {
+	output := struct {
+		before uint32
+		value  int32
+		after  uint32
+	}{0x12345678, -99, 0x87654321}
+	length := struct{ before, value, after uint32 }{0x13579bdf, 4, 0xfdb97531}
+	name, wantValue, wantErrno := syscall.SO_TYPE, int32(syscall.SOCK_STREAM), syscall.Errno(0)
+	if operation == "option-error" {
+		name, wantValue = syscall.SO_ERROR, int32(syscall.ECONNRESET)
+		backend.remoteStatus = gomadvfd.Reset
+	} else if operation == "option-short" {
+		length.value, wantValue, wantErrno = 3, -99, syscall.EINVAL
+	}
+	syscall.GomadPointerReset(true, false)
+	before := [3]uintptr{uintptr(unsafe.Pointer(&output.value)), uintptr(unsafe.Pointer(&length.value))}
+	n, errno := syscall.GomadPointerOption(fd, name, &output.value, &length.value, variant)
+	current := [3]uintptr{uintptr(unsafe.Pointer(&output.value)), uintptr(unsafe.Pointer(&length.value))}
+	observation := syscall.GomadPointerSnapshot()
+	if !gomadPointerMoved(observation, before, current, 2) {
+		t.Fatalf("option/length relocation inconclusive: before=%x entry=%x after=%x current=%x calls=%d", before, observation.Entry, observation.After, current, observation.Calls)
+	}
+	wantLength := uint32(4)
+	if operation == "option-short" {
+		wantLength = 3
+	}
+	if errno != wantErrno || output.value != wantValue || length.value != wantLength || errno == 0 && n != 0 {
+		t.Fatalf("option result: n=%d errno=%v value=%d length=%d", n, errno, output.value, length.value)
+	}
+	if output.before != 0x12345678 || output.after != 0x87654321 || length.before != 0x13579bdf || length.after != 0xfdb97531 {
+		t.Fatal("option/length adjacent sentinels corrupted")
+	}
+}
+
+//go:noinline
+func gomadPointerAcceptValidation(t *testing.T, fd int, operation string, variant int) {
+	syscall.GomadPointerReset(false, false)
+	if operation == "accept-null" {
+		n, errno := syscall.GomadPointerPair(fd, nil, nil, operation, variant)
+		if errno == 0 {
+			gomadPointerClose(t, int(n))
+		}
+		if errno != 0 || int(n) == fd || !gomadvfd.Owns(int(n)) {
+			t.Fatalf("null/null accept: n=%d errno=%v", n, errno)
+		}
+		return
+	}
+	var raw syscall.RawSockaddrAny
+	for i := range unsafe.Sizeof(raw) {
+		unsafe.Slice((*byte)(unsafe.Pointer(&raw)), int(unsafe.Sizeof(raw)))[i] = 0xcc
+	}
+	n, errno := syscall.GomadPointerPair(fd, &raw, nil, operation, variant)
+	if errno != syscall.EFAULT || n != ^uintptr(0) {
+		t.Fatalf("missing accept length: n=%d errno=%v", n, errno)
+	}
+	for _, value := range unsafe.Slice((*byte)(unsafe.Pointer(&raw)), int(unsafe.Sizeof(raw))) {
+		if value != 0xcc {
+			t.Fatal("mismatched accept changed output bytes")
+		}
+	}
+	length := uint32(16)
+	n, errno = syscall.GomadPointerPair(fd, nil, &length, operation, variant)
+	if errno != syscall.EFAULT || n != ^uintptr(0) || length != 16 {
+		t.Fatalf("missing accept address: n=%d errno=%v length=%d", n, errno, length)
+	}
+}

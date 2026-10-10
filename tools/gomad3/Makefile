@@ -137,6 +137,14 @@ test-host: toolchain
 overlay-test: toolchain
 	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
 		internal/gomadsim internal/gomadio internal/gomadio/mount internal/gomadvfd syscall os cmd/internal/gomadcap
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off \
+		.toolchain/bin/go test -tags test_dep ./toolchain/runtime/testdata/vfdpointer
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off \
+		.toolchain/bin/go run ./toolchain/runtime/testdata/vfdpointer -root=$(CURDIR) -go=$(CURDIR)/.toolchain/bin/go
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off \
+		.toolchain/bin/go test -tags test_dep ./toolchain/runtime/testdata/vfdnative
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off \
+		.toolchain/bin/go run ./toolchain/runtime/testdata/vfdnative -root=$(CURDIR) -go=$(CURDIR)/.toolchain/bin/go
 
 # The gomad3_toolchain tests of the root module's tools/gomad3sim need a seeded
 # runtime, so they run through the exec wrapper. The tests that need the

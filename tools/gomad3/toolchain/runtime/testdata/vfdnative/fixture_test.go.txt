@@ -1,0 +1,549 @@
+//go:build (linux && amd64) || (darwin && arm64)
+
+package syscall_test
+
+import (
+	"bytes"
+	"errors"
+	"internal/gomadio"
+	"internal/gomadvfd"
+	"internal/poll"
+	"io"
+	"net"
+	"os"
+	"runtime"
+	"syscall"
+	"testing"
+	"time"
+)
+
+const nativeDeadline = 7 * time.Second
+
+func nativeRefusalReported(count int, operation string) bool {
+	return count == 1 && operation == "socket.type-or-protocol"
+}
+
+func nativeEnable(t *testing.T) uint32 {
+	t.Helper()
+	if now := time.Now(); !now.Equal(time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)) {
+		t.Fatalf("direct seeded initial time=%v", now)
+	}
+	if gomadio.NetworkEnabled() || gomadvfd.Enabled() {
+		t.Fatal("fixture requires inactive legacy network and descriptor switch")
+	}
+	if status := gomadvfd.SetEnabled(true, []int{0, 1, 2, 4}); status != gomadvfd.OK {
+		t.Fatalf("enable=%v", status)
+	}
+	t.Cleanup(func() {
+		if status := gomadvfd.SetEnabled(false, nil); status != gomadvfd.OK {
+			t.Errorf("disable after cleanup=%v", status)
+		}
+	})
+	return runtime.GomadNativePollSnapshot(0).HostWaiters
+}
+
+func nativeOwner(t *testing.T, fd int) {
+	t.Helper()
+	if !gomadvfd.Owns(fd) || gomadvfd.Token(uintptr(fd)) == 0 {
+		t.Fatalf("endpoint %d is not a live virtual descriptor", fd)
+	}
+}
+
+func nativeNetOwner(t *testing.T, endpoint syscall.Conn) int {
+	t.Helper()
+	conn, err := endpoint.SyscallConn()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fd int
+	if err := conn.Control(func(raw uintptr) { fd = int(raw) }); err != nil {
+		t.Fatal(err)
+	}
+	nativeOwner(t, fd)
+	state := runtime.GomadNativePollSnapshot(uintptr(fd))
+	if !state.Registered || state.Token != gomadvfd.Token(uintptr(fd)) {
+		t.Fatalf("endpoint registration=%+v", state)
+	}
+	return fd
+}
+
+func nativeClose(t *testing.T, closer io.Closer) {
+	t.Helper()
+	t.Cleanup(func() {
+		if err := closer.Close(); err != nil {
+			t.Errorf("cleanup close: %v", err)
+		}
+	})
+}
+
+func TestGomadNativeTCP(t *testing.T) {
+	hostWaiters := nativeEnable(t)
+	listener, err := net.ListenTCP("tcp4", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	nativeClose(t, listener)
+	nativeNetOwner(t, listener)
+	client, err := net.DialTCP("tcp4", nil, listener.Addr().(*net.TCPAddr))
+	if err != nil {
+		t.Fatal(err)
+	}
+	nativeClose(t, client)
+	clientFD := nativeNetOwner(t, client)
+	server, err := listener.AcceptTCP()
+	if err != nil {
+		t.Fatal(err)
+	}
+	nativeClose(t, server)
+	nativeNetOwner(t, server)
+	if n, err := syscall.Write(clientFD, []byte("manual-guard")); err != nil || n != 12 {
+		t.Fatalf("manual write=%d,%v", n, err)
+	}
+	buffer := make([]byte, 12)
+	if _, err := io.ReadFull(server, buffer); err != nil || string(buffer) != "manual-guard" {
+		t.Fatalf("manual read=%q,%v", buffer, err)
+	}
+	first, second := bytes.Repeat([]byte{'a'}, 40000), bytes.Repeat([]byte{'b'}, 30000)
+	vectors := []syscall.Iovec{{Base: &first[0]}, {Base: &second[0]}}
+	vectors[0].SetLen(len(first))
+	vectors[1].SetLen(len(second))
+	if n, err := syscall.GomadNativeWritev(clientFD, vectors); err != nil || n != 65536 {
+		t.Fatalf("bounded partial writev=%d,%v", n, err)
+	}
+	first[0], second[0] = 'x', 'y'
+	buffer = make([]byte, 65536)
+	if _, err := io.ReadFull(server, buffer); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(buffer[:40000], bytes.Repeat([]byte{'a'}, 40000)) || !bytes.Equal(buffer[40000:], bytes.Repeat([]byte{'b'}, 25536)) {
+		t.Fatal("writev lost cross-vector bytes or retained caller memory")
+	}
+	if n, err := server.Write([]byte("response")); err != nil || n != 8 {
+		t.Fatalf("reverse write=%d,%v", n, err)
+	}
+	buffer = make([]byte, 8)
+	if _, err := io.ReadFull(client, buffer); err != nil || string(buffer) != "response" {
+		t.Fatalf("reverse read=%q,%v", buffer, err)
+	}
+	if err := client.CloseWrite(); err != nil {
+		t.Fatal(err)
+	}
+	if n, err := server.Read(make([]byte, 1)); n != 0 || !errors.Is(err, io.EOF) {
+		t.Fatalf("half-close EOF=%d,%v", n, err)
+	}
+	if err := server.CloseWrite(); err != nil {
+		t.Fatal(err)
+	}
+	if n, err := client.Read(make([]byte, 1)); n != 0 || !errors.Is(err, io.EOF) {
+		t.Fatalf("reverse EOF=%d,%v", n, err)
+	}
+	unused := nativeListener(t)
+	address, err := syscall.Getsockname(unused.Sysfd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := unused.Close(); err != nil {
+		t.Fatal(err)
+	}
+	refused := nativeFD(t)
+	if err := syscall.Connect(refused.Sysfd, address); !errors.Is(err, syscall.ECONNREFUSED) {
+		t.Fatalf("unbound connect=%v", err)
+	}
+	if nativeRefusalReported(0, "socket.type-or-protocol") || nativeRefusalReported(1, "wrong-operation") || nativeRefusalReported(2, "socket.type-or-protocol") {
+		t.Fatal("reporting predicate accepted missed, wrong or duplicate refusal")
+	}
+	var refusals int
+	var operation string
+	restore, installed := gomadio.GomadNativeInstallRefuseObserver(func(value string) {
+		refusals++
+		operation = value
+	})
+	if !installed || restore == nil || !gomadio.GomadNativeRefuseObserverActive() {
+		t.Fatal("reporting observer installation failed")
+	}
+	t.Cleanup(func() {
+		if !restore() || gomadio.GomadNativeRefuseObserverActive() {
+			t.Error("reporting observer did not restore the original callback state")
+		}
+	})
+	if raw, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, syscall.IPPROTO_UDP); !errors.Is(err, syscall.EOPNOTSUPP) {
+		if err == nil {
+			if closeErr := syscall.Close(raw); closeErr != nil {
+				t.Errorf("unexpected UDP cleanup: %v", closeErr)
+			}
+		}
+		t.Fatalf("UDP socket refusal=%d,%v", raw, err)
+	}
+	if !nativeRefusalReported(refusals, operation) {
+		t.Fatalf("actual backend reporting invocation count=%d operation=%q", refusals, operation)
+	}
+	if state := runtime.GomadNativePollSnapshot(uintptr(clientFD)); state.HostWaiters != hostWaiters {
+		t.Fatalf("host waiter drift=%+v", state)
+	}
+	t.Log("internal-switch/guard-off; real net TCP endpoints are virtual; whole-process OS socket audit is open")
+}
+
+func nativeFD(t *testing.T) *poll.FD {
+	t.Helper()
+	raw, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_STREAM, syscall.IPPROTO_TCP)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fd := &poll.FD{Sysfd: raw, IsStream: true, ZeroReadIsEOF: true}
+	initialized := false
+	t.Cleanup(func() {
+		if fd.Sysfd < 0 {
+			return
+		}
+		var err error
+		if initialized {
+			err = fd.Close()
+		} else {
+			err = syscall.Close(raw)
+		}
+		if err != nil {
+			t.Errorf("socket cleanup: %v", err)
+		}
+	})
+	nativeOwner(t, raw)
+	if err := syscall.SetNonblock(raw, true); err != nil {
+		t.Fatal(err)
+	}
+	if err := fd.Init("tcp", true); err != nil {
+		t.Fatal(err)
+	}
+	initialized = true
+	if !runtime.GomadNativePollSnapshot(uintptr(raw)).Registered {
+		t.Fatal("real internal/poll registration missing")
+	}
+	return fd
+}
+
+func nativeListener(t *testing.T) *poll.FD {
+	t.Helper()
+	fd := nativeFD(t)
+	if err := syscall.Bind(fd.Sysfd, &syscall.SockaddrInet4{Addr: [4]byte{127, 0, 0, 1}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := syscall.Listen(fd.Sysfd, 64); err != nil {
+		t.Fatal(err)
+	}
+	return fd
+}
+
+func nativePair(t *testing.T) (listener, client, server *poll.FD) {
+	t.Helper()
+	listener = nativeListener(t)
+	address, err := syscall.Getsockname(listener.Sysfd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client = nativeFD(t)
+	if err := syscall.Connect(client.Sysfd, address); err != nil {
+		t.Fatal(err)
+	}
+	raw, _, call, err := listener.Accept()
+	if err != nil {
+		t.Fatalf("%s: %v", call, err)
+	}
+	server = &poll.FD{Sysfd: raw, IsStream: true, ZeroReadIsEOF: true}
+	initialized := false
+	t.Cleanup(func() {
+		if server.Sysfd < 0 {
+			return
+		}
+		var err error
+		if initialized {
+			err = server.Close()
+		} else {
+			err = syscall.Close(raw)
+		}
+		if err != nil {
+			t.Errorf("server cleanup: %v", err)
+		}
+	})
+	nativeOwner(t, raw)
+	if err := server.Init("tcp", true); err != nil {
+		t.Fatal(err)
+	}
+	initialized = true
+	return
+}
+
+func nativeParked(t *testing.T, fd int, read, write bool, host uint32) runtime.GomadNativePollState {
+	t.Helper()
+	var state runtime.GomadNativePollState
+	for range 10000 {
+		state = runtime.GomadNativePollSnapshot(uintptr(fd))
+		if state.HostWaiters != host {
+			t.Fatalf("virtual operation entered host waiter accounting: %+v", state)
+		}
+		if state.Registered && (!read || state.ReaderCommitted) && (!write || state.WriterCommitted) {
+			t.Logf("actual parked state: %+v", state)
+			return state
+		}
+		runtime.Gosched()
+	}
+	t.Fatalf("actual G never committed: %+v", state)
+	return state
+}
+
+func nativeDeadlineResult(t *testing.T, start time.Time, done <-chan error, host uint32) {
+	t.Helper()
+	if err := <-done; !errors.Is(err, os.ErrDeadlineExceeded) {
+		t.Fatalf("deadline result=%v", err)
+	}
+	if elapsed := time.Since(start); elapsed != nativeDeadline {
+		t.Fatalf("virtual advance=%v, want %v", elapsed, nativeDeadline)
+	}
+	if state := runtime.GomadNativePollSnapshot(0); state.HostWaiters != host {
+		t.Fatalf("deadline changed host waiter count: %+v", state)
+	}
+	select {
+	case err := <-done:
+		t.Fatalf("operation completed twice: %v", err)
+	default:
+	}
+}
+
+func TestGomadNativeAcceptDeadline(t *testing.T) {
+	host := nativeEnable(t)
+	listener := nativeListener(t)
+	start := time.Now()
+	if err := listener.SetReadDeadline(start.Add(nativeDeadline)); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() {
+		raw, _, _, err := listener.Accept()
+		if err == nil {
+			err = errors.Join(errors.New("unexpected accept success"), syscall.Close(raw))
+		}
+		done <- err
+	}()
+	nativeParked(t, listener.Sysfd, true, false, host)
+	nativeDeadlineResult(t, start, done, host)
+}
+
+func TestGomadNativeReadDeadline(t *testing.T) {
+	host := nativeEnable(t)
+	_, client, _ := nativePair(t)
+	start := time.Now()
+	if err := client.SetReadDeadline(start.Add(nativeDeadline)); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() { _, err := client.Read(make([]byte, 1)); done <- err }()
+	nativeParked(t, client.Sysfd, true, false, host)
+	nativeDeadlineResult(t, start, done, host)
+}
+
+func nativeFill(t *testing.T, fd *poll.FD) {
+	t.Helper()
+	for i := range 64 {
+		if n, err := syscall.Write(fd.Sysfd, []byte{byte(i)}); err != nil || n != 1 {
+			t.Fatalf("queue chunk %d=%d,%v", i, n, err)
+		}
+	}
+	if n, err := syscall.Write(fd.Sysfd, []byte{64}); n != 0 || !errors.Is(err, syscall.EAGAIN) {
+		t.Fatalf("queue bound=%d,%v", n, err)
+	}
+}
+
+func TestGomadNativeReadyWake(t *testing.T) {
+	host := nativeEnable(t)
+	start := time.Now()
+	listener := nativeListener(t)
+	address, err := syscall.Getsockname(listener.Sysfd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	accepted := make(chan int, 1)
+	acceptError := make(chan error, 1)
+	go func() { raw, _, _, err := listener.Accept(); accepted <- raw; acceptError <- err }()
+	nativeParked(t, listener.Sysfd, true, false, host)
+	connector := nativeFD(t)
+	if err := syscall.Connect(connector.Sysfd, address); err != nil {
+		t.Fatal(err)
+	}
+	raw := <-accepted
+	if err := <-acceptError; err != nil {
+		t.Fatal(err)
+	}
+	if err := syscall.Close(raw); err != nil {
+		t.Fatal(err)
+	}
+	_, client, server := nativePair(t)
+	readResult := make(chan error, 1)
+	go func() {
+		data := make([]byte, 1)
+		n, err := server.Read(data)
+		if err == nil && (n != 1 || data[0] != 99) {
+			err = errors.New("read-ready payload mismatch")
+		}
+		readResult <- err
+	}()
+	state := nativeParked(t, server.Sysfd, true, false, host)
+	for range 2 {
+		runtime.GomadNativePublish(uintptr(server.Sysfd), state.Token, 'r')
+	}
+	nativeParked(t, server.Sysfd, true, false, host)
+	if n, err := client.Write([]byte{99}); err != nil || n != 1 {
+		t.Fatalf("ready source write=%d,%v", n, err)
+	}
+	if err := <-readResult; err != nil {
+		t.Fatal(err)
+	}
+	nativeFill(t, client)
+	writeResult := make(chan error, 1)
+	go func() {
+		n, err := client.Write([]byte{64})
+		if err == nil && n != 1 {
+			err = errors.New("capacity-ready write count mismatch")
+		}
+		writeResult <- err
+	}()
+	nativeParked(t, client.Sysfd, false, true, host)
+	data := make([]byte, 1)
+	if n, err := server.Read(data); err != nil || n != 1 || data[0] != 0 {
+		t.Fatalf("first queue dequeue=%d,%v,%v", n, err, data)
+	}
+	if err := <-writeResult; err != nil {
+		t.Fatal(err)
+	}
+	for expected := 1; expected <= 64; expected++ {
+		if n, err := server.Read(data); err != nil || n != 1 || data[0] != byte(expected) {
+			t.Fatalf("FIFO chunk %d=%d,%v,%v", expected, n, err, data)
+		}
+	}
+	if time.Since(start) != 0 {
+		t.Fatal("readiness wake consumed future logical time")
+	}
+	if state := runtime.GomadNativePollSnapshot(0); state.HostWaiters != host {
+		t.Fatalf("ready wake changed host waiters: %+v", state)
+	}
+}
+
+func TestGomadNativeWriteDeadline(t *testing.T) {
+	host := nativeEnable(t)
+	_, client, _ := nativePair(t)
+	nativeFill(t, client)
+	start := time.Now()
+	if err := client.SetWriteDeadline(start.Add(nativeDeadline)); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() { _, err := client.Write([]byte{64}); done <- err }()
+	nativeParked(t, client.Sysfd, false, true, host)
+	nativeDeadlineResult(t, start, done, host)
+}
+
+func TestGomadNativeSimultaneousDeadlines(t *testing.T) {
+	host := nativeEnable(t)
+	_, client, _ := nativePair(t)
+	nativeFill(t, client)
+	start := time.Now()
+	if err := client.SetDeadline(start.Add(nativeDeadline)); err != nil {
+		t.Fatal(err)
+	}
+	read, write := make(chan error, 1), make(chan error, 1)
+	go func() { _, err := client.Read(make([]byte, 1)); read <- err }()
+	go func() { _, err := client.Write([]byte{64}); write <- err }()
+	nativeParked(t, client.Sysfd, true, true, host)
+	nativeDeadlineResult(t, start, read, host)
+	nativeDeadlineResult(t, start, write, host)
+}
+
+func TestGomadNativeCloseParkedRead(t *testing.T) {
+	host := nativeEnable(t)
+	_, client, _ := nativePair(t)
+	start := time.Now()
+	done := make(chan error, 1)
+	go func() { _, err := client.Read(make([]byte, 1)); done <- err }()
+	raw := client.Sysfd
+	nativeParked(t, raw, true, false, host)
+	if err := client.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; !errors.Is(err, poll.ErrNetClosing) {
+		t.Fatalf("close result=%v", err)
+	}
+	if state := runtime.GomadNativePollSnapshot(uintptr(raw)); state.Registered || state.HostWaiters != host {
+		t.Fatalf("closed registration leaked: %+v", state)
+	}
+	if time.Since(start) != 0 {
+		t.Fatal("close used a future logical event")
+	}
+}
+
+func TestGomadNativePollDescReuse(t *testing.T) {
+	host := nativeEnable(t)
+	_, _, old := nativePair(t)
+	oldFD := old.Sysfd
+	previous := runtime.GomadNativePollSnapshot(uintptr(oldFD))
+	if err := old.Close(); err != nil {
+		t.Fatal(err)
+	}
+	var target *poll.FD
+	read := true
+	for range 32 {
+		listener, client, server := nativePair(t)
+		for _, candidate := range []*poll.FD{listener, client, server} {
+			state := runtime.GomadNativePollSnapshot(uintptr(candidate.Sysfd))
+			if state.Descriptor == previous.Descriptor {
+				if state.Sequence == previous.Sequence || state.Token == previous.Token {
+					t.Fatalf("physical reuse lacked fresh identity: old=%+v new=%+v", previous, state)
+				}
+				target, read = candidate, candidate != listener
+				t.Logf("physical pollDesc reuse: old=%+v new=%+v", previous, state)
+				break
+			}
+		}
+		if target != nil {
+			break
+		}
+		for _, candidate := range []*poll.FD{server, client, listener} {
+			if err := candidate.Close(); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	if target == nil {
+		t.Skip("INCONCLUSIVE: physical pollDesc reuse was not observed within 32 allocations")
+	}
+	start := time.Now()
+	if err := target.SetReadDeadline(start.Add(nativeDeadline)); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() {
+		if read {
+			_, err := target.Read(make([]byte, 1))
+			done <- err
+		} else {
+			raw, _, _, err := target.Accept()
+			if err == nil {
+				err = errors.Join(errors.New("unexpected reuse accept"), syscall.Close(raw))
+			}
+			done <- err
+		}
+	}()
+	before := nativeParked(t, target.Sysfd, true, false, host)
+	for range 2 {
+		runtime.GomadNativePublish(uintptr(oldFD), previous.Token, 'r')
+		runtime.GomadNativePublish(uintptr(target.Sysfd), previous.Token, 'r')
+	}
+	for range 32 {
+		runtime.Gosched()
+	}
+	after := runtime.GomadNativePollSnapshot(uintptr(target.Sysfd))
+	if !after.ReaderCommitted || after.Reader != before.Reader || after.HostWaiters != host {
+		t.Fatalf("stale notification reached new owner: before=%+v after=%+v", before, after)
+	}
+	select {
+	case err := <-done:
+		t.Fatalf("stale notification completed operation: %v", err)
+	default:
+	}
+	nativeDeadlineResult(t, start, done, host)
+}

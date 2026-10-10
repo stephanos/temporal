@@ -1,0 +1,31 @@
+//go:build (linux && amd64) || (darwin && arm64)
+
+package gomadio
+
+var gomadNativeRefuseObserver func(string)
+
+func gomadNativeObserveRefuse(operation string) {
+	if gomadNativeRefuseObserver != nil {
+		gomadNativeRefuseObserver(operation)
+	}
+}
+
+func GomadNativeRefuseObserverActive() bool {
+	return gomadNativeRefuseObserver != nil
+}
+
+func GomadNativeInstallRefuseObserver(observer func(string)) (func() bool, bool) {
+	if observer == nil || gomadNativeRefuseObserver != nil {
+		return nil, false
+	}
+	gomadNativeRefuseObserver = observer
+	restored := false
+	return func() bool {
+		if restored || gomadNativeRefuseObserver == nil {
+			return false
+		}
+		gomadNativeRefuseObserver = nil
+		restored = true
+		return true
+	}, true
+}

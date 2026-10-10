@@ -1,0 +1,121 @@
+// Copyright 2026 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package syscall
+
+import "unsafe"
+
+type GomadPointerObservation struct {
+	Entry [2]uintptr
+	After [3]uintptr
+	Calls int
+}
+
+var gomadPointerObservation GomadPointerObservation
+var gomadPointerActive, gomadPointerNoGrowth bool
+
+func GomadPointerReset(active, noGrowth bool) {
+	gomadPointerObservation = GomadPointerObservation{}
+	gomadPointerActive, gomadPointerNoGrowth = active, noGrowth
+}
+
+func GomadPointerSnapshot() GomadPointerObservation { return gomadPointerObservation }
+
+//go:noinline
+func gomadPointerGrowWritev(p *Iovec, depth int) {
+	if !gomadPointerActive {
+		return
+	}
+	gomadPointerObservation.Calls++
+	gomadPointerObservation.Entry[0] = uintptr(unsafe.Pointer(p))
+	if gomadPointerNoGrowth {
+		vectors := unsafe.Slice(p, 2)
+		gomadPointerObservation.After = [3]uintptr{uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(vectors[0].Base)), uintptr(unsafe.Pointer(vectors[1].Base))}
+		return
+	}
+	gomadPointerObservation.After = gomadPointerRecurseWritev(p, depth)
+}
+
+//go:noinline
+func gomadPointerRecurseWritev(p *Iovec, depth int) [3]uintptr {
+	var frame [128]uint64
+	for i := range frame {
+		frame[i] = uint64(depth + i)
+	}
+	var after [3]uintptr
+	if depth == 0 {
+		vectors := unsafe.Slice(p, 2)
+		after = [3]uintptr{uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(vectors[0].Base)), uintptr(unsafe.Pointer(vectors[1].Base))}
+	} else {
+		after = gomadPointerRecurseWritev(p, depth-1)
+	}
+	if frame[depth] != uint64(depth*2) {
+		panic("writev stack frame corrupted")
+	}
+	return after
+}
+
+//go:noinline
+func gomadPointerGrowPair(raw *RawSockaddrAny, length *_Socklen, depth int) {
+	if !gomadPointerActive {
+		return
+	}
+	gomadPointerObservation.Calls++
+	gomadPointerObservation.Entry = [2]uintptr{uintptr(unsafe.Pointer(raw)), uintptr(unsafe.Pointer(length))}
+	if gomadPointerNoGrowth {
+		gomadPointerObservation.After = [3]uintptr{uintptr(unsafe.Pointer(raw)), uintptr(unsafe.Pointer(length))}
+		return
+	}
+	gomadPointerObservation.After = gomadPointerRecursePair(raw, length, depth)
+}
+
+//go:noinline
+func gomadPointerRecursePair(raw *RawSockaddrAny, length *_Socklen, depth int) [3]uintptr {
+	var frame [128]uint64
+	for i := range frame {
+		frame[i] = uint64(depth + i)
+	}
+	var after [3]uintptr
+	if depth == 0 {
+		after = [3]uintptr{uintptr(unsafe.Pointer(raw)), uintptr(unsafe.Pointer(length))}
+	} else {
+		after = gomadPointerRecursePair(raw, length, depth-1)
+	}
+	if frame[depth] != uint64(depth*2) {
+		panic("sockaddr stack frame corrupted")
+	}
+	return after
+}
+
+//go:noinline
+func gomadPointerGrowOption(p unsafe.Pointer, length *_Socklen, depth int) {
+	if !gomadPointerActive {
+		return
+	}
+	gomadPointerObservation.Calls++
+	gomadPointerObservation.Entry = [2]uintptr{uintptr(p), uintptr(unsafe.Pointer(length))}
+	if gomadPointerNoGrowth {
+		gomadPointerObservation.After = [3]uintptr{uintptr(p), uintptr(unsafe.Pointer(length))}
+		return
+	}
+	gomadPointerObservation.After = gomadPointerRecurseOption(p, length, depth)
+}
+
+//go:noinline
+func gomadPointerRecurseOption(p unsafe.Pointer, length *_Socklen, depth int) [3]uintptr {
+	var frame [128]uint64
+	for i := range frame {
+		frame[i] = uint64(depth + i)
+	}
+	var after [3]uintptr
+	if depth == 0 {
+		after = [3]uintptr{uintptr(p), uintptr(unsafe.Pointer(length))}
+	} else {
+		after = gomadPointerRecurseOption(p, length, depth-1)
+	}
+	if frame[depth] != uint64(depth*2) {
+		panic("socket option stack frame corrupted")
+	}
+	return after
+}

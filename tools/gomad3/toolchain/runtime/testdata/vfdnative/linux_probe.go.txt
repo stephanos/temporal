@@ -1,0 +1,13 @@
+//go:build linux && amd64
+
+package syscall
+
+import "unsafe"
+
+func GomadNativeWritev(fd int, vectors []Iovec) (uintptr, error) {
+	n, _, errno := Syscall(SYS_WRITEV, uintptr(fd), uintptr(unsafe.Pointer(&vectors[0])), uintptr(len(vectors)))
+	if errno != 0 {
+		return n, errno
+	}
+	return n, nil
+}

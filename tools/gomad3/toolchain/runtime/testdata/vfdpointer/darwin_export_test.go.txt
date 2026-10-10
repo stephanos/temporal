@@ -1,0 +1,94 @@
+// Copyright 2026 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+//go:build darwin && arm64
+
+package syscall
+
+import (
+	"internal/abi"
+	"unsafe"
+)
+
+const GomadPointerVariants = 6
+
+func GomadPointerSockaddr(p *RawSockaddrAny) (Sockaddr, error) { return anyToSockaddr(p) }
+
+func GomadPointerWritev(fd int, p *Iovec, variant int) (uintptr, Errno) {
+	fn := abi.FuncPCABI0(libc_writev_trampoline)
+	switch variant {
+	case 0:
+		n, _, errno := syscall(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), 2)
+		return n, errno
+	case 1:
+		n, _, errno := syscall6(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), 2, 0, 0, 0)
+		return n, errno
+	case 2:
+		n, _, errno := rawSyscall(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), 2)
+		return n, errno
+	case 3:
+		n, _, errno := rawSyscall6(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), 2, 0, 0, 0)
+		return n, errno
+	case 4:
+		n, _, errno := syscallX(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), 2)
+		return n, errno
+	case 5:
+		n, _, errno := syscall6X(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), 2, 0, 0, 0)
+		return n, errno
+	default:
+		panic("invalid pointer fixture variant")
+	}
+}
+
+func GomadPointerPair(fd int, p *RawSockaddrAny, length *uint32, operation string, variant int) (uintptr, Errno) {
+	fn := abi.FuncPCABI0(libc_accept_trampoline)
+	switch operation {
+	case "accept", "accept-null", "accept-mismatch":
+	case "sockname", "sockname-short":
+		fn = abi.FuncPCABI0(libc_getsockname_trampoline)
+	case "peername", "peername-short":
+		fn = abi.FuncPCABI0(libc_getpeername_trampoline)
+	default:
+		panic("invalid pointer fixture operation")
+	}
+	switch variant {
+	case 0:
+		n, _, errno := syscall(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(length)))
+		return n, errno
+	case 1:
+		n, _, errno := syscall6(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(length)), 0, 0, 0)
+		return n, errno
+	case 2:
+		n, _, errno := rawSyscall(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(length)))
+		return n, errno
+	case 3:
+		n, _, errno := rawSyscall6(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(length)), 0, 0, 0)
+		return n, errno
+	case 4:
+		n, _, errno := syscallX(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(length)))
+		return n, errno
+	case 5:
+		n, _, errno := syscall6X(fn, uintptr(fd), uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(length)), 0, 0, 0)
+		return n, errno
+	default:
+		panic("invalid pointer fixture variant")
+	}
+}
+
+func GomadPointerOption(fd, name int, p *int32, length *uint32, variant int) (uintptr, Errno) {
+	fn := abi.FuncPCABI0(libc_getsockopt_trampoline)
+	switch variant {
+	case 1:
+		n, _, errno := syscall6(fn, uintptr(fd), SOL_SOCKET, uintptr(name), uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(length)), 0)
+		return n, errno
+	case 3:
+		n, _, errno := rawSyscall6(fn, uintptr(fd), SOL_SOCKET, uintptr(name), uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(length)), 0)
+		return n, errno
+	case 5:
+		n, _, errno := syscall6X(fn, uintptr(fd), SOL_SOCKET, uintptr(name), uintptr(unsafe.Pointer(p)), uintptr(unsafe.Pointer(length)), 0)
+		return n, errno
+	default:
+		panic("getsockopt requires a six-argument route")
+	}
+}

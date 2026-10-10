@@ -3,6 +3,7 @@ package architecture
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -187,6 +188,7 @@ func Discover(root, goCommand string, platform Platform) (Inventory, []Finding, 
 	return inventory, findings, nil
 }
 
+var hostSourcePackages = []string{"toolchain/runtime/testdata/vfdpointer", "toolchain/runtime/testdata/vfdnative"}
 var sourceExclusions = []string{"toolchain/runtime/overlay", "cmd/gomad/testdata", "deterministicio/testdata", "internal/compatibilitypack/testdata", "internal/gomadtool/conformance/testdata", "testdata", "qualification/corpus"}
 var expectedModules = map[string]bool{
 	"deterministicio/testdata/cactusstatsd/go.mod": true, "deterministicio/testdata/hashicorpmetrics/go.mod": true,
@@ -242,6 +244,18 @@ func List(root, goCommand string, platform Platform, dependencies bool) ([]Packa
 		args = append(args, "-deps", "-compiled")
 	}
 	args = append(args, "./...")
+	for _, directory := range hostSourcePackages {
+		info, err := os.Lstat(filepath.Join(root, directory))
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		if info.IsDir() {
+			args = append(args, "./"+directory)
+		}
+	}
 	command := exec.Command(goCommand, args...)
 	command.Dir, command.Env = root, Environment(platform)
 	var output, stderr bytes.Buffer

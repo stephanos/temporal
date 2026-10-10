@@ -1,7 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"go/ast"
+	"go/parser"
+	"go/printer"
+	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +22,110 @@ type lintCall struct {
 	Tool string
 	Dir  string
 	Args []string
+}
+
+func TestLintRuntimeHostPackages(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct{ target, failure string }{
+		{"lint-code-fast", ""},
+		{"lint-code-gomad3", ""},
+		{"lint-code-fast", "golangci"},
+		{"lint-code-gomad3", "vet"},
+	} {
+		t.Run(tc.target+tc.failure, func(t *testing.T) {
+			t.Parallel()
+			repo := newLintRepo(t)
+			for _, directory := range []string{"tools/gomad3/toolchain/runtime/testdata/vfdpointer", "tools/gomad3/toolchain/runtime/testdata/vfdnative"} {
+				repo.write(directory+"/source.go", "package runner\n")
+				repo.write(directory+"/source_test.go", "package runner\nimport \"testing\"\nfunc TestRunner(t *testing.T) {}\n")
+			}
+			repo.env = append(repo.env, "LINT_TEST_FAIL="+tc.failure, "LINT_TEST_FAIL_PACKAGE=./toolchain/runtime/testdata/vfdpointer")
+			output, err := repo.runMake(tc.target)
+			if tc.failure == "" {
+				require.NoError(t, err, output)
+			} else {
+				require.Error(t, err, output)
+			}
+			packages := []string{".", "./internal/gomadtool/architecture", "./runner", "./toolchain", "./toolchain/runtime/testdata/vfdnative", "./toolchain/runtime/testdata/vfdpointer"}
+			want := []lintCall{{"golangci", "tools/gomad3", repo.lintArgs(packages...)}}
+			if tc.failure != "golangci" {
+				want = append(want, lintCall{"vet", "tools/gomad3", repo.vetArgs(packages...)})
+			}
+			require.Equal(t, want, repo.calls())
+		})
+	}
+}
+
+func TestLintRuntimeHostPackageImportFailure(t *testing.T) {
+	t.Parallel()
+	repo := newLintRepo(t)
+	repo.write("tools/gomad3/toolchain/runtime/testdata/vfdpointer/source.go", "package runner\nimport _ \"example.invalid/fixture/missing\"\n")
+	output, err := repo.runMake("lint-code-gomad3")
+	require.Error(t, err)
+	require.Contains(t, output, "example.invalid/fixture/missing")
+	require.Empty(t, repo.calls())
+}
+
+func TestLintRejectsRuntimeHostSourceSymlinks(t *testing.T) {
+	t.Parallel()
+	repo := newLintRepo(t)
+	sourcePath := filepath.Join(t.TempDir(), "source.go")
+	require.NoError(t, os.WriteFile(sourcePath, []byte("package runner\n"), 0o600))
+	path := "tools/gomad3/toolchain/runtime/testdata/vfdpointer/source.go"
+	require.NoError(t, os.MkdirAll(filepath.Dir(filepath.Join(repo.root, path)), 0o700))
+	require.NoError(t, os.Symlink(sourcePath, filepath.Join(repo.root, path)))
+	_, err := repo.runMake("lint-code-gomad3")
+	require.Error(t, err)
+	require.Empty(t, repo.calls())
+}
+
+func TestLintRejectsRuntimeHostDirectorySymlinks(t *testing.T) {
+	t.Parallel()
+	for _, target := range []string{"lint-code-fast", "lint-code-gomad3"} {
+		for _, tc := range []struct{ path, source string }{
+			{"tools/gomad3/toolchain/runtime/testdata/vfdpointer", "source.go"},
+			{"tools/gomad3/toolchain/runtime/testdata", "vfdpointer/source.go"},
+		} {
+			t.Run(target+"/"+tc.path, func(t *testing.T) {
+				t.Parallel()
+				repo := newLintRepo(t)
+				linked := t.TempDir()
+				sourcePath := filepath.Join(linked, tc.source)
+				require.NoError(t, os.MkdirAll(filepath.Dir(sourcePath), 0o700))
+				require.NoError(t, os.WriteFile(sourcePath, []byte("package runner\n"), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Dir(filepath.Join(repo.root, tc.path)), 0o700))
+				require.NoError(t, os.Symlink(linked, filepath.Join(repo.root, tc.path)))
+				repo.git("add", tc.path)
+				output, err := repo.runMake(target)
+				require.Error(t, err, output)
+				require.Contains(t, output, "source symlink")
+				require.Empty(t, repo.calls())
+			})
+		}
+	}
+}
+
+func TestLintRejectsInvalidRuntimeHostPackageList(t *testing.T) {
+	t.Parallel()
+	for _, declaration := range []string{
+		"",
+		"var hostSourcePackages = paths()\n",
+		"var hostSourcePackages = []string{}\n",
+		"var hostSourcePackages = []string{\"toolchain/runtime/testdata/vfdpointer\", \"toolchain/runtime/testdata/vfdpointer\"}\n",
+		"var hostSourcePackages = []string{\"../outside\"}\n",
+		"var hostSourcePackages = []string{\"toolchain/runtime/testdata/...\"}\n",
+		"var hostSourcePackages = []string{\"toolchain/runtime/testdata/vfdpointer/nested\"}\n",
+		"var hostSourcePackages = []string{\"toolchain/runtime/testdata/.hidden\"}\n",
+	} {
+		t.Run(declaration, func(t *testing.T) {
+			t.Parallel()
+			repo := newLintRepo(t)
+			repo.write("tools/gomad3/internal/gomadtool/architecture/architecture.go", "package architecture\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n"+declaration)
+			_, err := loadOwnership(repo.root)
+			require.Error(t, err)
+			require.Empty(t, repo.calls())
+		})
+	}
 }
 
 func TestFastLintRoutesModuleOwners(t *testing.T) {
@@ -127,6 +236,12 @@ func TestLintRejectsUnclassifiedSource(t *testing.T) {
 		"tools/gomad3/record/testdata/source.go",
 		"tools/gomad3/runner/.hidden/source.go",
 		"tools/gomad3/runner/_hidden/source.go",
+		"tools/gomad3/toolchain/runtime/testdata/unknown/source.go",
+		"tools/gomad3/toolchain/runtime/testdata/vfdpointerextra/source.go",
+		"tools/gomad3/toolchain/runtime/testdata/vfdpointer/nested/source.go",
+		"tools/gomad3/toolchain/runtime/testdata/vfdpointer/.hidden/source.go",
+		"tools/gomad3/toolchain/runtime/testdata/vfdpointer/_hidden/source.go",
+		"tools/gomad3/toolchain/runtime/testdata/vfdpointer/go.mod",
 		"ordinary/_ignored.go",
 	} {
 		t.Run(path, func(t *testing.T) {
@@ -358,6 +473,18 @@ func newLintRepo(t *testing.T) *lintRepo {
 	for _, path := range []string{"Makefile", "tools/gomad3/Makefile", "tools/gomad3/version_generated.mk", "tools/gomad3/internal/gomadtool/architecture/architecture.go"} {
 		data, err := os.ReadFile(filepath.Join(root, path))
 		require.NoError(t, err)
+		if filepath.Base(path) == "architecture.go" {
+			fileSet := token.NewFileSet()
+			file, err := parser.ParseFile(fileSet, path, data, 0)
+			require.NoError(t, err)
+			file.Decls = slices.DeleteFunc(file.Decls, func(declaration ast.Decl) bool {
+				group, ok := declaration.(*ast.GenDecl)
+				return !ok || group.Tok != token.VAR
+			})
+			var fixture bytes.Buffer
+			require.NoError(t, printer.Fprint(&fixture, fileSet, file))
+			data = fixture.Bytes()
+		}
 		if revision := os.Getenv("LINT_TEST_BASE_REV"); revision != "" && filepath.Base(path) == "Makefile" {
 			command := exec.CommandContext(t.Context(), "git", "show", revision+":"+path)
 			command.Dir = root
