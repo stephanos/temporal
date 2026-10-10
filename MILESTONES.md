@@ -1002,3 +1002,17 @@ declared once in its facet, under its existing name, so the copies go. Query ans
 | --- | --- | --- |
 | fn-162.2 | ⬜ todo | Realizations name the Queries they run (unnamed find Queries are model-only): framework, lifter, IR, lowering, assessment; duplicate-Property detection |
 | fn-162.3 | ⬜ todo | Migrate the standalone activity off claim-container subjects |
+
+## fn-163: System capabilities: distributed-systems patterns as named capabilities
+
+Scheduled after Batch 5b (owner, 2026-10-10), on the facet, realization-binding and lifter baseline.
+Not planned yet. [Spec](.flow/specs/fn-163-system-capabilities-distributed-systems.md).
+
+Name the distributed-systems promises the Models still write by hand (fencing of stale attempts, a
+single active attempt, idempotent requests, a single outcome) as first-class capabilities, declared once
+with laws that lower to the existing IR. Capabilities split into `capabilities/system/` (server-side
+protocol promises) and `capabilities/product/` (what a user sees an entity can be). A pattern is named
+even with a single use (owner): the name improves readability and is easy to revise when more uses
+arrive. Idempotency targets actions rather than entities, and fencing/single outcome need history, so
+some laws may need synthesized monitors; verdicts, answers and Case outcomes stay unchanged under a
+checked rename map.
