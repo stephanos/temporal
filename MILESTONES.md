@@ -541,8 +541,10 @@ The historical proof archive is now copied and content-validated, and the activa
 pins seven Models and all 340 Queries, including the original 154 Activity occurrences. Fresh
 primary Activity Check completed in 20.510 seconds; producer construction was killed after
 17.725 seconds. Complete primary tables and another 34 reader-surface processes across all
-seven Models finished naturally; the latter batch took 219.265 seconds. These are preservation
-captures, not restored gate-fit evidence. After the exclusively owned historical fn-155 private
+seven Models finished naturally; the latter batch took 219.265 seconds. The six non-primary
+Models also completed Producer/Lower capture for all 275 Queries; the primary Model's 65 Lower
+results remain missing. These are preservation captures, not restored gate-fit evidence.
+After the exclusively owned historical fn-155 private
 Bloop daemon exited normally, the full fresh primary Producer was still OOM-killed after
 19.258 seconds, before Cases or lowering inventories were captured. The shared compiler remains
 untouched. Phase logs, heap profiles and both failed attempts remain preserved.
@@ -552,14 +554,21 @@ creation still targeted `/tmp` despite host `TMPDIR`/`GOTMPDIR`. During-run samp
 free inodes falling from 2,001 to one with about 29.9 GB free bytes; the failures report ENOSPC.
 This establishes inode exhaustion at fixture setup, not successful full gate scratch demand or
 Lift/Case overlap. Storage capacity subsequently increased externally: `/tmp` had over 6.8 million
-free inodes. An unchanged no-update gate retry is admitted for that changed storage window; RAM
-availability is not materially changed, so the primary Producer is not retried for a disk-only
-improvement. Missing complete oracle surfaces still hold all production repairs. Managed artifacts
-and fresh lifted candidates have separate pins; historical source freshness is not assumed.
+free inodes. The unchanged no-update gate retry passed scratch tests but its Case generator was
+globally OOM-killed; the gate exited 2 after 37.691 seconds. Its generated-proto timestamp warning
+remains a separate finding. RAM availability was not materially changed, so the primary Producer
+was not retried for a disk-only improvement. No successful full-gate scratch peak is established.
+
+Measurement .1 is now blocked on the complete independent oracle. Its terminal handover preserves
+52 probes/412.923 measured wall seconds and 34 missing surfaces/controls; the one-hour limit was
+not reached. Root verified all 574 sealed evidence files. Revisit on capacity sufficient for the
+unchanged whole primary Producer and ordinary compiler overlap, retaining effective JVM scratch
+and all original inputs/assertions. All production repairs remain held. Managed artifacts and
+fresh lifted candidates have separate pins; historical source freshness is not assumed.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-157.1 | 🔄 in progress | Seven-Model reader surfaces captured; full Producer OOM persists and ordinary gate hits inode exhaustion; complete oracle and strategy handover pending |
+| fn-157.1 | ⏸️ deferred | Sealed partial oracle and causal measurements; primary Producer and ordinary generator OOM; complete reference output requires provisioned capacity |
 | fn-157.2 | ⬜ todo | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
 | fn-157.3 | ⬜ todo | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
 | fn-157.4 | ⬜ todo | Repair owned gate/lift scratch lifetimes or establish provisioned capacity with ordinary overlap |

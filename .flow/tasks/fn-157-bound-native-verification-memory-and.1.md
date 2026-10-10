@@ -38,8 +38,54 @@ Current public Model/Type/table accessors expose referenced data; no safe mutati
 - [ ] Named failures have phase-labelled measurements or natural complete results on the provisioned runner; causal native owner and scratch bytes/inodes demand are recorded without unsupported RSS conclusions.
 - [ ] Reviewable native/scratch strategies and non-overlapping write seams exist, or Flow tasks are re-anchored by the conductor before repair. No repair or activation is inferred from preparation.
 ## Done summary
-TBD
+Blocked:
+# Complete pre-repair oracle unavailable on current capacity
 
+Task fn-157-bound-native-verification-memory-and.1 is blocked, not complete or reviewed.
+All owned commands and the worker/research child are terminal. Production source is unchanged.
+Worker HEAD/task base: f7b2e2ee7d938da6c7bdb5a37d8232e0252f4dcc; executable activation
+pin: 551bf89c68f9b8dd3ac8ec219e65f96f0aa85890. Later integrated changes are overview metadata.
+
+Recoverable worker evidence root:
+`/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-157-bound-native-verification-memory-and/.flow/tmp/fn157/task1/`.
+Root read the handover and independently checked all 574 evidence-seal file hashes, exit 0.
+Summary SHA256: 1456bae5f2e024b5377ea3767d1ec6661e58b2f6d85b28e7aab8b25238070df9.
+Evidence SHA256: 57c4a97e9a942d88903e1955f793bca1ec29a96d6db6e6c076c94cd8a7f6ad2e.
+Seal-file SHA256: cb11ea018d9a9a6776671e2ca19485e2d921217a621055ad3de70f2faf09aab6.
+
+Captured: seven complete Models, 61 raw table owners, 393 typed Check receipts, all 340
+Query answer/bind/replay records (including original 154 Activity occurrences), and full
+Producer/Lower outputs for 275 Queries in the six non-primary Models. The primary Model's
+65 Lower results and the full independent artifact/manifest/conformance/export/error-control
+joins remain missing. `oracle-completeness.json` lists 34 outstanding surfaces/controls,
+with complete=false and repair_allowed=false. These partial captures earn no gate-fit credit.
+
+The primary Producer was naturally SIGKILLed before and after the exact normal exit of the
+exclusively owned historical fn-155 private Bloop daemon: 17.724510883 and 19.258385842 seconds.
+The shared compiler was untouched. Kernel windows identify global OOM; the later native victim
+had 7,678,400 KiB anonymous RSS. Numeric PID namespace mapping and successful capacity remain
+unproven. Heap profiles demonstrate transition clones and simultaneous bindings, not a sole
+owner or an accepted repair strategy.
+
+Unchanged `mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` first failed
+exit 2 after 9.955093963 seconds with Java /tmp creation ENOSPC: sampled overlay free inodes
+2,001 to one while roughly 29.9 GB free bytes remained. Storage then changed externally;
+the same gate retry passed scratch tests but failed exit 2 after 37.690613476 seconds, with
+kernel global OOM for its Case generator (5,984,192 KiB anonymous RSS). Preserve its distinct
+claim.pb.go/claim.proto timestamp warning; neither result proves completed Lift/Case overlap.
+
+Total 52 measured probes: 412.922787696 wall seconds, with preparation/private lifecycle
+separate. The one-hour deferral limit was not reached; this blocker is missing mandatory
+reference output, not that time limit. No smaller input, forced GC, memory knob, selected-only
+fit claim, source repair, review verdict or Flow completion substitutes for the missing oracle.
+
+Revisit when a runner can execute the unchanged whole primary Producer and independent readers
+with adequate RAM under measured ordinary compiler/process overlap, and effective JVM scratch
+has sufficient verified bytes/inodes. Successful memory demand is unknown; victim RSS is only
+a failed lower bound. Re-anchor changed executable inputs, resume the frozen complete oracle
+and outstanding controls, then review .1 before any .2/.3/.4 repair. R3 strict assertions,
+canonical full Go -json/test_dep/-p 2/-timeout 30m, ordinary no-update Cases/fixtures/model
+gates, fn-154 JSON work and separate Canary/Batch 5 debt remain unweakened.
 ## Evidence
 - Commits:
 - Tests:
