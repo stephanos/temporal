@@ -32,7 +32,7 @@ Implement R3 independently of evaluator rollout. Convert between admitted Testpi
 make proto
 go test -tags test_dep ./api/testpilot/v1
 ```
-Format 2.0 replaces the custom value container family with standard CEL values. Distinguish invalid authored assignments from admitted unknown payload wire fields, which remain preserved.
+Format 4.0 replaces the custom value container family with standard CEL values. Distinguish invalid authored assignments from admitted unknown payload wire fields, which remain preserved.
 ## Acceptance
 - [ ] R3's descriptor-aware round trips cover every supported runtime value family.
 - [ ] Opaque and catalog-only messages do not use unsafe global resolution.

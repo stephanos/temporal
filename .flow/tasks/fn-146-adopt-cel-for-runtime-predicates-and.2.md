@@ -21,7 +21,7 @@ Introduce the canonical CEL AST and the pinned restricted environment for R2. Th
 - `common/testing/testpilot/internal/ir/expression.go:190-335` - current admission and evaluation kernel
 - `.plans/UMPIRE_CEL_RUNTIME_RESEARCH.md:62-84` - dependency and accounting constraints
 - `.plans/UMPIRE_CEL_RUNTIME_RESEARCH.md:106-143` - prototype bridge and remaining decisions
-- `model/check/Gate.scala:160-181` - ScalaPB schema inputs
+- `model/check/Gate.scala` - `schemaClosure` and `generateIr` own the complete imported Umpire ScalaPB schema inputs; retain the Umpire/Testpilot import boundary
 
 
 ### Quick commands

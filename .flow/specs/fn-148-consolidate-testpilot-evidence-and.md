@@ -24,7 +24,7 @@ An evidence declaration owns source identity, projected schema, operation key, s
 
 Each local complete state stores a model atom plus ordered fields. Each result stores action, destination state, outcome and facts. Transitions reference prior state and result IDs, while projection rules retain ordered result IDs. Local deterministic IDs and expanded-work charging prevent compression from bypassing limits.
 
-Case format 4.0 owns evidence and state/result normalization plus the derived-field cleanup. Replace the old shapes directly, regenerate Cases and recorded Run companions, and reject retired formats. No historical decoding or compatibility binder is retained. Scalar singleton-oneof cleanup is already owned by the Duration spec. The normalization producer/consumer tasks form one breaking integration batch, with public emission switching only once admission understands the tables. Exactly format 4.0 emission and admission activate together after all shape cleanups and before final regeneration; intermediate checks do not require managed artifacts to be current.
+Case format 4.0 carries evidence and state/result normalization plus the derived-field cleanup together with fn-146's CEL and fn-147's Duration/presence changes under fn-146.1's single contract. Replace the old shapes directly, regenerate Cases and recorded Run companions, and reject retired formats. No historical decoding or compatibility binder is retained. Scalar singleton-oneof cleanup is already owned by the Duration spec. The normalization producer/consumer tasks form one breaking integration batch, with public emission switching only once admission understands the tables. Exactly format 4.0 emission and admission activate together after all shape cleanups and before final regeneration; intermediate checks do not require managed artifacts to be current.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -51,6 +51,8 @@ Case format 4.0 owns evidence and state/result normalization plus the derived-fi
 
 ## Early proof point
 
+Implementation starts after committed fn-147-migrate-elapsed-time-fields-to-protobuf.3 source completion, not fn-147 whole-spec closure; all three specs close together at fn-148.7.
+
 Task fn-148-consolidate-testpilot-evidence-and.1 validates that one declaration can reproduce every existing inline and referenced lift, including ordered overlap and absent-path fixtures. This is a before/after fixture proof, not a compatibility binder. If it fails, re-evaluate the generalized declaration before producer and consumer rollout in Task fn-148-consolidate-testpilot-evidence-and.2.
 
 ## Boundaries
@@ -69,6 +71,10 @@ Task fn-148-consolidate-testpilot-evidence-and.1 validates that one declaration 
 The existing inline and declaration-backed lift forms bind the same concepts through separate paths, but the declaration form lacks several supported inline capabilities. Generalizing the declaration first preserves those capabilities and lets one binder own extraction.
 
 State and result tables follow identities the runtime already checks. A full transition row cannot stand in for a result because one result may be authorized from several prior states. Interning the complete atom-plus-fields state retains predicate behavior and continuity without introducing a repository-wide value table.
+
+## Execution baseline
+
+The structural prerequisites are integrated: fn-145 split the Umpire schema; fn-142/fn-143 and `fn-151-split-standalone-activity-into-smaller` established the current framework and Activity source layout. Start this batch only from the integrated, committed closure of fn-156 and authoring Batch 2 (fn-140/fn-123, with their shared close at fn-123.8). Before implementation, re-anchor schema fields, Scala declarations, lifter/lint owners, tests and artifact identities against that closed baseline. fn-123's fault metadata and fn-156's compiler checks are still pending at this preparation point; consume their actual committed APIs and pins, without assuming names or results here. Retain the single format 4.0 activation at fn-148.6 and the shared regeneration, full-gate, review and live-run close at fn-148.7.
 
 ## Quick commands
 
