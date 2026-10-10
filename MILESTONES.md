@@ -299,7 +299,7 @@ CI, PR, or push authority.
 | [fn-109.70](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.70.md) | 🚧 In progress | Restore explicit scripted Choice Exploration divergence coverage |
 | [fn-109.71](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.71.md) | 🚧 In progress | Restore explicit scripted completion coverage |
 | [fn-109.72](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.72.md) | 🚧 In progress | Restore explicit scripted seed completion statistics coverage |
-| [fn-109.73](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.73.md) | ⬜ Todo | Restore explicit scripted Unix campaign-mode coverage |
+| [fn-109.73](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.73.md) | 🚧 In progress | Restore explicit scripted Unix campaign-mode coverage |
 | [fn-109.74](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.74.md) | ⬜ Todo | Restore explicit scripted retention calibration and policy coverage |
 
 <a id="runtime-patch-minimization-fn-110"></a>
