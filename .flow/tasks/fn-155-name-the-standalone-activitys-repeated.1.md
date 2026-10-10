@@ -41,6 +41,51 @@ This task sets up the proof every later task relies on (spec R7, Early proof poi
 - [ ] `project.py` reports equality on the baseline against itself, flags a deliberate one-fact edit, and reduces the scratch named-guard rewrite and effect merge to mapped identities, or the residue is recorded and section A's scope re-evaluated
 - [ ] `mapping.md` lists the re-anchored locations and an outcome for every probe
 - [ ] No model source changes remain
+
+### Candidate proof evidence (IN_PROGRESS)
+
+The task remains IN_PROGRESS. This lifecycle receipt presents the ignored executable proof substrate for review; it records no review verdict or completion. The empty implementation checkpoint is not acceptance evidence.
+
+The complete content seal is `.flow/tmp/fn-155/task1/proof-manifest.json`, SHA256 `983c66b072cfd926ae6358bdb332a163a53cab87062664542da68fe19cdf7ef6`. Its files map pins the exact scripts, scratch source/artifacts, all dumps and receipts listed below. The closed source baseline is `999fb4fdc4eaa559539ab443c2dc3e99349dc182`; 1134 production input pins remain unchanged.
+
+The whole inventory comparison reads all 46 tables and 13,891,948 ordered records, including every native state/action pair and both unchanged Pins expected-rule lists. Complete Model projections pass self and both actual named-guard/effect-merge variants. A deliberate one-fact Model mutation and one logical native Because mutation are rejected. The two final native helper receipts use the harness without explicit GC/resource controls; superseded observations have no gate credit. The canonical RED baseline and task .6 gate ownership remain as stated above.
+
+The review acceptance surface consists of these pinned executable implementations and observations. It must establish their correctness and task coverage through the artifacts themselves; the receipt prose and empty source diff supply no SHIP evidence.
+
+- `.flow/tmp/fn-155/project.py`
+- `.flow/tmp/fn-155/compare_cases.py`
+- `.flow/tmp/fn-155/mapping.md`
+- `.flow/tmp/fn-155/identity-map.json`
+- `.flow/tmp/fn-155/table-identity-map.json`
+- `.flow/tmp/fn-155/before/baseline.json`
+- `.flow/tmp/fn-155/before/identity-inventory.json`
+- `.flow/tmp/fn-155/before/step-tables/completeness.json`
+- `.flow/tmp/fn-155/task1/capture_baseline.py`
+- `.flow/tmp/fn-155/task1/test_project.py`
+- `.flow/tmp/fn-155/task1/controls.py`
+- `.flow/tmp/fn-155/task1/verify.py`
+- `.flow/tmp/fn-155/task1/seal.py`
+- `.flow/tmp/fn-155/task1/tables/dump.go`
+- `.flow/tmp/fn-155/task1/tables/PinsDump.scala`
+- `.flow/tmp/fn-155/task1/tables/run.py`
+- `.flow/tmp/fn-155/task1/tables/compare.py`
+- `.flow/tmp/fn-155/task1/probes/run.py`
+- `.flow/tmp/fn-155/task1/probes/native.go`
+- `.flow/tmp/fn-155/task1/dispatch-probes/lift.py`
+- `.flow/tmp/fn-155/task1/dispatch-probes/table.go`
+- `.flow/tmp/fn-155/task1/dispatch-probes/run.py`
+- `.flow/tmp/fn-155/task1/final-verification.json`
+- `.flow/tmp/fn-155/task1/projection-self.json`
+- `.flow/tmp/fn-155/task1/projection-combined.json`
+- `.flow/tmp/fn-155/task1/projection-named-status.json`
+- `.flow/tmp/fn-155/task1/projection-one-fact.json`
+- `.flow/tmp/fn-155/task1/controls-receipt.json`
+- `.flow/tmp/fn-155/task1/cases-self.json`
+- `.flow/tmp/fn-155/task1/tables/self-equality.json`
+- `.flow/tmp/fn-155/task1/tables/negative-control/negative-control.json`
+- `.flow/tmp/fn-155/task1/probes/probe-outcomes.json`
+- `.flow/tmp/fn-155/task1/dispatch-probes/results.json`
+- `.flow/tmp/fn-155/task1/dispatch-probes/notes.md`
 ## Acceptance
 - [ ] TBD
 
