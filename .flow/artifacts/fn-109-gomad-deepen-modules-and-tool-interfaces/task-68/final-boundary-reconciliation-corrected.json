@@ -1,0 +1,19 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-fixtures",
+  "argv": [
+    "perl",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/reconcile-final-boundaries.pl"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T02:10:25Z",
+  "ended": "2026-10-10T02:10:27Z",
+  "elapsed_seconds": 2,
+  "head": "7727b062b0c263046f0409e8f9d6cf5e58e7c0ef",
+  "source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+  "post_source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+  "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+  "wrapper_sha256": "4d67887f4dbd41949e2f5b08280d0c7a9a08fb1bc1f28080059473cec64fb0b8",
+  "environment_sha256": "71f8e2ba789c2aaa71dc3efd18af3c737b20f20371cd844a2e391329498672ed",
+  "raw_log_sha256": "ef4a9055ede35cde073c6167260a492bb972b2d7ddc62590af611e4afa35a96b",
+  "post_source_match_exit": 0
+}

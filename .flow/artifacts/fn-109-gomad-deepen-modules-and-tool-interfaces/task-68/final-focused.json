@@ -1,0 +1,29 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-fixtures",
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./runner",
+    "./deterministicio",
+    "-run",
+    "^(TestRun(ChoiceExploration(ExecutesRootAndEveryNonSelectedRank|DivergingPrefixRetainsCompletedRound|ExpandsCompleteTargetFailures)|ReportsPreparationProgressAndCompletedCounts|ReportsPeriodicProgressWhileTargetIsRunning|ReportsPassiveSemanticCoverage|FailsWhenRequiredSemanticProbeIsMissing|RetainsOnlyProbeNovelSuccessesWithinExplicitBounds|RetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures|MergesParallelCompletionsInSelectionOrdinalOrder|FailsClosedWhenSuccessRetentionCountIsExhausted|RejectsSuccessfulRetentionWithoutReplayTranscript|CollectsBoundedQualificationEvidenceForOneSeed|PreparesOnceBoundsParallelismAndGroupsMatchingFailures|PublishesConnectedWorldBundle|ClassifiesConnectedWorldDeadlock|CountsConnectedWorldReplayDivergence|RejectsInvalidConnectedWorldBeforePublication|RejectsPreparedTargetMutationBeforeFailurePublication|PreparationFailureLeavesClassifiedPartial)|TestPreparationDependencies(ForwardRealFixtureInputs|OperationErrorsRemainUnchanged|FailuresStopAtOriginalStages|KeepRealDefaultsAndBootstrapGuard)|TestInjectionCharacterization(IsolatedPreparationDependencies|IsolatedExploreRejectsEverySubstitution)|TestWaitForProgressStart(ObservesPreparationFailure)?|TestLocal(CampaignPreparationShortCircuits|CompletionErrorPrecedence|FinalizationPreservesHostFailureBeforePublication|FinalizationClassifiesPublicationFailure|StoppedCancellationPreservesPriorFailure)|TestPortableProfilePublicGuardsRemainFirst)$"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T02:00:12Z",
+  "ended": "2026-10-10T02:00:26Z",
+  "elapsed_seconds": 14,
+  "head": "7727b062b0c263046f0409e8f9d6cf5e58e7c0ef",
+  "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+  "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+  "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+  "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+  "environment_sha256": "2b02e4a5d95629b679f673427b590b31a1a1c45b3d48456e66fa6c79a701a4dc",
+  "raw_log_sha256": "349f36acf17e13562dcafffb5f72a22b57e4a96ecc035c033032db4743edc45e",
+  "post_source_match_exit": 0
+}

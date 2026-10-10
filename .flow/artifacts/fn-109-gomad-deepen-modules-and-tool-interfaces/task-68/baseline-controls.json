@@ -1,0 +1,29 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-fixtures",
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./runner",
+    "./deterministicio",
+    "-run",
+    "^(TestRun(ReportsPreparationProgressAndCompletedCounts|ReportsPeriodicProgressWhileTargetIsRunning|ReportsPassiveSemanticCoverage|FailsWhenRequiredSemanticProbeIsMissing|RetainsOnlyProbeNovelSuccessesWithinExplicitBounds|RetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures|MergesParallelCompletionsInSelectionOrdinalOrder|FailsClosedWhenSuccessRetentionCountIsExhausted|RejectsSuccessfulRetentionWithoutReplayTranscript|CollectsBoundedQualificationEvidenceForOneSeed|PreparesOnceBoundsParallelismAndGroupsMatchingFailures|PublishesConnectedWorldBundle|ClassifiesConnectedWorldDeadlock|CountsConnectedWorldReplayDivergence|RejectsInvalidConnectedWorldBeforePublication|RejectsPreparedTargetMutationBeforeFailurePublication|PreparationFailureLeavesClassifiedPartial)|TestPreparationDependencies(ForwardRealFixtureInputs|OperationErrorsRemainUnchanged|FailuresStopAtOriginalStages|KeepRealDefaultsAndBootstrapGuard)|TestInjectionCharacterization(IsolatedPreparationDependencies|IsolatedExploreRejectsEverySubstitution)|TestWaitForProgressStart(ObservesPreparationFailure)?|TestLocal(CampaignPreparationShortCircuits|CompletionErrorPrecedence|FinalizationPreservesHostFailureBeforePublication|FinalizationClassifiesPublicationFailure|StoppedCancellationPreservesPriorFailure)|TestPortableProfilePublicGuardsRemainFirst)$"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T01:59:31Z",
+  "ended": "2026-10-10T01:59:50Z",
+  "elapsed_seconds": 19,
+  "head": "7727b062b0c263046f0409e8f9d6cf5e58e7c0ef",
+  "source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+  "post_source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+  "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+  "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+  "environment_sha256": "206c2fb8bb73c5e923617769f23d30f7b23d5ace6a4846cbd5f60dde1507aa4c",
+  "raw_log_sha256": "0e39f3f989ad7da7b4cba028816d57713c4db705d5152989f3121e8ea56e6090",
+  "post_source_match_exit": 0
+}

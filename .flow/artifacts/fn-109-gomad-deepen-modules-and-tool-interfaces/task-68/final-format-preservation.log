@@ -1,0 +1,4 @@
+base=7727b062b0c263046f0409e8f9d6cf5e58e7c0ef
+original_sha256=7045165b88318f57fb147882b051cb7bfd2aac8c3182039a0cca0fce6f5af8e0
+current_sha256=d251cc9c5f32b95821fcede257df76ad2fe147c4e915128812a2e1ef275a5e96
+PASS: selective removal of exactly three assignments recovers the entire BASE file; all sixteen prior attachments and every other byte remain intact

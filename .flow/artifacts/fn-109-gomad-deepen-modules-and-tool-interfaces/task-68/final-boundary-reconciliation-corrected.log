@@ -1,0 +1,8 @@
+RETAINED_TASK65_GENERATOR_INPUT tools/gomad3integration/qualification/tests.json 28a25783c616e4c96d8f89ad0607eaaba5ea395596b4f00be545c8e0dd30f311
+RETAINED_TASK65_GENERATOR_INPUT tools/gomad3integration/qualification/tests.generator.json 6c74bf98230a02785162991509552ad54c83b29ffd2220b6fcc54277d41dff31
+OLDER_TASK66_DRIFT tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go 833989fd248cd1526395e5be90d954aa24fe4108adbcad406a7d6384cc1ab549 -> d7b8fd24306d6a4de015217a83ee50b99ad2eae03828ac3c55ff6b4d814b65f4
+PASS: 552 actual consumed implementation/schema/template/output inputs equal newer task67 validated sources; two qualification generator inputs equal retained task65 validated inputs
+PASS: qualification validator's tracked source/module inputs remain unchanged
+Generator/package-architecture receipts: task67/busy-loops-20261010/final-{validate,package-architecture}.json. Qualification generator and private API/public-consumer receipts: task65/final-{validate,boundaries}-corrected.json, limited to their unchanged actual consumed inputs.
+Current supported-source-set Runner vet covers the changed test body separately. No fresh generator, external-cache qualification, native pass or full source acceptance is inferred.
+The first fast-lint observation lacked tests/mixedbrain/go.mod and go.sum outside this 554-path inventory; root materialized them before the separately bound successor. Earlier receipts retain that absence limit; no whole-repository consumed-input equality is claimed.

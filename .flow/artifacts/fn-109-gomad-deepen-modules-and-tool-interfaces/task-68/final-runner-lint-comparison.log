@@ -1,0 +1,3 @@
+PASS: six unfiltered complete Runner diagnostic blocks unchanged; zero introduced or removed findings
+full_blocks_sha256=0343dd7822baa18fb03d36e7917bd5c69ff5bd5b6e483f7a0f3c592ae52cb31b
+Both unfiltered lint exits remain 1. Standalone errortype's exit 0 does not make aggregate lint green.

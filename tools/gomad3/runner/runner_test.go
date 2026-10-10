@@ -826,6 +826,7 @@ func TestRunChoiceExplorationExecutesRootAndEveryNonSelectedRank(t *testing.T) {
 	config.MaxChoiceDepth = 4
 	config.MaxExplorationBytes = 1 << 20
 
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -1108,6 +1109,7 @@ func TestRunChoiceExplorationDivergingPrefixRetainsCompletedRound(t *testing.T) 
 	config.MaxChoiceDepth = 4
 	config.MaxExplorationBytes = 1 << 20
 
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatalf("diverging exploration discarded its completed round: %v", err)
@@ -1187,6 +1189,7 @@ func TestRunChoiceExplorationExpandsCompleteTargetFailures(t *testing.T) {
 	config.MaxChoiceDepth = 4
 	config.MaxExplorationBytes = 1 << 20
 
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)

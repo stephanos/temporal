@@ -1,0 +1,3 @@
+The first read-only boundary probe ran `perl .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/reconcile-boundaries.pl` and exited 255. Its actual diagnostic was `tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go: consumed input changed`.
+
+That probe compared current files with task66's older 554-path inventory and correctly detected task67's admitted runtime-repeatability correction. Its script remains unchanged. The later reconciliation uses the same actual consumed paths and task67's newer validated source manifest. Neither observation claims equality against the older file or a fresh generator execution.

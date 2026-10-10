@@ -1,0 +1,299 @@
+{
+  "commits": [],
+  "base_commit": "7727b062b0c263046f0409e8f9d6cf5e58e7c0ef",
+  "tests": [
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-json' './runner' './deterministicio' '-run' '^(TestRun(ReportsPreparationProgressAndCompletedCounts|ReportsPeriodicProgressWhileTargetIsRunning|ReportsPassiveSemanticCoverage|FailsWhenRequiredSemanticProbeIsMissing|RetainsOnlyProbeNovelSuccessesWithinExplicitBounds|RetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures|MergesParallelCompletionsInSelectionOrdinalOrder|FailsClosedWhenSuccessRetentionCountIsExhausted|RejectsSuccessfulRetentionWithoutReplayTranscript|CollectsBoundedQualificationEvidenceForOneSeed|PreparesOnceBoundsParallelismAndGroupsMatchingFailures|PublishesConnectedWorldBundle|ClassifiesConnectedWorldDeadlock|CountsConnectedWorldReplayDivergence|RejectsInvalidConnectedWorldBeforePublication|RejectsPreparedTargetMutationBeforeFailurePublication|PreparationFailureLeavesClassifiedPartial)|TestPreparationDependencies(ForwardRealFixtureInputs|OperationErrorsRemainUnchanged|FailuresStopAtOriginalStages|KeepRealDefaultsAndBootstrapGuard)|TestInjectionCharacterization(IsolatedPreparationDependencies|IsolatedExploreRejectsEverySubstitution)|TestWaitForProgressStart(ObservesPreparationFailure)?|TestLocal(CampaignPreparationShortCircuits|CompletionErrorPrecedence|FinalizationPreservesHostFailureBeforePublication|FinalizationClassifiesPublicationFailure|StoppedCancellationPreservesPriorFailure)|TestPortableProfilePublicGuardsRemainFirst)$'",
+    "'bash' '-c' 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config ../../.github/.golangci.yml ./runner'",
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-json' './runner' '-run' '^TestRunChoiceExploration(ExecutesRootAndEveryNonSelectedRank|DivergingPrefixRetainsCompletedRound|ExpandsCompleteTargetFailures)$'",
+    "'perl' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/reconcile-final-boundaries.pl'",
+    "'perl' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/reconcile-current-boundaries.pl'",
+    "'go' '-C' 'tools/gomad3' 'vet' '-tags' 'test_dep' '-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype' '-style-check=false' './runner'",
+    "'make' 'lint-code-fast' 'GOLANGCI_LINT_BASE_REV=7727b062b0c263046f0409e8f9d6cf5e58e7c0ef' 'GOLANGCI_LINT_FIX=false' 'ALL_TEST_TAGS=test_dep' 'LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50' 'GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0' 'ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype'",
+    "'make' 'lint-code-fast' 'GOLANGCI_LINT_BASE_REV=7727b062b0c263046f0409e8f9d6cf5e58e7c0ef' 'GOLANGCI_LINT_FIX=false' 'ALL_TEST_TAGS=test_dep' 'LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50' 'GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0' 'ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype'",
+    "'go' '-C' 'tools/gomad3' 'test' '-tags' 'test_dep' '-count=1' '-json' './runner' './deterministicio' '-run' '^(TestRun(ChoiceExploration(ExecutesRootAndEveryNonSelectedRank|DivergingPrefixRetainsCompletedRound|ExpandsCompleteTargetFailures)|ReportsPreparationProgressAndCompletedCounts|ReportsPeriodicProgressWhileTargetIsRunning|ReportsPassiveSemanticCoverage|FailsWhenRequiredSemanticProbeIsMissing|RetainsOnlyProbeNovelSuccessesWithinExplicitBounds|RetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures|MergesParallelCompletionsInSelectionOrdinalOrder|FailsClosedWhenSuccessRetentionCountIsExhausted|RejectsSuccessfulRetentionWithoutReplayTranscript|CollectsBoundedQualificationEvidenceForOneSeed|PreparesOnceBoundsParallelismAndGroupsMatchingFailures|PublishesConnectedWorldBundle|ClassifiesConnectedWorldDeadlock|CountsConnectedWorldReplayDivergence|RejectsInvalidConnectedWorldBeforePublication|RejectsPreparedTargetMutationBeforeFailurePublication|PreparationFailureLeavesClassifiedPartial)|TestPreparationDependencies(ForwardRealFixtureInputs|OperationErrorsRemainUnchanged|FailuresStopAtOriginalStages|KeepRealDefaultsAndBootstrapGuard)|TestInjectionCharacterization(IsolatedPreparationDependencies|IsolatedExploreRejectsEverySubstitution)|TestWaitForProgressStart(ObservesPreparationFailure)?|TestLocal(CampaignPreparationShortCircuits|CompletionErrorPrecedence|FinalizationPreservesHostFailureBeforePublication|FinalizationClassifiesPublicationFailure|StoppedCancellationPreservesPriorFailure)|TestPortableProfilePublicGuardsRemainFirst)$'",
+    "'bash' '-c' 'set -e; test -z \"$(gofmt -l tools/gomad3/runner/runner_test.go)\"; perl .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/preserve.pl; git diff --check'",
+    "'perl' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/compare-runner-lint.pl'",
+    "'bash' '-c' 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags test_dep --timeout 10m --fix=false --config ../../.github/.golangci.yml ./runner'",
+    "'env' 'GOOS=darwin' 'GOARCH=arm64' 'CGO_ENABLED=0' 'go' '-C' 'tools/gomad3' 'vet' '-tags' 'test_dep' './runner'",
+    "'env' 'GOOS=linux' 'GOARCH=amd64' 'CGO_ENABLED=0' 'go' '-C' 'tools/gomad3' 'vet' '-tags' 'test_dep' './runner'",
+    "'go' '-C' 'tools/gomad3' 'vet' '-tags' 'test_dep' './runner'"
+  ],
+  "prs": [],
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-fixtures",
+  "frozen_product": {
+    "path": "tools/gomad3/runner/runner_test.go",
+    "sha256": "d251cc9c5f32b95821fcede257df76ad2fe147c4e915128812a2e1ef275a5e96",
+    "insertions": 3,
+    "deletions": 0
+  },
+  "baseline": "red: three original tests fail at unsupported-host preparation; six inherited unfiltered Runner lint findings; retained controls green",
+  "focused_outcomes": {
+    "top_level_pass": 34,
+    "named_pass": 65,
+    "fail": 0,
+    "skip": 0
+  },
+  "runner_lint": {
+    "baseline_findings": 6,
+    "final_findings": 6,
+    "introduced": 0,
+    "removed": 0,
+    "full_diagnostic_blocks_sha256": "0343dd7822baa18fb03d36e7917bd5c69ff5bd5b6e483f7a0f3c592ae52cb31b"
+  },
+  "command_receipts": [
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/baseline-controls.json",
+      "exit": 0,
+      "elapsed_seconds": 19,
+      "source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+      "post_source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "206c2fb8bb73c5e923617769f23d30f7b23d5ace6a4846cbd5f60dde1507aa4c",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "0e39f3f989ad7da7b4cba028816d57713c4db705d5152989f3121e8ea56e6090",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/baseline-runner-lint.json",
+      "exit": 1,
+      "elapsed_seconds": 23,
+      "source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+      "post_source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "d821448a5b297971d9729cada06cefc798636b6e4ddfc58df462bf7220208d0d",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "be3a3c5632489023f682830b380f6ac5bab661d9cc6769bea9e08c75d885acce",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/baseline-three.json",
+      "exit": 1,
+      "elapsed_seconds": 8,
+      "source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+      "post_source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "e4096edbb09e33400bf4a51355d3bfb3e8e9e80ab39f6d8f4b3592dd30402d56",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "3d6e4d66bee9e111e0ad51cfe98989574fda220ba0041a04bd97494ecc5620ac",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-boundary-reconciliation-corrected.json",
+      "exit": 0,
+      "elapsed_seconds": 2,
+      "source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+      "post_source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "71f8e2ba789c2aaa71dc3efd18af3c737b20f20371cd844a2e391329498672ed",
+      "wrapper_sha256": "4d67887f4dbd41949e2f5b08280d0c7a9a08fb1bc1f28080059473cec64fb0b8",
+      "raw_log_sha256": "ef4a9055ede35cde073c6167260a492bb972b2d7ddc62590af611e4afa35a96b",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-boundary-reconciliation.json",
+      "exit": 255,
+      "elapsed_seconds": 0,
+      "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "68fe0373560cc971cd3b53abdb01dc14242f99c98844127d91c28bc2d561f5b8",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "a07b2920d14594ea0aa509cb24d18529f76ebd64e1e4500e71a0027666a1c565",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-errortype.json",
+      "exit": 0,
+      "elapsed_seconds": 2,
+      "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "8b20661ef84b97fe873e7601adcbff7432cda8adcc85b86409148d4a48ba3a7a",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-fast-lint-materialized.json",
+      "exit": 0,
+      "elapsed_seconds": 61,
+      "source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+      "post_source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "106aa3b0b8bfc26b54f242b1b87b930bba5c7b96c9ea40a008cf1e09fd635ac2",
+      "wrapper_sha256": "4d67887f4dbd41949e2f5b08280d0c7a9a08fb1bc1f28080059473cec64fb0b8",
+      "raw_log_sha256": "4f2d031e7908064ed3db7e5bfdb49987c82dbcb29b7b43aa4b626d06e2bc11db",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-fast-lint.json",
+      "exit": 2,
+      "elapsed_seconds": 0,
+      "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "d2dc187112a60bd5f77c9320b96f95a809ff36ed6f8ced737e9b3323245f13a0",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "2d190be67ab37585d9ed26b2451bdbbeeb3126a536ab1eab7b86b2189a88aaa1",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-focused.json",
+      "exit": 0,
+      "elapsed_seconds": 14,
+      "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "2b02e4a5d95629b679f673427b590b31a1a1c45b3d48456e66fa6c79a701a4dc",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "349f36acf17e13562dcafffb5f72a22b57e4a96ecc035c033032db4743edc45e",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-format-preservation.json",
+      "exit": 0,
+      "elapsed_seconds": 0,
+      "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "ca84744db28f5ce499cdf0f39cc686a1d3c0bcc1e41c0f0b3abc46e70aa9ca16",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "aecf08a9a80a8f3a455ea4b949d0ce22aedb128c41b865c0304cda6922346e52",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-runner-lint-comparison.json",
+      "exit": 0,
+      "elapsed_seconds": 1,
+      "source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+      "post_source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "73e10a40e3415e0f52a81c47439f48f5f5150b66ad2b2929c46b9a32e40e2dff",
+      "wrapper_sha256": "4d67887f4dbd41949e2f5b08280d0c7a9a08fb1bc1f28080059473cec64fb0b8",
+      "raw_log_sha256": "a260cf7bb552647c17ae00008eb2ffcee754724e143a29c3b64582fa8c21f131",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-runner-lint.json",
+      "exit": 1,
+      "elapsed_seconds": 5,
+      "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "bd8a9d4e856d5a76c2735cbef41ef41d8db134403a98d7fd818c38d6f07c359b",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "ba6e65430e6ea890b686b7b73d3544367ffc796f0b902039db89845528186e30",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-supported-darwin-vet.json",
+      "exit": 0,
+      "elapsed_seconds": 2,
+      "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "eb4428e9daf087e4ec4c33fc1242d30c5d3827366e364396307b3d14df8d7d03",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-supported-linux-vet.json",
+      "exit": 0,
+      "elapsed_seconds": 2,
+      "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "cd27640ee62fe579d684e87d4a263f57ea1cb9dceaabe66afcca28b84d05fce4",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post_source_match_exit": 0
+    },
+    {
+      "receipt_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/final-vet.json",
+      "exit": 0,
+      "elapsed_seconds": 2,
+      "source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "post_source_manifest_sha256": "ff78ce644a6b10e8da93c49b0304eb572e879f35dc3a2e36f31edd3c9658d34c",
+      "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+      "environment_sha256": "ed4939cfe3a961558a9d9cc6de4ba6ea4d6d37ae22c288bc1a6c8d429c482aac",
+      "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post_source_match_exit": 0
+    }
+  ],
+  "artifact_script_hashes": [
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/run-control.sh",
+      "sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/run-control-materialized.sh",
+      "sha256": "4d67887f4dbd41949e2f5b08280d0c7a9a08fb1bc1f28080059473cec64fb0b8"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/preserve.pl",
+      "sha256": "83de624f88e7e52e7ed2b44c61f064bdc925157bd21becd22eba5b1cd418e9fe"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/reconcile-boundaries.pl",
+      "sha256": "2c7e1373b726bd36bb4023d3e6df40e6b891c2c4afc549f1844a79786d79a4eb"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/reconcile-current-boundaries.pl",
+      "sha256": "31ef3debbf293edb6ae98be647d2d7f231f2cd3605b928e51b6f1732f188f49c"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/reconcile-final-boundaries.pl",
+      "sha256": "70d34a74a6ccb429ac6fd26ba0abe27cecc38c7af654f655a1432931b7b759a8"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/compare-runner-lint.pl",
+      "sha256": "4bcb7af94d6c30d1a5f1a09ba18415542640d27eb91bb00bf2e081afcdfe4ddd"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-68/evidence.jq",
+      "sha256": "b44cb3e8ea517bf1aab02ed36575770685f4e33a40861660cbdb6801040a9627"
+    }
+  ],
+  "authoritative_spec": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+    "sha256": "851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c"
+  },
+  "checker_binding_limit": "Artifact script hashes were captured after checker execution. Original checker receipts omit the checker bytes and Perl executable from their execution-time manifests; later seals cannot retroactively attest them. The conductor's independent reviewer owns fresh before/after-bound read-only checker observations. Go source/tool/log bindings remain unchanged.",
+  "historical_handover_archives": {
+    "mapping": "binding-review-amendment.md",
+    "historical_seal": "packet-review-seal.sha256",
+    "final_seal": "packet-final-seal.sha256"
+  },
+  "environment_limits": [
+    "Per-command environment files capture selected exported variables, TZ=UTC, the supplied TMPDIR and complete effective outer go env; explicit supported-source-set overrides are retained in argv.",
+    "The materialized successor wrapper adds tests/mixedbrain/go.mod and go.sum to its actual source manifest. Earlier receipts cover the earlier sparse checkout and do not attest those absent inputs.",
+    "Corrected repository fast lint analyzed 55 nested host packages and diff-filtered 50 inherited findings to zero; visible missing proto/internal and chasm/lib find warnings remain. This is no full-root or unfiltered lint pass.",
+    "Tool manifests hash Go/gofmt/lint/errortype and selected command/C binaries. Original checker receipts omit Perl; complete installations, headers, libc and reused cache contents remain unqualified.",
+    "Stock linux/arm64 source tests and cross-platform vet supply no supported-native execution or full native test-host pass."
+  ],
+  "inconclusive_observations": [
+    "final-fast-lint.json exit2 stopped before lint analysis on the missing tests/mixedbrain/go.mod; its raw bytes remain unchanged. Root subsequently materialized the sparse cone before the separately named successor.",
+    "initial-boundary-diagnostic.md retains a read-only exit255 against task66's older manifest after task67 changed runtime_repeatability.go.",
+    "final-boundary-reconciliation.json exit255 discovered that task67's narrower manifest omits two qualification generator inputs. Corrected reconciliation binds those exact unchanged inputs to retained task65 validation and the other552 paths to task67."
+  ],
+  "boundary_reconciliation": {
+    "receipt": "final-boundary-reconciliation-corrected.json",
+    "current_task67_inputs": 552,
+    "unchanged_task65_qualification_inputs": 2,
+    "task66_drift": "Only task67's admitted internal/gomadtool/conformance/runtime_repeatability.go correction differs from the older inventory.",
+    "claim": "Exact actual consumed-input reconciliation only. Current supported-source-set Runner vet covers the changed test body; prior generator/private-API/public-consumer evidence is reused only for its unchanged consumed inputs."
+  },
+  "remaining_requirements": [
+    "Root-owned frozen 673-name ordinary comparison and complete original-base RED50 lint-block comparison.",
+    "Fresh independent handover/integrated review, commit authorization, integration and lifecycle updates remain conductor-owned.",
+    "Six unfiltered affected lint findings keep task-owned source acceptance open. Fast diff lint and standalone errortype do not make the aggregate gate green.",
+    "Original fn-109.63/fn-112.10 source acceptance and unaffected retained obligations remain open wherever unproved; fn-128/fn-149 native qualification stays deferred and unverified."
+  ],
+  "handles_terminal": true,
+  "lane_released": true,
+  "review": "Conductor-owned. The worker issued no review verdict.",
+  "commit_authority": "Await conductor approval after independent final evidence review."
+}

@@ -1,0 +1,25 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-fixtures",
+  "argv": [
+    "make",
+    "lint-code-fast",
+    "GOLANGCI_LINT_BASE_REV=7727b062b0c263046f0409e8f9d6cf5e58e7c0ef",
+    "GOLANGCI_LINT_FIX=false",
+    "ALL_TEST_TAGS=test_dep",
+    "LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "exit": 0,
+  "started": "2026-10-10T02:08:42Z",
+  "ended": "2026-10-10T02:09:43Z",
+  "elapsed_seconds": 61,
+  "head": "7727b062b0c263046f0409e8f9d6cf5e58e7c0ef",
+  "source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+  "post_source_manifest_sha256": "a3a3e9438ce2096df181b4f19e82606367f904846290880d13e7ffc9ef04a944",
+  "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+  "wrapper_sha256": "4d67887f4dbd41949e2f5b08280d0c7a9a08fb1bc1f28080059473cec64fb0b8",
+  "environment_sha256": "106aa3b0b8bfc26b54f242b1b87b930bba5c7b96c9ea40a008cf1e09fd635ac2",
+  "raw_log_sha256": "4f2d031e7908064ed3db7e5bfdb49987c82dbcb29b7b43aa4b626d06e2bc11db",
+  "post_source_match_exit": 0
+}

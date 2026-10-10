@@ -1,0 +1,28 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/choice-fixtures",
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-json",
+    "./runner",
+    "-run",
+    "^TestRunChoiceExploration(ExecutesRootAndEveryNonSelectedRank|DivergingPrefixRetainsCompletedRound|ExpandsCompleteTargetFailures)$"
+  ],
+  "exit": 1,
+  "started": "2026-10-10T01:58:12Z",
+  "ended": "2026-10-10T01:58:20Z",
+  "elapsed_seconds": 8,
+  "head": "7727b062b0c263046f0409e8f9d6cf5e58e7c0ef",
+  "source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+  "post_source_manifest_sha256": "4eefafb551d92453d28b7daa644624d01d879b0c8932b13e6e76d97020fc8d58",
+  "tools_manifest_sha256": "adcc94f13cc1b040d2c1dda3b0e7b3a75e65931e74e1ed31995bcfef32d6ebcf",
+  "wrapper_sha256": "f1b90cffe72b745327b5b20f3c4cc836cbc857613252bd6f08536903caf501ed",
+  "environment_sha256": "e4096edbb09e33400bf4a51355d3bfb3e8e9e80ab39f6d8f4b3592dd30402d56",
+  "raw_log_sha256": "3d6e4d66bee9e111e0ad51cfe98989574fda220ba0041a04bd97494ecc5620ac",
+  "post_source_match_exit": 0
+}
