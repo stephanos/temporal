@@ -1,0 +1,20 @@
+{
+  "gate": "final-static-darwin-arm64",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins/tools/gomad3",
+  "started": "2026-10-10T01:32:59Z",
+  "finished": "2026-10-10T01:33:01Z",
+  "elapsed_seconds": 2,
+  "exit": 0,
+  "command": [
+    "env",
+    "GOOS=darwin",
+    "GOARCH=arm64",
+    "CGO_ENABLED=0",
+    "go",
+    "vet",
+    "-tags",
+    "test_dep",
+    "./internal/gomadtool/conformance",
+    "./runner/internal/execution"
+  ]
+}

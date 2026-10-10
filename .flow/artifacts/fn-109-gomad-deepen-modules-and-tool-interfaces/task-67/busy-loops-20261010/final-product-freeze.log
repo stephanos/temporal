@@ -1,0 +1,4 @@
+tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go: OK
+tools/gomad3/runner/internal/execution/process_test.go: OK
+tools/gomad3/internal/gomadtool/conformance/cpu_load_lifecycle_test.go: OK
+tools/gomad3/runner/internal/execution/unresponsive_supervisor_lifecycle_test.go: OK

@@ -1,0 +1,17 @@
+{
+  "gate": "final-fast-lint",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins",
+  "started": "2026-10-10T01:33:21Z",
+  "finished": "2026-10-10T01:33:37Z",
+  "elapsed_seconds": 16,
+  "exit": 0,
+  "command": [
+    "make",
+    "lint-code-fast",
+    "GOLANGCI_LINT_BASE_REV=b32dad53fc544ab75d56f6b9c41fba9b99a75858",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "ALL_TEST_TAGS=test_dep"
+  ]
+}

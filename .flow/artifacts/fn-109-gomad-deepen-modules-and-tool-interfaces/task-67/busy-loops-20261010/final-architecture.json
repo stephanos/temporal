@@ -1,0 +1,17 @@
+{
+  "gate": "final-architecture",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins/tools/gomad3",
+  "started": "2026-10-10T01:30:25Z",
+  "finished": "2026-10-10T01:32:31Z",
+  "elapsed_seconds": 126,
+  "exit": 0,
+  "command": [
+    "go",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-v",
+    "./internal/gomadtool/architecture"
+  ]
+}

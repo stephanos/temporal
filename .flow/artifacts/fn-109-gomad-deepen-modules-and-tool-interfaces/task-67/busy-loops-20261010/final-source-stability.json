@@ -1,0 +1,13 @@
+{
+  "gate": "final-source-stability",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins",
+  "started": "2026-10-10T01:34:01Z",
+  "finished": "2026-10-10T01:34:02Z",
+  "elapsed_seconds": 1,
+  "exit": 0,
+  "command": [
+    "sha256sum",
+    "-c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/busy-loops-20261010/final-sources.sha256"
+  ]
+}

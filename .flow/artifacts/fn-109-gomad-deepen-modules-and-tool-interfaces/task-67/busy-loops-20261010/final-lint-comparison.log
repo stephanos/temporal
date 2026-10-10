@@ -1,0 +1,11 @@
+{
+  "before": 11,
+  "after": 9,
+  "removed": [
+    "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go:310:5: SA5004: should not have an empty default case in a for+select loop; the loop will spin (staticcheck)\n\t\t\t\tdefault:\n\t\t\t\t^",
+    "tools/gomad3/runner/internal/execution/process_test.go:1432:2: SA5002: this loop will spin, using 100% CPU (staticcheck)\n\tfor {\n\t^"
+  ],
+  "introduced": [],
+  "preserved_complete_blocks": 9,
+  "exact_admitted_removal": true
+}

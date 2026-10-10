@@ -1,0 +1,28 @@
+{
+  "commits": [],
+  "base_commit": "b32dad53fc544ab75d56f6b9c41fba9b99a75858",
+  "tests": [
+    "'/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0' 'run' '--build-tags=test_dep' '--timeout=10m' '--fix=false' '--config=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins/.github/.golangci.yml' './internal/gomadtool/conformance' './runner/internal/execution'",
+    "'go' 'test' '-tags' 'test_dep' '-count=1' '-v' '-run=^TestCPULoadWorkerLifecycle$' './internal/gomadtool/conformance'",
+    "'go' 'test' '-tags' 'test_dep' '-count=1' '-v' '-run=^(TestUnresponsiveSupervisorLifecycle|TestRunBoundsUnresponsiveSupervisor)$' './runner/internal/execution'",
+    "'go' 'test' '-tags' 'test_dep' '-count=1' '-v' '-run=^TestCPULoadWorkerLifecycle$' './internal/gomadtool/conformance'",
+    "'go' 'test' '-tags' 'test_dep' '-count=1' '-v' '-run=^(TestUnresponsiveSupervisorLifecycle|TestRunBoundsUnresponsiveSupervisor)$' './runner/internal/execution'",
+    "'go' 'test' '-tags' 'test_dep' '-count=1' '-v' './internal/gomadtool/architecture'",
+    "'go' 'test' '-tags' 'test_dep' '-count=1' '-v' '-run=^TestPackageArchitecture$' '.'",
+    "'make' '-C' 'tools/gomad3' 'validate'",
+    "'go' 'vet' '-tags' 'test_dep' './internal/gomadtool/conformance' './runner/internal/execution'",
+    "'go' 'vet' '-tags' 'test_dep' '-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype' '-style-check=false' './internal/gomadtool/conformance' './runner/internal/execution'",
+    "'env' 'GOOS=darwin' 'GOARCH=arm64' 'CGO_ENABLED=0' 'go' 'vet' '-tags' 'test_dep' './internal/gomadtool/conformance' './runner/internal/execution'",
+    "'env' 'GOOS=linux' 'GOARCH=amd64' 'CGO_ENABLED=0' 'go' 'vet' '-tags' 'test_dep' './internal/gomadtool/conformance' './runner/internal/execution'",
+    "'/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0' 'run' '--build-tags=test_dep' '--timeout=10m' '--fix=false' '--config=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins/.github/.golangci.yml' './internal/gomadtool/conformance' './runner/internal/execution'",
+    "'python3' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/busy-loops-20261010/compare-lint.py' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/busy-loops-20261010/baseline-lint.log' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/busy-loops-20261010/final-lint.log'",
+    "'make' 'lint-code-fast' 'GOLANGCI_LINT_BASE_REV=b32dad53fc544ab75d56f6b9c41fba9b99a75858' 'GOLANGCI_LINT_FIX=false' 'GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0' 'ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype' 'ALL_TEST_TAGS=test_dep'",
+    "'bash' '-c' 'set -e; format_changes=$(gofmt -l \"$@\"); if test -n \"$format_changes\"; then printf \"%s\\n\" \"$format_changes\"; exit 1; fi' '--' 'tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go' 'tools/gomad3/runner/internal/execution/process_test.go' 'tools/gomad3/internal/gomadtool/conformance/cpu_load_lifecycle_test.go' 'tools/gomad3/runner/internal/execution/unresponsive_supervisor_lifecycle_test.go'",
+    "'python3' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/busy-loops-20261010/check-preservation.py'",
+    "'sha256sum' '-c' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/busy-loops-20261010/final-sources.sha256'",
+    "'sha256sum' '-c' '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/busy-loops-20261010/frozen-product.sha256'",
+    "'git' 'diff' '--check'",
+    "INCONCLUSIVE: initial baseline-supervisor shell launch exited 2 before wrapper/Go; raw error retained in baseline-supervisor-launch-error.log"
+  ],
+  "prs": []
+}

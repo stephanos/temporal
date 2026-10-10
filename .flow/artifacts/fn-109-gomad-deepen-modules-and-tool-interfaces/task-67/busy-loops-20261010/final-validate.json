@@ -1,0 +1,14 @@
+{
+  "gate": "final-validate",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins",
+  "started": "2026-10-10T01:32:40Z",
+  "finished": "2026-10-10T01:32:47Z",
+  "elapsed_seconds": 7,
+  "exit": 0,
+  "command": [
+    "make",
+    "-C",
+    "tools/gomad3",
+    "validate"
+  ]
+}

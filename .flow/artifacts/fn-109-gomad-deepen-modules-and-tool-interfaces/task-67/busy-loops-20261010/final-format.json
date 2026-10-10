@@ -1,0 +1,18 @@
+{
+  "gate": "final-format",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins",
+  "started": "2026-10-10T01:34:01Z",
+  "finished": "2026-10-10T01:34:01Z",
+  "elapsed_seconds": 0,
+  "exit": 0,
+  "command": [
+    "bash",
+    "-c",
+    "set -e; format_changes=$(gofmt -l \"$@\"); if test -n \"$format_changes\"; then printf \"%s\\n\" \"$format_changes\"; exit 1; fi",
+    "--",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go",
+    "tools/gomad3/runner/internal/execution/process_test.go",
+    "tools/gomad3/internal/gomadtool/conformance/cpu_load_lifecycle_test.go",
+    "tools/gomad3/runner/internal/execution/unresponsive_supervisor_lifecycle_test.go"
+  ]
+}

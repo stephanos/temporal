@@ -1,0 +1,18 @@
+{
+  "gate": "baseline-load",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins/tools/gomad3",
+  "started": "2026-10-10T01:27:11Z",
+  "finished": "2026-10-10T01:27:12Z",
+  "elapsed_seconds": 1,
+  "exit": 0,
+  "command": [
+    "go",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-v",
+    "-run=^TestCPULoadWorkerLifecycle$",
+    "./internal/gomadtool/conformance"
+  ]
+}

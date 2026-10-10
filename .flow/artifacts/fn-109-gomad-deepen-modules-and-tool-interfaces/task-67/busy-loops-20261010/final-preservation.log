@@ -1,0 +1,14 @@
+{
+  "base": "b32dad53fc544ab75d56f6b9c41fba9b99a75858",
+  "original_files_exact_except_admitted_edits": [
+    "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go",
+    "tools/gomad3/runner/internal/execution/process_test.go"
+  ],
+  "product_scope": [
+    "tools/gomad3/internal/gomadtool/conformance/cpu_load_lifecycle_test.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go",
+    "tools/gomad3/runner/internal/execution/process_test.go",
+    "tools/gomad3/runner/internal/execution/unresponsive_supervisor_lifecycle_test.go"
+  ],
+  "unexpected_paths": []
+}

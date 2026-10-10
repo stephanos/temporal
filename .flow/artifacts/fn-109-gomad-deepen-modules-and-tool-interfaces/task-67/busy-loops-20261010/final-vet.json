@@ -1,0 +1,16 @@
+{
+  "gate": "final-vet",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins/tools/gomad3",
+  "started": "2026-10-10T01:32:51Z",
+  "finished": "2026-10-10T01:32:52Z",
+  "elapsed_seconds": 1,
+  "exit": 0,
+  "command": [
+    "go",
+    "vet",
+    "-tags",
+    "test_dep",
+    "./internal/gomadtool/conformance",
+    "./runner/internal/execution"
+  ]
+}

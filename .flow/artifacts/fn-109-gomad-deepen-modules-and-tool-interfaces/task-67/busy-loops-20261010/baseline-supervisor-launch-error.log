@@ -1,0 +1,2 @@
+bash: -c: line 1: syntax error near unexpected token `('
+bash: -c: line 1: `cd /Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins && bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/busy-loops-20261010/run-gate.sh baseline-supervisor tools/gomad3 go test -tags test_dep -count=1 -v -run=\^(TestUnresponsiveSupervisorLifecycle\|TestRunBoundsUnresponsiveSupervisor)\$ ./runner/internal/execution'

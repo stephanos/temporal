@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -1429,6 +1430,8 @@ func TestUnresponsiveSupervisorHelper(t *testing.T) {
 	if os.Getenv("GOMAD3_PROCESS_SUPERVISOR") != "1" {
 		t.Skip("supervisor subprocess only")
 	}
+	var activity atomic.Uint64
 	for {
+		activity.Add(1)
 	}
 }

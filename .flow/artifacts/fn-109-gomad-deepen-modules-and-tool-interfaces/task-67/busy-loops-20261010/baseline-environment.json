@@ -1,0 +1,13 @@
+{
+  "gate": "baseline-environment",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins",
+  "started": "2026-10-10T01:27:02Z",
+  "finished": "2026-10-10T01:27:03Z",
+  "elapsed_seconds": 1,
+  "exit": 0,
+  "command": [
+    "bash",
+    "-c",
+    "go version; go env GOOS GOARCH GOROOT GOENV GOWORK GOTOOLCHAIN GOEXPERIMENT GOFLAGS GOPROXY GOSUMDB GOCACHE GOMODCACHE CGO_ENABLED CC CXX; cc --version"
+  ]
+}

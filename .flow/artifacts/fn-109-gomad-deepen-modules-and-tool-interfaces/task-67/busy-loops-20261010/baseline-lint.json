@@ -1,0 +1,18 @@
+{
+  "gate": "baseline-lint",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins/tools/gomad3",
+  "started": "2026-10-10T01:27:03Z",
+  "finished": "2026-10-10T01:27:06Z",
+  "elapsed_seconds": 3,
+  "exit": 1,
+  "command": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "run",
+    "--build-tags=test_dep",
+    "--timeout=10m",
+    "--fix=false",
+    "--config=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/spins/.github/.golangci.yml",
+    "./internal/gomadtool/conformance",
+    "./runner/internal/execution"
+  ]
+}

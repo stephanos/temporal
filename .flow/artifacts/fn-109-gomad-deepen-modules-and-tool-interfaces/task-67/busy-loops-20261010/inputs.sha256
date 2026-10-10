@@ -1,0 +1,10 @@
+851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c  /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md
+7025596ae4c98a17cc23fcebb6b873295cfb2f2e26e8a77b9abc6623933f565a  .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.67.md
+7c4130f7fa88487544c9527216105f07867190d5f7ddcad2532ca4c7f6cf2e2f  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/admission.md
+31234acf0d2ce370d26c50c8bc409016a45d29de9b5ca00890b5dc74d2f4fac6  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/description.md
+36d893d7ac4ffcfacb75bd0f64881dd01f7e409d26a220fc09411136c3876117  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/acceptance.md
+583de5b19fecd9c6fcf106f9ae8deb412a626fd9b02d248a86a46c778a73c711  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-64-65/spinning-loop-research.md
+157f8bf36594b6f9580721cc3b4d09af858c63dc9e2b501fffb990e0a942152f  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/busy-loops-20261010/run-gate.sh
+acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc  /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0
+db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc  /tmp/fn109-lint-tools.ZdNe1t50/errortype
+1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go

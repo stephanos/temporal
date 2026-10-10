@@ -1,0 +1,7 @@
+# Task 67 checkpoint binding
+
+The conductor authorized a local source-progress checkpoint after its independent source and receipt reviews. The four staged product blobs match `busy-loops-20261010/frozen-product.sha256`; the retained source manifest and all 56 sealed packet files verify unchanged. Cached paths are limited to the four admitted product paths and this task's artifact directory.
+
+Full staged whitespace checking exits 2 solely on `busy-loops-20261010/baseline-environment.log:21`, a blank line at EOF in the captured C-compiler version output. The sealed raw receipt remains unchanged. Product-only staged whitespace checking exits 0. Staged whitespace checking across all paths, excluding only that exact raw log, also exits 0. The conductor permits this single archival raw-output warning; source and lint requirements remain unchanged. This archival warning is additional checkpoint evidence and does not replace the earlier product diff-check observation.
+
+The sealed summary and evidence retain their original capture-time uncommitted HEAD, base b32dad53fc544ab75d56f6b9c41fba9b99a75858 and empty commits list. The conductor records the later checkpoint mapping separately. Source acceptance remains in_progress, the shared execution lane is released and all worker command handles are terminal. This checkpoint runs no Go gate or formal review and changes no Flow lifecycle state.

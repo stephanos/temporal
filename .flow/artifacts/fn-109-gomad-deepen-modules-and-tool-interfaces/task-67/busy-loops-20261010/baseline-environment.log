@@ -1,0 +1,21 @@
+go version go1.27.1 linux/arm64
+linux
+arm64
+/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64
+
+off
+local
+
+
+file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download
+off
+/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache
+/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc
+1
+gcc
+g++
+cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+Copyright (C) 2025 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+

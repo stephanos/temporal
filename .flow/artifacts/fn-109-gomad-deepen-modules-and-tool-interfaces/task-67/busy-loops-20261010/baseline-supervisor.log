@@ -1,0 +1,6 @@
+=== RUN   TestRunBoundsUnresponsiveSupervisor
+--- PASS: TestRunBoundsUnresponsiveSupervisor (0.23s)
+=== RUN   TestUnresponsiveSupervisorLifecycle
+--- PASS: TestUnresponsiveSupervisorLifecycle (0.30s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.535s

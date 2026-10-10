@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
@@ -293,7 +294,7 @@ func (campaign *runtimeCampaign) runSeededGoTest(seed string, iteration int) (st
 }
 
 func startCPULoadWorkers(count int) (func() error, error) {
-	stop := make(chan struct{})
+	var stopped atomic.Bool
 	started := make(chan struct{}, count)
 	var workers sync.WaitGroup
 	workers.Add(count)
@@ -303,12 +304,7 @@ func startCPULoadWorkers(count int) (func() error, error) {
 			defer runtime.UnlockOSThread()
 			defer workers.Done()
 			started <- struct{}{}
-			for {
-				select {
-				case <-stop:
-					return
-				default:
-				}
+			for !stopped.Load() {
 			}
 		}()
 	}
@@ -316,7 +312,7 @@ func startCPULoadWorkers(count int) (func() error, error) {
 		select {
 		case <-started:
 		case <-time.After(time.Second):
-			close(stop)
+			stopped.Store(true)
 			workers.Wait()
 			return nil, errors.New("gomad3 host-load worker failed to start")
 		}
@@ -324,7 +320,7 @@ func startCPULoadWorkers(count int) (func() error, error) {
 	var once sync.Once
 	return func() error {
 		once.Do(func() {
-			close(stop)
+			stopped.Store(true)
 			workers.Wait()
 		})
 		return nil
