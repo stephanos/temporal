@@ -4,28 +4,32 @@ satisfies: [R11]
 # fn-155-gomad-syscall-level-io-boundary-from.8 Admit the syscall edge's socket entry points in the capability guard and closure policy under the boundary
 
 ## Description
-Admit the socket entry points the syscall edge models, under the boundary profile only, in both of Gomad's capability layers: the compile-time guard prologue on exported `syscall`/`golang.org/x/sys` functions (guarded mode) and the closure policy that rejects third-party packages importing them (closure mode). Without this, upstream `net` and unadapted gRPC throw `GOMAD_CAPABILITY_DENIED` or fail preparation before reaching the edge. Split from .1/.2 because it changes capability policy and generated protocol code, a separate review surface.
+Admit exactly the socket entries served by .1's edge under the checked boundary profile from .2. Guarded-mode compiler admission and closure-mode source receipts must contain every admitted operation, while default syscall/x/sys denials remain unchanged. This owner changes capability policy and generated protocol code; it does not grant generic import or trap access.
 
 **Size:** M
-**Files:** `internal/gomadtool/generation/protocol/protocol.go` (source of the guard exemptions and forbidden imports), regenerated `toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go`, `toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go`, `toolchain/runtime/overlay/src/runtime/gomad.go` (`gomadCapabilityGuard`), `target/internal/capabilitypolicy/policy.go`, `target/target.go`, `deterministicio/profile.go` (bind admission into the boundary profile's identity); tests.
-**Touches:** [tools/gomad3/internal/gomadtool/generation/protocol/**, tools/gomad3/toolchain/runtime/overlay/src/cmd/**, tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go, tools/gomad3/target/**, tools/gomad3/deterministicio/profile.go]
+**Files:** protocol generation, compiler gomadguard and runtime guard, target source collector and pure capability policy, prepared evidence/cache, profile identity, optional inline record source receipt; adjacent tests.
+**Touches:** [tools/gomad3/internal/gomadtool/generation/protocol/**, tools/gomad3/toolchain/runtime/overlay/src/cmd/**, tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go, tools/gomad3/target/**, tools/gomad3/deterministicio/profile.go, tools/gomad3/record/types.go, tools/gomad3/record/identity.go, tools/gomad3/record/validation.go, tools/gomad3/record/record_test.go, tools/gomad3/choice/internal/wire/wire_generated.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go, tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go]
 
 ### Approach
-- Define the admitted set from what the edge models (socket, bind, listen, accept, connect, read, write, writev, close, shutdown, fcntl, get/setsockopt, getsockname/getpeername, plus the generic `Syscall*`/`syscall6` entries reaching them). Everything else in `syscall`/`x/sys` stays denied.
-- Guarded mode: `gomadCapabilityGuard` (`runtime/gomad.go:217-221`) throws unconditionally when Gomad is enabled. Make the admitted entry points pass only when the run selected the boundary (runtime flag from .2), and only on the paths the edge serves; keep `IsGuardExempt` (`protocol_generated.go:120-144`) generated from the protocol source, not hand-edited.
-- Closure mode: `capabilitypolicy/policy.go:131-133` flags non-standard packages importing `syscall`/`x/sys`; `target.go:703-704` makes that a preparation failure. Under the boundary profile, admit those imports when the reachable calls are in the admitted set, and record the admission in the prepared target's evidence and the profile identity (memory: profile-adapter-changes-leave-libc-2026-10-01 — identity must change with policy).
-- Keep the boundary-off path unchanged in behavior: the same denials, findings and errors.
+- Follow [selection-admission-design.md](../artifacts/fn-155-gomad-syscall-level-io-boundary-from/selection-admission-design.md). This description-only admission changes no acceptance, dependency or task status; implementation waits for .2.
+- Generate the admitted table from .1's actual platform-specific routes. Bind exact entry/signature, wrapper and bridge body digests, operation and argument roles into the selected profile only. Review pure helpers separately from effectful socket entries. Keep the ordinary unconditional guard on every unreviewed entry.
+- Entry-specific conditional guards preserve operation/descriptor-role, inherited/reserved/stale descriptor, address, option/length and fcntl refusal at the edge. Generic-entry guard prefixes must be verified nosplit scalar leaves or run after joint typed pointer handoff. Reuse actual moving-stack fixtures with guard instrumentation; returning from a profile-wide guard is insufficient.
+- Collect executable references across the complete compiled application source set, including dead functions, initializers, aliases/dot imports, function values and indirect calls. Join proved function sets conservatively. Unresolved targets, unsafe/reflection/linkname constructions and generic traps without exact operation proof retain their existing source finding. Keep the collector effectful and capabilitypolicy a pure evaluator.
+- Treat pinned Go 1.27.1 syscall and golang.org/x/sys v0.47.0 as reviewed boundary substrate through exact source/foreign inventories, sums, wrapper/bridge summaries and init proof. Darwin x/sys has its own trampoline targets; Linux forwarding must terminate at reviewed stdlib entries. Direct no-error assembly, unknown variants and changed bodies stay denied. A socket plus Kill reference remains rejected even in dead code; whole-file approval grants no general API access.
+- Retain normalized bounded source-admission evidence in CapabilityClosure, provenance/cache review and Prepared.Record. Add an omitted-by-default inline record.Target receipt, distinct from CapabilityManifest, with selection/profile/policy, source/package/entry summary and init-order identities. Preserve closure-mode refusal of linked manifests and default canonical bytes. Identity/cloning/validation and replay reject missing or mutated required proof before execution; refuse proof overflow rather than truncating it.
+- Regenerate exact admitted outputs; hash every admission implementation input. The listed record and choice-wire paths supplement the existing target/compiler/protocol scope. Name any new runtime hook, syscall fixture or patch/version path before editing it.
+- Keep the excluded-adapter gRPC closure success requirement open until the actual closure passes. No exception waives nonnetwork references, unknown initialization or forwarding. Source checks and native containment/guard execution remain separate evidence.
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go:25-37`
-- `tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go:99-144`
-- `tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:217-221`
-- `tools/gomad3/target/internal/capabilitypolicy/policy.go:131-133`
-- `tools/gomad3/target/target.go:703-728`
+- `tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go`
+- `tools/gomad3/internal/gomadtool/generation/protocol/protocol.go`
+- `tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go`
+- `tools/gomad3/target/internal/capabilitypolicy/policy.go` and target source/provenance/cache owners
+- `tools/gomad3/record/types.go`, `identity.go` and `validation.go`
+- .1's final syscall edge and pointer/readiness audit reports
 **Optional:**
-- `tools/gomad3/deterministicio/grpc_adapter.go:62-78` — what the adapter strips today
-
+- `tools/gomad3/deterministicio/grpc_adapter.go`
 ## Acceptance
 - [ ] Boundary off: guarded-mode and closure-mode tests show unchanged denials for `syscall`/`x/sys` entry points and imports.
 - [ ] Boundary on, guarded mode: upstream `net` TCP and unadapted gRPC's keepalive `x/sys` socket-option call run without `GOMAD_CAPABILITY_DENIED`; a non-modeled entry point (e.g. `syscall.Kill`) still throws.

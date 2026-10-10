@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.8.md",
   "status": "todo",
   "title": "Admit the syscall edge's socket entry points in the capability guard and closure policy under the boundary",
-  "updated_at": "2026-10-10T02:12:51.765894Z"
+  "updated_at": "2026-10-10T07:43:38.242528Z"
 }
