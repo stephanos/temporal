@@ -314,6 +314,21 @@ CI, PR, or push authority.
 | [fn-110.4](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md) | ⬜ Todo | Emit the canonical one-context-line patch and pin regeneration to the descriptor |
 | [fn-110.5](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.5.md) | ⬜ Todo | Qualify the final candidate and publish measurements and guidance |
 
+<a id="syscall-boundary-fn-155"></a>
+
+## Syscall-level I/O boundary — [fn-155](.flow/specs/fn-155-gomad-syscall-level-io-boundary-from.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-155.1](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.1.md) | 🚧 In progress | Port the virtual descriptor layer and syscall edge onto the Gomad toolchain |
+| [fn-155.2](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.2.md) | ⬜ Todo | Select the boundary and adapter exclusions per run; bind into artifact identity |
+| [fn-155.3](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.3.md) | ⬜ Todo | Record descriptor I/O; prove same-seed determinism for a single-process gRPC workload |
+| [fn-155.4](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.4.md) | ⬜ Todo | Serve multi-node simulation traffic through virtual descriptors in both backends |
+| [fn-155.5](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.5.md) | ⬜ Todo | Soak single-process and multi-node workloads with the boundary on |
+| [fn-155.6](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.6.md) | ⬜ Todo | Classify the 15 adapters and run network adapters excluded |
+| [fn-155.7](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.7.md) | ⬜ Todo | Measure size, record the files/DNS decision and annotate dependent work |
+| [fn-155.8](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.8.md) | ⬜ Todo | Admit the edge's socket entry points in capability guard and closure policy |
+
 <a id="quality-assessment-2026-10-01"></a>
 
 ## Determinism assurance and test strategy — [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md)

@@ -28,6 +28,12 @@ The internal switch remains off by default. Test fixtures may explicitly link ne
 
 The shared Go/build/lint/generator lane was released after task 72's checks. Grant it to the admitted .1 worker only; independent read-only preparation may run concurrently. Do not reuse task 72's Runner results as an fn-155 baseline or claim a green tree: that capture still has 164 Runner failures and 50 full-lint findings.
 
+## Dispatch
+
+The planning and prepared design are committed at `9f18f43e2127d3b448da3ca18f465e469eb1883c`. The worktree kit created the new branch `fn-155-gomad-syscall-level-io-boundary-from` from that exact local commit at `.worktrees/fn-155-gomad-syscall-level-io-boundary-from`, without changing the primary branch or deleting any existing worktree. `flowctl spec chain` reported eligible with no open parent. The isolated checkout was clean before dispatch; its run base is retained in its ignored `.flow/tmp/spec_base`.
+
+Scheduling is a one-task wave: the ready frontier and selected wave are both [.1], with one worker in the dedicated worktree. Root claimed .1 at `2026-10-10T06:37:19.059488Z`. `flowctl judge` returned `jev-unavailable(no_key)` and no observed execution model; the project implementer route requests gpt-6.1-sol/high. The root dispatched `/root/fn1551_syscall_port` in a fresh context, granted it the sole Go/build/lint/generator lane, and retained shared lifecycle and acceptance ownership. Tracker sync is inactive. No task reached Done at admission.
+
 ## Worktree cleanup request
 
 The read-only inventory found no registered worktree or nested `.git` entry beneath the primary `.flow` directory. Its three file symlinks belong to retained refresh fixtures. No worktree, artifact, cache, branch or evidence was deleted. Worktrees elsewhere are outside the requested cleanup scope.
