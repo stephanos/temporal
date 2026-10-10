@@ -368,6 +368,11 @@ ambiguity, and pause/resume exceeds its correlated per-event work ceiling. Batch
 retains failure evidence for all three; its structural equivalence proof does not discharge them. None is waived or
 counted as passing evidence. Tasks fn-128.7 and .8 own the latter two corrections; the completion
 ambiguity has no scheduled correction yet.
+The [completion diagnosis](.flow/tmp/completion-trace/report.md) traces the worker and by-ID
+responses to identical recorded facts. The worker's offered response is not server acceptance;
+the correction needs truthful response-source evidence, with terminal status retained. The same
+source distinction must be resolved before fn-128.7's fatal classification can establish its
+worker-only Property. Join those source changes before fn-128.8 seals final Case/Profile bounds.
 The independently reviewed correction plan seals fn-138's original/adopted R3 comparison before
 fn-129 changes Source, then runs fn-128.7 and .8 as disjoint parallel candidates after fn-129.4.
 The close checks every authored expected status/reason exactly, including the retained retry
