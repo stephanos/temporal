@@ -1,0 +1,9 @@
+{
+  "exit": 3,
+  "host_session": 89944,
+  "first_receipt": "baseline-runner-lint-retained-environment-proof.json",
+  "first_actual_inputs": "baseline-three raw environment pair",
+  "failure": "jq -s input_filename labeled all three records with the final input filename. The second wrapper call rejected an occupied output name before a command ran.",
+  "preservation": "The successful first receipt and both raw inputs remain unchanged. Corrected distinct names verify the remaining pairs. No Go baseline command is repeated.",
+  "historical_limit": "Current retained-byte proof cannot retroactively bind the original baseline helper input window."
+}

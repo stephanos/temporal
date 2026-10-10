@@ -1,0 +1,28 @@
+{
+  "exit": 0,
+  "started": "2026-10-10T04:29:32Z",
+  "ended": "2026-10-10T04:29:32Z",
+  "elapsed_seconds": 0,
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion",
+  "before": "ABSENT",
+  "after": "ignored symlink",
+  "target": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success/tools/gomad3/.toolchain/generator-cache",
+  "path": "tools/gomad3/.toolchain/generator-cache",
+  "tools_before": "04f7917be4e08be21404c72d5915063234b91734581b24a23d1aea120fa3371d  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/setup-tools-before.sha256",
+  "tools_after": "04f7917be4e08be21404c72d5915063234b91734581b24a23d1aea120fa3371d  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/setup-tools-after.sha256",
+  "raw_log": "f8e660bc6e26e9d082b9f01ee21e081428cd36fd3b21cb77643f95c0617e9e03  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/setup-generator-cache.log",
+  "operations": [
+    [
+      "mkdir",
+      "-p",
+      "tools/gomad3/.toolchain"
+    ],
+    [
+      "ln",
+      "-s",
+      "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success/tools/gomad3/.toolchain/generator-cache",
+      "tools/gomad3/.toolchain/generator-cache"
+    ]
+  ],
+  "cache_contents_qualified": false
+}

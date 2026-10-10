@@ -1,0 +1,53 @@
+make-kind=root
+make-parse-and-recipe-PATH=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion//tmp/fn109-lint-tools.ZdNe1t50:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Make lintcode descendant parse-and-recipe-PATH=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion//tmp/fn109-lint-tools.ZdNe1t50:/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion//tmp/fn109-lint-tools.ZdNe1t50:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0y0LcAu:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Make descendant selected=go path=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go resolved=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+Make descendant selected=git path=/usr/bin/git resolved=/usr/bin/git
+Make descendant selected=make path=/usr/bin/make resolved=/usr/bin/make
+Make descendant selected=find path=/usr/bin/find resolved=/usr/bin/find
+Make descendant selected=grep path=/usr/bin/grep resolved=/usr/bin/grep
+Make descendant selected=rm path=/usr/bin/rm resolved=/usr/bin/gnurm
+Make selected=go path=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go resolved=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+Make prefix-shadow ABSENT path=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion//tmp/fn109-lint-tools.ZdNe1t50/go
+Make selected=git path=/usr/bin/git resolved=/usr/bin/git
+Make prefix-shadow ABSENT path=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion//tmp/fn109-lint-tools.ZdNe1t50/git
+Make selected=make path=/usr/bin/make resolved=/usr/bin/make
+Make prefix-shadow ABSENT path=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion//tmp/fn109-lint-tools.ZdNe1t50/make
+Make selected=find path=/usr/bin/find resolved=/usr/bin/find
+Make prefix-shadow ABSENT path=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion//tmp/fn109-lint-tools.ZdNe1t50/find
+Make selected=grep path=/usr/bin/grep resolved=/usr/bin/grep
+Make prefix-shadow ABSENT path=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion//tmp/fn109-lint-tools.ZdNe1t50/grep
+Make selected=rm path=/usr/bin/rm resolved=/usr/bin/gnurm
+Make prefix-shadow ABSENT path=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion//tmp/fn109-lint-tools.ZdNe1t50/rm
+Make SHELL literal=/bin/sh link=dash resolved=/usr/bin/dash
+generator-cache literal=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success/tools/gomad3/.toolchain/generator-cache resolved=/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/retained-success/tools/gomad3/.toolchain/generator-cache
+literal=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go resolved=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+literal=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt resolved=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt
+literal=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 resolved=/Users/stephan/Workspace/skunkworks/.gomad-source-tools-storage-FD1TAR/golangci-lint-v2.13.0
+literal=/tmp/fn109-lint-tools.ZdNe1t50/errortype resolved=/tmp/fn109-lint-tools.ZdNe1t50/errortype
+literal=/usr/bin/perl resolved=/usr/bin/perl
+literal=/usr/bin/gcc resolved=/usr/bin/aarch64-linux-gnu-gcc-15
+literal=/usr/bin/g++ resolved=/usr/bin/aarch64-linux-gnu-g++-15
+literal=/bin/sh resolved=/usr/bin/dash
+literal=/usr/bin/dash resolved=/usr/bin/dash
+command=bash path=/usr/bin/bash resolved=/usr/bin/bash
+command=git path=/usr/bin/git resolved=/usr/bin/git
+command=make path=/usr/bin/make resolved=/usr/bin/make
+command=timeout path=/usr/bin/timeout resolved=/usr/lib/cargo/bin/coreutils/timeout
+command=jq path=/usr/bin/jq resolved=/usr/bin/jq
+command=sha256sum path=/usr/bin/sha256sum resolved=/usr/lib/cargo/bin/coreutils/sha256sum
+command=rg path=/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path/rg resolved=/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path/rg
+command=sort path=/usr/bin/sort resolved=/usr/lib/cargo/bin/coreutils/sort
+command=cmp path=/usr/bin/cmp resolved=/usr/bin/cmp
+command=date path=/usr/bin/date resolved=/usr/lib/cargo/bin/coreutils/date
+command=env path=/usr/bin/env resolved=/usr/lib/cargo/bin/coreutils/env
+command=mktemp path=/usr/bin/mktemp resolved=/usr/lib/cargo/bin/coreutils/mktemp
+command=mv path=/usr/bin/mv resolved=/usr/bin/gnumv
+command=cut path=/usr/bin/cut resolved=/usr/lib/cargo/bin/coreutils/cut
+command=uname path=/usr/bin/uname resolved=/usr/lib/cargo/bin/coreutils/uname
+command=sed path=/usr/bin/sed resolved=/usr/bin/sed
+command=find path=/usr/bin/find resolved=/usr/bin/find
+command=ps path=/usr/bin/ps resolved=/usr/bin/ps
+command=readlink path=/usr/bin/readlink resolved=/usr/lib/cargo/bin/coreutils/readlink
+command=rm path=/usr/bin/rm resolved=/usr/bin/gnurm
+command=grep path=/usr/bin/grep resolved=/usr/bin/grep

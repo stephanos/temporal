@@ -340,6 +340,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 					}
 				}
 				config, _, configDependencies := completionCampaign(t, strategy, test.coverage, test.fault, test.err)
+				configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 				summary, err := exploreWith(context.Background(), config, configDependencies)
 				if observed := observeCompletion(t, summary, err); !reflect.DeepEqual(observed, want) {
 					t.Fatalf("completion = %#v, want %#v", observed, want)
@@ -371,6 +372,7 @@ func TestCancellationIsAHostFailure(t *testing.T) {
 			}
 			ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
 			config.TerminateGrace = 10 * time.Millisecond
+			configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 			summary, err := exploreWith(ctx, config, configDependencies)
 			if strategy != StrategySeed {
 				observed := observeCompletion(t, summary, err)
@@ -427,6 +429,7 @@ func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T)
 			recording := completionWorldRecord(t, 7)
 			config, executor, configDependencies := completionCampaign(t, strategy, CoverageSemanticChoice, func(result *execution.Result) { result.WorldRecord = recording }, nil)
 			config.CollectExecutionEvidence = true
+			configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 			summary, err := exploreWith(context.Background(), config, configDependencies)
 			if err != nil {
 				t.Fatal(err)

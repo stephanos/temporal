@@ -1,0 +1,227 @@
+{
+   "argv" : [
+      "/usr/bin/perl",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/process-final-check.pl",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-three.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-controls.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint-retained-environment-proof.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-controls-current-environment-proof.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint-current-environment-proof.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-three.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-focused.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-preservation.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-format.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-diff-check.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-boundaries.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-host-vet.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-errortype.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-supported-darwin-vet.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-supported-linux-vet.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-runner-lint.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-fast-lint.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-validate.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-outcome-comparison.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-lint-comparison.json",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-receipt-audit.json"
+   ],
+   "attributable_gate_children" : [],
+   "cwd" : "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/completion",
+   "elapsed_seconds" : 0.0621049404144287,
+   "ended" : "2026-10-10T04:49:26Z",
+   "exit" : 0,
+   "foreign_gate_processes_untouched" : [
+      {
+         "argv" : "make successor-fixed-point",
+         "cwd" : "/Users/stephan/Workspace/skunkworks/bungee-lang",
+         "executable" : "/usr/bin/make",
+         "pid" : 1799153,
+         "ppid" : 1799152
+      }
+   ],
+   "ignored_ancestors" : [
+      868,
+      875,
+      1986721,
+      1986722
+   ],
+   "input_stability_exit" : 0,
+   "limit" : "Current process snapshot attributed by executable plus cwd/argv/SANDBOX_START_DIR. Excludes checker ancestors; process races are disclosed, not global process absence.",
+   "process_races_or_unreadable" : 9,
+   "ps_argv" : [
+      "/usr/bin/ps",
+      "-eo",
+      "pid,ppid,args"
+   ],
+   "ps_exit" : 0,
+   "snapshot_process_count" : 45,
+   "source_tools_inputs_after" : {
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-controls-current-environment-proof.json" : "2339750d13a98ca3cbfa9c4c00f585026110d10727664f73dc6a990b6a39b02a",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-controls.json" : "7c997615e24fc8c0484e1c2dcb4224521bbf6e85a9e7e5e7577a77a7da7e85f4",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint-current-environment-proof.json" : "82031b4d78e2eae87a376b3fea8f6368fb56a57ed69b7fb020bdba13663ef2b9",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint-retained-environment-proof.json" : "3ef23afbb4aebffe56f0571c9862eb3f8d13447546f9029c85aa5176e6f7b4f2",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint.json" : "9e8ed96e6b06c4213c94b5ed1aae6dc3351c7345eabc81dbcc81bfa783f93907",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-three.json" : "692ec101e96ab5fc48297831ed666fdc12595b2a41cae4f5189cec9594542a52",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-boundaries.json" : "c459c133d8f5e1ceece0766235a1bd7a4f9dfd90895fb17bbd9f3470e369a140",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-diff-check.json" : "beb56711498ebdb67d941a2c7e0597c79ca4193b25741d959a49775241c6f38c",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-errortype.json" : "2b1acf707adfec3e8f47f3aa766d280010054185d01c0c0ff7f82bd312d4cdf4",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-fast-lint.json" : "65f052968e2d94dfbe57f2209e79283b4dabcf347b4455455991ec24628c5ece",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-focused.json" : "f2d9cb296fe95a93fb8353b4d87dbde68b1923a6bf9dc249fcbe5e0c5d92712e",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-format.json" : "5316283b93429011d59af9fb31c1eb475b738b1530618caa0bb77a739bbe52b6",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-host-vet.json" : "52684feb33861b09f7f5efbffc2525e46276529ecedd6e903b22c3055b17dd56",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-lint-comparison.json" : "bc5c5eeae3a5ba997946123713ebeac7579ec085139bb627b490e93b33e94e81",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-outcome-comparison.json" : "27ef9c3a912962519bb0ea99c6b4624dc3aafea8229ffd48fe0110af654f8d11",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-preservation.json" : "4ef4ef4d1ce941eab80e05b530fa08b23150f5af373a4ff7de2e2fb36d6501a7",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-receipt-audit.json" : "35635ffc897bce28181ad2d70deead21bc04cb47bf03d5c5aeb3986d61962796",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-runner-lint.json" : "a1b35b25e58b009415c5354f65a9e9405ba2fbd3f742d3e3607d26f9eed64258",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-supported-darwin-vet.json" : "e8bf27e385f98c30b23debd508f67f1d4b3cf285c71dcd4aad92e23f8fdbcb8b",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-supported-linux-vet.json" : "2892b57de0ea53e1493f733c66a6cfc3d9b44b5fe21835bac4a6a90bbe8d8452",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-three.json" : "c66599d5ce7b9e0992f04bb1da51f0053d2996310d40c1ca8e462d8455036732",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-validate.json" : "f9a9ae7ad8713391ab28a071efc23172cc61def01eff39e47a00be6a6f239dbc",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/process-final-check.pl" : "b2b0d7599b34b7479f248f3f5560641586c6371dc10c3cda4c1f795dd2a61bd7",
+      "/usr/bin/perl" : "0953404d494ccb2618aaf418313376fc217a243ec21574c7f2a0dfa005e0acc3",
+      "/usr/bin/ps" : "b1abd612a75883d8e912fff0459a954f47fbfd280ba8d51a24f54dbd05d73f84",
+      "tools/gomad3/runner/completion_characterization_test.go" : "bd9ad5807a84c484dab8ed3d5f1e2ed1863b8a985bb0e3841125271b697bcd82"
+   },
+   "source_tools_inputs_before" : {
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-controls-current-environment-proof.json" : "2339750d13a98ca3cbfa9c4c00f585026110d10727664f73dc6a990b6a39b02a",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-controls.json" : "7c997615e24fc8c0484e1c2dcb4224521bbf6e85a9e7e5e7577a77a7da7e85f4",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint-current-environment-proof.json" : "82031b4d78e2eae87a376b3fea8f6368fb56a57ed69b7fb020bdba13663ef2b9",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint-retained-environment-proof.json" : "3ef23afbb4aebffe56f0571c9862eb3f8d13447546f9029c85aa5176e6f7b4f2",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint.json" : "9e8ed96e6b06c4213c94b5ed1aae6dc3351c7345eabc81dbcc81bfa783f93907",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-three.json" : "692ec101e96ab5fc48297831ed666fdc12595b2a41cae4f5189cec9594542a52",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-boundaries.json" : "c459c133d8f5e1ceece0766235a1bd7a4f9dfd90895fb17bbd9f3470e369a140",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-diff-check.json" : "beb56711498ebdb67d941a2c7e0597c79ca4193b25741d959a49775241c6f38c",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-errortype.json" : "2b1acf707adfec3e8f47f3aa766d280010054185d01c0c0ff7f82bd312d4cdf4",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-fast-lint.json" : "65f052968e2d94dfbe57f2209e79283b4dabcf347b4455455991ec24628c5ece",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-focused.json" : "f2d9cb296fe95a93fb8353b4d87dbde68b1923a6bf9dc249fcbe5e0c5d92712e",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-format.json" : "5316283b93429011d59af9fb31c1eb475b738b1530618caa0bb77a739bbe52b6",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-host-vet.json" : "52684feb33861b09f7f5efbffc2525e46276529ecedd6e903b22c3055b17dd56",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-lint-comparison.json" : "bc5c5eeae3a5ba997946123713ebeac7579ec085139bb627b490e93b33e94e81",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-outcome-comparison.json" : "27ef9c3a912962519bb0ea99c6b4624dc3aafea8229ffd48fe0110af654f8d11",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-preservation.json" : "4ef4ef4d1ce941eab80e05b530fa08b23150f5af373a4ff7de2e2fb36d6501a7",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-receipt-audit.json" : "35635ffc897bce28181ad2d70deead21bc04cb47bf03d5c5aeb3986d61962796",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-runner-lint.json" : "a1b35b25e58b009415c5354f65a9e9405ba2fbd3f742d3e3607d26f9eed64258",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-supported-darwin-vet.json" : "e8bf27e385f98c30b23debd508f67f1d4b3cf285c71dcd4aad92e23f8fdbcb8b",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-supported-linux-vet.json" : "2892b57de0ea53e1493f733c66a6cfc3d9b44b5fe21835bac4a6a90bbe8d8452",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-three.json" : "c66599d5ce7b9e0992f04bb1da51f0053d2996310d40c1ca8e462d8455036732",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-validate.json" : "f9a9ae7ad8713391ab28a071efc23172cc61def01eff39e47a00be6a6f239dbc",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/process-final-check.pl" : "b2b0d7599b34b7479f248f3f5560641586c6371dc10c3cda4c1f795dd2a61bd7",
+      "/usr/bin/perl" : "0953404d494ccb2618aaf418313376fc217a243ec21574c7f2a0dfa005e0acc3",
+      "/usr/bin/ps" : "b1abd612a75883d8e912fff0459a954f47fbfd280ba8d51a24f54dbd05d73f84",
+      "tools/gomad3/runner/completion_characterization_test.go" : "bd9ad5807a84c484dab8ed3d5f1e2ed1863b8a985bb0e3841125271b697bcd82"
+   },
+   "started" : "2026-10-10T04:49:26Z",
+   "terminal_receipts" : [
+      {
+         "ended" : "2026-10-10T04:32:54Z",
+         "exit" : 1,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-three.json"
+      },
+      {
+         "ended" : "2026-10-10T04:33:28Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-controls.json"
+      },
+      {
+         "ended" : "2026-10-10T04:33:44Z",
+         "exit" : 1,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint.json"
+      },
+      {
+         "ended" : "2026-10-10T04:35:22Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint-retained-environment-proof.json"
+      },
+      {
+         "ended" : "2026-10-10T04:36:04Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-controls-current-environment-proof.json"
+      },
+      {
+         "ended" : "2026-10-10T04:36:17Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/baseline-runner-lint-current-environment-proof.json"
+      },
+      {
+         "ended" : "2026-10-10T04:37:22Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-three.json"
+      },
+      {
+         "ended" : "2026-10-10T04:38:25Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-focused.json"
+      },
+      {
+         "ended" : "2026-10-10T04:38:38Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-preservation.json"
+      },
+      {
+         "ended" : "2026-10-10T04:38:51Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-format.json"
+      },
+      {
+         "ended" : "2026-10-10T04:39:03Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-diff-check.json"
+      },
+      {
+         "ended" : "2026-10-10T04:40:00Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-boundaries.json"
+      },
+      {
+         "ended" : "2026-10-10T04:40:59Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-host-vet.json"
+      },
+      {
+         "ended" : "2026-10-10T04:41:12Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-errortype.json"
+      },
+      {
+         "ended" : "2026-10-10T04:41:27Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-supported-darwin-vet.json"
+      },
+      {
+         "ended" : "2026-10-10T04:41:42Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-supported-linux-vet.json"
+      },
+      {
+         "ended" : "2026-10-10T04:41:57Z",
+         "exit" : 1,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-runner-lint.json"
+      },
+      {
+         "ended" : "2026-10-10T04:42:19Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-fast-lint.json"
+      },
+      {
+         "ended" : "2026-10-10T04:42:36Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-validate.json"
+      },
+      {
+         "ended" : "2026-10-10T04:45:55Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-outcome-comparison.json"
+      },
+      {
+         "ended" : "2026-10-10T04:46:08Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-lint-comparison.json"
+      },
+      {
+         "ended" : "2026-10-10T04:48:05Z",
+         "exit" : 0,
+         "path" : ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-71/final-receipt-audit.json"
+      }
+   ]
+}
