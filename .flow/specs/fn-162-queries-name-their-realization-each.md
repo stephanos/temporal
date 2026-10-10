@@ -7,6 +7,7 @@
 > user (turn 34): "remind me, why not just 1 file?"
 > user (turn 35): "yes, go for the real fix"
 > user (turn 41): "yes both"
+> user (turn 43): "apply recommendatoons"
 
 ## Goal & Context
 <!-- scope: business -->
@@ -29,7 +30,7 @@ The fix: each Property is declared once, in the facet whose promise it states. E
 - A Query's verdict and its Case's expected outcome must not change. A Case assessed against a narrower or equal set of Properties than today must reach the same verdict. A Case whose set grows needs explaining. [inferred]
 - Property and Query ids in the IR change when they move from subject objects to the facet or machine. Cases, manifests, pinned fixture trees and Go tests that name them change too. [paraphrase]
 - Capability-generated Properties (`Closable`, `Pausable`, …) keep their own identities and their per-machine scope. [inferred]
-- **Co-design with fn-140 (owner, 2026-10-10):** fn-140 (one-sentence witness Queries with explicit live expectations, Batch 2) also defines what a Query says. fn-162.2 is designed together with fn-140 by one owner, so there is one Query form.
+- **Co-design with fn-140 (owner, 2026-10-10):** fn-140 (one-sentence witness Queries with explicit live expectations, Batch 2) also defines what a Query says. With R8, fn-162 adds nothing to the Query form: the realization names its Queries. The co-design reduces to fn-140 not adding realization information to Queries, with one owner keeping the two consistent.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -39,8 +40,9 @@ The fix: each Property is declared once, in the facet whose promise it states. E
 - **R3:** Each Property is declared once. A predicate identical to another declaration of the same machine is refused or reported by the lifter. [paraphrase] Errors: the duplicate is named with both locations.
 - **R4:** The standalone activity's claim-container derivations (derivations that change nothing and only hold Properties and Queries) are removed. Their Properties go to the facet or machine that states the promise, and their Queries keep their scenarios, limits, totals and expectations. [user] ("yes, go for the real fix") Errors: no error surface beyond R5.
 - **R5:** *(superseded by R7: machine-scoped ids change too)* Every Query keeps its answer and total, and every Case keeps its expected outcome. IR and Case differences are limited to moved Property and Query ids and the assessment sets. The subject regression test is replaced by one pinning that each Case's assessment set is exactly its Query's. [inferred] Errors: any other difference is explained before it is accepted.
-- **R6:** A Query names the realization that lowers and assesses it, or is marked model-only. The IR carries that binding, and the lowering and the Go assessment use it instead of requiring exactly one realization per machine. A Case is still assessed against its Query's Property plus the scenario machine's monitors. [paraphrase] Errors: a Query naming a realization of another machine fails the lift, naming both; a find Query with neither a realization nor the model-only mark is reported, as "no realization" is today; two Queries cannot make one machine's realizations ambiguous, because each Query names its own.
+- **R6:** *(superseded by R8: the binding is declared on the realization side, because a system-level Query may not depend on the realization layer)* A Query names the realization that lowers and assesses it, or is marked model-only. The IR carries that binding, and the lowering and the Go assessment use it instead of requiring exactly one realization per machine. A Case is still assessed against its Query's Property plus the scenario machine's monitors. [paraphrase] Errors: a Query naming a realization of another machine fails the lift, naming both; a find Query with neither a realization nor the model-only mark is reported, as "no realization" is today; two Queries cannot make one machine's realizations ambiguous, because each Query names its own.
 - **R7:** Every Query keeps its answer and total, and every Case keeps its expected outcome. IR and Case differences are limited to moved Property and Query ids, the realization bindings, derived Case names, and the target, state, action and fact ids that include a removed machine's name. All of these are listed in the rename map for fn-160.5's equivalence check. The subject regression test is replaced by one pinning each Query's realization binding. [paraphrase] Errors: any other difference is explained before it is accepted.
+- **R8:** A realization names the Queries it runs (e.g. `Realizes(ActivitySystem, runs = Seq(…))`), so the binding respects the one-way layer dependency (realization → system → product, fn-160 R9) and the Query syntax is unchanged. A find Query that no realization names is model-only and is not lowered, which is today's "no-realization" standing; lint keeps reporting it. The IR carries each realization's Queries, and the lowering and the Go assessment use that instead of requiring exactly one realization per machine. A Case is still assessed against its Query's Property plus the scenario machine's monitors. [user] ("apply recommendatoons") Errors: a realization naming another machine's Query, or a Query named by two realizations, fails the lift, naming both.
 
 ## Boundaries
 <!-- scope: business -->
@@ -54,10 +56,7 @@ The fix: each Property is declared once, in the facet whose promise it states. E
 
 The user chose the real fix over relaxing the one-machine-per-file rule so a facet file could hold its claim subjects. [user] Relaxing would keep the clones and the duplicated Properties, and only hide them in fewer files. Scoping claims per Query removes the reason the clones exist. [paraphrase] Merging the three heartbeat subjects into one subject was rejected: every heartbeat Case would then be assessed against all three Properties, losing focus. [paraphrase]
 
-## Parked unknowns
-
-- How a Query names its realization or is marked model-only (the DSL form). It is designed together with fn-140's one-sentence witness Query, by one owner. [paraphrase]
-- Names for the merged duplicate Properties ("completes" ×6, `scheduleToStartFires` ×2, the scheduleToClose timeout ×2, the cancelRequested predicate ×2). [paraphrase]
+**Decided (owner, 2026-10-10):** realizations name the Queries they run (R8), and unnamed find Queries are model-only. The merged duplicates keep their existing names, one home each: `completes` (Completion), `scheduleToStartFires` and `scheduleToCloseTimesOut` (Timeouts), `cancelRequested` (Cancellation). [user]
 
 ## Resolved via Codebase
 <!-- fn-162.1 trace, 2026-10-10. Paths relative to temporal/. [inferred] marks a conclusion not read directly off code. -->

@@ -34,8 +34,9 @@ grep -rln "activity-standalone-race\|activity-standalone-record\|nexus-workflow-
 
 
 ## Done summary
-TBD
+Read-only inventory complete; findings are in the spec's `## Resolved via Codebase`. No checker relies on an IR file holding only some Queries (the race file's comment is historical), so no split needs to stay. 15 consumers are inventoried with their migrations (exploration scope and ids, whole-file Go tests, lint acceptances, Case and pin renames, Quint slices). The one owner decision, where foundations' Queries go, was answered with option (a): foundation/actor/kind packages get their own IR file (R10). Exploration is scoped to the asked Query (R11). Both were folded into fn-160.2.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

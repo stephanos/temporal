@@ -64,7 +64,7 @@ This spec gives the path-and-outcome claim one sentence of its own, makes the li
 - [inferred] Whether the live assessment's explanations depend on the phase condition today's Properties state beside the fact is established by the first conversion. Where dropping the condition changes a Case's assessment, the witness keeps it through `.ends`.
 - [inferred] fn-134 ("Capabilities own their properties") changes how a machine declares capabilities and where their generated Queries are bounded. The duplicate check in R6 reads the Queries a machine's capabilities generate in the shape fn-134 leaves.
 - [inferred] fn-139 ("Actor-grouped rules, per-RPC actions, shared rejections") renames the activity's actions. Whichever of the two specs lands second rewrites the class names inside the witnesses or the triples it finds.
-- **Co-design with fn-162.2 (owner, 2026-10-10):** fn-162 lets a Query declare the Properties its Case is assessed against (its assessment set). This spec's one-sentence witness Query and fn-162.2's assessment set are designed together by one owner, so the Query form landed here is the one fn-162.2 extends, not one that fn-162's migration reshapes.
+- **Co-design with fn-162.2 (owner, 2026-10-10):** fn-162 binds a Query to the realization that runs it from the realization side (a realization lists the Queries it runs), so this spec's Query form carries no realization information. One owner keeps the two consistent.
 
 ## Acceptance Criteria
 <!-- scope: both -->

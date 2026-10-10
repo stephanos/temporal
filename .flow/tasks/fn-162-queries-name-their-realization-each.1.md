@@ -32,8 +32,9 @@ grep -rn "Realizes(\|DerivesFrom(" model/temporal | head -40
 
 
 ## Done summary
-TBD
+Read-only trace complete; findings are in the spec's `## Resolved via Codebase`. A Case is assessed against its Query's one Property plus the scenario machine's monitors (`conformance/plan.go:134-145`), not the subject machine's Properties. The 17 claim containers exist because lowering and assessment need exactly one realization per machine (`lower.go:156-175`, `plan.go:161-177`). The spec was reworked around a Query-to-realization binding (R6 → R8: realizations name the Queries they run) and machine-scoped id moves (R7). Duplicate names were decided for fn-162.3.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

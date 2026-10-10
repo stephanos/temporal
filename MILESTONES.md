@@ -890,7 +890,7 @@ Model-readability specs split by language, not by spec:
   ahead of the other batches. Checked-in IR and Cases go stale and the model gate fails. That is
   expected and is not a regression to fix inside 1d.
 - **Batch 5b, one regeneration (last; shared close fn-160.2):** the IR schema change, the lowering
-  and Go assessment of assessment sets, the Go and fixture consumers of renamed ids and moved files,
+  and Go assessment of realization-to-Query bindings, the Go and fixture consumers of renamed ids and moved files,
   then **one** regeneration of IR, Cases, lint acceptances and pinned fixture trees, an IR-level
   equivalence check under the batch's rename map, full gate, review and one live run. It waits for
   Batch 3 (which owns the IR/Case schema) and integrates after Batch 5.
@@ -905,26 +905,26 @@ criteria are met by Batch 5b's shared close evidence, as the batch rules allow.
 
 **Interactions with other batches:**
 - **Batch 4 (fn-141, not started)** now comes after 1d, so it describes only the final DSL (qualified
-  forms, `enters`, facets, per-feature collection, assessment sets).
+  forms, `enters`, facets, per-feature collection, realization-to-Query bindings).
 - **Batch 2 (authoring):** fn-140 and fn-162.2 are co-designed by one owner (owner, 2026-10-10), since
   both define what a Query says. Batch 2's remaining Scala work lands on the 1d DSL.
 - **Batch 5 (activity model) is paused (owner, 2026-10-10)** for its remaining activity edits (fn-129's
   in-progress task and its two todo tasks, fn-128's three todo tasks) until Batch 1d's activity lane
-  lands. They then finish on the new DSL (qualified names, `enters`, facets, Query assessment sets,
+  lands. They then finish on the new DSL (qualified names, `enters`, facets, realization-to-Query bindings,
   flat layout) before Batch 5b. Work already done stays; Batch 1d's activity lane migrates it.
 
 **Batch 1d order (Scala only):**
 
 | Order | Task | What lands |
 | --- | --- | --- |
-| now | fn-160.1, fn-162.1 | Read-only investigations, running now |
+| done | fn-160.1, fn-162.1 | Read-only investigations; findings in their specs |
 | 0 | fn-160.5 (step tables) | Baseline capture and step-table comparison under a rename map; the IR projection half follows in 5b |
 | 1 | fn-159.1, fn-159.3, fn-159.6 | Qualified `on` targets and phases (framework runtime check for `on`, lifter rules written), `activityWorker`; `Observation` drops `read` |
 | 2 | fn-159.2, .4, .5, .8 | `completionClient`; drop the product's `disabled(process.stop)`; bounds into `Bounds`; `Retryable`/`Expirable` |
 | 3 | fn-159.7 | `enters(Phase.X)` construct and its migration in every model |
 | 4 | fn-161.1 | Facet construct, ownership and vocabulary checks |
 | 5 | fn-161.2 + .3, fn-161.4 | Activity facets in one pass; every other machine wrapped |
-| 6 | fn-162.2 (Scala part), fn-162.3 | Queries declare assessment sets; claim-container subjects removed; Properties declared once |
+| 6 | fn-162.2 (Scala part), fn-162.3 | Realizations name the Queries they run; claim-container subjects removed; Properties declared once |
 | 7 | fn-160.3, fn-160.4 | One object per file, flat prefix layout, `realization/` layer, `<Subject>Run`, one-way layer dependencies |
 | 8 | fn-160.2 (Scala part) | Collection by feature package; `irFile`/`exports` removed |
 
@@ -988,8 +988,8 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-160.1 | ⬜ todo | Inventory every consumer of today's IR file split; flag any that needs a split |
-| fn-160.2 | ⬜ todo | Collect one IR file per feature package; remove `irFile`/`exports`; regenerate and migrate consumers (after fn-160.1) |
+| fn-160.1 | ✅ done | Inventory every consumer of today's IR file split; flag any that needs a split (findings in the spec, 2026-10-10: no split needs to stay) |
+| fn-160.2 | ⬜ todo | Collect one IR file per feature package, and per foundation/actor/kind package that declares Queries or realizations; remove `irFile`/`exports`; exploration checks only the asked Query; regenerate and migrate consumers |
 | fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); the lifter enforces it (after fn-160.2) |
 | fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
 | fn-160.5 | ⬜ todo | Reusable equivalence check: baseline capture and step-table comparison (Batch 1d, first), IR/Case projection under a rename map (Batch 5b) |
@@ -1011,17 +1011,19 @@ activity, in two stages, after fn-159.7 (`enters`). Not marked ready.
 | fn-161.3 | ⬜ todo | Stage 2: standalone activity rules and capabilities into their owning facets |
 | fn-161.4 | ⬜ todo | Wrap the other 11 declared machines into facets; switch facets-only and facet-vocabulary rules on globally |
 
-## fn-162: Queries choose their assessed Properties; each Property declared once
+## fn-162: Queries name their realization; each Property declared once
 
-Claim-container subjects, copies of a machine that change nothing (e.g. the three in the activity's
-`Heartbeat.scala`), exist only to give each realized Case a focused set of Properties, so the same
-Property is declared again and again. Instead, each Property is declared once (in its facet) and each
-Query names the Properties its Case is assessed against. Query answers and Case outcomes stay the same.
-Ideally lands before fn-160.3 splits those subjects into files. Not marked ready.
+The activity's 17 claim containers (copies of a machine that change nothing, e.g. the three in
+`Heartbeat.scala`) exist because the lowering and the assessment need exactly one realization per
+machine. A copy is how a Query picks its realization, or has none. fn-162.1 found a Case is
+already assessed against only its Query's one Property (plus the machine's monitors). The fix: each
+realization names the Queries it runs (unnamed find Queries stay model-only), and each Property is
+declared once in its facet, under its existing name, so the copies go. Query answers and Case outcomes stay the same; machine-scoped ids move
+(in the rename map). Ideally lands before fn-160.3 splits those subjects into files. Not marked ready.
 [Spec](.flow/specs/fn-162-queries-name-their-realization-each.md).
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-162.1 | ⬜ todo | Trace how a Case's assessed Properties are selected today; list claim containers and duplicated predicates |
-| fn-162.2 | ⬜ todo | Query assessment sets in framework, lifter, IR, lowering and Go assessment; duplicate-Property detection |
+| fn-162.1 | ✅ done | Trace how a Case's assessed Properties are selected today; list claim containers and duplicated predicates (findings in the spec, 2026-10-10) |
+| fn-162.2 | ⬜ todo | Realizations name the Queries they run (unnamed find Queries are model-only): framework, lifter, IR, lowering, assessment; duplicate-Property detection |
 | fn-162.3 | ⬜ todo | Migrate the standalone activity off claim-container subjects |

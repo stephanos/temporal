@@ -26,7 +26,11 @@ final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot])
   // and the machines each Query, capability declaration, progress claim and realization names. It
   // gives the names of the machines and compositions constructed, which the gate's test holds to
   // every machine the file's IR lifts, so no lifted machine escapes the check of its rules.
-  def construct(): Set[String] =
+  def construct(): Set[String] = reached().map(_.name).toSet
+
+  // The machines and compositions constructing the roots reaches, each once, in the order first
+  // reached: what `construct` names, and what a step-table baseline (StepTables) reads.
+  private[framework] def reached(): Seq[Model] =
     val seen = mutable.LinkedHashSet.empty[Model]
     def model(m: Model): Unit =
       if seen.add(m) then
@@ -47,7 +51,7 @@ final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot])
       case c: Capabilities[?, ?, ?] => model(c.model)
       case section: AnyRef          => IrFile.queriesOf(section).foreach(root)
     roots.foreach(root)
-    seen.map(_.name).toSet
+    seen.toSeq
 
 object IrFile:
   private[framework] val made = mutable.ArrayBuffer.empty[IrFile]
