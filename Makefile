@@ -420,6 +420,7 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/contract.proto \
 	proto/internal/temporal/server/api/testpilot/v1/correlated.proto \
 	proto/internal/temporal/server/api/testpilot/v1/event.proto \
+	proto/internal/temporal/server/api/testpilot/v1/evidence.proto \
 	proto/internal/temporal/server/api/testpilot/v1/expression.proto \
 	proto/internal/temporal/server/api/testpilot/v1/instruction.proto \
 	proto/internal/temporal/server/api/testpilot/v1/program.proto \
