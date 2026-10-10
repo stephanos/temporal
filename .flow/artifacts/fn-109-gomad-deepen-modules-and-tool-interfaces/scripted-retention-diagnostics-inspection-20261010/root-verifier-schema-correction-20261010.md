@@ -1,0 +1,9 @@
+# Root verifier schema correction
+
+The first root source/ordinary verifier, SHA256 `8c8f1c861b4fcd58607235fab931f0a64d5eeeda3f2cc4a1c2bc9e49a9e3f675`, exited 1 in host tool chunk `8c41b4` at its line120 wrapper-hash assertion. Its retained output JSON is empty. This was a root schema-assumption failure, not a product or gate failure; no successful verification is attributed to it.
+
+The `analysis-ordinary` binding names `observe_v3.py` in `wrapper_invocation_argv`, SHA256 `51c4e57361e6ee77df45a1c3b725d54fafc292e4ef6372453f24a86966956303`. Its `wrapper_sha256` names the imported `capture_v2.py` library, SHA256 `91957863b75f77da2de30cc047279447346e5a16a6299a7602c365ab60ed997e`. Both actual files are separately sealed by the same source manifest. Root read the observer and capture library and retained both distinctions; no executed worker producer was edited or rerun.
+
+The explicit successor `root-source-ordinary-complete-verify-20261010.py` checks the invocation file and capture library separately. The original failed verifier and empty output remain unchanged. This correction admits only a non-Go root verification pass over existing evidence, not a new Go gate, source change, acceptance waiver or repair of historical capture.
+
+That successor exited0 in host chunk `ba0b48`, SHA256 `1db998ed9bb68367cda3bd9a8ca0bb5bfdb79491516171d5273a499cb737965c`, producing output SHA256 `b5a2f15d0f24e43c2b7475267d33063894c306f6a501ef5b788657f27b6fba69`. A later whitespace check found one added blank EOF line in the root verifier. Its executed bytes and output remain locally retained, unchanged. The final verifier removes only that extra EOF blank line before its first invocation; its committed output is the source/ordinary verification receipt. Predecessor files are local evidence, not claimed as committed sources.
