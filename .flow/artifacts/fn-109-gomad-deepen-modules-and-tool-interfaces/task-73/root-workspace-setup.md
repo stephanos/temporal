@@ -1,0 +1,11 @@
+# Task 73 provisional workspace setup
+
+Root prepared the isolated Unix-mode checkout while task 72 assembled its final packet after releasing the shared execution lane. This preparation starts no task-73 worker, product edit or gate and changes no task status.
+
+The exact physical checkout is `/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/unix-mode`, branch `gomad-fn10973-unix-mode-20261010`. Root asserted that this path and branch were absent, verified PRIMARY HEAD `47adc47c2833d7f17b2c6c644e03b47a957ee485`, then used normal `git worktree add`. Session 35218 terminated with exit zero after copying 39,964 tracked files from that exact commit. No existing checkout, user file or cache was replaced or removed.
+
+At `2026-10-10T05:37:24.615450+00:00`, read-only checks verified the physical path, top-level path, branch and HEAD, empty status and empty index. `tools/gomad3/runner/runner_mode_unix_test.go` remains SHA `ebdc20609fd89c246bf345e0df40f3c126b09765d898770dabe4389518228168`. The checkout contains 204 actual files under `tests`, with 113 top-level `*_test.go` files. The initial listing counted all 122 top-level Go files; the subsequent explicit glob confirmed the distinct 113 test-file domain. Neither count is a future gate result or generated-validation pass.
+
+Root ran no Go/environment/tool probe, Make, build, test, lint, vet, generator or native command during this setup. Task 72's worker reported all handles terminal and lane release after its actual process check at `05:34:52–05:34:53Z`; this setup supplies no replacement process proof or qualification.
+
+The setup HEAD is provisional. Before dispatch, root must obtain task 72's frozen packet and independent reviews, authorize its exact checkpoint, import it normally into this checkout, verify the resulting clean source and select task 73's actual BASE and immediately preceding integrated combined-72 baseline. Task 73 remains TODO, and its admission's single assignment, original umask interval and seven real permission assertions remain the entire product boundary. Setup grants no execution lane, formal Done/SHIP, native revival, CI, PR or push authority. Native fn-128 and fn-149 remain deferred and unverified.
