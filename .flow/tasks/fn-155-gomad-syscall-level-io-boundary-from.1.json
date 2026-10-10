@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.1.md",
   "status": "todo",
   "title": "Port the virtual descriptor layer and syscall edge onto the Gomad toolchain",
-  "updated_at": "2026-10-10T06:35:00.683203Z"
+  "updated_at": "2026-10-10T08:04:30.391865Z"
 }
