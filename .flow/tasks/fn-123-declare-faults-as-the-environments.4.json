@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-123-declare-faults-as-the-environments.4.md",
   "status": "todo",
   "title": "Task-queue providers converted: derived crash, overriding crashes with fault-overridden lint, derived storage-loss assumption",
-  "updated_at": "2026-10-09T23:50:07.959613Z"
+  "updated_at": "2026-10-10T00:54:24.803408Z"
 }

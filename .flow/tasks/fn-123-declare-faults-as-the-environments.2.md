@@ -4,17 +4,19 @@ satisfies: [R2]
 # fn-123-declare-faults-as-the-environments.2 Durability classification and the crashes binding in the DSL and lifter (fixtures only)
 
 ## Description
-The durability classification and the `crashes(…)` binding in the DSL, the lifter and the IR (R2), proved on lifter fixtures. It is split from the Go derivation (task 3) so the Scala surface and its refusals land and are reviewed on their own. No Model changes here.
+The durability classification and the `crashes(…)` binding in the DSL, the lifter and the IR (R2), proved on lifter fixtures. It is split from the Go derivation (task 3) so the Scala surface and its refusals land and are reviewed on their own. No production Model changes here. Existing crash-bearing lift fixtures are classified here; universal enforcement over production authored crashes activates atomically with task .4's conversion, not before it.
 
 **Size:** M
-**Files:** `model/framework/Machine.scala` (durability section, `crashes(…)`, the Scala crash row), `model/framework/Syntax.scala` (if the binding sits beside `Rules`), `model/irgen/Declarations.scala` (lift classification and binding), `proto/internal/temporal/server/api/umpire/v1/machine.proto` + regenerated Go, new fixtures under `model/irgen/testdata/lifts/` and refusal fixtures, `model/irgen/test/Fixtures.test.scala`, `model/framework/*.test.scala`
+**Files:** `model/framework/Machine.scala` (durability section, `crashes(…)`, the Scala crash row), `model/framework/Syntax.scala` (if the binding sits beside `Rules`), `model/irgen/Declarations.scala` (lift classification and binding), `proto/internal/temporal/server/api/umpire/v1/machine.proto` + regenerated Go, new fixtures and existing `Declarations.Disk` / `Captured.Disk` under `model/irgen/testdata/lifts/` with their expected goldens, plus refusal fixtures, `model/irgen/test/Fixtures.test.scala`, `model/framework/*.test.scala`
 **Touches:** [model/framework/**, model/irgen/**, proto/internal/temporal/server/api/umpire/v1/**, api/umpire/**]
 **Order:** After task 1. Re-read the targets first; they were verified before the DSL batch.
 
 ### Approach
 - DSL: the three forms of spec Part B (`durable`, `ephemeral(resetTo)`, `inMemory(…)(a -> d, …)`) in a durability declaration, and a `crashes(fault, facts…)` binding whose outcome is the machine's internal outcome (the `Ok` given, `TaskQueue.scala:53`). Follow how `object rules extends Rules(_.field)` takes a field selector (`Syntax.scala:266`).
 - Plain Scala: by default the binding also gives the Scala rule book a crash row computed from the same classification, so munit tests that step a crash keep working (spec Open Questions, "Plain-Scala crash row"). The lifter emits no function for that row.
-- Derivations: `rebind`, `extend` and `restrict` (`Machine.scala:315-360`) must carry the classification through `Built`, which records nothing about durability today (`Machine.scala:378-394`). Decide and test each case the gap analysis raised: `restrict` that drops the crash (the classification is then refused per R2), `extend` that adds a crash (the classification comes with the derivation), and `rebind` over a derived crash (classification still required, binding recorded as authored over derived, consumed by task 4).
+- Derivations: `rebind`, `extend` and `restrict` (`Machine.scala:315-360`) must carry the classification through `Built`, which records nothing about durability today (`Machine.scala:378-394`). Decide and test each case the gap analysis raised: `restrict` that drops the crash discards inherited crash-only classification; explicitly authored classification on that crash-free derived machine still refuses per R2, `extend` that adds a crash (the classification comes with the derivation), and `rebind` over a derived crash (classification still required, binding recorded as authored over derived, consumed by task 4).
+- Classify the existing `Declarations.Disk` and `Captured.Disk` stage fields explicitly (durable is sufficient for these authored hole-bearing fixtures). Preserve their original authored crash functions, reached-hole behavior, rows and unknown/disabled results; do not replace these fixtures with derived crash rows. Their golden changes are only the authorized fault/durability metadata and mapped edited positions. `Captured.PutOnly extends Derived(Disk.restrict(client.put))` drops inherited crash classification automatically and keeps its crash-free golden byte-equivalent otherwise. Add separate positive/refusal fixtures proving inherited removal versus explicitly authored crash-free classification.
+- Stage enforcement without a public bypass or permanent exception: task .2 always enforces complete classification on the new `crashes` binding and validates every authored classification it sees. Task .4 enables the same mandatory classification for every remaining authored crash binding after converting the queue and after these existing fixtures are ready. At that boundary, unclassified crash machines fail universally; no legacy allowlist survives. Task .1's metadata-only crash declarations remain liftable before this activation.
 - IR: a durability record on `Machine` (next free number after `assumes = 15`, `machine.proto:50-74`) and a derived-crash marker on the crash binding. Default-empty, so machines without a crash keep their bytes.
 - Lifter refusals, each at its line and naming the field: unclassified field, field classified twice, in-memory value whose fallback is in-memory, value listed twice, reset value outside the field's domain, classification on a machine with no crash, product field classified both whole and by inner path.
 
@@ -32,9 +34,9 @@ The durability classification and the `crashes(…)` binding in the DSL, the lif
 ## Acceptance
 - [ ] A fixture machine with all three forms lifts, and its golden shows the durability record and the derived-crash binding.
 - [ ] A munit test steps the Scala crash row of that fixture and gets the classification's result.
-- [ ] One refusal fixture per R2 error and per derivation case above, each naming the field and position.
-- [ ] Machines without a crash lift byte-identical: the lift goldens and `model/ir` are unchanged apart from the new fixture.
-- [ ] The irgen and umpire munit tests and `make lint-model` pass.
+- [ ] One refusal fixture per R2 error, each naming the field and position; derivation tests distinguish automatic discard of inherited classification after crash removal from refusal of explicit classification on a crash-free machine.
+- [ ] Machines without a crash lift byte-identical. Production `model/ir` remains unchanged here; existing Disk fixture goldens differ only by authorized fault/durability metadata and mapped positions, with hole functions/results preserved, and new classified fixtures have explained goldens.
+- [ ] The irgen and umpire munit tests and `make lint-model` pass at this staged boundary, including both existing Disk fixtures and crash-free PutOnly. Universal authored-crash enforcement is linked to task .4, never dropped from final R2 acceptance.
 
 
 ## Done summary
