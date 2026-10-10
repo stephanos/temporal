@@ -44,7 +44,7 @@ def startCore(j: Job): List[JobStep] =
 def pauseSugar(j: Job): List[JobStep] = j.phase match
   case Phase.running =>
     enter(j.copy(phase = Phase.paused), Fact.paused).because("a running job pauses")
-  case _ => disabled
+  case _: Phase.idle.type | _: Phase.paused.type | _: Phase.done.type => disabled
 def pauseCore(j: Job): List[JobStep] = j.phase match
   case Phase.running =>
     List(
@@ -55,16 +55,16 @@ def pauseCore(j: Job): List[JobStep] = j.phase match
         "a running job pauses"
       )
     )
-  case _ => Nil
+  case _: Phase.idle.type | _: Phase.paused.type | _: Phase.done.type => Nil
 
-// in: membership in a finite set of cases, the default arm a wildcard.
+// in: membership in a finite set of cases, with every fallback case named.
 def resumeSugar(j: Job): List[JobStep] = j.phase match
-  case p if p.in(Phase.paused, Phase.idle) => enter(j.copy(phase = Phase.running))
-  case _                                   => disabled
+  case p @ (Phase.idle | Phase.running | Phase.paused | Phase.done) if p.in(Phase.paused, Phase.idle) => enter(j.copy(phase = Phase.running))
+  case Phase.idle | Phase.running | Phase.paused | Phase.done => disabled
 def resumeCore(j: Job): List[JobStep] = j.phase match
-  case p if List(Phase.paused, Phase.idle).contains(p) =>
+  case p @ (Phase.idle | Phase.running | Phase.paused | Phase.done) if List(Phase.paused, Phase.idle).contains(p) =>
     List(Step(Outcome.accepted, j.copy(phase = Phase.running)))
-  case _ => Nil
+  case Phase.idle | Phase.running | Phase.paused | Phase.done => Nil
 
 // in with one member, and enter with several facts.
 def finishSugar(j: Job): List[JobStep] =

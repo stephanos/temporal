@@ -70,7 +70,7 @@ def started(
 def responded(s: CountedState, a: Answer, u: Boolean): List[CountedStep] = a match // format: off
   case Answer.failed(true) if s.phase == Stage.started || u => // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
     enter(s.copy(phase = Stage.backingOff, attempts = UpTo((s.attempts + 1).min(2)))) // format: on
-  case _ => disabled
+  case Answer.completed | Answer.failed(_) | Answer.abandoned => disabled
 
 def steered(s: CountedState, c: Control): List[CountedStep] = // format: off
   if c == Control.pause && s.attempts < 2 then stay(s) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons

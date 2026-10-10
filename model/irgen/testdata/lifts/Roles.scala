@@ -60,10 +60,10 @@ object Roled extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
     def over(s: Job) = s.solo.isInstanceOf[Closed]
     def settled(p: Phase) = p match
       case _: Closed => true
-      case _         => false
+      case _: Phase.unstarted.type | _: Phase.queued.type | _: Phase.backingOff.type | _: Phase.running.type | _: Phase.paused.type => false
     def stopping(s: Job) = s.phase match // format: off
       case q: Held => q != Phase.paused // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
-      case _       => false // format: on
+      case _: Phase.unstarted.type | _: Phase.queued.type | _: Phase.backingOff.type | _: Phase.paused.type | _: Phase.done.type | _: Phase.failed.type | _: Phase.expired.type => false // format: on
   // scalafix:on DisableSyntax.isInstanceOf
 
   object effects:
@@ -89,10 +89,10 @@ object Listed extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
     def over(s: Job) = s.solo.in(Solo.over)
     def settled(p: Phase) = p match
       case Phase.done | Phase.failed | Phase.expired => true
-      case _                                         => false
+      case _: Phase.unstarted.type | _: Phase.queued.type | _: Phase.backingOff.type | _: Phase.running.type | _: Phase.paused.type => false
     def stopping(s: Job) = s.phase match // format: off
       case q @ Phase.running => q != Phase.paused // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
-      case _                 => false // format: on
+      case _: Phase.unstarted.type | _: Phase.queued.type | _: Phase.backingOff.type | _: Phase.paused.type | _: Phase.done.type | _: Phase.failed.type | _: Phase.expired.type => false // format: on
 
   object effects:
     def start(s: Job) = enter(s.copy(phase = Phase.running), Fact.started)

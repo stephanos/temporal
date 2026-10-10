@@ -1798,6 +1798,16 @@ class Fixtures extends munit.FunSuite:
   // `when[R]` and `p.in[R]` of `Shortened` beside `Written` (lifts/Roles.scala). Every declaration
   // of one machine, with the other's name in its place and no positions, is the other's, and an
   // enum's roles leave its IR type as it is without them.
+  test("role prefix compatibility agrees on every finite phase and state"):
+    val classpath = liftsJar.toString + java.io.File.pathSeparator +
+      Files.readString(modelClasspath).trim
+    val result = tools.run(
+      Path.of(System.getProperty("java.home"), "bin", "java").toString,
+      Seq("-cp", classpath, "fixture.roles.verifyRolePrefixes")
+    )
+    assertEquals(result.exit, 0, result.output)
+    assert(result.output.contains("role prefixes equivalent: 8 phases, 64 states"), result.output)
+
   test("a role test lifts as the explicit list or alternatives of cases that have the role"):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode

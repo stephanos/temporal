@@ -590,13 +590,13 @@ val answer = action(runner).on(errand).input[ErrandAnswer]("answer")
 def requestStep(s: ErrandState): List[ErrandStep] = s match
   case ErrandState.idle =>
     List(Step(ErrandOutcome.accepted, ErrandState.queued, List(ErrandFact.errandListed)))
-  case _ => Nil
+  case _: ErrandState.queued.type | _: ErrandState.held.type | _: ErrandState.retrying.type | _: ErrandState.done.type | _: ErrandState.withdrawn.type => Nil
 
 // The runner is handed the attempt. Nothing a caller reads says so.
 def deliverStep(s: ErrandState): List[ErrandStep] = s match
   case ErrandState.queued | ErrandState.retrying =>
     List(Step(ErrandOutcome.accepted, ErrandState.held))
-  case _ => Nil
+  case _: ErrandState.idle.type | _: ErrandState.held.type | _: ErrandState.done.type | _: ErrandState.withdrawn.type => Nil
 
 // A failed attempt is retried and a caller reads nothing new; a completed one closes the errand, and
 // a canceled one withdraws it.

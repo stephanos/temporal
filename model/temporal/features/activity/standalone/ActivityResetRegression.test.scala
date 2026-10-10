@@ -98,7 +98,10 @@ class ActivityResetRegression extends munit.FunSuite:
             else system.Phase.resetRequested -> system.Fact.statusStarted
           assertEquals(after.map(_.state), List(before.copy(phase = phase)))
           assertEquals(after.map(_.facts), List(List(fact)))
-        case phase =>
+        case phase @ (system.Phase.unstarted | system.Phase.cancelRequested |
+            system.Phase.resetRequested | system.Phase.resetKeepingPause | system.Phase.completed |
+            system.Phase.failed | system.Phase.canceled | system.Phase.terminated |
+            system.Phase.timedOut) =>
           val why =
             if phase == system.Phase.unstarted || phase.in[Closed] then
               Rejection.notFound // scalafix:ok DisableSyntax.==

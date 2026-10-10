@@ -85,7 +85,7 @@ def putDisk(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage match
 
 def flushDisk(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage match
   case Stage.staged => List(Step(Outcome.deferred, DiskState(Stage.durable), List(Fact.staged)))
-  case _            => Nil
+  case _: Stage.empty.type | _: Stage.durable.type => Nil
 
 def crashDisk(d: DiskState): List[Step[DiskState, Outcome, Fact]] = // format: off
   if d.stage == Stage.staged then crashUnmodeled.reached else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons

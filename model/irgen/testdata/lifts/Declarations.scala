@@ -60,7 +60,7 @@ def putStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage match
 // A stutter of the store: staging becomes durable, and the store sees nothing of it.
 def flushStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage match
   case Stage.staged => List(Step(Outcome.deferred, DiskState(Stage.durable), List(Fact.staged)))
-  case _            => Nil
+  case _: Stage.empty.type | _: Stage.durable.type => Nil
 
 // What a crash does to staged data is left unknown; elsewhere a crash is disabled.
 def crashStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = // format: off

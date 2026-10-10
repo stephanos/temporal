@@ -43,7 +43,7 @@ val resume = action(Actor("user"))
 
 def oneMore(a: Active): Active = a match
   case Active.none => Active.one
-  case _           => Active.two
+  case _: Active.one.type | _: Active.two.type => Active.two
 
 // The admission specimen's committed admission: the message consumed, or retained and delivered
 // again.
@@ -84,7 +84,7 @@ def pollNamed(s: Admission): List[AdmissionStep] = s.phase match
       )
     else disabled
   case Phase.paused => choose(held -> stay(s), dropped -> enter(s.copy(message = Message.empty)))
-  case _            => disabled
+  case _: Phase.started.type => disabled
 
 // Alternatives that answer different outcomes.
 def answerNamed(s: Admission): List[AdmissionStep] = choose(

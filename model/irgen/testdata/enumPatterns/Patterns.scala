@@ -50,9 +50,28 @@ object Binding extends Machine[State, Outcome, Nothing]:
 object EarlierBinding extends Machine[State, Outcome, Nothing]:
   val init = State(Kind.a, Handler.running)
   object rules extends Bindings()
+  def end(s: State) = s.handler match
+    case Handler.done(x @ false) => x
+    case _: Handler.done | _: Handler.running.type | _: Handler.cancelReceived.type => true
+
+object BoundPrefix extends Machine[State, Outcome, Nothing]:
+  val init = State(Kind.a, Handler.running)
+  object rules extends Bindings()
   def end(s: State) = s.kind match
-    case x @ Kind.a => x == Kind.a
+    case x @ Kind.a => x == Kind.a // scalafix:ok DisableSyntax.==; typed equality
     case _: Kind.b.type | _: Kind.c.type => true
+
+enum Lifecycle derives Finite:
+  case held extends Lifecycle, Held
+  case waiting, closed
+final case class RoleState(phase: Lifecycle) derives Finite
+
+object RolePrefix extends Machine[RoleState, Outcome, Nothing]:
+  val init = RoleState(Lifecycle.held)
+  object rules extends Bindings()
+  def end(s: RoleState) = s.phase match
+    case p: Held => p != Lifecycle.closed // scalafix:ok DisableSyntax.!=; typed equality
+    case _: Lifecycle.waiting.type | _: Lifecycle.closed.type => false
 
 object Explicit extends Machine[State, Outcome, Nothing]:
   val init = State(Kind.a, Handler.running)
@@ -81,6 +100,8 @@ object Keeps extends Machine[State, Outcome, Nothing]:
   def end(s: State) = s.kind == Kind.c // scalafix:ok DisableSyntax.==; typed equality
   object properties:
     val kept = property.once(_.kind == Kind.a).keeps[Kind](_.kind) // scalafix:ok DisableSyntax.==; typed equality
+  object queries:
+    val kept: Query = query verify properties.kept in scenario("keeps").actions() limits Limits("keeps", 1, 1, 1)
 
 object StoredKeeps extends Machine[State, Outcome, Nothing]:
   val init = State(Kind.a, Handler.running)
@@ -88,4 +109,6 @@ object StoredKeeps extends Machine[State, Outcome, Nothing]:
   def end(s: State) = s.kind == Kind.c // scalafix:ok DisableSyntax.==; typed equality
   object properties:
     val kept = storedOnce.keeps[Kind](_.kind)
+  object queries:
+    val kept: Query = query verify properties.kept in scenario("keeps").actions() limits Limits("keeps", 1, 1, 1)
 

@@ -320,3 +320,91 @@ Open questions:
 - Whether Proto descriptor import and `buf.validate` lowering belong in the front end or in a Go
   pre-pass shared by every front end.
 - Whether Quint export or a direct Go SMT backend is the better first symbolic backend.
+
+## fn-156 explicit-null trial
+
+The compiler migration does **not** retain `-Yexplicit-nulls`. The trial used Scala CLI 1.17.1,
+Scala 3.9.0 and Temurin 27+35, with the actual flag over all 40 independent callers: framework,
+authoring, irgen, the gate and 36 fixture projects. Each compile ran under the shared heavy-gate
+lock; its command, source hashes, output and exit status are retained in
+`.flow/tmp/fn156/batch/nulls/`. This is a counted adoption decision, not a passing full-suite claim.
+
+Framework, authoring and irgen compiled with zero diagnostics. The independent gate did not:
+19 located errors occur in `Gate.scala`, `ProtoLiterals.scala`, `SourceMetrics.scala` and
+`SyntaxRule.scala`. Sixteen directly expose nullable Java descriptor/regex results in string
+selection, collection construction or strict equality; three are downstream typing cascades.
+These consumers are outside the declared ScalaPB/realization boundary modules. Uniform adoption
+would therefore require additional schema/text-processing contracts, not just changes confined to
+those boundary modules. This batch leaves all callers' null policy unchanged; it adds no blanket
+`unsafeNulls`, unchecked null casts or broad equality evidence. A later tooling-boundary change can
+revisit the flag with the same independent-root and exact-byte checks.
+
+The 40 valid trials reported 83 located diagnostics (82 distinct source/id/line/kind tuples):
+19 in the gate and 64 in fixtures. Compiler summaries also report four unlocated warnings-as-errors
+aggregates, for 87 total summary findings. Seventeen located findings are directly null-related:
+the gate's sixteen and one inferred flexible Java gRPC descriptor type in `lifts/HintRejects.scala`.
+The other fixture findings are 46 intended compiler-refusal diagnostics and 17 false-unused
+`Finite.given` imports observed during the equality rollout. Those imports were subsequently
+addressed with delayed typed witnesses and independently compiled without the rejected null flag;
+their historical null-trial exits are not rewritten as passes.
+
+| Caller or fixture | Exit | Located findings | Direct null findings |
+|---|---:|---:|---:|
+| framework | 0 | 0 | 0 |
+| authoring | 0 | 0 | 0 |
+| irgen | 0 | 0 | 0 |
+| gate | 1 | 19 | 16 |
+| binding | 0 | 0 | 0 |
+| conventions | 0 | 0 | 0 |
+| crossed | 1 | 22 | 0 |
+| deadlinePresets | 0 | 0 | 0 |
+| defaultEnds | 0 | 0 | 0 |
+| derivedTwins | 0 | 0 | 0 |
+| enumPatterns | 0 | 0 | 0 |
+| features | 0 | 0 | 0 |
+| initOrder | 0 | 0 | 0 |
+| irFileRefusals | 0 | 0 | 0 |
+| layout/kinds | 1 | 4 | 0 |
+| layout | 1 | 2 | 0 |
+| layoutRefusals/a | 0 | 0 | 0 |
+| layoutRefusals/b | 0 | 0 | 0 |
+| layoutRefusals/c | 0 | 0 | 0 |
+| layoutRefusals/d | 0 | 0 | 0 |
+| lifts | 1 | 12 | 1 |
+| misnamed | 0 | 0 | 0 |
+| nonfinite | 1 | 1 | 0 |
+| objectForms | 1 | 4 | 0 |
+| phaseCapabilities | 0 | 0 | 0 |
+| phasedMixin | 0 | 0 | 0 |
+| phasedRules | 0 | 0 | 0 |
+| realizationRefusals | 0 | 0 | 0 |
+| realizationRefusals/enumRefusals | 0 | 0 | 0 |
+| realizationRefusals/externalWrongMethod | 1 | 1 | 0 |
+| realizationRefusals/heartbeat | 0 | 0 | 0 |
+| retiredRuleCase | 1 | 1 | 0 |
+| retiredRuleCaseLifter | 0 | 0 | 0 |
+| retiredSchema | 1 | 1 | 0 |
+| samestate | 0 | 0 | 0 |
+| sectionOrder | 0 | 0 | 0 |
+| typedProtoInvalid | 1 | 13 | 0 |
+| typedRealizations | 1 | 2 | 0 |
+| unsupported | 0 | 0 | 0 |
+| werror | 1 | 1 | 0 |
+
+The unsupported fixture's zero compiler exit does not certify lifting; its intended refusal is
+at the lifter boundary. The nine intentional compiler-refusal project directives remain unchanged.
+One earlier recursive `realizationRefusals` attempt included its independent nested negative
+projects and is retained as inconclusive, not accepted root coverage. Its seven located findings
+are excluded from the table. The corrected isolated top-level source copy compiled with exit 0 and
+zero diagnostics; its provenance records every original/copied hash and the sole jar-path rewrite.
+Across all 41 historical attempts there are 90 located findings, including that superseded attempt.
+
+`nulls/analysis.json` records full diagnostics, categories, versions and the corrected-root
+disposition; `nulls/results.json` preserves the initial observations. Reads of diagnostic output,
+not exit status alone, establish the counts. Early queued receipts captured hashes before lock
+acquisition; they are historical observations, not final source seals. Later receipts capture hashes
+under the lock and after completion. The separate compiler-only raw lift retained all eleven
+original file hashes and 25,191 positions without the null flag; broader managed regeneration and
+fresh/native baseline reconciliation remain separate obligations.
+
+Reference: Scala's [explicit-null documentation](https://docs.scala-lang.org/scala3/reference/experimental/explicit-nulls.html).

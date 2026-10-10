@@ -871,10 +871,16 @@ private[irgen] trait Expressions:
       case _                               => false
     def covers(p: Tree): Option[List[Symbol]] = p match
       case r: Ref if universe.contains(r.symbol) => Some(List(r.symbol))
+      case Bind(_, inner) => covers(inner)
       case Alternatives(ps) => sequence(ps.map(covers)).map(_.flatten)
       case Unapply(fun, _, fields) if fields.forall(payload) =>
         universe.find(_ == fun.symbol.owner.companionClass).map(List(_)) // scalafix:ok DisableSyntax.==; typed equality
-      case TypedOrTest(inner, _) => typed(p).orElse(covers(inner))
+      case TypedOrTest(inner, tpt) => typed(p).orElse(covers(inner)).orElse {
+        val role = tpt.tpe.dealias
+        Option.when(payload(inner) && Roles.isRole(role.typeSymbol.typeRef.baseClasses.map(_.fullName))) {
+          universe.filter(c => (if c.isClassDef then c.typeRef else c.termRef.widen) <:< role)
+        }
+      }
       case _                    => None
     cases.lastOption.flatMap(c => typed(c.pattern)) match
       case None => false

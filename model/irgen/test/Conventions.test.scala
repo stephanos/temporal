@@ -139,12 +139,24 @@ class ConventionsFixtures extends munit.FunSuite:
     assert(cases.get(0).path("pattern").path("case").path("fields").get(0).has("wildcard"), body.toString)
     assert(cases.get(1).path("pattern").has("wildcard"), body.toString)
 
+  test("proved literal and role prefixes retain their existing binding patterns"):
+    for root <- Seq("BoundPrefix", "RolePrefix") do
+      val (result, output) = lift(patterns, "enumPatterns", s"fixture.enumpatterns.$root")
+      assertEquals(result.exit, 0, result.output)
+      val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(output))
+      val cases = json.path("machines").get(0).path("ends").path("lambda")
+        .path("body").path("match").path("cases")
+      assertEquals(cases.size(), 2, json.toString)
+      assert(cases.get(0).path("pattern").has("bind"), json.toString)
+      assert(cases.get(0).path("pattern").path("bind").path("pattern").has("literal"), json.toString)
+      assert(cases.get(1).path("pattern").has("wildcard"), json.toString)
+
   test("keeps accepts its typed equality argument without accepting a stored chain"):
-    val (result, output) = lift(patterns, "enumPatterns", "fixture.enumpatterns.Keeps")
+    val (result, output) = lift(patterns, "enumPatterns", "fixture.enumpatterns.Keeps$.queries")
     assertEquals(result.exit, 0, result.output)
     val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(output))
     assertEquals(json.path("properties").size(), 1, json.toString)
-    val (refused, _) = lift(patterns, "enumPatterns", "fixture.enumpatterns.StoredKeeps")
+    val (refused, _) = lift(patterns, "enumPatterns", "fixture.enumpatterns.StoredKeeps$.queries")
     assertNotEquals(refused.exit, 0, refused.output)
     assert(refused.output.contains("not storedOnce: chain it onto that call"), refused.output)
 
