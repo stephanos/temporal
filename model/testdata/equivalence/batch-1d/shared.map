@@ -1,0 +1,2 @@
+# Batch 1d shared lane rename map (old new, or old -), compared with STEPS_ONLY=1 against the fn160
+# baseline. The capability kind and bound renames change no step table, so no entry is needed yet.

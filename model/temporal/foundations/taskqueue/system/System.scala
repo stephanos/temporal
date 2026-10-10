@@ -145,19 +145,17 @@ object TaskQueueSystem
   // Each step of the route takes the message from the custodian before it; a poll takes a task
   // matching holds, and the consumer's answer completes it. A crash may fall anywhere.
   object rules extends Rules:
-    import Custody.*
-
     on(queue.enqueue) {
-      when(nowhere) ~> effects.enqueueDetail
+      when(Custody.nowhere) ~> effects.enqueueDetail
     }
     on(queue.addActivityTask) {
-      when(history) ~> effects.invokeDetail
+      when(Custody.history) ~> effects.invokeDetail
     }
     on(queue.persistTask) {
-      when(invoked) ~> effects.persistDetail
+      when(Custody.invoked) ~> effects.persistDetail
     }
     on(queue.syncMatch) {
-      when(invoked) ~> effects.reserveDetail
+      when(Custody.invoked) ~> effects.reserveDetail
     }
     on(queue.deliver) {
       where(states.deliverable) ~> effects.deliverDetail
