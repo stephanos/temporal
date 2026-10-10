@@ -1,0 +1,5 @@
+tools/gomad3/runner/runner_local_test.go:9:2: could not import github.com/stretchr/testify/require (runner/runner_local_test.go:9:2: cannot find module providing package github.com/stretchr/testify/require: import lookup disabled by -mod=readonly) (typecheck)
+	"github.com/stretchr/testify/require"
+	^
+1 issues:
+* typecheck: 1

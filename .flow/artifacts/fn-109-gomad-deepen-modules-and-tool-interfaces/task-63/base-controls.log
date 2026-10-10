@@ -1,0 +1,7 @@
+{"ImportPath":"github.com/stretchr/testify/require","Action":"build-output","Output":"# go.temporal.io/server/tools/gomad3/runner\n"}
+{"ImportPath":"github.com/stretchr/testify/require","Action":"build-output","Output":"runner/runner_local_test.go:9:2: no required module provides package github.com/stretchr/testify/require; to add it:\n"}
+{"ImportPath":"github.com/stretchr/testify/require","Action":"build-output","Output":"\tgo get github.com/stretchr/testify/require\n"}
+{"ImportPath":"github.com/stretchr/testify/require","Action":"build-fail"}
+{"Time":"2026-10-10T00:02:19.32263533Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/runner"}
+{"Time":"2026-10-10T00:02:19.324768247Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/runner","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/runner [setup failed]\n","OutputType":"frame"}
+{"Time":"2026-10-10T00:02:19.326051914Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/runner","Elapsed":0.003,"FailedBuild":"github.com/stretchr/testify/require"}

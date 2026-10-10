@@ -1,0 +1,20 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/worktree",
+  "argv": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "run",
+    "--build-tags",
+    "test_dep",
+    "--timeout",
+    "10m",
+    "--fix=false",
+    "--config",
+    ".github/.golangci.yml",
+    "./tools/gomad3/runner"
+  ],
+  "exit": 7,
+  "elapsed_seconds": 0,
+  "head": "c58418ee1dc42f0760824f798e5714477cfab0d2",
+  "source_manifest_sha256": "000dd076f3abbf9c62b5a46e362c6b748b57efdbda2d484520331790b7dd0539",
+  "tool_manifest_sha256": "dc5cc91120c023dca4efbf613928d51b163a663de080111b3989df05c87d5df9"
+}

@@ -1,0 +1,2 @@
+43 unchanged nonlocal functions; 173 primitive call expressions; 41 literal values; 5 comment groups preserved
+Inventory proof does not establish branch ordering, OS-fault execution, or a native pass.
