@@ -27,7 +27,6 @@ Implement R1 and the core equality proof for R2, plus the early R4/R9 byte-prese
 - `model/framework/IrFile.scala:80` - discarded registration result.
 - `model/project.scala:7` and `model/irgen/project.scala:5` - separate compiler roots.
 - `model/irgen/test/Fixtures.test.scala:314` - materialization and located compile-refusal assertions.
-- `model/check/Tools.scala` - diagnostics-aware process seam.
 - `model/irgen/Expressions.scala:840` and `model/irgen/Context.scala:269` - distinct pattern encodings and real source positions.
 - `model/temporal/foundations/taskqueue/system/System.scala:29` - representative lifted enum wildcard.
 - `.flow/tasks/fn-155-name-the-standalone-activitys-repeated.1.md` - pending proof to re-anchor after closure.

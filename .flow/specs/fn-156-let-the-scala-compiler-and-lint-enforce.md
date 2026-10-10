@@ -1,5 +1,7 @@
 # Let the Scala compiler and lint enforce Model correctness
 
+> HTML render lens: open local `.flow/artifacts/fn-156-let-the-scala-compiler-and-lint-enforce/spec.html` (ignored, regenerable; Markdown is the record). <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -53,6 +55,7 @@ They apply to the framework, the Temporal Models, irgen and the lift fixtures' b
 - **Scheduling.** The owner schedules this spec immediately after fn-155 closes on the integrated local baseline and before the authoring batch. Its only prerequisite is fn-155. Re-anchor names, files and proof inputs to that committed closure before implementation. The conductor records the authoring batch's reverse dependencies and owns milestone scheduling.
 - **No meaning change.** Flags, lint rules and tests change no Model meaning. A regeneration after this spec is byte-identical in `model/ir` and `model/cases`. A `CanEqual` given must not alter what irgen lifts.
 - **Exact bytes include positions.** Preserve declaration source locations during mechanical edits. Neither position stripping nor fn-155's mapped-identity projection satisfies this spec. Unexpected byte drift stops the comparison and remains an unresolved acceptance failure.
+- **Whole-case wildcard policy.** R4's `case _ =>` ban rejects whole-scrutinee catch-alls on model enum/state types, including a name bound to that whole-case wildcard. It does not ban exhaustive constructor payload patterns such as `case Handler.done(_)`: the constructor is an explicit enum case, and its payload need not be enumerated. Positive fixtures preserve these existing nested-pattern bytes; unrelated Scala wildcard matches remain permitted.
 - **Discovered laws.** The subject universe comes from initialized exports and their complete root closure, independently cross-checked against lifted machine identities. Include machines reached through derivations, refinements, compositions, Queries, capabilities and realizations. Determinism means repeatable ordered results for the same state and class, preserving declared alternatives. Single-successor assumptions must not reject named choices. List each inapplicable or failing law with its machine and reason; never silently exclude one.
 - **Verification inheritance.** Reuse predecessor evidence only when commands, source scope, fixtures and environment still apply. Strict compiler and lint changes invalidate affected Scala checks. Full native Model, Go and Case generator failures from resource exhaustion remain recorded under deferred fn-157; Quint resource work remains fn-154, and Activity semantic failures remain the Activity batch's obligations. These dispositions supply no passing credit for R9.
 - **Lift fixtures.** irgen's refusal fixtures (`unsupported`, `werror`, `crossed`) must keep failing for the reason they test, not because of a new flag.
@@ -120,6 +123,4 @@ make umpire-check-cases
 | R6 | The generic law tests discover every machine through the `irFile` exports. Adding a machine to an export, without editing any test, puts it under refinement totality, closedness, determinism and binding-order checks. Errors: a machine that cannot satisfy a law is listed with its reason, never silently skipped. | fn-156-let-the-scala-compiler-and-lint-enforce.4, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
 | R7 | Tests whose subject is a `Finite` domain iterate it fully. The step-table pin covers every activity and Nexus machine through interpreter-built tables. Errors: a domain too large to iterate within the test's time bound is recorded, with its size and the chosen sample. | fn-156-let-the-scala-compiler-and-lint-enforce.5, fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
 | R8 | A capture-checking spike, time-boxed to two days, reports whether `Draft` confinement can be proved under the compiler in use, and what it would cost. No merged source change. No error surface beyond the report. | fn-156-let-the-scala-compiler-and-lint-enforce.7, fn-156-let-the-scala-compiler-and-lint-enforce.8 | — |
-
-> HTML render lens: open local `.flow/artifacts/fn-156-let-the-scala-compiler-and-lint-enforce/spec.html` (ignored, regenerable; Markdown is the record). <!-- flow-next:artifact-link -->
 | R9 | `make umpire-gen-model` produces a byte-identical `model/ir` and `model/cases`. The model gate, `make lint-model` and the irgen fixture build pass. | fn-156-let-the-scala-compiler-and-lint-enforce.7 | — |
