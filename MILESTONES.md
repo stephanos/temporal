@@ -291,6 +291,7 @@ CI, PR, or push authority.
 | [fn-109.65](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.65.md) | 🚧 In progress | Restore explicit scripted Runner preparation and bootstrap coverage |
 | [fn-109.66](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.66.md) | 🚧 In progress | Restore explicit scripted progress and retention assertions |
 | [fn-109.67](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.67.md) | 🚧 In progress | Preserve busy host workloads while correcting spin lint |
+| [fn-109.68](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.68.md) | 🚧 In progress | Restore explicit scripted Choice Exploration coverage |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 
