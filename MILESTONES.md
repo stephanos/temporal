@@ -566,21 +566,26 @@ generation for compositions is outside this spec.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-150.1 | ⏸️ deferred | Complete scoped implementation checkpoint; 29 focused tests and lint pass, original Quick OOM before/after and after private daemon exit; review and closure held |
-| fn-150.2 | ⬜ todo | Structured fairness references, inherited/replacement mapping |
+| fn-150.1 | ⏸️ deferred | Scoped admission/checker checkpoint integrated; original Quick OOM retained, review and closure held |
+| fn-150.2 | 🔄 in progress | Structured fairness references and inherited/replacement mapping; finite proto/Go work-ahead, Scala closure awaits compiler seal |
 | fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
-| fn-150.4 | 🔄 in progress | Independent bound/fairness/hole/start/replay regressions on preserved checker checkpoint; batch-first work-ahead, no full-gate credit |
+| fn-150.4 | 🔄 in progress | Boundary and typed replay checkpoint integrated; focused pins, engine suite and lint evidence retained; structured fairness and integrated acceptance remain |
 | fn-150.5 | ⬜ todo | Temporal positive/negative example, docs and integrated gates |
 
-Waves: `.1` then `.2`; `.3` and `.4` are parallel candidates; `.5` joins them.
+Integration order: `.1` then `.2`; `.3` and `.4` join before `.5`. Source work may overlap
+under the batch-first strategy rather than waiting for per-task closure.
 Fn-150 has no hard dependency on fn-149. Its hand-authored Go checker proof changes no Model source,
 schema or managed artifacts and is disjoint from fn-155's remaining fixture/test work. Serialize
 later overlapping edits and regeneration with the approved delivery chain and re-anchor their
 paths before dispatch. This admission does not release fn-156's fn-155 closure dependency.
 
-Task .1's original Quick remains RED. Checkpoint `2d64387595` stays unintegrated and unreviewed
-on its task branch; its Flow block reason links the complete scoped proof and unchanged full
-verification obligation. Task .2 cannot start until .1 is verified and closed.
+Task .1's original Quick remains RED. Its source checkpoint is integrated as `9c47f975a0`,
+with task .4's boundary/replay checkpoint as `d01aefebf1`; neither integration grants review,
+gate or completion credit. The Flow block reason retains the original verification obligation.
+Task .2 is admitted on this pinned baseline with a recorded work-ahead exception. Its finite
+assumption/progress schema leaves do not overlap the format lane's realization/script schemas;
+compiler-owned Scala packaging and typed authoring wait for the compiler-only equivalence seal.
+The conductor's integrated task .4 Quick is recorded under `.flow/tmp/fn150/integrated/`.
 
 The one unchanged Quick retry after the private fn-155 compiler daemon exited also failed
 naturally: exit 1 after 39.102 seconds, checker killed after 36.698 seconds and reader cached pass.
