@@ -7,16 +7,17 @@ As of 2026-10-10.
 
 Execution resumed on 2026-10-10 under the owner's instruction to complete all milestone work,
 taking the conductor's recommendations without further questions. The compiler, format and
-fairness checkpoints are merged into `umpire` (`ae3f36ee51`). Active lanes: Batch 3 format close,
-fn-156 close, and fn-160.5's equivalence check with the pre-1d baseline capture.
+fairness checkpoints are merged into `umpire` (`ae3f36ee51`), as are fn-156's source close
+(`39b7580104`) and fn-160.5's equivalence check (`ab8e0f25fa`). Batch 3's format close is running;
+Batch 1d starts with fn-159 once the model formatting commit lands.
 
 ## Keeping this page current
 
 - This page describes the present. Rewrite a status in place; do not append dated entries.
-- List each open spec's tasks with ID, status (✅ done, 🔄 in progress, ⬜ todo, ⏸️ deferred) and a brief
-  description; set a task's status in place
-  when it changes. Keep completed tasks listed until the whole spec is complete, then remove the spec.
-  Flow and git keep the history.
+- List each open spec's remaining tasks in a `Name | Status | What` table: the task ID, its status
+  (🔄 in progress, ⬜ todo, ⏸️ deferred or paused) and a brief description. Set a status in place when
+  it changes. Remove a task's row once it is done, and the spec once it is closed. Flow and git keep
+  the history.
 - Group scheduled specs under the batch that shares their regeneration (see Batches). Task rows
   record the task's own evidence; the batch-deferred checks are implied and need not be repeated.
 - Only the root agent edits this page. Workers report status in their handoffs, so isolated
@@ -197,13 +198,8 @@ are parallel candidates after it; task 3 follows task 2; task 6 regenerates and 
 owner: whether fn-129.3's open remainder lands before or re-anchors after this spec's reset changes,
 and the pending-control remodel.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
-| fn-155.1 | ✅ done | Sealed complete baseline and projection; 46 native/Pins tables, semantic mutation controls, lifter fallbacks; three review lanes SHIP |
-| fn-155.2 | ✅ done | System landing/guards/reset refactor; all 46 tables/13,891,948 records equal, explicit predicate proof, three-axis SHIP and post-review 65 Scala tests/lint pass |
-| fn-155.3 | ✅ done | Product Recorded effects/shared reasons/examples; 20 fresh Cases byte-exact, complete guarded structural proof, three-axis SHIP and integrated Activity tests/lint pass |
-| fn-155.4 | ✅ done | Proven R5 fallbacks retained; shared waiver reasons; 23 complete tables/1,361,467 records equal, three-axis SHIP and integrated lint/Scala checks pass |
-| fn-155.5 | ✅ done | Realization evidence builders; reviewed twelve-leaf provenance proof, three-axis SHIP, integrated 24 realization/lowering tests and lint pass |
 | fn-155.6 | ⏸️ deferred | Canonical regeneration/validation exceeds the one-hour rule; scoped fixtures, tests and mapping preserved; complete R7/all31/whole-manifest proof and gates remain required |
 
 Final validation remains deferred, not passed. Canonical generation attempts retain at least
@@ -222,42 +218,16 @@ unintegrated and unreviewed. The original failures and the later kernel excerpts
 
 #### fn-156: Let the Scala compiler and lint enforce Model correctness
 
-[Spec](.flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md) is scheduled immediately
-after fn-155, before batch 2, by the owner's instruction on 2026-10-09. Its eight-task plan passed
-independent review and is ready. On 2026-10-10 the owner authorized isolated implementation
-ahead of fn-155's closure, in parallel with fn-146, and deferred fn-157. Task .1 pins the current
-integrated fn-155.1–.5 source and complete managed raw-byte manifests before edits; fn-155.6's
-missing fresh-generation proof remains a reconciliation hold, not inherited passing evidence.
-The source lane batches .1 through .6 into a coordinated rollout, with focused checks and no
-per-task full-gate/review barrier. Shared files have one owner; disjoint enforcement and test work
-may run in parallel. Report-only .8 runs independently in an isolated checkout of the same baseline;
-.7 joins both lanes for documentation and the full close.
-The owner-authorized work-ahead also admits .8 from an immutable copy of the integrated
-baseline. Its report pins Draft/compiler inputs; .7 reconciles those against the closed fn-155
-baseline before publication. Disposable capture experiments never merge into the source lane.
+[Spec](.flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md). Tasks .1–.6 and .8 are done and
+merged (`39b7580104`). A fresh lift of the final source equals a fresh lift of the pre-fn-156 source byte
+for byte, positions included (11 files, 25,191 positions), and `make lint-model` passes. The reports are
+joined and enforcement is documented (`model/README.md`, `.plans/SCALA_CAPTURE_CHECKING.md`). Explicit
+nulls was trialled and dropped (`.plans/SCALA.md`). Task .7 closes once a full Go suite and model gate
+run on a tree that includes it, which Batch 3's close supplies; fn-155.6's whole-regeneration proof stays
+a separate hold. The compile-versus-lift items from the review remain notes on fn-141.
 
-Its accepted result changes no IR or Case byte, including positions. Coordinate overlapping Model
-source edits by file ownership rather than serializing the entire rollout against other batches.
-Task .1 proves sound equality evidence and byte-preserving exhaustive-match lowering before
-rollout; an infeasible proof stops that source lane without relaxing acceptance. The
-compile-versus-lift items from the same review remain notes on fn-141.
-Compiler source checkpoints are integrated as `8481696c62` and `7d54144267`. The latest v3
-compiler-only comparison preserves all eleven fresh raw outputs against the immutable pre-edit
-lift, including positions; root independently verified the bytes and jar hashes. Typed remainder
-prefix compatibility, finite role equivalence and the all-source inspector have focused passing
-evidence, with no golden changes. The counted 40-root explicit-nulls trial rejects uniform flag
-adoption without unsafe escapes; its findings are in `.plans/SCALA.md`. Full fixture/authoring
-reruns, formatting/lint, managed IR/Case regeneration, R9 reconciliation and review remain open.
-
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
-| fn-156.1 | 🔄 in progress | Isolated compiler lane: warning checks, finite equality evidence, and exhaustive-match/raw-byte compatibility proof; final fn-155 baseline reconciliation held |
-| fn-156.2 | 🔄 in progress | Strict equality and precise equality-lint policy across authoring, lifter, fixtures and gate tooling |
-| fn-156.3 | 🔄 in progress | Section order, dotted membership, permitted imports and exhaustive enum/state matches |
-| fn-156.4 | 🔄 in progress | Discover every exported machine for totality, closedness, relation and binding-order laws |
-| fn-156.5 | 🔄 in progress | Complete finite-domain tests and independent interpreter table pins for every Activity/Nexus machine |
-| fn-156.6 | 🔄 in progress | Counted 40-root explicit-nulls trial/report committed; uniform flag rejected, final acceptance held |
-| fn-156.8 | ✅ done | Report-only Draft capture investigation: 30 verified compiler observations and three-axis SHIP review; no capture adoption; .7 retains publication/baseline reconciliation |
 | fn-156.7 | ⬜ todo | Join reports, document enforcement, exact artifact comparison, full gates and reviews; close |
 
 ### Batch 2, authoring: fn-140 → fn-149 → fn-123
@@ -291,7 +261,7 @@ documentation and disjoint conversion work may run in parallel. Task 6 joins the
 
 `witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-140.1 | ⬜ todo | Typed witness builders and existing core Query values |
 | fn-140.2 | ⬜ todo | Witness lifting, names, bounds, composed facts and capability duplicate refusals |
@@ -319,7 +289,7 @@ comparisons preserve behavior, check results and Case/assessment meaning, with e
 provenance change explained. Fn-149.5 stays pending until shared gates, review and live evidence are
 linked at fn-123.8, even after its committed source seal releases fault implementation.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-149.1 | ⬜ todo | Group discovery and independent runtime/lifter registration proof |
 | fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
@@ -342,7 +312,7 @@ A fault is declared once with its kind, budget and whether it can be realized; a
 its fields as durable or in-memory, and Go derives the crash. The explorer half of R7 and the P clause
 of R8 were dropped, since neither tool exists.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-123.1 | ⬜ todo | Fault kinds and `modelOnly` on the `fault` actor's actions; IR `Fault` record; spellings settled |
 | fn-123.2 | ⬜ todo | Durability classification and `crashes(…)` in the DSL and lifter, on fixtures |
@@ -399,9 +369,8 @@ and default/ceiling reconciliation remains required. Extension-range protobuf re
 is unproven and remains an acceptance blocker. Scala proposals are unapplied; managed artifacts,
 full gates, live corpus, final cost measurements and shared review remain open.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
-| fn-146.1 | ✅ done | Format/identity boundary and null-version correction integrated; focused tests pass and resumed review SHIP; 4.0 activation/artifact replay remain fn-148.6/.7 |
 | fn-146.2 | 🔄 in progress | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
 | fn-146.3 | 🔄 in progress | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
 | fn-146.4 | 🔄 in progress | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
@@ -417,7 +386,7 @@ migrate through checked whole-millisecond conversions. Absent polling interval m
 present positive interval means polling. Counts, logical bounds, percentages and timestamps stay.
 Scalar-only singleton-oneof presence cleanup belongs here. Batch schema, producer and consumer changes.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-147.1 | 🔄 in progress | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
 | fn-147.2 | 🔄 in progress | Replace schemas and migrate Scala authoring, lifting, realization admission and producers |
@@ -433,7 +402,7 @@ independent. Complete states include both atom and fields; results are separate 
 prior-state transitions, and projection result order stays explicit. Batch the migration around
 shared schema/binder contracts, with one coordinated activation and final checkpoint.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-148.1 | 🔄 in progress | Generalized evidence declarations in a leaf schema; full lift-shape proof |
 | fn-148.2 | 🔄 in progress | One binder and lowering path; source selection and independent Contract policies |
@@ -471,7 +440,7 @@ It revises `.plans/DSL_OPERATORS.md` rule 5 and fn-113 R15: the framework uses `
 its capture points only. Proof point: the realization step stops the work unless it removes at least
 half of the realization lifter's lines net of what it adds.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-141.1 | ⬜ todo | Order lint, structure lint and marker checks out of `model/irgen` into their own gate step |
 | fn-141.2 | ⬜ todo | Spellings no Model or kit uses retired, after a recount the owner confirms |
@@ -536,21 +505,16 @@ ShutdownWorker race permits an additional inconclusive.
 Tasks 1-5 are done. Tasks 7 and 8 are parallel candidates after the source gates above; task 6
 closes the shared batch after both corrections and all activity sources.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
-| fn-128.1 | ✅ done | Dispatch as a field replacing the `backingOff` phase; start delay; unpause-after-backoff and schedule-to-start-in-backoff fixed |
-| fn-128.2 | ✅ done | Explicit rejection rows and repeated RequestCancel refusal; owned lint subjects removed; focused tests pass |
-| fn-128.3 | ✅ done | 2026-10-08: finite retry policy and retryable start-to-close timeout; exhaustion/timeout-retry Queries and bounded withholding bridge; focused source/lowering/runtime checks pass |
-| fn-128.4 | ✅ done | All public status facts visible; Product carries creation/held pause/withdrawal; focused checks and current-source refinement/mutant replay pass |
-| fn-128.5 | ✅ done | Checked `cancelIsNotUndone`; final typed raw attempt-count read in all 13 supported Cases; seven timer explanations; integrated source proofs pass |
 | fn-128.7 | ⏸️ paused (1d) | Accepted fatal-settlement classification through typed public last-failure evidence; unchanged fatal Property satisfied in scratch recording/replay |
 | fn-128.8 | ⏸️ paused (1d) | Separate caller-owned pauseResume and heartbeat-retry Profiles; immutable preflight/execution/replay binding, final-shape charge proof and admission negatives |
 | fn-128.6 | ⏸️ paused (1d) | Evidence map, live Cases run once (the batch's live run); close |
 
 #### fn-138: Retries and Deadline capabilities
 
-Implementation complete (3/3 tasks); whole-spec review and shared Batch 5 closure pending.
-The done source tasks do not replace the production equivalence, full gates or live-run evidence
+All three tasks are done; whole-spec review and shared Batch 5 closure are pending, so no task
+rows remain. The done source tasks do not replace the production equivalence, full gates or live-run evidence
 reserved for that boundary, so this spec remains listed until closure.
 
 Runs after fn-128.5: fn-128.1 replaces the `backingOff` phase and fn-128.3 adds the retry policy,
@@ -565,20 +529,13 @@ Retries' finite policy projection uses `Option[UpTo[N]]`, with explicit unlimite
 policy-value catalog independent of the attempt-count domain. This type correction passed the
 same independent plan review; the task updates both existing Scala and Go vocabulary gates.
 
-| Task | Status | What |
-| --- | --- | --- |
-| fn-138.1 | ✅ done | Retries and selected before-state transition verification integrated; 130 fixture checks and 98 integrated focused checks pass; full generated-IR parity pending at the batch close |
-| fn-138.2 | ✅ done | Typed Deadline capability integrated; three exact goldens, 30 located refusals and 123 fresh integrated focused checks pass; production generation pending at the batch close |
-| fn-138.3 | ✅ done | Activity/Nexus adoption integrated; strict R3 proof preserves 121 Queries and 21 exact Cases; 24 native and 42 integrated reader checks pass |
 
 #### fn-129: Activity coverage
 
 Runs after fn-138. Tasks run in order.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
-| fn-129.1 | ✅ done | Typed heartbeat protocol; canonical lint, native/six-root checks, three fresh scratch Case recordings/replays and Profile negatives pass |
-| fn-129.2 | ✅ done | Independent by-ID service settlement; four fresh Case recordings replay exactly, three candidate native Quick commands pass; by-ID witnesses expect `explanationsDisagree` |
 | fn-129.3 | ⏸️ paused (1d) | Reset with `keepPaused` and deferred settlement joined: 65 Queries, `deferredResetCompletes` lowers and prepares, reset-aware laws via `overriding(…, of = …)`; open: direct `keepPaused` live Case (lowering refuses a reset indistinguishable from the pause before it) |
 | fn-129.4 | ⏸️ paused (1d) | Exploration on the activity's `find` Queries |
 | fn-129.5 | ⏸️ paused (1d) | New Cases listed, live run (the batch's live run); close |
@@ -598,7 +555,7 @@ Related to fn-149's safety/liveness groups. Coordinate with fn-141 and the queue
 the later schema/authoring/example tasks re-anchor before their own admission. Live Case
 generation for compositions is outside this spec.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-150.1 | ⏸️ deferred | Scoped admission/checker checkpoint integrated; original Quick OOM retained, review and closure held |
 | fn-150.2 | 🔄 in progress | Finite structured fairness checkpoint integrated; typed catalog, inheritance and exact member/sync pins pass; Scala/full acceptance held |
@@ -736,7 +693,7 @@ to 114 probes / 596.297 executed seconds, with 28 captured surfaces, one capture
 still missing. These are partial functional receipts, not complete-oracle, repair or gate-fit credit.
 Resume from the preserved deferral handover and seals, without rerunning or changing their inputs.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-157.1 | ⏸️ deferred | Owner deferred after three immutable seals; complete primary oracle still missing; constructor experiment not started; no repair or gate-fit credit |
 | fn-157.2 | ⬜ todo | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
@@ -752,10 +709,8 @@ Specs the owner deferred keep their tasks here so they can be revived as planned
 
 Deferred 2026-10-04.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
-| fn-119.1 | ✅ done | Driver's workflow schedules an activity, awaits it, completes with its result |
-| fn-119.2 | ✅ done | Workflow-scheduled activity attempts routed to the Driver's interpreter |
 | fn-119.3 | ⏸️ deferred | Workflow-scheduled activities and awaited outcomes in the realization DSL, lifter and lowering |
 | fn-119.4 | ⏸️ deferred | Activity workflow example modeled; its Queries run live from the gate |
 | fn-119.5 | ⏸️ deferred | Faulty variant and the zero-Go check |
@@ -765,9 +720,8 @@ Deferred 2026-10-04.
 
 Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
-| fn-125.1 | ✅ done | HSM/CHASM switch fixed; schedule-to-close no longer from the Profile |
 | fn-125.2 | ⏸️ deferred | `setting[T]` over finite domains in the framework, lifted |
 | fn-125.3 | ⏸️ deferred | Query `under`: one Query per valuation |
 | fn-125.4 | ⏸️ deferred | Settings in the Quint/P exports |
@@ -790,7 +744,7 @@ Evidence: `.plans/MODEL_VISUALIZATION.md`.
 
 Rendered views per Model (signature, phase diagram, refinement, compositions, derived-design diff, witness paths), checked in as `.d2` plus `.svg` under `model/views/` and gated; D2 as a Go library with ELK; no DSL declaration.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-130.1 | ⬜ todo | Disposable renderer/projection proof and full-workload added-cost feasibility; no production rollout on a failed proof |
 | fn-130.2 | ⬜ todo | Pinned phase renderer, nested/queue projections, retained enabled guards and live command/ownership foundation |
@@ -838,7 +792,7 @@ This records the deferred check and resource work, not a passing result or an Ac
 
 The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeout 30m -json ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...`: exit 1, 49 packages passed, three had no tests and conformance was OOM-killed after completion failed. Export passed all four faithful fixtures. Evidence remains under `/tmp/umpire-fn1454.aTUadX/.flow/tmp/fn1454/go-full-raw-reader-canonical.*` and in Flow's structural completion receipts. Revisit concurrent memory fit after incremental generation and consumption preserve the complete JSON/native/receipt/replay contracts; the inherited Activity assertions remain separate Batch 5 obligations.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-154.1 | ⏸️ deferred | Incremental JSON generation and consumption, preserved full coverage and measured concurrent memory fit before restoring the deferred gate |
 
@@ -888,7 +842,7 @@ before expanding. Preserve model behavior and behavioral identities. Coordinate 
 fn-149 and fn-130; fn-152's named Situations are not a prerequisite. Live test generation,
 temporal-sequence examples and a repository-wide rollout are outside the pilot.
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-153.1 | ⬜ todo | Optional illustration carriers, exact domain admission and frozen behavior/identity pins |
 | fn-153.2 | ⬜ todo | Typed authoring attachment, lifting and nested source locations |
@@ -917,13 +871,14 @@ Model-readability specs split by language, not by spec:
   equivalence check under the batch's rename map, full gate, review and one live run. It waits for
   Batch 3 (which owns the IR/Case schema) and integrates after Batch 5.
 
-**How 1d is verified without IR:** before the first 1d edit, fn-160.5 captures a baseline of every
-machine's step table (the Pins test for Product and System, interpreter-built tables for the rest,
-as fn-155 did) and the current model sources. Each 1d change must keep the step tables equal under
-its rename map, and the Scala build, framework tests and model tests must pass. Lifter-side checks
-(refusal fixtures) are written in 1d. They run once the lifter builds again, which needs fn-147's
-`Duration` work in `irgen/Realizations.scala`. The tasks' `make umpire-check-model` / lint / fixture
-criteria are met by Batch 5b's shared close evidence, as the batch rules allow.
+**How 1d is verified without IR:** before the first 1d edit, `make umpire-capture-baseline` captured
+the baseline at `.flow/tmp/fn160/baseline-ae3f36ee51/` (59 step tables, IR, Cases, interpreter dumps).
+Each 1d change seals with `make umpire-check-equivalence BASE=<baseline> MAP=<batch map> STEPS_ONLY=1`,
+plus the Scala build, framework tests and model tests; the lifter builds again, so its fixtures run too.
+Batch 5b's IR equivalence check is `make umpire-check-equivalence BASE=<baseline> MAP=<batch map>
+DUMPER=<fn-155 dump>`, which adds the IR, lint, Case and manifest projection and the interpreter tables.
+The tasks' `make umpire-check-model` / lint / fixture criteria are met by Batch 5b's shared close
+evidence, as the batch rules allow.
 
 **Interactions with other batches:**
 - **Batch 4 (fn-141, not started)** now comes after 1d, so it describes only the final DSL (qualified
@@ -937,18 +892,18 @@ criteria are met by Batch 5b's shared close evidence, as the batch rules allow.
 
 **Batch 1d order (Scala only):**
 
-| Order | Task | What lands |
+Rows run in order; fn-160.1, fn-162.1 and fn-160.5 (baseline and step-table comparison) are done.
+
+| Name | Status | What |
 | --- | --- | --- |
-| done | fn-160.1, fn-162.1 | Read-only investigations; findings in their specs |
-| 0 | fn-160.5 (step tables) | Baseline capture and step-table comparison under a rename map; the IR projection half follows in 5b |
-| 1 | fn-159.1, fn-159.3, fn-159.6 | Qualified `on` targets and phases (framework runtime check for `on`, lifter rules written), `activityWorker`; `Observation` drops `read` |
-| 2 | fn-159.2, .4, .5, .8 | `completionClient`; drop the product's `disabled(process.stop)`; bounds into `Bounds`; `Retryable`/`Expirable` |
-| 3 | fn-159.7 | `enters(Phase.X)` construct and its migration in every model |
-| 4 | fn-161.1 | Facet construct, ownership and vocabulary checks |
-| 5 | fn-161.2 + .3, fn-161.4 | Activity facets in one pass; every other machine wrapped |
-| 6 | fn-162.2 (Scala part), fn-162.3 | Realizations name the Queries they run; claim-container subjects removed; Properties declared once |
-| 7 | fn-160.3, fn-160.4 | One object per file, flat prefix layout, `realization/` layer, `<Subject>Run`, one-way layer dependencies |
-| 8 | fn-160.2 (Scala part) | Collection by feature package; `irFile`/`exports` removed |
+| fn-159.1, fn-159.3, fn-159.6 | ⬜ todo | Qualified `on` targets and phases (framework runtime check for `on`, lifter rules written), `activityWorker`; `Observation` drops `read` |
+| fn-159.2, .4, .5, .8 | ⬜ todo | `completionClient`; drop the product's `disabled(process.stop)`; bounds into `Bounds`; `Retryable`/`Expirable` |
+| fn-159.7 | ⬜ todo | `enters(Phase.X)` construct and its migration in every model |
+| fn-161.1 | ⬜ todo | Facet construct, ownership and vocabulary checks |
+| fn-161.2 + .3, fn-161.4 | ⬜ todo | Activity facets in one pass; every other machine wrapped |
+| fn-162.2 (Scala part), fn-162.3 | ⬜ todo | Realizations name the Queries they run; claim-container subjects removed; Properties declared once |
+| fn-160.3, fn-160.4 | ⬜ todo | One object per file, flat prefix layout, `realization/` layer, `<Subject>Run`, one-way layer dependencies |
+| fn-160.2 (Scala part) | ⬜ todo | Collection by feature package; `irFile`/`exports` removed |
 
 **Batch 1d lanes** (disjoint files run in parallel; only the activity lane is a chain):
 
@@ -986,7 +941,7 @@ and fn-159.6 leave the IR unchanged; the renames, bound moves and `enters` chang
 only. The IR-regenerating tasks wait on the tree's IR `Duration` migration. Not marked ready.
 [Spec](.flow/specs/fn-159-qualified-action-names-in-rules.md).
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-159.1 | ⬜ todo | Require qualified `on` targets in irgen and the framework; refuse `import X.*` in `from`; rename the bound `worker` to `activityWorker`; migrate models, tests and README |
 | fn-159.2 | ⬜ todo | Rename the standalone activity's By-ID actor `service` to `completionClient`; regenerate the activity IR |
@@ -1008,13 +963,11 @@ so no section can be forgotten. The model content stays the same; file boundarie
 level folders grouped by name prefix, and realizations get their own `realization/` layer. Not marked ready.
 [Spec](.flow/specs/fn-160-one-ir-file-per-feature-collected-from.md).
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
-| fn-160.1 | ✅ done | Inventory every consumer of today's IR file split; flag any that needs a split (findings in the spec, 2026-10-10: no split needs to stay) |
 | fn-160.2 | ⬜ todo | Collect one IR file per feature package, and per foundation/actor/kind package that declares Queries or realizations; remove `irFile`/`exports`; exploration checks only the asked Query; regenerate and migrate consumers |
 | fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); the lifter enforces it (after fn-160.2) |
 | fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
-| fn-160.5 | ⬜ todo | Reusable equivalence check: baseline capture and step-table comparison (Batch 1d, first), IR/Case projection under a rename map (Batch 5b) |
 
 ## fn-161: Facets: action-owning behaviour areas of a feature
 
@@ -1026,7 +979,7 @@ feature's levels share one facet vocabulary. Facets are named as nouns, capabili
 activity, in two stages, after fn-159.7 (`enters`). Not marked ready.
 [Spec](.flow/specs/fn-161-facets-action-owning-behaviour-areas-of.md).
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
 | fn-161.1 | ⬜ todo | Facet construct: framework, lifter, one-owner-per-action check, layout rules, docs |
 | fn-161.2 | ⬜ todo | Stage 1: standalone activity effects and claims into facet files (rules stay by actor) |
@@ -1044,8 +997,7 @@ declared once in its facet, under its existing name, so the copies go. Query ans
 (in the rename map). Ideally lands before fn-160.3 splits those subjects into files. Not marked ready.
 [Spec](.flow/specs/fn-162-queries-name-their-realization-each.md).
 
-| Task | Status | What |
+| Name | Status | What |
 | --- | --- | --- |
-| fn-162.1 | ✅ done | Trace how a Case's assessed Properties are selected today; list claim containers and duplicated predicates (findings in the spec, 2026-10-10) |
 | fn-162.2 | ⬜ todo | Realizations name the Queries they run (unnamed find Queries are model-only): framework, lifter, IR, lowering, assessment; duplicate-Property detection |
 | fn-162.3 | ⬜ todo | Migrate the standalone activity off claim-container subjects |
