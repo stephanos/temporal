@@ -586,6 +586,11 @@ Task .2 is admitted on this pinned baseline with a recorded work-ahead exception
 assumption/progress schema leaves do not overlap the format lane's realization/script schemas;
 compiler-owned Scala packaging and typed authoring wait for the compiler-only equivalence seal.
 The conductor's integrated task .4 Quick is recorded under `.flow/tmp/fn150/integrated/`.
+That run exited 1: the engine package passed, but the unchanged Activity property-row checker
+hit the canonical 30-minute timeout during `startedByPollingWorker_is_about_the_backoff`.
+The checker package elapsed 1,846.865 seconds. Its terminal log and result are retained;
+this is not a restored full gate. Structured fairness work continues independently, and
+fn-157's owner deferral remains in force.
 
 The one unchanged Quick retry after the private fn-155 compiler daemon exited also failed
 naturally: exit 1 after 39.102 seconds, checker killed after 36.698 seconds and reader cached pass.
