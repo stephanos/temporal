@@ -12,6 +12,7 @@ Convert the shared task queue (R3, R4, R6, R11): `TaskQueueSystem` declares its 
 **Order:** After task 3. Re-read the targets first; fn-139.7 rewrote these rules into `when` blocks after the targets were verified.
 
 ### Approach
+- After task .2 has classified both existing hole-bearing Disk fixtures, activate mandatory durability on all crash bindings atomically with this complete queue conversion. Enumerate every authored/derived crash binding independently; prove an unclassified authored binding now refuses, including a negative fixture not using `crashes`. Preserve inherited-classification removal for crash-free restrictions, and retain refusal for explicit crash-free classifications. No staging exception survives this task.
 - `TaskQueueSystem`: classify `custody` as `inMemory(invoked -> history, reserved -> history)`, `polled` as `ephemeral(resetTo = false)`, `delivered` as `durable`, and replace the crash rule (`System.scala:153`) and `crashDetail` (`:115-120`) with `crashes(fault.crash, QueueFact.crashed)`. Run task 3's table test against the regenerated IR as well as the fixture.
 - `ForgetfulQueue` (`:264`) and `VolatileQueue` (`:272`) keep `rebind(fault.crash ~> …)`. The IR records each as authored over a derived crash. Their counterexamples and refinement targets stay the same.
 - Lint: add `fault-overridden` beside the kinds in `lint.go:29-87`, reported per binding that overrides a derived crash. Accept both with their reasons in the `.lint.json` the gate reads (`lint/accept.go`). Check whether the acceptance file needs a version bump and say so in the done summary.
@@ -35,7 +36,7 @@ Convert the shared task queue (R3, R4, R6, R11): `TaskQueueSystem` declares its 
 - Memory `behavior-neutral-refactors-must-not-2026-09-04`: the conversion must not tighten validation the Models relied on.
 
 ## Acceptance
-- [ ] `crashDetail` and the authored crash rule are gone from `TaskQueueSystem`, and task 3's table test passes against the regenerated queue.
+- [ ] `crashDetail` and the authored crash rule are gone from `TaskQueueSystem`, and task 3's table test passes against the regenerated queue. Universal R2 classification is active for every crash binding, existing Disk hole behavior survives, and crash-free inherited restrictions stay valid.
 - [ ] `ForgetfulQueue` and `VolatileQueue` give the same counterexamples. Lint reports `fault-overridden` for each, and the gate fails if either acceptance is removed.
 - [ ] `storageLossAssumed` is gone. The system and the product share one derived assumption named `storageLoss`, after `queueOpaque` in IR order. A refusal fixture shows a duplicate hand-written assumption refused at its line.
 - [ ] Against fn-149.5's final grouped baseline, the regenerated diff holds only the recorded fault deltas, and every changed line is classified in the done summary. Query answers and Case bytes are unchanged.

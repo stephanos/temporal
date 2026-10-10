@@ -3,16 +3,17 @@ satisfies: [R3, R4]
 ---
 # fn-140-one-sentence-witness-queries-with.3 Replace Query expect with live and validate source-only expectation reasons
 
-Touches: [model/framework/Claims.scala, model/framework/realize/Realize.scala, model/temporal/**/*.scala, model/irgen/Claims.scala, model/irgen/Realizations.scala, model/irgen/test/**, model/irgen/testdata/**]
+Touches: [model/framework/Claims.scala, model/framework/realize/Realize.scala, model/temporal/**/*.scala, model/irgen/Claims.scala, model/irgen/Realizations.scala, model/irgen/test/**, model/irgen/testdata/**, tools/umpire/lower/generated.go, tools/umpire/lower/generated_test.go]
 
 ## Description
 Implement the R3/R4 expectation contract and perform its mechanical call-site migration together, so the Query rename and non-satisfied constructors leave compilable Models and fixtures. This is one expectation mechanism plus mechanically affected callers, rather than separate tasks per Model.
 
 **Size:** M
-**Files:** `model/framework/Claims.scala`, `model/framework/realize/Realize.scala`, `model/temporal/realize/Kit.scala`, `model/irgen/{Claims,Realizations}.scala`, existing Query/expectation callers and fixtures.
+**Files:** `model/framework/Claims.scala`, `model/framework/realize/Realize.scala`, `model/temporal/realize/Kit.scala`, `model/irgen/{Claims,Realizations}.scala`, existing Query/expectation callers and fixtures; `tools/umpire/lower/generated.go` and its tests for live Case selection.
 
 ### Approach
 - Rename the existing Query modifier at `Claims.scala:99` and the lift fold at `irgen/Claims.scala:333`. Keep capability fields named expect where the spec retains their binding shape.
+- Implement the Case-generation switch in `tools/umpire/lower/generated.go:88-119`: a find with no expected_run (no `.live`) remains model-only and generates no Case, even if its machine is otherwise executable. Account for it truthfully in the complete manifest rather than invoke lowering and error for a missing assessment. Do not discard Query/check admission, malformed declared expectations or existing unsupported/refusal diagnostics for live Queries. Capability-generated expectations still select their Cases. A regression uses two otherwise equivalent lowerable finds, one live and one without live, on the same realized machine; only the live find produces a Case. Cover both witness and triple sources, capability selection and absent versus incomplete declared expected Runs.
 - Make source-only text part of non-satisfied expectation values, including explicit full Runs and monitors at `Realize.scala:571-613`. A satisfied constructor offers no because argument. The existing incomplete Run admission still applies.
 - Route witness, triple and capability expectations through the common admission at `irgen/Claims.scala:428`; follow helper calls and nested monitor values. Missing, empty and whitespace-only text fail with the Query or capability binding and source position.
 - Explicitly omit explanatory text when `Realizations.scala:63` emits the existing descriptor-shaped expectation. Same expectation with two established explanations must emit identical IR; never add a schema field or change judge reason IDs.
@@ -36,7 +37,7 @@ rg -n '\.expect\(' model/framework model/temporal model/irgen
 ```
 
 ## Acceptance
-- [ ] Query `.expect` is removed and every Query caller/fixture uses live; capability expectation bindings keep their established field shape (R3).
+- [ ] Query `.expect` is removed and every Query caller/fixture uses live; capability expectation bindings keep their established field shape (R3). Paired otherwise-lowerable live/no-live witness and triple regressions generate exactly the live Cases and account for every Query in the manifest; incomplete declared expectations still refuse.
 - [ ] Compile/lift refusals cover satisfied-with-reason, absent/blank non-satisfied text, nested monitors and capability bindings; existing incomplete-Run refusals remain exercised (R4).
 - [ ] Each migrated reason has a concrete Model/assessment source; unresolved explanations are reported by binding and never fabricated.
 - [ ] A source-only text differential produces identical expectation IR and preserves live Case membership; no Case/assessment/schema reason field is introduced.
