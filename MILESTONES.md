@@ -196,7 +196,7 @@ compile-versus-lift items from the same review remain notes on fn-141.
 | fn-156.4 | ⬜ todo | Discover every exported machine for totality, closedness, relation and binding-order laws |
 | fn-156.5 | ⬜ todo | Complete finite-domain tests and independent interpreter table pins for every Activity/Nexus machine |
 | fn-156.6 | ⬜ todo | Explicit-nulls trial across compiler roots; adopt with boundary fixes or report findings and drop |
-| fn-156.8 | 🔄 in progress | Isolated report-only Draft capture-confinement spike; pinned compiler diagnostics, limitations and adoption cost; no merged source changes |
+| fn-156.8 | ✅ done | Report-only Draft capture investigation: 30 verified compiler observations and three-axis SHIP review; no capture adoption; .7 retains publication/baseline reconciliation |
 | fn-156.7 | ⬜ todo | Join reports, document enforcement, exact artifact comparison, full gates and reviews; close |
 
 ### Batch 2, authoring: fn-140 → fn-149 → fn-123
