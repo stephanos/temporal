@@ -25,6 +25,9 @@ Name every phase through its enum: `when(Phase.scheduled)`, `phase = Phase.start
 - `model/framework/Syntax.scala`: the `when` overloads in `Rules`/`Firing`, and `Phased`
 - `model/README.md`: the rules and effects spec sections
 
+### Batching
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria.
+
 ### Quick commands
 ```sh
 make umpire-check-model

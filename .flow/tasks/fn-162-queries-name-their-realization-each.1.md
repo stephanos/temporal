@@ -1,14 +1,14 @@
 ---
 satisfies: [R1]
 ---
-# fn-162-queries-choose-their-assessed.1 Trace how a Case's assessed Properties are selected today
+# fn-162-queries-name-their-realization-each.1 Trace how a Case's assessed Properties are selected today
 
 ## Description
 Trace how a realized Case's assessed Properties are selected today, end to end, before changing it. Write the findings into the spec as `## Resolved via Codebase`. No code changes.
 
 **Size:** S
 **Files:** the spec only; read-only investigation
-**Touches:** [.flow/specs/fn-162-queries-choose-their-assessed.md]
+**Touches:** [.flow/specs/fn-162-queries-name-their-realization-each.md]
 
 ### Approach
 - **Model:** how a `Realizes(<machine>)` / `DerivesFrom(...)` names its subject, and how a Query relates to its subject machine (`scenario.machine`, `property.machine`). Look at the activity's `system/Heartbeat.scala` subjects and their realizations (`HeartbeatThenCompletion`, `RetryAfterHeartbeat`, `ExhaustAfterHeartbeat`).

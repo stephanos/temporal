@@ -20,6 +20,9 @@ Wrap every remaining declared machine into facets, then switch on the facets-onl
 ### Prerequisite
 - fn-161.1 (the construct, checks and allow-list). Can run beside fn-161.2 and fn-161.3, which cover the standalone activity's main machines.
 
+### Batching
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria.
+
 ### Quick commands
 ```sh
 make umpire-gen-model

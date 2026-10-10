@@ -30,6 +30,9 @@ Require each Model file to declare at most one machine, composition or derivatio
 ### Prerequisite
 - Batch 5b (see MILESTONES.md): the lint rules land with Batch 5b's tooling; the file moves come after fn-162.3 removes the claim-container subjects (so they aren't split only to be deleted), and before fn-160.2's collection and the batch's single regeneration. No separate regeneration here. A working tree that builds the lifter (the in-progress IR `Duration` migration, plus `make protoc`).
 
+### Batching
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria. File moves come after fn-162.3 removes the claim-container subjects.
+
 ### Quick commands
 ```sh
 make umpire-gen-model

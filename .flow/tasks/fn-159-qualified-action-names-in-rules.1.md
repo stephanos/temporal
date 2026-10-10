@@ -30,6 +30,9 @@ Require every `on` target in a machine's `rules` section to name its action thro
 ### Open question
 - Whether `disabled(...)` targets should follow the same rule (spec Parked unknowns). Leave them unenforced unless the user decides otherwise.
 
+### Batching
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria. The framework's runtime check for `on` works immediately; the lifter rule and its fixtures run once the lifter builds again (fn-147).
+
 ### Quick commands
 ```sh
 make umpire-check-model

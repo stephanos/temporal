@@ -50,8 +50,8 @@ Serialize heavy scratch/Go commands with the shared flock. Include focused capab
 - [ ] Current-source unfiltered scratch lift/lower, override metadata, seeded mutations, new Query/Case inventory and original source/native commit are retained for .4 and the fn-128.7/.8 rescan. Production artifacts/full/live R5 evidence remains pending the shared .5 boundary.
 
 ## Done summary
-TBD
-
+Blocked:
+Paused by the owner on 2026-10-10. Batch 5's remaining activity edits wait until Batch 1d's activity lane lands (fn-159–fn-162 Scala DSL changes: qualified names, `enters`, facets, Query assessment sets, flat file layout). Then they finish on the new DSL, before Batch 5b's single regeneration. Work already done stays; Batch 1d's activity lane migrates it. See MILESTONES.md, "Batches 1d and 5b" and the Batch 5 section. Unblock when Batch 1d's activity lane is integrated.
 ## Evidence
 - Commits:
 - Tests:

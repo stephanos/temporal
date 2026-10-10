@@ -22,10 +22,12 @@ Add a framework step, `enters(<phase>)`, that rules (and `choose` alternatives) 
 - **Migrate:** replace each effect whose whole body is setting the phase (`effect { phase = X }`, or `enter(s.copy(phase = X), <X's status>)` where the fact is exactly the phase's status) with `enters(Phase.X)` at its uses: rules, `choose` alternatives, derived machines and tests that call `effects.<name>`. Then delete the effect. Keep an effect that records any other fact, rejects, or chooses. Aliases that exist only for their name (`resetWaiting = retry`, `resetKeepsPaused = pause`) become `enters(...)` at the rule too.
 - **Qualified phases:** write `enters(Phase.X)` qualified, consistent with fn-159.3.
 - **IR:** rows, outcomes, facts and Cases must stay the same. Function names and content hashes may change, because rules call one shared step instead of named effects, and any `<function>$<choice>` copies change too. Check that the regenerated diff contains nothing else, and record what moved.
-- **Batching (see MILESTONES.md):** the construct (framework, lifter, fixtures) lands in Batch 3b with no model migrated and the IR byte-identical. The model migration lands in Batch 5b, after fn-159.1 and fn-159.3, with the batch's single regeneration.
 
 ### Prerequisite
 - A working tree that builds the lifter and passes the Cases check (the in-progress IR `Duration` migration, plus `make protoc`).
+
+### Batching
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria. Construct and migration both land in 1d.
 
 ### Quick commands
 ```sh

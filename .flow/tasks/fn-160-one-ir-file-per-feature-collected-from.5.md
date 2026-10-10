@@ -18,7 +18,7 @@ Turn the meaning-preserving equivalence check into a reusable gate command, so B
 - **Interface:** `make umpire-capture-baseline OUT=…` and `make umpire-check-equivalence BASE=… MAP=…` (names are a suggestion).
 
 ### Batching
-- Batch 3b (see MILESTONES.md), first: Batch 3b's byte-identical seal and Batch 5b's mapped-identity seal both use it.
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria. The step-table half lands first in 1d (baseline captured before any 1d edit). The IR and Case projection half lands in 5b.
 
 ### Quick commands
 ```sh

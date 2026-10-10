@@ -27,6 +27,9 @@ Build the facet construct in the framework and the lifter: a facet contributes `
 ### Prerequisite
 - fn-159.7 (`enters`) landed or designed, since facets assume trivial effects are gone. A working tree that builds the lifter.
 
+### Batching
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria.
+
 ### Quick commands
 ```sh
 make umpire-check-model

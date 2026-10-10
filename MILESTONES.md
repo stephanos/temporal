@@ -142,12 +142,12 @@ equivalence proof that later work builds on, and at a format activation.
 | --- | --- | --- | --- | --- | --- |
 | 1b | Activity abstractions | fn-155 (named repeated patterns) | meaning-preserving, mapped identities | fn-155.6 | none |
 | 1c | Compiler and lint | fn-156 | byte-identical | fn-156.7 | none |
+| 1d | Scala DSL (immediate) | fn-159, fn-160.3–.5, fn-161, fn-162.2–.3 (Scala parts); investigations fn-160.1, fn-162.1 | source only; IR left stale | fn-161.1 | none |
 | 2 | Authoring | fn-140 → fn-149 → fn-123 | two equivalence seals, then meaning | fn-140.6, fn-149.5, fn-123.8 | once |
 | 3 | Testpilot format | fn-146 → fn-147 → fn-148 | breaking format | fn-146.7, fn-147.4, fn-148.7 | once |
-| 3b | Model DSL | fn-160.5 (equivalence check); fn-159.1, .3, .6, .7 (construct); fn-161.1; investigations fn-160.1, fn-162.1 | byte-identical | fn-161.1 | none |
 | 4 | Lifter | fn-141 | byte-identical | fn-141.14 | none |
 | 5 | Activity model | fn-128 → fn-138 → fn-129 | meaning | fn-128.6, fn-129.5 | once |
-| 5b | One regeneration | fn-162.2; fn-160.2–.4; fn-159.2, .4, .5, .7 (migration), .8; fn-161.2–.4; fn-162.3 | meaning-preserving, mapped identities | fn-160.2 | once |
+| 5b | One regeneration | fn-162.2 (IR schema, lowering, Go assessment), fn-160.5 (IR projection), fn-160.2 close; Go and fixture consumers | meaning-preserving, mapped identities | fn-160.2 | once |
 
 ## Direction
 
@@ -472,6 +472,9 @@ half of the realization lifter's lines net of what it adds.
 
 ### Batch 5, activity model: fn-128 → fn-138 → fn-129
 
+**Paused (owner, 2026-10-10):** remaining activity edits wait for Batch 1d's activity lane, then
+finish on the new DSL before Batch 5b (see Batches 1d and 5b below).
+
 Moved last on 2026-10-08 at the owner's request: starts after batch 4 closes. Its done and joined
 tasks (fn-128.1–.5, fn-138, fn-129.1–.2 and fn-129.3's joined source) stay in the tree; the remaining tasks re-read their files
 and re-anchor to the moves, witness syntax, fault declarations, schema and Testpilot format left by
@@ -522,9 +525,9 @@ closes the shared batch after both corrections and all activity sources.
 | fn-128.3 | ✅ done | 2026-10-08: finite retry policy and retryable start-to-close timeout; exhaustion/timeout-retry Queries and bounded withholding bridge; focused source/lowering/runtime checks pass |
 | fn-128.4 | ✅ done | All public status facts visible; Product carries creation/held pause/withdrawal; focused checks and current-source refinement/mutant replay pass |
 | fn-128.5 | ✅ done | Checked `cancelIsNotUndone`; final typed raw attempt-count read in all 13 supported Cases; seven timer explanations; integrated source proofs pass |
-| fn-128.7 | ⬜ todo | Accepted fatal-settlement classification through typed public last-failure evidence; unchanged fatal Property satisfied in scratch recording/replay |
-| fn-128.8 | ⬜ todo | Separate caller-owned pauseResume and heartbeat-retry Profiles; immutable preflight/execution/replay binding, final-shape charge proof and admission negatives |
-| fn-128.6 | ⬜ todo | Evidence map, live Cases run once (the batch's live run); close |
+| fn-128.7 | ⏸️ paused (1d) | Accepted fatal-settlement classification through typed public last-failure evidence; unchanged fatal Property satisfied in scratch recording/replay |
+| fn-128.8 | ⏸️ paused (1d) | Separate caller-owned pauseResume and heartbeat-retry Profiles; immutable preflight/execution/replay binding, final-shape charge proof and admission negatives |
+| fn-128.6 | ⏸️ paused (1d) | Evidence map, live Cases run once (the batch's live run); close |
 
 #### fn-138: Retries and Deadline capabilities
 
@@ -558,9 +561,9 @@ Runs after fn-138. Tasks run in order.
 | --- | --- | --- |
 | fn-129.1 | ✅ done | Typed heartbeat protocol; canonical lint, native/six-root checks, three fresh scratch Case recordings/replays and Profile negatives pass |
 | fn-129.2 | ✅ done | Independent by-ID service settlement; four fresh Case recordings replay exactly, three candidate native Quick commands pass; by-ID witnesses expect `explanationsDisagree` |
-| fn-129.3 | 🔄 in progress | Reset with `keepPaused` and deferred settlement joined: 65 Queries, `deferredResetCompletes` lowers and prepares, reset-aware laws via `overriding(…, of = …)`; open: direct `keepPaused` live Case (lowering refuses a reset indistinguishable from the pause before it) |
-| fn-129.4 | ⬜ todo | Exploration on the activity's `find` Queries |
-| fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
+| fn-129.3 | ⏸️ paused (1d) | Reset with `keepPaused` and deferred settlement joined: 65 Queries, `deferredResetCompletes` lowers and prepares, reset-aware laws via `overriding(…, of = …)`; open: direct `keepPaused` live Case (lowering refuses a reset indistinguishable from the pause before it) |
+| fn-129.4 | ⏸️ paused (1d) | Exploration on the activity's `find` Queries |
+| fn-129.5 | ⏸️ paused (1d) | New Cases listed, live run (the batch's live run); close |
 
 ## Independent work while fn-155 validation is deferred
 
@@ -840,7 +843,7 @@ The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeou
   permits documented parallel implementation ahead of those closures. Do not restore per-spec
   regenerations or task-by-task review barriers. The activity model batch integrates after the
   other feature batches at the owner's request, followed only by Batch 5b (fn-159–fn-162's single
-  regeneration; owner, 2026-10-10): until it closes, batches 2 and 3's live runs include activity Cases with
+  regeneration; owner, 2026-10-10; their Scala changes land earlier, in Batch 1d): until it closes, batches 2 and 3's live runs include activity Cases with
   its three inherited failures (ordinary completion ambiguity, non-retryable failure visibility,
   pause/resume work ceiling), which those runs report but do not own.
 
@@ -876,79 +879,75 @@ Tasks run in order. Re-anchor against the actual baseline after the delivery cha
 hypothetical violations, actual model failures and live coverage separate. Mechanical checks
 do not establish developer comprehension, and absent feedback must remain explicit.
 
-## Batches 3b and 5b: Model DSL, then one regeneration (fn-159–fn-162)
+## Batches 1d and 5b: Scala DSL now, one regeneration last (fn-159–fn-162)
 
-The four Model-readability specs are split across two batches by what they do to generated
-artifacts, not by spec. All Scala DSL and tooling changes come first, in Batch 3b, which must leave
-every checked-in IR file, Case and fixture byte-identical. Every change that moves an IR id, a
-file boundary, a function name or a Case goes into Batch 5b, which regenerates IR, Cases, lint
-acceptances and the pinned fixture trees **once**.
+**Owner decision (2026-10-10):** the Scala DSL changes go in immediately. The IR, Cases, Go
+consumers and other downstream artifacts may stay broken until one final regeneration. So the four
+Model-readability specs split by language, not by spec:
 
-**Placement (owner, 2026-10-10):** Batch 3b integrates after Batch 3 and before Batch 4. Batch 3
-(fn-147's `Duration` migration) currently breaks the lifter's build, and Batch 3b's byte-identical
-seal needs a green gate. Integrating before fn-141 means fn-141 describes the qualified, `enters`
-and facet forms rather than the ones Batch 3b removes. Batch 5b integrates last, after Batch 5:
-Batch 3 owns the IR/Case schema that fn-162.2 extends, Batch 2's new Query, Property and fault forms
-and Batch 5's activity changes are migrated once by it, and Batch 5 is mostly done, so it finishes
-first rather than rebasing onto the rewrite. Batch 4 keeps its position before Batch 5 (the
-2026-10-08 owner decision). fn-141 will still describe `irFile`/`exports`, claim containers and
-phase-only effects that Batch 5b removes; moving Batch 4 after 5b is an open option for the owner.
-The read-only investigations (fn-160.1, fn-162.1) run now, and Batch 3b source work may start on a
-pinned baseline under the batch-first strategy.
+- **Batch 1d, Scala DSL (immediate; shared close fn-161.1):** every Scala change of fn-159–fn-162
+  (framework, lifter rules, model migrations, renames, file layout) lands now, in dependency order,
+  ahead of the other batches. Checked-in IR and Cases go stale and the model gate fails. That is
+  expected and is not a regression to fix inside 1d.
+- **Batch 5b, one regeneration (last; shared close fn-160.2):** the IR schema change, the lowering
+  and Go assessment of assessment sets, the Go and fixture consumers of renamed ids and moved files,
+  then **one** regeneration of IR, Cases, lint acceptances and pinned fixture trees, an IR-level
+  equivalence check under the batch's rename map, full gate, review and one live run. It waits for
+  Batch 3 (which owns the IR/Case schema) and integrates after Batch 5.
 
-**Co-design (owner, 2026-10-10):** fn-140 (one-sentence witness Queries, Batch 2) and fn-162.2
-(Query assessment sets, Batch 5b) both define what a Query says. One owner designs them together,
-so Batch 2 lands the Query form fn-162.2 extends instead of one that Batch 5b reshapes.
+**How 1d is verified without IR:** before the first 1d edit, fn-160.5 captures a baseline of every
+machine's step table (the Pins test for Product and System, interpreter-built tables for the rest,
+as fn-155 did) and the current model sources. Each 1d change must keep the step tables equal under
+its rename map, and the Scala build, framework tests and model tests must pass. Lifter-side checks
+(refusal fixtures) are written in 1d. They run once the lifter builds again, which needs fn-147's
+`Duration` work in `irgen/Realizations.scala`. The tasks' `make umpire-check-model` / lint / fixture
+criteria are met by Batch 5b's shared close evidence, as the batch rules allow.
 
-**Batch 3b, Model DSL (byte-identical; shared close fn-161.1):**
+**Interactions with other batches:**
+- **Batch 4 (fn-141, not started)** now comes after 1d, so it describes only the final DSL (qualified
+  forms, `enters`, facets, per-feature collection, assessment sets).
+- **Batch 2 (authoring):** fn-140 and fn-162.2 are co-designed by one owner (owner, 2026-10-10), since
+  both define what a Query says. Batch 2's remaining Scala work lands on the 1d DSL.
+- **Batch 5 (activity model) is paused (owner, 2026-10-10)** for its remaining activity edits (fn-129's
+  in-progress task and its two todo tasks, fn-128's three todo tasks) until Batch 1d's activity lane
+  lands. They then finish on the new DSL (qualified names, `enters`, facets, Query assessment sets,
+  flat layout) before Batch 5b. Work already done stays; Batch 1d's activity lane migrates it.
 
-| Order | Task | What lands |
-| --- | --- | --- |
-| any | fn-160.1, fn-162.1 | Read-only investigations; their findings settle fn-160.2 and fn-162.2's designs |
-| 0 | fn-160.5 | Reusable equivalence check (capture a baseline, compare under a rename map, step tables); seals this batch and Batch 5b |
-| 1 | fn-159.1, fn-159.3 | Qualified `on` targets and phases, enforced by the lifter (and the framework for `on`); models migrated; IR unchanged. fn-159.1's `activityWorker` rename is IR-neutral (ids come from the kind) |
-| 2 | fn-159.6 | `Observation` drops `read`; IR unchanged |
-| 3 | fn-159.7 (construct only) | `enters(Phase.X)` in framework and lifter, with fixtures; no model migrated yet |
-| 4 | fn-161.1 | Facet construct, ownership and vocabulary checks, layout rules; no model migrated (allow-list) |
-
-**Batch 5b, one regeneration (meaning-preserving, mapped identities; shared close fn-160.2):**
-Tooling that changes the lifter's output comes first, then every model migration in dependency
-order on the new tooling, then a single regeneration. The equivalence seal is fn-160.5's check of one scratch
-regeneration against a recorded rename map: every row, outcome, fact, Query answer and
-total, and every Case's expected outcome must match; ids, file boundaries, function names and
-assessment sets may only move as the map states.
+**Batch 1d order (Scala only):**
 
 | Order | Task | What lands |
 | --- | --- | --- |
-| 1 | fn-162.2 | Query assessment sets: framework, lifter, IR schema, lowering, Go assessment |
-| 1 | fn-160.3, fn-160.4 (lint rules) | One machine per file, flat prefix layout, realization layer and one-way layer dependencies, enforced |
-| 1 | fn-160.2 (collection tooling) | One IR file per feature package; `irFile`/`exports` removed |
-| 2 | fn-159.2, fn-159.4, fn-159.5, fn-159.8 | `completionClient`; drop the product's `disabled(process.stop)`; bounds into `Bounds`; capability kinds `Retryable`/`Expirable` |
-| 3 | fn-159.7 (migration) | Phase-only effects become `enters(Phase.X)` in every model |
-| 4 | fn-161.2 + fn-161.3, fn-161.4 | Activity facets in one pass (effects, claims, rules, capabilities); every other machine wrapped |
-| 5 | fn-162.3 | Claim-container subjects removed; Properties declared once in their facets |
-| 6 | fn-160.3, fn-160.4 (moves) | Files split and moved into the flat layout and the `realization/` layer, with prefix and `Run` renames |
-| 7 | fn-160.2 (close) | Collection by feature package; single regeneration of IR, Cases, lint acceptances and fixture trees; equivalence seal; full gate; review; live run |
+| now | fn-160.1, fn-162.1 | Read-only investigations, running now |
+| 0 | fn-160.5 (step tables) | Baseline capture and step-table comparison under a rename map; the IR projection half follows in 5b |
+| 1 | fn-159.1, fn-159.3, fn-159.6 | Qualified `on` targets and phases (framework runtime check for `on`, lifter rules written), `activityWorker`; `Observation` drops `read` |
+| 2 | fn-159.2, .4, .5, .8 | `completionClient`; drop the product's `disabled(process.stop)`; bounds into `Bounds`; `Retryable`/`Expirable` |
+| 3 | fn-159.7 | `enters(Phase.X)` construct and its migration in every model |
+| 4 | fn-161.1 | Facet construct, ownership and vocabulary checks |
+| 5 | fn-161.2 + .3, fn-161.4 | Activity facets in one pass; every other machine wrapped |
+| 6 | fn-162.2 (Scala part), fn-162.3 | Queries declare assessment sets; claim-container subjects removed; Properties declared once |
+| 7 | fn-160.3, fn-160.4 | One object per file, flat prefix layout, `realization/` layer, `<Subject>Run`, one-way layer dependencies |
+| 8 | fn-160.2 (Scala part) | Collection by feature package; `irFile`/`exports` removed |
 
-**Batch 5b lanes.** Most of the batch runs in parallel on disjoint files and joins at fn-160.2's
-regeneration. Only the activity lane is a chain:
+**Batch 1d lanes** (disjoint files run in parallel; only the activity lane is a chain):
 
 | Lane | Tasks | Files |
 | --- | --- | --- |
-| Go and assessment | fn-162.2 (with fn-140's owner) | proto, `tools/umpire`, assessment |
-| Lifter and lint | fn-160.2–.4 tooling | `model/irgen`, `model/check` |
-| Activity | fn-159.2, .4, .5, .7, .8 → fn-161.2+.3 → fn-162.3 → fn-160.3/.4 moves | `features/activity/` |
-| Nexus | fn-159.7/.8 parts → fn-161.4 (nexus) → moves | `features/nexus/` |
-| Task queue and worker | fn-161.4 parts → moves | `foundations/`, `actors/` |
+| Framework and lifter | fn-159.1/.3/.6/.7 constructs, fn-161.1, fn-162.2 (Scala), fn-160.2–.4 rules | `model/framework`, `model/irgen`, `model/check` |
+| Activity | fn-159 migrations → fn-161.2+.3 → fn-162.3 → fn-160.3/.4 moves | `features/activity/` |
+| Nexus | fn-159 migrations → fn-161.4 (nexus) → moves | `features/nexus/` |
+| Task queue and worker | fn-159 migrations → fn-161.4 parts → moves | `foundations/`, `actors/` |
 
-**Decisions to collect before Batch 5b starts**, so the regeneration happens once:
+**Batch 5b order:** fn-162.2's IR schema, lowering and Go assessment (with fn-140's owner); fn-160.5's
+IR projection; Go tests, canary harness and fixture trees updated for renamed ids and moved files;
+then fn-160.2 closes with the single regeneration, IR equivalence check, full gate, review and live run.
+
+**Decisions to collect up front** (1d renames them in source, so they're needed before 1d's step 2):
 - capability kind names (fn-159.8)
 - bound names for the `four`/`five`/`twelve` clashes and the `eight`/`control` merge (fn-159.5)
 - the facet vocabulary per feature (fn-161)
 - family prefixes for the close-policy designs and other renamed objects (fn-160.3)
 - realization `Run` names (fn-160.4)
 - whether `disabled(...)` targets must be qualified (fn-159)
-- fn-160.1's and fn-162.1's findings
 
 Flow refuses task dependencies across specs, so the cross-spec order above is held here and by
 the conductor. Within each spec, Flow records it.
@@ -993,6 +992,7 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 | fn-160.2 | ⬜ todo | Collect one IR file per feature package; remove `irFile`/`exports`; regenerate and migrate consumers (after fn-160.1) |
 | fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); the lifter enforces it (after fn-160.2) |
 | fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
+| fn-160.5 | ⬜ todo | Reusable equivalence check: baseline capture and step-table comparison (Batch 1d, first), IR/Case projection under a rename map (Batch 5b) |
 
 ## fn-161: Facets: action-owning behaviour areas of a feature
 
@@ -1018,7 +1018,7 @@ Claim-container subjects, copies of a machine that change nothing (e.g. the thre
 Property is declared again and again. Instead, each Property is declared once (in its facet) and each
 Query names the Properties its Case is assessed against. Query answers and Case outcomes stay the same.
 Ideally lands before fn-160.3 splits those subjects into files. Not marked ready.
-[Spec](.flow/specs/fn-162-queries-choose-their-assessed.md).
+[Spec](.flow/specs/fn-162-queries-name-their-realization-each.md).
 
 | Task | Status | What |
 | --- | --- | --- |

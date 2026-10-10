@@ -29,7 +29,7 @@ Stage 2 for the standalone activity: move rules and capability declarations into
 - **IR:** regenerate. Rows, outcomes, facts, Cases and Query answers must stay the same. Each action's step function case order follows facet order, so function bodies and hashes change. Record them.
 
 ### Batching
-- Batch 5b (see MILESTONES.md): fn-161.2 and fn-161.3 are implemented in one pass on the activity, after fn-159.7's migration and fn-159.2's rename, and regenerated once with the batch. Their separate IR checks fold into the batch's equivalence seal.
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria. fn-161.2 and fn-161.3 are done in one pass on the activity, after fn-159.7 and fn-159.2.
 
 ### Quick commands
 ```sh

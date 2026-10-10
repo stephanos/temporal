@@ -22,6 +22,9 @@ Make realizations a layer of their own. Each feature with realizations gets a fl
 ### Prerequisite
 - fn-160.3 (flat prefix layout). Batch 5b (see MILESTONES.md): the lint rules land with the batch's tooling, the moves after fn-160.3's, and the regeneration is the batch's single one at fn-160.2. A working tree that builds the lifter and passes the Cases check.
 
+### Batching
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria. Realization and Case renames reach Go and the fixture trees in 5b.
+
 ### Quick commands
 ```sh
 make umpire-gen-model

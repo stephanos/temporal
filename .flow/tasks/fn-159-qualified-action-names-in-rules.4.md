@@ -19,6 +19,9 @@ Remove `disabled(process.stop)` from the standalone activity's product machine. 
 ### Prerequisite
 - The working tree must build the lifter and pass the Cases check: the IR `Duration` migration in `irgen/Realizations.scala` and regenerated Go protos (`make protoc`). Until then, only the compile and test half of the verification can run.
 
+### Batching
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria.
+
 ### Quick commands
 ```sh
 make umpire-check-model

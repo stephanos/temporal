@@ -1,5 +1,5 @@
 ---
-satisfies: [R2, R3, R4, R5, R6]
+satisfies: [R2, R3, R4, R5, R6, R10, R11]
 ---
 # fn-160-one-ir-file-per-feature-collected-from.2 Collect one IR file per feature package; remove irFile and exports
 
@@ -12,6 +12,14 @@ Replace explicit `irFile` lists with one IR file per feature folder, collected b
 
 ### Approach
 - **Collection:** the lifter treats each feature folder (a folder with a feature file) as one IR file named after the feature, e.g. `activity-standalone`. Its roots are every machine object, composition, `queries` and `capabilities` section, progress claim and realization declared in the feature's package and sub-packages, plus what they reach.
+- **Findings from fn-160.1 (spec, Resolved via Codebase) to apply here:**
+  - **No split has to stay.** No checker relies on a file holding only some Queries; the race file's comment is historical.
+  - **Foundations and actors (owner, option a):** the task queue, the worker and the kind folders produce their own IR file when they declare Queries or realizations (R10). The task queue's 25 Queries move out of `activity-standalone-record` into e.g. `taskqueue`. A feature lifts the foundation machines it reaches but not their Queries.
+  - **Exploration (R11):** check only the asked Query, and stop hashing the whole IR file into candidate ids (`tools/umpire/explore/explore.go` around 95-127, `tools/umpire/lower/lower.go` around 104-116). Otherwise merged files multiply candidate work (e.g. `nexusControl` from 1 Query to about 180) and churn ids.
+  - **Go tests that pin a whole file's results** filter by machine: `check/activity_system_test.go`, `replay_test.go`, `nexus_close*_test.go`, the export composition test.
+  - **Lint acceptances:** merge the per-file `.lint.json` files and deduplicate the 314 shared activity acceptances (identical reasons). Recheck findings judged across the whole file.
+  - **Names and leftovers:** name files `<kind>-<form>`, so the main files keep their names and the canary tree is unchanged. Delete the old `.json` and `.lint.json` files in the same change (the gate's settle refuses leftovers). The functional tree changes one pin (the control Case), and the pinned control Run (`Makefile` around 580) must be re-recorded live.
+  - **Quint export:** it has never been given the race, control or nexus-standalone machines. Check that the merged slices open, and record the result.
 - **Opt-out:** an explicit marker keeps a declaration out of `model/ir`. Report each opted-out declaration. Use it only where fn-160.1 found a reason.
 - **Remove** `irFile` and every `exports` object. Update the feature-file layout rule (exports was step 5 of the reading order) and the README.
 - **Gate:** lift per feature, settle `model/ir`, accept waivers, and have the `IrFiles` test construct each feature package's declarations.
@@ -20,7 +28,7 @@ Replace explicit `irFile` lists with one IR file per feature folder, collected b
 
 ### Prerequisite
 - fn-160.1's inventory, with any split the user decided to keep.
-- Batch 5b's shared close (see MILESTONES.md): the collection tooling lands with the batch's tooling; this task closes the batch with the single regeneration of IR, Cases, lint acceptances and fixture trees, the equivalence seal against the batch's rename map, the full gate, review and live run.
+- Batch 7's shared close (see MILESTONES.md): the collection tooling lands with the batch's tooling; this task closes the batch with the single regeneration of IR, Cases, lint acceptances and fixture trees, the equivalence seal against the batch's rename map, the full gate, review and live run.
 - A working tree that builds the lifter and passes the Cases check (the in-progress IR `Duration` migration, plus `make protoc`).
 
 ### Quick commands

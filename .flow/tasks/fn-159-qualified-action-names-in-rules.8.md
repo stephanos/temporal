@@ -19,6 +19,9 @@ Rename the two capability kinds whose names break the adjective convention: `Ret
 ### Prerequisite
 - A working tree that builds the lifter and passes the Cases check (the in-progress IR `Duration` migration, plus `make protoc`).
 
+### Batching
+- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria.
+
 ### Quick commands
 ```sh
 make umpire-gen-model
