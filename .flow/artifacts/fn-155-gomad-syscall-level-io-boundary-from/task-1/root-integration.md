@@ -50,3 +50,15 @@ Root read the complete [pointer source audit](pointer-source-audit.md), SHA-256 
 | `vfdpointer/main.go`, `runCommand` | The timeout kills only the Go driver; compiler descendants can keep writing after the runner returns. The new runner introduces this issue. | Pointer source audit and pinned `os/exec` / `os` implementation | Medium (reviewer Important) | Apply |
 
 The unchanged default cancellation and explicit process-only Kill contract establish the finding with high confidence. Root released the pointer source freeze for a bounded correction in both fixture runners, with an observed-descendant host RED/GREEN regression, scoped command-tree cancellation, preserved argv and error identity, and checked cleanup. The worker must freeze the corrected source before the independent targeted recheck. The production patch and version descriptor remain unchanged; native qualification and task acceptance remain open.
+
+The targeted [pointer audit](pointer-source-audit.md), SHA-256 `748ddab56b2806df2776265e84573a4d065b3a616c4a1639fd00482ee97ec398`, resolves that historical finding at source level in both runners. Root read the full updated report and independently verified its report hash and both retained cancellation log hashes. The old runners failed while an actual inherited descendant kept writing after cancellation returned; both corrected host runner suites pass, with six tests each. Scoped child process groups and SIGKILL cover ordinary inherited descendants. The 100 ms stopped-heartbeat observation establishes no grandchild reaping or native Gomad execution claim.
+
+## Native fixture reporting correction
+
+Root read the full [native fixture source audit](native-fixture-source-audit.md), initial SHA-256 `3f10239105534649f694ff07144f75a88ac343327c32e50d0ab3ea8c5bbb84c2`, and independently verified its reporting-chain source blocks. The eight source cases use actual TCP/poll operations, committed waiters, production deadlines and observed pollDesc lifetime reuse. No case has executed natively.
+
+| File | Issue | Source | Severity | Verdict |
+| --- | --- | --- | --- | --- |
+| `vfdnative/fixture_test.go.txt`, TCP case | UDP errno is asserted, but removing the backend reporting call would still pass. The new fixture introduces this coverage gap. | Native source audit, task .1 Acceptance, actual syscall/leaf/backend/record chain | Medium (reviewer Important) | Apply |
+
+Root released the frozen native fixture for this bounded correction and admitted exactly one additional private template, `runtime/testdata/vfdnative/gomadio_probe.go.txt`, if required, plus the existing runner preparation/test paths. The observer must retain the actual backend and Ready callback, count the actual reporting invocation and operation, check/reset temporary state and use positive/negative controls. Source instrumentation stays private and reversible; no shipped overlay, patch or version change is admitted. The inactive direct-seed transcript recorder still cannot prove persisted UDP evidence. Whole-process zero sockets, native deadlines/reuse, the first-platform gate and formal task acceptance remain open.
