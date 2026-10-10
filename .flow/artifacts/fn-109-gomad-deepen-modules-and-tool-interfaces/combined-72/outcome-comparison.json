@@ -1,0 +1,123 @@
+{
+  "admitted_original_names": [
+    "TestSeedCompletionFaultsKeepCampaignStatistics",
+    "TestSeedCompletionFaultsKeepCampaignStatistics/cancelled_execution",
+    "TestSeedCompletionFaultsKeepCampaignStatistics/malformed_World",
+    "TestSeedCompletionFaultsKeepCampaignStatistics/supervision_rejected_the_choice_trace",
+    "TestSeedCompletionFaultsKeepCampaignStatistics/watchdog",
+    "TestSeedCompletionKeepsCampaignStatistics",
+    "TestSeedCompletionKeepsCampaignStatistics/campaign_cancelled_while_running",
+    "TestSeedCompletionKeepsCampaignStatistics/distinct_and_duplicate_failures",
+    "TestSeedCompletionKeepsCampaignStatistics/failure_budget",
+    "TestSeedCompletionKeepsCampaignStatistics/first_failure_cancels_active",
+    "TestSeedCompletionKeepsCampaignStatistics/prepared_target_integrity",
+    "TestSeedCompletionKeepsCampaignStatistics/successes",
+    "TestSeedCompletionKeepsCampaignStatistics/supervision_failure",
+    "TestSeedCompletionKeepsCampaignStatistics/supervision_failure_drains_a_cancelled_attempt",
+    "TestSeedCompletionKeepsCampaignStatistics/supervision_failure_drains_a_failure",
+    "TestSeedCompletionKeepsCampaignStatistics/supervision_failure_drains_a_success"
+  ],
+  "baseline_counts": {
+    "fail": 180,
+    "pass": 481,
+    "skip": 12
+  },
+  "baseline_log_sha256": "cabf7ee75f4dc67c22c4accbff811ceb4b27ed73266f58482e3fdad435107380",
+  "baseline_non_json_lines": [],
+  "comparison_requirement": "Exactly the 16 listed emitted original parent/child names change fail to pass; all 673 original names remain present; no new names or other outcome changes are admitted.",
+  "comparison_valid": true,
+  "current_counts": {
+    "fail": 164,
+    "pass": 497,
+    "skip": 12
+  },
+  "current_log_sha256": "ab209de4df176ab7ac36cd250060f4d5844bf7fab5c438d63641ce0496a6a198",
+  "current_non_json_lines": [],
+  "missing_original_outcomes": [],
+  "new_control_outcomes": {},
+  "newly_reached_original_subtests": {},
+  "original_changes": [
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionFaultsKeepCampaignStatistics"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionFaultsKeepCampaignStatistics/cancelled_execution"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionFaultsKeepCampaignStatistics/malformed_World"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionFaultsKeepCampaignStatistics/supervision_rejected_the_choice_trace"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionFaultsKeepCampaignStatistics/watchdog"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/campaign_cancelled_while_running"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/distinct_and_duplicate_failures"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/failure_budget"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/first_failure_cancels_active"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/prepared_target_integrity"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/successes"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/supervision_failure"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/supervision_failure_drains_a_cancelled_attempt"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/supervision_failure_drains_a_failure"
+    },
+    {
+      "after": "pass",
+      "before": "fail",
+      "test": "TestSeedCompletionKeepsCampaignStatistics/supervision_failure_drains_a_success"
+    }
+  ],
+  "unadmitted_newly_reached_original_subtests": {},
+  "unadmitted_original_changes": []
+}

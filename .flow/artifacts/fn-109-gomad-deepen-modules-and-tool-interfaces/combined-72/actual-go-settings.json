@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "go",
+    "env",
+    "-json",
+    "GOOS",
+    "GOARCH",
+    "GOROOT",
+    "CGO_ENABLED",
+    "CC",
+    "CXX",
+    "GOVERSION",
+    "GOCACHE",
+    "GOMODCACHE"
+  ],
+  "elapsed_seconds": 0.21859675100131426,
+  "exit": 0,
+  "handle_terminal": true,
+  "head": "1243c5839f9ba0934ad18ee6b9a95c6275763d0d",
+  "source_after_manifest_sha256": "8a9c6540b6ffe39eb42d4d411a183dce5137deabf24306f2621d664d9d53a8fb",
+  "source_before_after_equal": true,
+  "source_before_manifest_sha256": "8a9c6540b6ffe39eb42d4d411a183dce5137deabf24306f2621d664d9d53a8fb",
+  "stderr": "",
+  "stdout": "{\n\t\"CC\": \"gcc\",\n\t\"CGO_ENABLED\": \"1\",\n\t\"CXX\": \"g++\",\n\t\"GOARCH\": \"arm64\",\n\t\"GOCACHE\": \"/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache\",\n\t\"GOMODCACHE\": \"/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc\",\n\t\"GOOS\": \"linux\",\n\t\"GOROOT\": \"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64\",\n\t\"GOVERSION\": \"go1.27.1\"\n}\n",
+  "utc_end": "2026-10-10T06:02:18.601388+00:00",
+  "utc_start": "2026-10-10T06:02:18.382813+00:00"
+}

@@ -1,0 +1,53 @@
+{
+  "argv": [
+    "make",
+    "lint-code-gomad3",
+    "SHELL=/bin/sh",
+    "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "ALL_TEST_TAGS=test_dep"
+  ],
+  "elapsed_seconds": 11.179129963988089,
+  "environment_overrides": {},
+  "exit": 2,
+  "handle_terminal": true,
+  "log_sha256": "94ccc0f20a9a1730ad6d652d35bb068592761e2815520abb0ee809609b021a69",
+  "make_tool_routes_after": {
+    "find_resolved_target": "/usr/bin/find",
+    "find_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "find_selected_path": "/usr/bin/find",
+    "grep_resolved_target": "/usr/bin/grep",
+    "grep_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "grep_selected_path": "/usr/bin/grep",
+    "shell_link_target": "dash",
+    "shell_path": "/bin/sh",
+    "shell_resolved_target": "/usr/bin/dash"
+  },
+  "make_tool_routes_after_manifest_sha256": "b615c63e1eba3a853e957422a1fe63d4d5a9df2b5817777eb77616a565701c26",
+  "make_tool_routes_before": {
+    "find_resolved_target": "/usr/bin/find",
+    "find_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "find_selected_path": "/usr/bin/find",
+    "grep_resolved_target": "/usr/bin/grep",
+    "grep_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "grep_selected_path": "/usr/bin/grep",
+    "shell_link_target": "dash",
+    "shell_path": "/bin/sh",
+    "shell_resolved_target": "/usr/bin/dash"
+  },
+  "make_tool_routes_before_after_equal": true,
+  "make_tool_routes_before_manifest_sha256": "b615c63e1eba3a853e957422a1fe63d4d5a9df2b5817777eb77616a565701c26",
+  "name": "integrated-lint",
+  "outer_timeout_seconds": 900,
+  "run_binding_sha256": "b1ffb1d25aff081bff69e703d3754598d1455bddb1868a0d613de229c4de2dbe",
+  "source_after_manifest_sha256": "8a9c6540b6ffe39eb42d4d411a183dce5137deabf24306f2621d664d9d53a8fb",
+  "source_before_after_equal": true,
+  "source_before_manifest_sha256": "8a9c6540b6ffe39eb42d4d411a183dce5137deabf24306f2621d664d9d53a8fb",
+  "tools_after_manifest_sha256": "47068d265b75e4dca463625d5c37f36f32ba5c05179956659639e58760c20689",
+  "tools_before_after_equal": true,
+  "tools_before_manifest_sha256": "47068d265b75e4dca463625d5c37f36f32ba5c05179956659639e58760c20689",
+  "utc_end": "2026-10-10T06:03:28.254280+00:00",
+  "utc_start": "2026-10-10T06:03:17.075182+00:00"
+}

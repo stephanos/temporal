@@ -39,9 +39,12 @@ and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-
 
 ## Immediate delivery order
 
-Owner priority (2026-10-09). Finish near-complete source specs first. Start with fn-112's
-remaining task 10, then prefer fn-105, fn-110 and fn-109 as their source prerequisites
-permit. Preserve task dependencies, retained acceptance and the native deferrals below.
+Owner priority (2026-10-10). Finish the already-running fn-109 task 72 verification,
+then take fn-155 next, ahead of the remaining source queue below. Begin with
+fn-155 `.1 → .2 → .8 → .3`, then follow its dependencies
+through `.7`'s boundary decision. fn-109.17/.18 and fn-110.3 still wait for fn-155.7.
+The execution proof needs darwin/arm64 or linux/amd64. Preserve retained acceptance
+and native deferrals; this priority grants no PR, push or CI authority.
 
 1. Finish fn-112 task 10's retained source acceptance for the delivered soak gate and shared documentation. Actual native soak runs and measured bounds remain with fn-149.4 and fn-128.5/.7; no workflow dispatch is authorized.
 2. Reconcile the combined D26/fn-110 source candidate, fn-112 tasks 5/16/9, D27 and fn-109 tasks 2-6 against their retained source checks, preservation and source reviews. Keep lint, both-source-set static checks, generated validation, first-baseline and preservation requirements open wherever unproved. Native runtime/clock proof belongs to deferred fn-149.1 and fn-128.1/.4/.7.

@@ -1,0 +1,60 @@
+{
+  "actual_go_settings_pre_gate_sha256": "a49bb24c2db08331167144f336ca652142b0374786ce169eac9e4e6a35747d58",
+  "baseline_frozen_head": "a2ba5377ed35ab2b248746b615d31a2123d2a852",
+  "baseline_named_counts": {
+    "fail": 180,
+    "pass": 481,
+    "skip": 12
+  },
+  "baseline_postcapture_seal_sha256": "d29388115dc90b3d08e39b5db72363bfd3ac7513121cb4aa1c364be6771b5aae",
+  "cwd": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion",
+  "environment_comparison_pre_gate_sha256": "eed0c04b11391f53fa0391a8f49f2e86be69918fdd77799b98539e67014e1da0",
+  "environment_sha256": "cc90bdc863377f030b750822d56e84b18617d5718b7d6f8d82857448430db39a",
+  "free_bytes_start": 71426654208,
+  "head": "1243c5839f9ba0934ad18ee6b9a95c6275763d0d",
+  "host": {
+    "machine": "aarch64",
+    "system": "Linux"
+  },
+  "joined_historical_owner_spec_sha256": "0866b495ef6150bd0341aa904358f5de49ab4977e88da25c67e9df1531106f8a",
+  "limits": [
+    "Existing stock Go installation; tool binaries hashed, entire Go installation not recursively hashed.",
+    "Existing build and module caches reused; complete cache contents not independently requalified.",
+    "Only selected environment variables are recorded; other inherited variables are not bound and execution is not claimed hermetic.",
+    "Ordinary and lint gates use captured default CGO settings; cross-source vet explicitly uses CGO_ENABLED=0. C compiler executables are hashed when resolvable, but C headers, libc/tool installation internals and complete C inputs are not inventoried.",
+    "No patched native toolchain installed or qualified; linux/arm64 host supplies no supported-native test-host pass.",
+    "Any observed ordinary Runner or original-base lint failures remain source-owned; transferred native owners stay deferred."
+  ],
+  "make_tool_routes": {
+    "find_resolved_target": "/usr/bin/find",
+    "find_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "find_selected_path": "/usr/bin/find",
+    "grep_resolved_target": "/usr/bin/grep",
+    "grep_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "grep_selected_path": "/usr/bin/grep",
+    "shell_link_target": "dash",
+    "shell_path": "/bin/sh",
+    "shell_resolved_target": "/usr/bin/dash"
+  },
+  "make_tool_routes_pre_gate_sha256": "b615c63e1eba3a853e957422a1fe63d4d5a9df2b5817777eb77616a565701c26",
+  "original_inventory_plus_new_source_count": 1078,
+  "primary_owner_spec_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+  "primary_owner_spec_sha256": "851151bc3b5ea0ac9bfda873f108a593653a9becbb66323d241244955274fd2c",
+  "prior_manifest_sha256": "5b3b2d323f46cc75b1550b9926b71bc69bdc878661185deb897afc890dce2bfe",
+  "relevant_source_count": 1132,
+  "source_count": 1331,
+  "source_manifest_sha256": "8a9c6540b6ffe39eb42d4d411a183dce5137deabf24306f2621d664d9d53a8fb",
+  "tools_manifest_sha256": "47068d265b75e4dca463625d5c37f36f32ba5c05179956659639e58760c20689",
+  "wrapper_argv": [
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/combined-72/run-gates.py",
+    "--lane-granted",
+    "root-explicit-combined72",
+    "--frozen-head",
+    "1243c5839f9ba0934ad18ee6b9a95c6275763d0d",
+    "--baseline-frozen-head",
+    "a2ba5377ed35ab2b248746b615d31a2123d2a852",
+    "--baseline-seal-sha256",
+    "d29388115dc90b3d08e39b5db72363bfd3ac7513121cb4aa1c364be6771b5aae"
+  ],
+  "wrapper_sha256": "c21891570e720d8aae8a14da2b87bda5b8232b926bcc1a773059b4b2f5084885"
+}

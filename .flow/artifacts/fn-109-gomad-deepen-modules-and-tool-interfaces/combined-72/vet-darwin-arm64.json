@@ -1,0 +1,58 @@
+{
+  "argv": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "vet",
+    "-tags",
+    "test_dep",
+    "./runner",
+    "./internal/gomadtool/conformance",
+    "./runner/internal/execution"
+  ],
+  "elapsed_seconds": 1.9967605010024272,
+  "environment_overrides": {
+    "CGO_ENABLED": "0",
+    "GOARCH": "arm64",
+    "GOOS": "darwin"
+  },
+  "exit": 0,
+  "handle_terminal": true,
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "make_tool_routes_after": {
+    "find_resolved_target": "/usr/bin/find",
+    "find_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "find_selected_path": "/usr/bin/find",
+    "grep_resolved_target": "/usr/bin/grep",
+    "grep_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "grep_selected_path": "/usr/bin/grep",
+    "shell_link_target": "dash",
+    "shell_path": "/bin/sh",
+    "shell_resolved_target": "/usr/bin/dash"
+  },
+  "make_tool_routes_after_manifest_sha256": "b615c63e1eba3a853e957422a1fe63d4d5a9df2b5817777eb77616a565701c26",
+  "make_tool_routes_before": {
+    "find_resolved_target": "/usr/bin/find",
+    "find_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "find_selected_path": "/usr/bin/find",
+    "grep_resolved_target": "/usr/bin/grep",
+    "grep_search_path": "/Users/stephan/Workspace/skunkworks/.gomad-scripted-and-spin-corrections.gFiXmTVr/seed-completion/.bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin",
+    "grep_selected_path": "/usr/bin/grep",
+    "shell_link_target": "dash",
+    "shell_path": "/bin/sh",
+    "shell_resolved_target": "/usr/bin/dash"
+  },
+  "make_tool_routes_before_after_equal": true,
+  "make_tool_routes_before_manifest_sha256": "b615c63e1eba3a853e957422a1fe63d4d5a9df2b5817777eb77616a565701c26",
+  "name": "vet-darwin-arm64",
+  "outer_timeout_seconds": 900,
+  "run_binding_sha256": "b1ffb1d25aff081bff69e703d3754598d1455bddb1868a0d613de229c4de2dbe",
+  "source_after_manifest_sha256": "8a9c6540b6ffe39eb42d4d411a183dce5137deabf24306f2621d664d9d53a8fb",
+  "source_before_after_equal": true,
+  "source_before_manifest_sha256": "8a9c6540b6ffe39eb42d4d411a183dce5137deabf24306f2621d664d9d53a8fb",
+  "tools_after_manifest_sha256": "47068d265b75e4dca463625d5c37f36f32ba5c05179956659639e58760c20689",
+  "tools_before_after_equal": true,
+  "tools_before_manifest_sha256": "47068d265b75e4dca463625d5c37f36f32ba5c05179956659639e58760c20689",
+  "utc_end": "2026-10-10T06:03:31.345985+00:00",
+  "utc_start": "2026-10-10T06:03:29.349249+00:00"
+}
