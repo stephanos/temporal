@@ -1,6 +1,6 @@
 # fn-155.1 native fixture source audit
 
-The eight native fixture cases add real syscall-to-model-to-runtime coverage in source. One Important test gap remains. The UDP case asserts refusal without observing its reporting call. No Critical or Minor defect was established in the four frozen templates.
+The eight native fixture cases add real syscall-to-model-to-runtime coverage in source. The initial review found one Important UDP reporting assertion gap. The targeted source recheck below resolves that gap. No remaining Critical, Important or Minor defect was established within this bounded review.
 
 This independent source assessment supplies no formal implementation-review, SHIP, Done, merge, native execution, qualification, or determinism verdict. Primary HEAD supplied by root is `685d70a4204b5d587a4eebf425f2323392a0a1a8`. Candidate HEAD is `c8b811d5344fb85e347b6db296998dd0feedc4ab`, with uncommitted additions in `.worktrees/fn-155-gomad-syscall-level-io-boundary-from`.
 
@@ -18,7 +18,7 @@ Cleanup callbacks check close errors and run before the earlier switch-disable c
 
 None established within the reviewed fixture axis.
 
-### Important I1. UDP reporting has no assertion
+### Historical Important I1. UDP reporting has no assertion
 
 Location is `tools/gomad3/toolchain/runtime/testdata/vfdnative/fixture_test.go.txt:148-155`. Task .1 requires UDP to be refused and reported. This case calls public `syscall.Socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)` and checks EOPNOTSUPP, but a regression that removes the reporting call still passes.
 
@@ -74,4 +74,29 @@ Opening and closing SHA-256 checks matched all supplied template and Makefile id
 
 Supporting runner SHA-256 is `ab9a5b905d8f96b80b3b360ccd1410a3f53766f1333f347d227494b202a45b5b`. Review used the requesting-code-review template and `/home/agent/.codex/docs/flow-next/prose.md`; required project guides, task, [gap inventory](native-fixture-gaps.md), [safety design](safety-design.md) and retained audits were read. Requested reviewer is gpt-6.1-sol/high, with session fallback `jev-unavailable(no_key)` and unavailable actual-model telemetry; writer and reviewer belong to the GPT family.
 
-Source assessment requires the targeted I1 fix and recheck. Root owns remaining acceptance and lifecycle decisions. This reviewer ran only read-only source/search/hash commands and wrote this report; no Go, compiler, build, test, lint, generator, bridge, agent dispatch, Git/Flow mutation, native owner revival, CI, push or PR action ran.
+The initial source assessment required the targeted I1 fix and recheck. Root owns remaining acceptance and lifecycle decisions. This reviewer ran only read-only source/search/hash commands and wrote this report; no Go, compiler, build, test, lint, generator, bridge, agent dispatch, Git/Flow mutation, native owner revival, CI, push or PR action ran.
+
+## Targeted I1 source recheck
+
+I1 is addressed in the subsequent frozen source. Candidate HEAD remains `c8b811d5344fb85e347b6db296998dd0feedc4ab`. The initial source descriptions, findings, line references and hashes above remain historical evidence. This recheck covers only the admitted reporting observer and overlay preparation changes; runner cancellation and unchanged eight-case mechanisms retain their separate reviews.
+
+Current `main.go:26-36` requires one exact production record-call anchor, rejects existing instrumentation, inserts one `gomadNativeObserveRefuse(operation)` immediately before that call and checks byte-identical reversal. Inspection of actual `internal/gomadio/descriptor_backend.go:492-497` confirms this anchor belongs to standaloneDescriptorBackend.Refuse. The unchanged syscall-to-leaf-to-actual-backend chain above still supplies the call. `main.go:69-100` compares the selected backend source with candidate source before producing the private replacement and original snapshot; :101-121 adds the fifth synthetic source without modifying toolchain files. Original candidate and materialized backend hashes both remain `30d5b525a6df65b94e21c7495346d2efe68d618f8527a1505dcaf4bb171c3dac`.
+
+Current `fixture_test.go.txt:152-178` rejects zero reports, wrong operation and duplicate reports, installs the observer, invokes the public UDP socket call and requires one `socket.type-or-protocol` report. The actual backend and Ready callback remain installed. `gomadio_probe.go.txt:17-30` rejects nil or preexisting observers, and the fixture's cleanup checks restoration to inactive state. The observer receives a scalar operation string synchronously; its count/string closure remains live only through this serial exact child and cleanup. No concurrent fixture or outstanding model operation accesses that observer in the admitted TCP case. This scoped seam requires no general concurrent observer contract and retains no caller I/O buffer.
+
+The host regression consumes the actual backend source and rejects altered or duplicate record anchors, with private replacement/source agreement checks at `main_test.go:177-249`. Parent-retained RED failed because the observer was absent; GREEN ran seven host tests successfully in 0.670s. These checks verify overlay construction. Parent-reported full syscall stock-source diagnostic compiles returned 0 for Linux and Darwin; inspected logs include the new reporting predicate. None of these results executes the native UDP reporting chain. Native reporting-call execution, persistent UDP transcript, whole-process zero sockets and other acceptance gates above remain open.
+
+All seven consumed source files and four logs retained identical opening/closing hashes in this recheck. The runtime/Linux/Darwin probes retain their initial hashes above. Changed files below start at `tools/gomad3/toolchain/runtime/testdata/vfdnative/`; logs start at candidate `.flow/tmp/`.
+
+| Recheck input | SHA-256 |
+| --- | --- |
+| main.go | `6ea2e0518a3d15bdc7b17b07f3c6c704ba2b73ebe28a552a45d2b6d48d91d5cf` |
+| main_test.go | `1aa2fd18e744d35e825652fa065ba54e639a6d25b05c5728f55697b3aac55d1b` |
+| fixture_test.go.txt | `9dd8ff823aee1777bf4ebabb5030196ff63ae0094d3e325e1a7e14dbe1e96393` |
+| gomadio_probe.go.txt | `5c3dd3503e74b1cd324f7fdc1af3c6f07a0c503c2d5fbb3d755c812cfc335174` |
+| fn155-native-reporting-red.log | `363a0536c31b4e8098558f4eed448379cdc7f508cefe35d7f1e9c09f2b2fb625` |
+| fn155-native-reporting-green-2.log | `f2c4bffe7071a9df8b5486c9620212712828a697d1a07efbe3cba0ec3bc75b36` |
+| fn155-native-linux-reporting-1.log | `89a9aa7ba4edcb8562f5b74939dc4fe120791802b506feb8971fdab217f4f191` |
+| fn155-native-darwin-reporting-1.log | `6df88b3d6f68a68a4bbd8d53050dab8cd04bf3e03f81b3e07487e80e541395dd` |
+
+The targeted source assessment found no remaining Critical, Important or Minor defect. It closes the I1 source gap only and changes no acceptance, native qualification, model-routing, completion or mutation boundary recorded above.
