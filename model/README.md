@@ -123,6 +123,19 @@ Two IRs sit between the layers, and each has one writer side and one reader side
   Case runtime, reads them and writes Runs and Verdicts. Its schema is
   `proto/internal/temporal/server/api/testpilot/v1`. Testpilot knows nothing about Models.
 
+The current Testpilot format is exactly 4.0. Runtime predicates lower neutral Umpire operands to
+canonical `cel.expr` ASTs evaluated by pinned `cel.dev/cel-go` v0.32.0; the finite Model evaluator
+keeps its own expression semantics and does not import Testpilot. Descriptor-authoritative native
+CEL values retain protobuf widths, enum identities and opaque message/Any payloads. Elapsed bounds
+use protobuf Duration, checked for nonnegative exact whole milliseconds before conversion; runtime
+timeouts must also fit their declared hard ceilings. Realizations write them in whole milliseconds,
+as a `<field>Ms` parameter (`timeoutMs`, `intervalMs`, `atMostMs`, `deadlineMs`): the lifter
+writes the exact Duration, leaves the field unset for 0 and refuses a value outside the Duration
+range at its line. Evidence declarations have one leaf schema and
+one binder. Correlated tables identify each complete atom-plus-ordered-fields state separately and
+share prior-state-independent action/destination/outcome/facts results without sharing transition
+authorization. Historical Case formats and Runs are not relabeled or interpreted through fallback.
+
 | Layer | What happens | Module | Command |
 | --- | --- | --- | --- |
 | Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/framework`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
