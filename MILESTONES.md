@@ -905,7 +905,7 @@ Rows run in order; fn-160.1, fn-162.1 and fn-160.5 (baseline and step-table comp
 | fn-161.1 | ⬜ todo | Facet construct, ownership and vocabulary checks |
 | fn-161.2 + .3, fn-161.4 | ⬜ todo | Activity facets in one pass; every other machine wrapped |
 | fn-162.2 (Scala part), fn-162.3 | ⬜ todo | Realizations name the Queries they run; claim-container subjects removed; Properties declared once |
-| fn-160.3, fn-160.4 | ⬜ todo | One object per file, flat prefix layout, `realization/` layer, `<Subject>Run`, one-way layer dependencies |
+| fn-160.3, fn-160.4, fn-160.6 | ⬜ todo | One object per file, flat prefix layout, `realization/` layer, `<Subject>Run`, one-way layer dependencies; System level renamed Protocol |
 | fn-160.2 (Scala part) | ⬜ todo | Collection by feature package; `irFile`/`exports` removed |
 
 **Batch 1d lanes** (disjoint files run in parallel; only the activity lane is a chain):
@@ -969,6 +969,7 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 | fn-160.2 | ⬜ todo | Collect one IR file per feature package, and per foundation/actor/kind package that declares Queries or realizations; remove `irFile`/`exports`; exploration checks only the asked Query; regenerate and migrate consumers |
 | fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); the lifter enforces it (after fn-160.2) |
 | fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
+| fn-160.6 | ⬜ todo | Rename the System level to Protocol (folders, packages, machines, files, lint vocabulary, docs), so the levels read Product / Protocol / Realization |
 
 ## fn-161: Facets: action-owning behaviour areas of a feature
 

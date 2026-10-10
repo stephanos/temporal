@@ -52,6 +52,8 @@ What a feature folder is follows the existing layout rules: a folder with a feat
 - **R10:** A foundation or actor package (e.g. the task queue, the worker), or a kind folder (`features/activity`, `features/nexus`), produces its own IR file when it declares Queries or realizations. A feature still lifts the foundation machines it reaches, but never another package's Queries, so nothing is lifted twice. [user] ("yes both", choosing option (a) for foundations) Errors: a Query section reachable only from another package's file is reported by the lifter, naming its package.
 - **R11:** Exploration checks only the Query it was asked about, and an exploration candidate's id no longer hashes the whole IR file, so merging a feature's files doesn't multiply candidate work or churn candidate ids. [paraphrase] Errors: no error surface beyond today's exploration refusals.
 
+- **R12:** The level between Product and Realization is named **Protocol**, not System: level folders `system/` become `protocol/`, the level's machines and files are renamed (`ActivitySystem` → `ActivityProtocol`, `system/System.scala` → `protocol/Protocol.scala`, and likewise for Nexus and the task queue), and the README, SEMANTICS, structure lint and level vocabulary say Product / Protocol / Realization, so the three levels sort alphabetically in their conceptual order. [user] ("yes, add task to rename System to Protocol") Errors: no error surface; machine-scoped ids change and are listed in the batch rename map.
+
 ## Boundaries
 <!-- scope: business -->
 
@@ -62,6 +64,8 @@ What a feature folder is follows the existing layout rules: a folder with a feat
 <!-- scope: both — conditionally substructured -->
 
 The user asked for a single file per feature where only the root of the graph is specified. [user] A single root object was rejected because model references point downward and no object reaches a feature's Queries, claims and realizations. The feature's package serves as that root instead. [paraphrase] Keeping explicit `irFile` lists but defaulting the main file to its folder's sections was considered as a middle ground. It was not chosen: it keeps the multi-file split and part of the inventory. [paraphrase]
+
+- **Level names (owner, 2026-10-10):** Product and Realization stay; System becomes Protocol: the server's protocol between its parts (history, matching, timers, durability) that refines the Product. Rejected: Guarantee/Mechanism (owner keeps Product), Production (reads as the prod environment), Provider (task-queue providers exist). [user]
 
 ## Parked unknowns
 
