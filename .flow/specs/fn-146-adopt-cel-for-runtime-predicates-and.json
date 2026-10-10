@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-145-modularize-the-umpire-ir-schema",
     "fn-140-one-sentence-witness-queries-with",
-    "fn-123-declare-faults-as-the-environments"
+    "fn-123-declare-faults-as-the-environments",
+    "fn-149-safety-and-liveness-groups-for-object"
   ],
   "id": "fn-146-adopt-cel-for-runtime-predicates-and",
   "impl_review_rounds": {},
@@ -163,5 +164,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T00:01:02.176912Z"
+  "updated_at": "2026-10-10T00:38:55.136085Z"
 }

@@ -6,7 +6,15 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-134-capabilities-own-their-properties",
+    "fn-143-rename-modelumpire-to-modelframework",
+    "fn-142-split-modeltemporalshared-into",
+    "fn-145-modularize-the-umpire-ir-schema",
+    "fn-151-split-standalone-activity-into-smaller",
+    "fn-155-name-the-standalone-activitys-repeated",
+    "fn-156-let-the-scala-compiler-and-lint-enforce"
+  ],
   "id": "fn-149-safety-and-liveness-groups-for-object",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -173,5 +181,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T00:35:19.899342Z"
+  "updated_at": "2026-10-10T00:38:54.860258Z"
 }

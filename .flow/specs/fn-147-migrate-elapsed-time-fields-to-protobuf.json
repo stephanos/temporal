@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-145-modularize-the-umpire-ir-schema",
     "fn-140-one-sentence-witness-queries-with",
-    "fn-123-declare-faults-as-the-environments"
+    "fn-123-declare-faults-as-the-environments",
+    "fn-149-safety-and-liveness-groups-for-object"
   ],
   "id": "fn-147-migrate-elapsed-time-fields-to-protobuf",
   "impl_review_rounds": {},
@@ -163,5 +164,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T00:01:02.735783Z"
+  "updated_at": "2026-10-10T00:38:55.409557Z"
 }

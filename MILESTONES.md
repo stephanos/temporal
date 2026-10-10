@@ -99,7 +99,7 @@ equivalence proof that later work builds on, and at a format activation.
 | --- | --- | --- | --- | --- | --- |
 | 1b | Activity abstractions | fn-155 (named repeated patterns) | meaning-preserving, mapped identities | fn-155.6 | none |
 | 1c | Compiler and lint | fn-156 | byte-identical | fn-156.7 | none |
-| 2 | Authoring | fn-140 → fn-123 | equivalence sealed, then meaning | fn-140.6, fn-123.8 | once |
+| 2 | Authoring | fn-140 → fn-149 → fn-123 | two equivalence seals, then meaning | fn-140.6, fn-149.5, fn-123.8 | once |
 | 3 | Testpilot format | fn-146 → fn-147 → fn-148 | breaking format | fn-146.7, fn-147.4, fn-148.7 | once |
 | 4 | Lifter | fn-141 | byte-identical | fn-141.14 | none |
 | 5 | Activity model | fn-128 → fn-138 → fn-129 | meaning | fn-128.6, fn-129.5 | once |
@@ -181,21 +181,26 @@ compile-versus-lift items from the same review remain notes on fn-141.
 | fn-156.8 | ⬜ todo | Two-day isolated Draft capture-confinement spike; diagnostics, limitations and adoption-cost report |
 | fn-156.7 | ⬜ todo | Join reports, document enforcement, exact artifact comparison, full gates and reviews; close |
 
-### Batch 2, authoring: fn-140 → fn-123
+### Batch 2, authoring: fn-140 → fn-149 → fn-123
 
 Starts from fn-156's closed baseline, with task paths re-anchored to the completed moves,
-Activity subject split, abstractions and compiler/lint enforcement. Both specs
+Activity subject split, abstractions and compiler/lint enforcement. All three specs
 rewrite Model declarations, so they share one production regeneration, one full gate, one review and
 one live run at fn-123.8. fn-140 is meaning-preserving apart from its declared renames: fn-140.6
-seals its assessment-equivalence comparison before fn-123 changes meaning, so a fault change can
-never hide inside the witness migration.
+seals its assessment-equivalence comparison before fn-149 groups claims. Fn-149.5 seals the final
+grouping, including documentation and executable-layout changes, before fn-123 changes meaning.
+Each seal compares against its independently frozen predecessor; a fault change cannot hide inside
+either migration.
 
-Source gate: fn-123 implementation starts after fn-140.6's seal. fn-123 is written against the names
-fn-140 leaves (`when` blocks, `.live`, the shared `Outcome`, the fault instruction and typed `perform`).
+Source gates: fn-149 starts after fn-140.6's committed witness seal; fn-123 starts after fn-149.5's
+committed final grouping seal. The source seals do not close their specs or discharge shared gates.
+Fn-123 consumes the grouped baseline and composed identity/provenance mapping, using fn-140's
+`when` blocks and `.live` together with the shared `Outcome`, fault instruction and typed `perform`.
 
-Batching candidate: fn-149 rewrites the same `properties` sections. If the owner schedules it, it
-joins this batch between fn-140 and fn-123 (its fn-149.4 migration and fn-140.6 touch every Model
-once instead of twice), with its own equivalence seal.
+Fn-149's insertion follows the conductor's recommendation under the owner's instruction to finish
+all milestones and choose recommendations without further questions. Its reviewed plan is integrated;
+cross-spec handoff wiring is being reviewed before readiness is set. Sharing production regeneration
+does not eliminate the separate source migrations or their equivalence proofs.
 
 #### fn-140: One-sentence witness Queries with explicit live expectations
 
@@ -213,6 +218,31 @@ task 5 are disjoint parallel candidates, and task 6 joins them for the equivalen
 | fn-140.4 | ⬜ todo | First Activity conversion and assessment equivalence proof; duplicate terminate removed |
 | fn-140.5 | ⬜ todo | Author docs, core form and layout template witness |
 | fn-140.6 | ⬜ todo | Other eligible Models, source-aware triple lint, sealed regeneration diff and equivalence proof |
+
+#### fn-149: Safety and liveness groups for object properties
+
+[Spec](.flow/specs/fn-149-safety-and-liveness-groups-for-object.md) has five M tasks covering all six
+criteria. Its refreshed plan passed independent review on 2026-10-10; implementation is not started.
+It follows fn-140's witness seal, before fault work, and shares closure at fn-123.8.
+
+Split authored claims into `properties.safety` and `properties.liveness`, enforce declaration kinds,
+and carry the distinction into existing diagnostics and reports. Liveness retains explicit bounds
+and assumptions. Runtime registration and lifted discovery have independent inventory proofs;
+shared capability-law counts cannot use the candidate scans as their oracle. Complete grouping
+comparisons preserve behavior, check results and Case/assessment meaning, with every identity and
+provenance change explained. Fn-149.5 stays pending until shared gates, review and live evidence are
+linked at fn-123.8, even after its committed source seal releases fault implementation.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-149.1 | ⬜ todo | Group discovery and independent runtime/lifter registration proof |
+| fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
+| fn-149.3 | ⬜ todo | Derived safety/liveness classification in existing reports |
+| fn-149.4 | ⬜ todo | Model/capability migration with complete independent behavior and identity seal |
+| fn-149.5 | ⬜ todo | Author docs and final grouping seal before fn-123; shared gate/review/live close at fn-123.8 |
+
+Tasks .1 and .3 are parallel candidates; .2 follows .1; .4 joins .1/.2/.3; .5 joins .3/.4.
+Heavy commands remain serialized. Composition progress belongs to fn-150, not this grouping change.
 
 #### fn-123: Declare faults as the environment's actions
 
@@ -444,31 +474,6 @@ Runs after fn-138. Tasks run in order.
 
 ## Planned, not yet scheduled
 
-### fn-149: Safety and liveness groups for object properties
-
-[Spec](.flow/specs/fn-149-safety-and-liveness-groups-for-object.md) planned with five M-sized tasks
-covering all six acceptance criteria; not marked ready. Split authored claims into `properties.safety` and
-`properties.liveness`, enforce declaration kinds, and carry the distinction into existing diagnostics
-and reports. Liveness retains explicit bounds and assumptions. Migrate Models, shared laws and docs
-while preserving behavior and check results.
-
-Coordinate with fn-140's property/Query authoring changes and fn-141's declaration lifting changes.
-Scheduling remains open; batch 2 names it as a batching candidate.
-
-Cross-machine safety uses compositions today. New composition progress support is tracked separately
-in fn-150; it is not a prerequisite for fn-149's grouping.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-149.1 | ⬜ todo | Group discovery and registration equivalence proof |
-| fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
-| fn-149.3 | ⬜ todo | Derived safety/liveness classification in existing reports |
-| fn-149.4 | ⬜ todo | Model and capability migration with behavior/identity pins |
-| fn-149.5 | ⬜ todo | Author docs, integrated artifact checks and final gates |
-
-Waves: `.1` and `.3` are parallel candidates; `.2` follows `.1`; `.4` follows `.2` and `.3`;
-`.5` joins `.3` and `.4`. Shared generation and test resources still require serialization.
-
 ### fn-150: Bounded liveness across composed machines
 
 [Spec](.flow/specs/fn-150-bounded-liveness-across-composed.md) planned with five M-sized tasks covering
@@ -489,9 +494,8 @@ execution remains unscheduled. Live Case generation for compositions is outside 
 | fn-150.5 | ⬜ todo | Temporal positive/negative example, docs and integrated gates |
 
 Waves: `.1` then `.2`; `.3` and `.4` are parallel candidates; `.5` joins them.
-Neither spec has a hard dependency on the other. Serialize their overlapping edits and regeneration
-with each other and the approved delivery chain, and re-anchor paths after completed migrations.
-If both are scheduled together, they form one batch: one regeneration and gate for both.
+Fn-150 has no hard dependency on fn-149. Its placement remains open; serialize overlapping edits
+and regeneration with the approved delivery chain and re-anchor paths after completed migrations.
 
 ## Deferred
 
