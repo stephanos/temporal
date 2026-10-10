@@ -568,7 +568,7 @@ The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeou
 
 ### fn-157: Bound native verification memory and scratch storage
 
-⏸️ Deferred 2026-10-09 under the roughly-one-hour stuck-gate rule; no tasks yet and not ready.
+⏸️ Deferred 2026-10-09 under the one-hour stuck-gate rule; five reviewed tasks, not ready.
 [Spec](.flow/specs/fn-157-bound-native-verification-memory-and.md).
 
 Measure native interpreter, Check, Producer and seven-Model generator lifetimes before choosing a
@@ -587,6 +587,19 @@ isolated passes and reduced domains cannot replace them. Complete Canary control
 packages passed with restored source and corrected test-runtime temp selection; their original
 canonical RED remains, and the low-level file-sync cause is unknown. Quint JSON work stays in fn-154,
 and strict Activity semantic debt stays in Batch 5.
+
+The preparation plan passed independent review; activation still needs a committed source baseline
+and measured runner budget. Measurement .1 precedes native .2/.3 and the separate scratch .4 lane;
+.5 joins their complete preservation proof and exact gate receipts. No allocation owner or storage
+cause is inferred from historical RSS or later free-space snapshots.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-157.1 | ⏸️ deferred | Pin the activated baseline, seal the independent complete oracle, measure native owners and scratch bytes/inodes |
+| fn-157.2 | ⏸️ deferred | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
+| fn-157.3 | ⏸️ deferred | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
+| fn-157.4 | ⏸️ deferred | Repair owned Scala gate/lift scratch lifetimes or establish provisioned capacity, preserving ordinary overlap |
+| fn-157.5 | ⏸️ deferred | Join full preservation, execute interrupted tests, restore exact native gates and document measured capacity |
 
 ### Other deferred items
 
