@@ -20,6 +20,13 @@
 //   scala-cli run model/check -- --check-block-form  hold every rule of model/temporal to the
 //                                                    block form, `on(...) { ... }`
 //                                                    (BlockFormRule.scala)
+//   scala-cli run model/check -- --capture-baseline <dir> [--dumper <path>]
+//                                                    capture the step tables, IR, Cases and
+//                                                    sources into <dir> (Equivalence.scala)
+//   scala-cli run model/check -- --check-equivalence <dir> <map> [--steps-only] [--dumper <path>]
+//                                                    compare the tree with that baseline under the
+//                                                    rename map <map>; --steps-only compares the
+//                                                    step tables alone (Batch 1d)
 //
 // The IR generator's fixtures under irgen/testdata are built and lifted too, by its own tests: the
 // Models it must lift, compared with the IR in irgen/testdata/lifts/expected, which --update
@@ -429,6 +436,161 @@ final class Gate(tools: Tools, log: PrintStream):
           .orFail()
     log.println("== ok")
 
+  // The step tables of the Models as they are now, written into `dir` (model/framework/StepTables.scala).
+  private def writeStepTables(dir: Path): Unit =
+    val ran = tools
+      .scalaCli(
+        Seq("run", "--server=false") ++ models ++ Seq(
+          "--main-class",
+          "framework.writeStepTables",
+          "--",
+          "temporal",
+          dir.toString
+        )
+      )
+      .orFail()
+    ran.output.linesIterator.filter(_.startsWith("wrote ")).foreach(l => log.println(s"   $l"))
+
+  private val tablePins = "model/testdata/table-pins/replay.py"
+
+  // Captures a baseline of the tree into `out`, which must be absent or empty (Equivalence.scala).
+  // With `dumper`, the inherited interpreter dumper's streams of model/ir are captured too, after
+  // the dumper and the IR are held to the table pins (model/testdata/table-pins).
+  def captureBaseline(out: Path, dumper: Option[Path]): Unit =
+    if Files.exists(out) && Files.list(out).findAny().isPresent then
+      throw GateError(s"$out is not empty: capture a baseline into a new directory")
+    Files.createDirectories(out): Unit
+    val started = System.currentTimeMillis()
+    val commit =
+      Try(tools.run("git", Seq("rev-parse", "HEAD")).orFail().output.trim).getOrElse("unknown")
+    val dirty = Try(
+      tools.run("git", Seq("status", "--porcelain", "--", "model")).orFail().output.stripTrailing
+    )
+      .getOrElse("unknown")
+    step("write the step tables"):
+      writeStepTables(out.resolve(Equivalence.stepTables))
+    step("copy model/ir, model/cases and the Models' sources"):
+      copyTree(model.resolve("ir"), out.resolve("ir"))
+      copyTree(model.resolve("cases"), out.resolve("cases"))
+      copyTree(model.resolve("framework"), out.resolve("sources/framework"))
+      copyTree(model.resolve("temporal"), out.resolve("sources/temporal"))
+    dumper.foreach: d =>
+      step("replay the interpreter tables of model/ir against the table pins"):
+        tools
+          .run(
+            "python3",
+            Seq(
+              tablePins,
+              "--ir",
+              "model/ir",
+              "--dumper",
+              d.toString,
+              "--out",
+              out.resolve("native").toString,
+              "--receipt",
+              out.resolve("native-receipt.json").toString
+            ),
+            Output.Shown
+          )
+          .orFail(): Unit
+    val tables = Equivalence.index(out.resolve(Equivalence.stepTables))
+    Files.writeString(
+      out.resolve("baseline.txt"),
+      Seq(
+        s"commit\t$commit",
+        s"model\t${if dirty.isEmpty then "clean" else "changed:\n" + dirty}",
+        s"captured\t${java.time.Instant.now()}",
+        s"step tables\t${tables.size} (${tables.map(_._2._1).distinct.size} distinct, ${tables.map(_._2._2).sum} lines)",
+        s"native streams\t${if dumper.isDefined then "native/" else "not captured"}",
+        s"seconds\t${(System.currentTimeMillis() - started) / 1000}"
+      ).mkString("", "\n", "\n")
+    ): Unit
+    if dirty.nonEmpty then log.println(s"   model/ has changes; baseline.txt records them:\n$dirty")
+    log.println(s"== captured $commit into $out")
+
+  // Compares the tree with the baseline in `base` under `map` (Equivalence.scala), and fails on
+  // every difference the map does not explain and every entry of the map that explains nothing.
+  def checkEquivalence(base: Path, mapFile: Path, stepsOnly: Boolean, dumper: Option[Path]): Unit =
+    val map = RenameMap.read(mapFile)
+    if !Files.isDirectory(base.resolve(Equivalence.stepTables)) then
+      throw GateError(s"$base is no baseline: it has no ${Equivalence.stepTables}")
+    val now = scratch("steps")
+    step("write the step tables"):
+      writeStepTables(now.resolve(Equivalence.stepTables))
+    val tables = step("compare the step tables with the baseline's"):
+      Equivalence.compareTables(
+        base.resolve(Equivalence.stepTables),
+        now.resolve(Equivalence.stepTables),
+        map
+      )
+    val projected =
+      if stepsOnly then Vector.empty
+      else
+        step("compare the IR, its lint findings, the Cases and the manifest with the baseline's"):
+          Equivalence.compareProjection(
+            base.resolve("ir"),
+            base.resolve("cases"),
+            model.resolve("ir"),
+            model.resolve("cases"),
+            map
+          )
+    val (native, nativeUsed, nativeRemovals) = dumper match
+      case Some(d) if !stepsOnly =>
+        if !Files.isDirectory(base.resolve("native")) then
+          throw GateError(s"$base holds no interpreter streams: capture it with --dumper")
+        step("compare the interpreter tables of model/ir with the baseline's"):
+          val receipt = now.resolve("native-receipt.json")
+          val ran = tools.run(
+            "python3",
+            Seq(
+              tablePins,
+              "--ir",
+              "model/ir",
+              "--dumper",
+              d.toString,
+              "--out",
+              now.resolve("native").toString,
+              "--receipt",
+              receipt.toString,
+              "--baseline",
+              base.resolve("native").toString,
+              "--map",
+              mapFile.toString
+            )
+          )
+          if !Files.isRegularFile(receipt) then
+            throw GateError(s"the interpreter tables were not compared:\n${ran.diagnostics}")
+          val fields = Json.fields(Json.parse(Files.readString(receipt)), receipt.toString)
+          def texts(name: String) =
+            Json.items(fields.getOrElse(name, Vector()), name).map(Json.text(_, name))
+          (
+            texts("differences").map("interpreter " + _),
+            texts("used").toSet,
+            texts("used_removals").toSet
+          )
+      case _ => (Vector.empty, Set.empty[String], Set.empty[String])
+    map.used ++= nativeUsed
+    val (unused, deferred) =
+      Equivalence.unused(map, tables.removalsUsed ++ nativeRemovals, !stepsOnly, base)
+    deferred.foreach(d => log.println(s"   $d"))
+    val all = tables.differences ++ projected ++ native ++ unused
+    if all.nonEmpty then
+      throw GateError(
+        (all :+ s"${all.size} differences from the baseline $base; scratch tables in $now")
+          .mkString("\n")
+      )
+    log.println(s"== equivalent to the baseline $base")
+
+  private def copyTree(from: Path, to: Path): Unit =
+    if Files.isDirectory(from) then
+      val stream = Files.walk(from)
+      try
+        stream.iterator.asScala.foreach: p =>
+          val target = to.resolve(from.relativize(p).toString)
+          if Files.isDirectory(p) then Files.createDirectories(target): Unit
+          else Files.copy(p, target, StandardCopyOption.COPY_ATTRIBUTES): Unit
+      finally stream.close()
+
   // An update's output is shown as it runs; a check's is kept, since it runs beside other steps.
   private def lower(update: Boolean): String =
     if update then
@@ -532,7 +694,27 @@ final class Gate(tools: Tools, log: PrintStream):
 object Gate:
   val usage =
     "usage: gate [--update] [--skip-go-checks] | gate --generate-ir|--generate-api [--if-stale]" +
-      " | gate --check-syntax | gate --check-comments | gate --check-block-form"
+      " | gate --check-syntax | gate --check-comments | gate --check-block-form" +
+      " | gate --capture-baseline <dir> [--dumper <path>]" +
+      " | gate --check-equivalence <dir> <map> [--steps-only] [--dumper <path>]"
+
+  // The equivalence commands' arguments: the command, its paths, and the flags after them.
+  private def equivalence(
+      arguments: Seq[String]
+  ): Option[(String, Seq[Path], Boolean, Option[Path])] =
+    def flags(rest: Seq[String]): Option[(Boolean, Option[Path])] = rest match
+      case Seq()                  => Some((false, None))
+      case "--steps-only" +: more => flags(more).filter(!_._1).map((_, d) => (true, d))
+      case "--dumper" +: path +: more if !path.startsWith("--") =>
+        flags(more).filter(_._2.isEmpty).map((s, _) => (s, Some(Path.of(path))))
+      case _ => None
+    arguments match
+      case "--capture-baseline" +: out +: rest if !out.startsWith("--") =>
+        flags(rest).filter(!_._1).map((s, d) => ("capture", Seq(Path.of(out)), s, d))
+      case "--check-equivalence" +: base +: map +: rest
+          if !base.startsWith("--") && !map.startsWith("--") =>
+        flags(rest).map((s, d) => ("check", Seq(Path.of(base), Path.of(map)), s, d))
+      case _ => None
 
   private def same(checkedIn: Path, produced: Path) =
     Files.isRegularFile(checkedIn) && Files.mismatch(
@@ -630,6 +812,36 @@ object Gate:
 
   // Runs the gate as its command line says and answers its exit status.
   def main(arguments: Seq[String], tools: => Tools, out: PrintStream, err: PrintStream): Int =
+    if arguments.headOption.exists(a =>
+        a.equals("--capture-baseline") || a.equals("--check-equivalence")
+      )
+    then
+      equivalence(arguments) match
+        case None =>
+          err.println(usage)
+          2
+        case Some((command, paths, stepsOnly, dumper)) =>
+          try
+            val gate = Gate(tools, out)
+            val absolute = paths.map(p => tools.directory.resolve(p))
+            if command.equals("capture") then gate.captureBaseline(absolute.head, dumper)
+            else gate.checkEquivalence(absolute(0), absolute(1), stepsOnly, dumper)
+            0
+          catch
+            case e: (GateError | ToolError) =>
+              err.println(s"gate: ${e.getMessage}")
+              1
+            case e: java.io.IOException =>
+              err.println(s"gate: $e")
+              1
+    else run(arguments, tools, out, err)
+
+  private def run(
+      arguments: Seq[String],
+      tools: => Tools,
+      out: PrintStream,
+      err: PrintStream
+  ): Int =
     val known = Set(
       "--update",
       "--skip-go-checks",

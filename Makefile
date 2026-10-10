@@ -783,6 +783,22 @@ umpire-gen-model:
 	@$(MODEL_GATE_TEST)
 	@$(MODEL_GATE) --update $(MODEL_GATE_ARGS)
 
+# Seals a batch that keeps the Models' meaning but changes identities (model/README.md, "Sealing a
+# batch"): capture a baseline into a new directory before the batch's first edit, then compare the
+# batch's end with it under the batch's rename map. STEPS_ONLY=1 compares the step tables alone,
+# while the checked-in IR is stale (Batch 1d). DUMPER names the table pins' interpreter dumper
+# (model/testdata/table-pins/README.md) to capture and compare the IR's interpreter tables too.
+.PHONY: umpire-capture-baseline umpire-check-equivalence
+umpire-capture-baseline: $(MODEL_PROTO_JARS)
+	@test -n "$(OUT)" || { echo "usage: make umpire-capture-baseline OUT=<new directory> [DUMPER=<path>]"; exit 2; }
+	@printf $(COLOR) "Capture a model baseline into $(OUT)..."
+	@$(MODEL_GATE) --capture-baseline "$(OUT)" $(if $(DUMPER),--dumper "$(DUMPER)")
+
+umpire-check-equivalence: $(MODEL_PROTO_JARS)
+	@test -n "$(BASE)" && test -n "$(MAP)" || { echo "usage: make umpire-check-equivalence BASE=<baseline> MAP=<rename map> [STEPS_ONLY=1] [DUMPER=<path>]"; exit 2; }
+	@printf $(COLOR) "Check the model against the baseline $(BASE)..."
+	@$(MODEL_GATE) --check-equivalence "$(BASE)" "$(MAP)" $(if $(STEPS_ONLY),--steps-only) $(if $(DUMPER),--dumper "$(DUMPER)")
+
 # Removes scala-cli build state (.bsp/, .scala-build/) anywhere in the checkout and the given
 # scratch directories under .flow/tmp (UMPIRE_SCRATCH="fn112-3 fn114-1"). Agents use this target
 # instead of running rm directly; model/build and evidence they did not name are left alone.

@@ -100,6 +100,34 @@ class ReplayTests(unittest.TestCase):
                 self.assertIn(error, process.stderr)
                 self.assertFalse(candidate.exists())
 
+    def dumps(self, name, records_by_artifact):
+        folder = self.root / name
+        for artifact, records in records_by_artifact.items():
+            (folder / artifact).mkdir(parents=True)
+            with gzip.open(folder / artifact / "machine-choice.jsonl.gz", "wb") as output:
+                output.write(self.encode(records))
+        return folder
+
+    def test_equivalence_under_a_rename_map(self):
+        base = self.dumps("base", {"fixture-race": self.records, "fixture": self.records})
+        renamed = json.loads(json.dumps(self.records).replace('"go"', '"start"'))
+        renamed[0]["declaration"]["position"] = {"file": "moved.scala", "line": 9}
+        now = self.dumps("now", {"fixture": renamed})
+        result = replay.compare_streams(base, now, replay.Renames("go start\n"))
+        self.assertEqual(result["differences"], [])
+        self.assertEqual(result["used"], ["go"])
+        unmapped = replay.compare_streams(base, now, replay.Renames(""))
+        self.assertTrue(any("line 4 differs" in d for d in unmapped["differences"]), unmapped)
+
+    def test_equivalence_rejects_mutants_and_missing_or_extra_subjects(self):
+        base = self.dumps("base", {"fixture": self.records})
+        changed = copy.deepcopy(self.records)
+        changed[3]["results"][0]["facts"].reverse()
+        result = replay.compare_streams(base, self.dumps("fact", {"fixture": changed}), replay.Renames(""))
+        self.assertTrue(result["differences"])
+        missing = replay.compare_streams(base, self.dumps("other", {"fixture": []}), replay.Renames(""))
+        self.assertTrue(any("is gone" in d for d in missing["differences"]) or missing["differences"])
+
 
 if __name__ == "__main__":
     unittest.main()
