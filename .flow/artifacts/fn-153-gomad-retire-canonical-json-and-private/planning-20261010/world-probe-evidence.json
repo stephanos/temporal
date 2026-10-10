@@ -1,0 +1,86 @@
+{
+  "purpose": "fn-153 planning-only World stdlib equivalence probe",
+  "baseline_sha": "0bff0019baf1753cb04fedf9672ace0b5f00dcf7",
+  "branch": "gomad",
+  "platform": "linux/arm64",
+  "uname": "Linux aarch64",
+  "routing": "research gpt-6-astra/high requested; root supplied session fallback jev-unavailable(no_key); no worker judge retry",
+  "scratch": "/tmp/gomad-fn153-world-probe-VgkVTz",
+  "archive": {
+    "command": "set -o pipefail; git archive HEAD tools/gomad3 | tar -x -C /tmp/gomad-fn153-world-probe-VgkVTz",
+    "exit_code": 0
+  },
+  "toolchain": {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "version": "go version go1.27.1 linux/arm64",
+    "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "patched": false
+  },
+  "inputs_sha256": {
+    "tools/gomad3/internal/canonicaljson/canonical.go": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+    "tools/gomad3/world/codec.go": "74d895e318433d34852e4781009f5b8c9c868714f8f374fa2b427f094cdc1d98",
+    "tools/gomad3/world/types.go": "41e88fa7d1989d49f8efda8c5e615761b6d6fbcf0a3659c39cfdc9370a2b0421",
+    "tools/gomad3/world/snapshot.go": "065d173b05de29f83babc444818f2fd9491df90fc9d5d073ce495daf5ed78219",
+    "tools/gomad3/world/replay.go": "3e32d751adb715f3ae1c3d0e66fdd40f05946ca77d251fb0c7ade417cde302ee",
+    "tools/gomad3/world/recording.go": "fc00c9af42ebb2cb74fa593b9c026205a2df19bf4634e99a532f697c7fb4fc27",
+    "tools/gomad3/world/world.go": "5de21e439b3f04aa8bb9dc44b6ce21c95b556952fb4b70d98f403dbb2d4b68c6",
+    "tools/gomad3/world/world_test.go": "36f0c4b4186009888a723b4d90b8c82b25cc56086e8733bd8fe8e8c267092ede",
+    "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+    "tools/gomad3/Makefile": "f4953730e0aec8e86dd9f872533cfaeef50cfd0677fbcb32899479180e6fb445"
+  },
+  "probe_source": {
+    "path": "/tmp/gomad-fn153-world-probe-VgkVTz/tools/gomad3/world/fn153_probe_test.go",
+    "sha256": "0929d68d64fb049ae39ca36da48049c8f416c7f70dd119cf9fc2dc6877eb473e"
+  },
+  "successful_run": {
+    "timestamp_utc": "2026-10-10T13:26:22Z",
+    "cwd": "/tmp/gomad-fn153-world-probe-VgkVTz/tools/gomad3",
+    "command": "cd /tmp/gomad-fn153-world-probe-VgkVTz/tools/gomad3 && set -o pipefail && { date -u '+%Y-%m-%dT%H:%M:%SZ'; pwd; /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go version; env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=local GOPROXY=off CGO_ENABLED=0 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -run '^TestFN153WorldStdlibProbe$' -timeout=90s -v ./world; } 2>&1 | tee /tmp/gomad-fn153-world-probe-VgkVTz/probe-output-corrected-cwd.txt",
+    "exit_code": 0,
+    "tool_wall_seconds": 0.544319209,
+    "go_package_seconds": 0.363,
+    "output_path": "/tmp/gomad-fn153-world-probe-VgkVTz/probe-output-corrected-cwd.txt",
+    "output_sha256": "df9af519d50b90c21a82a0e86c481b188d6be129373543118ddf936d475115eb"
+  },
+  "failed_setup": {
+    "timestamp_utc": "2026-10-10T13:26:10Z",
+    "cause": "Shell startup ignored exec_command workdir; cwd was repository root; ./world missing",
+    "exit_code": 1,
+    "tests_executed": 0,
+    "retry_change": "Added explicit cd into archived scratch module; actual cwd printed and verified",
+    "output_path": "/tmp/gomad-fn153-world-probe-VgkVTz/probe-output.txt",
+    "output_sha256": "872e77e896d9fe5cdb1921442aae39cfc71bf911a9a4cc69370b5f6e178ae2fc"
+  },
+  "formatting": "Relative-path gofmt failed exit 2 under ignored workdir; absolute-path gofmt succeeded exit 0 before test",
+  "counts": {
+    "equal_byte_comparisons": 5029,
+    "structural": 4860,
+    "enum_and_signed_time": 22,
+    "valid_snapshots": 49,
+    "valid_plans": 7,
+    "valid_transitions": 70,
+    "recording_payloads": 21,
+    "exact_recording_frames": 7,
+    "invalid_utf8_controls": 7,
+    "decode_controls": 7,
+    "serialized_fields": 76,
+    "byte_mismatches": 0
+  },
+  "comparison_payload_digest": "90c7d75020484036034a94e74aabdfbd65aeff7e60c3ef83c55876019bf48730",
+  "decision": "Choose small World-only stdlib normalization for valid current typed domain, conditional on preserving invalid-Go-string rejection and decoder/framing contracts",
+  "validation_gaps": [
+    "validateTerminal accepts invalid UTF-8 detail",
+    "validateTransitionShape and validateReplayPlanIdentity accept correctly hashed nested invalid request text",
+    "Existing EncodeRecording, EncodeTransitions and EncodeReplayPlan reject these through canonicaljson; candidate alone accepts them"
+  ],
+  "limitations": [
+    "Finite corpus plus source-domain reasoning, not exhaustive value enumeration",
+    "Structural matrix includes semantically invalid shapes; valid model corpus is reported separately",
+    "No generic JSON equivalence or strict-decoder replacement claim",
+    "No production implementation, performance benchmark, native qualification, patched-runtime test, process transport, broad host gate, lint, generation, or independent review"
+  ],
+  "product_source_changed": false,
+  "git_writes": false,
+  "flow_lifecycle_changed": false,
+  "scratch_retained": true
+}

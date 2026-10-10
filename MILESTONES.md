@@ -347,6 +347,31 @@ CI, PR, or push authority.
 | [fn-152.9](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md) | ⬜ Todo | Retain integrated crash evidence and update current storage contracts |
 | [fn-152.10](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.10.md) | ⬜ Todo | Persist admitted work and terminal receipts with atomic policy stop/drain |
 
+<a id="canonical-json-publication-cleanup-fn-153"></a>
+
+## JSON and file-publication cleanup - [fn-153](.flow/specs/fn-153-gomad-retire-canonical-json-and-private.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-153.1](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.1.md) | ⬜ Todo | Introduce narrow strict JSON decoding without a shared encoder |
+| [fn-153.2](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.2.md) | ⬜ Todo | Centralize staged and streamed whole-file publication |
+| [fn-153.3](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.3.md) | ⬜ Todo | Migrate execution records and I/O identity validation |
+| [fn-153.4](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.4.md) | ⬜ Todo | Migrate preparation identities and preserve live-capability payloads |
+| [fn-153.5](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.5.md) | ⬜ Todo | Replace World's generic encoder with a bounded domain-local stdlib codec |
+| [fn-153.6](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.6.md) | ⬜ Todo | Migrate compatibility authoring without changing approvals' meaning |
+| [fn-153.7](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.7.md) | ⬜ Todo | Migrate qualification evidence and shared report publication |
+| [fn-153.8](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.8.md) | ⬜ Todo | Migrate qualification sets and generated manifest inputs |
+| [fn-153.9](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.9.md) | ⬜ Todo | Migrate CLI JSON delivery and retain the public upgrade facade |
+| [fn-153.10](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.10.md) | ⬜ Todo | Migrate choice exploration and Runner identity projections |
+| [fn-153.11](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.11.md) | ⬜ Todo | Migrate simulation identities while preserving paired target formulas |
+| [fn-153.12](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.12.md) | ⬜ Todo | Migrate replay composition, minimizer checkpoints and corpus semantics |
+| [fn-153.13](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.13.md) | ⬜ Todo | Move streamed archive and validated patch publication to hostfs |
+| [fn-153.14](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.14.md) | ⬜ Todo | Preserve the builder's staged stamp and launcher transaction |
+| [fn-153.15](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.15.md) | ⬜ Todo | Migrate architecture effect fixtures before removing their source owner |
+| [fn-153.16](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.16.md) | ⬜ Todo | Delete the generic canonical package and its obsolete owner entries |
+| [fn-153.17](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.17.md) | ⬜ Todo | Regenerate final-input approvals, packs, goldens and identity outputs |
+| [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | ⬜ Todo | Reconcile contracts and verify the integrated cleanup |
+
 <a id="quality-assessment-2026-10-01"></a>
 
 ## Determinism assurance and test strategy — [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md)

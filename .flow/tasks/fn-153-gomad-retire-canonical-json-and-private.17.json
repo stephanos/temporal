@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T13:35:46.199821Z",
+  "depends_on": [
+    "fn-153-gomad-retire-canonical-json-and-private.6",
+    "fn-153-gomad-retire-canonical-json-and-private.16"
+  ],
+  "id": "fn-153-gomad-retire-canonical-json-and-private.17",
+  "priority": null,
+  "spec": "fn-153-gomad-retire-canonical-json-and-private",
+  "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.17.md",
+  "status": "todo",
+  "title": "Regenerate final-input approvals, packs, goldens and identity outputs",
+  "updated_at": "2026-10-10T13:45:06.342695Z"
+}

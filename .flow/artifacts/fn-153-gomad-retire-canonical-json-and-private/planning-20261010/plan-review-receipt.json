@@ -1,0 +1,71 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "headSha": "0bff0019baf1753cb04fedf9672ace0b5f00dcf7",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "0bff0019baf1753cb04fedf9672ace0b5f00dcf7",
+          "path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.17.md",
+          "side": "head",
+          "startLine": 15
+        },
+        "body": "The existing workflow cannot directly regenerate the retained approved batch after changing approval encoding. All 12 requests contain approvals. `authoring.Generate` rejects a request carrying its old approval before updating it, then renders every retained request; any other stale approval also aborts generation (`generate.go:42,48,263`). `PublishReview` only writes a report and returns the new digest. The specified workflow omits the preparation step needed to get past these refusals, leaving task17\u2019s generation and validation gate blocked.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-2168788d45a56f1c09248982741891dfcc68f6904b688c1102676279c7ff6a61",
+        "id": "finding-aa8523847052a959d9600b93c87a0af2",
+        "lastSeenReceiptId": "review-ad8e99ed4def7e8a11d18f3b8d764c23f606e3373cd777bda36adaaaa0b52e86",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Specify the batch sequence: preserve preimages, obtain each new review digest, prepare all requests with matching approval fields in a staged root, then generate/check the complete batch before publishing. Retain semantic-projection comparisons and stale-approval rejection.",
+        "title": "The existing workflow cannot directly regenerate the retained approved batch after changing approval encoding"
+      },
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "0bff0019baf1753cb04fedf9672ace0b5f00dcf7",
+          "path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.6.md",
+          "side": "head",
+          "startLine": 11
+        },
+        "body": "Required test migrations fall outside the declared paths. Task6 includes schema tests, but its Touches excludes `schema_admission_test.go`, `schema_timezone_test.go`, `policy_exhaustive_test.go`, `mutation_test.go`, and `external_test.go`, all importing canonicaljson. Task4 similarly excludes surviving target tests such as `capability_source_test.go`, `capability_projection_test.go`, and `coverage_test.go`. None is covered by another task\u2019s declared Touches. Task16\u2019s final inventory will therefore require undeclared edits before package deletion can compile.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-2168788d45a56f1c09248982741891dfcc68f6904b688c1102676279c7ff6a61",
+        "id": "finding-65df7530c361d12fe224bfd5930e8e68",
+        "lastSeenReceiptId": "review-ad8e99ed4def7e8a11d18f3b8d764c23f606e3373cd777bda36adaaaa0b52e86",
+        "ordinal": 2,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Assign these known test migrations to their consumer owners and include their paths in Touches before dispatch.",
+        "title": "Required test migrations fall outside the declared paths"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-ad8e99ed4def7e8a11d18f3b8d764c23f606e3373cd777bda36adaaaa0b52e86",
+    "supersedesReceiptId": "review-2168788d45a56f1c09248982741891dfcc68f6904b688c1102676279c7ff6a61"
+  },
+  "id": "fn-153-gomad-retire-canonical-json-and-private",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nTask17 now prepares all matching approvals in a staged batch before generation/check, preserving stale-approval refusal and live preimages on preparation failure. Tasks4 and6 explicitly own the identified test migrations and include their paths in Touches.\n\nNo new blocking findings. Dependency ordering, test strategy, retained progress/error behavior, and performance/security/privacy constraints remain consistent.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "0816af5ca28f4c318e4acaacb5c5eb92",
+  "session_id": "01a12608-59e5-7292-81cd-e3a11936cb76",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-10T13:46:40.773860Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

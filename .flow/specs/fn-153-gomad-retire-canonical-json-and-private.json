@@ -1,0 +1,149 @@
+{
+  "branch_name": "fn-153-gomad-retire-canonical-json-and-private",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-09T23:27:41.008531Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-152-gomad-runner-storage-on-one-append-only"
+  ],
+  "id": "fn-153-gomad-retire-canonical-json-and-private",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-10T13:46:40.784224Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "4cea8c1981debc1d29b3b082e95b70e2d6728c2d4d25d497e9f104da53af3923",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aa8523847052a959d9600b93c87a0af2",
+            "classification": "introduced",
+            "findingId": "finding-aa8523847052a959d9600b93c87a0af2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-65df7530c361d12fe224bfd5930e8e68",
+            "classification": "introduced",
+            "findingId": "finding-65df7530c361d12fe224bfd5930e8e68",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0bff0019baf1753cb04fedf9672ace0b5f00dcf7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 388381,
+      "output_sha256": "9bfa8b80685e25005b2b55258f690b9aa53cbcf95719af66aa056b7f33ad8708",
+      "reservation_id": "9db495f2850148898cef79a2d50d2bc9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T13:40:27.702802Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4a27e12a23769a63881a0fe8f8edfab3413a6a0d88303f4695f3cf2478501877",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aa8523847052a959d9600b93c87a0af2",
+            "classification": "introduced",
+            "findingId": "finding-aa8523847052a959d9600b93c87a0af2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-65df7530c361d12fe224bfd5930e8e68",
+            "classification": "introduced",
+            "findingId": "finding-65df7530c361d12fe224bfd5930e8e68",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0bff0019baf1753cb04fedf9672ace0b5f00dcf7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 602,
+      "output_sha256": "7dac8f68e76d296975ca0ef9eeed6191a9651344eb214f311d4250b8bb06c0fe",
+      "reservation_id": "0816af5ca28f4c318e4acaacb5c5eb92",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-10T13:46:40.778116Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-153-gomad-retire-canonical-json-and-private.md",
+  "status": "open",
+  "title": "Gomad: retire canonical JSON and private atomic writes",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-10T13:52:42.954035Z"
+}

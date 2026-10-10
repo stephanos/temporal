@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T13:35:46.199088Z",
+  "depends_on": [
+    "fn-153-gomad-retire-canonical-json-and-private.1"
+  ],
+  "id": "fn-153-gomad-retire-canonical-json-and-private.5",
+  "priority": null,
+  "spec": "fn-153-gomad-retire-canonical-json-and-private",
+  "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.5.md",
+  "status": "todo",
+  "title": "Replace World's generic encoder with a bounded domain-local stdlib codec",
+  "updated_at": "2026-10-10T13:45:04.974425Z"
+}

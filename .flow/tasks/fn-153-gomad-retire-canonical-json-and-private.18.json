@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T13:35:46.199878Z",
+  "depends_on": [
+    "fn-153-gomad-retire-canonical-json-and-private.17"
+  ],
+  "id": "fn-153-gomad-retire-canonical-json-and-private.18",
+  "priority": null,
+  "spec": "fn-153-gomad-retire-canonical-json-and-private",
+  "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md",
+  "status": "todo",
+  "title": "Reconcile contracts and verify the integrated cleanup",
+  "updated_at": "2026-10-10T13:35:46.199878Z"
+}

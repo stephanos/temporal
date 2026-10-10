@@ -1,0 +1,360 @@
+package world
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/json"
+	"fmt"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"reflect"
+	"sort"
+	"strings"
+	"testing"
+)
+
+func fn153Normalize(value any) ([]byte, error) {
+	initial, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+	decoder := json.NewDecoder(bytes.NewReader(initial))
+	decoder.UseNumber()
+	var decoded any
+	if err := decoder.Decode(&decoded); err != nil {
+		return nil, err
+	}
+	var output bytes.Buffer
+	encoder := json.NewEncoder(&output)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(decoded); err != nil {
+		return nil, err
+	}
+	return bytes.TrimSuffix(output.Bytes(), []byte{'\n'}), nil
+}
+
+func fn153Populate(value reflect.Value, text string, numeric, collection int, fields map[string]bool) {
+	switch value.Kind() {
+	case reflect.Struct:
+		for i := 0; i < value.NumField(); i++ {
+			field := value.Type().Field(i)
+			fields[value.Type().Name()+"."+field.Name+" "+string(field.Tag)] = true
+			fn153Populate(value.Field(i), text, numeric, collection, fields)
+		}
+	case reflect.Pointer:
+		if collection == 0 {
+			return
+		}
+		value.Set(reflect.New(value.Type().Elem()))
+		fn153Populate(value.Elem(), text, numeric, collection, fields)
+	case reflect.Slice:
+		if collection == 0 {
+			return
+		}
+		length := 0
+		if collection == 2 {
+			length = 2
+		}
+		if value.Type().Elem().Kind() == reflect.Uint8 && collection == 2 {
+			length = 256
+		}
+		value.Set(reflect.MakeSlice(value.Type(), length, length))
+		for i := 0; i < length; i++ {
+			if value.Type().Elem().Kind() == reflect.Uint8 {
+				value.Index(i).SetUint(uint64(i))
+				continue
+			}
+			fn153Populate(value.Index(i), text, numeric, collection, fields)
+		}
+	case reflect.String:
+		value.SetString(text)
+	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		var n uint64
+		if numeric == 1 {
+			n = 1
+		}
+		if numeric == 2 {
+			n = ^uint64(0) >> (64 - value.Type().Bits())
+		}
+		value.SetUint(n)
+	case reflect.Int64:
+		var n int64
+		if numeric == 1 {
+			n = int64(InitialTime)
+		}
+		if numeric == 2 {
+			n = int64(^uint64(0) >> 1)
+		}
+		value.SetInt(n)
+	default:
+		panic(fmt.Sprintf("uncovered World field kind %s", value.Kind()))
+	}
+}
+
+func TestFN153WorldStdlibProbe(t *testing.T) {
+	count := 0
+	digest := sha256.New()
+	compare := func(name string, value any) []byte {
+		t.Helper()
+		legacy, err := canonicaljson.CanonicalJSON(value)
+		if err != nil {
+			t.Fatalf("%s legacy: %v", name, err)
+		}
+		candidate, err := fn153Normalize(value)
+		if err != nil {
+			t.Fatalf("%s candidate: %v", name, err)
+		}
+		if !bytes.Equal(legacy, candidate) {
+			t.Fatalf("%s mismatch\nlegacy=%s\ncandidate=%s", name, legacy, candidate)
+		}
+		if bytes.HasSuffix(candidate, []byte{'\n'}) {
+			t.Fatalf("%s extra newline", name)
+		}
+		if _, err := fmt.Fprintf(digest, "%d:%s:%d:", len(name), name, len(candidate)); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := digest.Write(candidate); err != nil {
+			t.Fatal(err)
+		}
+		count++
+		return candidate
+	}
+	fields := make(map[string]bool)
+	texts := []string{"", "ASCII", "<>&", "\"\\\b\f\n\r\t\x00\x01\x1f\x7f", "é世界🙂", "\u2028\u2029", "literal \\u003c and \\ud800"}
+	for c := 0; c < 128; c++ {
+		texts = append(texts, string(rune(c)))
+	}
+	roots := []reflect.Type{reflect.TypeFor[Snapshot](), reflect.TypeFor[ReplayPlan](), reflect.TypeFor[Terminal](), reflect.TypeFor[Transition]()}
+	for _, root := range roots {
+		for ti, text := range texts {
+			for numeric := 0; numeric < 3; numeric++ {
+				for collection := 0; collection < 3; collection++ {
+					value := reflect.New(root).Elem()
+					fn153Populate(value, text, numeric, collection, fields)
+					compare(fmt.Sprintf("structural/%s/text%d/number%d/collection%d", root.Name(), ti, numeric, collection), value.Interface())
+				}
+			}
+		}
+	}
+	structural := count
+	for _, kind := range []TerminalKind{TerminalNone, TerminalDelivered, TerminalIdle, TerminalDeadlock, TerminalCapacity, TerminalReplayDivergence, TerminalInvalidInput} {
+		terminal := Terminal{Kind: kind}
+		if kind == TerminalCapacity || kind == TerminalReplayDivergence || kind == TerminalInvalidInput {
+			terminal.Detail = "<>&\u2028\u2029"
+		}
+		if err := validateTerminal(terminal); err != nil {
+			t.Fatal(err)
+		}
+		compare("terminal/"+string(kind), terminal)
+	}
+	for _, state := range []RequestState{RequestPending, RequestQueued, RequestCanceled, RequestDelivered} {
+		compare("request-state/"+string(state), RequestSnapshot{State: state})
+	}
+	for _, state := range []EventState{EventQueued, EventCanceled, EventDelivered} {
+		compare("event-state/"+string(state), EventSnapshot{State: state})
+	}
+	for _, kind := range []QuiescenceKind{QuiescenceDelivered, QuiescenceDeadlock, QuiescenceIdle} {
+		compare("quiescence/"+string(kind), Quiescence{Kind: kind})
+	}
+	for _, status := range []CancelStatus{CancelWon, CancelAlreadyCanceled, CancelAlreadyDelivered} {
+		compare("cancel/"+string(status), Cancellation{Status: status})
+	}
+	compare("negative-logical-time-encoding-only", LogicalTime(-1))
+	compare("min-logical-time-encoding-only", LogicalTime(-1<<63))
+	enums := count - structural
+	validSnapshots, validPlans, validTransitions, recordings := fn153ModelCases(t, texts[:7], compare)
+	invalids, decodeControls := fn153BoundaryCases(t, roots, fields)
+	keys := make([]string, 0, len(fields))
+	for field := range fields {
+		keys = append(keys, field)
+	}
+	sort.Strings(keys)
+	t.Logf("COUNTS equality=%d structural=%d enum_and_signed=%d valid_snapshots=%d valid_plans=%d valid_transitions=%d recording_frames=%d invalid_utf8_controls=%d decode_controls=%d covered_fields=%d", count, structural, enums, validSnapshots, validPlans, validTransitions, recordings, invalids, decodeControls, len(fields))
+	t.Logf("EQUALITY_SHA256 %x", digest.Sum(nil))
+	t.Logf("FIELDS\n%s", strings.Join(keys, "\n"))
+}
+
+func fn153ModelCases(t *testing.T, texts []string, compare func(string, any) []byte) (int, int, int, int) {
+	validSnapshots, validPlans, validTransitions, recordings := 0, 0, 0, 0
+	for ti, text := range texts {
+		w := newTestWorld(t, ^Seed(0))
+		initial := w.Snapshot()
+		checkSnapshot := func(label string) {
+			snapshot := w.Snapshot()
+			candidate := compare(fmt.Sprintf("model%d/snapshot/%s", ti, label), snapshot)
+			legacy, err := EncodeSnapshot(snapshot)
+			if err != nil || !bytes.Equal(candidate, legacy) {
+				t.Fatalf("snapshot %s: %v", label, err)
+			}
+			if _, err := DecodeSnapshot(candidate); err != nil {
+				t.Fatalf("decode candidate snapshot: %v", err)
+			}
+			if !bytes.HasPrefix(candidate, []byte(`{"config":`)) {
+				t.Fatal("config not first")
+			}
+			validSnapshots++
+		}
+		checkSnapshot("initial")
+		request := Request{Kind: "wait" + text, Resource: ResourceID{Adapter: "memory", Kind: "cell", Key: text}, Priority: ^Priority(0), Payload: []byte{0, 1, 127, 128, 255}}
+		id, err := w.Register(request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		checkSnapshot("pending")
+		if _, err := w.Quiesce(); err != nil {
+			t.Fatal(err)
+		}
+		checkSnapshot("deadlock")
+		if _, err := w.Ready(Readiness{RequestID: id, At: InitialTime + 100, Kind: "ready" + text, Payload: []byte{0, 255}, EquivalenceClass: text}); err != nil {
+			t.Fatal(err)
+		}
+		checkSnapshot("queued")
+		if _, err := w.Quiesce(); err != nil {
+			t.Fatal(err)
+		}
+		checkSnapshot("delivered")
+		if _, err := w.Cancel(id); err != nil {
+			t.Fatal(err)
+		}
+		id, err = w.Register(request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := w.Ready(Readiness{RequestID: id, At: InitialTime + 200, Kind: "done" + text}); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := w.Cancel(id); err != nil {
+			t.Fatal(err)
+		}
+		checkSnapshot("canceled")
+		if _, err := w.Cancel(id); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := w.Quiesce(); err != nil {
+			t.Fatal(err)
+		}
+		checkSnapshot("idle")
+		final := w.Snapshot()
+		plan := ReplayPlan{SchemaVersion: SchemaVersion, InitialDigest: initial.StateDigest, FinalDigest: final.StateDigest, Transitions: final.Transitions}
+		candidate := compare(fmt.Sprintf("model%d/replay", ti), plan)
+		legacy, err := EncodeReplayPlan(plan)
+		if err != nil || !bytes.Equal(candidate, legacy) {
+			t.Fatalf("encode replay: %v", err)
+		}
+		if _, err := DecodeReplayPlan(candidate); err != nil {
+			t.Fatal(err)
+		}
+		validPlans++
+		var lines bytes.Buffer
+		for i, transition := range final.Transitions {
+			lines.Write(compare(fmt.Sprintf("model%d/transition%d/%s", ti, i, transition.Kind), transition))
+			lines.WriteByte('\n')
+			validTransitions++
+		}
+		legacy, err = EncodeTransitions(final.Transitions)
+		if err != nil || !bytes.Equal(lines.Bytes(), legacy) {
+			t.Fatalf("transition JSONL: %v", err)
+		}
+		recording := Recording{Initial: initial, Final: final, Terminal: Terminal{Kind: TerminalIdle}}
+		legacy, err = EncodeRecording(recording)
+		if err != nil {
+			t.Fatal(err)
+		}
+		candidate = append([]byte(nil), recordingMagic[:]...)
+		for i, value := range []any{recording.Initial, recording.Final, recording.Terminal} {
+			part := compare(fmt.Sprintf("model%d/recording-part%d", ti, i), value)
+			candidate = binary.BigEndian.AppendUint64(candidate, uint64(len(part)))
+			candidate = append(candidate, part...)
+		}
+		if !bytes.Equal(candidate, legacy) {
+			t.Fatal("recording frame mismatch")
+		}
+		if _, err := DecodeRecording(candidate); err != nil {
+			t.Fatal(err)
+		}
+		recordings++
+	}
+	return validSnapshots, validPlans, validTransitions, recordings
+}
+
+func fn153BoundaryCases(t *testing.T, roots []reflect.Type, fields map[string]bool) (int, int) {
+	invalids := 0
+	for _, root := range roots {
+		value := reflect.New(root).Elem()
+		fn153Populate(value, string([]byte{0xff}), 1, 2, fields)
+		if _, err := canonicaljson.CanonicalJSON(value.Interface()); err == nil {
+			t.Fatal("legacy accepted invalid UTF-8")
+		}
+		candidate, err := fn153Normalize(value.Interface())
+		if err != nil || !bytes.Contains(candidate, []byte("�")) {
+			t.Fatalf("candidate invalid replacement: %s %v", candidate, err)
+		}
+		invalids++
+	}
+	bad := string([]byte{0xff})
+	w := newTestWorld(t, 0)
+	request := Request{Kind: "wait", Resource: ResourceID{Adapter: "memory", Kind: "cell", Key: bad}}
+	if err := validateRequest(w.config.Limits, request); err == nil {
+		t.Fatal("request validator accepted invalid key")
+	}
+	if err := validateReadiness(w.config.Limits, Readiness{RequestID: 1, Kind: "ready", EquivalenceClass: bad}); err == nil {
+		t.Fatal("readiness validator accepted invalid class")
+	}
+	terminal := Terminal{Kind: TerminalInvalidInput, Detail: bad}
+	if err := validateTerminal(terminal); err != nil {
+		t.Fatalf("terminal gap changed: %v", err)
+	}
+	transition := w.nextRegisterTransition(request, 1)
+	if err := validateTransitionShape(transition); err != nil {
+		t.Fatalf("transition gap changed: %v", err)
+	}
+	plan := ReplayPlan{SchemaVersion: SchemaVersion, InitialDigest: emptyDigest(), FinalDigest: emptyDigest(), Transitions: []Transition{transition}}
+	if err := validateReplayPlanIdentity(plan); err != nil {
+		t.Fatalf("plan gap changed: %v", err)
+	}
+	if _, err := EncodeReplayPlan(plan); err == nil {
+		t.Fatal("legacy plan accepted invalid UTF-8")
+	}
+	if _, err := EncodeTransitions([]Transition{transition}); err == nil {
+		t.Fatal("legacy transitions accepted invalid UTF-8")
+	}
+	recording := Recording{Initial: w.Snapshot(), Final: w.Snapshot(), Terminal: terminal}
+	if err := ValidateRecording(recording); err != nil {
+		t.Fatalf("recording validation gap changed: %v", err)
+	}
+	if _, err := EncodeRecording(recording); err == nil {
+		t.Fatal("legacy recording accepted invalid UTF-8")
+	}
+	for _, value := range []any{plan, transition, terminal} {
+		if _, err := fn153Normalize(value); err != nil {
+			t.Fatal(err)
+		}
+		invalids++
+	}
+	decodeCases := []struct {
+		name, data string
+		strictOK   bool
+	}{
+		{"unknown", `{"kind":"invalid-input","detail":"x","extra":1}`, false},
+		{"trailing", `{"kind":"invalid-input","detail":"x"} {}`, false},
+		{"duplicate", `{"kind":"invalid-input","detail":"a","detail":"b"}`, false},
+		{"surrogate", `{"kind":"invalid-input","detail":"\ud800"}`, true},
+		{"escaped-unicode", `{"kind":"invalid-input","detail":"\u003c"}`, true},
+		{"case", `{"Kind":"invalid-input","detail":"x"}`, true},
+		{"raw-invalid-utf8", "{\"kind\":\"invalid-input\",\"detail\":\"" + bad + "\"}", false},
+	}
+	for _, test := range decodeCases {
+		var terminal Terminal
+		err := canonicaljson.StrictDecode([]byte(test.data), &terminal)
+		if (err == nil) != test.strictOK {
+			t.Fatalf("strict %s: %v", test.name, err)
+		}
+		if err := canonicaljson.DecodeCanonicalJSON([]byte(test.data), &terminal); err == nil {
+			t.Fatalf("canonical decode accepted %s", test.name)
+		}
+		if err := json.Unmarshal([]byte(test.data), &terminal); test.name != "trailing" && err != nil {
+			t.Fatalf("stdlib %s: %v", test.name, err)
+		}
+	}
+	return invalids, len(decodeCases)
+}

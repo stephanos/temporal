@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T13:35:46.199025Z",
+  "depends_on": [
+    "fn-153-gomad-retire-canonical-json-and-private.1"
+  ],
+  "id": "fn-153-gomad-retire-canonical-json-and-private.4",
+  "priority": null,
+  "spec": "fn-153-gomad-retire-canonical-json-and-private",
+  "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.4.md",
+  "status": "todo",
+  "title": "Migrate preparation identities and preserve live-capability payloads",
+  "updated_at": "2026-10-10T13:45:04.660699Z"
+}
