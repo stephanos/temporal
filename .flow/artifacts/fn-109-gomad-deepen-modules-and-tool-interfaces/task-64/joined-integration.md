@@ -1,0 +1,24 @@
+# Task 64 isolated source integration
+
+The independently reviewed watchdog fixture correction is retained at original worker checkpoint `8d8131a66910087879792735eb2940deb6115d86`, normalized into the isolated conductor as `8f584e80e37eb073009fb892d57f45f3fe99f581`. The conductor base is primary's `acbfaa2f30`, which includes the task 65 admission and updated milestone rows. Worker evidence still names its actual base and capture-time uncommitted state; the checkpoint mapping supersedes only that state, not receipt provenance.
+
+Read-only Git comparison against the worker checkpoint exits 0 for the whole `tools/gomad3` tree and task 64 artifact directory. The only two product changes against the conductor base are the helper and its additive regression. Their hashes match the independently reviewed and executed candidate:
+
+- `tools/gomad3/runner/internal/execution/watchdog_io_test.go`: `0f625ab98f20a996779337dccfcae87ead30b4425943f61ca89d702c1c520a0f`
+- `tools/gomad3/runner/internal/execution/watchdog_fixture_output_test.go`: `6737e39304a5020c1d56a05d43451d9bf5395699ab1ad0b9bf2c84966935909c`
+
+The retained meaningful RED times out after valid terminal delivery and observed read-only stdout failure in both modes. GREEN passes both new regressions and ten unchanged parent cases. Affected unfiltered lint decreases from 11 to ten, removing exactly the readiness errcheck with zero additions; inherited forbidigo 1 and staticcheck 9 remain. Retained fast lint passes after explicitly authorized sparse materialization, filtering 52 findings to zero. Neither result is a full aggregate pass. Original-base 53-finding block comparison and the current ordinary Runner observation remain pending the frozen joined task 64/65 batch.
+
+The original 13 command receipts retain their trailing spaces and hashes. `staging-notes.md` records the whole cached formatting check's exit 2 and the separately scoped source/prose check's exit 0. This is preservation of raw evidence, not a lint-policy exception or relabeling of failed source gates. The subsequent independent review and this integration note are separate committed records, not earlier execution inputs.
+
+Primary's cherry-pick applied the exact reviewed files to its index but could not finish its commit because `.git/index.lock` returned. `CHERRY_PICK_HEAD` identifies `8d8131a669`; primary HEAD remains `acbfaa2f30` at this observation. Both index and lock report the same inode, so neither was removed or bypassed. The pending integration must be continued, not restarted or silently counted as landed. The unrelated 26 owner/Turbo files and the current owner-spec hash are unchanged across that attempt. The separate conductor allows source integration without disturbing that pending index.
+
+Task 64 remains in progress and its required red source acceptance remains open. Task 65 owns only its admitted private preparation/bootstrap correction; its worker has the exclusive Go lane while this integration uses read-only identity checks and local Git. No Go command was rerun for this source-identical join. Native fn-128/fn-149 remain deferred and unverified; no CI, PR, push or native authority follows.
+
+## Subsequent primary continuation
+
+The conductor completed the pending single cherry-pick as primary `8b13b026302e06b0d356065443b579f35b2006ca`, with parent `acbfaa2f308aaefb338626eadcb31beda50e3b25` and tree `43232590c5f3e453ca473c9a4bc20eea6710ef50`. Read-only investigation found virtiofs pathname-cache inconsistency evidence. Git's supported `GIT_INDEX_FILE` selection allowed continuation with a byte-identical temporary index outside that mount.
+
+Before continuation, the conductor compared all stage entries and the complete cached raw diff between original and temporary indexes, checked the exact 75-path scope and zero unmerged entries, and verified all 26 unrelated owner/Turbo files. After the command exited 0, the parent and tree matched the selected staged candidate, cherry-pick state cleared, the primary staged diff was empty, and both the original index bytes and owner-file hashes remained unchanged. Neither primary index path was deleted, renamed or replaced. The original index SHA-256 remained `467970417543d0faa4cdb5b7c22d0012d758a5970c2a691768270c8108739ede`.
+
+The control script at `/tmp/gomad-primary-index-continuation.BlVj82wF/continue.sh` has SHA-256 `56628e436750144ce4551c7bd28f6fd80927b99a47efcf19dff6013f94e7f4b3`. Its command session exited 0; emitted Git stdout remains in the tool transcript rather than a separately hashed raw-log artifact. A later lookup found no `.git/index.lock`; that observation does not establish a repaired filesystem cache. The separate combined-64-65 research packet retains the source-backed investigation and its explicit limits. Source acceptance remains open.
