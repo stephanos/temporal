@@ -111,7 +111,9 @@ func TestIOTerminalTargetHelper(t *testing.T) {
 		t.Fatal(err)
 	}
 	if mode == "watchdog" || mode == "cancelled" {
-		fmt.Fprintln(os.Stdout, "ready")
+		if _, err := fmt.Fprintln(os.Stdout, "ready"); err != nil {
+			os.Exit(3)
+		}
 		for {
 			<-time.After(time.Hour)
 		}

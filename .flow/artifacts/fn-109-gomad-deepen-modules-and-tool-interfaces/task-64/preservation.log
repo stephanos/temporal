@@ -1,0 +1,12 @@
+Commands ran from /Users/stephan/Workspace/skunkworks/.gomad-runner-preparation-research.ETZ8a4ZF/watchdog with env -u BASH_ENV bash -c and login:false.
+git diff --check
+tracked_diff_check_exit=0
+git diff --no-index --check /dev/null tools/gomad3/runner/internal/execution/watchdog_fixture_output_test.go
+new_file_check_exit=1
+No whitespace diagnostics emitted; the file is added against /dev/null.
+cmp <(git show HEAD:tools/gomad3/runner/internal/execution/watchdog_io_test.go | head -113) <(head -113 tools/gomad3/runner/internal/execution/watchdog_io_test.go)
+preserved_prefix_exit=0
+cmp <(git show HEAD:tools/gomad3/runner/internal/execution/watchdog_io_test.go | tail -n +115) <(tail -n +117 tools/gomad3/runner/internal/execution/watchdog_io_test.go)
+preserved_tail_exit=0
+HEAD=e1f40c2fdc75b3838e25aaa03112e1f88089725d
+Observed 2026-10-10 00:44:48 UTC.

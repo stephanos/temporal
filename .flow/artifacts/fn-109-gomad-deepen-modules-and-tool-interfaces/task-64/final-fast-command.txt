@@ -1,0 +1,23 @@
+cwd=/Users/stephan/Workspace/skunkworks/.gomad-runner-preparation-research.ETZ8a4ZF/watchdog
+base=e1f40c2fdc75b3838e25aaa03112e1f88089725d
+command=make lint-code-fast GOLANGCI_LINT_BASE_REV=e1f40c2fdc75b3838e25aaa03112e1f88089725d GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype 
+CGO_ENABLED=0
+GOCACHE=/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache
+GOENV=off
+GOMODCACHE=/Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc
+GOPROXY=file:///Users/stephan/Workspace/skunkworks/.gomad-fn1132-module-cache-g4UAforc/cache/download
+GOSUMDB=off
+GOTOOLCHAIN=local
+GOWORK=off
+PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/bin:/bin
+SANDBOX_START_DIR=/Users/stephan/Workspace/skunkworks/.gomad-runner-preparation-research.ETZ8a4ZF/watchdog
+TZ=UTC
+1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt
+acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc  /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0
+db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc  /tmp/fn109-lint-tools.ZdNe1t50/errortype
+4becf1ed49c73cdfc318c7131db9036900b84f2e307aa3dd8f4ed333b12ec387  .flow/tmp/task64-gate.sh
+go version go1.27.1 linux/arm64
+linux
+arm64
+/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64

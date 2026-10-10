@@ -1,0 +1,75 @@
+find: ‘./proto/internal’: No such file or directory
+find: ‘./proto/internal’: No such file or directory
+find: ‘./chasm/lib’: No such file or directory
+[1;36mLinting code...[0m
+level=info msg="golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\") on (unknown)"
+level=info msg="[config_reader] Used config file ../../.github/.golangci.yml"
+level=info msg="[config_reader] Module name \"go.temporal.io/server/tools/gomad3\""
+level=info msg="[goenv] Read go env for 1.263334ms: map[string]string{\"GOCACHE\":\"/Users/stephan/Workspace/skunkworks/.gomad-fn10963-admission.Ho6KcW4t/go-cache\", \"GOROOT\":\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64\"}"
+level=info msg="[lintersdb] Active 13 linters: [depguard errcheck exhaustive forbidigo gci godox goimports govet importas iotamixing revive staticcheck testifylint]"
+level=info msg="[loader] Using build tags: [disable_grpc_modules  test_dep ]"
+level=info msg="[loader] Go packages loading at mode 8767 (compiled_files|deps|imports|name|exports_file|files|types_sizes) took 196.918166ms"
+level=info msg="[runner/filename_unadjuster] Pre-built 0 adjustments in 8.841125ms"
+level=info msg="[linters_context/goanalysis] analyzers took 2.146694196s with top 10 stages: revive: 1.138189583s, goimports: 235.287625ms, gci: 116.678874ms, buildir: 77.279748ms, forbidigo: 53.51675ms, isgenerated: 49.173708ms, S1038: 40.474001ms, typeindex: 22.545671ms, SA4032: 22.212417ms, exhaustive: 21.736247ms"
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^proto\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^.git\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^api\""
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path: \"_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"chasm/lib/activity/model/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"assert\\\\.CollectT\", Path: \"tests/(nexus_standalone|nexus_workflow)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"(dot-imports|unchecked-type-assertion)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated\", Linters: \"staticcheck\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Sleep\", Path Except: \"_test\\\\.go|tests/.+\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 16 issues by rules: [Text: \"time.Now\", Path Except: \"chasm/lib/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path Except: \"common/persistence/cassandra/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"use of `softassert\\\\.\\\\w+`\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"^use of `panic` forbidden because \\\"Please avoid using panic in application code\\\"$\", Source: \"^\\\\t\\\\tpanic\\\\(\\\"gomad3: completed (an inactive campaign attempt|a campaign attempt without a classification)\\\"\\\\)$\", Path: \"^tools/gomad3/runner/internal/campaign/controller\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path: \"chasm/lib/.*_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"ActiveInCluster\", Path: \"common/namespace/(namespace|replication_resolver)(_test)?\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"context.Background\", Path Except: \"tests/.+_test\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Eventually\", Path: \"tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 199 issues by rules: [Path: \"^tools\\\\/.+\\\\.go\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"FunctionalTestBase\", Path: \"tests/testcore/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 15 issues by rules: [Text: \"(cyclomatic|cognitive)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner] Issues before processing: 240, after processing: 10"
+level=info msg="[runner] Processors filtering stat (in/out): cgo: 240/240, nolint_filter: 10/10, path_shortener: 10/10, path_prettifier: 10/10, path_absoluter: 240/240, filename_unadjuster: 240/240, invalid_issue: 240/240, exclusion_paths: 240/240, generated_file_filter: 240/240, max_same_issues: 10/10, source_code: 10/10, sort_results: 10/10, diff: 10/10, uniq_by_line: 10/10, max_from_linter: 10/10, path_relativity: 240/240, exclusion_rules: 240/10, fixer: 10/10, max_per_file_from_linter: 10/10, severity-rules: 10/10"
+level=info msg="[runner] processing took 6.518122ms with stages: nolint_filter: 2.668708ms, generated_file_filter: 1.630624ms, exclusion_rules: 1.135916ms, source_code: 729.583µs, path_relativity: 211.958µs, exclusion_paths: 122.167µs, cgo: 5.375µs, invalid_issue: 4.667µs, uniq_by_line: 2.125µs, sort_results: 1.541µs, path_shortener: 1.375µs, filename_unadjuster: 1.209µs, path_absoluter: 833ns, path_prettifier: 458ns, diff: 417ns, fixer: 374ns, max_same_issues: 334ns, max_per_file_from_linter: 333ns, severity-rules: 84ns, max_from_linter: 41ns"
+level=info msg="[runner] linters took 1.332596834s with stages: goanalysis_metalinter: 1.325986542s"
+tools/gomad3/runner/internal/execution/launch_plan_unix.go:321:2: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+	panic(fmt.Sprintf("unknown descriptor resource %q", resource))
+	^
+tools/gomad3/runner/internal/execution/process.go:152:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World record and transition limits must be positive")
+		       ^
+tools/gomad3/runner/internal/execution/process_test.go:1432:2: SA5002: this loop will spin, using 100% CPU (staticcheck)
+	for {
+	^
+tools/gomad3/runner/internal/execution/process_unix.go:722:18: ST1005: error strings should not be capitalized (staticcheck)
+		return result, fmt.Errorf("World child record exceeded its configured bound")
+		               ^
+tools/gomad3/runner/internal/execution/worldrecord.go:45:46: ST1005: error strings should not be capitalized (staticcheck)
+		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("World transition count mismatch")
+		                                           ^
+tools/gomad3/runner/internal/execution/worldrecord.go:56:46: ST1005: error strings should not be capitalized (staticcheck)
+		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("World semantic or transition identity mismatch")
+		                                           ^
+tools/gomad3/runner/internal/execution/worldrecord.go:84:20: ST1005: error strings should not be capitalized (staticcheck)
+		return Bundle{}, fmt.Errorf("World transition limit must be positive")
+		                 ^
+tools/gomad3/runner/internal/execution/worldrecord.go:147:20: ST1005: error strings should not be capitalized (staticcheck)
+		return Bundle{}, fmt.Errorf("World transition payload requires %d bytes, limit is %d", len(transitionBytes), transitionLimit)
+		                 ^
+tools/gomad3/runner/internal/execution/worldrecord.go:188:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World quiescence terminal has detail")
+			       ^
+tools/gomad3/runner/internal/execution/worldrecord.go:192:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World error terminal omitted detail")
+			       ^
+10 issues:
+* forbidigo: 1
+* staticcheck: 9
+level=info msg="File cache stats: 5 entries of total size 123.0KiB"
+level=info msg="Memory: 17 samples, avg is 137.3MB, max is 167.7MB"
+level=info msg="Execution took 1.544345417s"
+make: *** [Makefile:505: lint-code] Error 1

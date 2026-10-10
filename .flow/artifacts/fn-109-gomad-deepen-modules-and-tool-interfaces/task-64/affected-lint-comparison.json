@@ -1,0 +1,1 @@
+{"baseline_count":11,"final_count":10,"removed":["tools/gomad3/runner/internal/execution/watchdog_io_test.go:114:15: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(os.Stdout, \"ready\")\n\t\t            ^"],"introduced":[],"preserved_byte_identical":10}

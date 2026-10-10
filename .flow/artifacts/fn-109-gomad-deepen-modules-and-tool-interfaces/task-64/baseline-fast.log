@@ -1,0 +1,6 @@
+find: ‘./proto/internal’: No such file or directory
+find: ‘./proto/internal’: No such file or directory
+find: ‘./chasm/lib’: No such file or directory
+required lint module is missing: tests/mixedbrain/go.mod
+exit status 1
+make: *** [Makefile:495: lint-code-fast] Error 1

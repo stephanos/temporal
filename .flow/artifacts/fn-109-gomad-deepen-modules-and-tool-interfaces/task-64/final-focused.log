@@ -1,0 +1,30 @@
+=== RUN   TestWatchdogFixtureReadinessWriteFailure
+=== RUN   TestWatchdogFixtureReadinessWriteFailure/watchdog
+=== RUN   TestWatchdogFixtureReadinessWriteFailure/cancelled
+--- PASS: TestWatchdogFixtureReadinessWriteFailure (0.00s)
+    --- PASS: TestWatchdogFixtureReadinessWriteFailure/watchdog (0.00s)
+    --- PASS: TestWatchdogFixtureReadinessWriteFailure/cancelled (0.00s)
+=== RUN   TestRunIOTerminalAfterTermination
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_absent
+=== RUN   TestRunIOTerminalAfterTermination/cancelled_absent
+=== RUN   TestRunIOTerminalAfterTermination/success_absent
+=== RUN   TestRunIOTerminalAfterTermination/nonzero_absent
+=== RUN   TestRunIOTerminalAfterTermination/unverified_signal_absent
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_truncated
+=== RUN   TestRunIOTerminalAfterTermination/cancelled_truncated
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_checksum
+=== RUN   TestRunIOTerminalAfterTermination/cancelled_checksum
+=== RUN   TestRunIOTerminalAfterTermination/success_complete
+--- PASS: TestRunIOTerminalAfterTermination (5.74s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_absent (1.80s)
+    --- PASS: TestRunIOTerminalAfterTermination/cancelled_absent (0.11s)
+    --- PASS: TestRunIOTerminalAfterTermination/success_absent (0.00s)
+    --- PASS: TestRunIOTerminalAfterTermination/nonzero_absent (0.00s)
+    --- PASS: TestRunIOTerminalAfterTermination/unverified_signal_absent (0.00s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_truncated (1.80s)
+    --- PASS: TestRunIOTerminalAfterTermination/cancelled_truncated (0.10s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_checksum (1.80s)
+    --- PASS: TestRunIOTerminalAfterTermination/cancelled_checksum (0.11s)
+    --- PASS: TestRunIOTerminalAfterTermination/success_complete (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	5.747s

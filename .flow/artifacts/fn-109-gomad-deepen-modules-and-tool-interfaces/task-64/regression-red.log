@@ -1,0 +1,11 @@
+=== RUN   TestWatchdogFixtureReadinessWriteFailure
+=== RUN   TestWatchdogFixtureReadinessWriteFailure/watchdog
+    watchdog_fixture_output_test.go:82: readiness failure did not exit before deadline: context deadline exceeded
+=== RUN   TestWatchdogFixtureReadinessWriteFailure/cancelled
+    watchdog_fixture_output_test.go:82: readiness failure did not exit before deadline: context deadline exceeded
+--- FAIL: TestWatchdogFixtureReadinessWriteFailure (10.10s)
+    --- FAIL: TestWatchdogFixtureReadinessWriteFailure/watchdog (5.08s)
+    --- FAIL: TestWatchdogFixtureReadinessWriteFailure/cancelled (5.02s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	10.104s
+FAIL
