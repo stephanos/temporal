@@ -15,6 +15,7 @@ func TestRunEnforcesBatchModesIndependentOfUmask(t *testing.T) {
 	oldUmask := syscall.Umask(0o777)
 	defer syscall.Umask(oldUmask)
 
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
