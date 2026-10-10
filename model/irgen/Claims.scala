@@ -120,7 +120,7 @@ private[irgen] trait Claims:
           s"limits ${l.name} are declared twice with different bounds, here and at $at: a Query's " +
             "receipt names its limits by name"
         )
-      limitsNamed.getOrElseUpdate(l.name, (l, where(t)))
+      limitsNamed.getOrElseUpdate(l.name, (l, where(t))): Unit
       l
     case other =>
       fail(

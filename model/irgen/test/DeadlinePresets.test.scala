@@ -63,7 +63,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
 
   private def items(root: String): Seq[JsonNode] =
     val (ran, out) = lift(root)
-    ran.orFail()
+    ran.orFail(): Unit
     mapper
       .readTree(Files.readString(out))
       .at("/realizations/0/scripts/0/items")
@@ -148,7 +148,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       prefix + "RetryFailures$.queries",
       prefix + "Standalone"
     )
-    ran.orFail()
+    ran.orFail(): Unit
     val model = mapper.readTree(Files.readString(out))
     def named(kind: String, name: String) = model
       .path(kind)

@@ -42,7 +42,7 @@ class Inputs extends munit.FunSuite:
     assertEquals(respond(answer := Answer.failed(true)), respond(Answer.failed(true)))
 
   test("a call by name refuses a token of another action and a token supplied twice"):
-    intercept[IllegalArgumentException](start(answer := Answer.completed): Unit)
+    intercept[IllegalArgumentException](start(answer := Answer.completed): Unit): Unit
     intercept[IllegalArgumentException](
       start(scheduleToStart := Timeout.unset, scheduleToStart := Timeout.expires): Unit
     )
@@ -200,12 +200,12 @@ class Inputs extends munit.FunSuite:
     )
     intercept[IllegalArgumentException](
       six(answer := Answer.completed, answer := Answer.completed): Unit
-    )
-    intercept[IllegalArgumentException](six(input[Boolean] := true): Unit)
+    ): Unit
+    intercept[IllegalArgumentException](six(input[Boolean] := true): Unit): Unit
     val seven = six.input(input[Boolean])
     intercept[IllegalArgumentException](
       effectOf[Counted, outcomes.Outcome, Answer](seven.decl, step): Unit
-    )
+    ): Unit
     intercept[IllegalArgumentException](
       stepFunction[Counted, outcomes.Outcome, Answer](seven.decl, Bound.Disabled()): Unit
     )

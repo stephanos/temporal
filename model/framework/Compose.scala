@@ -80,7 +80,7 @@ abstract class Composition[S <: Product] private (
   // where the member replaces a machine.
   def withMember(member: S => (Any, Model)): Composition[S] & DerivedFrom[this.type] =
     new Composition[S](Composition.Shape.With(this, member), mirror) with DerivedFrom[this.type]:
-      private[framework] val source: Composition.this.type = Composition.this
+      private[framework] def source: Composition.this.type = Composition.this
 
   // The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:
   // a class a Scenario of this composition lists, or the action `whenAction` names. The lifter

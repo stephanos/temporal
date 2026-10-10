@@ -75,7 +75,7 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
       "DirectPair$.capabilities",
       "DirectDerivedPair$.capabilities"
     )
-    ran.orFail()
+    ran.orFail(): Unit
     val model = mapper.readTree(Files.readString(out))
     val properties = model.path("properties").elements().asScala.toSeq
     assertEquals(properties.size, 5)
@@ -154,7 +154,7 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
   test("capability Properties use their owning object when short machine names collide"):
     for branch <- Seq("first", "second") do
       val (ran, out) = lift(s"$branch.Same$$.capabilities")
-      ran.orFail()
+      ran.orFail(): Unit
       val model = mapper.readTree(Files.readString(out))
       val property = model
         .path("properties")

@@ -504,7 +504,7 @@ private[irgen] trait Realizations:
               irField(irMessage(irField(operand, "literal", t), t), "named", t)
             proto("named", valueOf(named, argument(0)))
           case "path" =>
-            typedOperandValue(argument(0), operand)
+            typedOperandValue(argument(0), operand): Unit
             projectedPath(argument(1), operand, t)
           case "as" =>
             reduce(argument(0)).term match

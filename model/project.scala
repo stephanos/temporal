@@ -4,7 +4,7 @@
 
 //> using scala 3.9.0
 //> using jvm 27
-//> using options -Werror -deprecation -feature -unchecked -Wunused:imports
+//> using options -Werror -deprecation -feature -unchecked -Wunused:all -Wvalue-discard -Wnonunit-statement -Wsafe-init -Wimplausible-patterns
 //> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
 //> using jar build/api-scalapb.jar
 //> using test.dep org.scalameta::munit:1.2.0

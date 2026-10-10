@@ -53,7 +53,7 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
           jar.toString
         )
       )
-      .orFail()
+      .orFail(): Unit
     jar
 
   private def lift(roots: String*): Ran =
@@ -176,7 +176,7 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
           jar.toString
         )
       )
-      .orFail()
+      .orFail(): Unit
     for (root, enumName) <- Seq(
         "unknownBasis" -> "TimeoutBasis",
         "unknownMode" -> "WithholdingMode"
@@ -346,7 +346,7 @@ class Fixtures extends munit.FunSuite:
         Seq("--power", "package", "--library", sources.toString, "-f", "-o", jar.toString) ++
           options
       )
-    ).orFail()
+    ).orFail(): Unit
     jar
 
   // The lifter is run as `lift` runs it, in a JVM of its own, since it ends the JVM on a refusal:
@@ -1227,7 +1227,7 @@ class Fixtures extends munit.FunSuite:
     val lifter = Lifter(Target.Roots(roots), files.map(_ -> stored("phasedMixin")).toMap)
     bounded(
       scala.tasty.inspector.TastyInspector.inspectAllTastyFiles(files, Nil, classpath)(lifter)
-    )
+    ): Unit
     assertEquals(lifter.errors.toList, Nil)
     val phases = lifter.phases
     assert(phases("switch").contains("light"), phases.toString)
@@ -3130,7 +3130,7 @@ class Fixtures extends munit.FunSuite:
         "relayProduct"
       )
 
-  private val kindRefusals = Seq(
+  private lazy val kindRefusals = Seq(
     ("missing-header", "nexus/Nexus.scala", None, "has no general feature file"),
     (
       "wrong-header-package",
@@ -3302,7 +3302,7 @@ class Fixtures extends munit.FunSuite:
         Files.writeString(
           feature,
           Files.readString(feature).replace("system.RelaySystem", "system.Copy")
-        )
+        ): Unit
       val jar = packaged(variantName, tree, Seq("--server=false"))
       val out = scratch.resolve(s"$variantName-out")
       val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "relay-workflow")

@@ -240,7 +240,7 @@ private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftErro
     .split(java.io.File.pathSeparator)
     .toList
   val lifter = Lifter(target, prefixes.toMap)
-  TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(lifter)
+  TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(lifter): Unit
   if lifter.errors.nonEmpty then
     if sys.env.contains("LIFT_DEBUG") then lifter.errors.foreach(_._2.printStackTrace())
     // A file's refusals follow a line that names it, as the gate named the file of each lift.

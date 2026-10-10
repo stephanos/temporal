@@ -97,7 +97,7 @@ final class Tools(val directory: Path, environment: Map[String, String]):
         builder.redirectInput(ProcessBuilder.Redirect.from(File("/dev/null"))).start().waitFor()
       val printed = String(Files.readAllBytes(kept)).replaceAll("\u001b\\[[0-9;]*m", "")
       Ran(command, directory, exit, printed)
-    finally Files.deleteIfExists(kept)
+    finally Files.deleteIfExists(kept): Unit
 
   // scala-cli's own flags go before `--`: an argument after it belongs to the program that is run.
   def scalaCli(arguments: Seq[String], output: Output = Output.Kept): Ran =

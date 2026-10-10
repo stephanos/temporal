@@ -28,8 +28,8 @@ final private[irgen] class Lifting(val ctx: Context)
     val d = valDef(sym, sym.tree, "a declaration")
     // A machine or composition object is a root by its object, `irFile(...)(ActivityProduct)`.
     if realizationObject(sym) then realizationObjectOf(sym, d): Unit
-    else if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d)
-    else if objectForm(sym) then compositionOf(sym, d)
+    else if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d): Unit
+    else if objectForm(sym) then compositionOf(sym, d): Unit
     else if capabilitiesObject(sym) then fold(Ref(sym), Map.empty): Unit
     else if queriesSection(sym) then
       for q <- statements(objectBody(moduleClassOf(sym), d)) do
@@ -43,9 +43,9 @@ final private[irgen] class Lifting(val ctx: Context)
                 "of Queries, or a progress claim"
             )
           case _ => ()
-    else if isNamed(d.tpt.tpe, "framework.Machine") then machineOf(sym, d)
-    else if isNamed(d.tpt.tpe, "framework.Composition") then compositionOf(sym, d)
-    else if isNamed(d.tpt.tpe, "framework.realize.Realization") then realizationOf(sym, d)
+    else if isNamed(d.tpt.tpe, "framework.Machine") then machineOf(sym, d): Unit
+    else if isNamed(d.tpt.tpe, "framework.Composition") then compositionOf(sym, d): Unit
+    else if isNamed(d.tpt.tpe, "framework.realize.Realization") then realizationOf(sym, d): Unit
     else
       val kind = d.tpt.tpe.widen.dealias
       val claims = Set("framework.Query", "framework.Progress")
@@ -59,7 +59,7 @@ final private[irgen] class Lifting(val ctx: Context)
           s"$root is a ${kind.show}; a root is a machine, a composition, a Query, a list of Queries, " +
             "a progress claim, a realization, or a machine's `capabilities` or `queries` section"
         )
-      fold(Ref(sym), Map.empty)
+      fold(Ref(sym), Map.empty): Unit
 
   // Whether a symbol names the `queries` section of a machine or composition object.
   private def queriesSection(sym: Symbol): Boolean =

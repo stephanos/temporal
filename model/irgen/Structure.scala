@@ -68,7 +68,7 @@ final private[irgen] class Structure(index: Index):
       else if hasForms || held(group) then
         checkPackages(group)
         if hasForms && group.head.feature.split('.').reverse(1) == "features" then kind(group)
-        else feature(group)
+        else feature(group): Unit
     refused.toSeq
 
   // ### Positions, as the order lint gives them
@@ -220,7 +220,7 @@ final private[irgen] class Structure(index: Index):
       val formSources = sources
         .filter(_.sub.headOption.contains(formName))
         .map(s => s.copy(feature = s.feature + "." + formName, sub = s.sub.tail))
-      if formSources.nonEmpty then feature(formSources, inherited = product, kindForm = true)
+      if formSources.nonEmpty then feature(formSources, inherited = product, kindForm = true): Unit
 
   // ### Machine objects and their refinements
 
