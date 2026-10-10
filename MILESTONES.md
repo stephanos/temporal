@@ -8,8 +8,11 @@ As of 2026-10-10.
 Execution resumed on 2026-10-10 under the owner's instruction to complete all milestone work,
 taking the conductor's recommendations without further questions. The compiler, format and
 fairness checkpoints are merged into `umpire` (`ae3f36ee51`), as are fn-156's source close
-(`39b7580104`) and fn-160.5's equivalence check (`ab8e0f25fa`). Batch 3's format close is running;
-Batch 1d starts with fn-159 once the model formatting commit lands.
+(`39b7580104`) and fn-160.5's equivalence check (`ab8e0f25fa`), plus a model formatting commit
+(`2ddc86bc32`). Parallel lanes: Batch 3's format close; Batch 1d core (framework/lifter), activity,
+nexus and shared-model lanes, with the decisions recorded under Batches 1d and 5b; fn-150; fn-155.6's
+canonical regeneration retry. JVM/Go work shares three slots (`.flow/tmp/bin/slot`); full gates are
+exclusive.
 
 ## Keeping this page current
 
@@ -918,13 +921,11 @@ Rows run in order; fn-160.1, fn-162.1 and fn-160.5 (baseline and step-table comp
 IR projection; Go tests, canary harness and fixture trees updated for renamed ids and moved files;
 then fn-160.2 closes with the single regeneration, IR equivalence check, full gate, review and live run.
 
-**Decisions to collect up front** (1d renames them in source, so they're needed before 1d's step 2):
-- capability kind names (fn-159.8)
-- bound names for the `four`/`five`/`twelve` clashes and the `eight`/`control` merge (fn-159.5)
-- the facet vocabulary per feature (fn-161)
-- family prefixes for the close-policy designs and other renamed objects (fn-160.3)
-- realization `Run` names (fn-160.4)
-- whether `disabled(...)` targets must be qualified (fn-159)
+**Decisions (conductor, 2026-10-10, under the owner's recommendation mandate):** capability kinds
+`Retries` → `Retryable` and `Deadline` → `Expirable`; every bound in `Bounds`, the close policy's wider
+budgets as `fourWide`/`fiveWide`/`twelveWide` and nexus `control` merged into `eight`; `disabled(...)`
+targets are qualified like `on`; each feature lane picks its facet vocabulary and `<Subject>Run` names
+from the spec guidance and records them in fn-161/fn-160.
 
 Flow refuses task dependencies across specs, so the cross-spec order above is held here and by
 the conductor. Within each spec, Flow records it.
