@@ -90,9 +90,64 @@ The review acceptance surface consists of these pinned executable implementation
 - [ ] TBD
 
 ## Done summary
-TBD
+# fn155 task1 handover
 
+Captured the closed fn151 baseline and built the complete Model projection, native/Pins table proof, negative controls and A–F lifter mapping. All task1 acceptance criteria hold; no production model, artifact or test source changed.
+
+Tier: session (jev-unavailable(no_key)). The host exposes no executed implementer model metadata. Three independent proof lanes supplied baseline tables, helper probes and dispatch probes; the worker reconciled their exact inputs, failures and receipts.
+
+stage: impl-review - ran [2026-10-10T00:05:56.705385Z..2026-10-10T00:17:55.092486Z] - SHIP, codex:gpt-6.1-sol:high. This is the explicitly requested same-family project reviewer, not an independent model-family review. All three draws returned SHIP with zero findings and no unaddressed requirements.
+
+### Proof seal and provenance
+
+All relative pointers below resolve from `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn-155-name-the-standalone-activitys-repeated`.
+
+- `.flow/tmp/fn-155/task1/proof-manifest.json` SHA256 `983c66b072cfd926ae6358bdb332a163a53cab87062664542da68fe19cdf7ef6` seals 1271 files, 470927734 bytes. This reviewed seal remains unchanged. Final lifecycle/review/lint receipts added afterward are separate from the sealed proof.
+- `.flow/tmp/fn-155/before/baseline.json` pins 1134 production inputs to closed fn151 commit `999fb4fdc4eaa559539ab443c2dc3e99349dc182`; 44 byte-sealed local proof/gate receipts remain in `before/receipts/`.
+- Six complete activity IR/lint files remain in `before/ir/`. All 31 baseline Case JSON files, including the seven-Model manifest, remain in `before/cases/`.
+- `before/identity-inventory.json` covers every declaration in all three complete activity Models, including all 154 Queries.
+- `.flow/tmp/fn-155/mapping.md` supplies current post-fn151 source anchors, every probe outcome, structural-review rules and exact reusable commands. `identity-map.json` and `table-identity-map.json` are separate empty mapping skeletons.
+
+Later isolated lanes must verify the reviewed seal and selected production input pins before consuming these absolute pointers. Do not copy a partial proof or treat the empty implementation checkpoint as acceptance evidence.
+
+### Complete proof observations
+
+`task1/final-verification.json` indexes the proof receipts. `project.py` traverses the whole Model, preserving Query coverage, bounds, expectations, refinements, monitors, evidence, realization/controller semantics and all ordered behavior lists. The six-file self projection and both actual whole-primary-Model scratch variants have no unexplained residue. `task1/controls-receipt.json` records the actual one-fact mutation returning exit 1 with two dependent difference paths. Six focused projection tests passed, including capture/precondition retention, identity mapping, computed landing, semantic negatives and Case bytes/fact order.
+
+`before/step-tables/completeness.json` contains the full inventory: 36 native machine occurrences and eight composition occurrences, 13108098 state/action pairs, 2349892 enabled pairs, 10758206 disabled pairs and 2350141 ordered result alternatives. Composition tables retain the interpreter's complete reachable domain under unchanged default scope, not an invented Cartesian domain. The two source-compiled Product/System Pins tables preserve both original expected-rule lists and run the original assertions.
+
+`task1/tables/self-equality.json` and its receipt cover all 46 native/Pins tables and 13891948 ordered records, validating both complete sides before comparison. The actual logical native Because mutation is rejected at `$.native_steps[0].Fields[3].Text`. Strict positions, explicit position allowance, accompanying Because mutation, injective qualified native identity mapping and mapped-filename collision controls have separate receipts under `task1/tables/focused-controls/`. The first incorrect negative-wrapper assertion is retained without passing credit; the corrected attempt is authoritative.
+
+`task1/cases-self.json` records byte equality for all 31 retained Case files. These observations are task1 foundation proof, not fresh canonical generator or Go-suite passes.
+
+### Probe decisions for downstream tasks
+
+The actual named guard, computed landing phase/status effect merge, `states` call inside `holdsAcross`, cross-object/package reason values and kind-owned shared example text values compile and lift. Both complete Model projections pass; the corrected native harness compares full Product/System domains, ordered facts, reasons, public identities, reachability and required metadata without resource controls.
+
+The active helper harness is `task1/probes/native.go`, SHA256 `4b2a1a0b4bf847fcb8772ee901673bc530e81d561165a1ec8017ceac05954527`. Only `native-combined-no-forced-gc.json` and `native-named-status-no-forced-gc.json` supply native helper credit. Earlier explicit-GC observations and harnesses remain preserved and invalidated; no production model or baseline resource knob changed.
+
+R5 must use the measured fallbacks. Restrict/rebind/refining fails the actual lifter because restriction removes the refinement. An unrefined diagnostic has equal transition rows/monitors/evidence but loses refinement and native Product StateFields, so HeldDispatch stays handwritten. The common composition capability bound compiles but the lifter refuses its class-owned type; both existing capability classes stay. The fixture capability root is included. Exact commands, source patches, logs, failures and assertions are under `task1/dispatch-probes/`.
+
+The example probe proves shared kind-owned text values in `Activity.scala`, not reuse of an action's `examples` collection. Root added that narrowly scoped file to task .3 after reviewing this evidence. No production refactor is included here.
+
+### Review and final verification
+
+The actual review receipt is `task1/review/receipt.json`; raw executable artifact inspections, per-draw metadata and verdicts are in `task1/review/`. `task1/review-receipt-pins.sha256` seals those copies. RID `924fcbedeede4daeb517386525880579` reviewed base `3eca0a3b200ed617cd95acea000ae1c6b4ec6a4d` and head `6fd35fbd3fe5ccc909eaa047a8e12edbe8c890e4`. All draws verified the 1271-file seal, 1134 production pins, complete projections and negatives. The correctness draw independently completed all 46 tables/13891948 records and the actual native mutant; `review/exhaustive-check.log` preserves its result. SHIP therefore certifies executable proof, not only tracked receipt prose.
+
+Fresh final checks verified all 1271 sealed hashes and all 1134 production hashes, with no production range diff. `task1/final-lint.json` records `make lint-model` exit 0 in 42.34 seconds under the actual exclusive `/tmp/umpire-heavy-gates.lock`. Its actual cwd is the unchanged byte-pinned fn151 checkout, not this worker checkout. The baseline lint receipt records a separate pre-edit pass.
+
+baseline: red (`make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` and ordinary Case/fixture/Go gates remain inherited RED). No green handoff is asserted. Per the authoritative task1 policy, unchanged expensive failed generators were not repeated; fn157 owns native OOM/scratch ENOSPC, fn154 owns Quint and Batch5 owns inherited completion/fatal/pause semantics. Production regeneration and final canonical disposition remain task .6. `canonical_gate_credit` remains false.
+
+The final tracked-range classifier reports `TIER_B: docs-only (3 files)` for lifecycle metadata only. It does not classify ignored executable proof or convert inherited RED into green:
+
+GATE_SKIPPED:model:docs-only - cumulative tracked lifecycle diff classified tier-B (no executable paths touched); canonical baseline remains RED under task1 policy.
+
+GATE_SKIPPED:cases:docs-only - cumulative tracked lifecycle diff classified tier-B (no executable paths touched); canonical baseline remains RED under task1 policy.
+
+All worker-owned commands and delegated probe commands exited. Completion is recorded only through Flow's actual done command and verified terminal status; the candidate description remains an explicitly historical IN_PROGRESS receipt.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 781bf6965054d09b07f350168b1da8d5f54b88aa, 6fd35fbd3fe5ccc909eaa047a8e12edbe8c890e4
+- Tests: python3 .flow/tmp/fn-155/task1/test_project.py, python3 .flow/tmp/fn-155/task1/controls.py, python3 .flow/tmp/fn-155/task1/verify.py, python3 .flow/tmp/fn-155/task1/tables/compare.py self .flow/tmp/fn-155/before/step-tables --receipt .flow/tmp/fn-155/task1/tables/self-equality.json, python3 .flow/tmp/fn-155/task1/tables/compare.py negative-control .flow/tmp/fn-155/before/step-tables .flow/tmp/fn-155/task1/tables/negative-control --receipt .flow/tmp/fn-155/task1/tables/negative-equality.json, python3 .flow/tmp/fn-155/task1/tables/focused_controls.py .flow/tmp/fn-155/before/step-tables .flow/tmp/fn-155/task1/tables/focused-controls, make lint-model, GATE_SKIPPED:model:docs-only - cumulative tracked lifecycle diff classified tier-B (no executable paths touched); canonical baseline remains RED under task1 policy., GATE_SKIPPED:cases:docs-only - cumulative tracked lifecycle diff classified tier-B (no executable paths touched); canonical baseline remains RED under task1 policy., BASELINE_RED: unchanged canonical Model/Case/Go gates; exact receipts retained; no canonical green credit; final disposition task .6/fn157.
 - PRs:

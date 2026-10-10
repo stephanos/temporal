@@ -10,7 +10,9 @@
     "fn-151-split-standalone-activity-into-smaller"
   ],
   "id": "fn-155-name-the-standalone-activitys-repeated",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-155-name-the-standalone-activitys-repeated.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -200,15 +202,52 @@
       "task": null,
       "timestamp": "2026-10-09T19:06:34.962487Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "02253a0831aba37fab920dee8aaaba8028d6df263c42ac3e1ce3ae327b5edfd2",
+      "backend": "codex",
+      "base_sha": "3eca0a3b200ed617cd95acea000ae1c6b4ec6a4d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6fd35fbd3fe5ccc909eaa047a8e12edbe8c890e4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "924fcbedeede4daeb517386525880579",
+      "round_consumed": true,
+      "scope": "impl:fn-155-name-the-standalone-activitys-repeated.1",
+      "superseded_by": null,
+      "task": "fn-155-name-the-standalone-activitys-repeated.1",
+      "timestamp": "2026-10-10T00:17:55.096309Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-155-name-the-standalone-activitys-repeated.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-155-name-the-standalone-activitys-repeated.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-155-name-the-standalone-activitys-repeated.md",
@@ -225,5 +264,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-09T19:06:34.966544Z"
+  "updated_at": "2026-10-10T00:17:55.102086Z"
 }
