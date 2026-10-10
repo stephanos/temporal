@@ -6,13 +6,12 @@ import (
 	"sync"
 	"testing"
 
-	"go.temporal.io/server/common/testing/testpilot/duration"
-
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // The checked-in IR the kinds are read over, each loaded once and cloned before any mutation.
@@ -316,7 +315,7 @@ func TestExplicitWaits(t *testing.T) {
 
 	explicit := func(ir *umpirespb.Model) {
 		for _, c := range commandsNamed(realization(ir, "activitySystem"), "await-completed") {
-			c.GetPoll().Interval = duration.FromMilliseconds(250)
+			c.GetPoll().Interval = &durationpb.Duration{Nanos: 250_000_000}
 		}
 	}
 	r = run(t, read(t, activityIR, explicit), explicitWaits)

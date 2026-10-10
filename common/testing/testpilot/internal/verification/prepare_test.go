@@ -3,14 +3,16 @@ package verification
 import (
 	"context"
 	"fmt"
+	"math"
 	"slices"
+	"strings"
 	"testing"
 
 	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/casefile"
-	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
@@ -442,6 +444,149 @@ func TestCaptureCostsUseValueTypes(t *testing.T) {
 	_, err := Prepare(c, catalog, view, policy, nil)
 	require.Error(t, err)
 }
+
+func TestPreparedNativeValueWorkIncludesNamedEnvelopes(t *testing.T) {
+	name := "example." + strings.Repeat("LongCatalogOnlyName", 20)
+	wide := &descriptorpb.DescriptorProto{Name: proto.String("Wide")}
+	for number := int32(1); number <= 512; number++ {
+		wide.Field = append(wide.Field, &descriptorpb.FieldDescriptorProto{Name: proto.String(fmt.Sprintf("field_%d", number)), Number: proto.Int32(number), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()})
+	}
+	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{
+		Name: proto.String("named.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"),
+		MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String(strings.TrimPrefix(name, "example."))}, wide},
+		EnumType:    []*descriptorpb.EnumDescriptorProto{{Name: proto.String("LongEnum" + strings.TrimPrefix(name, "example.")), Value: []*descriptorpb.EnumValueDescriptorProto{{Name: proto.String("ZERO"), Number: proto.Int32(0)}}}},
+	}}})
+	require.NoError(t, err)
+	wideType, err := catalog.BindType(messageType("example.Wide"))
+	require.NoError(t, err)
+	wideMessage := dynamicpb.NewMessage(wideType.Message())
+	for index := range wideType.Message().Fields().Len() {
+		wideMessage.Set(wideType.Message().Fields().Get(index), protoreflect.ValueOfString("x"))
+	}
+	wideEnvelope, err := anypb.New(wideMessage)
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		name  string
+		typ   *testpilotspb.ValueType
+		value *celpb.Value
+		bytes int64
+	}{
+		{"message", messageType(name), &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + name}}}, int64(len("type.googleapis.com/" + name))},
+		{"wide-message", messageType("example.Wide"), &celpb.Value{Kind: &celpb.Value_ObjectValue{ObjectValue: wideEnvelope}}, int64(len(wideEnvelope.TypeUrl) + len(wideEnvelope.Value) + 512)},
+		{"enum", &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "example.LongEnum" + strings.TrimPrefix(name, "example.")}}}}}, &celpb.Value{Kind: &celpb.Value_EnumValue{EnumValue: &celpb.EnumValue{Type: "example.LongEnum" + strings.TrimPrefix(name, "example.")}}}, int64(len("example.LongEnum" + strings.TrimPrefix(name, "example.")))},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			programLimits := testsupport.ProgramLimits()
+			programLimits.MaxResponseBytes, programLimits.MaxInstructionResponseBytes = tc.bytes, tc.bytes
+			source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor, Minor: casefile.CurrentMinor}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{ProgramId: "program", Observations: []*testpilotspb.Observation{{ObservationId: "named", Type: tc.typ}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}}
+			program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: programLimits})
+			require.NoError(t, err)
+			contract, _, _, policy := fixture(t)
+			contract.Rules[0].Transitions[0].Predicate = present(observation("named"))
+			prepared, err := Prepare(contract, catalog, program.View(), policy, nil)
+			require.NoError(t, err)
+			policy.MaxWorkPerEvent = prepared.workPerEvent
+			t.Logf("minimum response bytes=%d; prepared native work=%d", tc.bytes, prepared.workPerEvent)
+			prepared, err = Prepare(contract, catalog, program.View(), policy, nil)
+			require.NoError(t, err)
+			evaluator, err := prepared.newEvaluator(t.Context(), program.View())
+			require.NoError(t, err)
+			_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+			require.NoError(t, err)
+			input := event(2, 0, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
+			input.Observations = []*testpilotspb.ObservationResult{{ObservationId: "named", Value: tc.value}}
+			_, err = evaluator.Observe(t.Context(), input)
+			require.NoError(t, err, "aggregate prepared bound must admit its typed native activation")
+			require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_SATISFIED, evaluator.result.Rules[0].Status)
+			policy.MaxWorkPerEvent--
+			_, err = Prepare(contract, catalog, program.View(), policy, nil)
+			require.Error(t, err)
+		})
+	}
+}
+
+func TestPreparedNativePayloadWorkIncludesMessageEnvelope(t *testing.T) {
+	testPreparedPayloadCeiling(t, 1, "", false)
+}
+
+func TestRunEventPayloadSourceCeiling(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		cap       int64
+		wantError bool
+	}{{"accepted-at-cap", 4, false}, {"over-cap", 3, true}} {
+		t.Run(tc.name, func(t *testing.T) { testPreparedPayloadCeiling(t, tc.cap, "r", tc.wantError) })
+	}
+}
+
+func TestRunEventPayloadHardByteCeiling(t *testing.T) {
+	contract, catalog, view, policy := fixture(t, ir.DefaultLimits().Bytes)
+	prepared, err := Prepare(contract, catalog, view, policy, nil)
+	require.NoError(t, err)
+	evaluator, err := prepared.newEvaluator(t.Context(), view)
+	require.NoError(t, err)
+	_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+	require.NoError(t, err)
+	_, err = evaluator.Observe(t.Context(), faultEvent(2, 0, "", testpilotspb.FAULT_KIND_UNSPECIFIED))
+	require.NoError(t, err, "descriptor envelope compensation saturates at the unchanged hard byte ceiling")
+	programLimits := testsupport.ProgramLimits()
+	programLimits.MaxResponseBytes = math.MaxInt64
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: casefile.CurrentMajor, Minor: casefile.CurrentMinor}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{ProgramId: "program", Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &emptypb.Empty{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}}
+	_, err = execution.Prepare(source, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: programLimits})
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, ir.LimitExceeded, diagnostic.Category)
+}
+
+func testPreparedPayloadCeiling(t *testing.T, responseBytes int64, role string, wantError bool) {
+	t.Helper()
+	contract, catalog, view, policy := fixture(t, responseBytes)
+	payload := cel.Ref(&testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &emptypb.Empty{}}}}})
+	contract.Rules[0].Transitions[0].EventFilter.Kinds = []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED}
+	contract.Rules[0].Transitions[0].Predicate = present(cel.Path(payload, "fault_injected"))
+	prepared, err := Prepare(contract, catalog, view, policy, nil)
+	require.NoError(t, err)
+	policy.MaxWorkPerEvent = prepared.workPerEvent
+	t.Logf("payload byte ceiling=%d; prepared native work=%d", responseBytes, prepared.workPerEvent)
+	prepared, err = Prepare(contract, catalog, view, policy, nil)
+	require.NoError(t, err)
+	evaluator, err := prepared.newEvaluator(t.Context(), view)
+	require.NoError(t, err)
+	_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+	require.NoError(t, err)
+	input := faultEvent(2, 0, role, testpilotspb.FAULT_KIND_UNSPECIFIED)
+	before := proto.CloneOf(evaluator.result)
+	beforeWork := evaluator.totalWork
+	_, err = evaluator.Observe(t.Context(), input)
+	run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), input, event(3, 0, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED)}}
+	if wantError {
+		var diagnostic *ir.Error
+		require.ErrorAs(t, err, &diagnostic)
+		require.Equal(t, ir.LimitExceeded, diagnostic.Category)
+		require.Equal(t, "run_event.payload.fault_injected", diagnostic.Path)
+		require.EqualValues(t, 1, evaluator.sequence)
+		require.Equal(t, beforeWork, evaluator.totalWork)
+		require.True(t, proto.Equal(before, evaluator.result))
+		_, _, replayErr := prepared.evaluate(t.Context(), run)
+		var replayDiagnostic *ir.Error
+		require.ErrorAs(t, replayErr, &replayDiagnostic)
+		require.Equal(t, diagnostic, replayDiagnostic)
+		return
+	}
+	require.NoError(t, err, "empty message payload still owns a descriptor-exact Any envelope")
+	require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_SATISFIED, evaluator.result.Rules[0].Status)
+	_, err = evaluator.Observe(t.Context(), run.Events[2])
+	require.NoError(t, err)
+	live, err := evaluator.Close(t.Context(), run)
+	require.NoError(t, err)
+	_, offline, err := prepared.evaluate(t.Context(), run)
+	require.NoError(t, err)
+	require.True(t, proto.Equal(live, offline))
+	policy.MaxWorkPerEvent--
+	_, err = Prepare(contract, catalog, view, policy, nil)
+	require.Error(t, err)
+}
+
 func TestAuthoredDepthAndSeparateAdmissionWork(t *testing.T) {
 	for _, depth := range []int64{2, 64} {
 		t.Run(fmt.Sprint(depth), func(t *testing.T) {

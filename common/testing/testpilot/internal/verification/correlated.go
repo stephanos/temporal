@@ -345,8 +345,10 @@ func (r *correlatedMonitor) evaluate(ctx context.Context, expression *ir.Express
 					return entry.value
 				}
 			}
+			return nil
+		default:
+			return nil
 		}
-		return nil
 	}
 	value, work, err := expression.Evaluate(ctx, resolve, r.limits.MaxObligationWork-r.obligationWork)
 	if err != nil {

@@ -22,7 +22,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/testpilot"
-	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

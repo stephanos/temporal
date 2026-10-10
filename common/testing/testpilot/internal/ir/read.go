@@ -4,7 +4,6 @@ import (
 	"context"
 
 	celpb "cel.dev/expr"
-
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"

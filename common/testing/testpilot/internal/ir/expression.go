@@ -152,7 +152,7 @@ type Condition struct {
 func (c *Catalog) BindExpression(site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
 	return c.BindConditionedExpression(nil, site, source, expected, scope, limits)
 }
-func (c *Catalog) BindGuardedExpression(guard Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, *Expression, error) {
+func (c *Catalog) BindGuardedExpression(guard Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
 	var conditions []Condition
 	if guard.Expression != nil {
 		guard.Matches = true
@@ -164,13 +164,12 @@ func (c *Catalog) BindConditionedExpression(conditions []Condition, site Site, s
 	_, value, err := c.bindConditioned(conditions, site, source, expected, scope, limits)
 	return value, err
 }
-func (c *Catalog) bindConditioned(conditions []Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, *Expression, error) {
+func (c *Catalog) bindConditioned(conditions []Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (guard, value *Expression, err error) {
 	if err := limits.validate(); err != nil {
 		return nil, nil, err
 	}
 	b := &budget{limits: limits}
 	facts := map[string]bool{}
-	var guard *Expression
 	boolean := c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
 	var reads []string
 	for _, condition := range conditions {
@@ -356,23 +355,8 @@ func optionalBindingUsed(node *celpb.Expr, name string) bool {
 	return false
 }
 func (c *Catalog) bindInput(context Context, input *testpilotspb.ExpressionBinding, location string, scope map[Reference]Binding, b *budget, facts map[string]bool, expected *Type) (*Expression, error) {
-	var operand *Expression
-	if literal := input.GetLiteral(); literal != nil {
-		var typ Type
-		var err error
-		if expected != nil && input.Path == "" {
-			typ = *expected
-		} else {
-			typ, err = c.literalType(literal)
-		}
-		if err != nil {
-			return nil, err
-		}
-		if err = c.checkLiteral(literal, typ, b, 1); err != nil {
-			return nil, err
-		}
-		operand = &Expression{operator: Literal, typ: typ, literal: proto.CloneOf(literal)}
-	} else {
+	literal := input.GetLiteral()
+	if literal == nil {
 		reference, err := parseReference(context, input.GetReference(), location+".reference")
 		if err != nil {
 			return nil, err
@@ -400,7 +384,7 @@ func (c *Catalog) bindInput(context Context, input *testpilotspb.ExpressionBindi
 			return nil, Invalid(Unsupported, location, "opaque handles cannot be inspected")
 		}
 		key := referenceKey(reference)
-		operand = &Expression{operator: ReferenceValue, typ: binding.Type, reference: reference, key: key, absent: !binding.Available && !facts[key]}
+		operand := &Expression{operator: ReferenceValue, typ: binding.Type, reference: reference, key: key, absent: !binding.Available && !facts[key]}
 		if input.Path == "" {
 			return operand, nil
 		}
@@ -410,6 +394,20 @@ func (c *Catalog) bindInput(context Context, input *testpilotspb.ExpressionBindi
 		}
 		return bindPathMetadata(operand, path, b, facts)
 	}
+	var typ Type
+	var err error
+	if expected != nil && input.Path == "" {
+		typ = *expected
+	} else {
+		typ, err = c.literalType(literal)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if err = c.checkLiteral(literal, typ, b, 1); err != nil {
+		return nil, err
+	}
+	operand := &Expression{operator: Literal, typ: typ, literal: proto.CloneOf(literal)}
 	if input.Path == "" {
 		return operand, nil
 	}
@@ -542,9 +540,9 @@ func (c *Catalog) bindNode(node *celpb.Expr, expected *Type, variables map[strin
 		if bound.optional {
 			return nil, Invalid(Unsupported, location, "optional binding requires value() or hasValue()")
 		}
-		copy := *bound
-		copy.location = location
-		return &copy, nil
+		boundCopy := *bound
+		boundCopy.location = location
+		return &boundCopy, nil
 	}
 	if receiver := node.GetCallExpr(); receiver != nil && receiver.Target != nil {
 		if len(receiver.Args) != 0 || receiver.Function != "value" && receiver.Function != "hasValue" {
@@ -554,8 +552,8 @@ func (c *Catalog) bindNode(node *celpb.Expr, expected *Type, variables map[strin
 		if name := receiver.Target.GetIdentExpr().GetName(); name != "" {
 			input := variables[name]
 			if input != nil {
-				copy := *input
-				target = &copy
+				inputCopy := *input
+				target = &inputCopy
 			}
 		} else {
 			var err error
@@ -720,10 +718,12 @@ func (c *Catalog) bindNode(node *celpb.Expr, expected *Type, variables map[strin
 	if bound.operator == Compare && len(bound.children) == 2 {
 		left, right := bound.children[0].typ, bound.children[1].typ
 		if call.Function == "@in" {
-			if right.cardinality == Map {
+			switch right.cardinality {
+			case Map:
 				right = c.scalarType(right.key)
-			} else if right.cardinality == Repeated {
+			case Repeated:
 				right = right.Element()
+			default:
 			}
 		}
 		if left.enumeration != nil || right.enumeration != nil {

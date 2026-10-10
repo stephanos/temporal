@@ -1178,7 +1178,7 @@ func (a *accounting) behavior() error {
 	if d := b.GetInstructionDefaults(); d != nil {
 		carried := program.GetInstructionDefaults()
 		declared, got := fmt.Sprintf("%d ms, %d attempts", durationMilliseconds(d.GetTimeout()), d.GetAttempts()),
-			fmt.Sprintf("%d ms, %d attempts", carried.GetTimeout().AsDuration().Milliseconds(), carried.GetMaxAttempts())
+			fmt.Sprintf("%d ms, %d attempts", durationMilliseconds(carried.GetTimeout()), carried.GetMaxAttempts())
 		if carried.GetTimeout() == nil || carried.MaxAttempts == nil || got != declared {
 			return a.differs("behavior", "instructionDefaults", declared, got, "program.instruction_defaults")
 		}

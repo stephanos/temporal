@@ -11,7 +11,7 @@ import (
 	historypb "go.temporal.io/api/history/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/casefile"
-	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
@@ -79,7 +79,7 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 	}}
 	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: testsupport.ProgramLimits()})
 	require.NoError(t, err)
-	limits := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
+	limits := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 5_759_570, MaxTotalWork: 1_474_449_920, MaxCaptures: 4, MaxCaptureBytes: 8192}
 	rule := &testpilotspb.ContractRule{
 		RuleId: "correlated-nexus-completion", InitialStateId: "pending",
 		States: []*testpilotspb.ContractState{
@@ -112,12 +112,16 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 		)),
 	}
 	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "scheduled-event", ObservationId: "history-event"}}
-	limits.MaxWorkPerEvent = hardLimits().MaxWorkPerEvent
 	contract, err := Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{rule}}, catalog, program.View(), limits, nil)
 	require.NoError(t, err)
-	limits.MaxWorkPerEvent = contract.workPerEvent
-	contract, err = Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{rule}}, catalog, program.View(), limits, nil)
-	require.NoError(t, err)
+	require.Equal(t, limits.MaxWorkPerEvent, contract.workPerEvent)
+	require.Equal(t, limits.MaxTotalWork, contract.workPerEvent*program.View().Limits().MaxRunEvents)
+	tooSmall := proto.CloneOf(limits)
+	tooSmall.MaxTotalWork--
+	_, err = Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{rule}}, catalog, program.View(), tooSmall, nil)
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, ir.LimitExceeded, diagnostic.Category)
 	return contract, program.View()
 }
 

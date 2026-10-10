@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	celpb "cel.dev/expr"
-
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"

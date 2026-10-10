@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	celpb "cel.dev/expr"
-
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"

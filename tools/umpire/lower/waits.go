@@ -102,6 +102,7 @@ type derivedWait struct {
 	once     bool
 	interval int64
 	hints    []*testpilotspb.WaitHint
+	apply    cp.NodeOption
 }
 
 // derive applies the wait derived for a node of a script, if one is.
@@ -112,7 +113,7 @@ func (a *adapter) derive(script string, node *testpilotspb.InstructionNode) *tes
 	case w.once:
 		cp.ReadOnce()(node)
 	default:
-		cp.WaitWithin(w.interval, w.hints...)(node)
+		w.apply(node)
 	}
 	return node
 }
@@ -516,7 +517,16 @@ func (w *waiting) read(s *umpirespb.Script, c carried, method string, target int
 		w.waits[r.name] = derivedWait{once: true}
 		return
 	}
-	w.waits[r.name] = derivedWait{interval: r.interval, hints: r.hints}
+	w.recordWait(r)
+}
+
+func (w *waiting) recordWait(r *reading) {
+	apply, err := cp.WaitWithin(r.interval, r.hints...)
+	if err != nil {
+		w.problems = append(w.problems, errorAt(r.at, "command %s: %s", r.name, err))
+		return
+	}
+	w.waits[r.name] = derivedWait{interval: r.interval, hints: r.hints, apply: apply}
 }
 
 // visibilities finds the declared visibility of each write of a read's window to the read's method,

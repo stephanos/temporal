@@ -11,13 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/common/testing/testpilot/duration"
-
 	"github.com/stretchr/testify/require"
-	workflowservicepb "go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/duration"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/interp"
@@ -103,7 +102,7 @@ func TestALearnedTextIsBoundOnceAndReadByIndependentBranches(t *testing.T) {
 	reads := start.GetInstruction().GetInvokeRpc().GetResponseReads()
 	require.Len(t, reads, 1)
 	require.Equal(t, "run_id", reads[0].GetPath())
-	field := (&workflowservicepb.StartWorkflowExecutionResponse{}).ProtoReflect().Descriptor().Fields().ByName("run_id")
+	field := (&workflowservice.StartWorkflowExecutionResponse{}).ProtoReflect().Descriptor().Fields().ByName("run_id")
 	require.NotNil(t, field)
 	require.False(t, field.IsList(), "the response path derives scalar cardinality")
 	require.False(t, field.IsMap())

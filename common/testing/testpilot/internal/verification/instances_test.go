@@ -11,7 +11,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	cel "go.temporal.io/server/common/testing/testpilot/cel"
+	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -240,7 +240,7 @@ func firstDifferingRule(t *testing.T, want, got []byte) string {
 func nexusWorld(t *testing.T) instanceWorld {
 	t.Helper()
 	prepared, view := nexusCorrelationFixture(t)
-	return instanceWorld{catalog: prepared.catalog, view: view, limits: &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 64, MaxTransitions: 64, MaxExpressionDepth: 12, MaxWorkPerEvent: 16 * prepared.workPerEvent, MaxTotalWork: 1000000000, MaxCaptures: 16, MaxCaptureBytes: 65536}}
+	return instanceWorld{catalog: prepared.catalog, view: view, limits: &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 64, MaxTransitions: 64, MaxExpressionDepth: 12, MaxWorkPerEvent: 16 * prepared.workPerEvent, MaxTotalWork: 16 * prepared.workPerEvent * view.Limits().MaxRunEvents, MaxCaptures: 16, MaxCaptureBytes: 65536}}
 }
 
 func scheduledOperation() *testpilotspb.Expression {

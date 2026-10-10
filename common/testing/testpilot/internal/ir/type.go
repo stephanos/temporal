@@ -8,7 +8,6 @@ import (
 	"unicode/utf8"
 
 	celpb "cel.dev/expr"
-
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"

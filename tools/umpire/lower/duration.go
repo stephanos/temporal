@@ -1,14 +1,11 @@
 package lower
 
 import (
-	"go.temporal.io/server/common/testing/testpilot/duration"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
+// durationMilliseconds reads a bound already checked by realization admission.
+// Its protobuf range fits int64 milliseconds, including bounds beyond time.Duration.
 func durationMilliseconds(value *durationpb.Duration) int64 {
-	ms, err := duration.Milliseconds("admitted elapsed bound", value)
-	if err != nil {
-		panic(err)
-	}
-	return ms
+	return value.GetSeconds()*1000 + int64(value.GetNanos()/1000000)
 }

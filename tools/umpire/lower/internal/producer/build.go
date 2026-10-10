@@ -1,13 +1,15 @@
 package producer
 
 import (
+	"errors"
+	"fmt"
 	"math"
 
 	celpb "cel.dev/expr"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/cel"
 	"go.temporal.io/server/common/testing/testpilot/duration"
-	"go.temporal.io/server/tools/umpire/internal/runtimecel"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -29,13 +31,10 @@ func SignedInteger(value int64) *celpb.Value {
 	return &celpb.Value{Kind: &celpb.Value_Int64Value{Int64Value: value}}
 }
 
-// Enum is an enum value by its name.
-func Enum(name string) *celpb.Value {
-	value, err := runtimecel.Enum(name)
-	if err != nil {
-		panic(err)
-	}
-	return value
+// Enum preserves a generated enum's descriptor and wire number.
+func Enum(value protoreflect.Enum) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_EnumValue{EnumValue: &celpb.EnumValue{
+		Type: string(value.Descriptor().FullName()), Value: int32(value.Number())}}}
 }
 
 // Literal is a literal expression.
@@ -125,23 +124,33 @@ func ReadOnce() NodeOption {
 
 // WaitWithin makes a node's ReadEvidence poll every interval within the bounds of the hints it
 // names: the node writes its own timeout, their sum, and no Profile default applies to it.
-func WaitWithin(intervalMilliseconds int64, hints ...*testpilotspb.WaitHint) NodeOption {
-	return func(n *testpilotspb.InstructionNode) {
-		var sum int64
-		for _, h := range hints {
-			ms, err := duration.Milliseconds("wait hint at_most", h.GetAtMost())
-			if err != nil {
-				panic(err)
-			}
-			if ms > math.MaxInt64-sum {
-				panic("wait hint duration sum overflows milliseconds")
-			}
-			sum += ms
+func WaitWithin(intervalMilliseconds int64, hints ...*testpilotspb.WaitHint) (NodeOption, error) {
+	if intervalMilliseconds <= 0 {
+		return nil, errors.New("wait interval must be positive")
+	}
+	interval := duration.FromMilliseconds(intervalMilliseconds)
+	if _, err := duration.Milliseconds("wait interval", interval); err != nil {
+		return nil, err
+	}
+	var sum int64
+	for _, h := range hints {
+		ms, err := duration.Milliseconds("wait hint at_most", h.GetAtMost())
+		if err != nil {
+			return nil, fmt.Errorf("hint %s: %w", h.GetHintId(), err)
 		}
-		n.GetInstruction().GetReadEvidence().Interval = duration.FromMilliseconds(intervalMilliseconds)
+		if ms > math.MaxInt64-sum {
+			return nil, errors.New("wait hint duration sum overflows milliseconds")
+		}
+		sum += ms
+	}
+	if _, err := duration.Milliseconds("wait hint duration sum", duration.FromMilliseconds(sum)); err != nil {
+		return nil, err
+	}
+	return func(n *testpilotspb.InstructionNode) {
+		n.GetInstruction().GetReadEvidence().Interval = interval
 		n.WaitHints = hints
 		TimeoutMilliseconds(sum)(n)
-	}
+	}, nil
 }
 
 // Guard sets the node's guard.

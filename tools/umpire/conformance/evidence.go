@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	celpb "cel.dev/expr"
-
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/realization"
