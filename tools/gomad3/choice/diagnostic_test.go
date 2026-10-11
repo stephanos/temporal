@@ -124,8 +124,11 @@ func TestDiagnosticSessionCollectsOnlyCompleteBoundedTrace(t *testing.T) {
 	if len(trace.Bytes) != 160 || len(trace.Records) != 1 || trace.Records[0].RuntimeRandDraws != 1 {
 		t.Fatalf("trace %+v", trace)
 	}
-	if limit, err := DiagnosticLimit(MaximumTraceBytes); err != nil || limit > MaximumDiagnosticBytes || limit < 160 {
+	if limit, err := DiagnosticLimit(64 << 20); err != nil || limit > MaximumDiagnosticBytes || limit < 160 {
 		t.Fatalf("maximum bound %d: %v", limit, err)
+	}
+	if _, err := DiagnosticLimit(MaximumTraceBytes); err == nil {
+		t.Fatal("diagnostic capacity beyond its own bound accepted")
 	}
 	if _, err := NewDiagnosticSession(MaximumDiagnosticBytes + 1); err == nil {
 		t.Fatal("oversized diagnostic capacity accepted")

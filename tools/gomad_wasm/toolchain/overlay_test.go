@@ -24,8 +24,12 @@ func TestImplementationIdentityBindsCompiledBuilderAndGlue(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	netGlue, err := os.ReadFile("net_wasm.go.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
 	input := []byte("gomad-wasm-runtime-implementation/v1\x00")
-	for _, source := range [][]byte{builder, glue} {
+	for _, source := range [][]byte{builder, glue, netGlue} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(source)))
 		input = append(input, size[:]...)
@@ -128,10 +132,12 @@ func TestOverlayRejectsVersionAndSourceDrift(t *testing.T) {
 	for _, kind := range []string{"version", "anchor"} {
 		t.Run(kind, func(t *testing.T) {
 			copyRoot := t.TempDir()
-			if err := os.MkdirAll(filepath.Join(copyRoot, "src/runtime"), 0700); err != nil {
-				t.Fatal(err)
+			for _, directory := range []string{"src/runtime", "src/net"} {
+				if err := os.MkdirAll(filepath.Join(copyRoot, directory), 0700); err != nil {
+					t.Fatal(err)
+				}
 			}
-			for _, file := range []string{"VERSION", "src/runtime/proc.go", "src/runtime/runtime2.go", "src/runtime/rand.go", "src/runtime/select.go", "src/runtime/time.go", "src/runtime/os_wasip1.go", "src/runtime/lock_wasip1.go", "src/runtime/note_other.go"} {
+			for _, file := range []string{"VERSION", "src/runtime/proc.go", "src/runtime/runtime2.go", "src/runtime/rand.go", "src/runtime/select.go", "src/runtime/time.go", "src/runtime/os_wasip1.go", "src/runtime/lock_wasip1.go", "src/runtime/note_other.go", "src/net/net_fake.go"} {
 				data, err := os.ReadFile(filepath.Join(root, file))
 				if err != nil {
 					t.Fatal(err)

@@ -476,6 +476,9 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 		}
 		if d.std == 2 {
 			e.stdout = append(e.stdout, input.Data...)
+			if e.mirror != nil {
+				_, _ = e.mirror.Write(input.Data)
+			}
 			return writtenOutput{uint32(len(input.Data))}, 0, "", nil
 		}
 		if d.std == 3 {

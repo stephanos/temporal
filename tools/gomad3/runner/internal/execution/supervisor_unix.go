@@ -68,7 +68,7 @@ func SupervisorMain() (retErr error) {
 		if request.ChoiceTapeBytes != 0 {
 			choiceReplayPlan = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTapeResource)), "target-choice-tape")
 		}
-		if choiceTrace == nil || choiceTerminal == nil || request.ChoiceTapeBytes != 0 && choiceReplayPlan == nil || choice.ValidateTraceLimit(request.ChoiceTraceLimit) != nil {
+		if choiceTrace == nil || choiceTerminal == nil || request.ChoiceTapeBytes != 0 && choiceReplayPlan == nil || validateChoiceTraceLimit(request.ChoiceTraceLimit) != nil {
 			return errors.New("choice trace file descriptors are unavailable")
 		}
 		if choice.ValidateController(request.ChoiceMode, request.ChoiceTapeBytes) != nil {

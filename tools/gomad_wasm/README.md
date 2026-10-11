@@ -106,6 +106,36 @@ It publishes the original intentional failure, removes the original captured
 input directory, makes the compiler unavailable, and retains 100 fresh helper
 replays with byte comparisons and standalone campaign, artifact and receipt files.
 
+## Determinism prototype
+
+fn-151's prototype asks whether Temporal's unchanged test stack runs
+deterministically under WASM with controlled scheduling, time skipping and a
+simulated network. Its gates use the cooperative profile with a frozen clock
+(zero read-step): time moves only when every guest goroutine is blocked, then
+jumps to the earliest deadline.
+
+The simulated network is optional. A `Config.Network` model makes the guest's
+in-process fake TCP (`net/net_fake.go`, patched by the overlay) ask the host
+before each stream connect and write. The model draws seeded per-operation
+delays and applies `reset`, `partition` and `heal` faults at virtual times;
+port 0 matches every connection. Delays hold the writer, which keeps each
+connection's byte order. A reset fails the next write on every connection
+open at that time and closes both directions. Model decisions form the
+`NetworkTranscript` evidence stream. Without a model the guest never consults
+the host.
+
+```sh
+GOMAD_WASM_PROTOTYPE_ROOT=/absolute/evidence \
+  make -C tools/gomad_wasm prototype GOMAD_WASM_STOCK_GO=/absolute/stock/go1.27.1
+```
+
+`GOMAD_WASM_PROTOTYPE_ONLY` narrows the Temporal gates to `long-timers`,
+`network`, `smoke` or `smoke-<suite>`; `GOMAD_WASM_PROTOTYPE_INSTANCES` sets fresh
+instances per seed; `GOMAD_WASM_PROTOTYPE_MIRROR` names a file that receives a
+live copy of guest stdout. Each gate writes a `*-report.json` with per-run wall
+time, memory, decisions, virtual time and evidence digests. Temporal guests need
+several GiB of host memory each; run them one at a time on small hosts.
+
 The implementation plan is
 [wasm-gomad-execution-backend.md](../../.turbo/plans/wasm-gomad-execution-backend.md).
 Flow spec `fn-151-wasm-gomad-execution-backend` owns task state and retained

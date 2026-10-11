@@ -136,6 +136,9 @@ func (e *Environment) clockCall(call Call) (any, uint16, string, error) {
 		earliest = min(earliest, at)
 	}
 	// A blocking import advances this exploratory profile; it makes no assertion about runnable guest goroutines.
+	if earliest > e.now {
+		e.advances++
+	}
 	e.now = earliest
 	ready := make([]Event, 0, len(events))
 	for i, event := range events {

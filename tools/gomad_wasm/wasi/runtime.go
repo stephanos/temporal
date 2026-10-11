@@ -165,18 +165,23 @@ func (session *runtimeSession) handle(op string, input json.RawMessage) (bytesOu
 		if len(data) != length {
 			return bytesOutput{}, invalid("runtime observation layout")
 		}
-		payload := data[:96]
-		// The public decoder validates observations and their origin against the preceding records.
-		existing, err := choice.BuildTrace(session.records, choice.TerminalComplete)
-		if err != nil {
-			return bytesOutput{}, err
+		// The public decoder validates the observation as a one-record trace with
+		// its ordinal and origin cleared; both are checked here against the
+		// preceding records, so validation stays linear in the trace length.
+		ordinal, origin := binary.BigEndian.Uint64(data[:8]), binary.BigEndian.Uint64(data[32:40])
+		if ordinal != uint64(len(session.records)) || origin > ordinal {
+			return bytesOutput{}, invalid("runtime select observation ordinal")
 		}
-		combined := append(slices.Clone(existing.Bytes), payload...)
-		trace, err := choice.DecodeStoredTrace(choice.Profile, combined, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: session.control.Choice.Limit, Records: uint64(len(session.records) + 1), SHA256: sha256.Sum256(combined)})
-		if err != nil || trace.Records[len(trace.Records)-1].Kind != choice.KindSelectResult {
+		payload := slices.Clone(data[:96])
+		clear(payload[:8])
+		clear(payload[32:40])
+		trace, err := choice.DecodeStoredTrace(choice.Profile, payload, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: session.control.Choice.Limit, Records: 1, SHA256: sha256.Sum256(payload)})
+		if err != nil || trace.Records[0].Kind != choice.KindSelectResult {
 			return bytesOutput{}, invalid("runtime select observation")
 		}
-		if err := session.append(trace.Records[len(trace.Records)-1], data[96:]); err != nil {
+		record := trace.Records[0]
+		record.Ordinal, record.Origin = ordinal, origin
+		if err := session.append(record, data[96:]); err != nil {
 			return bytesOutput{}, err
 		}
 	case "runtime_finish":
@@ -281,6 +286,9 @@ func (e *Environment) runtimeIdle(input json.RawMessage) (bytesOutput, error) {
 	deadline := binary.BigEndian.Uint64(data[8:])
 	if deadline == 0 || deadline > math.MaxInt64-e.config.Clock.EpochNanos {
 		return bytesOutput{}, invalid("runtime idle deadline")
+	}
+	if deadline > e.now {
+		e.advances++
 	}
 	e.now = max(e.now, deadline)
 	binary.BigEndian.PutUint64(data[8:], e.now)

@@ -11,6 +11,6 @@
   "spec": "fn-151-wasm-gomad-execution-backend",
   "spec_path": ".flow/tasks/fn-151-wasm-gomad-execution-backend.5.md",
   "status": "todo",
-  "title": "Port cooperative WASM runtime choices and diagnostics",
-  "updated_at": "2026-10-10T17:04:03.589860Z"
+  "title": "Deterministic cooperative scheduling and exact replay (prototype)",
+  "updated_at": "2026-10-10T23:14:47.986406Z"
 }

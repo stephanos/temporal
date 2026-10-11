@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"hash"
+	"io"
 	"math"
 	"path"
 	"slices"
@@ -17,6 +19,9 @@ import (
 const StockProfile = "gomad3.wasi-stock-exploratory/v1"
 const entropyProfile = "gomad3.wasi-entropy-sha256-counter/v1"
 const frameLimit = 8 << 20
+
+// maxCooperativeCalls admits whole Temporal workloads, whose scheduler decisions are host calls.
+const maxCooperativeCalls = 1 << 28
 const bufferLimit = 4 << 20
 
 type Limits struct {
@@ -33,6 +38,7 @@ type Config struct {
 	EntropyKey          [32]byte
 	Clock               ClockPolicy
 	Limits              Limits
+	Network             *NetworkModel
 }
 type Call struct {
 	Type  string          `json:"type"`
@@ -75,16 +81,23 @@ func capacity(dimension string) error  { return &BoundaryError{Kind: "capacity",
 func invalid(dimension string) error   { return &BoundaryError{Kind: "invalid", Dimension: dimension} }
 
 type Environment struct {
-	config         Config
-	identity       string
-	namespace      *namespace
-	nextCall       uint64
-	entropyOffset  uint64
-	offeredOutput  uint64
-	now            uint64
-	transcript     []byte
-	stdout, stderr []byte
-	runtime        *runtimeSession
+	config        Config
+	identity      string
+	namespace     *namespace
+	nextCall      uint64
+	entropyOffset uint64
+	offeredOutput uint64
+	now           uint64
+	transcript    []byte
+	// With digestOnly the transcript is hashed as it grows instead of retained.
+	digestOnly       bool
+	transcriptHash   hash.Hash
+	transcriptLength uint64
+	stdout, stderr   []byte
+	runtime          *runtimeSession
+	network          *networkState
+	mirror           io.Writer // observes guest stdout; never feeds back into the guest
+	advances         uint64    // idle wakeups that moved the clock
 }
 
 func NewEnvironment(config Config) (*Environment, error) {
@@ -92,11 +105,17 @@ func NewEnvironment(config Config) (*Environment, error) {
 		return nil, invalid("profile")
 	}
 	limits := config.Limits
-	if limits.OutputBytes == 0 || limits.OutputBytes > 1<<30 || limits.TranscriptBytes == 0 || limits.TranscriptBytes > 1<<30 || limits.Calls == 0 || limits.Calls > 1000000 || limits.Descriptors < 5 || limits.Descriptors > 1<<20 || limits.Files == 0 || limits.Files > 1<<20 || limits.FilesystemBytes == 0 || limits.FilesystemBytes > 1<<30 || limits.PendingEvents == 0 || limits.PendingEvents > 4096 {
+	if limits.OutputBytes == 0 || limits.OutputBytes > 1<<30 || limits.TranscriptBytes == 0 || limits.TranscriptBytes > 1<<30 || limits.Calls == 0 || limits.Calls > 1000000 && (config.Profile != CooperativeProfile || limits.Calls > maxCooperativeCalls) || limits.Descriptors < 5 || limits.Descriptors > 1<<20 || limits.Files == 0 || limits.Files > 1<<20 || limits.FilesystemBytes == 0 || limits.FilesystemBytes > 1<<30 || limits.PendingEvents == 0 || limits.PendingEvents > 4096 {
 		return nil, invalid("limits")
 	}
 	if !absoluteClean(config.WorkingDirectory) || config.Clock.EpochNanos > math.MaxInt64 || config.Clock.ReadStepNanos == 0 && config.Profile != CooperativeProfile || config.Clock.ReadStepNanos > 1000000000 {
 		return nil, invalid("working directory or clock policy")
+	}
+	if config.Network != nil && config.Profile != CooperativeProfile {
+		return nil, invalid("network model requires cooperative profile")
+	}
+	if err := validateNetworkModel(config.Network); err != nil {
+		return nil, err
 	}
 	if _, err := stringSizes(config.Args); err != nil {
 		return nil, err
@@ -148,7 +167,8 @@ func NewEnvironment(config Config) (*Environment, error) {
 		Clock                   ClockPolicy
 		Limits                  Limits
 		FrameBytes, BufferBytes uint64
-	}{config.Profile, entropyProfile, config.Args, config.Environment, config.WorkingDirectory, config.WritableDirectories, config.CapturedInputs.Manifest, config.Stdin, config.EntropyKey, config.Clock, config.Limits, frameLimit, bufferLimit})
+		Network                 *NetworkModel `json:",omitempty"`
+	}{config.Profile, entropyProfile, config.Args, config.Environment, config.WorkingDirectory, config.WritableDirectories, config.CapturedInputs.Manifest, config.Stdin, config.EntropyKey, config.Clock, config.Limits, frameLimit, bufferLimit, config.Network})
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +179,7 @@ func NewEnvironment(config Config) (*Environment, error) {
 	}
 	config.CapturedInputs = readonlymount.CapturedInputs{}
 	config.Stdin = nil
-	e := &Environment{config: config, namespace: namespace, identity: hex.EncodeToString(digest[:]), nextCall: 1}
+	e := &Environment{config: config, namespace: namespace, identity: hex.EncodeToString(digest[:]), nextCall: 1, network: newNetworkState(config.Network)}
 	if config.Profile == CooperativeProfile && config.Clock.ReadStepNanos == 0 {
 		e.now = 1
 	}
@@ -189,6 +209,16 @@ func stringSizes(values []string) (sizesOutput, error) {
 }
 func (e *Environment) Identity() string   { return e.identity }
 func (e *Environment) Transcript() []byte { return slices.Clone(e.transcript) }
+
+// TranscriptSHA256 digests the complete transcript in either retention mode.
+func (e *Environment) TranscriptSHA256() [32]byte {
+	if e.digestOnly {
+		var sum [32]byte
+		copy(sum[:], e.transcriptHash.Sum(nil))
+		return sum
+	}
+	return sha256.Sum256(e.transcript)
+}
 func (e *Environment) Output() ([]byte, []byte) {
 	return slices.Clone(e.stdout), slices.Clone(e.stderr)
 }
@@ -213,6 +243,8 @@ func (e *Environment) Handle(call Call) (Reply, error) {
 		var result bytesOutput
 		if call.Op == "runtime_idle" {
 			result, err = e.runtimeIdle(call.Input)
+		} else if call.Op == "runtime_net" {
+			result, err = e.runtimeNet(call.Input)
 		} else {
 			result, err = e.runtime.handle(call.Op, call.Input)
 		}
@@ -233,7 +265,8 @@ func (e *Environment) Handle(call Call) (Reply, error) {
 	if reservation+1 > frameLimit {
 		return Reply{}, capacity("reply-frame")
 	}
-	if uint64(len(e.transcript))+uint64(len(callBytes))+reservation+2 > e.config.Limits.TranscriptBytes {
+	// TranscriptBytes bounds retained bytes; a digest-only transcript retains none.
+	if !e.digestOnly && uint64(len(e.transcript))+uint64(len(callBytes))+reservation+2 > e.config.Limits.TranscriptBytes {
 		return Reply{}, capacity("transcript-bytes")
 	}
 	reply := Reply{Type: "reply", ID: call.ID, Output: json.RawMessage(`{}`)}
@@ -259,10 +292,17 @@ func (e *Environment) Handle(call Call) (Reply, error) {
 	if uint64(len(replyBytes)) > reservation {
 		return Reply{}, invalid("internal transcript reservation")
 	}
-	e.transcript = append(e.transcript, callBytes...)
-	e.transcript = append(e.transcript, '\n')
-	e.transcript = append(e.transcript, replyBytes...)
-	e.transcript = append(e.transcript, '\n')
+	if e.digestOnly {
+		for _, part := range [][]byte{callBytes, {'\n'}, replyBytes, {'\n'}} {
+			e.transcriptHash.Write(part)
+		}
+		e.transcriptLength += uint64(len(callBytes) + len(replyBytes) + 2)
+	} else {
+		e.transcript = append(e.transcript, callBytes...)
+		e.transcript = append(e.transcript, '\n')
+		e.transcript = append(e.transcript, replyBytes...)
+		e.transcript = append(e.transcript, '\n')
+	}
 	e.nextCall++
 	return reply, nil
 }

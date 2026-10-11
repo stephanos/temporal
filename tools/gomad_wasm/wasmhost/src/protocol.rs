@@ -36,6 +36,9 @@ pub struct Execute {
     pub memory_bytes: u64,
     pub fuel: u64,
     pub output_bytes: u64,
+    /// Host-local directory of compiled modules; never replay evidence.
+    #[serde(default)]
+    pub compile_cache: Option<String>,
 }
 impl Execute {
     pub fn validate(&self) -> Result<()> {
@@ -50,6 +53,13 @@ impl Execute {
                 .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
         {
             return Err(Error::msg("invalid module path or SHA-256"));
+        }
+        if self
+            .compile_cache
+            .as_ref()
+            .is_some_and(|dir| !std::path::Path::new(dir).is_absolute())
+        {
+            return Err(Error::msg("invalid compile cache directory"));
         }
         if self.memory_bytes == 0
             || self.memory_bytes > 1u64 << 32

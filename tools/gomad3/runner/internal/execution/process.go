@@ -192,7 +192,7 @@ func validateSpec(request Spec) error {
 		if choiceCapability.Profile != choice.Profile {
 			return fmt.Errorf("unsupported choice trace profile %q", choiceCapability.Profile)
 		}
-		if choice.ValidateTraceLimit(choiceCapability.Limit) != nil {
+		if validateChoiceTraceLimit(choiceCapability.Limit) != nil {
 			return fmt.Errorf("invalid choice trace limit %d", choiceCapability.Limit)
 		}
 		if choiceCapability.ImplementationSHA256 == ([sha256.Size]byte{}) {

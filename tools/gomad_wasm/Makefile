@@ -1,4 +1,4 @@
-.PHONY: helper test test-helper test-go test-model qualify-runtime lint-code
+.PHONY: helper test test-helper test-go test-model qualify-runtime prototype lint-code
 
 GOMAD_WASM_STOCK_GO ?=
 
@@ -52,3 +52,13 @@ qualify-runtime: helper
 		GOMAD3_STOCK_GO='$(GOMAD_WASM_STOCK_GO)' \
 		'$(GOMAD_WASM_STOCK_GO)' test -v -tags test_dep -count=1 \
 		-run '^TestCooperativeRuntimeQualificationAggregate$$' ./wasi
+
+# The fn-151 determinism prototype gates. GOMAD_WASM_PROTOTYPE_ROOT names an
+# absolute evidence directory; GOMAD_WASM_PROTOTYPE_ONLY narrows the Temporal
+# gates (long-timers, network, smoke, smoke-<suite>).
+prototype: helper
+	@test -n "$(GOMAD_WASM_STOCK_GO)" && test -n "$$GOMAD_WASM_PROTOTYPE_ROOT"
+	env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
+		GOMAD3_STOCK_GO='$(GOMAD_WASM_STOCK_GO)' \
+		'$(GOMAD_WASM_STOCK_GO)' test -v -tags test_dep -count=1 -timeout=600m \
+		-run '^TestPrototype' ./wasi

@@ -11,6 +11,6 @@
   "spec": "fn-151-wasm-gomad-execution-backend",
   "spec_path": ".flow/tasks/fn-151-wasm-gomad-execution-backend.6.md",
   "status": "todo",
-  "title": "Integrate strict virtual time and bounded exploration",
-  "updated_at": "2026-10-09T22:04:38.947332Z"
+  "title": "Strict virtual time with time skipping (prototype)",
+  "updated_at": "2026-10-10T23:14:47.986406Z"
 }

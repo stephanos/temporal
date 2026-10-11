@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	MinimumTraceBytes      = traceHeaderBytes + traceRecordBytes
-	MaximumTraceBytes      = 64 << 20
+	MinimumTraceBytes = traceHeaderBytes + traceRecordBytes
+	// MaximumTraceBytes admits whole-program WASM guests such as a Temporal
+	// one-box; the native runtime maps only its configured limit.
+	MaximumTraceBytes      = 1 << 30
 	MaximumReplayPlanBytes = MaximumTraceBytes - traceHeaderBytes + replayPlanHeaderBytes
 )
 

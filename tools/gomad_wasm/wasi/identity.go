@@ -7,7 +7,7 @@ import (
 	"io/fs"
 )
 
-//go:embed environment.go namespace.go clock.go protocol.go process.go runtime.go
+//go:embed environment.go namespace.go clock.go protocol.go process.go runtime.go network.go
 var implementationSources embed.FS
 
 func ImplementationSHA256() string {
@@ -16,7 +16,7 @@ func ImplementationSHA256() string {
 
 func implementationSHA256(sources fs.ReadFileFS) string {
 	var inventory []byte
-	for _, name := range []string{"clock.go", "environment.go", "namespace.go", "process.go", "protocol.go", "runtime.go"} {
+	for _, name := range []string{"clock.go", "environment.go", "namespace.go", "network.go", "process.go", "protocol.go", "runtime.go"} {
 		data, err := sources.ReadFile(name)
 		if err != nil {
 			return ""

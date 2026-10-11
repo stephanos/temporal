@@ -1,0 +1,98 @@
+//go:build wasip1
+
+package net
+
+import (
+	"internal/byteorder"
+	"os"
+	"syscall"
+	"time"
+)
+
+// Operations and actions of the gomad_wasm_v1 network model ABI.
+const (
+	gomadNetOpQuery   = 0
+	gomadNetOpConnect = 1
+	gomadNetOpWrite   = 2
+	gomadNetRefuse  = 1
+)
+
+// The cooperative runtime runs one P, so the shared buffer is never used concurrently.
+var gomadNetBuffer [32]byte
+var gomadNetState uint8 // 0 unknown, 1 no model, 2 model enabled
+
+//go:wasmimport gomad_wasm_v1 net
+//go:noescape
+func gomadWasmNet(*byte, uint32) uint32
+
+func gomadNetCall(op, local, remote uint32, count uint64) (action uint32, delay time.Duration) {
+	buffer := gomadNetBuffer[:]
+	clear(buffer)
+	byteorder.BEPutUint32(buffer[0:], 1)
+	byteorder.BEPutUint32(buffer[4:], op)
+	byteorder.BEPutUint32(buffer[8:], local)
+	byteorder.BEPutUint32(buffer[12:], remote)
+	byteorder.BEPutUint64(buffer[16:], count)
+	if gomadWasmNet(&buffer[0], uint32(len(buffer))) != 0 {
+		panic("net: gomad network model rejected operation")
+	}
+	return byteorder.BEUint32(buffer[4:]), time.Duration(byteorder.BEUint64(buffer[24:]))
+}
+
+func gomadNetEnabled() bool {
+	if gomadNetState == 0 {
+		gomadNetState = 1
+		if action, _ := gomadNetCall(gomadNetOpQuery, 0, 0, 0); action == gomadNetRefuse {
+			gomadNetState = 2
+		}
+	}
+	return gomadNetState == 2
+}
+
+func gomadNetPort(addr Addr) uint32 {
+	switch addr := addr.(type) {
+	case *TCPAddr:
+		return uint32(addr.Port)
+	case *UDPAddr:
+		return uint32(addr.Port)
+	}
+	return 0
+}
+
+// gomadNetConnect asks the model before a stream connect; a partition refuses it.
+func gomadNetConnect(fd *netFD, raddr sockaddr) error {
+	if !gomadNetEnabled() {
+		return nil
+	}
+	action, delay := gomadNetCall(gomadNetOpConnect, gomadNetPort(fd.laddr), gomadNetPort(raddr), 0)
+	if delay > 0 {
+		time.Sleep(delay)
+	}
+	if action == gomadNetRefuse {
+		return syscall.ECONNREFUSED
+	}
+	return nil
+}
+
+// gomadNetWrite asks the model before a stream write. The writer is delayed,
+// which preserves per-connection order; a reset fails both directions.
+func (ffd *fakeNetFD) gomadNetWrite(count int) error {
+	if ffd.peer == nil || ffd.fd.sotype != syscall.SOCK_STREAM || !gomadNetEnabled() {
+		return nil
+	}
+	action, delay := gomadNetCall(gomadNetOpWrite, gomadNetPort(ffd.fd.laddr), gomadNetPort(ffd.fd.raddr), uint64(count))
+	if delay > 0 {
+		time.Sleep(delay)
+	}
+	if action == gomadNetRefuse {
+		if ffd.peer.queue != nil {
+			ffd.peer.queue.setLinger(false)
+			ffd.peer.queue.closeWrite()
+		}
+		if ffd.queue != nil {
+			ffd.queue.closeRead()
+		}
+		return os.NewSyscallError("write", syscall.ECONNRESET)
+	}
+	return nil
+}

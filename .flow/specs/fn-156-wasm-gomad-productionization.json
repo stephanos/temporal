@@ -1,0 +1,33 @@
+{
+  "branch_name": "gomad",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-10T23:14:47.986406Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-151-wasm-gomad-execution-backend"
+  ],
+  "id": "fn-156-wasm-gomad-productionization",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-156-wasm-gomad-productionization.md",
+  "status": "open",
+  "title": "WASM Gomad productionization",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-10T23:14:47.986406Z"
+}

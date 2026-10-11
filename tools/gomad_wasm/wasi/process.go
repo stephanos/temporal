@@ -54,16 +54,27 @@ type Request struct {
 	Config                                             Config
 	Timeout                                            time.Duration
 	Runtime                                            *RuntimeControl
+	// StdoutMirror receives a live copy of guest stdout for progress observation.
+	StdoutMirror io.Writer
+	// CompileCache names a host-local directory where the helper keeps compiled
+	// modules across fresh executions. It is an optimization, never evidence.
+	CompileCache string
+	// DigestTranscript retains only the WASI transcript's SHA-256, bounding host
+	// memory for whole-program guests; Result.Transcript is then empty.
+	DigestTranscript bool
 }
 type Result struct {
 	Termination                                        string
 	ExitCode                                           *uint32
 	Message                                            string
-	Stdout, Stderr, Transcript                         []byte
+	Stdout, Stderr, Transcript, NetworkTranscript      []byte
 	EnvironmentIdentity                                string
 	Started                                            *Started
 	Reaped, Cancelled, WatchdogTimeout                 bool
 	FuelRemaining, PeakMemoryBytes, OfferedOutputBytes uint64
+	Calls                                              uint64
+	TranscriptSHA256                                   [32]byte
+	TimeAdvances                                       uint64
 	ChoiceTrace                                        choice.Trace
 	DiagnosticTrace                                    choice.DiagnosticTrace
 	ChoiceDivergence                                   *choice.Divergence
@@ -77,6 +88,7 @@ type executeFrame struct {
 	MemoryBytes  uint64 `json:"memory_bytes"`
 	Fuel         uint64 `json:"fuel"`
 	OutputBytes  uint64 `json:"output_bytes"`
+	CompileCache string `json:"compile_cache,omitempty"`
 }
 type resultFrame struct {
 	Type            string  `json:"type"`
@@ -143,11 +155,18 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	}
 	if environment.runtime != nil {
 		remaining := map[string]bool{"config": true, "decision": true, "observation": true, "finish": true, "idle": true}
+		// The network import is optional: guests without net never link it.
+		seenNet := false
 		for _, imported := range request.Imports {
 			if imported.Module != "gomad_wasm_v1" {
 				continue
 			}
-			if !remaining[imported.Name] || !slices.Equal(imported.Params, []string{"i32", "i32"}) || !slices.Equal(imported.Results, []string{"i32"}) {
+			if imported.Name == "net" && !seenNet {
+				seenNet = true
+			} else if !remaining[imported.Name] {
+				return Result{}, invalid("cooperative runtime import signature")
+			}
+			if !slices.Equal(imported.Params, []string{"i32", "i32"}) || !slices.Equal(imported.Results, []string{"i32"}) {
 				return Result{}, invalid("cooperative runtime import signature")
 			}
 			delete(remaining, imported.Name)
@@ -162,6 +181,10 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	if err := verifyFile(request.ModulePath, request.ModuleSHA256); err != nil {
 		return Result{}, err
 	}
+	environment.mirror = request.StdoutMirror
+	if request.DigestTranscript {
+		environment.digestOnly, environment.transcriptHash = true, sha256.New()
+	}
 	result := Result{EnvironmentIdentity: environment.Identity()}
 	if err := ctx.Err(); err != nil {
 		result.Termination = "infrastructure"
@@ -169,7 +192,10 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		result.Cancelled = true
 		return result, nil
 	}
-	execute := executeFrame{"gomad3.wasm-host/v1", "execute", request.ModulePath, request.ModuleSHA256, request.MemoryBytes, request.Fuel, request.Config.Limits.OutputBytes}
+	if request.CompileCache != "" && !filepath.IsAbs(request.CompileCache) {
+		return Result{}, invalid("compile cache directory")
+	}
+	execute := executeFrame{"gomad3.wasm-host/v1", "execute", request.ModulePath, request.ModuleSHA256, request.MemoryBytes, request.Fuel, request.Config.Limits.OutputBytes, request.CompileCache}
 	initial, err := json.Marshal(execute)
 	if err != nil {
 		return Result{}, err
@@ -201,6 +227,10 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	closeErr = errors.Join(closeErr, reader.Close())
 	result.Stdout, result.Stderr = environment.Output()
 	result.Transcript = environment.Transcript()
+	result.NetworkTranscript = environment.NetworkTranscript()
+	result.Calls = environment.nextCall - 1
+	result.TranscriptSHA256 = environment.TranscriptSHA256()
+	result.TimeAdvances = environment.advances
 	result.Started = stream.started
 	result.Reaped = host.GroupGone
 	result.Cancelled = ctx.Err() != nil

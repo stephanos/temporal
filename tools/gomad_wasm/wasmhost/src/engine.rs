@@ -11,6 +11,10 @@ use wasmtime::{
     Trap, ValType,
 };
 
+/// Whole cooperative Temporal workloads make one host callback per scheduler
+/// decision; the environment's own call limit is the operative bound.
+const MAX_CALLBACKS: u64 = 1 << 28;
+
 pub struct Limits {
     pub max: usize,
     pub peak: usize,
@@ -68,7 +72,7 @@ impl State {
         Error::msg(message)
     }
     pub fn callback(&mut self, op: &str, input: Value) -> Result<Reply> {
-        if self.calls >= 1_000_000 {
+        if self.calls >= MAX_CALLBACKS {
             return Err(self.fail("capacity", "callback capacity"));
         }
         self.calls += 1;
@@ -225,11 +229,10 @@ fn prepare(request: &Execute) -> std::result::Result<(Engine, Module, Value), Ou
         .wasm_multi_memory(false);
     let engine = Engine::new(&config)
         .map_err(|error| Outcome::new("infrastructure", format!("{error:#}")))?;
-    let mut builder = CodeBuilder::new(&engine);
-    builder
-        .wasm_binary_or_text(&bytes, None)
-        .map_err(|error| Outcome::new("invalid", format!("{error:#}")))?;
-    let module = builder.compile_module().map_err(compilation_failure)?;
+    let module = match &request.compile_cache {
+        Some(directory) => cached_module(&engine, &bytes, directory, &request.module_sha256)?,
+        None => compile(&engine, &bytes)?,
+    };
     let resources = module.resources_required();
     if resources.num_tables > 8
         || resources
@@ -309,6 +312,41 @@ fn prepare(request: &Execute) -> std::result::Result<(Engine, Module, Value), Ou
     }
     let started = json!({"schema":protocol::SCHEMA,"type":"started","engine":{"name":"wasmtime","version":"47.0.3","configuration":"cranelift-fuel-nan-canonical-v1","host_os":std::env::consts::OS,"host_arch":std::env::consts::ARCH},"module_sha256":request.module_sha256,"imports":imports,"exports":exports,"initial_memory_pages":pages});
     Ok((engine, module, started))
+}
+fn compile(engine: &Engine, bytes: &[u8]) -> std::result::Result<Module, Outcome> {
+    let mut builder = CodeBuilder::new(engine);
+    builder
+        .wasm_binary_or_text(bytes, None)
+        .map_err(|error| Outcome::new("invalid", format!("{error:#}")))?;
+    builder.compile_module().map_err(compilation_failure)
+}
+
+/// Loads the verified module's compiled code from the host-local cache, or
+/// compiles and publishes it. Entries are keyed by module digest and engine
+/// configuration; Wasmtime also rejects artifacts from another engine build.
+fn cached_module(
+    engine: &Engine,
+    bytes: &[u8],
+    directory: &str,
+    module_sha256: &str,
+) -> std::result::Result<Module, Outcome> {
+    let path = std::path::Path::new(directory).join(format!(
+        "{module_sha256}-wasmtime-47.0.3-cranelift-fuel-nan-canonical-v1.cwasm"
+    ));
+    // SAFETY: the cache directory is written only by this helper below.
+    if let Ok(module) = unsafe { Module::deserialize_file(engine, &path) } {
+        return Ok(module);
+    }
+    let module = compile(engine, bytes)?;
+    let serialized = module
+        .serialize()
+        .map_err(|error| Outcome::new("infrastructure", format!("{error:#}")))?;
+    let staging = path.with_extension(format!("{}.tmp", std::process::id()));
+    std::fs::create_dir_all(directory)
+        .and_then(|_| std::fs::write(&staging, &serialized))
+        .and_then(|_| std::fs::rename(&staging, &path))
+        .map_err(|error| Outcome::new("infrastructure", error.to_string()))?;
+    Ok(module)
 }
 fn type_name(ty: ValType) -> &'static str {
     match ty {

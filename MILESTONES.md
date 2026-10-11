@@ -9,7 +9,8 @@ same seed produces the same run and a retained artifact replays byte-exactly.
 
 The WASM backend lives alongside Gomad v3 in `tools/gomad_wasm` and shares its
 campaign, artifact, replay, and choice owners. [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md)
-owns its delivery ladder: `.5 → .6 → (.7, .8) → .9 → .10 → .11`.
+is the determinism prototype (`.5 → .6 → .7 → .8` go/no-go);
+[fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) productionizes it only after a recorded "go".
 Read [the WASM README](tools/gomad_wasm/README.md) before working on that backend.
 Stock-WASI repetition does not establish forced scheduling replay, strict virtual
 time, modeled fault recovery, or multi-node isolation.
@@ -204,7 +205,7 @@ CI, PR, or push authority.
 
 ## Specs
 
-## WASM execution backend — [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md)
+## WASM determinism prototype — [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
@@ -212,15 +213,23 @@ CI, PR, or push authority.
 | [fn-151.2](.flow/tasks/fn-151-wasm-gomad-execution-backend.2.md) | ✅ Done | Captured file namespace, seeded entropy, modeled clock/poll, and capacity limits |
 | [fn-151.3](.flow/tasks/fn-151-wasm-gomad-execution-backend.3.md) | ✅ Done | Selected unchanged SQLite and one-box Temporal tests in a sealed guest |
 | [fn-151.4](.flow/tasks/fn-151-wasm-gomad-execution-backend.4.md) | ✅ Done | Preparation, campaign artifacts, observed replay, resume, and native-byte preservation |
-| [fn-151.5](.flow/tasks/fn-151-wasm-gomad-execution-backend.5.md) | 🚧 In progress | Cooperative runtime and exact replay WIP; required qualification remains incomplete |
-| [fn-151.6](.flow/tasks/fn-151-wasm-gomad-execution-backend.6.md) | ⬜ Todo | Strict virtual time, readiness handshakes, bounded exploration, and non-progress outcomes |
-| [fn-151.7](.flow/tasks/fn-151-wasm-gomad-execution-backend.7.md) | ⬜ Todo | Durable SQLite volumes, storage faults, crash recovery, and replay |
-| [fn-151.8](.flow/tasks/fn-151-wasm-gomad-execution-backend.8.md) | ⬜ Todo | Network faults, reference checks, and recovery replay |
-| [fn-151.9](.flow/tasks/fn-151-wasm-gomad-execution-backend.9.md) | ⬜ Todo | Independent guest nodes, broker/global clock, volumes/incarnations, and stale-handle rejection |
-| [fn-151.10](.flow/tasks/fn-151-wasm-gomad-execution-backend.10.md) | ⬜ Todo | Retained workload qualification and measured backend costs |
-| [fn-151.11](.flow/tasks/fn-151-wasm-gomad-execution-backend.11.md) | ⬜ Todo | Supported-profile optimization, caching, installation, discovery, and operator documentation |
+| [fn-151.5](.flow/tasks/fn-151-wasm-gomad-execution-backend.5.md) | 🚧 In progress | Seeded cooperative scheduling, same-seed identical runs, and exact tape replay (prototype gate) |
+| [fn-151.6](.flow/tasks/fn-151-wasm-gomad-execution-backend.6.md) | ⬜ Todo | Strict virtual time with quiescence-only time skipping |
+| [fn-151.7](.flow/tasks/fn-151-wasm-gomad-execution-backend.7.md) | ⬜ Todo | Simulated in-guest network: deterministic delivery, delay, partition/heal, reset |
+| [fn-151.8](.flow/tasks/fn-151-wasm-gomad-execution-backend.8.md) | ⬜ Todo | Integrated determinism gate on one-box smoke suites, measured costs, go/no-go |
 | [fn-151.12](.flow/tasks/fn-151-wasm-gomad-execution-backend.12.md) | ✅ Done | Cancelled by owner: standalone extraction and deletion of gomad3 |
-| [fn-151.13](.flow/tasks/fn-151-wasm-gomad-execution-backend.13.md) | ✅ Done | WASM and tracking moved into temporal; old checkout archived recoverably |
+
+## WASM productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | ⬜ Todo | Full scheduling qualification (map/GC/entropy, 32x100) and optional checkpoints |
+| [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | ⬜ Todo | Bounded exploration, resume, minimization, and non-progress outcomes |
+| [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | ⬜ Todo | Durable SQLite volumes, storage faults, crash recovery, and replay |
+| [fn-156.4](.flow/tasks/fn-156-wasm-gomad-productionization.4.md) | ⬜ Todo | Complete network model and reference checks |
+| [fn-156.5](.flow/tasks/fn-156-wasm-gomad-productionization.5.md) | ⬜ Todo | Independent guest nodes, broker/global clock, volumes/incarnations, and stale-handle rejection |
+| [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | ⬜ Todo | Retained workload qualification and measured backend costs |
+| [fn-156.7](.flow/tasks/fn-156-wasm-gomad-productionization.7.md) | ⬜ Todo | Supported-profile optimization, caching, installation, discovery, and operator documentation |
 
 <a id="open-findings"></a>
 <a id="determinism-gaps"></a>

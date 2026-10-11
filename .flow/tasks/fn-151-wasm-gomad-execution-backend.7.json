@@ -11,6 +11,6 @@
   "spec": "fn-151-wasm-gomad-execution-backend",
   "spec_path": ".flow/tasks/fn-151-wasm-gomad-execution-backend.7.md",
   "status": "todo",
-  "title": "Model file-backed SQLite faults and crash recovery",
-  "updated_at": "2026-10-09T22:04:38.947361Z"
+  "title": "Simulated in-guest network (prototype)",
+  "updated_at": "2026-10-10T23:14:47.986406Z"
 }

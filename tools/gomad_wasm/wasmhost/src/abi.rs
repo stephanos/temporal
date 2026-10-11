@@ -9,7 +9,7 @@ use wasmtime::{Caller, Error, Memory, Result, Val};
 pub fn signature(module: &str, name: &str) -> Option<(Vec<&'static str>, Vec<&'static str>)> {
     if module == "gomad_wasm_v1" {
         return match name {
-            "config" | "decision" | "observation" | "finish" | "idle" => {
+            "config" | "decision" | "observation" | "finish" | "idle" | "net" => {
                 Some((vec!["i32", "i32"], vec!["i32"]))
             }
             _ => None,
@@ -590,6 +590,7 @@ fn invoke_runtime(
     let input = (|| -> Result<Value> {
         let maximum = match op {
             "config" | "finish" | "idle" => 16,
+            "net" => 32,
             "decision" => 32 + 256 * 32 + 96,
             "observation" => 192,
             _ => return Err(Error::msg("unsupported runtime import")),
@@ -600,6 +601,7 @@ fn invoke_runtime(
         let valid_length = match op {
             "decision" => length >= 96 && (length - 32).is_multiple_of(32),
             "observation" => length == 96 || length == 192,
+            "net" => length == 32,
             _ => length == 16,
         };
         if !valid_length {

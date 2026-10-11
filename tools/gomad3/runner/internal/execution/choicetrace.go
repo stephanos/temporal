@@ -8,10 +8,23 @@ import (
 )
 
 const (
-	MinimumChoiceTraceBytes      = choice.MinimumTraceBytes
-	MaximumChoiceTraceBytes      = choice.MaximumTraceBytes
-	MaximumChoiceReplayPlanBytes = choice.MaximumReplayPlanBytes
+	MinimumChoiceTraceBytes = choice.MinimumTraceBytes
+	// The native runner maps its trace and tape, so it keeps its historical
+	// 64 MiB bound below the codec's whole-program maximum.
+	MaximumChoiceTraceBytes      = 64 << 20
+	MaximumChoiceReplayPlanBytes = MaximumChoiceTraceBytes - (choice.MaximumTraceBytes - choice.MaximumReplayPlanBytes)
 )
+
+// validateChoiceTraceLimit applies the native runner's bound on top of the codec's.
+func validateChoiceTraceLimit(limit uint64) error {
+	if err := choice.ValidateTraceLimit(limit); err != nil {
+		return err
+	}
+	if limit > MaximumChoiceTraceBytes {
+		return fmt.Errorf("invalid choice trace limit %d", limit)
+	}
+	return nil
+}
 
 var (
 	ErrChoiceTraceMalformed    = errors.New("choice trace malformed")

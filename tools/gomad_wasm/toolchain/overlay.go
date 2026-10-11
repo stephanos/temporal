@@ -24,12 +24,15 @@ import (
 //go:embed runtime_wasm.go.txt
 var runtimeGlue []byte
 
+//go:embed net_wasm.go.txt
+var netGlue []byte
+
 //go:embed overlay.go
 var overlayImplementation []byte
 
 func ImplementationSHA256() string {
 	input := []byte("gomad-wasm-runtime-implementation/v1\x00")
-	for _, source := range [][]byte{overlayImplementation, runtimeGlue} {
+	for _, source := range [][]byte{overlayImplementation, runtimeGlue, netGlue} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(source)))
 		input = append(input, size[:]...)
@@ -92,10 +95,11 @@ func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath,
 	if err != nil {
 		return "", "", fmt.Errorf("native choice codec: %w", err)
 	}
-	inputs := map[string][]byte{"VERSION": version, "native-semantic-declarations": extracted, "native-choicewire": wire, "wasm-glue": runtimeGlue}
+	inputs := map[string][]byte{"VERSION": version, "native-semantic-declarations": extracted, "native-choicewire": wire, "wasm-glue": runtimeGlue, "wasm-net-glue": netGlue}
 	outputs := map[string][]byte{}
+	// Output names are paths relative to GOROOT/src; runtime files keep their historical bare names.
 	for name, rules := range stockRewrites() {
-		original, err := os.ReadFile(filepath.Join(stockRoot, "src/runtime", name))
+		original, err := os.ReadFile(filepath.Join(stockRoot, sourcePath(name)))
 		if err != nil {
 			return "", "", fmt.Errorf("stock runtime %s: %w", name, err)
 		}
@@ -118,8 +122,12 @@ func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath,
 		return "", "", fmt.Errorf("format WASM runtime: %w", err)
 	}
 	outputs["gomad_choicewire_generated.go"] = wire
-	for _, name := range []string{"gomad_wasm.go", "gomad_choicewire_generated.go"} {
-		if _, err := os.Lstat(filepath.Join(stockRoot, "src/runtime", name)); err == nil || !os.IsNotExist(err) {
+	outputs["net/gomad_wasm_net.go"], err = format.Source(netGlue)
+	if err != nil {
+		return "", "", fmt.Errorf("format WASM network glue: %w", err)
+	}
+	for _, name := range []string{"gomad_wasm.go", "gomad_choicewire_generated.go", "net/gomad_wasm_net.go"} {
+		if _, err := os.Lstat(filepath.Join(stockRoot, sourcePath(name))); err == nil || !os.IsNotExist(err) {
 			return "", "", fmt.Errorf("WASM runtime overlay collides with stock file %s", name)
 		}
 	}
@@ -174,7 +182,7 @@ func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath,
 	directory := filepath.Join(outputRoot, identity)
 	manifest := struct{ Replace map[string]string }{Replace: make(map[string]string, len(outputs))}
 	for name := range outputs {
-		manifest.Replace[filepath.Join(stockRoot, "src/runtime", name)] = filepath.Join(directory, name)
+		manifest.Replace[filepath.Join(stockRoot, sourcePath(name))] = filepath.Join(directory, publishedName(name))
 	}
 	data, err := json.Marshal(manifest)
 	if err != nil {
@@ -196,7 +204,7 @@ func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath,
 	}
 	defer func() { err = errors.Join(err, os.RemoveAll(staging)) }()
 	for name, data := range outputs {
-		if err := os.WriteFile(filepath.Join(staging, name), data, 0600); err != nil {
+		if err := os.WriteFile(filepath.Join(staging, publishedName(name)), data, 0600); err != nil {
 			return "", "", fmt.Errorf("write runtime overlay %s: %w", name, err)
 		}
 	}
@@ -224,7 +232,7 @@ func verifyPublished(directory string, outputs map[string][]byte) error {
 		return fmt.Errorf("runtime overlay inventory changed")
 	}
 	for name, expected := range outputs {
-		data, err := hostfs.ReadBounded(filepath.Join(directory, name), uint64(len(expected)))
+		data, err := hostfs.ReadBounded(filepath.Join(directory, publishedName(name)), uint64(len(expected)))
 		if err != nil {
 			return fmt.Errorf("runtime overlay %s: %w", name, err)
 		}
@@ -234,6 +242,17 @@ func verifyPublished(directory string, outputs map[string][]byte) error {
 	}
 	return nil
 }
+
+// sourcePath maps an overlay output name to its path beneath GOROOT.
+func sourcePath(name string) string {
+	if strings.Contains(name, "/") {
+		return filepath.Join("src", name)
+	}
+	return filepath.Join("src/runtime", name)
+}
+
+// publishedName flattens an output name into the overlay directory.
+func publishedName(name string) string { return strings.ReplaceAll(name, "/", ".") }
 
 func extractNative(source []byte) ([]byte, error) {
 	set := token.NewFileSet()
@@ -324,6 +343,10 @@ func stockRewrites() map[string][]rewrite {
 		"os_wasip1.go": {
 			{"func exit(code int32)", "func gomadWasmExit(code int32)", 1},
 			{"\treturn int64(time)\n", "\tgomadWasmLastTime = int64(time)\n\treturn int64(time)\n", 1},
+		},
+		"net/net_fake.go": {
+			{"func (ffd *fakeNetFD) Write(p []byte) (nn int, err error) {\n", "func (ffd *fakeNetFD) Write(p []byte) (nn int, err error) {\n\tif err := ffd.gomadNetWrite(len(p)); err != nil {\n\t\treturn 0, err\n\t}\n", 1},
+			{"\tfa := fakeAddr(raddr)\n\tlni, ok := sockets.Load(fa)\n", "\tif err := gomadNetConnect(fd, raddr); err != nil {\n\t\treturn wrapErr(err)\n\t}\n\tfa := fakeAddr(raddr)\n\tlni, ok := sockets.Load(fa)\n", 1},
 		},
 		"note_other.go": {{"\tkey uintptr\n", "\tkey uintptr\n\twaiter guintptr\n\tdeadline int64\n\tnext *note\n\tstatus uint8\n", 1}},
 		"lock_wasip1.go": {
